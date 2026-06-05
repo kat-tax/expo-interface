@@ -4,17 +4,17 @@ import {DateTimePicker} from '@/components/ui/date-time';
 import {usePalette} from '@/theme';
 
 export function SettingsForm() {
-  const [notifications, setNotifications] = useState(true);
+  const [dropPrivate, setDropPrivate] = useState(true);
   const [analytics, setAnalytics] = useState(false);
   const [datetime, setDatetime] = useState(() => new Date());
   const palette = usePalette();
   return (
     <FieldGroup>
-      <FieldGroup.Section title="Notifications">
+      <FieldGroup.Section title="Drop Defaults">
         <Switch
-          label="Push"
-          value={notifications}
-          onValueChange={setNotifications}
+          label="Private"
+          value={dropPrivate}
+          onValueChange={setDropPrivate}
         />
         <Switch
           label="Email"
