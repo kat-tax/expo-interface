@@ -1,7 +1,8 @@
 import {useState} from 'react';
-import {FieldGroup, Switch, Text} from '@expo/ui';
+import {FieldGroup, Text} from '@expo/ui';
 import {DateTimePicker} from '@/components/ui/date-time';
 import {Picker} from '@/components/ui/picker';
+import {Switch} from '@/components/ui/switch';
 
 import {usePalette} from '@/theme';
 
