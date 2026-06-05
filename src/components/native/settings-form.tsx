@@ -18,9 +18,9 @@ export function SettingsForm() {
   const palette = usePalette();
   return (
     <FieldGroup>
-      <FieldGroup.Section title="Drop Defaults">
+      <FieldGroup.Section title="Defaults">
         <Picker
-          label="Privacy"
+          label="Drop Privacy"
           selectedValue={dropPrivacy}
           onValueChange={setDropPrivacy}>
           {DROP_OPTIONS.map(f => (
