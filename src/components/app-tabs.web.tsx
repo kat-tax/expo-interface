@@ -1,79 +1,84 @@
+import type {Href} from 'expo-router';
+import {SymbolView} from 'expo-symbols';
 import {
-  TabList,
-  TabListProps,
+  Text,
+  View,
+  Pressable,
+  StyleSheet,
+} from 'react-native';
+import {
   Tabs,
   TabSlot,
+  TabList,
   TabTrigger,
+  TabListProps,
   TabTriggerSlotProps,
 } from 'expo-router/ui';
-import {SymbolView} from 'expo-symbols';
-import {Pressable, StyleSheet, useColorScheme, View} from 'react-native';
-
+import {Spacing} from '@/constants/theme';
 import {ExternalLink} from './external-link';
-import {ThemedText} from './themed-text';
-import {ThemedView} from './themed-view';
-
-import {Colors, Spacing} from '@/constants/theme';
 
 export default function AppTabs() {
   return (
     <Tabs>
       <TabSlot style={{ height: '100%' }} />
       <TabList asChild>
-        <CustomTabList>
+        <WebTabList>
           <TabTrigger name="home" href="/" asChild>
-            <TabButton>Home</TabButton>
+            <LinkInternal>Home</LinkInternal>
           </TabTrigger>
           <TabTrigger name="settings" href="/settings" asChild>
-            <TabButton>Settings</TabButton>
+            <LinkInternal>Settings</LinkInternal>
           </TabTrigger>
-        </CustomTabList>
+        </WebTabList>
       </TabList>
     </Tabs>
   );
 }
 
-export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+export function WebTabList(props: TabListProps) {
   return (
-    <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
-      <ThemedView
-        type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
-        style={styles.tabButtonView}>
-        <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
-          {children}
-        </ThemedText>
-      </ThemedView>
-    </Pressable>
-  );
-}
-
-export function CustomTabList(props: TabListProps) {
-
-  return (
-    <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <ThemedText type="smallBold" style={styles.brandText}>
+    <View {...props} style={styles.root}>
+      <View style={styles.inner}>
+        <Text style={styles.logo}>
           DropFiles
-        </ThemedText>
-
+        </Text>
         {props.children}
-
-      </ThemedView>
+      </View>
     </View>
   );
 }
 
-function DocsLink() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+function LinkInternal({children, isFocused, ...props}: TabTriggerSlotProps) {
   return (
-    <ExternalLink href="https://docs.expo.dev" asChild>
-      <Pressable style={styles.externalPressable}>
-        <ThemedText type="link">Docs</ThemedText>
+    <Pressable {...props} style={({pressed}) => pressed && styles.pressed}>
+      <Text style={[
+        styles.link,
+        styles.linkInternal,
+        isFocused && styles.linkFocused,
+      ]}>
+        {children}
+      </Text>
+    </Pressable>
+  );
+}
+
+function LinkExternal({href, children}: {href: Href & string, children: React.ReactNode}) {
+  return (
+    <ExternalLink href={href} asChild>
+      <Pressable style={styles.linkExternalPressable}>
+        <Text style={[
+          styles.link,
+          styles.linkExternal,
+        ]}>
+          {children}
+        </Text>
         <SymbolView
-          tintColor={colors.text}
-          name={{ ios: 'arrow.up.right.square', web: 'link' }}
+          tintColor={'#666'}
           size={12}
+          name={{
+            ios: 'arrow.up.right.square',
+            web: 'link',
+          }}
         />
       </Pressable>
     </ExternalLink>
@@ -81,40 +86,49 @@ function DocsLink() {
 }
 
 const styles = StyleSheet.create({
-  tabListContainer: {
+  root: {
     position: 'absolute',
-    width: '100%',
-    padding: Spacing.three,
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    flexDirection: 'row',
+    padding: Spacing.three,
+    width: '100%',
   },
-  innerContainer: {
+  inner: {
+    flexGrow: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: Spacing.two,
     paddingHorizontal: Spacing.five,
     borderRadius: Spacing.five,
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexGrow: 1,
-    gap: Spacing.two,
+    gap: Spacing.three,
     maxWidth: 800,
+    backgroundColor: '#222',
   },
-  brandText: {
+  logo: {
     marginRight: 'auto',
+    color: '#EEE',
   },
-  pressed: {
-    opacity: 0.7,
+  link: {
+    color: '#999',
   },
-  tabButtonView: {
-    paddingVertical: Spacing.one,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.three,
+  linkFocused: {
+    color: '#FFF',
   },
-  externalPressable: {
+  linkInternal: {
+    color: '#999',
+  },
+  linkExternal: {
+    color: '#666',
+  },
+  linkExternalPressable: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: Spacing.one,
     marginLeft: Spacing.three,
+    gap: Spacing.one,
+  },
+  pressed: {
+    opacity: 0.7,
   },
 });
