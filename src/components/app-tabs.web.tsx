@@ -1,26 +1,15 @@
 import type {Href} from 'expo-router';
+
 import {SymbolView} from 'expo-symbols';
-import {
-  Text,
-  View,
-  Pressable,
-  StyleSheet,
-} from 'react-native';
-import {
-  Tabs,
-  TabSlot,
-  TabList,
-  TabTrigger,
-  TabListProps,
-  TabTriggerSlotProps,
-} from 'expo-router/ui';
-import {Spacing} from '@/constants/theme';
-import {ExternalLink} from './external-link';
+import {Text, View, Pressable, StyleSheet} from 'react-native';
+import {Tabs, TabSlot, TabList, TabTrigger, TabListProps, TabTriggerSlotProps} from 'expo-router/ui';
+import {ExternalLink} from '@/components/ui/external-link';
+import * as Theme from '@/constants/theme';
 
 export default function AppTabs() {
   return (
     <Tabs>
-      <TabSlot style={{ height: '100%' }} />
+      <TabSlot style={{height: '100%'}}/>
       <TabList asChild>
         <WebTabList>
           <TabTrigger name="home" href="/" asChild>
@@ -91,17 +80,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Spacing.three,
+    padding: Theme.Spacing.three,
     width: '100%',
   },
   inner: {
     flexGrow: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.two,
-    paddingHorizontal: Spacing.five,
-    borderRadius: Spacing.five,
-    gap: Spacing.three,
+    paddingVertical: Theme.Spacing.two,
+    paddingHorizontal: Theme.Spacing.five,
+    borderRadius: Theme.Spacing.five,
+    gap: Theme.Spacing.three,
     maxWidth: 800,
     backgroundColor: '#222',
   },
@@ -125,8 +114,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: Spacing.three,
-    gap: Spacing.one,
+    marginLeft: Theme.Spacing.three,
+    gap: Theme.Spacing.one,
   },
   pressed: {
     opacity: 0.7,

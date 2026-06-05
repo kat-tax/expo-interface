@@ -5,16 +5,16 @@ import {BottomTabInset, BoxMaxWidth, Spacing, TopBarInset} from '@/constants/the
 import {FileList} from '@/components/native/file-list';
 
 const DEMO_FILES = [
-  { id: 1, name: 'wedding.mp4', size: '1.3 GB', type: 'video' as const },
-  { id: 2, name: 'kryptonite.mp3', size: '12 MB', type: 'audio' as const },
-  { id: 3, name: 'code.tsx', size: '3 KB', type: 'text' as const },
-  { id: 4, name: 'deer.jpg', size: '100 KB', type: 'image' as const },
-  { id: 5, name: 'cursor.exe', size: '1 KB', type: 'other' as const },
+  {id: 1, name: 'wedding.mp4', size: '1.3 GB', type: 'video' as const},
+  {id: 2, name: 'kryptonite.mp3', size: '12 MB', type: 'audio' as const},
+  {id: 3, name: 'code.tsx', size: '3 KB', type: 'text' as const},
+  {id: 4, name: 'deer.jpg', size: '100 KB', type: 'image' as const},
+  {id: 5, name: 'cursor.exe', size: '1 KB', type: 'other' as const},
 ];
 
 export default function HomeScreen() {
   return (
-    <SafeAreaView style={styles.safearea}>
+    <SafeAreaView style={styles.root}>
       <View style={styles.viewport}>
         <Host style={{flex: 1}}>
           <FileList items={DEMO_FILES}/>
@@ -25,13 +25,13 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  safearea: {
+  root: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
     alignItems: 'center',
-    gap: Spacing.three,
+    paddingHorizontal: Spacing.four,
     paddingBottom: BottomTabInset + Spacing.three,
     paddingTop: TopBarInset,
+    gap: Spacing.three,
   },
   viewport: {
     flex: 1,
