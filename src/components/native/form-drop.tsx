@@ -15,9 +15,22 @@ export function FormDrop({id}: FormDropProps) {
     <Host style={{flex: 1}}>
       <FieldGroup>
         <FieldGroup.Section title="Notifications">
-          <Switch label="Push" value={notifications} onValueChange={setNotifications} />
-          <Switch label="Email" value={analytics} onValueChange={setAnalytics} />
-          <DateTimePicker label="Expiration" mode="datetime" value={datetime} onChange={setDatetime} />
+          <Switch
+            label="Push"
+            value={notifications}
+            onValueChange={setNotifications}
+          />
+          <Switch
+            label="Email"
+            value={analytics}
+            onValueChange={setAnalytics}
+          />
+          <DateTimePicker
+            label="Expiration"
+            mode="datetime"
+            value={datetime}
+            onChange={setDatetime}
+          />
         </FieldGroup.Section>
         <FieldGroup.Section title="About">
           <Text>Version 1.0.0</Text>
