@@ -1,23 +1,33 @@
 import {useState} from 'react';
 import {FieldGroup, Switch, Text} from '@expo/ui';
 import {DateTimePicker} from '@/components/ui/date-time';
+import {Picker} from '@/components/ui/picker';
+
 import {usePalette} from '@/theme';
 
+const DROP_OPTIONS = [
+  {label: 'Public', value: 'public'},
+  {label: 'Private', value: 'private'},
+];
+
 export function SettingsForm() {
-  const [dropPrivate, setDropPrivate] = useState(true);
+  const [dropPrivacy, setDropPrivacy] = useState('public');
   const [analytics, setAnalytics] = useState(false);
   const [datetime, setDatetime] = useState(() => new Date());
   const palette = usePalette();
   return (
     <FieldGroup>
       <FieldGroup.Section title="Drop Defaults">
+        <Picker
+          label="Privacy"
+          selectedValue={dropPrivacy}
+          onValueChange={setDropPrivacy}>
+          {DROP_OPTIONS.map(f => (
+            <Picker.Item key={f.value} label={f.label} value={f.value} />
+          ))}
+        </Picker>
         <Switch
-          label="Private"
-          value={dropPrivate}
-          onValueChange={setDropPrivate}
-        />
-        <Switch
-          label="Email"
+          label="Notify on upload"
           value={analytics}
           onValueChange={setAnalytics}
         />
