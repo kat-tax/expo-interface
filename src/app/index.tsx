@@ -1,7 +1,7 @@
 import {Host} from '@expo/ui';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StyleSheet, View} from 'react-native';
-import {BottomTabInset, BoxMaxWidth, Spacing, TopBarInset} from '@/constants/theme';
+import {BottomTabInset, BoxMaxWidth, Spacing, TopBarInset} from '@/theme';
 import {FileList} from '@/components/native/file-list';
 
 const DEMO_FILES = [

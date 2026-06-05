@@ -1,21 +1,34 @@
-import { useEffect, useState } from 'react';
-import { useColorScheme as useRNColorScheme } from 'react-native';
+import { useSyncExternalStore } from 'react';
+
+const QUERY = '(prefers-color-scheme: dark)';
 
 /**
- * To support static rendering, this value needs to be re-calculated on the client side for web
+ * Subscribes to OS-level color scheme changes via the `prefers-color-scheme`
+ * media query.
  */
-export function useColorScheme() {
-  const [hasHydrated, setHasHydrated] = useState(false);
-
-  useEffect(() => {
-    setHasHydrated(true);
-  }, []);
-
-  const colorScheme = useRNColorScheme();
-
-  if (hasHydrated) {
-    return colorScheme;
+function subscribe(onChange: () => void): () => void {
+  if (typeof window === 'undefined' || !window.matchMedia) {
+    return () => {};
   }
+  const media = window.matchMedia(QUERY);
+  media.addEventListener('change', onChange);
+  return () => media.removeEventListener('change', onChange);
+}
 
+/**
+ * Reads the current scheme synchronously on the client. Because this runs
+ * during the hydration commit (before the browser paints), the correct value
+ * is applied immediately with no light-mode flash.
+ */
+function getSnapshot(): 'light' | 'dark' {
+  return window.matchMedia(QUERY).matches ? 'dark' : 'light';
+}
+
+/** Static rendering has no media query, so default to light on the server. */
+function getServerSnapshot(): 'light' {
   return 'light';
+}
+
+export function useColorScheme(): 'light' | 'dark' {
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }

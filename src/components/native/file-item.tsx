@@ -1,7 +1,7 @@
 import type {FileType} from '@/types/files';
 
 import {ListItem, Text} from '@expo/ui';
-import {IconFile} from '@/components/icons/files';
+import {FileIcon} from '@/components/native/file-icon';
 
 export interface FileItemProps {
   id: number;
@@ -14,7 +14,7 @@ export function FileItem({name, size, type}: FileItemProps) {
   return (
     <ListItem onPress={() => {}}>
       <ListItem.Leading>
-        <IconFile name={type} size={32}/>
+        <FileIcon name={type} size={32}/>
       </ListItem.Leading>
       <Text>
         {name}

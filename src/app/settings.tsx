@@ -1,13 +1,17 @@
-import {StyleSheet, View} from 'react-native';
+import {Host} from '@expo/ui';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {FormDrop} from '@/components/native/form-drop';
-import * as Theme from '@/constants/theme';
+import {StyleSheet, View} from 'react-native';
+import {SettingsForm} from '@/components/native/settings-form';
+
+import * as Theme from '@/theme';
 
 export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.root}>
       <View style={styles.viewport}>
-        <FormDrop id="drop-1"/>
+        <Host style={{flex: 1}}>
+          <SettingsForm/>
+        </Host>
       </View>
     </SafeAreaView>
   );

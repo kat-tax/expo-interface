@@ -1,7 +1,9 @@
 import type {ChangeEvent, CSSProperties, MouseEvent} from 'react';
 import type {DateTimePickerProps} from './types';
 
-import {Pressable, StyleSheet, Text, useColorScheme, View} from 'react-native';
+import {Pressable, StyleSheet, View} from 'react-native';
+import {Label} from '@/components/ui/typography';
+import {colors} from '@/theme';
 import {formatValue, inputType, parseInputValue, toInputValue, useDateValue} from './shared';
 
 export * from './types';
@@ -25,7 +27,6 @@ export function DateTimePicker({
   style,
 }: DateTimePickerProps) {
   const [current, setValue] = useDateValue(value, onChange);
-  const isDark = useColorScheme() === 'dark';
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const next = parseInputValue(event.target.value, mode, current);
@@ -39,29 +40,20 @@ export function DateTimePicker({
   return (
     <View style={[styles.row, style]} testID={testID}>
       {label != null ? (
-        <Text style={[
-          styles.label,
-          isDark && styles.labelDark,
-          disabled && styles.disabled,
-        ]}>
+        <Label
+          color="label"
+          style={[styles.label, disabled && styles.disabled]}>
           {label}
-        </Text>
+        </Label>
       ) : null}
       <Pressable
         disabled={disabled}
-        style={[
-          styles.pill,
-          isDark ? styles.pillDark : styles.pillLight,
-          disabled && styles.disabled,
-        ]}>
-        <Text
-          style={[
-            styles.value,
-            isDark && styles.valueDark,
-            accentColor ? {color: accentColor} : null,
-          ]}>
+        style={[styles.pill, disabled && styles.disabled]}>
+        <Label
+          color={accentColor ?? 'secondary'}
+          style={styles.value}>
           {formatValue(current, mode)}
-        </Text>
+        </Label>
         <input
           type={inputType(mode)}
           value={toInputValue(current, mode)}
@@ -87,12 +79,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   label: {
-    fontSize: 14,
-    color: '#000000',
     flexShrink: 1,
-  },
-  labelDark: {
-    color: '#ffffff',
   },
   pill: {
     position: 'relative',
@@ -100,19 +87,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 11,
     paddingVertical: 4,
-  },
-  pillLight: {
-    backgroundColor: 'rgba(118, 118, 128, 0.12)',
-  },
-  pillDark: {
-    backgroundColor: 'rgba(118, 118, 128, 0.24)',
+    backgroundColor: colors.pillBackground,
   },
   value: {
-    fontSize: 14,
-    color: '#000000',
-  },
-  valueDark: {
-    color: '#c8c8c8',
+    flexShrink: 0,
   },
   disabled: {
     opacity: 0.4,

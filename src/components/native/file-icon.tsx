@@ -1,12 +1,12 @@
 import type {FileType} from '@/types/files';
 import {Icon} from '@expo/ui';
 
-export interface IconFile {
+export interface FileIcon {
   name: FileType;
   size?: number;
 }
 
-export function IconFile({name, size = 24}: IconFile) {
+export function FileIcon({name, size = 24}: FileIcon) {
   let icon = ICON_OTHER;
   switch (name) {
     case 'image':

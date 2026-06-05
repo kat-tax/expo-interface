@@ -1,10 +1,11 @@
 import type {Href} from 'expo-router';
 
 import {SymbolView} from 'expo-symbols';
-import {Text, View, Pressable, StyleSheet} from 'react-native';
+import {View, Pressable, StyleSheet} from 'react-native';
 import {Tabs, TabSlot, TabList, TabTrigger, TabListProps, TabTriggerSlotProps} from 'expo-router/ui';
 import {ExternalLink} from '@/components/ui/external-link';
-import * as Theme from '@/constants/theme';
+import {Headline, Label} from '@/components/ui/typography';
+import {colors, Spacing, BoxMaxWidth} from '@/theme';
 
 export default function AppTabs() {
   return (
@@ -28,9 +29,9 @@ export function WebTabList(props: TabListProps) {
   return (
     <View {...props} style={styles.root}>
       <View style={styles.inner}>
-        <Text style={styles.logo}>
-          DropFiles
-        </Text>
+        <Headline style={styles.logo} color="label">
+          dropfiles.io
+        </Headline>
         {props.children}
       </View>
     </View>
@@ -40,13 +41,9 @@ export function WebTabList(props: TabListProps) {
 function LinkInternal({children, isFocused, ...props}: TabTriggerSlotProps) {
   return (
     <Pressable {...props} style={({pressed}) => pressed && styles.pressed}>
-      <Text style={[
-        styles.link,
-        styles.linkInternal,
-        isFocused && styles.linkFocused,
-      ]}>
+      <Label color={isFocused ? 'label' : 'secondary'}>
         {children}
-      </Text>
+      </Label>
     </Pressable>
   );
 }
@@ -55,14 +52,11 @@ function LinkExternal({href, children}: {href: Href & string, children: React.Re
   return (
     <ExternalLink href={href} asChild>
       <Pressable style={styles.linkExternalPressable}>
-        <Text style={[
-          styles.link,
-          styles.linkExternal,
-        ]}>
+        <Label color="tertiary">
           {children}
-        </Text>
+        </Label>
         <SymbolView
-          tintColor={'#666'}
+          tintColor={colors.tertiaryLabel as string}
           size={12}
           name={{
             ios: 'arrow.up.right.square',
@@ -80,42 +74,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Theme.Spacing.three,
+    padding: Spacing.three,
     width: '100%',
   },
   inner: {
     flexGrow: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Theme.Spacing.two,
-    paddingHorizontal: Theme.Spacing.five,
-    borderRadius: Theme.Spacing.five,
-    gap: Theme.Spacing.three,
-    maxWidth: 800,
-    backgroundColor: '#222',
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.five,
+    borderRadius: Spacing.five,
+    gap: Spacing.three,
+    maxWidth: BoxMaxWidth,
+    backgroundColor: colors.backgroundElement,
   },
   logo: {
     marginRight: 'auto',
-    color: '#EEE',
-  },
-  link: {
-    color: '#999',
-  },
-  linkFocused: {
-    color: '#FFF',
-  },
-  linkInternal: {
-    color: '#999',
-  },
-  linkExternal: {
-    color: '#666',
   },
   linkExternalPressable: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: Theme.Spacing.three,
-    gap: Theme.Spacing.one,
+    marginLeft: Spacing.three,
+    gap: Spacing.one,
   },
   pressed: {
     opacity: 0.7,
