@@ -51,7 +51,7 @@ function PickerComponent<T extends PickerValue>({
           onChange={handleChange}
           style={{...overlayStyle, cursor: disabled ? 'default' : 'pointer'}}>
           {items.map(item => (
-            <option key={String(item.value)} value={String(item.value)}>
+            <option key={String(item.value)} value={String(item.value)} style={optionStyle}>
               {item.label}
             </option>
           ))}
@@ -106,9 +106,19 @@ const overlayStyle: CSSProperties = {
   margin: 0,
   padding: 0,
   border: 'none',
-  background: 'transparent',
   opacity: 0,
   appearance: 'none',
+  // The native options popup derives its colors from the select's own
+  // background/color (not `:root`), so theme them via CSS vars. `opacity: 0`
+  // keeps the overlay box invisible; the popup still uses these colors.
+  colorScheme: 'light dark',
+  color: 'var(--color-label)',
+  background: 'var(--color-background)',
+};
+
+const optionStyle: CSSProperties = {
+  color: 'var(--color-label)',
+  background: 'var(--color-background)',
 };
 
 function Chevron() {
