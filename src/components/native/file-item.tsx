@@ -1,6 +1,7 @@
 import type {FileType} from '@/types/files';
-import {IconFile} from '@/components/icons/files';
+
 import {ListItem, Text} from '@expo/ui';
+import {IconFile} from '@/components/icons/files';
 
 export interface FileItemProps {
   id: number;
