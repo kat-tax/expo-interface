@@ -1,4 +1,8 @@
 :root {
+  /* Let native form controls (select dropdowns, date/time pickers, scrollbars)
+     follow the OS light/dark preference instead of always rendering light. */
+  color-scheme: light dark;
+
   --font-display:
     Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
     Segoe UI Symbol, Noto Color Emoji;
