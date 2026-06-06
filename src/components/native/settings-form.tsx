@@ -27,16 +27,16 @@ export function SettingsForm() {
             <Picker.Item key={f.value} label={f.label} value={f.value} />
           ))}
         </Picker>
-        <Switch
-          label="Notify on upload"
-          value={analytics}
-          onValueChange={setAnalytics}
-        />
         <DateTimePicker
           label="Expiration"
           mode="datetime"
           value={datetime}
           onChange={setDatetime}
+        />
+        <Switch
+          label="Notify on upload"
+          value={analytics}
+          onValueChange={setAnalytics}
         />
       </FieldGroup.Section>
       <FieldGroup.Section title="About">
