@@ -50,19 +50,19 @@ export const colors: Record<SemanticColor, ColorValue> = {
     ios: () => PlatformColor('label'),
     android: () => PlatformColor('?android:attr/textColorPrimary'),
     web: 'var(--color-label)',
-    default: Colors.light.text,
+    default: Colors.light.label,
   }),
   secondaryLabel: platformToken({
     ios: () => PlatformColor('secondaryLabel'),
     android: () => PlatformColor('?android:attr/textColorSecondary'),
     web: 'var(--color-secondary-label)',
-    default: Colors.light.textSecondary,
+    default: Colors.light.secondaryLabel,
   }),
   tertiaryLabel: platformToken({
     ios: () => PlatformColor('tertiaryLabel'),
     android: () => PlatformColor('?android:attr/textColorTertiary'),
     web: 'var(--color-tertiary-label)',
-    default: Colors.light.textTertiary,
+    default: Colors.light.tertiaryLabel,
   }),
   background: platformToken({
     ios: () => PlatformColor('systemBackground'),

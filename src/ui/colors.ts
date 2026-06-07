@@ -1,8 +1,8 @@
 export const Colors = {
   light: {
-    text: '#000000',
-    textSecondary: '#60646C',
-    textTertiary: '#9094A0',
+    label: '#000000',
+    secondaryLabel: '#60646C',
+    tertiaryLabel: '#9094A0',
     background: '#ffffff',
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
@@ -11,9 +11,9 @@ export const Colors = {
     pillBackground: 'rgba(118, 118, 128, 0.12)',
   },
   dark: {
-    text: '#ffffff',
-    textSecondary: '#B0B4BA',
-    textTertiary: '#6E7378',
+    label: '#ffffff',
+    secondaryLabel: '#B0B4BA',
+    tertiaryLabel: '#6E7378',
     background: '#000000',
     backgroundElement: '#212225',
     backgroundSelected: '#2E3135',
@@ -25,32 +25,25 @@ export const Colors = {
 
 type PaletteKey = keyof typeof Colors.light;
 
-const WEB_COLOR_VARS: {var: string; key: PaletteKey}[] = [
-  {var: '--color-label', key: 'text'},
-  {var: '--color-secondary-label', key: 'textSecondary'},
-  {var: '--color-tertiary-label', key: 'textTertiary'},
-  {var: '--color-background', key: 'background'},
-  {var: '--color-background-element', key: 'backgroundElement'},
-  {var: '--color-background-selected', key: 'backgroundSelected'},
-  {var: '--color-separator', key: 'separator'},
-  {var: '--color-tint', key: 'tint'},
-  {var: '--color-pill-background', key: 'pillBackground'},
-];
-
-function paletteVars(palette: (typeof Colors)['light'] | (typeof Colors)['dark']): string {
-  return WEB_COLOR_VARS.map(({var: name, key}) => `  ${name}: ${palette[key]};`).join('\n');
+export function getWebColorCss(): string {
+  return `
+    :root {
+      color-scheme: light dark;
+      ${getThemeCss(Colors.light)}
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        ${getThemeCss(Colors.dark)}
+      }
+    }
+  `;
 }
 
-/** CSS custom properties for web, derived from the shared palette. */
-export function getWebColorVariablesCss(): string {
-  return `:root {
-  color-scheme: light dark;
-${paletteVars(Colors.light)}
+const toColorName = (key: PaletteKey): string => `--color-${camelToKebab(key)}`;
+const camelToKebab = (key: string): string => key.replace(/[A-Z]/g, (char) => `-${char.toLowerCase()}`);
+function getThemeCss(palette: (typeof Colors)['light'] | (typeof Colors)['dark']): string {
+  return (Object.keys(palette) as PaletteKey[])
+    .map((key) => `  ${toColorName(key)}: ${palette[key]};`)
+    .join('\n');
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-${paletteVars(Colors.dark)}
-  }
-}`;
-}

@@ -41,7 +41,7 @@ export function SettingsForm() {
       <FieldGroup.Section title="About">
         <Text>Version 1.0.0</Text>
         <FieldGroup.SectionFooter>
-          <Text textStyle={{fontSize: 12, color: palette.textSecondary}}>
+          <Text textStyle={{fontSize: 12, color: palette.secondaryLabel}}>
             You are on the latest version.
           </Text>
         </FieldGroup.SectionFooter>

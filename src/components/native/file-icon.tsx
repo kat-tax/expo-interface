@@ -8,7 +8,7 @@ export interface FileIconProps {
   size?: number;
 }
 export function FileIcon({name, size = 24}: FileIconProps) {
-  const {text} = usePalette();
+  const {label} = usePalette();
   let icon = _.ICON_FILE_OTHER;
   switch (name) {
     case 'image':
@@ -27,7 +27,7 @@ export function FileIcon({name, size = 24}: FileIconProps) {
     <SymbolView
       name={icon}
       size={size}
-      tintColor={text}
+      tintColor={label}
     />
   );
 }
