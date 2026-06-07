@@ -1,9 +1,9 @@
 const {
+  AndroidConfig,
+  withAndroidStyles,
   withAndroidColors,
   withAndroidColorsNight,
-  withAndroidStyles,
   createRunOncePlugin,
-  AndroidConfig,
 } = require('expo/config-plugins');
 
 const COLOR_NAME = 'appBackground';
