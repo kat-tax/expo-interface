@@ -1,11 +1,10 @@
-import {DarkTheme, DefaultTheme, ThemeProvider} from 'expo-router';
-import {useColorScheme} from 'react-native';
+import {ThemeProvider} from 'expo-router';
 import {Tabs} from '@/components/tabs';
+import {nav} from '@/ui/theme';
 
 export default function TabLayout() {
-  const scheme = useColorScheme();
   return (
-    <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={nav}>
       <Tabs/>
     </ThemeProvider>
   );

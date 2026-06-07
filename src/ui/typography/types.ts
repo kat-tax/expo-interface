@@ -35,11 +35,11 @@ export interface TypographyStyle {
 
 export interface TypographyProps {
   children: ReactNode;
+  testID?: string;
+  style?: StyleProp<TextStyle>;
   variant?: TypographyVariant;
-  color?: ColorTokens;
   weight?: TypographyWeight;
   align?: TypographyAlign;
+  color?: ColorTokens;
   numberOfLines?: number;
-  style?: StyleProp<TextStyle>;
-  testID?: string;
 }

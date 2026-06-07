@@ -1,10 +1,6 @@
 import type {TypographyProps} from './types';
-
+import * as theme from '@/ui/theme';
 import {Text} from 'react-native';
-import {getThemeVal} from '@/ui/theme';
-import * as styles from './styles';
-
-export * from './types';
 
 export function Typography({
   children,
@@ -16,20 +12,20 @@ export function Typography({
   numberOfLines,
   testID,
 }: TypographyProps) {
-  const v = styles.variants[variant];
+  const v = theme.variants[variant];
   return (
     <Text
       numberOfLines={numberOfLines}
       testID={testID}
       style={[
         {
-          fontSize: v.fontSize,
-          fontWeight: styles.fontWeights[weight ?? v.fontWeight],
-          lineHeight: v.lineHeight,
-          letterSpacing: v.letterSpacing,
-          color: getThemeVal(color),
-          fontFamily: styles.fontFamily,
           textAlign: align,
+          letterSpacing: v.letterSpacing,
+          lineHeight: v.lineHeight,
+          fontSize: v.fontSize,
+          fontWeight: theme.fontWeights[weight ?? v.fontWeight],
+          fontFamily: theme.fonts.sans,
+          color: theme.getVal(color),
         },
         style,
       ]}>
