@@ -1,4 +1,5 @@
-type PaletteKey = keyof typeof Colors.light;
+export type ColorTokens = keyof typeof Colors[keyof typeof Colors];
+export type ColorValues = typeof Colors[keyof typeof Colors];
 
 export const Colors = {
   light: {
@@ -29,20 +30,18 @@ export function getWebColorCss(): string {
   return `
     :root {
       color-scheme: light dark;
-      ${getThemeCss(Colors.light)}
+      ${getColorVars(Colors.light)}
     }
     @media (prefers-color-scheme: dark) {
       :root {
-        ${getThemeCss(Colors.dark)}
+        ${getColorVars(Colors.dark)}
       }
     }
   `;
 }
 
-const toColorName = (key: PaletteKey): string => `--color-${camelToKebab(key)}`;
-const camelToKebab = (key: string): string => key.replace(/[A-Z]/g, (char) => `-${char.toLowerCase()}`);
-function getThemeCss(palette: (typeof Colors)['light'] | (typeof Colors)['dark']): string {
-  return (Object.keys(palette) as PaletteKey[])
-    .map((key) => `  ${toColorName(key)}: ${palette[key]};`)
-    .join('\n');
-}
+const toVarName = (t: ColorTokens): string => `--color-${camelToKebab(t)}`;
+const camelToKebab = (c: string): string => c.replace(/[A-Z]/g, v => `-${v.toLowerCase()}`);
+const getColorVars = (v: ColorValues): string =>
+  (Object.entries(v) as Array<[ColorTokens, string]>)
+    .map(([k,v]) => `\t${toVarName(k)}: ${v};`).join('\n');

@@ -1,10 +1,10 @@
 import type {CSSProperties} from 'react';
-import type {TypographyProps, TypographyWeight} from './types';
 import type {TextStyle} from 'react-native';
-import {StyleSheet} from 'react-native';
+import type {TypographyProps, TypographyWeight} from './types';
 
+import {StyleSheet} from 'react-native';
+import {typographyVariants} from './variants';
 import {fontFamily, resolveTypographyColor} from './shared';
-import {getVariantStyle} from './variants';
 
 export * from './types';
 
@@ -18,33 +18,23 @@ export function Typography({
   style,
   testID,
 }: TypographyProps) {
-  const variantStyle = getVariantStyle(variant);
-  const flatStyle = StyleSheet.flatten(style);
-  const layoutStyle = toSpanStyle(flatStyle);
-  const spanStyle: CSSProperties = {
-    display: flatStyle?.flexShrink != null ? 'block' : undefined,
-    fontSize: variantStyle.fontSize,
-    fontWeight: weightMap[weight ?? variantStyle.fontWeight],
-    lineHeight: `${variantStyle.lineHeight}px`,
-    letterSpacing: variantStyle.letterSpacing,
-    color: resolveTypographyColor(color) as string,
-    fontFamily,
-    textAlign: align,
-    ...layoutStyle,
-    ...(numberOfLines === 1
-      ? {overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}
-      : numberOfLines != null
-        ? {
-            display: '-webkit-box',
-            WebkitLineClamp: numberOfLines,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }
-        : {}),
-  };
-
+  const rnStyle = StyleSheet.flatten(style);
+  const webStyle = typographyVariants[variant];
   return (
-    <span style={spanStyle} data-testid={testID}>
+    <span
+      data-testid={testID}
+      style={{
+        display: rnStyle?.flexShrink != null ? 'block' : undefined,
+        lineHeight: `${webStyle.lineHeight}px`,
+        letterSpacing: webStyle.letterSpacing,
+        fontWeight: WEIGHT_MAP[weight ?? webStyle.fontWeight],
+        fontSize: webStyle.fontSize,
+        fontFamily,
+        textAlign: align,
+        color: resolveTypographyColor(color) as string,
+        ...toWebStyle(rnStyle),
+        ...clampStyle(numberOfLines),
+      }}>
       {children}
     </span>
   );
@@ -94,47 +84,74 @@ export function Label(props: Omit<TypographyProps, 'variant'>) {
   return <Typography variant="label" {...props}/>;
 }
 
-const weightMap: Record<TypographyWeight, CSSProperties['fontWeight']> = {
+const WEIGHT_MAP: Record<TypographyWeight, number> = {
   normal: 400,
   medium: 500,
   semibold: 600,
   bold: 700,
-};
+} as const;
 
-function toSpanStyle(style: TextStyle | undefined): CSSProperties {
+const VALID_KEYS = [
+  // Position
+  'flexGrow',
+  'flexShrink',
+  // Dimension
+  'width',
+  'minWidth',
+  'maxWidth',
+  // Spacing
+  'margin',
+  'marginTop',
+  'marginLeft',
+  'marginRight',
+  'marginBottom',
+  'padding',
+  'paddingTop',
+  'paddingLeft',
+  'paddingRight',
+  'paddingBottom',
+] as const;
+
+const EXPAND_KEYS = {
+  marginVertical: ['marginTop', 'marginBottom'],
+  marginHorizontal: ['marginLeft', 'marginRight'],
+  paddingVertical: ['paddingTop', 'paddingBottom'],
+  paddingHorizontal: ['paddingLeft', 'paddingRight'],
+} as const;
+
+const clampStyle = (numberOfLines?: number): CSSProperties => {
+  if (numberOfLines === 1) {
+    return {
+      overflow: 'hidden',
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
+    };
+  }
+  if (numberOfLines != null) {
+    return {
+      display: '-webkit-box',
+      overflow: 'hidden',
+      WebkitBoxOrient: 'vertical',
+      WebkitLineClamp: numberOfLines,
+    };
+  }
+  return {};
+}
+
+const toWebStyle = (style?: TextStyle): CSSProperties => {
   if (!style) return {};
   const css: CSSProperties = {};
-  if (typeof style.opacity === 'number') css.opacity = style.opacity;
-  if (style.flexShrink != null) css.flexShrink = style.flexShrink;
-  if (style.flexGrow != null) css.flexGrow = style.flexGrow;
-  if (style.margin != null) css.margin = style.margin as CSSProperties['margin'];
-  if (style.marginTop != null) css.marginTop = style.marginTop as CSSProperties['marginTop'];
-  if (style.marginRight != null) css.marginRight = style.marginRight as CSSProperties['marginRight'];
-  if (style.marginBottom != null) css.marginBottom = style.marginBottom as CSSProperties['marginBottom'];
-  if (style.marginLeft != null) css.marginLeft = style.marginLeft as CSSProperties['marginLeft'];
-  if (style.padding != null) css.padding = style.padding as CSSProperties['padding'];
-  if (style.paddingTop != null) css.paddingTop = style.paddingTop as CSSProperties['paddingTop'];
-  if (style.paddingRight != null) css.paddingRight = style.paddingRight as CSSProperties['paddingRight'];
-  if (style.paddingBottom != null) css.paddingBottom = style.paddingBottom as CSSProperties['paddingBottom'];
-  if (style.paddingLeft != null) css.paddingLeft = style.paddingLeft as CSSProperties['paddingLeft'];
-  if (style.minWidth != null) css.minWidth = style.minWidth as CSSProperties['minWidth'];
-  if (style.maxWidth != null) css.maxWidth = style.maxWidth as CSSProperties['maxWidth'];
-  if (style.width != null) css.width = style.width as CSSProperties['width'];
-  if (style.marginHorizontal != null) {
-    css.marginLeft = style.marginHorizontal as CSSProperties['marginLeft'];
-    css.marginRight = style.marginHorizontal as CSSProperties['marginRight'];
+  if (typeof style.opacity === 'number')
+    css.opacity = style.opacity;
+  for (const key of VALID_KEYS) {
+    if (style[key] != null)
+      css[key] = style[key] as never;
   }
-  if (style.marginVertical != null) {
-    css.marginTop = style.marginVertical as CSSProperties['marginTop'];
-    css.marginBottom = style.marginVertical as CSSProperties['marginBottom'];
-  }
-  if (style.paddingHorizontal != null) {
-    css.paddingLeft = style.paddingHorizontal as CSSProperties['paddingLeft'];
-    css.paddingRight = style.paddingHorizontal as CSSProperties['paddingRight'];
-  }
-  if (style.paddingVertical != null) {
-    css.paddingTop = style.paddingVertical as CSSProperties['paddingTop'];
-    css.paddingBottom = style.paddingVertical as CSSProperties['paddingBottom'];
+  for (const [k,v] of Object.entries(EXPAND_KEYS)) {
+    const x = style[k as keyof TextStyle];
+    if (x == null) continue;
+    for (const s of v)
+      css[s] = x as never;
   }
   return css;
 }

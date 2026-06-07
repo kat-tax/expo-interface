@@ -1,5 +1,4 @@
 import {Platform} from 'react-native';
-
 import type {TypographyStyle, TypographyVariant} from './types';
 
 type VariantMap = Record<TypographyVariant, TypographyStyle>;
@@ -32,16 +31,9 @@ const androidVariants: VariantMap = {
   label: {fontSize: 12, fontWeight: 'medium', lineHeight: 16},
 };
 
-/** Web uses iOS point sizes as px for a close native match. */
-const webVariants: VariantMap = iosVariants;
-
 export const typographyVariants = Platform.select({
   ios: iosVariants,
   android: androidVariants,
-  web: webVariants,
+  web: iosVariants, // Web uses iOS on purpose
   default: iosVariants,
 })!;
-
-export function getVariantStyle(variant: TypographyVariant): TypographyStyle {
-  return typographyVariants[variant];
-}
