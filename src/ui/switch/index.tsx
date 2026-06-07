@@ -1,6 +1,7 @@
 import type {SwitchProps} from './types';
-import {Switch as RNSwitch, StyleSheet, useColorScheme, View} from 'react-native';
+import {Switch as RNSwitch, StyleSheet, View} from 'react-native';
 import {Label} from '@/ui/typography';
+import {theme} from '@/ui/theme';
 
 export * from './types';
 
@@ -12,10 +13,6 @@ const THUMB = '#ffffff';
 /**
  * On web the row mirrors the native iOS/Android layout: a label on the leading
  * edge and the native React Native Web switch pinned to the trailing edge.
- *
- * React Native Web defaults to a Material teal-green thumb/track; these colors
- * override it to match the native platforms — a neutral white thumb with a
- * green (or `accentColor`) track when on and a neutral gray track when off.
  */
 export function Switch({
   label,
@@ -26,10 +23,8 @@ export function Switch({
   testID,
   style,
 }: SwitchProps) {
-  const isDark = useColorScheme() === 'dark';
   const onColor = accentColor ?? IOS_GREEN;
-  const offColor = isDark ? '#39393d' : '#e9e9ea';
-
+  const offColor = theme.switchTrack;
   const toggle = (
     <RNSwitch
       value={value}
@@ -42,16 +37,14 @@ export function Switch({
     />
   );
 
-  if (label == null) return toggle;
-
-  return (
+  return label != null ? (
     <View style={[styles.row, style]} testID={testID}>
       <Label color="label" style={[styles.label, disabled && styles.disabled]}>
         {label}
       </Label>
       {toggle}
     </View>
-  );
+  ) : toggle;
 }
 
 const styles = StyleSheet.create({

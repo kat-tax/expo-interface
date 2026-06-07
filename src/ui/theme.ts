@@ -64,6 +64,7 @@ export const colors = {
     separator: 'rgba(60, 60, 67, 0.29)',
     tint: '#208AEF',
     pillBackground: 'rgba(118, 118, 128, 0.12)',
+    switchTrack: '#e9e9ea',
   },
   dark: {
     label: '#ffffff',
@@ -75,6 +76,7 @@ export const colors = {
     separator: 'rgba(84, 84, 88, 0.6)',
     tint: '#0A84FF',
     pillBackground: 'rgba(118, 118, 128, 0.24)',
+    switchTrack: '#39393d',
   },
 } as const;
 
@@ -132,6 +134,12 @@ export const theme = {
     android: () => PlatformColor('?android:attr/colorControlHighlight'),
     web: 'var(--color-pill-background)',
     default: colors.light.pillBackground,
+  }),
+  switchTrack: getPlatformToken({
+    ios: () => PlatformColor('systemGray5'),
+    android: () => PlatformColor('?android:attr/colorControlHighlight'),
+    web: 'var(--color-switch-track)',
+    default: colors.light.switchTrack,
   }),
 } as const;
 
