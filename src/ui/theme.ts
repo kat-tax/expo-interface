@@ -1,6 +1,6 @@
 import '@/ui/global.css';
 import type {ColorValue} from 'react-native';
-import {Platform, PlatformColor, useColorScheme} from 'react-native';
+import {Platform, PlatformColor} from 'react-native';
 
 export type ColorTokens = keyof typeof colors[keyof typeof colors];
 export type ColorValues = typeof colors[keyof typeof colors];
@@ -134,11 +134,6 @@ export const theme = {
     default: colors.light.pillBackground,
   }),
 } as const;
-
-export function useTheme() {
-  const scheme = useColorScheme();
-  return scheme === 'dark' ? colors.dark : colors.light;
-}
 
 export function getPlatformToken(specifics: {
   web: ColorValue;

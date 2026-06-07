@@ -1,8 +1,7 @@
 import {NativeTabs} from 'expo-router/unstable-native-tabs';
-import {useTheme} from '@/ui/theme';
+import {theme} from '@/ui/theme';
 
 export default function AppTabs() {
-  const theme = useTheme();
   return (
     <NativeTabs
       backgroundColor={theme.background}

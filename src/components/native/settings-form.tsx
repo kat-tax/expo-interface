@@ -3,7 +3,7 @@ import {FieldGroup, Text} from '@expo/ui';
 import {DateTimePicker} from '@/ui/date-time';
 import {Picker} from '@/ui/picker';
 import {Switch} from '@/ui/switch';
-import {useTheme} from '@/ui/theme';
+import {theme} from '@/ui/theme';
 
 const DROP_OPTIONS = [
   {label: 'Public', value: 'public'},
@@ -14,7 +14,6 @@ export function SettingsForm() {
   const [dropPrivacy, setDropPrivacy] = useState('public');
   const [analytics, setAnalytics] = useState(false);
   const [datetime, setDatetime] = useState(() => new Date());
-  const theme = useTheme();
   return (
     <FieldGroup>
       <FieldGroup.Section title="Defaults">
@@ -41,7 +40,7 @@ export function SettingsForm() {
       <FieldGroup.Section title="About">
         <Text>Version 1.0.0</Text>
         <FieldGroup.SectionFooter>
-          <Text textStyle={{fontSize: 12, color: theme.secondaryLabel}}>
+          <Text textStyle={{fontSize: 12, color: theme.secondaryLabel as string}}>
             You are on the latest version.
           </Text>
         </FieldGroup.SectionFooter>
