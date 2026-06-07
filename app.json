@@ -22,7 +22,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.fov.dropfiles"
+      "package": "com.cavitt.dropfiles"
     },
     "plugins": [
       "expo-image",
@@ -39,6 +39,7 @@
           }
         }
       ],
+      "./plugins/with-pure-background"
     ],
     "experiments": {
       "typedRoutes": true,
