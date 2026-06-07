@@ -28,6 +28,7 @@
       "expo-image",
       "expo-router",
       "expo-system-ui",
+      "expo-status-bar",
       [
         "expo-splash-screen",
         {
@@ -37,7 +38,7 @@
             "imageWidth": 76
           }
         }
-      ]
+      ],
     ],
     "experiments": {
       "typedRoutes": true,
