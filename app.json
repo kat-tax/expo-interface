@@ -1,12 +1,16 @@
 {
   "expo": {
+    "version": "1.0.0",
     "name": "dropfiles",
     "slug": "dropfiles",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
     "scheme": "dropfiles",
+    "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/images/icon.png",
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
     "ios": {
       "icon": "./assets/expo.icon"
     },
@@ -17,14 +21,13 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
-    },
-    "web": {
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "predictiveBackGestureEnabled": false,
+      "package": "com.fov.dropfiles"
     },
     "plugins": [
+      "expo-image",
       "expo-router",
+      "expo-system-ui",
       [
         "expo-splash-screen",
         {
@@ -34,8 +37,7 @@
             "imageWidth": 76
           }
         }
-      ],
-      "expo-image"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
