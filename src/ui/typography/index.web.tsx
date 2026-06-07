@@ -1,12 +1,8 @@
-import type {CSSProperties} from 'react';
-import type {TextStyle} from 'react-native';
-import type {TypographyProps, TypographyWeight} from './types';
+import type {TypographyProps} from './types';
 
 import {StyleSheet} from 'react-native';
-import {typographyVariants} from './variants';
-import {fontFamily, resolveTypographyColor} from './shared';
-
-export * from './types';
+import {getColorToken} from '@/ui/theme';
+import * as styles from './styles';
 
 export function Typography({
   children,
@@ -18,22 +14,22 @@ export function Typography({
   style,
   testID,
 }: TypographyProps) {
-  const rnStyle = StyleSheet.flatten(style);
-  const webStyle = typographyVariants[variant];
+  const styleFlat = StyleSheet.flatten(style);
+  const styleVar = styles.variants[variant];
   return (
     <span
       data-testid={testID}
       style={{
-        display: rnStyle?.flexShrink != null ? 'block' : undefined,
-        lineHeight: `${webStyle.lineHeight}px`,
-        letterSpacing: webStyle.letterSpacing,
-        fontWeight: WEIGHT_MAP[weight ?? webStyle.fontWeight],
-        fontSize: webStyle.fontSize,
-        fontFamily,
+        display: styleFlat?.flexShrink != null ? 'block' : undefined,
+        lineHeight: `${styleVar.lineHeight}px`,
+        letterSpacing: styleVar.letterSpacing,
+        fontWeight: styles.fontWeights[weight ?? styleVar.fontWeight],
+        fontSize: styleVar.fontSize,
+        fontFamily: styles.fontFamily,
         textAlign: align,
-        color: resolveTypographyColor(color) as string,
-        ...toWebStyle(rnStyle),
-        ...clampStyle(numberOfLines),
+        color: getColorToken(color) as string,
+        ...styles.flatten(styleFlat),
+        ...styles.clamp(numberOfLines),
       }}>
       {children}
     </span>
@@ -82,76 +78,4 @@ export function Caption(props: Omit<TypographyProps, 'variant'>) {
 
 export function Label(props: Omit<TypographyProps, 'variant'>) {
   return <Typography variant="label" {...props}/>;
-}
-
-const WEIGHT_MAP: Record<TypographyWeight, number> = {
-  normal: 400,
-  medium: 500,
-  semibold: 600,
-  bold: 700,
-} as const;
-
-const VALID_KEYS = [
-  // Position
-  'flexGrow',
-  'flexShrink',
-  // Dimension
-  'width',
-  'minWidth',
-  'maxWidth',
-  // Spacing
-  'margin',
-  'marginTop',
-  'marginLeft',
-  'marginRight',
-  'marginBottom',
-  'padding',
-  'paddingTop',
-  'paddingLeft',
-  'paddingRight',
-  'paddingBottom',
-] as const;
-
-const EXPAND_KEYS = {
-  marginVertical: ['marginTop', 'marginBottom'],
-  marginHorizontal: ['marginLeft', 'marginRight'],
-  paddingVertical: ['paddingTop', 'paddingBottom'],
-  paddingHorizontal: ['paddingLeft', 'paddingRight'],
-} as const;
-
-const clampStyle = (numberOfLines?: number): CSSProperties => {
-  if (numberOfLines === 1) {
-    return {
-      overflow: 'hidden',
-      whiteSpace: 'nowrap',
-      textOverflow: 'ellipsis',
-    };
-  }
-  if (numberOfLines != null) {
-    return {
-      display: '-webkit-box',
-      overflow: 'hidden',
-      WebkitBoxOrient: 'vertical',
-      WebkitLineClamp: numberOfLines,
-    };
-  }
-  return {};
-}
-
-const toWebStyle = (style?: TextStyle): CSSProperties => {
-  if (!style) return {};
-  const css: CSSProperties = {};
-  if (typeof style.opacity === 'number')
-    css.opacity = style.opacity;
-  for (const key of VALID_KEYS) {
-    if (style[key] != null)
-      css[key] = style[key] as never;
-  }
-  for (const [k,v] of Object.entries(EXPAND_KEYS)) {
-    const x = style[k as keyof TextStyle];
-    if (x == null) continue;
-    for (const s of v)
-      css[s] = x as never;
-  }
-  return css;
 }

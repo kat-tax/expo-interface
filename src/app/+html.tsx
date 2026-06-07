@@ -1,6 +1,6 @@
 import type {PropsWithChildren} from 'react';
 import {ScrollViewStyleReset} from 'expo-router/html';
-import {getWebColorCss} from '@/ui/colors';
+import {getWebColorCss} from '@/ui/theme';
 
 export default function Root({children}: PropsWithChildren) {
   return (

@@ -27,8 +27,8 @@ export const fonts = Platform.select({
   },
 });
 
-export const constraints = {
-  screenMaxWidth: 800,
+export const boundaries = {
+  contentMaxWidth: 800,
 } as const;
 
 export const spacing = {
@@ -146,13 +146,13 @@ export function getPlatformToken(specifics: {
   android: ColorNative;
   default: ColorValue;
 }): ColorValue {
-  const getNativeColor = (v: ColorNative) =>
+  const get = (v: ColorNative) =>
     typeof v === 'function' ? v() : v;
   switch (Platform.OS) {
     case 'ios':
-      return getNativeColor(specifics.ios);
+      return get(specifics.ios);
     case 'android':
-      return getNativeColor(specifics.android);
+      return get(specifics.android);
     case 'web': // not supported (yet)
       return specifics.web;
     default:
@@ -182,13 +182,8 @@ export function getWebColorCss(): string {
   `;
 }
 
-export function resolveColorToken(token: ColorTokens | 'secondary' | 'tertiary'): ColorValue {
-  switch (token) {
-    case 'secondary':
-      return theme.secondaryLabel;
-    case 'tertiary':
-      return theme.tertiaryLabel;
-    default: token satisfies ColorTokens;
-    return theme[token];
-  }
+export function getColorToken(color: ColorTokens | (string & {})): ColorValue {
+  return color in theme
+    ? theme[color as ColorTokens]
+    : color;
 }

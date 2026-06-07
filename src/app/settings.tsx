@@ -1,8 +1,8 @@
 import {Host} from '@expo/ui';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StyleSheet, View} from 'react-native';
+import {spacing, inset, boundaries} from '@/ui/theme';
 import {SettingsForm} from '@/components/native/settings-form';
-import * as Theme from '@/ui/theme';
 
 export default function SettingsScreen() {
   return (
@@ -21,14 +21,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     width: '100%',
-    gap: Theme.spacing.three,
-    paddingHorizontal: Theme.spacing.four,
-    paddingBottom: Theme.bottomTabInset + Theme.spacing.three,
-    paddingTop: Theme.topBarInset,
+    gap: spacing.three,
+    paddingHorizontal: spacing.four,
+    paddingBottom: inset.bottomTab + spacing.three,
+    paddingTop: inset.topBar,
   },
   viewport: {
     flex: 1,
     width: '100%',
-    maxWidth: Theme.boxMaxWidth,
+    maxWidth: boundaries.contentMaxWidth,
   },
 });

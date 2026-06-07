@@ -1,6 +1,6 @@
-import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
-import type {ThemeColorToken} from '@/ui/theme';
+import type {ReactNode} from 'react';
+import type {ColorTokens} from '@/ui/theme';
 
 export type TypographyVariant =
   | 'largeTitle'
@@ -36,7 +36,7 @@ export interface TypographyStyle {
 export interface TypographyProps {
   children: ReactNode;
   variant?: TypographyVariant;
-  color?: ThemeColorToken | string;
+  color?: ColorTokens | (string & {});
   weight?: TypographyWeight;
   align?: TypographyAlign;
   numberOfLines?: number;

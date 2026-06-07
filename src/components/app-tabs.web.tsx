@@ -1,6 +1,6 @@
 import {View, Pressable, StyleSheet} from 'react-native';
 import {Tabs, TabSlot, TabList, TabTrigger, TabListProps, TabTriggerSlotProps} from 'expo-router/ui';
-import {theme, spacing, constraints} from '@/ui/theme';
+import {theme, spacing, boundaries} from '@/ui/theme';
 import {Headline, Label} from '@/ui/typography';
 
 export default function AppTabs() {
@@ -37,7 +37,7 @@ export function WebTabList(props: TabListProps) {
 export function TabLink({children, isFocused, ...props}: TabTriggerSlotProps) {
   return (
     <Pressable {...props} style={({pressed}) => pressed && styles.pressed}>
-      <Label color={isFocused ? 'label' : 'secondary'}>
+      <Label color={isFocused ? 'label' : 'secondaryLabel'}>
         {children}
       </Label>
     </Pressable>
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.five,
     borderRadius: spacing.five,
     gap: spacing.three,
-    maxWidth: constraints.screenMaxWidth,
+    maxWidth: boundaries.contentMaxWidth,
     backgroundColor: theme.backgroundElement,
   },
   logo: {

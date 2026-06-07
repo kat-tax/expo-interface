@@ -1,9 +1,8 @@
-import type {TextStyle} from 'react-native';
-import type {TypographyProps, TypographyWeight} from './types';
+import type {TypographyProps} from './types';
 
 import {Text} from 'react-native';
-import {typographyVariants} from './variants';
-import {fontFamily, resolveTypographyColor} from './shared';
+import {resolveColorToken} from '@/ui/theme';
+import * as styles from './styles';
 
 export * from './types';
 
@@ -17,7 +16,7 @@ export function Typography({
   numberOfLines,
   testID,
 }: TypographyProps) {
-  const v = typographyVariants[variant];
+  const v = styles.variants[variant];
   return (
     <Text
       numberOfLines={numberOfLines}
@@ -25,11 +24,11 @@ export function Typography({
       style={[
         {
           fontSize: v.fontSize,
-          fontWeight: weightMap[weight ?? v.fontWeight],
+          fontWeight: styles.fontWeights[weight ?? v.fontWeight],
           lineHeight: v.lineHeight,
           letterSpacing: v.letterSpacing,
-          color: resolveTypographyColor(color),
-          fontFamily,
+          color: resolveColorToken(color),
+          fontFamily: styles.fontFamily,
           textAlign: align,
         },
         style,
@@ -82,10 +81,3 @@ export function Caption(props: Omit<TypographyProps, 'variant'>) {
 export function Label(props: Omit<TypographyProps, 'variant'>) {
   return <Typography variant="label" {...props}/>;
 }
-
-const weightMap: Record<TypographyWeight, TextStyle['fontWeight']> = {
-  normal: '400',
-  medium: '500',
-  semibold: '600',
-  bold: '700',
-};

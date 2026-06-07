@@ -50,7 +50,7 @@ export function DateTimePicker({
         disabled={disabled}
         style={[styles.pill, disabled && styles.disabled]}>
         <Label
-          color={accentColor ?? 'secondary'}
+          color={accentColor ?? 'secondaryLabel'}
           style={styles.value}>
           {formatValue(current, mode)}
         </Label>

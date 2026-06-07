@@ -1,7 +1,7 @@
 import {Host} from '@expo/ui';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StyleSheet, View} from 'react-native';
-import {bottomTabInset, boxMaxWidth, spacing, topBarInset} from '@/ui/theme';
+import {spacing, inset, boundaries} from '@/ui/theme';
 import {FileList} from '@/components/native/file-list';
 
 const DEMO_FILES = [
@@ -29,13 +29,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingHorizontal: spacing.four,
-    paddingBottom: bottomTabInset + spacing.three,
-    paddingTop: topBarInset,
+    paddingBottom: inset.bottomTab + spacing.three,
+    paddingTop: inset.topBar,
     gap: spacing.three,
   },
   viewport: {
     flex: 1,
     width: '100%',
-    maxWidth: boxMaxWidth,
+    maxWidth: boundaries.contentMaxWidth,
   },
 });

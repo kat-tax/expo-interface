@@ -40,7 +40,7 @@ function PickerComponent<T extends PickerValue>({
         </Label>
       ) : null}
       <Pressable disabled={disabled} style={[styles.pill, disabled && styles.disabled]}>
-        <Label color={accentColor ?? 'secondary'} style={styles.value}>
+        <Label color={accentColor ?? 'secondaryLabel'} style={styles.value}>
           {labelFor(items, current)}
         </Label>
         <Chevron />
