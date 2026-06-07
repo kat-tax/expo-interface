@@ -3,7 +3,7 @@ import type {PickerProps, PickerValue} from './types';
 
 import {Pressable, StyleSheet, View} from 'react-native';
 import {Label} from '@/ui/typography';
-import {colors} from '@/ui/theme';
+import {theme} from '@/ui/theme';
 import {extractItems, labelFor, PickerItem, useSelectedValue} from './shared';
 
 export * from './types';
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 11,
     paddingVertical: 4,
-    backgroundColor: colors.pillBackground,
+    backgroundColor: theme.pillBackground,
   },
   value: {
     flexShrink: 0,
@@ -126,14 +126,14 @@ function Chevron() {
     <svg width="11" height="16" viewBox="0 0 11 16" fill="none" aria-hidden="true">
       <path
         d="M2.5 6.5 L5.5 3.5 L8.5 6.5"
-        stroke={colors.tertiaryLabel as string}
+        stroke={theme.tertiaryLabel as string}
         strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M2.5 9.5 L5.5 12.5 L8.5 9.5"
-        stroke={colors.tertiaryLabel as string}
+        stroke={theme.tertiaryLabel as string}
         strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"

@@ -1,6 +1,6 @@
 import type {ColorValue} from 'react-native';
-import type {ThemeColorToken} from '@/ui/theme';
-import {Fonts, resolveColorToken} from '@/ui/theme';
+import type {ColorTokens} from '@/ui/theme';
+import {fonts, resolveColorToken} from '@/ui/theme';
 
 const colorTokens = new Set<string>([
   'label',
@@ -15,10 +15,10 @@ const colorTokens = new Set<string>([
   'tint',
 ]);
 
-export function resolveTypographyColor(color: ThemeColorToken | string): ColorValue {
+export function resolveTypographyColor(color: ColorTokens | string): ColorValue {
   return colorTokens.has(color)
-    ? resolveColorToken(color as ThemeColorToken)
+    ? resolveColorToken(color as ColorTokens)
     : color;
 }
 
-export const fontFamily = Fonts?.sans;
+export const fontFamily = fonts?.sans;

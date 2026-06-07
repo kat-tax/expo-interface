@@ -1,6 +1,6 @@
 import {View, Pressable, StyleSheet} from 'react-native';
 import {Tabs, TabSlot, TabList, TabTrigger, TabListProps, TabTriggerSlotProps} from 'expo-router/ui';
-import {colors, Spacing, BoxMaxWidth} from '@/ui/theme';
+import {theme, spacing, constraints} from '@/ui/theme';
 import {Headline, Label} from '@/ui/typography';
 
 export default function AppTabs() {
@@ -50,19 +50,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: Spacing.three,
+    padding: spacing.three,
     width: '100%',
   },
   inner: {
     flexGrow: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: Spacing.three,
-    paddingHorizontal: Spacing.five,
-    borderRadius: Spacing.five,
-    gap: Spacing.three,
-    maxWidth: BoxMaxWidth,
-    backgroundColor: colors.backgroundElement,
+    paddingVertical: spacing.three,
+    paddingHorizontal: spacing.five,
+    borderRadius: spacing.five,
+    gap: spacing.three,
+    maxWidth: constraints.screenMaxWidth,
+    backgroundColor: theme.backgroundElement,
   },
   logo: {
     marginRight: 'auto',

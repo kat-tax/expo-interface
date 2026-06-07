@@ -1,141 +1,16 @@
 import '@/ui/global.css';
-
 import type {ColorValue} from 'react-native';
 import {Platform, PlatformColor, useColorScheme} from 'react-native';
-import {Colors} from '@/ui/colors';
 
-export {Colors};
+export type ColorTokens = keyof typeof colors[keyof typeof colors];
+export type ColorValues = typeof colors[keyof typeof colors];
+export type ColorNative = ColorValue | (() => ColorValue);
 
-export type SemanticColor =
-  | 'label'
-  | 'secondaryLabel'
-  | 'tertiaryLabel'
-  | 'background'
-  | 'backgroundElement'
-  | 'backgroundSelected'
-  | 'separator'
-  | 'tint'
-  | 'pillBackground';
-
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
-export type ThemeColorToken = SemanticColor | 'secondary' | 'tertiary';
-
-type NativeColor = ColorValue | (() => ColorValue);
-
-function resolveNativeColor(value: NativeColor): ColorValue {
-  return typeof value === 'function' ? value() : value;
-}
-
-/** PlatformColor is not available on web — native values are resolved lazily. */
-function platformToken(specifics: {
-  ios: NativeColor;
-  android: NativeColor;
-  web: ColorValue;
-  default: ColorValue;
-}): ColorValue {
-  switch (Platform.OS) {
-    case 'ios':
-      return resolveNativeColor(specifics.ios);
-    case 'android':
-      return resolveNativeColor(specifics.android);
-    case 'web':
-      return specifics.web;
-    default:
-      return specifics.default;
-  }
-}
-
-export const colors: Record<SemanticColor, ColorValue> = {
-  label: platformToken({
-    ios: () => PlatformColor('label'),
-    android: () => PlatformColor('?android:attr/textColorPrimary'),
-    web: 'var(--color-label)',
-    default: Colors.light.label,
-  }),
-  secondaryLabel: platformToken({
-    ios: () => PlatformColor('secondaryLabel'),
-    android: () => PlatformColor('?android:attr/textColorSecondary'),
-    web: 'var(--color-secondary-label)',
-    default: Colors.light.secondaryLabel,
-  }),
-  tertiaryLabel: platformToken({
-    ios: () => PlatformColor('tertiaryLabel'),
-    android: () => PlatformColor('?android:attr/textColorTertiary'),
-    web: 'var(--color-tertiary-label)',
-    default: Colors.light.tertiaryLabel,
-  }),
-  background: platformToken({
-    ios: () => PlatformColor('systemBackground'),
-    android: () => PlatformColor('?android:attr/colorBackground'),
-    web: 'var(--color-background)',
-    default: Colors.light.background,
-  }),
-  backgroundElement: platformToken({
-    ios: () => PlatformColor('secondarySystemBackground'),
-    android: () => PlatformColor('?android:attr/colorBackgroundFloating'),
-    web: 'var(--color-background-element)',
-    default: Colors.light.backgroundElement,
-  }),
-  backgroundSelected: platformToken({
-    ios: () => PlatformColor('tertiarySystemBackground'),
-    android: () => PlatformColor('?android:attr/colorControlHighlight'),
-    web: 'var(--color-background-selected)',
-    default: Colors.light.backgroundSelected,
-  }),
-  separator: platformToken({
-    ios: () => PlatformColor('separator'),
-    android: () => PlatformColor('?android:attr/colorControlHighlight'),
-    web: 'var(--color-separator)',
-    default: Colors.light.separator,
-  }),
-  tint: platformToken({
-    ios: () => PlatformColor('systemBlue'),
-    android: () => PlatformColor('?attr/colorPrimary'),
-    web: 'var(--color-tint)',
-    default: Colors.light.tint,
-  }),
-  pillBackground: platformToken({
-    ios: () => PlatformColor('secondarySystemFill'),
-    android: () => PlatformColor('?android:attr/colorControlHighlight'),
-    web: 'var(--color-pill-background)',
-    default: Colors.light.pillBackground,
-  }),
-};
-
-export function resolveColorToken(token: ThemeColorToken): ColorValue {
-  switch (token) {
-    case 'secondary':
-      return colors.secondaryLabel;
-    case 'tertiary':
-      return colors.tertiaryLabel;
-    default:
-      return colors[token];
-  }
-}
-
-/**
- * Theme-aware semantic colors. On every platform the underlying values
- * (`PlatformColor` on native, CSS vars on web) resolve to the active light/dark
- * scheme automatically, so this is just a stable accessor for the `colors` map.
- */
-export function useThemeColors(): Record<SemanticColor, ColorValue> {
-  return colors;
-}
-
-export function usePalette() {
-  const scheme = useColorScheme();
-  return scheme === 'dark' ? Colors.dark : Colors.light;
-}
-
-export const Fonts = Platform.select({
+export const fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
@@ -152,7 +27,11 @@ export const Fonts = Platform.select({
   },
 });
 
-export const Spacing = {
+export const constraints = {
+  screenMaxWidth: 800,
+} as const;
+
+export const spacing = {
   half: 2,
   one: 4,
   two: 8,
@@ -162,13 +41,154 @@ export const Spacing = {
   six: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({
-  ios: 50,
-  android: 80,
-}) ?? 0;
+export const inset = {
+  topBar: Platform.select({
+    default: 0,
+    web: 80,
+  }),
+  bottomTab: Platform.select({
+    default: 0,
+    android: 80,
+    ios: 50,
+  }),
+} as const;
 
-export const TopBarInset = Platform.select({
-  web: 80,
-}) ?? 0;
+export const colors = {
+  light: {
+    label: '#000000',
+    secondaryLabel: '#60646C',
+    tertiaryLabel: '#9094A0',
+    background: '#ffffff',
+    backgroundElement: '#F0F0F3',
+    backgroundSelected: '#E0E1E6',
+    separator: 'rgba(60, 60, 67, 0.29)',
+    tint: '#208AEF',
+    pillBackground: 'rgba(118, 118, 128, 0.12)',
+  },
+  dark: {
+    label: '#ffffff',
+    secondaryLabel: '#B0B4BA',
+    tertiaryLabel: '#6E7378',
+    background: '#000000',
+    backgroundElement: '#212225',
+    backgroundSelected: '#2E3135',
+    separator: 'rgba(84, 84, 88, 0.6)',
+    tint: '#0A84FF',
+    pillBackground: 'rgba(118, 118, 128, 0.24)',
+  },
+} as const;
 
-export const BoxMaxWidth = 800;
+export const theme = {
+  label: getPlatformToken({
+    ios: () => PlatformColor('label'),
+    android: () => PlatformColor('?android:attr/textColorPrimary'),
+    web: 'var(--color-label)',
+    default: colors.light.label,
+  }),
+  secondaryLabel: getPlatformToken({
+    ios: () => PlatformColor('secondaryLabel'),
+    android: () => PlatformColor('?android:attr/textColorSecondary'),
+    web: 'var(--color-secondary-label)',
+    default: colors.light.secondaryLabel,
+  }),
+  tertiaryLabel: getPlatformToken({
+    ios: () => PlatformColor('tertiaryLabel'),
+    android: () => PlatformColor('?android:attr/textColorTertiary'),
+    web: 'var(--color-tertiary-label)',
+    default: colors.light.tertiaryLabel,
+  }),
+  background: getPlatformToken({
+    ios: () => PlatformColor('systemBackground'),
+    android: () => PlatformColor('?android:attr/colorBackground'),
+    web: 'var(--color-background)',
+    default: colors.light.background,
+  }),
+  backgroundElement: getPlatformToken({
+    ios: () => PlatformColor('secondarySystemBackground'),
+    android: () => PlatformColor('?android:attr/colorBackgroundFloating'),
+    web: 'var(--color-background-element)',
+    default: colors.light.backgroundElement,
+  }),
+  backgroundSelected: getPlatformToken({
+    ios: () => PlatformColor('tertiarySystemBackground'),
+    android: () => PlatformColor('?android:attr/colorControlHighlight'),
+    web: 'var(--color-background-selected)',
+    default: colors.light.backgroundSelected,
+  }),
+  separator: getPlatformToken({
+    ios: () => PlatformColor('separator'),
+    android: () => PlatformColor('?android:attr/colorControlHighlight'),
+    web: 'var(--color-separator)',
+    default: colors.light.separator,
+  }),
+  tint: getPlatformToken({
+    ios: () => PlatformColor('systemBlue'),
+    android: () => PlatformColor('?attr/colorPrimary'),
+    web: 'var(--color-tint)',
+    default: colors.light.tint,
+  }),
+  pillBackground: getPlatformToken({
+    ios: () => PlatformColor('secondarySystemFill'),
+    android: () => PlatformColor('?android:attr/colorControlHighlight'),
+    web: 'var(--color-pill-background)',
+    default: colors.light.pillBackground,
+  }),
+} as const;
+
+export function usePalette() {
+  const scheme = useColorScheme();
+  return scheme === 'dark' ? colors.dark : colors.light;
+}
+
+export function getPlatformToken(specifics: {
+  web: ColorValue;
+  ios: ColorNative;
+  android: ColorNative;
+  default: ColorValue;
+}): ColorValue {
+  const getNativeColor = (v: ColorNative) =>
+    typeof v === 'function' ? v() : v;
+  switch (Platform.OS) {
+    case 'ios':
+      return getNativeColor(specifics.ios);
+    case 'android':
+      return getNativeColor(specifics.android);
+    case 'web': // not supported (yet)
+      return specifics.web;
+    default:
+      return specifics.default;
+  }
+}
+
+export function getWebColorCss(): string {
+  const format = (val: string) =>
+    val.replace(/[A-Z]/g, v =>
+      `-${v.toLowerCase()}`);
+
+  const render = (obj: ColorValues) =>
+    Object.entries(obj).map(([k,v]) =>
+      `\t${`--color-${format(k)}`}: ${v};`).join('\n');
+
+  return `
+    :root {
+      color-scheme: light dark;
+      ${render(colors.light)}
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        ${render(colors.dark)}
+      }
+    }
+  `;
+}
+
+export function resolveColorToken(token: ColorTokens | 'secondary' | 'tertiary'): ColorValue {
+  switch (token) {
+    case 'secondary':
+      return theme.secondaryLabel;
+    case 'tertiary':
+      return theme.tertiaryLabel;
+    default: token satisfies ColorTokens;
+    return theme[token];
+  }
+}

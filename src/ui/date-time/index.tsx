@@ -3,7 +3,7 @@ import type {DateTimePickerProps} from './types';
 
 import {Pressable, StyleSheet, View} from 'react-native';
 import {Label} from '@/ui/typography';
-import {colors} from '@/ui/theme';
+import {theme} from '@/ui/theme';
 import {formatValue, inputType, parseInputValue, toInputValue, useDateValue} from './shared';
 
 export * from './types';
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 11,
     paddingVertical: 4,
-    backgroundColor: colors.pillBackground,
+    backgroundColor: theme.pillBackground,
   },
   value: {
     flexShrink: 0,
