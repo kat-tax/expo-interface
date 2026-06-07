@@ -1,3 +1,5 @@
+type PaletteKey = keyof typeof Colors.light;
+
 export const Colors = {
   light: {
     label: '#000000',
@@ -23,8 +25,6 @@ export const Colors = {
   },
 } as const;
 
-type PaletteKey = keyof typeof Colors.light;
-
 export function getWebColorCss(): string {
   return `
     :root {
@@ -46,4 +46,3 @@ function getThemeCss(palette: (typeof Colors)['light'] | (typeof Colors)['dark']
     .map((key) => `  ${toColorName(key)}: ${palette[key]};`)
     .join('\n');
 }
-
