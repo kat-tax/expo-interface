@@ -1,6 +1,6 @@
 import {View, Pressable, StyleSheet} from 'react-native';
 import {Tabs as WebTabs, TabSlot, TabList, TabTrigger, TabListProps, TabTriggerSlotProps} from 'expo-router/ui';
-import {theme, spacing, boundaries} from '@/ui/theme';
+import {theme, spacing, bound} from '@/ui/theme';
 import {Headline, Label} from '@/ui/typography';
 
 export function Tabs() {
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.five,
     borderRadius: spacing.five,
     gap: spacing.three,
-    maxWidth: boundaries.contentMaxWidth,
+    maxWidth: bound.contentMaxWidth,
     backgroundColor: theme.backgroundElement,
   },
   logo: {

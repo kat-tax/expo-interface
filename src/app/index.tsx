@@ -1,7 +1,7 @@
 import {Host} from '@expo/ui';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StyleSheet, View} from 'react-native';
-import {spacing, inset, boundaries} from '@/ui/theme';
+import {spacing, inset, bound} from '@/ui/theme';
 import {FileList} from '@/components/native/file-list';
 
 const DEMO_FILES = [
@@ -36,6 +36,6 @@ const styles = StyleSheet.create({
   viewport: {
     flex: 1,
     width: '100%',
-    maxWidth: boundaries.contentMaxWidth,
+    maxWidth: bound.contentMaxWidth,
   },
 });

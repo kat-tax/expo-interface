@@ -1,9 +1,9 @@
 import {useState} from 'react';
 import {FieldGroup, Text} from '@expo/ui';
+import {getVal, variants} from '@/ui/theme';
 import {DateTimePicker} from '@/ui/date-time';
 import {Picker} from '@/ui/picker';
 import {Switch} from '@/ui/switch';
-import {theme} from '@/ui/theme';
 
 const DROP_OPTIONS = [
   {label: 'Public', value: 'public'},
@@ -39,11 +39,14 @@ export function SettingsForm() {
       </FieldGroup.Section>
       <FieldGroup.Section title="About">
         <Text>Version 1.0.0</Text>
-        <FieldGroup.SectionFooter>
-          <Text textStyle={{fontSize: 12, color: theme.secondaryLabel as string}}>
+        {/* <FieldGroup.SectionFooter>
+          <Text textStyle={{
+            fontSize: variants.footnote?.fontSize,
+            color: getVal('secondaryLabel'),
+          }}>
             You are on the latest version.
           </Text>
-        </FieldGroup.SectionFooter>
+        </FieldGroup.SectionFooter> */}
       </FieldGroup.Section>
     </FieldGroup>
   );

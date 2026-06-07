@@ -38,7 +38,7 @@ export const EXPAND_KEYS = {
   paddingHorizontal: ['paddingLeft', 'paddingRight'],
 } as const;
 
-export const boundaries = {
+export const bound = {
   contentMaxWidth: 800,
 } as const;
 
