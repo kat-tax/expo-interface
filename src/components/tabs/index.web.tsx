@@ -1,11 +1,11 @@
 import {View, Pressable, StyleSheet} from 'react-native';
-import {Tabs, TabSlot, TabList, TabTrigger, TabListProps, TabTriggerSlotProps} from 'expo-router/ui';
+import {Tabs as WebTabs, TabSlot, TabList, TabTrigger, TabListProps, TabTriggerSlotProps} from 'expo-router/ui';
 import {theme, spacing, boundaries} from '@/ui/theme';
 import {Headline, Label} from '@/ui/typography';
 
-export default function AppTabs() {
+export function Tabs() {
   return (
-    <Tabs>
+    <WebTabs>
       <TabSlot style={{height: '100%'}}/>
       <TabList asChild>
         <WebTabList>
@@ -17,7 +17,7 @@ export default function AppTabs() {
           </TabTrigger>
         </WebTabList>
       </TabList>
-    </Tabs>
+    </WebTabs>
   );
 }
 
