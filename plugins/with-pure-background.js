@@ -6,10 +6,10 @@ const {
   createRunOncePlugin,
 } = require('expo/config-plugins');
 
+const THEME_ATTRS = ['android:windowBackground', 'android:colorBackground'];
 const COLOR_NAME = 'appBackground';
 const LIGHT = '#FFFFFFFF';
 const DARK = '#FF000000';
-const THEME_ATTRS = ['android:windowBackground', 'android:colorBackground'];
 
 function withDayColor(config) {
   return withAndroidColors(config, cfg => {
