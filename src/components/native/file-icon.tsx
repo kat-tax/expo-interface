@@ -1,6 +1,6 @@
 import type {FileType} from '@/types/files';
 import {SymbolView} from 'expo-symbols';
-import {usePalette} from '@/ui/theme';
+import {useTheme} from '@/ui/theme';
 import * as _ from '@/ui/icons';
 
 export interface FileIconProps {
@@ -8,7 +8,7 @@ export interface FileIconProps {
   size?: number;
 }
 export function FileIcon({name, size = 24}: FileIconProps) {
-  const {label} = usePalette();
+  const theme = useTheme();
   let icon = _.ICON_FILE_OTHER;
   switch (name) {
     case 'image':
@@ -27,7 +27,7 @@ export function FileIcon({name, size = 24}: FileIconProps) {
     <SymbolView
       name={icon}
       size={size}
-      tintColor={label}
+      tintColor={theme.label}
     />
   );
 }

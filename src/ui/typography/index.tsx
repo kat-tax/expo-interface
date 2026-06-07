@@ -1,7 +1,7 @@
 import type {TypographyProps} from './types';
 
 import {Text} from 'react-native';
-import {resolveColorToken} from '@/ui/theme';
+import {getThemeVal} from '@/ui/theme';
 import * as styles from './styles';
 
 export * from './types';
@@ -27,7 +27,7 @@ export function Typography({
           fontWeight: styles.fontWeights[weight ?? v.fontWeight],
           lineHeight: v.lineHeight,
           letterSpacing: v.letterSpacing,
-          color: resolveColorToken(color),
+          color: getThemeVal(color),
           fontFamily: styles.fontFamily,
           textAlign: align,
         },

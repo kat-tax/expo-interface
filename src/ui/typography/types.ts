@@ -36,7 +36,7 @@ export interface TypographyStyle {
 export interface TypographyProps {
   children: ReactNode;
   variant?: TypographyVariant;
-  color?: ColorTokens | (string & {});
+  color?: ColorTokens;
   weight?: TypographyWeight;
   align?: TypographyAlign;
   numberOfLines?: number;

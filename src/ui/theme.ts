@@ -135,7 +135,7 @@ export const theme = {
   }),
 } as const;
 
-export function usePalette() {
+export function useTheme() {
   const scheme = useColorScheme();
   return scheme === 'dark' ? colors.dark : colors.light;
 }
@@ -182,8 +182,8 @@ export function getWebColorCss(): string {
   `;
 }
 
-export function getColorToken(color: ColorTokens | (string & {})): ColorValue {
-  return color in theme
-    ? theme[color as ColorTokens]
-    : color;
+export function getThemeVal(token: ColorTokens): string {
+  return token in theme
+    ? String(theme[token])
+    : token;
 }

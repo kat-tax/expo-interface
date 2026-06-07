@@ -1,7 +1,7 @@
 import type {TypographyProps} from './types';
 
 import {StyleSheet} from 'react-native';
-import {getColorToken} from '@/ui/theme';
+import {getThemeVal} from '@/ui/theme';
 import * as styles from './styles';
 
 export function Typography({
@@ -27,7 +27,7 @@ export function Typography({
         fontSize: styleVar.fontSize,
         fontFamily: styles.fontFamily,
         textAlign: align,
-        color: getColorToken(color) as string,
+        color: getThemeVal(color),
         ...styles.flatten(styleFlat),
         ...styles.clamp(numberOfLines),
       }}>
