@@ -141,7 +141,7 @@ export const theme = {
   }),
   background: getPlatformToken({
     ios: () => PlatformColor('systemBackground'),
-    android: () => PlatformColor('?android:attr/colorBackground'),
+    android: () => PlatformColor('?android:attr/windowBackground'),
     web: 'var(--color-background)',
     default: colors.light.background,
   }),
