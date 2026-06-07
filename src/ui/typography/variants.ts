@@ -32,8 +32,9 @@ const androidVariants: VariantMap = {
 };
 
 export const typographyVariants = Platform.select({
+  // Web uses iOS to simulate same ui
+  web: iosVariants,
   ios: iosVariants,
   android: androidVariants,
-  web: iosVariants, // Web uses iOS on purpose
   default: iosVariants,
 })!;

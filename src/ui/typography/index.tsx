@@ -2,7 +2,7 @@ import type {TextStyle} from 'react-native';
 import type {TypographyProps, TypographyWeight} from './types';
 
 import {Text} from 'react-native';
-import {getVariantStyle} from './variants';
+import {typographyVariants} from './variants';
 import {fontFamily, resolveTypographyColor} from './shared';
 
 export * from './types';
@@ -17,7 +17,7 @@ export function Typography({
   numberOfLines,
   testID,
 }: TypographyProps) {
-  const v = getVariantStyle(variant);
+  const v = typographyVariants[variant];
   return (
     <Text
       numberOfLines={numberOfLines}
