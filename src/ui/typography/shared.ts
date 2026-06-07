@@ -1,6 +1,6 @@
 import type {ColorValue} from 'react-native';
-import type {ThemeColorToken} from '@/theme';
-import {Fonts, resolveColorToken} from '@/theme';
+import type {ThemeColorToken} from '@/ui/theme';
+import {Fonts, resolveColorToken} from '@/ui/theme';
 
 const colorTokens = new Set<string>([
   'label',

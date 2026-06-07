@@ -2,8 +2,8 @@ import type {ChangeEvent, CSSProperties, MouseEvent} from 'react';
 import type {DateTimePickerProps} from './types';
 
 import {Pressable, StyleSheet, View} from 'react-native';
-import {Label} from '@/components/ui/typography';
-import {colors} from '@/theme';
+import {Label} from '@/ui/typography';
+import {colors} from '@/ui/theme';
 import {formatValue, inputType, parseInputValue, toInputValue, useDateValue} from './shared';
 
 export * from './types';

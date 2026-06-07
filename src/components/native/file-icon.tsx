@@ -1,7 +1,7 @@
 import type {FileType} from '@/types/files';
 import {SymbolView} from 'expo-symbols';
-import {usePalette} from '@/theme';
-import * as _ from '@/icons';
+import {usePalette} from '@/ui/theme';
+import * as _ from '@/ui/icons';
 
 export interface FileIconProps {
   name: FileType;

@@ -1,7 +1,7 @@
 import type {SwitchProps} from './types';
 
 import {Switch as RNSwitch, StyleSheet, useColorScheme, View} from 'react-native';
-import {Label} from '@/components/ui/typography';
+import {Label} from '@/ui/typography';
 
 export * from './types';
 

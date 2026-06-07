@@ -1,11 +1,7 @@
-import type {Href} from 'expo-router';
-
-import {SymbolView} from 'expo-symbols';
 import {View, Pressable, StyleSheet} from 'react-native';
 import {Tabs, TabSlot, TabList, TabTrigger, TabListProps, TabTriggerSlotProps} from 'expo-router/ui';
-import {ExternalLink} from '@/components/ui/external-link';
-import {Headline, Label} from '@/components/ui/typography';
-import {colors, Spacing, BoxMaxWidth} from '@/theme';
+import {colors, Spacing, BoxMaxWidth} from '@/ui/theme';
+import {Headline, Label} from '@/ui/typography';
 
 export default function AppTabs() {
   return (
@@ -14,10 +10,10 @@ export default function AppTabs() {
       <TabList asChild>
         <WebTabList>
           <TabTrigger name="home" href="/" asChild>
-            <LinkInternal>Home</LinkInternal>
+            <TabLink>Home</TabLink>
           </TabTrigger>
           <TabTrigger name="settings" href="/settings" asChild>
-            <LinkInternal>Settings</LinkInternal>
+            <TabLink>Settings</TabLink>
           </TabTrigger>
         </WebTabList>
       </TabList>
@@ -38,33 +34,13 @@ export function WebTabList(props: TabListProps) {
   );
 }
 
-function LinkInternal({children, isFocused, ...props}: TabTriggerSlotProps) {
+export function TabLink({children, isFocused, ...props}: TabTriggerSlotProps) {
   return (
     <Pressable {...props} style={({pressed}) => pressed && styles.pressed}>
       <Label color={isFocused ? 'label' : 'secondary'}>
         {children}
       </Label>
     </Pressable>
-  );
-}
-
-function LinkExternal({href, children}: {href: Href & string, children: React.ReactNode}) {
-  return (
-    <ExternalLink href={href} asChild>
-      <Pressable style={styles.linkExternalPressable}>
-        <Label color="tertiary">
-          {children}
-        </Label>
-        <SymbolView
-          tintColor={colors.tertiaryLabel as string}
-          size={12}
-          name={{
-            ios: 'arrow.up.right.square',
-            web: 'link',
-          }}
-        />
-      </Pressable>
-    </ExternalLink>
   );
 }
 
@@ -90,13 +66,6 @@ const styles = StyleSheet.create({
   },
   logo: {
     marginRight: 'auto',
-  },
-  linkExternalPressable: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: Spacing.three,
-    gap: Spacing.one,
   },
   pressed: {
     opacity: 0.7,

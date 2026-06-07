@@ -1,5 +1,5 @@
 import {NativeTabs} from 'expo-router/unstable-native-tabs';
-import {usePalette} from '@/theme';
+import {usePalette} from '@/ui/theme';
 
 export default function AppTabs() {
   const palette = usePalette();

@@ -1,31 +1,10 @@
-import '@/global.css';
+import '@/ui/global.css';
+
 import type {ColorValue} from 'react-native';
 import {Platform, PlatformColor, useColorScheme} from 'react-native';
+import {Colors} from '@/ui/colors';
 
-export const Colors = {
-  light: {
-    text: '#000000',
-    textSecondary: '#60646C',
-    textTertiary: '#9094A0',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    separator: 'rgba(60, 60, 67, 0.29)',
-    tint: '#208AEF',
-    pillBackground: 'rgba(118, 118, 128, 0.12)',
-  },
-  dark: {
-    text: '#ffffff',
-    textSecondary: '#B0B4BA',
-    textTertiary: '#6E7378',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    separator: 'rgba(84, 84, 88, 0.6)',
-    tint: '#0A84FF',
-    pillBackground: 'rgba(118, 118, 128, 0.24)',
-  },
-} as const;
+export {Colors};
 
 export type SemanticColor =
   | 'label'
@@ -66,7 +45,6 @@ function platformToken(specifics: {
   }
 }
 
-/** Static semantic tokens. Safe inside StyleSheet.create on iOS and web. */
 export const colors: Record<SemanticColor, ColorValue> = {
   label: platformToken({
     ios: () => PlatformColor('label'),

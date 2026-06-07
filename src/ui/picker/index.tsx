@@ -2,8 +2,8 @@ import type {ChangeEvent, CSSProperties} from 'react';
 import type {PickerProps, PickerValue} from './types';
 
 import {Pressable, StyleSheet, View} from 'react-native';
-import {Label} from '@/components/ui/typography';
-import {colors} from '@/theme';
+import {Label} from '@/ui/typography';
+import {colors} from '@/ui/theme';
 import {extractItems, labelFor, PickerItem, useSelectedValue} from './shared';
 
 export * from './types';

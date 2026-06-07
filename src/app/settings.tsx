@@ -2,8 +2,7 @@ import {Host} from '@expo/ui';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StyleSheet, View} from 'react-native';
 import {SettingsForm} from '@/components/native/settings-form';
-
-import * as Theme from '@/theme';
+import * as Theme from '@/ui/theme';
 
 export default function SettingsScreen() {
   return (
