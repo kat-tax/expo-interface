@@ -1,7 +1,9 @@
 import type {TypographyProps} from './types';
+import type {TextProps} from 'react-native';
+import {createElement} from 'react';
+import {useColor, variants, fonts, fontWeights} from '@/ui/theme';
 
-import {Text} from 'react-native';
-import {variants, fonts, fontWeights, getVal} from '@/ui/theme';
+const Text = (props: TextProps) => createElement('RCTText', props);
 
 export function Typography({
   children,
@@ -14,6 +16,7 @@ export function Typography({
   testID,
 }: TypographyProps) {
   const v = variants[variant];
+  const c = useColor(color);
   return (
     <Text
       numberOfLines={numberOfLines}
@@ -26,7 +29,7 @@ export function Typography({
           fontSize: v.fontSize,
           fontWeight: fontWeights[weight ?? v.fontWeight],
           fontFamily: fonts.sans,
-          color: getVal(color),
+          color: c,
         },
         style,
       ]}>

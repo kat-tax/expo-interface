@@ -5,7 +5,7 @@ import {nav} from '@/ui/theme';
 export default function Layout() {
   return (
     <ThemeProvider value={nav}>
-      <Tabs routes={[
+      <Tabs webLogo="icon-only" routes={[
         {
           href: '/',
           name: 'index',

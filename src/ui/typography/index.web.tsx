@@ -1,6 +1,6 @@
 import type {TypographyProps} from './types';
 import {StyleSheet} from 'react-native';
-import {variants, fonts, fontWeights, getVal, flatten, clamp} from '@/ui/theme';
+import {variants, fonts, fontWeights, useColor, flatten, clamp} from '@/ui/theme';
 
 export function Typography({
   children,
@@ -14,6 +14,7 @@ export function Typography({
 }: TypographyProps) {
   const flat = StyleSheet.flatten(style);
   const vars = variants[variant];
+  const c = useColor(color);
   return (
     <span
       data-testid={testID}
@@ -25,7 +26,7 @@ export function Typography({
         fontWeight: fontWeights[weight ?? vars.fontWeight],
         fontFamily: fonts?.sans,
         display: flat?.flexShrink != null ? 'block' : undefined,
-        color: getVal(color),
+        color: c,
         ...flatten(flat),
         ...clamp(numberOfLines),
       }}>

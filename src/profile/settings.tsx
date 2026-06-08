@@ -1,8 +1,8 @@
 import {useState} from 'react';
 import {FieldGroup, Text} from '@expo/ui';
-import {getVal, variants} from '@/ui/theme';
 import {DateTimePicker} from '@/ui/date-time';
 import {TextField} from '@/ui/text-field';
+import {Caption} from '@/ui/typography';
 import {Picker} from '@/ui/picker';
 import {Switch} from '@/ui/switch';
 
@@ -60,14 +60,9 @@ export function ProfileSettings() {
       </FieldGroup.Section>
       <FieldGroup.Section title="About">
         <Text>Version 1.0.0</Text>
-        {/* <FieldGroup.SectionFooter>
-          <Text textStyle={{
-            fontSize: variants.footnote?.fontSize,
-            color: getVal('secondaryLabel'),
-          }}>
-            You are on the latest version.
-          </Text>
-        </FieldGroup.SectionFooter> */}
+        <FieldGroup.SectionFooter>
+          <Caption>You are on the latest version.</Caption>
+        </FieldGroup.SectionFooter>
       </FieldGroup.Section>
     </FieldGroup>
   );

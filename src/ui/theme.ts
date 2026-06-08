@@ -1,7 +1,7 @@
 import '@/ui/global.css';
 import type {CSSProperties} from 'react';
 import type {ColorValue, TextStyle} from 'react-native';
-import {Platform, PlatformColor} from 'react-native';
+import {Platform, PlatformColor, useColorScheme} from 'react-native';
 import {DefaultTheme} from 'expo-router';
 import {TypographyVariant, TypographyStyle} from '@/ui/typography/types';
 
@@ -236,6 +236,22 @@ export const variants = Platform.select({
   web: iosVars,
 });
 
+/**
+ * Resolves a color token to a usable string value.
+ *
+ * - Web: returns the `var(--color-*)` custom property so theming stays fully
+ *   reactive through CSS (driven by `getThemeCSS`), never recomputed in JS.
+ * - Native: PlatformColor values are opaque objects that can't be consumed
+ *   everywhere (they stringify to "[object Object]" and aren't honored by
+ *   expo-symbols glyphs), so resolve a concrete palette color that reacts to
+ *   the active light/dark scheme.
+ */
+export function useColor(token: ColorTokens): string {
+  if (Platform.OS === 'web') return theme[token] as string;
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- Platform.OS is a runtime constant.
+  return colors[useColorScheme() === 'dark' ? 'dark' : 'light'][token];
+}
+
 export function getPlatformToken(specifics: {
   default: ColorValue;
   android: ColorNative;
@@ -270,10 +286,6 @@ export function getThemeCSS(): string {
       }
     }
   `;
-}
-
-export function getVal(token: ColorTokens): string {
-  return token in theme ? String(theme[token]) : token;
 }
 
 export function flatten(style?: TextStyle): CSSProperties {
