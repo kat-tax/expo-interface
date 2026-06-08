@@ -255,7 +255,7 @@ export function getPlatformToken(specifics: {
   }
 }
 
-export function getWebColorCss(): string {
+export function getThemeCSS(): string {
   const format = (s: string) => s.replace(/[A-Z]/g, v => `-${v.toLowerCase()}`);
   const render = (o: ColorValues) => Object.entries(o).map(([k,v]) =>
     `\t\t${`--color-${format(k)}`}: ${v};`).join('\n');

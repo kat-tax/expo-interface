@@ -1,6 +1,10 @@
 import type {Href} from 'expo-router';
 import type {SFSymbol, AndroidSymbol} from 'expo-symbols';
 
+export interface TabBarProps {
+  readonly routes: readonly TabRoute[];
+}
+
 export interface TabRoute {
   /** Route segment, matching the file name in `src/app`. */
   name: string;
@@ -15,18 +19,3 @@ export interface TabRoute {
     web: AndroidSymbol;
   };
 }
-
-export default <readonly TabRoute[]> [
-  {
-    href: '/',
-    name: 'index',
-    label: 'Drops',
-    icon: {ios: 'house', android: 'home', web: 'home'},
-  },
-  {
-    href: '/settings',
-    name: 'settings',
-    label: 'Settings',
-    icon: {ios: 'gearshape', android: 'settings', web: 'settings'},
-  },
-];

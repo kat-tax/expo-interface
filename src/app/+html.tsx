@@ -1,6 +1,6 @@
 import type {PropsWithChildren} from 'react';
 import {ScrollViewStyleReset} from 'expo-router/html';
-import {getWebColorCss} from '@/ui/theme';
+import {getThemeCSS} from '@/ui/theme';
 
 export default function Root({children}: PropsWithChildren) {
   return (
@@ -9,7 +9,7 @@ export default function Root({children}: PropsWithChildren) {
         <meta charSet="utf-8"/>
         <meta httpEquiv="X-UA-Compatible" content="IE=edge"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-        <style dangerouslySetInnerHTML={{__html: getWebColorCss()}}/>
+        <style dangerouslySetInnerHTML={{__html: getThemeCSS()}}/>
         <ScrollViewStyleReset/>
       </head>
       <body>{children}</body>

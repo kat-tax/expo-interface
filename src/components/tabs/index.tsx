@@ -1,8 +1,8 @@
+import type {TabBarProps} from './types';
 import {NativeTabs} from 'expo-router/unstable-native-tabs';
 import {theme} from '@/ui/theme';
-import routes from './routes';
 
-export function Tabs() {
+export function Tabs({routes}: TabBarProps) {
   return (
     <NativeTabs
       backgroundColor={theme.background}

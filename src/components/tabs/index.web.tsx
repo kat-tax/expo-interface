@@ -1,5 +1,5 @@
 import type {TabTriggerSlotProps, TabListProps} from 'expo-router/ui';
-import type {TabRoute} from './routes';
+import type {TabBarProps, TabRoute} from './types';
 
 import {Tabs as WebTabs, TabSlot, TabList, TabTrigger} from 'expo-router/ui';
 import {View, Pressable, StyleSheet} from 'react-native';
@@ -8,9 +8,8 @@ import app from 'expo-constants';
 
 import {theme, spacing, bound} from '@/ui/theme';
 import {Headline, Label} from '@/ui/typography';
-import routes from './routes';
 
-export function Tabs() {
+export function Tabs({routes}: TabBarProps) {
   return (
     <WebTabs>
       <TabSlot style={styles.slot}/>
@@ -40,22 +39,12 @@ export function WebTabList(props: TabListProps) {
   );
 }
 
-export interface TabLinkProps extends TabTriggerSlotProps {
-  icon: TabRoute['icon'];
-}
-
-export function TabLink({children, isFocused, icon, ...props}: TabLinkProps) {
+export function TabLink({children, isFocused, icon, ...props}: TabTriggerSlotProps & {icon: TabRoute['icon']}) {
   return (
     <Pressable {...props} style={({pressed}) => pressed && styles.pressed}>
       <View style={styles.link}>
-        <SymbolView
-          name={icon}
-          size={18}
-          tintColor={isFocused ? theme.label : theme.secondaryLabel}
-        />
-        <Label color={isFocused ? 'label' : 'secondaryLabel'}>
-          {children}
-        </Label>
+        <SymbolView name={icon} size={18} tintColor={isFocused ? theme.label : theme.secondaryLabel}/>
+        <Label color={isFocused ? 'label' : 'secondaryLabel'}>{children}</Label>
       </View>
     </Pressable>
   );
