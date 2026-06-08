@@ -4,17 +4,18 @@ import type {TabBarProps, TabRoute} from './types';
 import {Tabs as WebTabs, TabSlot, TabList, TabTrigger} from 'expo-router/ui';
 import {View, Pressable, StyleSheet} from 'react-native';
 import {SymbolView} from 'expo-symbols';
+import {Image} from 'expo-image';
 import app from 'expo-constants';
 
 import {theme, spacing, bound} from '@/ui/theme';
 import {Headline, Label} from '@/ui/typography';
 
-export function Tabs({routes}: TabBarProps) {
+export function Tabs({routes, webLogo = 'icon-and-text'}: TabBarProps) {
   return (
     <WebTabs>
       <TabSlot style={styles.slot}/>
       <TabList asChild>
-        <WebTabList>
+        <WebTabList logo={webLogo}>
           {routes.map(route => (
             <TabTrigger key={route.name} name={route.name} href={route.href} asChild>
               <TabLink icon={route.icon}>{route.label}</TabLink>
@@ -26,13 +27,24 @@ export function Tabs({routes}: TabBarProps) {
   );
 }
 
-export function WebTabList(props: TabListProps) {
+export function WebTabList({logo, ...props}: TabListProps & {logo: NonNullable<TabBarProps['webLogo']>}) {
   return (
     <View {...props} style={styles.list}>
       <View style={styles.inner}>
-        <Headline style={styles.logo} color="label">
-          {app.expoConfig?.name}
-        </Headline>
+        <View style={styles.logo}>
+          {logo !== 'text-only' && (
+            <Image
+              style={styles.icon}
+              source={require('@/assets/images/icon.png')}
+              contentFit="contain"
+            />
+          )}
+          {logo !== 'icon-only' && (
+            <Headline color="label">
+              {app.expoConfig?.name}
+            </Headline>
+          )}
+        </View>
         {props.children}
       </View>
     </View>
@@ -74,7 +86,15 @@ const styles = StyleSheet.create({
     backgroundColor: theme.backgroundElement,
   },
   logo: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginRight: 'auto',
+    gap: spacing.two,
+  },
+  icon: {
+    width: 24,
+    height: 24,
+    borderRadius: spacing.two,
   },
   link: {
     flexDirection: 'row',
