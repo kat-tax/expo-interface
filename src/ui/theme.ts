@@ -68,14 +68,14 @@ export const fonts = Platform.select({
   web: {
     sans: 'var(--font-display)',
     serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
     mono: 'var(--font-mono)',
+    rounded: 'var(--font-rounded)',
   },
   ios: {
     sans: 'system-ui',
     serif: 'ui-serif',
-    rounded: 'ui-rounded',
     mono: 'ui-monospace',
+    rounded: 'ui-rounded',
   },
   default: {
     sans: 'normal',
@@ -230,26 +230,25 @@ const androidVars: VariantMap = {
 };
 
 export const variants = Platform.select({
-  web: iosVars,
-  ios: iosVars,
-  android: androidVars,
   default: iosVars,
+  android: androidVars,
+  ios: iosVars,
+  web: iosVars,
 });
 
 export function getPlatformToken(specifics: {
-  web: ColorValue;
-  ios: ColorNative;
-  android: ColorNative;
   default: ColorValue;
+  android: ColorNative;
+  ios: ColorNative;
+  web: ColorValue;
 }): ColorValue {
-  const get = (v: ColorNative) =>
-    typeof v === 'function' ? v() : v;
+  const get = (c: ColorNative) => typeof c === 'function' ? c() : c;
   switch (Platform.OS) {
     case 'ios':
       return get(specifics.ios);
     case 'android':
       return get(specifics.android);
-    case 'web': // not supported (yet)
+    case 'web':
       return specifics.web;
     default:
       return specifics.default;
@@ -257,14 +256,9 @@ export function getPlatformToken(specifics: {
 }
 
 export function getWebColorCss(): string {
-  const format = (val: string) =>
-    val.replace(/[A-Z]/g, v =>
-      `-${v.toLowerCase()}`);
-
-  const render = (obj: ColorValues) =>
-    Object.entries(obj).map(([k,v]) =>
-      `\t${`--color-${format(k)}`}: ${v};`).join('\n');
-
+  const format = (s: string) => s.replace(/[A-Z]/g, v => `-${v.toLowerCase()}`);
+  const render = (o: ColorValues) => Object.entries(o).map(([k,v]) =>
+    `\t\t${`--color-${format(k)}`}: ${v};`).join('\n');
   return `
     :root {
       color-scheme: light dark;
@@ -279,9 +273,7 @@ export function getWebColorCss(): string {
 }
 
 export function getVal(token: ColorTokens): string {
-  return token in theme
-    ? String(theme[token])
-    : token;
+  return token in theme ? String(theme[token]) : token;
 }
 
 export function flatten(style?: TextStyle): CSSProperties {
@@ -320,4 +312,3 @@ export function clamp(numberOfLines?: number): CSSProperties {
   }
   return {};
 }
-

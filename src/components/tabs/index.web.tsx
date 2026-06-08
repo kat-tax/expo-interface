@@ -1,12 +1,13 @@
+import type {TabTriggerSlotProps, TabListProps} from 'expo-router/ui';
+import {Tabs as WebTabs, TabSlot, TabList, TabTrigger} from 'expo-router/ui';
 import {View, Pressable, StyleSheet} from 'react-native';
-import {Tabs as WebTabs, TabSlot, TabList, TabTrigger, TabListProps, TabTriggerSlotProps} from 'expo-router/ui';
 import {theme, spacing, bound} from '@/ui/theme';
 import {Headline, Label} from '@/ui/typography';
 
 export function Tabs() {
   return (
     <WebTabs>
-      <TabSlot style={{height: '100%'}}/>
+      <TabSlot style={styles.slot}/>
       <TabList asChild>
         <WebTabList>
           <TabTrigger name="home" href="/" asChild>
@@ -23,7 +24,7 @@ export function Tabs() {
 
 export function WebTabList(props: TabListProps) {
   return (
-    <View {...props} style={styles.root}>
+    <View {...props} style={styles.list}>
       <View style={styles.inner}>
         <Headline style={styles.logo} color="label">
           dropfiles.io
@@ -45,7 +46,10 @@ export function TabLink({children, isFocused, ...props}: TabTriggerSlotProps) {
 }
 
 const styles = StyleSheet.create({
-  root: {
+  slot: {
+    height: '100%',
+  },
+  list: {
     position: 'absolute',
     flexDirection: 'row',
     justifyContent: 'center',
@@ -57,11 +61,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.three,
-    paddingHorizontal: spacing.five,
-    borderRadius: spacing.five,
     gap: spacing.three,
     maxWidth: bound.contentMaxWidth,
+    paddingHorizontal: spacing.five,
+    paddingVertical: spacing.three,
+    borderRadius: spacing.five,
     backgroundColor: theme.backgroundElement,
   },
   logo: {

@@ -17,7 +17,9 @@ export function FileItem({name, size, type, onPress}: FileItemProps) {
         <FileIcon name={type} size={32}/>
       </ListItem.Leading>
       <Text>{name}</Text>
-      <ListItem.Supporting>{size}</ListItem.Supporting>
+      <ListItem.Supporting>
+        {size}
+      </ListItem.Supporting>
     </ListItem>
   );
 }

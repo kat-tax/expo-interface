@@ -8,7 +8,7 @@ import {bound, inset, spacing} from '@/ui/theme';
 export function Screen({children}: React.PropsWithChildren) {
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
-  const backgroundColor = isDark ? '#000000' : '#ffffff';
+  const backgroundColor = isDark ? 'black' : 'white';
 
   useEffect(() => {
     setBackgroundColorAsync(backgroundColor);
@@ -16,7 +16,7 @@ export function Screen({children}: React.PropsWithChildren) {
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor}}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <StatusBar style={isDark ? 'light' : 'dark'}/>
       <View style={styles.root}>
         <View style={styles.inner}>
           {children}

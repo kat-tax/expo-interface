@@ -2,10 +2,11 @@ import {useState} from 'react';
 import {FieldGroup, Text} from '@expo/ui';
 import {getVal, variants} from '@/ui/theme';
 import {DateTimePicker} from '@/ui/date-time';
+import {TextField} from '@/ui/text-field';
 import {Picker} from '@/ui/picker';
 import {Switch} from '@/ui/switch';
 
-const DROP_OPTIONS = [
+export const DROP_OPTIONS = [
   {label: 'Public', value: 'public'},
   {label: 'Private', value: 'private'},
 ];
@@ -14,8 +15,28 @@ export function SettingsForm() {
   const [dropPrivacy, setDropPrivacy] = useState('public');
   const [analytics, setAnalytics] = useState(false);
   const [datetime, setDatetime] = useState(() => new Date());
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   return (
     <FieldGroup>
+      <FieldGroup.Section title="Profile">
+        <TextField placeholder="Name" value={name} onChangeText={setName} />
+        <TextField
+          placeholder="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email"
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+        <TextField
+          placeholder="Phone"
+          value={phone}
+          onChangeText={setPhone}
+          keyboardType="phone"
+        />
+      </FieldGroup.Section>
       <FieldGroup.Section title="Defaults">
         <Picker
           label="Drop Privacy"
