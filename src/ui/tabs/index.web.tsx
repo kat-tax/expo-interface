@@ -1,5 +1,5 @@
 import type {TabTriggerSlotProps, TabListProps} from 'expo-router/ui';
-import type {TabBarProps, TabRoute} from './types';
+import type {TabBarProps, TabRoute, WebLogo} from './types';
 
 import {Tabs as WebTabs, TabSlot, TabList, TabTrigger} from 'expo-router/ui';
 import {View, Pressable, StyleSheet} from 'react-native';
@@ -27,22 +27,29 @@ export function Tabs({routes, webLogo = 'icon-and-text'}: TabBarProps) {
   );
 }
 
-export function WebTabList({logo, ...props}: TabListProps & {logo: NonNullable<TabBarProps['webLogo']>}) {
+export function WebTabList({logo, ...props}: TabListProps & {logo: WebLogo}) {
+  const isPreset = typeof logo === 'string';
+  const isTextOnly = logo === 'text-only';
+  const isIconOnly = logo === 'icon-only';
   return (
     <View {...props} style={styles.list}>
       <View style={styles.inner}>
         <View style={styles.logo}>
-          {logo !== 'text-only' && (
-            <Image
-              style={styles.icon}
-              source={require('@/assets/images/icon.png')}
-              contentFit="contain"
-            />
-          )}
-          {logo !== 'icon-only' && (
-            <Headline color="label">
-              {app.expoConfig?.name}
-            </Headline>
+          {!isPreset ? logo : (
+            <>
+              {!isTextOnly && (
+                <Image
+                  style={styles.icon}
+                  source={require('@/assets/images/icon.png')}
+                  contentFit="contain"
+                />
+              )}
+              {!isIconOnly && (
+                <Headline color="label">
+                  {app.expoConfig?.name}
+                </Headline>
+              )}
+            </>
           )}
         </View>
         {props.children}

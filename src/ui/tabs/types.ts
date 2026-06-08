@@ -1,5 +1,6 @@
 import type {Href} from 'expo-router';
 import type {SFSymbol, AndroidSymbol} from 'expo-symbols';
+import type {ReactNode} from 'react';
 
 /**
  * Props for the tab bar component.
@@ -28,16 +29,19 @@ export interface TabBarProps {
    */
   routes: readonly TabRoute[];
   /**
-   * Logo display mode for web.
+   * Controls the web tab bar logo. Use a preset mode to show the app icon
+   * and/or name, or pass a custom node to replace them entirely.
    * @default 'icon-and-text'
    */
-  webLogo?: 'icon-only' | 'text-only' | 'icon-and-text';
+  webLogo?: WebLogo;
 }
 
-/**
- * Configuration for a single tab route.
- * @see TabBarProps.routes
- */
+export type WebLogo =
+  | 'icon-only'
+  | 'text-only'
+  | 'icon-and-text'
+  | ReactNode;
+
 export interface TabRoute {
   /** Route segment, matching the file name in `src/app`. */
   name: string;
