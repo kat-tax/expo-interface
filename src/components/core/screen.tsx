@@ -16,7 +16,11 @@ const BG_COLOR: Record<ColorSchemeName, ColorValue> = {
 
 setBackgroundColorAsync(BG_COLOR[Appearance.getColorScheme() ?? 'unspecified']);
 
-export function Screen({children, native = false}: React.PropsWithChildren & {native?: boolean}) {
+interface ScreenProps extends React.PropsWithChildren {
+  native?: boolean;
+}
+
+export function Screen({children, native = false}: ScreenProps) {
   const scheme = useColorScheme();
   const backgroundColor = BG_COLOR[scheme ?? 'unspecified'];
 
