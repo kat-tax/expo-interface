@@ -1,13 +1,10 @@
-import {Host} from '@expo/ui';
 import {Screen} from '@/components/core/screen';
 import {FileList} from '@/components/native/file-list';
 
 export default function HomeScreen() {
   return (
-    <Screen>
-      <Host style={{flex: 1}}>
-        <FileList items={DEMO_FILES}/>
-      </Host>
+    <Screen native>
+      <FileList items={DEMO_FILES}/>
     </Screen>
   );
 }

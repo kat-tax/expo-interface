@@ -1,25 +1,40 @@
-import {useEffect} from 'react';
-import {StatusBar} from 'expo-status-bar';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {useColorScheme, StyleSheet, View} from 'react-native';
-import {setBackgroundColorAsync} from 'expo-system-ui';
-import {bound, inset, spacing} from '@/ui/theme';
+import type {ColorSchemeName, ColorValue} from 'react-native';
 
-export function Screen({children}: React.PropsWithChildren) {
+import {useEffect} from 'react';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useColorScheme, Appearance, StyleSheet, View} from 'react-native';
+import {setBackgroundColorAsync} from 'expo-system-ui';
+import {StatusBar} from 'expo-status-bar';
+import {Host} from '@expo/ui';
+
+import {bound, colors, inset, spacing} from '@/ui/theme';
+
+const BG_COLOR: Record<ColorSchemeName, ColorValue> = {
+  unspecified: colors.light.background,
+  light: colors.light.background,
+  dark: colors.dark.background,
+};
+
+setBackgroundColorAsync(BG_COLOR[Appearance.getColorScheme() ?? 'unspecified']);
+
+export function Screen({children, native = false}: React.PropsWithChildren & {native?: boolean}) {
   const scheme = useColorScheme();
-  const isDark = scheme === 'dark';
-  const backgroundColor = isDark ? 'black' : 'white';
+  const backgroundColor = BG_COLOR[scheme ?? 'unspecified'];
 
   useEffect(() => {
     setBackgroundColorAsync(backgroundColor);
-  }, [isDark]);
+  }, [backgroundColor]);
 
   return (
     <SafeAreaView style={{flex: 1, backgroundColor}}>
-      <StatusBar style={isDark ? 'light' : 'dark'}/>
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'}/>
       <View style={styles.root}>
-        <View style={styles.inner}>
-          {children}
+        <View style={styles.content}>
+          {!native ? children : (
+            <Host style={{flex: 1}}>
+              {children}
+            </Host>
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -35,7 +50,7 @@ const styles = StyleSheet.create({
     paddingTop: inset.topBar,
     gap: spacing.three,
   },
-  inner: {
+  content: {
     flex: 1,
     width: '100%',
     maxWidth: bound.contentMaxWidth,

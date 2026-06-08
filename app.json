@@ -38,8 +38,7 @@
             "imageWidth": 76
           }
         }
-      ],
-      "./plugins/with-pure-background"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
