@@ -1,8 +1,14 @@
 import type {TabTriggerSlotProps, TabListProps} from 'expo-router/ui';
+import type {TabRoute} from './routes';
+
 import {Tabs as WebTabs, TabSlot, TabList, TabTrigger} from 'expo-router/ui';
 import {View, Pressable, StyleSheet} from 'react-native';
+import {SymbolView} from 'expo-symbols';
+import app from 'expo-constants';
+
 import {theme, spacing, bound} from '@/ui/theme';
 import {Headline, Label} from '@/ui/typography';
+import routes from './routes';
 
 export function Tabs() {
   return (
@@ -10,12 +16,11 @@ export function Tabs() {
       <TabSlot style={styles.slot}/>
       <TabList asChild>
         <WebTabList>
-          <TabTrigger name="home" href="/" asChild>
-            <TabLink>Home</TabLink>
-          </TabTrigger>
-          <TabTrigger name="settings" href="/settings" asChild>
-            <TabLink>Settings</TabLink>
-          </TabTrigger>
+          {routes.map(route => (
+            <TabTrigger key={route.name} name={route.name} href={route.href} asChild>
+              <TabLink icon={route.icon}>{route.label}</TabLink>
+            </TabTrigger>
+          ))}
         </WebTabList>
       </TabList>
     </WebTabs>
@@ -27,7 +32,7 @@ export function WebTabList(props: TabListProps) {
     <View {...props} style={styles.list}>
       <View style={styles.inner}>
         <Headline style={styles.logo} color="label">
-          dropfiles.io
+          {app.expoConfig?.name}
         </Headline>
         {props.children}
       </View>
@@ -35,12 +40,23 @@ export function WebTabList(props: TabListProps) {
   );
 }
 
-export function TabLink({children, isFocused, ...props}: TabTriggerSlotProps) {
+export interface TabLinkProps extends TabTriggerSlotProps {
+  icon: TabRoute['icon'];
+}
+
+export function TabLink({children, isFocused, icon, ...props}: TabLinkProps) {
   return (
     <Pressable {...props} style={({pressed}) => pressed && styles.pressed}>
-      <Label color={isFocused ? 'label' : 'secondaryLabel'}>
-        {children}
-      </Label>
+      <View style={styles.link}>
+        <SymbolView
+          name={icon}
+          size={18}
+          tintColor={isFocused ? theme.label : theme.secondaryLabel}
+        />
+        <Label color={isFocused ? 'label' : 'secondaryLabel'}>
+          {children}
+        </Label>
+      </View>
     </Pressable>
   );
 }
@@ -54,22 +70,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.three,
     width: '100%',
+    padding: spacing.three,
   },
   inner: {
     flexGrow: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.three,
     maxWidth: bound.contentMaxWidth,
     paddingHorizontal: spacing.five,
     paddingVertical: spacing.three,
+    gap: spacing.three,
     borderRadius: spacing.five,
     backgroundColor: theme.backgroundElement,
   },
   logo: {
     marginRight: 'auto',
+  },
+  link: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.two,
   },
   pressed: {
     opacity: 0.7,
