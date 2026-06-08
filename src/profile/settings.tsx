@@ -1,61 +1,33 @@
 import {useState} from 'react';
 import {FieldGroup, Text} from '@expo/ui';
-import {DateTimePicker} from '@/ui/date-time';
 import {TextField} from '@/ui/text-field';
 import {Caption} from '@/ui/typography';
-import {Picker} from '@/ui/picker';
-import {Switch} from '@/ui/switch';
-
-export const DROP_OPTIONS = [
-  {label: 'Public', value: 'public'},
-  {label: 'Private', value: 'private'},
-];
 
 export function ProfileSettings() {
-  const [dropPrivacy, setDropPrivacy] = useState('public');
-  const [analytics, setAnalytics] = useState(false);
-  const [datetime, setDatetime] = useState(() => new Date());
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   return (
     <FieldGroup>
-      <FieldGroup.Section title="Profile">
-        <TextField placeholder="Name" value={name} onChangeText={setName} />
+      <FieldGroup.Section title="User">
         <TextField
-          placeholder="Email"
+          value={name}
+          placeholder="Name"
+          onChangeText={setName}
+        />
+        <TextField
           value={email}
-          onChangeText={setEmail}
+          placeholder="Email"
           keyboardType="email"
           autoCapitalize="none"
           autoCorrect={false}
+          onChangeText={setEmail}
         />
         <TextField
-          placeholder="Phone"
           value={phone}
-          onChangeText={setPhone}
+          placeholder="Phone"
           keyboardType="phone"
-        />
-      </FieldGroup.Section>
-      <FieldGroup.Section title="Defaults">
-        <Picker
-          label="Drop Privacy"
-          selectedValue={dropPrivacy}
-          onValueChange={setDropPrivacy}>
-          {DROP_OPTIONS.map(f => (
-            <Picker.Item key={f.value} label={f.label} value={f.value} />
-          ))}
-        </Picker>
-        <DateTimePicker
-          label="Expiration"
-          mode="datetime"
-          value={datetime}
-          onChange={setDatetime}
-        />
-        <Switch
-          label="Notify on upload"
-          value={analytics}
-          onValueChange={setAnalytics}
+          onChangeText={setPhone}
         />
       </FieldGroup.Section>
       <FieldGroup.Section title="About">
