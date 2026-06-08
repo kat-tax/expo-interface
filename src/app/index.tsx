@@ -1,5 +1,5 @@
 import {Screen} from '@/core/screen';
-import {FileList} from '@/files/list';
+import {FileList} from '@/file/list';
 
 export default function HomeScreen() {
   return (

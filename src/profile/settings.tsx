@@ -11,7 +11,7 @@ export const DROP_OPTIONS = [
   {label: 'Private', value: 'private'},
 ];
 
-export function SettingsForm() {
+export function ProfileSettings() {
   const [dropPrivacy, setDropPrivacy] = useState('public');
   const [analytics, setAnalytics] = useState(false);
   const [datetime, setDatetime] = useState(() => new Date());

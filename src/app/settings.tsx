@@ -1,10 +1,10 @@
 import {Screen} from '@/core/screen';
-import {SettingsForm} from '@/settings/form';
+import {ProfileSettings} from '@/profile/settings';
 
 export default function SettingsScreen() {
   return (
     <Screen native>
-      <SettingsForm/>
+      <ProfileSettings/>
     </Screen>
   );
 }

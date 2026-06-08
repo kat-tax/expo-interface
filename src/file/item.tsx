@@ -1,4 +1,4 @@
-import type {FileType} from '@/files/types';
+import type {FileType} from '@/file/types';
 import {ListItem, Text} from '@expo/ui';
 import {FileIcon} from './icon';
 
