@@ -1,11 +1,11 @@
 import type {ColorSchemeName, ColorValue} from 'react-native';
 
-import {Host} from '@expo/ui';
-import {StatusBar} from 'expo-status-bar';
-import {setBackgroundColorAsync} from 'expo-system-ui';
-import {useColorScheme, Appearance, StyleSheet, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {useEffect} from 'react';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useColorScheme, Appearance, StyleSheet, View} from 'react-native';
+import {setBackgroundColorAsync} from 'expo-system-ui';
+import {StatusBar} from 'expo-status-bar';
+import {Host} from '@expo/ui';
 import * as theme from '@/ui/theme';
 
 const BG_COLOR: Record<ColorSchemeName, ColorValue> = {

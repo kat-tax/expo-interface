@@ -1,5 +1,5 @@
-import type {FileItemProps} from '@/components/native/file-item';
-import {FileItem} from '@/components/native/file-item';
+import type {FileItemProps} from './item';
+import {FileItem} from './item';
 import {List} from '@expo/ui';
 
 interface FileListProps {

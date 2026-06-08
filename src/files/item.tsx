@@ -1,6 +1,6 @@
-import type {FileType} from '@/types/files';
+import type {FileType} from '@/files/types';
 import {ListItem, Text} from '@expo/ui';
-import {FileIcon} from '@/components/native/file-icon';
+import {FileIcon} from './icon';
 
 export interface FileItemProps {
   id: number;

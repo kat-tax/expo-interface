@@ -1,4 +1,4 @@
-import type {FileType} from '@/types/files';
+import type {FileType} from '@/files/types';
 import {SymbolView} from 'expo-symbols';
 import {theme} from '@/ui/theme';
 import * as _ from '@/ui/icons';
