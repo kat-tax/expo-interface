@@ -5,8 +5,6 @@ import {useMaterialColors, Row, Text, Column, DatePickerDialog, TimePickerDialog
 import {clip, Shapes, padding, clickable, background, fillMaxWidth} from '@expo/ui/jetpack-compose/modifiers';
 import {formatValue, useDateValue, withDatePart, withTimePart} from './shared';
 
-export * from './types';
-
 /**
  * Android has no inline date+time control, so the row shows the same iOS-style
  * pill as web — built with Jetpack Compose primitives so it lives natively

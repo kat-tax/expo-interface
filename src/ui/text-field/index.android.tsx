@@ -5,8 +5,6 @@ import {TextField as ComposeTextField, Text, useMaterialColors, useNativeState} 
 import {fillMaxWidth, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {useSyncedState} from './shared';
 
-export * from './types';
-
 const TRANSPARENT = 'transparent';
 
 /**

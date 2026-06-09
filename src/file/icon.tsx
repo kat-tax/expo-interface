@@ -25,7 +25,7 @@ export function FileIcon({name, size = 24}: FileIconProps) {
   }
   return (
     <SymbolView
-      name={icon}
+      name={icon.symbol}
       size={size}
       tintColor={color}
     />

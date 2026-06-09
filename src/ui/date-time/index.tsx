@@ -6,8 +6,6 @@ import {Label} from '@/ui/typography';
 import {theme} from '@/ui/theme';
 import {formatValue, inputType, parseInputValue, toInputValue, useDateValue} from './shared';
 
-export * from './types';
-
 /**
  * On web the row mirrors the native iOS/Android pill: a label on the leading
  * edge and a rounded pill showing the value, with a transparent native
@@ -50,8 +48,8 @@ export function DateTimePicker({
         disabled={disabled}
         style={[styles.pill, disabled && styles.disabled]}>
         <Label
-          color={accentColor ?? 'secondaryLabel'}
-          style={styles.value}>
+          color="secondaryLabel"
+          style={[styles.value, accentColor != null && {color: accentColor}]}>
           {formatValue(current, mode)}
         </Label>
         <input

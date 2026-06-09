@@ -44,7 +44,6 @@ export function useDateValue(
 ): [Date, (next: Date) => void] {
   const [internal, setInternal] = useState(() => value ?? new Date());
   const current = value ?? internal;
-
   const setValue = useCallback(
     (next: Date) => {
       if (value === undefined) {
@@ -54,7 +53,6 @@ export function useDateValue(
     },
     [value, onChange],
   );
-
   return [current, setValue];
 }
 

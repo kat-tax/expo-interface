@@ -17,7 +17,7 @@ export function DropSettings() {
     <FieldGroup>
       <FieldGroup.Section title="Defaults">
         <Picker
-          label="Drop Privacy"
+          label="Privacy"
           selectedValue={privacy}
           onValueChange={setPrivacy}>
           {DROP_OPTIONS.map(f => (

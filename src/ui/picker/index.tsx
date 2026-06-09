@@ -6,8 +6,6 @@ import {Label} from '@/ui/typography';
 import {theme} from '@/ui/theme';
 import {extractItems, labelFor, PickerItem, useSelectedValue} from './shared';
 
-export * from './types';
-
 /**
  * On web the row mirrors the native iOS/Android pill: a label on the leading
  * edge and a rounded pill showing the selected value plus an up/down chevron,
@@ -15,14 +13,14 @@ export * from './types';
  * the browser's built-in option list.
  */
 function PickerComponent<T extends PickerValue>({
+  style,
   label,
-  selectedValue,
-  onValueChange,
+  testID,
+  children,
   disabled,
   accentColor,
-  children,
-  testID,
-  style,
+  selectedValue,
+  onValueChange,
 }: PickerProps<T>) {
   const items = extractItems<T>(children);
   const [current, setValue] = useSelectedValue(selectedValue, onValueChange, items[0]?.value);
@@ -40,7 +38,9 @@ function PickerComponent<T extends PickerValue>({
         </Label>
       ) : null}
       <Pressable disabled={disabled} style={[styles.pill, disabled && styles.disabled]}>
-        <Label color={accentColor ?? 'secondaryLabel'} style={styles.value}>
+        <Label
+          color="secondaryLabel"
+          style={[styles.value, accentColor != null && {color: accentColor}]}>
           {labelFor(items, current)}
         </Label>
         <Chevron />

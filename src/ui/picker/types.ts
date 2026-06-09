@@ -29,20 +29,20 @@ export interface PickerItemProps<T extends PickerValue = PickerValue> {
  * first option).
  */
 export interface PickerProps<T extends PickerValue = PickerValue> {
+  /** Style applied to the row container (web/android only). */
+  style?: StyleProp<ViewStyle>;
   /** Label rendered at the leading edge of the row, mirroring an iOS Form row. */
   label?: string;
-  /** Current value (controlled). When omitted the component keeps its own state. */
-  selectedValue?: T;
-  /** Called whenever the user selects an option. */
-  onValueChange?: (value: T) => void;
+  /** Identifier used to locate the component in end-to-end tests. */
+  testID?: string;
+  /** `Picker.Item` children that define the available options. */
+  children?: ReactNode;
   /** Disables interaction. */
   disabled?: boolean;
   /** Tint applied to the value text (web/android) and the native picker (iOS). */
   accentColor?: string;
-  /** `Picker.Item` children that define the available options. */
-  children?: ReactNode;
-  /** Identifier used to locate the component in end-to-end tests. */
-  testID?: string;
-  /** Style applied to the row container (web/android only). */
-  style?: StyleProp<ViewStyle>;
+  /** Current value (controlled). When omitted the component keeps its own state. */
+  selectedValue?: T;
+  /** Called whenever the user selects an option. */
+  onValueChange?: (value: T) => void;
 }

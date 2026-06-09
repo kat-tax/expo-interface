@@ -2,17 +2,8 @@ import type {TextFieldCapitalize, TextFieldProps} from './types';
 import type {ViewModifier} from '@expo/ui/swift-ui/modifiers';
 
 import {SecureField, TextField as SwiftUITextField, useNativeState} from '@expo/ui/swift-ui';
-import {
-  autocorrectionDisabled,
-  disabled as disabledMod,
-  keyboardType as keyboardTypeMod,
-  onSubmit as onSubmitMod,
-  textInputAutocapitalization,
-  tint,
-} from '@expo/ui/swift-ui/modifiers';
+import {autocorrectionDisabled, disabled as disabledMod, keyboardType as keyboardTypeMod, onSubmit as onSubmitMod, textInputAutocapitalization, tint} from '@expo/ui/swift-ui/modifiers';
 import {keyboardTypeFor, useSyncedState} from './shared';
-
-export * from './types';
 
 /**
  * iOS renders the field inline using SwiftUI's `TextField` (or `SecureField`

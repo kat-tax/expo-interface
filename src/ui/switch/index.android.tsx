@@ -3,8 +3,6 @@ import type {SwitchProps} from './types';
 import {Row, Switch as ComposeSwitch, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
 import {fillMaxWidth, graphicsLayer, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 
-export * from './types';
-
 // Material 3's Switch has a fixed size; scale it down visually while keeping it
 // pinned to the trailing edge (transformOrigin at the right).
 const SCALE = 0.80;

@@ -2,8 +2,10 @@ import {useState} from 'react';
 import {FieldGroup, Text} from '@expo/ui';
 import {TextField} from '@/ui/text-field';
 import {Caption} from '@/ui/typography';
+import {useColor} from '@/ui/theme';
 
 export function ProfileSettings() {
+  const label = useColor('label');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -31,7 +33,7 @@ export function ProfileSettings() {
         />
       </FieldGroup.Section>
       <FieldGroup.Section title="About">
-        <Text>Version 1.0.0</Text>
+        <Text textStyle={{color: label}}>Version 1.0.0</Text>
         <FieldGroup.SectionFooter>
           <Caption>You are on the latest version.</Caption>
         </FieldGroup.SectionFooter>

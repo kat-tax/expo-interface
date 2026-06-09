@@ -1,0 +1,116 @@
+.ui-button {
+  --ui-button-accent: var(--color-tint);
+  -webkit-appearance: none;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 10px 18px;
+  gap: 8px;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  user-select: none;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+
+.ui-button--small {
+  font-size: 13px;
+  padding: 6px 12px;
+}
+
+.ui-button--large {
+  font-size: 17px;
+  padding: 14px 22px;
+}
+
+.ui-button--rounded {
+  border-radius: 12px;
+}
+
+.ui-button--pill {
+  border-radius: 999px;
+}
+
+.ui-button--circle {
+  border-radius: 50%;
+  aspect-ratio: 1;
+  padding: 10px;
+}
+
+.ui-button--circle.ui-button--small {
+  padding: 6px;
+}
+
+.ui-button--circle.ui-button--large {
+  padding: 14px;
+}
+
+.ui-button--icon-only.ui-button--small {
+  padding: 6px;
+}
+
+.ui-button--icon-only.ui-button--medium {
+  padding: 10px;
+}
+
+.ui-button--icon-only.ui-button--large {
+  padding: 14px;
+}
+
+.ui-button--filled {
+  color: #ffffff;
+  background: var(--ui-button-accent);
+}
+
+.ui-button--outlined {
+  color: var(--ui-button-accent);
+  background: transparent;
+  border-color: var(--ui-button-accent);
+}
+
+.ui-button--text {
+  color: var(--ui-button-accent);
+  background: transparent;
+  border-color: transparent;
+  padding-inline: 10px;
+}
+
+.ui-button--text.ui-button--small {
+  padding-inline: 6px;
+}
+
+.ui-button--text.ui-button--large {
+  padding-inline: 14px;
+}
+
+.ui-button--destructive {
+  --ui-button-accent: #ff3b30;
+}
+
+.ui-button__label {
+  display: inline-block;
+}
+
+.ui-button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.ui-button--outlined:hover:not(:disabled),
+.ui-button--text:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ui-button-accent) 12%, transparent);
+}
+
+.ui-button:active:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+.ui-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

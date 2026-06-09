@@ -6,8 +6,6 @@ import {useMaterialColors, DropdownMenu, DropdownMenuItem, Column, Row, Text, Ic
 import {background, clickable, clip, fillMaxWidth, padding, Shapes} from '@expo/ui/jetpack-compose/modifiers';
 import {extractItems, labelFor, PickerItem, useSelectedValue} from './shared';
 
-export * from './types';
-
 /**
  * Android's stock dropdown spans the full row width with no label, so instead
  * the row mirrors the iOS Form look — a leading label and a trailing rounded
@@ -17,11 +15,11 @@ export * from './types';
  */
 function PickerComponent<T extends PickerValue>({
   label,
-  selectedValue,
-  onValueChange,
+  children,
   disabled,
   accentColor,
-  children,
+  selectedValue,
+  onValueChange,
 }: PickerProps<T>) {
   const colors = useMaterialColors();
   const items = extractItems<T>(children);

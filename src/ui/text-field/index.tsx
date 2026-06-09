@@ -5,8 +5,6 @@ import {StyleSheet, TextInput} from 'react-native';
 import {fonts, fontWeights, theme, variants} from '@/ui/theme';
 import {keyboardTypeFor, useTextValue} from './shared';
 
-export * from './types';
-
 /**
  * On web the field mirrors the native iOS/Android row: a borderless, full-width
  * input whose placeholder doubles as the label, styled with the shared body

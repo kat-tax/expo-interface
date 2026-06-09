@@ -26,6 +26,7 @@
     "expo-symbols": "~56.0.6",
     "expo-system-ui": "~56.0.5",
     "expo-web-browser": "~56.0.5",
+    "qrcode-generator": "^2.0.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.85.3",
@@ -36,6 +37,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "expo-mcp": "~0.2.1",
     "typescript": "~6.0.3"
   }
 }

@@ -5,8 +5,6 @@ import {Picker as SwiftUIPicker, Text} from '@expo/ui/swift-ui';
 import {pickerStyle, tag, tint, disabled as disabledMod} from '@expo/ui/swift-ui/modifiers';
 import {extractItems, PickerItem, useSelectedValue} from './shared';
 
-export * from './types';
-
 /**
  * iOS renders the picker inline using SwiftUI's `Picker` with the `menu` style,
  * which is the rounded-pill Form row look the other platforms emulate: a
@@ -15,12 +13,12 @@ export * from './types';
  */
 function PickerComponent<T extends PickerValue>({
   label,
-  selectedValue,
-  onValueChange,
+  testID,
+  children,
   disabled,
   accentColor,
-  children,
-  testID,
+  selectedValue,
+  onValueChange,
 }: PickerProps<T>) {
   const items = extractItems<T>(children);
   const [current, setValue] = useSelectedValue(selectedValue, onValueChange, items[0]?.value);

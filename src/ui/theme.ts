@@ -1,8 +1,9 @@
 import '@/ui/global.css';
 import type {CSSProperties} from 'react';
 import type {ColorValue, TextStyle} from 'react-native';
-import {Platform, PlatformColor, useColorScheme} from 'react-native';
+
 import {DefaultTheme} from 'expo-router';
+import {Platform, PlatformColor, useColorScheme} from 'react-native';
 import {TypographyVariant, TypographyStyle} from '@/ui/typography/types';
 
 export type VariantMap = Record<TypographyVariant, TypographyStyle>;
@@ -201,6 +202,24 @@ export const nav = {
   },
 } as const;
 
+/** React Navigation does not resolve PlatformColor tokens on native headers. */
+export function useNavTheme() {
+  if (Platform.OS === 'web') return nav;
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- Platform.OS is a runtime constant.
+  const palette = colors[useColorScheme() === 'dark' ? 'dark' : 'light'];
+  return {
+    ...nav,
+    colors: {
+      ...nav.colors,
+      primary: palette.tint,
+      background: palette.background,
+      card: palette.backgroundElement,
+      text: palette.label,
+      border: palette.separator,
+    },
+  };
+}
+
 const iosVars: VariantMap = {
   largeTitle: {fontSize: 34, fontWeight: 'bold', lineHeight: 41, letterSpacing: 0.37},
   title: {fontSize: 28, fontWeight: 'bold', lineHeight: 34, letterSpacing: 0.36},
@@ -293,6 +312,8 @@ export function flatten(style?: TextStyle): CSSProperties {
   const css: CSSProperties = {};
   if (typeof style.opacity === 'number')
     css.opacity = style.opacity;
+  if (typeof style.color === 'string')
+    css.color = style.color;
   for (const key of VALID_STYLES) {
     if (style[key] != null)
       css[key] = style[key] as never;

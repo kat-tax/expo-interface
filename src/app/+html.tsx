@@ -1,8 +1,7 @@
-import type {PropsWithChildren} from 'react';
 import {ScrollViewStyleReset} from 'expo-router/html';
 import {getThemeCSS} from '@/ui/theme';
 
-export default function Root({children}: PropsWithChildren) {
+export default function Root({children}: React.PropsWithChildren) {
   return (
     <html lang="en">
       <head>

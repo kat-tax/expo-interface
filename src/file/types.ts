@@ -4,3 +4,8 @@ export type FileType =
   | 'audio'
   | 'text'
   | 'other';
+
+export type UploadStatus =
+  | 'uploading'
+  | 'complete'
+  | 'failed';

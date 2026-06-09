@@ -3,8 +3,6 @@ import {Switch as RNSwitch, StyleSheet, View} from 'react-native';
 import {Label} from '@/ui/typography';
 import {theme} from '@/ui/theme';
 
-export * from './types';
-
 /** iOS system green — the default "on" track color, matching the iOS Toggle. */
 const IOS_GREEN = '#34C759';
 /** iOS switches use a white thumb in both states; web defaults to a green thumb. */

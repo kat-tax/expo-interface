@@ -1,9 +1,6 @@
 import type {TextFieldKeyboard} from './types';
 import type {ObservableState} from '@expo/ui';
-
 import {useCallback, useEffect, useState} from 'react';
-
-export * from './types';
 
 /**
  * Keyboard variants understood by both React Native's `keyboardType` prop and

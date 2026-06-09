@@ -1,6 +1,5 @@
-import type {PickerItemProps, PickerOption, PickerValue} from './types';
 import type {ReactElement, ReactNode} from 'react';
-
+import type {PickerItemProps, PickerOption, PickerValue} from './types';
 import {Children, isValidElement, useCallback, useState} from 'react';
 
 /**

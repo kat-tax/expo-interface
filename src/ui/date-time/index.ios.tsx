@@ -6,8 +6,6 @@ import {DatePicker} from '@expo/ui/swift-ui';
 import {datePickerStyle, tint, disabled as disabledMod} from '@expo/ui/swift-ui/modifiers';
 import {useDateValue} from './shared';
 
-export * from './types';
-
 /**
  * iOS renders the picker inline using SwiftUI's compact `DatePicker`, which is
  * exactly the rounded-pill row look the other platforms emulate. Drop it
