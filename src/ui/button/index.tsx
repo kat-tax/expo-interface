@@ -2,8 +2,9 @@ import './button.css';
 import type {CSSProperties} from 'react';
 import type {ButtonProps} from './types';
 import {SymbolView} from 'expo-symbols';
+import {onAccent as contrastOf} from '@/ui/accent';
 import {useColor} from '@/ui/theme';
-import {DESTRUCTIVE, SIZE_ICON} from './shared';
+import {SIZE_ICON} from './shared';
 
 /**
  * On web the button is a real `<button>` element styled via `button.css`, so it
@@ -25,10 +26,16 @@ export function Button({
   testID,
 }: ButtonProps) {
   const themeTint = useColor('tint');
-  const accent = color ?? (role === 'destructive' ? DESTRUCTIVE : themeTint);
+  const destructive = useColor('destructive');
+  const themeOnAccent = useColor(role === 'destructive' ? 'onDestructive' : 'onTint');
+  const accent = color ?? (role === 'destructive' ? destructive : themeTint);
+  // A custom accent brings its own contrast color for filled content.
+  const onAccent = color ? contrastOf(color) : themeOnAccent;
   const iconOnly = hideLabel && !!prefixIcon;
   const iconSize = SIZE_ICON[size];
-  const style = color ? ({'--ui-button-accent': color} as CSSProperties) : undefined;
+  const style = color
+    ? ({'--ui-button-accent': color, '--ui-button-on-accent': onAccent} as CSSProperties)
+    : undefined;
   const className = [
     'ui-button',
     `ui-button--${variant}`,
@@ -52,7 +59,7 @@ export function Button({
         <SymbolView
           name={prefixIcon.symbol}
           size={iconSize}
-          tintColor={variant === 'filled' ? '#ffffff' : accent}
+          tintColor={variant === 'filled' ? onAccent : accent}
         />
       ) : null}
       {!iconOnly ? <span className="ui-button__label">{label}</span> : null}
@@ -60,7 +67,7 @@ export function Button({
         <SymbolView
           name={suffixIcon.symbol}
           size={iconSize}
-          tintColor={variant === 'filled' ? '#ffffff' : accent}
+          tintColor={variant === 'filled' ? onAccent : accent}
         />
       ) : null}
     </button>

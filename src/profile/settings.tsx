@@ -1,5 +1,6 @@
 import {useState} from 'react';
-import {FieldGroup, Text} from '@expo/ui';
+import {Text} from '@expo/ui';
+import {FieldGroup} from '@/ui/field-group';
 import {TextField} from '@/ui/text-field';
 import {Caption} from '@/ui/typography';
 import {useColor} from '@/ui/theme';

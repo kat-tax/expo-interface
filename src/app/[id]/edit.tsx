@@ -1,11 +1,11 @@
 import {router} from 'expo-router';
-import {BottomSheet} from '@expo/ui';
+import {Sheet} from '@/core/sheet';
 import {DropSettings} from '@/drop/settings';
 
 export default function DropEditScreen() {
   return (
-    <BottomSheet isPresented onDismiss={() => router.back()}>
+    <Sheet isPresented onDismiss={() => router.back()}>
       <DropSettings/>
-    </BottomSheet>
+    </Sheet>
   );
 }

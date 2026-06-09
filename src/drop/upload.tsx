@@ -25,6 +25,7 @@ export function DropUpload({id}: DropUploadProps) {
   const subtle = useColor('secondaryLabel');
   const tint = useColor('tint');
   const border = useColor('separator');
+  const background = useColor('background');
   const drop = getDrop(id);
   const [files, setFiles] = useState<FileItemProps[]>(drop?.files ?? []);
 
@@ -72,6 +73,9 @@ export function DropUpload({id}: DropUploadProps) {
             borderWidth: 1,
             borderColor: border,
             borderRadius: 20,
+            // Android simulates rounded borders with layered backgrounds, so
+            // without an explicit fill the whole box paints the border color.
+            backgroundColor: background,
             paddingVertical: spacing.five,
             paddingHorizontal: spacing.three,
           }}>

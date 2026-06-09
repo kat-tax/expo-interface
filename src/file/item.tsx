@@ -1,5 +1,6 @@
 import type {FileType, UploadStatus} from '@/file/types';
-import {ListItem, Text} from '@expo/ui';
+import {Text} from '@expo/ui';
+import {ListItem} from '@/ui/list-item';
 import {FileIcon} from './icon';
 import {useColor} from '@/ui/theme';
 
@@ -16,14 +17,11 @@ export interface FileItemProps {
 export function FileItem({name, size, type, onPress}: FileItemProps) {
   const label = useColor('label');
   return (
-    <ListItem onPress={() => onPress?.()}>
-      <ListItem.Leading>
-        <FileIcon name={type} size={32}/>
-      </ListItem.Leading>
+    <ListItem
+      onPress={onPress}
+      leading={<FileIcon name={type} size={32}/>}
+      supporting={size}>
       <Text textStyle={{color: label}}>{name}</Text>
-      <ListItem.Supporting>
-        {size}
-      </ListItem.Supporting>
     </ListItem>
   );
 }

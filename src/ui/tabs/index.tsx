@@ -1,16 +1,21 @@
 import type {TabBarProps} from './types';
 import {NativeTabs} from 'expo-router/unstable-native-tabs';
-import {theme, useColor} from '@/ui/theme';
+import {useColor} from '@/ui/theme';
 
 export function Tabs({routes}: TabBarProps) {
   const rippleColor = useColor('pillBackground');
+  const indicatorColor = useColor('backgroundElement');
+  const labelColor = useColor('label');
 
   return (
     <NativeTabs
       backgroundColor="transparent"
-      indicatorColor={theme.backgroundElement}
+      indicatorColor={indicatorColor}
       rippleColor={rippleColor}
-      labelStyle={{selected: {color: theme.label}}}>
+      labelStyle={{selected: {color: labelColor}}}
+      // Monochrome selected icon to match the label (and the web tab bar);
+      // without it iOS falls back to the default system tint.
+      iconColor={{selected: labelColor}}>
       {routes.map(route => (
         <NativeTabs.Trigger
           key={route.name}

@@ -5,6 +5,7 @@ import type {ColorValue, TextStyle} from 'react-native';
 import {DefaultTheme} from 'expo-router';
 import {Platform, PlatformColor, useColorScheme} from 'react-native';
 import {TypographyVariant, TypographyStyle} from '@/ui/typography/types';
+import {ACCENT_SEED, onAccent, useAccentSeed} from '@/ui/accent';
 
 export type VariantMap = Record<TypographyVariant, TypographyStyle>;
 export type ColorTokens = keyof typeof colors[keyof typeof colors];
@@ -94,6 +95,17 @@ export const fontWeights = {
   heavy: '900',
 } as const;
 
+/**
+ * Concrete scheme palette. These are the values `useColor` resolves on iOS
+ * and Android (visual parity with web), the `default` of every `theme`
+ * token, and the values emitted as CSS custom properties by `getThemeCSS`
+ * on web. Native Compose controls on Android (text fields, switches,
+ * pickers, dialogs) are themed separately by the accent-seeded Material 3
+ * Host palette (`seedColor` on the Screen `Host`).
+ *
+ * `tint`/`onTint` derive from the accent seed (see `accent.tsx`) — a single
+ * color for both schemes, like a single-color iOS AccentColor asset.
+ */
 export const colors = {
   light: {
     label: '#000000',
@@ -103,9 +115,13 @@ export const colors = {
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
     separator: 'rgba(60, 60, 67, 0.29)',
-    tint: '#208AEF',
+    tint: ACCENT_SEED,
+    onTint: onAccent(ACCENT_SEED),
     pillBackground: 'rgba(118, 118, 128, 0.12)',
     switchTrack: '#e9e9ea',
+    switchOn: '#34C759',
+    destructive: '#FF3B30',
+    onDestructive: '#FFFFFF',
   },
   dark: {
     label: '#ffffff',
@@ -115,72 +131,224 @@ export const colors = {
     backgroundElement: '#212225',
     backgroundSelected: '#2E3135',
     separator: 'rgba(84, 84, 88, 0.6)',
-    tint: '#0A84FF',
+    tint: ACCENT_SEED,
+    onTint: onAccent(ACCENT_SEED),
     pillBackground: 'rgba(118, 118, 128, 0.24)',
     switchTrack: '#39393d',
+    switchOn: '#30D158',
+    destructive: '#FF453A',
+    onDestructive: '#FFFFFF',
   },
 } as const;
 
+/**
+ * Static, scheme-adaptive color tokens. Three resolution paths exist:
+ *
+ * 1. `theme.*` (this object) — opaque platform values: iOS `PlatformColor`
+ *    (resolved by UIKit per scheme), Android theme attributes, web
+ *    `var(--color-*)` custom properties. Use in styles that the platform
+ *    resolves natively.
+ * 2. `useColor(token)` — a concrete string usable anywhere: on native the
+ *    scheme palette hex (tint/onTint from the live accent seed — identical
+ *    on iOS and Android for web parity), on web the CSS var (stays reactive
+ *    in CSS). Compose-native controls are instead themed by the seeded
+ *    Android Host (`hostAccentProps`).
+ * 3. `getThemeCSS()` — emits the palette as `--color-*` vars on web;
+ *    `AccentProvider` overlays user-supplied tints as inline vars.
+ *
+ * The accent seed (`accent.tsx`) is the single source for all tints. Note
+ * the static iOS/Android entries below cannot react to a runtime
+ * user-supplied seed — only `useColor`/CSS vars do.
+ */
 export const theme = {
+  /**
+   * Primary text.
+   * - iOS: `PlatformColor('label')` — #000 light / #fff dark.
+   * - Android: `?android:attr/textColorPrimary` here; palette via `useColor`.
+   * - Web: `var(--color-label)`.
+   * - Fallback: #000000 light / #ffffff dark.
+   */
   label: getPlatformToken({
     ios: () => PlatformColor('label'),
     android: () => PlatformColor('?android:attr/textColorPrimary'),
     web: 'var(--color-label)',
     default: colors.light.label,
   }),
+  /**
+   * Secondary text (subtitles, captions).
+   * - iOS: `PlatformColor('secondaryLabel')`.
+   * - Android: `?android:attr/textColorSecondary` here; palette via `useColor`.
+   * - Web: `var(--color-secondary-label)`.
+   * - Fallback: #60646C light / #B0B4BA dark.
+   */
   secondaryLabel: getPlatformToken({
     ios: () => PlatformColor('secondaryLabel'),
     android: () => PlatformColor('?android:attr/textColorSecondary'),
     web: 'var(--color-secondary-label)',
     default: colors.light.secondaryLabel,
   }),
+  /**
+   * Tertiary text (placeholders, disabled hints, decorative glyphs).
+   * - iOS: `PlatformColor('tertiaryLabel')`.
+   * - Android: `?android:attr/textColorTertiary` here; palette via `useColor`.
+   * - Web: `var(--color-tertiary-label)`.
+   * - Fallback: #9094A0 light / #6E7378 dark.
+   */
   tertiaryLabel: getPlatformToken({
     ios: () => PlatformColor('tertiaryLabel'),
     android: () => PlatformColor('?android:attr/textColorTertiary'),
     web: 'var(--color-tertiary-label)',
     default: colors.light.tertiaryLabel,
   }),
+  /**
+   * Screen background.
+   * - iOS: `PlatformColor('systemBackground')`.
+   * - Android: `?android:attr/colorBackground` here; palette via `useColor`.
+   * - Web: `var(--color-background)`.
+   * - Fallback: #ffffff light / #000000 dark.
+   */
   background: getPlatformToken({
     ios: () => PlatformColor('systemBackground'),
     android: () => PlatformColor('?android:attr/colorBackground'),
     web: 'var(--color-background)',
     default: colors.light.background,
   }),
+  /**
+   * Raised/inset element background (cards, list rows).
+   * - iOS: `PlatformColor('secondarySystemBackground')`.
+   * - Android: `?android:attr/colorBackgroundFloating` here; palette via `useColor`.
+   * - Web: `var(--color-background-element)`.
+   * - Fallback: #F0F0F3 light / #212225 dark.
+   */
   backgroundElement: getPlatformToken({
     ios: () => PlatformColor('secondarySystemBackground'),
     android: () => PlatformColor('?android:attr/colorBackgroundFloating'),
     web: 'var(--color-background-element)',
     default: colors.light.backgroundElement,
   }),
+  /**
+   * Selected/pressed element background.
+   * - iOS: `PlatformColor('tertiarySystemBackground')`.
+   * - Android: `?android:attr/colorControlHighlight` here; palette via `useColor`.
+   * - Web: `var(--color-background-selected)`.
+   * - Fallback: #E0E1E6 light / #2E3135 dark.
+   */
   backgroundSelected: getPlatformToken({
     ios: () => PlatformColor('tertiarySystemBackground'),
     android: () => PlatformColor('?android:attr/colorControlHighlight'),
     web: 'var(--color-background-selected)',
     default: colors.light.backgroundSelected,
   }),
+  /**
+   * Hairline separators and borders.
+   * - iOS: `PlatformColor('separator')`.
+   * - Android: `?android:attr/colorControlHighlight` here; palette via `useColor`.
+   * - Web: `var(--color-separator)`.
+   * - Fallback: rgba(60,60,67,0.29) light / rgba(84,84,88,0.6) dark.
+   */
   separator: getPlatformToken({
     ios: () => PlatformColor('separator'),
     android: () => PlatformColor('?android:attr/colorControlHighlight'),
     web: 'var(--color-separator)',
     default: colors.light.separator,
   }),
+  /**
+   * Accent color for interactive elements, derived from the accent seed.
+   * - iOS: the hardcoded seed here; SwiftUI children get it via the Host-level
+   *   `tint()` cascade, and `useColor('tint')` returns the live seed.
+   * - Android: `?attr/colorPrimary` here; `useColor('tint')` returns the
+   *   live seed (web parity). Compose-native controls derive their own M3
+   *   `primary` from the Host `seedColor`.
+   * - Web: `var(--color-tint)` — default emitted from the seed, user-supplied
+   *   seeds applied as inline vars by `AccentProvider`.
+   * - Fallback: ACCENT_SEED (#007AFF) both schemes.
+   */
   tint: getPlatformToken({
-    ios: () => PlatformColor('systemBlue'),
+    ios: ACCENT_SEED,
     android: () => PlatformColor('?attr/colorPrimary'),
     web: 'var(--color-tint)',
     default: colors.light.tint,
   }),
+  /**
+   * Content rendered on top of the accent (filled-button labels/icons).
+   * - iOS/Android: luminance contrast of the live seed via `useColor`
+   *   (white for #007AFF).
+   * - Web: `var(--color-on-tint)`; follows the seed via `AccentProvider`.
+   * - Fallback: contrast of ACCENT_SEED (#FFFFFF) both schemes.
+   */
+  onTint: getPlatformToken({
+    ios: onAccent(ACCENT_SEED),
+    android: onAccent(ACCENT_SEED),
+    web: 'var(--color-on-tint)',
+    default: colors.light.onTint,
+  }),
+  /**
+   * Pill/segmented control background.
+   * - iOS: `PlatformColor('secondarySystemFill')`.
+   * - Android: `?android:attr/colorControlHighlight` here; palette via `useColor`.
+   * - Web: `var(--color-pill-background)`.
+   * - Fallback: rgba(118,118,128,0.12) light / rgba(118,118,128,0.24) dark.
+   */
   pillBackground: getPlatformToken({
     ios: () => PlatformColor('secondarySystemFill'),
     android: () => PlatformColor('?android:attr/colorControlHighlight'),
     web: 'var(--color-pill-background)',
     default: colors.light.pillBackground,
   }),
+  /**
+   * Switch "off" track.
+   * - iOS: `PlatformColor('systemGray5')`.
+   * - Android: `?android:attr/colorControlHighlight` here; palette via `useColor`.
+   *   (The Compose Switch is themed natively by the seeded Host.)
+   * - Web: `var(--color-switch-track)`.
+   * - Fallback: #e9e9ea light / #39393d dark.
+   */
   switchTrack: getPlatformToken({
     ios: () => PlatformColor('systemGray5'),
     android: () => PlatformColor('?android:attr/colorControlHighlight'),
     web: 'var(--color-switch-track)',
     default: colors.light.switchTrack,
+  }),
+  /**
+   * Success green (iOS systemGreen), e.g. completed states. Note switches
+   * themselves follow the accent `tint` on every platform (the iOS Host
+   * `tint` cascade colors the SwiftUI `Toggle` with the seed).
+   * - iOS: `PlatformColor('systemGreen')` — #34C759 light / #30D158 dark.
+   * - Android: `?attr/colorPrimary` here; palette via `useColor`.
+   * - Web: `var(--color-switch-on)`.
+   * - Fallback: #34C759 light / #30D158 dark.
+   */
+  switchOn: getPlatformToken({
+    ios: () => PlatformColor('systemGreen'),
+    android: () => PlatformColor('?attr/colorPrimary'),
+    web: 'var(--color-switch-on)',
+    default: colors.light.switchOn,
+  }),
+  /**
+   * Destructive actions (delete buttons, error states).
+   * - iOS: `PlatformColor('systemRed')` — #FF3B30 light / #FF453A dark.
+   * - Android: `?attr/colorError` here; palette via `useColor` (web parity).
+   * - Web: `var(--color-destructive)`.
+   * - Fallback: #FF3B30 light / #FF453A dark.
+   */
+  destructive: getPlatformToken({
+    ios: () => PlatformColor('systemRed'),
+    android: () => PlatformColor('?attr/colorError'),
+    web: 'var(--color-destructive)',
+    default: colors.light.destructive,
+  }),
+  /**
+   * Content rendered on top of the destructive color.
+   * - iOS/Android: white via `useColor` (matches labels on filled
+   *   systemRed/destructive buttons).
+   * - Web: `var(--color-on-destructive)`.
+   * - Fallback: #FFFFFF both schemes.
+   */
+  onDestructive: getPlatformToken({
+    ios: colors.light.onDestructive,
+    android: colors.light.onDestructive,
+    web: 'var(--color-on-destructive)',
+    default: colors.light.onDestructive,
   }),
 } as const;
 
@@ -202,16 +370,21 @@ export const nav = {
   },
 } as const;
 
-/** React Navigation does not resolve PlatformColor tokens on native headers. */
+/**
+ * React Navigation does not resolve PlatformColor tokens on native headers,
+ * so resolve concrete palette colors (with the live accent seed as primary).
+ */
 export function useNavTheme() {
   if (Platform.OS === 'web') return nav;
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- Platform.OS is a runtime constant.
+  /* eslint-disable react-hooks/rules-of-hooks -- Platform.OS is a runtime constant. */
+  const seed = useAccentSeed();
   const palette = colors[useColorScheme() === 'dark' ? 'dark' : 'light'];
+  /* eslint-enable react-hooks/rules-of-hooks */
   return {
     ...nav,
     colors: {
       ...nav.colors,
-      primary: palette.tint,
+      primary: seed,
       background: palette.background,
       card: palette.backgroundElement,
       text: palette.label,
@@ -259,16 +432,24 @@ export const variants = Platform.select({
  * Resolves a color token to a usable string value.
  *
  * - Web: returns the `var(--color-*)` custom property so theming stays fully
- *   reactive through CSS (driven by `getThemeCSS`), never recomputed in JS.
- * - Native: PlatformColor values are opaque objects that can't be consumed
+ *   reactive through CSS (driven by `getThemeCSS` + `AccentProvider`), never
+ *   recomputed in JS.
+ * - Android: resolves the Material 3 role from the palette seeded by the
+ *   accent color (scheme-aware, every API level).
+ * - iOS: PlatformColor values are opaque objects that can't be consumed
  *   everywhere (they stringify to "[object Object]" and aren't honored by
  *   expo-symbols glyphs), so resolve a concrete palette color that reacts to
- *   the active light/dark scheme.
+ *   the active light/dark scheme; `tint`/`onTint` follow the live accent seed.
  */
 export function useColor(token: ColorTokens): string {
   if (Platform.OS === 'web') return theme[token] as string;
-  // eslint-disable-next-line react-hooks/rules-of-hooks -- Platform.OS is a runtime constant.
-  return colors[useColorScheme() === 'dark' ? 'dark' : 'light'][token];
+  /* eslint-disable react-hooks/rules-of-hooks -- Platform.OS is a runtime constant. */
+  const seed = useAccentSeed();
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  /* eslint-enable react-hooks/rules-of-hooks */
+  if (token === 'tint') return seed;
+  if (token === 'onTint') return onAccent(seed);
+  return colors[scheme][token];
 }
 
 export function getPlatformToken(specifics: {

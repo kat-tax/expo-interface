@@ -3,14 +3,14 @@ import {Switch as RNSwitch, StyleSheet, View} from 'react-native';
 import {Label} from '@/ui/typography';
 import {theme} from '@/ui/theme';
 
-/** iOS system green — the default "on" track color, matching the iOS Toggle. */
-const IOS_GREEN = '#34C759';
 /** iOS switches use a white thumb in both states; web defaults to a green thumb. */
 const THUMB = '#ffffff';
 
 /**
  * On web the row mirrors the native iOS/Android layout: a label on the leading
  * edge and the native React Native Web switch pinned to the trailing edge.
+ * The "on" track defaults to the accent tint for iOS parity — on iOS the
+ * Host-level `tint` cascade colors the SwiftUI `Toggle` with the seed.
  */
 export function Switch({
   label,
@@ -21,7 +21,7 @@ export function Switch({
   testID,
   style,
 }: SwitchProps) {
-  const onColor = accentColor ?? IOS_GREEN;
+  const onColor = accentColor ?? (theme.tint as string);
   const offColor = theme.switchTrack;
   const toggle = (
     <RNSwitch

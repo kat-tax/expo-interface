@@ -121,19 +121,21 @@ const optionStyle: CSSProperties = {
   background: 'var(--color-background)',
 };
 
+const chevronStroke = {stroke: theme.tertiaryLabel as string} as CSSProperties;
+
 function Chevron() {
   return (
     <svg width="11" height="16" viewBox="0 0 11 16" fill="none" aria-hidden="true">
       <path
         d="M2.5 6.5 L5.5 3.5 L8.5 6.5"
-        stroke={theme.tertiaryLabel as string}
+        style={chevronStroke}
         strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M2.5 9.5 L5.5 12.5 L8.5 9.5"
-        stroke={theme.tertiaryLabel as string}
+        style={chevronStroke}
         strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"

@@ -2,7 +2,8 @@ import type {ButtonProps, ButtonVariant} from './types';
 import type {ViewModifier} from '@expo/ui/swift-ui/modifiers';
 import {Button as SwiftUIButton, HStack, Image, Text} from '@expo/ui/swift-ui';
 import {buttonStyle, buttonBorderShape, controlSize, labelStyle, tint, disabled as disabledMod} from '@expo/ui/swift-ui/modifiers';
-import {DESTRUCTIVE, ICON_GAP, SIZE_ICON, iosSymbol, swiftBorderShape, swiftControlSize} from './shared';
+import {ICON_GAP, SIZE_ICON, iosSymbol, swiftBorderShape, swiftControlSize} from './shared';
+import {onAccent as contrastOf} from '@/ui/accent';
 import {useColor} from '@/ui/theme';
 
 const VARIANT_STYLE: Record<ButtonVariant, 'borderedProminent' | 'bordered' | 'plain'> = {
@@ -31,9 +32,14 @@ export function Button({
   testID,
 }: ButtonProps) {
   const themeTint = useColor('tint');
+  const destructive = useColor('destructive');
+  const themeOnAccent = useColor(role === 'destructive' ? 'onDestructive' : 'onTint');
   const hasSuffix = !!suffixIcon && !hideLabel;
   const iconOnly = hideLabel && !!prefixIcon;
-  const accent = color ?? (role === 'destructive' ? DESTRUCTIVE : themeTint);
+  const accent = color ?? (role === 'destructive' ? destructive : themeTint);
+  // A custom accent brings its own contrast color for filled content.
+  const onAccent = color ? contrastOf(color) : themeOnAccent;
+  const iconColor = variant === 'filled' ? onAccent : accent;
   const modifiers: ViewModifier[] = [
     buttonStyle(VARIANT_STYLE[variant]),
     controlSize(swiftControlSize(size)),
@@ -51,9 +57,9 @@ export function Button({
         modifiers={modifiers}
         testID={testID}>
         <HStack spacing={ICON_GAP}>
-          {prefixIcon ? <Image systemName={iosSymbol(prefixIcon)} color={accent} size={SIZE_ICON[size]}/> : null}
+          {prefixIcon ? <Image systemName={iosSymbol(prefixIcon)} color={iconColor} size={SIZE_ICON[size]}/> : null}
           <Text>{label}</Text>
-          <Image systemName={iosSymbol(suffixIcon!)} color={accent} size={SIZE_ICON[size]}/>
+          <Image systemName={iosSymbol(suffixIcon!)} color={iconColor} size={SIZE_ICON[size]}/>
         </HStack>
       </SwiftUIButton>
     );

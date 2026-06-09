@@ -14,7 +14,7 @@ export interface SwitchProps {
   onValueChange: (value: boolean) => void;
   /** Disables interaction. */
   disabled?: boolean;
-  /** Tint applied to the "on" track (overrides the default iOS green). */
+  /** Tint applied to the "on" track (overrides the theme accent tint). */
   accentColor?: string;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;

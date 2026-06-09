@@ -1,7 +1,8 @@
 import type {ButtonProps, ButtonShape, ButtonVariant} from './types';
 import {testID as testIDModifier, width} from '@expo/ui/jetpack-compose/modifiers';
 import {Button as ComposeButton, OutlinedButton, TextButton, Icon, IconButton, FilledIconButton, OutlinedIconButton, Spacer, Shape, Text} from '@expo/ui/jetpack-compose';
-import {DESTRUCTIVE, ON_ACCENT, SIZE_ICON, SIZE_TEXT, androidContentPadding} from './shared';
+import {SIZE_ICON, SIZE_TEXT, androidContentPadding} from './shared';
+import {onAccent as contrastOf} from '@/ui/accent';
 import {useColor} from '@/ui/theme';
 
 const VARIANT_COMPONENT: Record<ButtonVariant, typeof ComposeButton | typeof OutlinedButton | typeof TextButton> = {
@@ -49,11 +50,15 @@ export function Button({
   testID,
 }: ButtonProps) {
   const themeTint = useColor('tint');
-  const accent = color ?? (role === 'destructive' ? DESTRUCTIVE : themeTint);
+  const destructive = useColor('destructive');
+  const themeOnAccent = useColor(role === 'destructive' ? 'onDestructive' : 'onTint');
+  const accent = color ?? (role === 'destructive' ? destructive : themeTint);
+  // A custom accent brings its own contrast color for filled content.
+  const onAccent = color ? contrastOf(color) : themeOnAccent;
   const onFilled = variant === 'filled';
-  const textColor = onFilled ? ON_ACCENT : accent;
+  const textColor = onFilled ? onAccent : accent;
   const colors = onFilled
-    ? {containerColor: accent, contentColor: ON_ACCENT}
+    ? {containerColor: accent, contentColor: onAccent}
     : {contentColor: accent};
   const iconSize = SIZE_ICON[size];
   const textSize = SIZE_TEXT[size];

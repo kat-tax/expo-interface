@@ -1,5 +1,5 @@
 import {useState} from 'react';
-import {FieldGroup} from '@expo/ui';
+import {FieldGroup} from '@/ui/field-group';
 import {DateTimePicker} from '@/ui/date-time';
 import {Picker} from '@/ui/picker';
 import {Switch} from '@/ui/switch';

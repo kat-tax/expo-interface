@@ -26,7 +26,9 @@ function PickerComponent<T extends PickerValue>({
   const [current, setValue] = useSelectedValue(selectedValue, onValueChange, items[0]?.value);
   const [expanded, setExpanded] = useState(false);
   const colorLabel = disabled ? colors.onSurfaceVariant : colors.onSurface;
-  const colorValue = disabled ? colors.onSurfaceVariant : (accentColor ?? colors.onSurface);
+  // Secondary by default — iOS renders the menu picker's value in gray inside
+  // a Form, and the web pill uses `secondaryLabel` to match.
+  const colorValue = accentColor && !disabled ? accentColor : colors.onSurfaceVariant;
   return (
     <Column modifiers={[fillMaxWidth()]}>
       <Row

@@ -3,6 +3,7 @@ import type {DateTimePickerProps} from './types';
 import {useState} from 'react';
 import {useMaterialColors, Row, Text, Column, DatePickerDialog, TimePickerDialog} from '@expo/ui/jetpack-compose';
 import {clip, Shapes, padding, clickable, background, fillMaxWidth} from '@expo/ui/jetpack-compose/modifiers';
+import {useColor} from '@/ui/theme';
 import {formatValue, useDateValue, withDatePart, withTimePart} from './shared';
 
 /**
@@ -26,6 +27,10 @@ export function DateTimePicker({
   const [stage, setStage] = useState<'idle' | 'date' | 'time'>('idle');
   const [draft, setDraft] = useState<Date | null>(null);
   const colors = useMaterialColors();
+  const tint = useColor('tint');
+  // The dialogs are tinted with the live accent seed by default so they
+  // follow a user-supplied accent even when the native host is not seeded.
+  const dialogColor = accentColor ?? tint;
   const labelColor = disabled ? colors.onSurfaceVariant : colors.onSurface;
   const valueColor = disabled ? colors.onSurfaceVariant : (accentColor ?? colors.onSurface);
   const selectableDates = minimumDate || maximumDate ? {start: minimumDate, end: maximumDate} : undefined;
@@ -84,7 +89,7 @@ export function DateTimePicker({
       {stage === 'date' && (
         <DatePickerDialog
           initialDate={(draft ?? current).toISOString()}
-          color={accentColor}
+          color={dialogColor}
           selectableDates={selectableDates}
           onDateSelected={handleDate}
           onDismissRequest={dismissDate}
@@ -93,7 +98,7 @@ export function DateTimePicker({
       {stage === 'time' && (
         <TimePickerDialog
           initialDate={(draft ?? current).toISOString()}
-          color={accentColor}
+          color={dialogColor}
           onDateSelected={handleTime}
           onDismissRequest={dismissTime}
         />

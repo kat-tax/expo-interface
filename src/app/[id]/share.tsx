@@ -1,12 +1,12 @@
 import {router, useLocalSearchParams} from 'expo-router';
-import {BottomSheet} from '@expo/ui';
+import {Sheet} from '@/core/sheet';
 import {DropShare} from '@/drop/share';
 
 export default function DropShareScreen() {
   const {id} = useLocalSearchParams<{id: string}>();
   return (
-    <BottomSheet isPresented onDismiss={() => router.back()}>
+    <Sheet isPresented onDismiss={() => router.back()}>
       <DropShare id={id}/>
-    </BottomSheet>
+    </Sheet>
   );
 }

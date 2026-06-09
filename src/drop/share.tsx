@@ -1,5 +1,6 @@
 import {useState} from 'react';
-import {Column, Row, Button, Text, RNHostView} from '@expo/ui';
+import {Column, Row, Text, RNHostView} from '@expo/ui';
+import {Button} from '@/ui/button';
 import {useColor, spacing} from '@/ui/theme';
 import {copyText, shareUrl} from '@/ui/link';
 import {QRCode} from '@/ui/qr';

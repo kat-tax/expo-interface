@@ -1,5 +1,6 @@
 .ui-button {
   --ui-button-accent: var(--color-tint);
+  --ui-button-on-accent: var(--color-on-tint);
   -webkit-appearance: none;
   appearance: none;
   display: inline-flex;
@@ -64,7 +65,7 @@
 }
 
 .ui-button--filled {
-  color: #ffffff;
+  color: var(--ui-button-on-accent);
   background: var(--ui-button-accent);
 }
 
@@ -90,7 +91,8 @@
 }
 
 .ui-button--destructive {
-  --ui-button-accent: #ff3b30;
+  --ui-button-accent: var(--color-destructive);
+  --ui-button-on-accent: var(--color-on-destructive);
 }
 
 .ui-button__label {

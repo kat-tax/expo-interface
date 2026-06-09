@@ -3,6 +3,7 @@ import type {TextFieldColors, TextFieldKeyboardType} from '@expo/ui/jetpack-comp
 
 import {TextField as ComposeTextField, Text, useMaterialColors, useNativeState} from '@expo/ui/jetpack-compose';
 import {fillMaxWidth, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {useColor} from '@/ui/theme';
 import {useSyncedState} from './shared';
 
 const TRANSPARENT = 'transparent';
@@ -31,6 +32,7 @@ export function TextField({
   testID,
 }: TextFieldProps) {
   const colors = useMaterialColors();
+  const tint = useColor('tint');
   const text = useNativeState(value ?? '');
   useSyncedState(text, value);
 
@@ -45,7 +47,9 @@ export function TextField({
     focusedTextColor: colors.onSurface,
     unfocusedTextColor: colors.onSurface,
     disabledTextColor: colors.onSurfaceVariant,
-    ...(accentColor ? {cursorColor: accentColor} : null),
+    // Live accent seed by default — matches the web cursor (`theme.tint`) and
+    // the iOS field tint, even inside sheets whose native host is unseeded.
+    cursorColor: accentColor ?? tint,
   };
 
   return (

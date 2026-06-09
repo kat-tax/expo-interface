@@ -2,8 +2,6 @@ import type {IconToken} from '@/ui/icons';
 import type {SFSymbol} from 'sf-symbols-typescript';
 import type {ButtonShape, ButtonSize} from './types';
 
-export const DESTRUCTIVE = '#FF3B30';
-export const ON_ACCENT = '#FFFFFF';
 export const ICON_GAP = 8;
 
 export const SIZE_ICON: Record<ButtonSize, number> = {

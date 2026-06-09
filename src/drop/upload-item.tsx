@@ -9,12 +9,6 @@ import {fillWidth} from '@/ui/fill';
 import {ICON_TRASH, ICON_RETRY, ICON_COMPLETE, ICON_FAILED} from '@/ui/icons';
 import {useColor, spacing} from '@/ui/theme';
 
-const STATUS_COLOR = {
-  complete: '#34C759',
-  uploading: '#0A84FF',
-  failed: '#FF3B30',
-} as const;
-
 export interface UploadItemProps {
   file: FileItemProps;
   onRemove?: () => void;
@@ -25,10 +19,17 @@ export function UploadItem({file, onRemove, onRetry}: UploadItemProps) {
   const label = useColor('label');
   const subtle = useColor('secondaryLabel');
   const card = useColor('backgroundElement');
+  // Theme tokens (scheme-aware; `tint` follows the live accent seed) instead
+  // of hardcoded status colors.
+  const statusColor = {
+    complete: useColor('switchOn'),
+    uploading: useColor('tint'),
+    failed: useColor('destructive'),
+  } as const;
   const status = file.status ?? 'complete';
   const progress = file.progress ?? 1;
   const failed = status === 'failed';
-  const accent = STATUS_COLOR[status];
+  const accent = statusColor[status];
 
   return (
     <Column

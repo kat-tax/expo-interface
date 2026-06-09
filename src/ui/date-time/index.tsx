@@ -47,8 +47,10 @@ export function DateTimePicker({
       <Pressable
         disabled={disabled}
         style={[styles.pill, disabled && styles.disabled]}>
+        {/* Label-colored value — iOS's compact DatePicker pill uses the
+            primary label color (unlike the menu Picker's gray value). */}
         <Label
-          color="secondaryLabel"
+          color="label"
           style={[styles.value, accentColor != null && {color: accentColor}]}>
           {formatValue(current, mode)}
         </Label>
@@ -106,7 +108,12 @@ const overlayStyle: CSSProperties = {
   margin: 0,
   padding: 0,
   border: 'none',
-  background: 'transparent',
   opacity: 0,
   appearance: 'none',
+  // The native picker popup derives its colors from the input's own
+  // background/color (not `:root`), so theme them via CSS vars. `opacity: 0`
+  // keeps the overlay box invisible; the popup still uses these colors.
+  colorScheme: 'light dark',
+  color: 'var(--color-label)',
+  background: 'var(--color-background)',
 };
