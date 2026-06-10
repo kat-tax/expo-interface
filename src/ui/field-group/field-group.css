@@ -1,0 +1,18 @@
+.field-group {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  background-color: var(--color-background);
+}
+
+/*
+ * @expo/ui hardcodes inverted iOS grouped-list colors on web (#f2f2f7 page,
+ * #ffffff cards). Light mode should match native: white page, grey cards.
+ * Target only section cards — not nested pills/controls inside rows.
+ */
+@media (prefers-color-scheme: light) {
+  .field-group [class*='r-borderRadius-']:not([class*='r-borderRadius-'] [class*='r-borderRadius-']) {
+    background-color: var(--color-background-element) !important;
+  }
+}
