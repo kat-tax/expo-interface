@@ -60,8 +60,11 @@ const styles = StyleSheet.create({
     width: '100%',
     margin: 0,
     paddingVertical: 0,
-    fontSize: variants.body.fontSize,
-    lineHeight: variants.body.lineHeight,
+    // `label` (14px) matches the sibling rows in a `FieldGroup.Section`:
+    // `@expo/ui`'s universal `Text` renders at react-native-web's 14px
+    // default, and rows like `DateTimePicker` use the `label` variant.
+    fontSize: variants.label.fontSize,
+    lineHeight: variants.label.lineHeight,
     fontFamily: fonts?.sans,
     fontWeight: fontWeights.normal,
     color: theme.label,

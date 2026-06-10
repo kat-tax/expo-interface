@@ -6,10 +6,11 @@ import type {
   FieldSectionFooterProps,
 } from '@expo/ui';
 import {Children, Fragment, isValidElement} from 'react';
-import {Column, LazyColumn, ListItem, Text} from '@expo/ui/jetpack-compose';
+import {Box, Column, LazyColumn, Text} from '@expo/ui/jetpack-compose';
 import {
   background,
   clip,
+  defaultMinSize,
   fillMaxWidth,
   padding,
   Shapes,
@@ -20,11 +21,15 @@ import {useColor} from '@/ui/theme';
 
 /**
  * Android `FieldGroup`. Mirrors `@expo/ui`'s Material 3 connected-list
- * layout, with two app-palette deviations for web parity:
+ * layout, with app deviations for web parity:
  * - the group has no background (the universal one paints the Host palette's
  *   `surface`, a grey panel over the app's screen background);
  * - rows use the `backgroundElement` token instead of the seeded
- *   `surfaceContainer`, matching the web/iOS card color.
+ *   `surfaceContainer`, matching the web/iOS card color;
+ * - rows are plain `Box`es (min height 56dp, the M3 one-line `ListItem`
+ *   height) rather than `ListItem`s, whose extra 8dp vertical padding would
+ *   inflate rows holding a Material `TextField` (a rigid 56dp itself) to
+ *   72dp, taller than their text-row siblings.
  */
 function FieldGroupBase({children, style, hidden, testID}: FieldGroupProps) {
   if (hidden) return null;
@@ -73,12 +78,18 @@ function Section({children, title, titleUppercase = false, hidden}: FieldSection
       {rows.length > 0 ? (
         <Column verticalArrangement={{spacedBy: 2}} modifiers={[fillMaxWidth()]}>
           {rows.map((child, index) => (
-            <ListItem
+            <Box
               key={index}
-              colors={{containerColor: card}}
-              modifiers={[fillMaxWidth(), clip(Shapes.RoundedCorner(cornerRadii(index, rows.length)))]}>
-              <ListItem.HeadlineContent>{child}</ListItem.HeadlineContent>
-            </ListItem>
+              contentAlignment="centerStart"
+              modifiers={[
+                fillMaxWidth(),
+                defaultMinSize({minHeight: 56}),
+                clip(Shapes.RoundedCorner(cornerRadii(index, rows.length))),
+                background(card),
+                padding(16, 0, 16, 0),
+              ]}>
+              {child}
+            </Box>
           ))}
         </Column>
       ) : null}

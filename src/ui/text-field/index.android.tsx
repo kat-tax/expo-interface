@@ -2,11 +2,21 @@ import type {TextFieldKeyboard, TextFieldProps} from './types';
 import type {TextFieldColors, TextFieldKeyboardType} from '@expo/ui/jetpack-compose';
 
 import {TextField as ComposeTextField, Text, useMaterialColors, useNativeState} from '@expo/ui/jetpack-compose';
-import {fillMaxWidth, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {fillMaxWidth, offset, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {useColor} from '@/ui/theme';
 import {useSyncedState} from './shared';
 
 const TRANSPARENT = 'transparent';
+
+/**
+ * Material 3's filled `TextField` bakes a 16dp horizontal content padding into
+ * the field itself (`TextFieldDefaults.contentPaddingWithoutLabel`), which the
+ * published `@expo/ui` does not expose (`BasicTextField` is documented for
+ * v56 but not shipped yet). Inside a `FieldGroup` row that padding stacks on
+ * the row's own 16dp inset, pushing the text 16dp right of sibling rows — so
+ * the field is shifted back by the same amount to line up.
+ */
+const CONTENT_PADDING = 16;
 
 /**
  * Android's Material `TextField` ships with a filled background and a bottom
@@ -33,6 +43,10 @@ export function TextField({
 }: TextFieldProps) {
   const colors = useMaterialColors();
   const tint = useColor('tint');
+  // Placeholder uses the app palette's tertiaryLabel (like web and iOS's
+  // `placeholderText`) instead of Material's onSurfaceVariant, which reads
+  // too bright in dark mode next to the other platforms.
+  const placeholderColor = useColor('tertiaryLabel');
   const text = useNativeState(value ?? '');
   useSyncedState(text, value);
 
@@ -70,10 +84,14 @@ export function TextField({
       keyboardActions={onSubmit ? {onDone: onSubmit} : undefined}
       colors={fieldColors}
       textStyle={{fontSize: 16, color: colors.onSurface}}
-      modifiers={[fillMaxWidth(), ...(testID ? [testIDModifier(testID)] : [])]}>
+      modifiers={[
+        fillMaxWidth(),
+        offset(-CONTENT_PADDING, 0),
+        ...(testID ? [testIDModifier(testID)] : []),
+      ]}>
       {placeholder != null ? (
         <ComposeTextField.Placeholder>
-          <Text color={colors.onSurfaceVariant}>{placeholder}</Text>
+          <Text color={placeholderColor}>{placeholder}</Text>
         </ComposeTextField.Placeholder>
       ) : null}
     </ComposeTextField>
