@@ -416,7 +416,7 @@ const androidVars: VariantMap = {
   body: {fontSize: 16, fontWeight: 'normal', lineHeight: 24},
   callout: {fontSize: 16, fontWeight: 'normal', lineHeight: 24},
   subheadline: {fontSize: 14, fontWeight: 'normal', lineHeight: 20},
-  footnote: {fontSize: 12, fontWeight: 'normal', lineHeight: 16},
+  footnote: {fontSize: 13, fontWeight: 'normal', lineHeight: 18},
   caption: {fontSize: 12, fontWeight: 'normal', lineHeight: 16},
   label: {fontSize: 12, fontWeight: 'medium', lineHeight: 16},
 };

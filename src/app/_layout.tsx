@@ -13,6 +13,7 @@ function Navigation() {
 
 export default function Layout() {
   // Pass a `seed` prop here to apply a user-supplied accent color.
+  // i.e. <AccentProvider seed="#8959EA">
   return (
     <AccentProvider>
       <Navigation/>
