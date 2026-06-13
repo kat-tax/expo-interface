@@ -41,13 +41,13 @@ const styles = StyleSheet.create({
   bar: {
     width: '100%',
     alignItems: 'center',
-    paddingHorizontal: spacing.four,
   },
   inner: {
     width: '100%',
     alignItems: 'center',
     flexDirection: 'row',
     maxWidth: bound.contentMaxWidth,
+    paddingHorizontal: spacing.three,
     height: 64,
     gap: spacing.two,
   },
