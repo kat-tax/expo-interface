@@ -1,8 +1,9 @@
 import type {FileType, UploadStatus} from '@/file/types';
+
 import {Text} from '@expo/ui';
+import {useColor} from '@/ui/theme';
 import {ListItem} from '@/ui/list-item';
 import {FileIcon} from './icon';
-import {useColor} from '@/ui/theme';
 
 export interface FileItemProps {
   id: number;

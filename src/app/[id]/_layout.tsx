@@ -18,9 +18,7 @@ export default function DropLayout() {
         headerShown: true,
         headerShadowVisible: false,
         ...Platform.select({
-          web: {
-            header: ConstrainedStackHeader,
-          },
+          web: {header: ConstrainedStackHeader},
           default: {
             headerBackButtonDisplayMode: 'minimal',
             headerTintColor: colors.text,

@@ -1,6 +1,6 @@
 import {router, useLocalSearchParams} from 'expo-router';
-import {Sheet} from '@/core/sheet';
 import {DropShare} from '@/drop/share';
+import {Sheet} from '@/core/sheet';
 
 export default function DropShareScreen() {
   const {id} = useLocalSearchParams<{id: string}>();

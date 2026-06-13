@@ -1,6 +1,6 @@
 import type {Href} from 'expo-router';
-import {router} from 'expo-router';
 import {Platform} from 'react-native';
+import {router} from 'expo-router';
 import {Screen} from '@/core/screen';
 import {DropList} from '@/drop/list';
 import {demoDropData} from '@/drop/data';

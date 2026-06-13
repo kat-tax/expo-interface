@@ -1,4 +1,5 @@
 import type {FileType} from '@/file/types';
+
 import {SymbolView} from 'expo-symbols';
 import {useColor} from '@/ui/theme';
 import * as icon from '@/ui/icons';

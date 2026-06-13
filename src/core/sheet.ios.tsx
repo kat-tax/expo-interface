@@ -1,6 +1,7 @@
 import type {BottomSheetProps} from '@expo/ui';
-import {BottomSheet} from '@expo/ui';
+
 import {tint} from '@expo/ui/swift-ui/modifiers';
+import {BottomSheet} from '@expo/ui';
 import {useAccentSeed} from '@/ui/accent';
 
 /**

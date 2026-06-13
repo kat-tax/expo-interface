@@ -1,6 +1,7 @@
 import type {BottomSheetProps} from '@expo/ui';
-import {BottomSheet} from '@expo/ui';
+
 import {HostPaletteContext, useMaterialColors} from '@expo/ui/jetpack-compose';
+import {BottomSheet} from '@expo/ui';
 import {useAccentSeed} from '@/ui/accent';
 
 /**

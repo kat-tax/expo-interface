@@ -7,8 +7,9 @@ import {setBackgroundColorAsync} from 'expo-system-ui';
 import {useColorScheme, Appearance, StyleSheet, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useEffect} from 'react';
-import * as theme from '@/ui/theme';
 import {useAccentSeed} from '@/ui/accent';
+import * as theme from '@/ui/theme';
+
 import {hostAccentProps} from './host-accent';
 
 const CONTENT_EDGES: Edge[] = ['left', 'right', 'bottom'];
