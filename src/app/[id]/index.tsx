@@ -14,7 +14,7 @@ export default function DropUploadScreen() {
   }, [nav, id]);
 
   return (
-    <Screen native header>
+    <Screen native header gutter>
       <DropUpload id={id}/>
     </Screen>
   );

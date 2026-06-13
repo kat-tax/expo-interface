@@ -2,11 +2,11 @@ import type {ColorSchemeName, ColorValue} from 'react-native';
 import type {Edge} from 'react-native-safe-area-context';
 
 import {Host} from '@expo/ui';
-import {StatusBar} from 'expo-status-bar';
-import {setBackgroundColorAsync} from 'expo-system-ui';
-import {useColorScheme, Appearance, StyleSheet, View} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {useEffect} from 'react';
+import {StatusBar} from 'expo-status-bar';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useColorScheme, Appearance, StyleSheet, View} from 'react-native';
+import {setBackgroundColorAsync} from 'expo-system-ui';
 import {useAccentSeed} from '@/ui/accent';
 import * as theme from '@/ui/theme';
 
@@ -26,11 +26,18 @@ interface ScreenProps extends React.PropsWithChildren {
   native?: boolean;
   /** Screen sits below a stack header — skip redundant top inset/padding. */
   header?: boolean;
+  /** Whether to apply a horizontal padding to the screen. */
+  gutter?: boolean;
 }
 
-export function Screen({children, native = false, header = false}: ScreenProps) {
-  const scheme = useColorScheme();
+export function Screen({
+  children,
+  native = false,
+  header = false,
+  gutter = false,
+}: ScreenProps) {
   const seed = useAccentSeed();
+  const scheme = useColorScheme();
   const backgroundColor = BG_COLOR[scheme ?? 'unspecified'];
 
   useEffect(() => {
@@ -43,7 +50,7 @@ export function Screen({children, native = false, header = false}: ScreenProps) 
       edges={header ? CONTENT_EDGES : undefined}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'}/>
       <View style={[styles.root, {paddingTop: header ? 0 : theme.inset.topBar}]}>
-        <View style={styles.content}>
+        <View style={[styles.content, gutter ? styles.gutter : undefined]}>
           {!native ? children : (
             <Host style={{flex: 1}} {...hostAccentProps(seed)}>
               {children}
@@ -59,12 +66,14 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     alignItems: 'center',
-    paddingBottom: theme.inset.bottomTab + theme.spacing.three,
     gap: theme.spacing.three,
   },
   content: {
     flex: 1,
     width: '100%',
     maxWidth: theme.bound.contentMaxWidth,
+  },
+  gutter: {
+    paddingHorizontal: theme.spacing.three,
   },
 });
