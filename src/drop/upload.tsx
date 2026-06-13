@@ -92,7 +92,7 @@ export function DropUpload({id}: DropUploadProps) {
               variant="filled"
               size="small"
               label="Files"
-              prefixIcon={icon.files}
+              prefixIcon={icon.fileAdd}
               onPress={() => {}}
             />
             <Button
@@ -146,7 +146,7 @@ function DropUploadHeaderActions({id}: {id: string}) {
   return (
     <View style={headerStyles.actions}>
       <HeaderActionButton
-        icon={icon.files}
+        icon={icon.fileFind}
         label="Files"
         onPress={() => router.push(`/${id}/files` as Href)}
       />

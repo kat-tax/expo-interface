@@ -56,11 +56,6 @@ export const failed = icon(
   'error',
 );
 
-export const files = icon(
-  {android: 'note_add', web: 'note_add', ios: 'doc.badge.plus'},
-  'note_add',
-);
-
 export const share = icon(
   {android: 'share', web: 'share', ios: 'square.and.arrow.up'},
   'share',
@@ -87,6 +82,16 @@ export const retry = icon(
 );
 
 /** File Icons */
+
+export const fileAdd = icon(
+  {android: 'note_add', web: 'note_add', ios: 'doc.badge.plus'},
+  'note_add',
+);
+
+export const fileFind = icon(
+  {android: 'find_in_page', web: 'find_in_page', ios: 'doc.text.magnifyingglass'},
+  'find_in_page',
+);
 
 export const fileImage = icon(
   {android: 'photo', web: 'photo', ios: 'photo'},

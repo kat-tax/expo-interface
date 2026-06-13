@@ -12,6 +12,7 @@ import edit from '@expo/material-symbols/edit.xml';
 import error from '@expo/material-symbols/error.xml';
 import inventory_2 from '@expo/material-symbols/inventory_2.xml';
 import note_add from '@expo/material-symbols/note_add.xml';
+import find_in_page from '@expo/material-symbols/find_in_page.xml';
 import photo from '@expo/material-symbols/photo.xml';
 import photo_camera from '@expo/material-symbols/photo_camera.xml';
 import photo_library from '@expo/material-symbols/photo_library.xml';
@@ -32,6 +33,7 @@ export const drawables: Record<string, ImageSourcePropType> = {
   error,
   inventory_2,
   note_add,
+  find_in_page,
   photo,
   photo_camera,
   photo_library,
