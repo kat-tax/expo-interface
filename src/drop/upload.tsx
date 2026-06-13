@@ -39,7 +39,7 @@ export function DropUpload({id}: DropUploadProps) {
   return (
     <ScrollView>
       <Column spacing={spacing.four}>
-        <Column spacing={spacing.two}>
+        <Column spacing={spacing.four}>
           {drop?.description ? (
             <Text textStyle={{fontSize: 15, color: subtle, lineHeight: 21}}>
               {drop.description}
