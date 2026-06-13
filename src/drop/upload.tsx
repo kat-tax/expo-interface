@@ -1,18 +1,13 @@
 import type {FileItemProps} from '@/file/item';
+
 import {useState} from 'react';
 import {SymbolView} from 'expo-symbols';
 import {ScrollView, Column, Row, Spacer, Text} from '@expo/ui';
 import {useColor, spacing} from '@/ui/theme';
 import {fillWidth} from '@/ui/fill';
 import {Button} from '@/ui/button';
-import {
-  ICON_UPLOAD,
-  ICON_CALENDAR,
-  ICON_LIMIT,
-  ICON_FILES,
-  ICON_MEDIA,
-  ICON_CAMERA,
-} from '@/ui/icons';
+import * as icon from '@/ui/icons';
+
 import {getDrop} from './data';
 import {UploadItem} from './upload-item';
 
@@ -48,7 +43,7 @@ export function DropUpload({id}: DropUploadProps) {
           <Column spacing={spacing.one}>
             {drop?.expiresAt ? (
               <Row spacing={spacing.two} alignment="center">
-                <SymbolView name={ICON_CALENDAR.symbol} size={16} tintColor={subtle}/>
+                <SymbolView name={icon.calendar.symbol} size={16} tintColor={subtle}/>
                 <Text textStyle={{fontSize: 14, color: subtle}}>
                   {formatExpiry(drop.expiresAt)}
                 </Text>
@@ -56,7 +51,7 @@ export function DropUpload({id}: DropUploadProps) {
             ) : null}
             {drop?.limit ? (
               <Row spacing={spacing.two} alignment="center">
-                <SymbolView name={ICON_LIMIT.symbol} size={16} tintColor={subtle}/>
+                <SymbolView name={icon.limit.symbol} size={16} tintColor={subtle}/>
                 <Text textStyle={{fontSize: 14, color: subtle}}>
                   {drop.limit}
                 </Text>
@@ -79,7 +74,7 @@ export function DropUpload({id}: DropUploadProps) {
             paddingVertical: spacing.five,
             paddingHorizontal: spacing.three,
           }}>
-          <SymbolView name={ICON_UPLOAD.symbol} size={40} tintColor={subtle}/>
+          <SymbolView name={icon.upload.symbol} size={40} tintColor={subtle}/>
           <Column spacing={spacing.one} alignment="center">
             <Text textStyle={{fontSize: 18, fontWeight: '600', color: label}}>
               Add to the drop
@@ -94,21 +89,21 @@ export function DropUpload({id}: DropUploadProps) {
               variant="filled"
               size="small"
               label="Files"
-              prefixIcon={ICON_FILES}
+              prefixIcon={icon.files}
               onPress={() => {}}
             />
             <Button
               variant="filled"
               size="small"
               label="Media"
-              prefixIcon={ICON_MEDIA}
+              prefixIcon={icon.media}
               onPress={() => {}}
             />
             <Button
               variant="filled"
               size="small"
               label="Camera"
-              prefixIcon={ICON_CAMERA}
+              prefixIcon={icon.camera}
               onPress={() => {}}
             />
             <Spacer flexible/>

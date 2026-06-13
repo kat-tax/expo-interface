@@ -1,9 +1,11 @@
 import type {Drop} from './types';
-import {SymbolView} from 'expo-symbols';
+
 import {Text} from '@expo/ui';
+import {SymbolView} from 'expo-symbols';
 import {ListItem} from '@/ui/list-item';
-import {ICON_CHEVRON_RIGHT} from '@/ui/icons';
 import {useColor} from '@/ui/theme';
+import * as icon from '@/ui/icons';
+
 import {DropIcon} from './icon';
 
 export interface DropItemProps {
@@ -20,7 +22,7 @@ export function DropItem({drop, onPress}: DropItemProps) {
       onPress={onPress}
       leading={<DropIcon size={32}/>}
       supporting={`${count} · ${drop.size}`}
-      trailing={<SymbolView name={ICON_CHEVRON_RIGHT.symbol} size={14} tintColor={chevron}/>}>
+      trailing={<SymbolView name={icon.chevronRight.symbol} size={14} tintColor={chevron}/>}>
       <Text textStyle={{color: label}}>{drop.name}</Text>
     </ListItem>
   );

@@ -1,13 +1,13 @@
 import type {FileItemProps} from '@/file/item';
 import type {UploadStatus} from '@/file/types';
-import {SymbolView} from 'expo-symbols';
 import {Column, Row, Spacer, Text} from '@expo/ui';
+import {SymbolView} from 'expo-symbols';
 import {FileIcon} from '@/file/icon';
-import {Button} from '@/ui/button';
 import {Progress} from '@/ui/progress';
+import {Button} from '@/ui/button';
 import {fillWidth} from '@/ui/fill';
-import {ICON_TRASH, ICON_RETRY, ICON_COMPLETE, ICON_FAILED} from '@/ui/icons';
 import {useColor, spacing} from '@/ui/theme';
+import * as icon from '@/ui/icons';
 
 export interface UploadItemProps {
   file: FileItemProps;
@@ -16,20 +16,18 @@ export interface UploadItemProps {
 }
 
 export function UploadItem({file, onRemove, onRetry}: UploadItemProps) {
+  const card = useColor('backgroundElement');
   const label = useColor('label');
   const subtle = useColor('secondaryLabel');
-  const card = useColor('backgroundElement');
-  // Theme tokens (scheme-aware; `tint` follows the live accent seed) instead
-  // of hardcoded status colors.
-  const statusColor = {
-    complete: useColor('switchOn'),
+  const colorMap = {
     uploading: useColor('tint'),
+    complete: useColor('switchOn'),
     failed: useColor('destructive'),
   } as const;
   const status = file.status ?? 'complete';
   const progress = file.progress ?? 1;
   const failed = status === 'failed';
-  const accent = statusColor[status];
+  const accent = colorMap[status];
 
   return (
     <Column
@@ -45,7 +43,7 @@ export function UploadItem({file, onRemove, onRetry}: UploadItemProps) {
           <Row spacing={spacing.one} alignment="center">
             <Text textStyle={{fontSize: 13, color: subtle}}>{file.size}</Text>
             <SymbolView
-              name={failed ? ICON_FAILED.symbol : ICON_COMPLETE.symbol}
+              name={failed ? icon.failed.symbol : icon.complete.symbol}
               size={14}
               tintColor={accent}
             />
@@ -61,7 +59,7 @@ export function UploadItem({file, onRemove, onRetry}: UploadItemProps) {
           shape="circle"
           hideLabel
           label="Remove"
-          prefixIcon={ICON_TRASH}
+          prefixIcon={icon.trash}
           color={subtle}
           onPress={() => onRemove?.()}
         />
@@ -71,7 +69,7 @@ export function UploadItem({file, onRemove, onRetry}: UploadItemProps) {
           variant="text"
           role="destructive"
           label="Try again"
-          prefixIcon={ICON_RETRY}
+          prefixIcon={icon.retry}
           onPress={() => onRetry?.()}
         />
       ) : (
