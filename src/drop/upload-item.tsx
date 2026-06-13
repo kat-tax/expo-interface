@@ -53,6 +53,15 @@ export function UploadItem({file, onRemove, onRetry}: UploadItemProps) {
           </Row>
         </Column>
         <Spacer flexible/>
+        {failed ? (
+          <Button
+            variant="text"
+            role="destructive"
+            label="Try again"
+            prefixIcon={icon.retry}
+            onPress={() => onRetry?.()}
+          />
+        ) : null}
         <Button
           variant="text"
           size="small"
@@ -64,17 +73,7 @@ export function UploadItem({file, onRemove, onRetry}: UploadItemProps) {
           onPress={() => onRemove?.()}
         />
       </Row>
-      {failed ? (
-        <Button
-          variant="text"
-          role="destructive"
-          label="Try again"
-          prefixIcon={icon.retry}
-          onPress={() => onRetry?.()}
-        />
-      ) : (
-        <Progress value={progress} color={accent}/>
-      )}
+      {!failed ? <Progress value={progress} color={accent}/> : null}
     </Column>
   );
 }
