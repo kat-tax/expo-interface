@@ -23,7 +23,6 @@ export function DropUpload({id}: DropUploadProps) {
   useDropUploadHeader(id);
   const label = useColor('label');
   const subtle = useColor('secondaryLabel');
-  const tint = useColor('tint');
   const border = useColor('separator');
   const background = useColor('background');
   const drop = getDrop(id);
