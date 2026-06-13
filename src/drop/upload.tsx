@@ -1,11 +1,11 @@
-import type {FileItemProps} from '@/file/item';
 import type {Href} from 'expo-router';
 import type {IconToken} from '@/ui/icons';
+import type {FileItemProps} from '@/file/item';
 
+import {SymbolView} from 'expo-symbols';
+import {router, useNavigation} from 'expo-router';
 import {useLayoutEffect, useState} from 'react';
 import {Pressable, StyleSheet, View} from 'react-native';
-import {router, useNavigation} from 'expo-router';
-import {SymbolView} from 'expo-symbols';
 import {ScrollView, Column, Row, Spacer, Text} from '@expo/ui';
 import {useColor, spacing} from '@/ui/theme';
 import {fillWidth} from '@/ui/fill';
@@ -71,10 +71,8 @@ export function DropUpload({id}: DropUploadProps) {
           modifiers={fillWidth}
           style={{
             borderWidth: 1,
-            borderColor: border,
             borderRadius: 20,
-            // Android simulates rounded borders with layered backgrounds, so
-            // without an explicit fill the whole box paints the border color.
+            borderColor: border,
             backgroundColor: background,
             paddingVertical: spacing.five,
             paddingHorizontal: spacing.three,
@@ -116,11 +114,7 @@ export function DropUpload({id}: DropUploadProps) {
         </Column>
 
         <Column spacing={spacing.two}>
-          {files.length === 0 ? (
-            <Text textStyle={{fontSize: 14, color: subtle, textAlign: 'center'}}>
-              No files yet
-            </Text>
-          ) : (
+          {files.length === 0 ? null : (
             files.map(file => (
               <UploadItem
                 key={file.id}
@@ -131,15 +125,6 @@ export function DropUpload({id}: DropUploadProps) {
             ))
           )}
         </Column>
-
-        <Spacer size={spacing.three}/>
-        <Row alignment="center" modifiers={fillWidth}>
-          <Spacer flexible/>
-          <Text textStyle={{fontSize: 13, color: tint}}>
-            {`${files.length} ${files.length === 1 ? 'file' : 'files'} · ${drop?.size ?? '0 B'}`}
-          </Text>
-          <Spacer flexible/>
-        </Row>
       </Column>
     </ScrollView>
   );
