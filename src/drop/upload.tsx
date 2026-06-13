@@ -5,7 +5,7 @@ import type {FileItemProps} from '@/file/item';
 import {SymbolView} from 'expo-symbols';
 import {router, useNavigation} from 'expo-router';
 import {useLayoutEffect, useState} from 'react';
-import {Pressable, StyleSheet, View} from 'react-native';
+import {Platform, Pressable, StyleSheet, View, type ViewStyle} from 'react-native';
 import {ScrollView, Column, Row, Spacer, Text} from '@expo/ui';
 import {useColor, spacing} from '@/ui/theme';
 import {fillWidth} from '@/ui/fill';
@@ -28,6 +28,7 @@ export function DropUpload({id}: DropUploadProps) {
   const background = useColor('background');
   const drop = getDrop(id);
   const [files, setFiles] = useState<FileItemProps[]>(drop?.files ?? []);
+  const isWeb = Platform.OS === 'web';
 
   const removeFile = (fileId: number) =>
     setFiles(prev => prev.filter(f => f.id !== fileId));
@@ -73,17 +74,20 @@ export function DropUpload({id}: DropUploadProps) {
             borderWidth: 1,
             borderRadius: 20,
             borderColor: border,
+            ...(isWeb ? {borderStyle: 'dashed'} : null),
             backgroundColor: background,
             paddingVertical: spacing.five,
             paddingHorizontal: spacing.three,
-          }}>
+          } satisfies ViewStyle}>
           <SymbolView name={icon.upload.symbol} size={40} tintColor={subtle}/>
           <Column spacing={spacing.one} alignment="center">
             <Text textStyle={{fontSize: 18, fontWeight: '600', color: label}}>
               Add to the drop
             </Text>
             <Text textStyle={{fontSize: 14, color: subtle, textAlign: 'center'}}>
-              Drag files here or choose a source
+              {isWeb
+                ? 'Drag files here or choose a source'
+                : 'Choose a source and select files'}
             </Text>
           </Column>
           <Row spacing={spacing.two} alignment="center" modifiers={fillWidth}>
