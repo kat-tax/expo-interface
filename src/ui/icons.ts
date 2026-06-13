@@ -62,8 +62,8 @@ export const share = icon(
 );
 
 export const edit = icon(
-  {android: 'edit', web: 'edit', ios: 'pencil'},
-  'edit',
+  {android: 'settings', web: 'settings', ios: 'gearshape'},
+  'settings',
 );
 
 export const media = icon(

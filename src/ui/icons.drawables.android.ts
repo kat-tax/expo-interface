@@ -8,7 +8,7 @@ import cloud_upload from '@expo/material-symbols/cloud_upload.xml';
 import delete_icon from '@expo/material-symbols/delete.xml';
 import description from '@expo/material-symbols/description.xml';
 import draft from '@expo/material-symbols/draft.xml';
-import edit from '@expo/material-symbols/edit.xml';
+import settings from '@expo/material-symbols/settings.xml';
 import error from '@expo/material-symbols/error.xml';
 import inventory_2 from '@expo/material-symbols/inventory_2.xml';
 import note_add from '@expo/material-symbols/note_add.xml';
@@ -29,7 +29,7 @@ export const drawables: Record<string, ImageSourcePropType> = {
   delete: delete_icon,
   description,
   draft,
-  edit,
+  settings,
   error,
   inventory_2,
   note_add,

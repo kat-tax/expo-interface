@@ -146,14 +146,14 @@ function DropUploadHeaderActions({id}: {id: string}) {
   return (
     <View style={headerStyles.actions}>
       <HeaderActionButton
-        icon={icon.fileFind}
-        label="Files"
-        onPress={() => router.push(`/${id}/files` as Href)}
-      />
-      <HeaderActionButton
         icon={icon.share}
         label="Share"
         onPress={() => router.push(`/${id}/share` as Href)}
+      />
+      <HeaderActionButton
+        icon={icon.fileFind}
+        label="Files"
+        onPress={() => router.push(`/${id}/files` as Href)}
       />
       <HeaderActionButton
         icon={icon.edit}
