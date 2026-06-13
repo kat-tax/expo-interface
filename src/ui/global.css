@@ -5,6 +5,13 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
 }
 
+/* @expo/ui BottomSheet sets full-width inline styles on web; override to match Screen. */
+[data-vaul-drawer][data-vaul-drawer-direction="bottom"] {
+  width: 100% !important;
+  max-width: 600px !important;
+  margin-inline: auto !important;
+}
+
 body {
   background-color: var(--color-background);
 }

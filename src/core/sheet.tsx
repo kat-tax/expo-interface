@@ -10,7 +10,8 @@ import {BottomSheet} from '@expo/ui';
  *   cascades to all SwiftUI children in the sheet.
  * - `.android.tsx`: overlays `HostPaletteContext` with the seeded Material 3
  *   palette so `useMaterialColors()` consumers match the seeded `Screen` Host.
- * - Web (this file): nothing; the accent flows through CSS custom properties.
+ * - Web (this file): accent flows through CSS custom properties; vaul sheet
+ *   width is constrained via `global.css`.
  */
 export function Sheet(props: BottomSheetProps) {
   return <BottomSheet {...props}/>;
