@@ -61,6 +61,16 @@ export const files = icon(
   'note_add',
 );
 
+export const share = icon(
+  {android: 'share', web: 'share', ios: 'square.and.arrow.up'},
+  'share',
+);
+
+export const edit = icon(
+  {android: 'edit', web: 'edit', ios: 'pencil'},
+  'edit',
+);
+
 export const media = icon(
   {android: 'photo_library', web: 'photo_library', ios: 'photo.on.rectangle'},
   'photo_library',

@@ -1,6 +1,10 @@
 import type {FileItemProps} from '@/file/item';
+import type {Href} from 'expo-router';
+import type {IconToken} from '@/ui/icons';
 
-import {useState} from 'react';
+import {useLayoutEffect, useState} from 'react';
+import {Pressable, StyleSheet, View} from 'react-native';
+import {router, useNavigation} from 'expo-router';
 import {SymbolView} from 'expo-symbols';
 import {ScrollView, Column, Row, Spacer, Text} from '@expo/ui';
 import {useColor, spacing} from '@/ui/theme';
@@ -16,6 +20,7 @@ export interface DropUploadProps {
 }
 
 export function DropUpload({id}: DropUploadProps) {
+  useDropUploadHeader(id);
   const label = useColor('label');
   const subtle = useColor('secondaryLabel');
   const tint = useColor('tint');
@@ -139,6 +144,74 @@ export function DropUpload({id}: DropUploadProps) {
     </ScrollView>
   );
 }
+
+function useDropUploadHeader(id: string) {
+  const nav = useNavigation();
+
+  useLayoutEffect(() => {
+    const drop = getDrop(id);
+    nav.setOptions({
+      title: drop?.name ?? 'New Drop',
+      headerRight: () => <DropUploadHeaderActions id={id}/>,
+    });
+  }, [nav, id]);
+}
+
+function DropUploadHeaderActions({id}: {id: string}) {
+  return (
+    <View style={headerStyles.actions}>
+      <HeaderActionButton
+        icon={icon.files}
+        label="Files"
+        onPress={() => router.push(`/${id}/files` as Href)}
+      />
+      <HeaderActionButton
+        icon={icon.share}
+        label="Share"
+        onPress={() => router.push(`/${id}/share` as Href)}
+      />
+      <HeaderActionButton
+        icon={icon.edit}
+        label="Edit"
+        onPress={() => router.push(`/${id}/edit` as Href)}
+      />
+    </View>
+  );
+}
+
+function HeaderActionButton({
+  icon: iconToken,
+  label,
+  onPress,
+}: {
+  icon: IconToken;
+  label: string;
+  onPress: () => void;
+}) {
+  const tint = useColor('label');
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      style={headerStyles.action}>
+      <SymbolView name={iconToken.symbol} size={22} tintColor={tint}/>
+    </Pressable>
+  );
+}
+
+const headerStyles = StyleSheet.create({
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.one,
+    marginRight: spacing.one,
+  },
+  action: {
+    padding: spacing.one,
+  },
+});
 
 function formatExpiry(d: Date): string {
   const date = d.toLocaleDateString('en-US', {

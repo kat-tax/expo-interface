@@ -7,6 +7,7 @@ interface StackHeaderProps {
   options: {
     title?: string;
     headerTitle?: string | (() => React.ReactNode);
+    headerRight?: (props: {tintColor?: string}) => React.ReactNode;
   };
 }
 
@@ -20,10 +21,13 @@ export function ConstrainedStackHeader({
     ? options.headerTitle
     : options.title ?? route.name;
 
+  const trailing = options.headerRight?.({});
+
   return (
     <ScreenHeader
       title={title}
       onBack={back ? () => navigation.goBack() : undefined}
+      trailing={trailing}
     />
   );
 }

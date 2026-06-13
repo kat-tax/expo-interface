@@ -6,9 +6,10 @@ import {bound, spacing, useColor} from '@/ui/theme';
 interface ScreenHeaderProps {
   title: string;
   onBack?: () => void;
+  trailing?: React.ReactNode;
 }
 
-export function ScreenHeader({title, onBack}: ScreenHeaderProps) {
+export function ScreenHeader({title, onBack, trailing}: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
   const label = useColor('label');
   const background = useColor('background');
@@ -32,6 +33,7 @@ export function ScreenHeader({title, onBack}: ScreenHeaderProps) {
         <Text numberOfLines={1} style={[styles.title, {color: label}]}>
           {title}
         </Text>
+        {trailing}
       </View>
     </View>
   );
