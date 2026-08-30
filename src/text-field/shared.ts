@@ -53,6 +53,8 @@ export function useTextValue(
 export function useSyncedState(state: ObservableState<string>, value: string | undefined): void {
   useEffect(() => {
     if (value !== undefined && state.value !== value) {
+      // Writing `.value` is the `@expo/ui` observable's API, not a prop mutation.
+      // eslint-disable-next-line react-hooks/immutability
       state.value = value;
     }
   }, [state, value]);

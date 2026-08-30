@@ -241,8 +241,60 @@ package from `../src`, so it doubles as the development harness.
 ```sh
 bun install
 bun run web        # or ios, android
-bun run typecheck  # package and example
+bun run typecheck  # package, example and storybook
+bun run lint       # eslint (eslint-config-expo)
+bun run test       # jest, once per platform (ios, android, web)
 ```
+
+### Storybook
+
+Stories live next to each component (`src/<name>/<name>.stories.tsx`) and run
+in the [storybook](./storybook) app, an Expo project built on
+`@storybook/react-native`, so every story renders the real SwiftUI, Compose
+or DOM control through Metro.
+
+```sh
+bun run storybook:web      # storybook in the browser
+bun run storybook:ios      # or storybook:android — on-device storybook
+bun run storybook:build    # static web export in storybook/dist
+```
+
+The global decorator (`storybook/.rnstorybook/preview.tsx`) wraps stories in
+`AccentProvider` and an accent-seeded `@expo/ui` `Host`. Stories built from
+plain React Native views opt out with `parameters: {native: false}`.
+
+### Tests
+
+`jest.config.js` runs the suite three times with the `jest-expo` platform
+presets, so each `index.ios.tsx` / `index.android.tsx` / `index.web.tsx`
+implementation is exercised. The file name picks the platforms:
+
+| Pattern | Platforms |
+| --- | --- |
+| `*.test.ts(x)` | ios, android, web |
+| `*.native.test.tsx` | ios, android |
+| `*.ios.test.tsx` / `*.android.test.tsx` | one platform |
+| `*.web.test.tsx` | web |
+
+Web tests use `@testing-library/react` against the real DOM. Native tests use
+`@testing-library/react-native`; `@expo/ui` controls render as host views whose
+props are the payload sent to SwiftUI/Compose, and `jest/native.ts` has helpers
+to assert on them.
+
+### CI
+
+GitHub Actions ([.github/workflows](./.github/workflows)):
+
+- **CI** (`ci.yml`) — on every push and pull request: typecheck, lint, tests
+  with coverage, a Metro export of the example app for ios, android and web
+  (proves every platform file and `@expo/material-symbols` asset resolves
+  without Xcode or Gradle), and a web Storybook build uploaded as an artifact.
+- **Storybook** (`storybook.yml`) — on push to `master`: publishes the web
+  Storybook to GitHub Pages. Enable Pages with the "GitHub Actions" source in
+  the repository settings.
+- **Release** (`release.yml`) — on a `v*` tag matching `package.json`:
+  re-runs the checks, publishes to npm with provenance (needs an `NPM_TOKEN`
+  secret) and creates a GitHub release with generated notes.
 
 ## License
 

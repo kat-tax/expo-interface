@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # npm dependencies are pinned per Expo SDK (`npx expo install --fix`), so
+  # only the workflow actions are kept current automatically.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

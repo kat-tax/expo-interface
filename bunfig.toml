@@ -1,0 +1,4 @@
+[install]
+# Keep the flat layout: the package source in ./src resolves its peer
+# dependencies (and @expo/material-symbols) from the root node_modules.
+linker = "hoisted"

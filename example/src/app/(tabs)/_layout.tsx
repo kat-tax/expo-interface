@@ -1,6 +1,6 @@
 import {type TabRoute, Tabs} from 'expo-interface';
 
-export const routes: Array<TabRoute> = [
+export const routes: TabRoute[] = [
   {
     href: '/',
     name: '(drops)',

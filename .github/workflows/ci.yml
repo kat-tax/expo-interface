@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Typecheck, lint, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Lint
+        run: bun run lint
+      - name: Test
+        run: bun run test:coverage --ci
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/lcov-report
+          if-no-files-found: ignore
+          retention-days: 7
+
+  bundle:
+    # Metro bundles once per platform, which is the cheapest proof that every
+    # `index.ios.tsx` / `index.android.tsx` / `index.web.tsx` and their
+    # `@expo/material-symbols/*.xml` assets resolve — no Xcode or Gradle needed.
+    name: Bundle example (${{ matrix.platform }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ios, android, web]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Expo doctor
+        # Advisory only: expo-doctor also reports SDK-wide advisories that can
+        # only be resolved by an SDK upgrade (e.g. the SDK 56 Hermes notice).
+        if: matrix.platform == 'web'
+        continue-on-error: true
+        run: bunx expo-doctor
+        working-directory: example
+      - name: Export
+        run: bunx expo export --platform ${{ matrix.platform }} --output-dir dist
+        working-directory: example
+        env:
+          CI: 1
+
+  storybook:
+    name: Build Storybook (web)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Export
+        run: bun run storybook:build
+        env:
+          CI: 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: storybook
+          path: storybook/dist
+          retention-days: 7
