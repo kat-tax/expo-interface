@@ -131,8 +131,10 @@ an `.android.ts` file so the XML is only bundled there.
 // icons.drawables.android.ts
 import share from '@expo/material-symbols/share.xml';
 export const drawables = {share};
+
 // icons.drawables.ts
 export const drawables: Record<string, ImageSourcePropType | undefined> = {};
+
 // icons.ts
 import {icon} from 'expo-interface';
 import {drawables} from './icons.drawables';
@@ -148,7 +150,7 @@ export const share = icon(
 - A screen looks native on each platform without any per-platform styling.
 - There are two ways to read colors: `theme` in styles, and `useColor` everywhere else.
 
-##### `useColor`
+#### `useColor`
 
 Returns a color token as a plain string that tracks the active scheme and accent.
 Use it for props that won't accept a platform color object from `theme`, such as
@@ -164,7 +166,7 @@ const tint = useColor('tint');
 <SymbolView name="star" tintColor={tint}/>
 ```
 
-##### `theme`
+#### `theme`
 
 A static object with one entry per color token. Each entry is a platform color reference (`PlatformColor` on iOS, a theme attribute on Android, a CSS variable on web).
 
