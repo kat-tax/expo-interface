@@ -1,43 +1,71 @@
 {
-  "name": "dropfiles",
-  "main": "expo-router/entry",
-  "version": "1.0.0",
-  "private": true,
+  "name": "expo-interface",
+  "version": "0.1.0",
+  "description": "Native-first universal UI kit for Expo — SwiftUI on iOS, Jetpack Compose on Android, real DOM on web — built on @expo/ui.",
+  "license": "MIT",
+  "author": "kat-tax",
+  "homepage": "https://github.com/kat-tax/expo-interface#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kat-tax/expo-interface.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kat-tax/expo-interface/issues"
+  },
+  "keywords": [
+    "expo",
+    "expo-ui",
+    "react-native",
+    "swiftui",
+    "jetpack-compose",
+    "ui-kit",
+    "design-system",
+    "universal"
+  ],
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "react-native": "src/index.ts",
+  "source": "src/index.ts",
+  "sideEffects": [
+    "**/*.css",
+    "src/theme.ts",
+    "src/screen/index.tsx"
+  ],
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "workspaces": [
+    "example"
+  ],
   "scripts": {
-    "start": "expo start",
-    "lint": "expo lint",
-    "web": "expo start --web",
-    "ios": "expo run:ios",
-    "android": "expo run:android"
+    "typecheck": "tsc --noEmit && npm run typecheck --workspace example",
+    "lint": "npm run lint --workspace example",
+    "start": "npm run start --workspace example",
+    "web": "npm run web --workspace example",
+    "ios": "npm run ios --workspace example",
+    "android": "npm run android --workspace example"
   },
   "dependencies": {
-    "@expo/material-symbols": "^0.1.1",
-    "@expo/ui": "~56.0.16",
-    "expo": "~56.0.9",
-    "expo-constants": "~56.0.16",
-    "expo-device": "~56.0.4",
-    "expo-font": "~56.0.5",
-    "expo-glass-effect": "~56.0.4",
-    "expo-image": "~56.0.10",
-    "expo-linking": "~56.0.13",
-    "expo-router": "~56.2.9",
-    "expo-splash-screen": "~56.0.10",
-    "expo-status-bar": "~56.0.4",
-    "expo-symbols": "~56.0.6",
-    "expo-system-ui": "~56.0.5",
-    "expo-web-browser": "~56.0.5",
-    "qrcode-generator": "^2.0.4",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "react-native": "0.85.3",
-    "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "4.25.2",
-    "react-native-web": "~0.21.0",
-    "react-native-worklets": "0.8.3"
+    "qrcode-generator": "^2.0.4"
+  },
+  "peerDependencies": {
+    "@expo/ui": "^56.0.0",
+    "expo": "^56.0.0",
+    "expo-constants": "*",
+    "expo-image": "*",
+    "expo-router": "^56.0.0",
+    "expo-status-bar": "*",
+    "expo-symbols": "*",
+    "expo-system-ui": "*",
+    "expo-web-browser": "*",
+    "react": "*",
+    "react-native": "*",
+    "react-native-safe-area-context": "*"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "expo-mcp": "~0.2.1",
     "typescript": "~6.0.3"
   }
 }
