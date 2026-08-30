@@ -1,0 +1,27 @@
+.ui-progress {
+  width: 100%;
+  height: 6px;
+  border: none;
+  border-radius: 999px;
+  background: var(--ui-progress-track);
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.ui-progress::-webkit-meter-bar {
+  border: none;
+  border-radius: 999px;
+  background: var(--ui-progress-track);
+}
+
+.ui-progress::-webkit-meter-optimum-value,
+.ui-progress::-webkit-meter-suboptimum-value,
+.ui-progress::-webkit-meter-even-less-good-value {
+  border-radius: 999px;
+  background: var(--ui-progress-bar);
+}
+
+.ui-progress::-moz-meter-bar {
+  border-radius: 999px;
+  background: var(--ui-progress-bar);
+}
