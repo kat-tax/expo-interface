@@ -1,6 +1,6 @@
 import {useMemo} from 'react';
 import {Image} from 'expo-image';
-import qrcode from 'qrcode-generator';
+import createQR from 'qrcode-generator';
 
 export interface QRCodeProps {
   /** Value encoded in the QR code. */
@@ -11,7 +11,7 @@ export interface QRCodeProps {
 
 export function QRCode({value, size = 200}: QRCodeProps) {
   const uri = useMemo(() => {
-    const qr = qrcode(0, 'M');
+    const qr = createQR(0, 'M');
     qr.addData(value);
     qr.make();
     return qr.createDataURL(8, 2);

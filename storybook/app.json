@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "expo-interface",
+    "slug": "expo-interface-storybook",
+    "scheme": "expo-interface-storybook",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "web": {
+      "output": "single",
+      "bundler": "metro"
+    },
+    "ios": {
+      "bundleIdentifier": "tax.kat.expointerface.storybook",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "tax.kat.expointerface.storybook"
+    },
+    "plugins": [
+      "expo-image",
+      "expo-system-ui",
+      "expo-status-bar"
+    ],
+    "experiments": {
+      "reactCompiler": true
+    }
+  }
+}
