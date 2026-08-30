@@ -6,7 +6,7 @@ const increment = () => screen.getByRole('button', {name: 'Increment'});
 
 describe('Stepper (web)', () => {
   it('renders the label, value and two native buttons', () => {
-    render(<Stepper label="Quantity" value={3} onValueChange={jest.fn()} testID="qty"/>);
+    render(<Stepper label="Quantity" value={3} onValueChange={vi.fn()} testID="qty"/>);
     expect(screen.getByText('Quantity')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.getByRole('group', {name: 'Quantity'})).toHaveClass('ui-stepper__buttons');
@@ -19,7 +19,7 @@ describe('Stepper (web)', () => {
   });
 
   it('steps by 1 by default', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     render(<Stepper value={3} onValueChange={onValueChange}/>);
     fireEvent.click(increment());
     expect(onValueChange).toHaveBeenLastCalledWith(4);
@@ -29,7 +29,7 @@ describe('Stepper (web)', () => {
   });
 
   it('steps by a custom amount and rounds float drift', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     render(<Stepper value={0.3} step={0.1} onValueChange={onValueChange}/>);
     fireEvent.click(increment());
     expect(onValueChange).toHaveBeenLastCalledWith(0.4);
@@ -38,7 +38,7 @@ describe('Stepper (web)', () => {
   });
 
   it('disables the decrement button at min and the increment button at max', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     const {rerender} = render(<Stepper value={1} min={1} max={5} onValueChange={onValueChange}/>);
     expect(decrement()).toBeDisabled();
     expect(increment()).toBeEnabled();
@@ -53,7 +53,7 @@ describe('Stepper (web)', () => {
   });
 
   it('clamps a step that would overshoot the bounds', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     const {rerender} = render(<Stepper value={9} step={5} max={10} onValueChange={onValueChange}/>);
     fireEvent.click(increment());
     expect(onValueChange).toHaveBeenLastCalledWith(10);
@@ -64,27 +64,27 @@ describe('Stepper (web)', () => {
   });
 
   it('formats the displayed value', () => {
-    render(<Stepper label="Zoom" value={150} formatValue={v => `${v}%`} onValueChange={jest.fn()}/>);
+    render(<Stepper label="Zoom" value={150} formatValue={v => `${v}%`} onValueChange={vi.fn()}/>);
     expect(screen.getByText('150%')).toBeInTheDocument();
     expect(screen.queryByText('150')).toBeNull();
   });
 
   it('disables both buttons and marks the row when disabled', () => {
-    render(<Stepper label="Guests" value={2} min={0} max={5} onValueChange={jest.fn()} disabled testID="guests"/>);
+    render(<Stepper label="Guests" value={2} min={0} max={5} onValueChange={vi.fn()} disabled testID="guests"/>);
     expect(decrement()).toBeDisabled();
     expect(increment()).toBeDisabled();
     expect(screen.getByTestId('guests')).toHaveClass('ui-stepper--disabled');
   });
 
   it('renders without a label', () => {
-    render(<Stepper value={2} onValueChange={jest.fn()} testID="bare"/>);
+    render(<Stepper value={2} onValueChange={vi.fn()} testID="bare"/>);
     expect(screen.getByRole('group')).not.toHaveAttribute('aria-label');
     expect(screen.getByTestId('bare').querySelectorAll('span')).toHaveLength(1);
     expect(screen.getByText('2')).toBeInTheDocument();
   });
 
   it('flattens the row style into inline CSS', () => {
-    render(<Stepper value={2} onValueChange={jest.fn()} style={{opacity: 0.5}} testID="styled"/>);
+    render(<Stepper value={2} onValueChange={vi.fn()} style={{opacity: 0.5}} testID="styled"/>);
     expect(screen.getByTestId('styled')).toHaveStyle({opacity: 0.5});
   });
 });

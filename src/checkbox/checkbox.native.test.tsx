@@ -3,7 +3,7 @@ import {Platform} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose';
 import {AccentProvider} from '../accent';
-import {byComposeTestID, host, modifier, nodes} from '../../jest/native';
+import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {Checkbox} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -27,7 +27,7 @@ const glyph = () => host(p => typeof p.systemName === 'string');
 
 describe(`Checkbox (${Platform.OS})`, () => {
   it('renders the checked box with its label', async () => {
-    await render(<Checkbox label="Remember me" value onValueChange={jest.fn()} testID="cb"/>, options);
+    await render(<Checkbox label="Remember me" value onValueChange={vi.fn()} testID="cb"/>, options);
     const {props} = box('cb');
     if (isIOS) {
       expect(modifier(props, 'buttonStyle')).toEqual({$type: 'buttonStyle', style: 'plain'});
@@ -47,7 +47,7 @@ describe(`Checkbox (${Platform.OS})`, () => {
   });
 
   it('renders the unchecked box in the label color', async () => {
-    await render(<Checkbox label="Terms" value={false} onValueChange={jest.fn()} testID="cb"/>, options);
+    await render(<Checkbox label="Terms" value={false} onValueChange={vi.fn()} testID="cb"/>, options);
     const {props} = box('cb');
     if (isIOS) {
       expect(glyph().props.systemName).toBe('square');
@@ -61,7 +61,7 @@ describe(`Checkbox (${Platform.OS})`, () => {
   it('tints the checked box with the accent seed', async () => {
     await render(
       <AccentProvider seed="#8959EA">
-        <Checkbox label="Sync" value onValueChange={jest.fn()} testID="cb"/>
+        <Checkbox label="Sync" value onValueChange={vi.fn()} testID="cb"/>
       </AccentProvider>,
       options,
     );
@@ -77,7 +77,7 @@ describe(`Checkbox (${Platform.OS})`, () => {
   });
 
   it('prefers an explicit accentColor over the seed', async () => {
-    await render(<Checkbox label="Sync" value onValueChange={jest.fn()} accentColor="#FFCC00" testID="cb"/>, options);
+    await render(<Checkbox label="Sync" value onValueChange={vi.fn()} accentColor="#FFCC00" testID="cb"/>, options);
     if (isIOS) {
       expect(modifier(glyph().props, 'foregroundStyle')?.color).toBe('#FFCC00');
     } else {
@@ -87,7 +87,7 @@ describe(`Checkbox (${Platform.OS})`, () => {
   });
 
   it('disables the control', async () => {
-    await render(<Checkbox label="Updates" value onValueChange={jest.fn()} disabled testID="cb"/>, options);
+    await render(<Checkbox label="Updates" value onValueChange={vi.fn()} disabled testID="cb"/>, options);
     const {props} = box('cb');
     if (isIOS) {
       expect(modifier(props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
@@ -101,7 +101,7 @@ describe(`Checkbox (${Platform.OS})`, () => {
   });
 
   it('renders only the box without a label', async () => {
-    await render(<Checkbox value={false} onValueChange={jest.fn()} testID="cb"/>, options);
+    await render(<Checkbox value={false} onValueChange={vi.fn()} testID="cb"/>, options);
     if (isIOS) {
       expect(screen.getByTestId('cb').children).toHaveLength(1);
       expect(nodes().some(n => n.props.spacing === 8)).toBe(false);
@@ -112,7 +112,7 @@ describe(`Checkbox (${Platform.OS})`, () => {
   });
 
   it('reports the toggled value', async () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     await render(<Checkbox label="Terms" value={false} onValueChange={onValueChange} testID="cb"/>, options);
     if (isIOS) {
       await fireEvent(screen.getByTestId('cb'), 'buttonPress');

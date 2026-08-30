@@ -1,7 +1,7 @@
 import {Platform, Text} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {colors} from '../theme';
-import {byComposeTestID, host, modifier, nodes} from '../../jest/native';
+import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {ListItem} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -72,7 +72,7 @@ describe(`ListItem (${Platform.OS})`, () => {
   });
 
   it('wires up the press handler', async () => {
-    const onPress = jest.fn();
+    const onPress = vi.fn();
     await render(<ListItem onPress={onPress} testID="row">Tap</ListItem>);
     if (isIOS) {
       await fireEvent.press(screen.getByTestId('row'));

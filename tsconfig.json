@@ -3,9 +3,9 @@
   "compilerOptions": {
     "strict": true,
     "types": [
-      "jest",
+      "vitest-expo/types",
       "node",
-      "@testing-library/jest-dom"
+      "@testing-library/jest-dom/vitest"
     ]
   },
   "include": [

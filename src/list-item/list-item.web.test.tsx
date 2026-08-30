@@ -37,7 +37,7 @@ describe('ListItem (web)', () => {
   });
 
   it('calls onPress over the whole row', () => {
-    const onPress = jest.fn();
+    const onPress = vi.fn();
     render(<ListItem onPress={onPress} testID="row">Tap</ListItem>);
     fireEvent.click(screen.getByTestId('row'));
     expect(onPress).toHaveBeenCalledTimes(1);

@@ -3,7 +3,7 @@ import {Platform} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose';
 import {AccentProvider} from '../accent';
-import {byComposeTestID, host, modifier, nodes} from '../../jest/native';
+import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {Slider} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -24,7 +24,7 @@ const options = {wrapper: Material};
 
 describe(`Slider (${Platform.OS})`, () => {
   it('renders the native slider with its label and default range', async () => {
-    await render(<Slider label="Brightness" value={0.5} onValueChange={jest.fn()} testID="sl"/>, options);
+    await render(<Slider label="Brightness" value={0.5} onValueChange={vi.fn()} testID="sl"/>, options);
     const {props} = slider('sl');
     expect(props.value).toBe(0.5);
     expect(props.min).toBe(0);
@@ -46,7 +46,7 @@ describe(`Slider (${Platform.OS})`, () => {
   });
 
   it('maps min, max and step to the native range', async () => {
-    await render(<Slider value={40} min={0} max={100} step={10} onValueChange={jest.fn()} testID="sl"/>, options);
+    await render(<Slider value={40} min={0} max={100} step={10} onValueChange={vi.fn()} testID="sl"/>, options);
     const {props} = slider('sl');
     expect(props.value).toBe(40);
     expect(props.min).toBe(0);
@@ -62,7 +62,7 @@ describe(`Slider (${Platform.OS})`, () => {
   it('colors the slider with the accent seed', async () => {
     await render(
       <AccentProvider seed="#8959EA">
-        <Slider value={0.5} onValueChange={jest.fn()} testID="sl"/>
+        <Slider value={0.5} onValueChange={vi.fn()} testID="sl"/>
       </AccentProvider>,
       options,
     );
@@ -82,7 +82,7 @@ describe(`Slider (${Platform.OS})`, () => {
   });
 
   it('applies an explicit accentColor', async () => {
-    await render(<Slider value={0.5} onValueChange={jest.fn()} accentColor="#FF9500" testID="sl"/>, options);
+    await render(<Slider value={0.5} onValueChange={vi.fn()} accentColor="#FF9500" testID="sl"/>, options);
     const {props} = slider('sl');
     if (isIOS) {
       expect(modifier(props, 'tint')).toEqual({$type: 'tint', color: '#FF9500'});
@@ -93,7 +93,7 @@ describe(`Slider (${Platform.OS})`, () => {
   });
 
   it('disables the control', async () => {
-    await render(<Slider label="Volume" value={0.5} onValueChange={jest.fn()} disabled testID="sl"/>, options);
+    await render(<Slider label="Volume" value={0.5} onValueChange={vi.fn()} disabled testID="sl"/>, options);
     const {props} = slider('sl');
     if (isIOS) {
       expect(modifier(props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
@@ -106,7 +106,7 @@ describe(`Slider (${Platform.OS})`, () => {
   });
 
   it('renders only the slider without a label', async () => {
-    await render(<Slider value={0.5} onValueChange={jest.fn()} testID="sl"/>, options);
+    await render(<Slider value={0.5} onValueChange={vi.fn()} testID="sl"/>, options);
     expect(nodes()).toHaveLength(1);
     if (!isIOS) {
       expect(modifier(slider('sl').props, 'fillMaxWidth')).toBeDefined();
@@ -115,7 +115,7 @@ describe(`Slider (${Platform.OS})`, () => {
   });
 
   it('reports drag values through onValueChange', async () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     await render(<Slider value={0} min={0} max={100} step={10} onValueChange={onValueChange} testID="sl"/>, options);
     if (isIOS) {
       await fireEvent(screen.getByTestId('sl'), 'valueChanged', {nativeEvent: {value: 30}});
@@ -131,9 +131,9 @@ describe(`Slider (${Platform.OS})`, () => {
   });
 
   it('reports the current value once sliding completes', async () => {
-    const onSlidingComplete = jest.fn();
+    const onSlidingComplete = vi.fn();
     await render(
-      <Slider value={0.4} onValueChange={jest.fn()} onSlidingComplete={onSlidingComplete} testID="sl"/>,
+      <Slider value={0.4} onValueChange={vi.fn()} onSlidingComplete={onSlidingComplete} testID="sl"/>,
       options,
     );
     if (isIOS) {
@@ -150,7 +150,7 @@ describe(`Slider (${Platform.OS})`, () => {
   });
 
   it('omits the completion handler when onSlidingComplete is not given', async () => {
-    await render(<Slider value={0.4} onValueChange={jest.fn()} testID="sl"/>, options);
+    await render(<Slider value={0.4} onValueChange={vi.fn()} testID="sl"/>, options);
     const {props} = slider('sl');
     expect(isIOS ? props.onEditingChanged : props.onValueChangeFinished).toBeUndefined();
   });

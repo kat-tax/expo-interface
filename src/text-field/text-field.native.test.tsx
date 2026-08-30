@@ -1,40 +1,9 @@
 import {Platform} from 'react-native';
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 import {useNativeState} from '@expo/ui';
-import {byComposeTestID, host, modifier} from '../../jest/native';
+import {byComposeTestID, host, modifier} from '../__tests__/native';
 import {useSyncedState} from './shared';
 import {TextField} from '.';
-
-/**
- * jest-expo ships no mock for the `ExpoUI` native module, so provide the
- * `ObservableState` shared object behind `useNativeState` and the Material
- * palette behind `useMaterialColors` (Android).
- */
-jest.mock('expo', () => {
-  const expo = jest.requireActual<typeof import('expo')>('expo');
-  class ObservableState {
-    private current: unknown;
-    constructor({value}: {value: unknown}) {
-      this.current = value;
-    }
-    getValue() {
-      return this.current;
-    }
-    setValue({value}: {value: unknown}) {
-      this.current = value;
-    }
-    setOnChange() {}
-    release() {}
-  }
-  const ExpoUI = {
-    ObservableState,
-    getMaterialColors: () => ({onSurface: '#1D1B20FF', onSurfaceVariant: '#49454FFF'}),
-  };
-  return {
-    ...expo,
-    requireNativeModule: (name: string) => name === 'ExpoUI' ? ExpoUI : expo.requireNativeModule(name),
-  };
-});
 
 const isIOS = Platform.OS === 'ios';
 const field = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
@@ -131,7 +100,7 @@ describe(`TextField (${Platform.OS})`, () => {
   });
 
   it('wires the submit action', async () => {
-    const onSubmit = jest.fn();
+    const onSubmit = vi.fn();
     await render(<TextField onSubmit={onSubmit} testID="query"/>);
     const {props} = field('query');
     if (isIOS) {

@@ -1,7 +1,7 @@
 import {Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
-import {byComposeTestID, host, modifier} from '../../jest/native';
+import {byComposeTestID, host, modifier} from '../__tests__/native';
 import {Button} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -60,7 +60,7 @@ describe(`Button (${Platform.OS})`, () => {
   });
 
   it('disables the control', async () => {
-    const onPress = jest.fn();
+    const onPress = vi.fn();
     await render(<Button label="Save" disabled onPress={onPress} testID="save"/>);
     const {props} = button('save');
     if (isIOS) {
@@ -72,7 +72,7 @@ describe(`Button (${Platform.OS})`, () => {
   });
 
   (isIOS ? it : it.skip)('calls onPress', async () => {
-    const onPress = jest.fn();
+    const onPress = vi.fn();
     await render(<Button label="Save" onPress={onPress} testID="save"/>);
     await fireEvent.press(screen.getByTestId('save'));
     expect(onPress).toHaveBeenCalledTimes(1);

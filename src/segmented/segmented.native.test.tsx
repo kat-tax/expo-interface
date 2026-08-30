@@ -3,7 +3,7 @@ import {Platform} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose';
 import {AccentProvider} from '../accent';
-import {byComposeTestID, host, modifier, nodes, type HostNode} from '../../jest/native';
+import {byComposeTestID, host, modifier, nodes, type HostNode} from '../__tests__/native';
 import {SegmentedControl} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -42,7 +42,7 @@ const tags = () => nodes().filter(n => modifier(n.props, 'tag')).map(n => [n.pro
 describe(`SegmentedControl (${Platform.OS})`, () => {
   it('renders the native segmented control with its label and items', async () => {
     await render(
-      <SegmentedControl label="Range" selectedValue="week" onValueChange={jest.fn()} testID="sg">{items}</SegmentedControl>,
+      <SegmentedControl label="Range" selectedValue="week" onValueChange={vi.fn()} testID="sg">{items}</SegmentedControl>,
       options,
     );
     if (isIOS) {
@@ -127,7 +127,7 @@ describe(`SegmentedControl (${Platform.OS})`, () => {
   });
 
   it('disables the control', async () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     await render(
       <SegmentedControl label="Range" selectedValue="day" onValueChange={onValueChange} disabled testID="sg">
         {items}
@@ -158,7 +158,7 @@ describe(`SegmentedControl (${Platform.OS})`, () => {
   });
 
   it('reports the selected value and stays controlled', async () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     await render(
       <SegmentedControl selectedValue="day" onValueChange={onValueChange} testID="sg">{items}</SegmentedControl>,
       options,
@@ -177,7 +177,7 @@ describe(`SegmentedControl (${Platform.OS})`, () => {
   });
 
   it('updates its own selection when uncontrolled', async () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     await render(<SegmentedControl onValueChange={onValueChange} testID="sg">{items}</SegmentedControl>, options);
     if (isIOS) {
       await fireEvent(screen.getByTestId('sg'), 'selectionChange', {nativeEvent: {selection: 'week'}});

@@ -17,20 +17,28 @@ jobs:
     name: Typecheck, lint, test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Typecheck
         run: bun run typecheck
       - name: Lint
         run: bun run lint
       - name: Test
-        run: bun run test:coverage --ci
+        run: bun run test:coverage
+      - name: Upload test report (@vitest/ui HTML)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-report
+          path: test-report
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage
-          path: coverage/lcov-report
+          path: coverage
           if-no-files-found: ignore
           retention-days: 7
 
@@ -45,7 +53,7 @@ jobs:
       matrix:
         platform: [ios, android, web]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Expo doctor
         # Advisory only: expo-doctor also reports SDK-wide advisories that can
@@ -64,13 +72,13 @@ jobs:
     name: Build Storybook (web)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Export
         run: bun run storybook:build
         env:
           CI: 1
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: storybook
           path: storybook/dist

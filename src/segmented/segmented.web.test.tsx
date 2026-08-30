@@ -12,7 +12,7 @@ const radio = (name: string) => screen.getByRole('radio', {name});
 describe('SegmentedControl (web)', () => {
   it('renders a labelled radiogroup of native buttons', () => {
     render(
-      <SegmentedControl label="Range" selectedValue="week" onValueChange={jest.fn()} testID="range">
+      <SegmentedControl label="Range" selectedValue="week" onValueChange={vi.fn()} testID="range">
         {items}
       </SegmentedControl>,
     );
@@ -31,7 +31,7 @@ describe('SegmentedControl (web)', () => {
   });
 
   it('reports the selected value and stays controlled', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     render(
       <SegmentedControl selectedValue="day" onValueChange={onValueChange}>{items}</SegmentedControl>,
     );
@@ -43,7 +43,7 @@ describe('SegmentedControl (web)', () => {
   });
 
   it('manages its own selection when uncontrolled, seeded with the first item', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     render(<SegmentedControl onValueChange={onValueChange}>{items}</SegmentedControl>);
     expect(radio('Day')).toHaveAttribute('aria-checked', 'true');
     fireEvent.click(radio('Week'));
@@ -53,7 +53,7 @@ describe('SegmentedControl (web)', () => {
   });
 
   it('keeps numeric values typed', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     render(
       <SegmentedControl selectedValue={2} onValueChange={onValueChange}>
         <SegmentedControl.Item label="One" value={1}/>
@@ -67,7 +67,7 @@ describe('SegmentedControl (web)', () => {
 
   it('disables every segment and marks the row', () => {
     render(
-      <SegmentedControl label="Range" disabled onValueChange={jest.fn()} testID="range">{items}</SegmentedControl>,
+      <SegmentedControl label="Range" disabled onValueChange={vi.fn()} testID="range">{items}</SegmentedControl>,
     );
     for (const button of screen.getAllByRole('radio')) expect(button).toBeDisabled();
     expect(screen.getByTestId('range')).toHaveClass('ui-segmented--disabled');
@@ -75,7 +75,7 @@ describe('SegmentedControl (web)', () => {
 
   it('colors only the selected segment with a custom accent', () => {
     render(
-      <SegmentedControl selectedValue="week" accentColor="#FF9500" onValueChange={jest.fn()}>{items}</SegmentedControl>,
+      <SegmentedControl selectedValue="week" accentColor="#FF9500" onValueChange={vi.fn()}>{items}</SegmentedControl>,
     );
     expect(radio('Week')).toHaveStyle({color: '#FF9500'});
     expect(radio('Day').style.color).toBe('');

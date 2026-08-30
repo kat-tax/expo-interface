@@ -51,7 +51,7 @@ describe('Sheet (web)', () => {
   });
 
   it('calls onDismiss when the dialog is dismissed', () => {
-    const onDismiss = jest.fn();
+    const onDismiss = vi.fn();
     render(
       <Sheet isPresented onDismiss={onDismiss}>
         <span>Content</span>

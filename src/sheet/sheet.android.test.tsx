@@ -4,9 +4,10 @@ import {useMaterialColors} from '@expo/ui/jetpack-compose';
 import {AccentProvider, ACCENT_SEED} from '../accent';
 import {Sheet} from '.';
 
-// jest-expo's auto-mock of the `ExpoUI` native module has no
-// `getMaterialColors`; echo the seed back so tests can tell palettes apart.
-jest.mock('../../node_modules/@expo/ui/src/jetpack-compose/ExpoUIModule', () => ({
+// The shared `ExpoUI` mock in vitest/setup.native.ts returns a full baseline
+// palette; override it to echo just the seed (and scheme) back so the exact
+// palette assertions below can tell the seeded overlay from the sheet Host.
+vi.mock('../../node_modules/@expo/ui/src/jetpack-compose/ExpoUIModule', () => ({
   ExpoUIModule: {
     getMaterialColors: (options: {seedColor?: string; scheme?: string} | null) => ({
       primary: options?.seedColor ?? 'baseline',
@@ -23,7 +24,7 @@ function Probe({onPalette}: {onPalette: (palette: unknown) => void}) {
 
 describe('Sheet (android palette)', () => {
   it('overlays the accent-seeded Material palette over the unseeded sheet Host', async () => {
-    const onPalette = jest.fn();
+    const onPalette = vi.fn();
     await render(
       <AccentProvider seed="#8959EA">
         <Sheet isPresented onDismiss={() => {}}>
@@ -35,7 +36,7 @@ describe('Sheet (android palette)', () => {
   });
 
   it('falls back to the default accent seed', async () => {
-    const onPalette = jest.fn();
+    const onPalette = vi.fn();
     await render(
       <Sheet isPresented onDismiss={() => {}}>
         <Probe onPalette={onPalette}/>

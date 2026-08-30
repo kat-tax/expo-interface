@@ -1,3 +1,5 @@
+// Matchers are registered by vitest/setup.web.ts; imported for the types.
+import '@testing-library/jest-dom/vitest';
 import {fireEvent, render, screen} from '@testing-library/react';
 import {TextField} from '.';
 
@@ -11,7 +13,7 @@ describe('TextField (web)', () => {
   });
 
   it('keeps its own state when uncontrolled', () => {
-    const onChangeText = jest.fn();
+    const onChangeText = vi.fn();
     render(<TextField placeholder="Name" onChangeText={onChangeText} testID="name"/>);
     const input = screen.getByTestId('name');
     expect(input).toHaveValue('');
@@ -21,7 +23,7 @@ describe('TextField (web)', () => {
   });
 
   it('reflects a controlled value and reports edits without applying them', () => {
-    const onChangeText = jest.fn();
+    const onChangeText = vi.fn();
     const {rerender} = render(<TextField value="Ada" onChangeText={onChangeText} testID="name"/>);
     const input = screen.getByTestId('name');
     expect(input).toHaveValue('Ada');
@@ -33,7 +35,7 @@ describe('TextField (web)', () => {
   });
 
   it('submits the current text on Enter', () => {
-    const onSubmit = jest.fn();
+    const onSubmit = vi.fn();
     render(<TextField onSubmit={onSubmit} testID="query"/>);
     const input = screen.getByTestId('query');
     fireEvent.change(input, {target: {value: 'hello'}});

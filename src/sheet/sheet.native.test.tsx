@@ -1,19 +1,8 @@
 import {Platform, Text} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {AccentProvider, ACCENT_SEED} from '../accent';
-import {byComposeTestID, host, modifier, nodes} from '../../jest/native';
+import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {Sheet} from '.';
-
-// jest-expo's auto-mock of the `ExpoUI` native module has no
-// `getMaterialColors`, which every Compose `Host` (including the one the
-// BottomSheet mounts) and `useMaterialColors({seedColor})` call on Android.
-jest.mock('../../node_modules/@expo/ui/src/jetpack-compose/ExpoUIModule', () => ({
-  ExpoUIModule: {
-    getMaterialColors: (options: {seedColor?: string} | null) => ({
-      primary: options?.seedColor ?? 'baseline',
-    }),
-  },
-}));
 
 const isIOS = Platform.OS === 'ios';
 
@@ -30,7 +19,7 @@ describe(`Sheet (${Platform.OS})`, () => {
       </Sheet>,
     );
     const [root] = nodes();
-    expect(root.type).toBe('ViewManagerAdapter_ExpoUI');
+    expect(root.type).toBe('ViewManagerAdapter_ExpoUI_HostView');
     expect(root.props.style).toEqual({position: 'absolute'});
     expect(root.props.pointerEvents).toBe('none');
     if (isIOS) {

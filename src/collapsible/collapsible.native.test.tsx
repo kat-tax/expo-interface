@@ -1,18 +1,9 @@
 import {Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {Text} from '@expo/ui';
-import {host, modifier, nodes} from '../../jest/native';
+import {host, modifier, nodes} from '../__tests__/native';
 import {Collapsible} from '.';
 
-/** Provides the Material palette behind `useMaterialColors` (Android). */
-jest.mock('expo', () => {
-  const expo = jest.requireActual<typeof import('expo')>('expo');
-  const ExpoUI = {getMaterialColors: () => ({surfaceContainer: '#F3EDF7FF', onSurface: '#1D1B20FF'})};
-  return {
-    ...expo,
-    requireNativeModule: (name: string) => name === 'ExpoUI' ? ExpoUI : expo.requireNativeModule(name),
-  };
-});
 
 const isIOS = Platform.OS === 'ios';
 /** Whether the native disclosure is open: SwiftUI `isExpanded` / Compose `AnimatedVisibility.visible`. */
@@ -52,7 +43,7 @@ describe(`Collapsible (${Platform.OS})`, () => {
   });
 
   (isIOS ? it : it.skip)('toggles its own state when uncontrolled and reports the change', async () => {
-    const onExpandedChange = jest.fn();
+    const onExpandedChange = vi.fn();
     await render(<Collapsible label="More" onExpandedChange={onExpandedChange} testID="more"/>);
     await fireEvent(screen.getByTestId('more'), 'isExpandedChange', {nativeEvent: {isExpanded: true}});
     expect(onExpandedChange).toHaveBeenCalledWith(true);
@@ -60,7 +51,7 @@ describe(`Collapsible (${Platform.OS})`, () => {
   });
 
   (isIOS ? it : it.skip)('reports but does not apply the change when controlled', async () => {
-    const onExpandedChange = jest.fn();
+    const onExpandedChange = vi.fn();
     await render(<Collapsible label="More" expanded={false} onExpandedChange={onExpandedChange} testID="more"/>);
     await fireEvent(screen.getByTestId('more'), 'isExpandedChange', {nativeEvent: {isExpanded: true}});
     expect(onExpandedChange).toHaveBeenCalledWith(true);

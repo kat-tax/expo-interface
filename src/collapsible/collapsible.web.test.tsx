@@ -1,3 +1,5 @@
+// Matchers are registered by vitest/setup.web.ts; imported for the types.
+import '@testing-library/jest-dom/vitest';
 import {fireEvent, render, screen} from '@testing-library/react';
 import {Collapsible} from '.';
 
@@ -33,7 +35,7 @@ describe('Collapsible (web)', () => {
   });
 
   it('toggles its own state when uncontrolled and reports each change', () => {
-    const onExpandedChange = jest.fn();
+    const onExpandedChange = vi.fn();
     render(<Collapsible label="More" onExpandedChange={onExpandedChange} testID="more"/>);
     toggle(details());
     expect(onExpandedChange).toHaveBeenLastCalledWith(true);
@@ -45,7 +47,7 @@ describe('Collapsible (web)', () => {
   });
 
   it('follows the expanded prop when controlled', () => {
-    const onExpandedChange = jest.fn();
+    const onExpandedChange = vi.fn();
     const {rerender} = render(<Collapsible label="More" expanded={false} onExpandedChange={onExpandedChange} testID="more"/>);
     expect(details()).not.toHaveAttribute('open');
     toggle(details());
@@ -57,7 +59,7 @@ describe('Collapsible (web)', () => {
   });
 
   it('ignores toggle events that do not change the state', () => {
-    const onExpandedChange = jest.fn();
+    const onExpandedChange = vi.fn();
     render(<Collapsible label="More" defaultExpanded onExpandedChange={onExpandedChange} testID="more"/>);
     fireEvent(details(), new Event('toggle'));
     expect(onExpandedChange).not.toHaveBeenCalled();

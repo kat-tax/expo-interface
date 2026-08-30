@@ -7,7 +7,7 @@ const JUNE_15 = new Date(2026, 5, 15, 9, 30);
 const picker = (name = 'Select date') => screen.getByLabelText(name) as HTMLInputElement;
 
 describe('DateTimePicker (web)', () => {
-  const showPicker = jest.fn();
+  const showPicker = vi.fn();
 
   beforeAll(() => {
     // jsdom does not implement `showPicker`; stub it so the click handler can be observed.
@@ -19,7 +19,7 @@ describe('DateTimePicker (web)', () => {
   });
 
   it('renders a labelled native datetime input over the formatted value', () => {
-    render(<DateTimePicker label="Starts" value={JUNE_15} onChange={jest.fn()} testID="starts"/>);
+    render(<DateTimePicker label="Starts" value={JUNE_15} onChange={vi.fn()} testID="starts"/>);
     const control = picker('Starts');
     expect(control).toHaveAttribute('type', 'datetime-local');
     expect(control).toHaveValue('2026-06-15T09:30');
@@ -62,7 +62,7 @@ describe('DateTimePicker (web)', () => {
   });
 
   it('reports a merged Date through onChange and stays controlled', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     render(<DateTimePicker mode="date" value={JUNE_15} onChange={onChange}/>);
     fireEvent.change(picker(), {target: {value: '2026-12-24'}});
     expect(onChange).toHaveBeenCalledTimes(1);
@@ -72,21 +72,21 @@ describe('DateTimePicker (web)', () => {
   });
 
   it('keeps the calendar day when only the time changes', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     render(<DateTimePicker mode="time" value={JUNE_15} onChange={onChange}/>);
     fireEvent.change(picker(), {target: {value: '17:45'}});
     expect(onChange.mock.calls[0][0].getTime()).toBe(new Date(2026, 5, 15, 17, 45).getTime());
   });
 
   it('ignores an empty (cleared) input', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     render(<DateTimePicker value={JUNE_15} onChange={onChange}/>);
     fireEvent.change(picker(), {target: {value: ''}});
     expect(onChange).not.toHaveBeenCalled();
   });
 
   it('manages its own value when uncontrolled', () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     render(<DateTimePicker mode="date" onChange={onChange}/>);
     fireEvent.change(picker(), {target: {value: '2030-01-02'}});
     expect(onChange).toHaveBeenCalledTimes(1);

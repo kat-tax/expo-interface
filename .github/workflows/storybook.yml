@@ -1,6 +1,8 @@
 name: Storybook
 
-# Publishes the web Storybook to GitHub Pages on every push to master.
+# Publishes the web Storybook — plus the Vitest HTML test report at /tests
+# and the coverage report at /coverage — to GitHub Pages on every push to
+# master.
 # Requires Pages to be enabled with "GitHub Actions" as the source
 # (Settings → Pages); private repos need a plan that includes Pages.
 
@@ -22,7 +24,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Export
         run: bun run storybook:build
@@ -30,7 +32,12 @@ jobs:
           CI: 1
           # Pages serves project sites from `/<repo>/`.
           EXPO_BASE_URL: /${{ github.event.repository.name }}
-      - uses: actions/upload-pages-artifact@v3
+      - name: Test report and coverage
+        run: |
+          bun run test:coverage
+          cp -r test-report storybook/dist/tests
+          cp -r coverage storybook/dist/coverage
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: storybook/dist
 
@@ -42,4 +49,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

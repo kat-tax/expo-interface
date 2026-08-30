@@ -4,7 +4,7 @@ import {screen} from '@testing-library/react-native';
 import {Stack, router} from 'expo-router';
 import {Button} from '../button';
 import {bound} from '../theme';
-import {host} from '../../jest/native';
+import {stackHeaders} from '../__tests__/native';
 import {renderApp} from '../__tests__/router';
 import {ConstrainedStackHeader} from '.';
 
@@ -47,7 +47,8 @@ describe(`ConstrainedStackHeader (${Platform.OS})`, () => {
       expect(ConstrainedStackHeader()).toBeNull();
       await renderApp(app);
       // A custom `header` hides the native bar; ours draws nothing in its place.
-      expect(host(p => p.title === 'Drops').props.hidden).toBe(true);
+      const [header] = stackHeaders();
+      expect(header.hidden).toBe(true);
       expect(screen.queryByText('Drops')).toBeNull();
       expect(screen.getByText('Home screen')).toBeOnTheScreen();
     });

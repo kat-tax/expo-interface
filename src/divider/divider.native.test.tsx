@@ -1,7 +1,7 @@
 import {Platform, StyleSheet} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {colors} from '../theme';
-import {byComposeTestID, host, modifier} from '../../jest/native';
+import {byComposeTestID, host, modifier} from '../__tests__/native';
 import {Divider} from '.';
 
 const isIOS = Platform.OS === 'ios';

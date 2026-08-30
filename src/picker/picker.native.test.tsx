@@ -3,7 +3,7 @@ import {Platform} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose';
 import {AccentProvider} from '../accent';
-import {host, modifier, nodes, type HostNode} from '../../jest/native';
+import {host, modifier, nodes, type HostNode} from '../__tests__/native';
 import {Picker} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -43,7 +43,7 @@ function menuItem(label: string): HostNode {
 
 describe(`Picker (${Platform.OS})`, () => {
   it('renders the native picker with its label and items', async () => {
-    await render(<Picker label="Size" selectedValue="m" onValueChange={jest.fn()} testID="pk">{items}</Picker>, options);
+    await render(<Picker label="Size" selectedValue="m" onValueChange={vi.fn()} testID="pk">{items}</Picker>, options);
     if (isIOS) {
       const {props} = screen.getByTestId('pk');
       expect(props.label).toBe('Size');
@@ -146,7 +146,7 @@ describe(`Picker (${Platform.OS})`, () => {
   });
 
   it('reports the selected value and stays controlled', async () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     await render(<Picker selectedValue="s" onValueChange={onValueChange} testID="pk">{items}</Picker>, options);
     if (isIOS) {
       await fireEvent(screen.getByTestId('pk'), 'selectionChange', {nativeEvent: {selection: 'l'}});
@@ -167,7 +167,7 @@ describe(`Picker (${Platform.OS})`, () => {
   });
 
   it('updates its own selection when uncontrolled', async () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     await render(<Picker onValueChange={onValueChange} testID="pk">{items}</Picker>, options);
     if (isIOS) {
       await fireEvent(screen.getByTestId('pk'), 'selectionChange', {nativeEvent: {selection: 'm'}});

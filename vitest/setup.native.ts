@@ -1,19 +1,19 @@
-// Shared setup for the iOS and Android projects (see jest.config.js).
-// @testing-library/react-native registers its matchers automatically.
+// Shared setup for the iOS and Android projects (see vitest.config.mts).
+// @testing-library/react-native's matchers are registered by vitest-expo.
 
 /**
- * jest-expo's automatic mock of the `ExpoUI` native module only stubs
- * `completeRefresh`, but `@expo/ui` also needs:
+ * The `ExpoUI` native module is mocked at the native boundary, but `@expo/ui`
+ * also needs two things the generic mock lacks:
  * - `ObservableState`, the observable behind `useNativeState` (text fields,
  *   menus, alerts, collapsibles);
  * - `getMaterialColors`, which the Compose `Host` and `useMaterialColors`
  *   call on Android to build the seeded Material 3 palette.
  *
  * The palette is the Material 3 baseline (light) with the seed as `primary`.
- * A test file can still `jest.mock('expo', ...)` itself to override this.
+ * A test file can still `vi.mock('expo', ...)` itself to override this.
  */
-jest.mock('expo', () => {
-  const expo = jest.requireActual<typeof import('expo')>('expo');
+vi.mock('expo', async importOriginal => {
+  const expo = await importOriginal<typeof import('expo')>();
 
   class ObservableState<T> {
     private current: T;
