@@ -3,7 +3,6 @@
 export * from './theme';
 export * from './accent';
 export * from './icons';
-export * from './link';
 export {fillWidth} from './fill';
 
 // Layout

@@ -1,6 +1,8 @@
 import {useState} from 'react';
 import {Column, Row, Text, RNHostView} from '@expo/ui';
-import {useColor, spacing, copyText, shareUrl, Button, QRCode} from 'expo-interface';
+import {useColor, spacing, Button, QRCode} from 'expo-interface';
+import {setStringAsync} from 'expo-clipboard';
+import {shareAsync} from 'expo-sharing';
 import {getDrop} from './data';
 import {dropUrl, DROP_ORIGIN} from './host';
 
@@ -35,12 +37,12 @@ export function DropShare({id}: DropShareProps) {
         <Button
           variant="outlined"
           label={copied ? 'Copied' : 'Copy link'}
-          onPress={async () => setCopied(await copyText(url))}
+          onPress={async () => setCopied(await setStringAsync(url))}
         />
         <Button
           variant="filled"
           label="Share"
-          onPress={() => shareUrl(url, drop?.name)}
+          onPress={() => shareAsync(url, {dialogTitle: drop?.name})}
         />
       </Row>
     </Column>

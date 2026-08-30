@@ -211,11 +211,6 @@ import {theme} from 'expo-interface';
 | `spacing`, `bound`, `inset` | Layout constants |
 | `fonts`, `fontWeights`, `variants` | Type constants |
 
-## Utilities
-
-- `shareUrl(url, message?)` opens the share sheet, or the Web Share API on web.
-- `copyText(text)` copies to the clipboard on web and opens the share sheet on native.
-
 ## Install details
 
 The components are built on standard Expo modules, which are peer
