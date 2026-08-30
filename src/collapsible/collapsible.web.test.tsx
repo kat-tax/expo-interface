@@ -58,6 +58,15 @@ describe('Collapsible (web)', () => {
     expect(details()).not.toHaveAttribute('open');
   });
 
+  it('stays closed when a controlling parent ignores the change', () => {
+    render(<Collapsible label="More" expanded={false} onExpandedChange={vi.fn()} testID="more"/>);
+    toggle(details());
+    // The native <details> opened itself, but `expanded` is the source of
+    // truth — the DOM must snap back instead of desyncing from the prop.
+    expect(details()).not.toHaveAttribute('open');
+    expect(details().open).toBe(false);
+  });
+
   it('ignores toggle events that do not change the state', () => {
     const onExpandedChange = vi.fn();
     render(<Collapsible label="More" defaultExpanded onExpandedChange={onExpandedChange} testID="more"/>);

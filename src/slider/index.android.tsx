@@ -1,5 +1,6 @@
 import type {SliderProps} from './types';
 
+import {useEffect, useRef} from 'react';
 import {Row, Slider as ComposeSlider, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
 import {fillMaxWidth, testID as testIDModifier, weight} from '@expo/ui/jetpack-compose/modifiers';
 import {useColor} from '../theme';
@@ -36,6 +37,13 @@ export function Slider({
   const snap = (next: number) =>
     step != null && step > 0 ? Math.round((next - min) / step) * step + min : next;
 
+  // The value the drag last reported: `onValueChangeFinished` fires on
+  // release, which can be before a controlling parent re-renders `value`.
+  const latest = useRef(value);
+  useEffect(() => {
+    latest.current = value;
+  }, [value]);
+
   const slider = (
     <ComposeSlider
       value={value}
@@ -43,8 +51,14 @@ export function Slider({
       max={max}
       steps={steps}
       enabled={!disabled}
-      onValueChange={disabled ? undefined : next => onValueChange(snap(next))}
-      onValueChangeFinished={onSlidingComplete ? () => onSlidingComplete(value) : undefined}
+      onValueChange={
+        disabled ? undefined : next => {
+          const snapped = snap(next);
+          latest.current = snapped;
+          onValueChange(snapped);
+        }
+      }
+      onValueChangeFinished={onSlidingComplete ? () => onSlidingComplete(latest.current) : undefined}
       colors={{
         thumbColor: accent,
         activeTrackColor: accent,

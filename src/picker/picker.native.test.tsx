@@ -3,7 +3,7 @@ import {Platform} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose';
 import {AccentProvider} from '../accent';
-import {host, modifier, nodes, type HostNode} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes, type HostNode} from '../__tests__/native';
 import {Picker} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -42,6 +42,11 @@ function menuItem(label: string): HostNode {
 }
 
 describe(`Picker (${Platform.OS})`, () => {
+  (isIOS ? it.skip : it)('carries the testID as a Compose modifier', async () => {
+    await render(<Picker selectedValue="m" testID="pk">{items}</Picker>, options);
+    expect(byComposeTestID('pk')).toBeTruthy();
+  });
+
   it('renders the native picker with its label and items', async () => {
     await render(<Picker label="Size" selectedValue="m" onValueChange={vi.fn()} testID="pk">{items}</Picker>, options);
     if (isIOS) {

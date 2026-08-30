@@ -4,7 +4,7 @@ import {Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import {Button} from '../button';
-import {host, modifier, nodes} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {Alert} from '.';
 
 
@@ -24,6 +24,11 @@ const confirm: AlertAction[] = [
 ];
 
 describe(`Alert (${Platform.OS})`, () => {
+  (isIOS ? it.skip : it)('carries the testID as a Compose modifier', async () => {
+    await render(<Alert title="Hi" visible testID="alert"/>);
+    expect(byComposeTestID('alert')).toBeTruthy();
+  });
+
   it('presents the native alert while visible', async () => {
     await render(<Alert title="Link copied" message="Share it anywhere." visible testID="alert"/>);
     if (isIOS) {

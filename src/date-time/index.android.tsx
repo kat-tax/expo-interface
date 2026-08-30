@@ -2,7 +2,7 @@ import type {DateTimePickerProps} from './types';
 
 import {useState} from 'react';
 import {useMaterialColors, Row, Text, Column, DatePickerDialog, TimePickerDialog} from '@expo/ui/jetpack-compose';
-import {clip, Shapes, padding, clickable, background, fillMaxWidth} from '@expo/ui/jetpack-compose/modifiers';
+import {clip, Shapes, padding, clickable, background, fillMaxWidth, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {useColor} from '../theme';
 import {formatValue, useDateValue, withDatePart, withTimePart} from './shared';
 
@@ -22,6 +22,7 @@ export function DateTimePicker({
   maximumDate,
   disabled,
   accentColor,
+  testID,
 }: DateTimePickerProps) {
   const [current, setValue] = useDateValue(value, onChange);
   const [stage, setStage] = useState<'idle' | 'date' | 'time'>('idle');
@@ -69,7 +70,7 @@ export function DateTimePicker({
   };
 
   return (
-    <Column modifiers={[fillMaxWidth()]}>
+    <Column modifiers={[fillMaxWidth(), ...(testID ? [testIDModifier(testID)] : [])]}>
       <Row
         verticalAlignment="center"
         horizontalArrangement="spaceBetween"

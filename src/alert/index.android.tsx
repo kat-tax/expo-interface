@@ -1,6 +1,7 @@
 import type {AlertProps} from './types';
 
 import {AlertDialog, Column, Row, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
+import {testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {Button} from '../button';
 import {useColor} from '../theme';
 import {DEFAULT_ACTIONS, splitActions} from './shared';
@@ -13,7 +14,7 @@ import {DEFAULT_ACTIONS, splitActions} from './shared';
  * tinted with the live accent seed so they follow a user-supplied accent even
  * when the native host is not seeded.
  */
-export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACTIONS, sheet, children}: AlertProps) {
+export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACTIONS, sheet, children, testID}: AlertProps) {
   const colors = useMaterialColors();
   const tint = useColor('tint');
   const {cancel, others} = splitActions(actions);
@@ -27,7 +28,10 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
     <>
       {children}
       {visible ? (
-        <AlertDialog onDismissRequest={onDismiss} colors={{containerColor: colors.surfaceContainerHigh}}>
+        <AlertDialog
+          onDismissRequest={onDismiss}
+          colors={{containerColor: colors.surfaceContainerHigh}}
+          modifiers={testID ? [testIDModifier(testID)] : undefined}>
           <AlertDialog.Title>
             <Text color={colors.onSurface} style={{typography: 'headlineSmall'}}>{title}</Text>
           </AlertDialog.Title>

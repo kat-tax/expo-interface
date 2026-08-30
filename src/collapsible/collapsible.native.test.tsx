@@ -1,7 +1,7 @@
 import {Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {Text} from '@expo/ui';
-import {host, modifier, nodes} from '../__tests__/native';
+import {byComposeTestID, host, modifier} from '../__tests__/native';
 import {Collapsible} from '.';
 
 
@@ -28,6 +28,11 @@ describe(`Collapsible (${Platform.OS})`, () => {
       expect(host(p => p.text === 'Built with expo-interface.')).toBeTruthy();
     }
     expect(isOpen()).toBe(false);
+  });
+
+  (isIOS ? it.skip : it)('carries the testID as a Compose modifier', async () => {
+    await render(<Collapsible label="More" testID="more"/>);
+    expect(byComposeTestID('more')).toBeTruthy();
   });
 
   it('starts open with defaultExpanded', async () => {
@@ -60,7 +65,8 @@ describe(`Collapsible (${Platform.OS})`, () => {
 
   (isIOS ? it.skip : it)('renders the Material expandable list item', async () => {
     await render(<Collapsible label="More" testID="more"/>);
-    const [card] = nodes();
+    // The card sits inside the testID wrapper Column, so find it by its shape.
+    const card = host(p => modifier(p, 'clip') !== undefined && modifier(p, 'background') !== undefined);
     expect(modifier(card.props, 'clip')).toMatchObject({shape: {type: 'roundedCorner', radius: 16}});
     const row = host(p => modifier(p, 'clickable') !== undefined);
     expect(row.props.colors).toEqual({containerColor: 'transparent'});
