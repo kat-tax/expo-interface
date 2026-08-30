@@ -3,6 +3,9 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
+      "expo-interface": [
+        "../src/index.ts"
+      ],
       "@/*": [
         "./src/*"
       ],
