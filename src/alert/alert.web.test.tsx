@@ -46,7 +46,7 @@ describe('Alert (web)', () => {
     expect(element).toHaveClass('ui-alert');
     expect(element).not.toHaveAttribute('open');
     expect(showModal).not.toHaveBeenCalled();
-    expect(element).toHaveAttribute('aria-labelledby', 'alert-title');
+    expect(element).toHaveAttribute('aria-label', 'Delete account?');
     expect(screen.getByTestId('alert-title')).toHaveTextContent('Delete account?');
     expect(element).toHaveTextContent('This cannot be undone.');
   });
@@ -135,10 +135,10 @@ describe('Alert (web)', () => {
     expect(close).toHaveBeenCalledTimes(1);
   });
 
-  it('omits the message and the aria label without one', () => {
+  it('keeps the accessible name without a testID and omits a missing message', () => {
     render(<Alert title="Only a title" visible/>);
     const element = screen.getByRole('dialog');
-    expect(element).not.toHaveAttribute('aria-labelledby');
+    expect(element).toHaveAccessibleName('Only a title');
     expect(element.querySelector('.ui-alert__body')?.childElementCount).toBe(1);
   });
 });

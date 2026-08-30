@@ -20,7 +20,12 @@ export function Collapsible({
   const [open, setOpen] = useExpanded(expanded, defaultExpanded, onExpandedChange);
   const onToggle = (event: SyntheticEvent<HTMLDetailsElement>) => {
     const next = event.currentTarget.open;
-    if (next !== open) setOpen(next);
+    if (next === open) return;
+    // Controlled: snap the DOM back to the prop so `expanded` stays the
+    // source of truth — React re-applies the parent's decision on the next
+    // render, or the element stays put when the change was ignored.
+    if (expanded !== undefined) event.currentTarget.open = open;
+    setOpen(next);
   };
   return (
     <details className="ui-collapsible" open={open} onToggle={onToggle} data-testid={testID}>

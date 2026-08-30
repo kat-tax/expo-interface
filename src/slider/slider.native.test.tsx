@@ -130,7 +130,9 @@ describe(`Slider (${Platform.OS})`, () => {
     expect(onValueChange).toHaveBeenCalledTimes(1);
   });
 
-  it('reports the current value once sliding completes', async () => {
+  it('reports the value the drag ended on, even when the parent has not re-rendered', async () => {
+    // `onValueChange` is a plain mock, so the `value` prop stays 0.4 — the
+    // completion value must come from the drag, not the stale prop.
     const onSlidingComplete = vi.fn();
     await render(
       <Slider value={0.4} onValueChange={vi.fn()} onSlidingComplete={onSlidingComplete} testID="sl"/>,
@@ -138,14 +140,32 @@ describe(`Slider (${Platform.OS})`, () => {
     );
     if (isIOS) {
       await fireEvent(screen.getByTestId('sl'), 'editingChanged', {nativeEvent: {isEditing: true}});
+      await fireEvent(screen.getByTestId('sl'), 'valueChanged', {nativeEvent: {value: 0.8}});
       expect(onSlidingComplete).not.toHaveBeenCalled();
+      await fireEvent(screen.getByTestId('sl'), 'editingChanged', {nativeEvent: {isEditing: false}});
+    } else {
+      await act(async () => {
+        slider('sl').props.onValueChange({nativeEvent: {value: 0.8}});
+        slider('sl').props.onValueChangeFinished();
+      });
+    }
+    expect(onSlidingComplete).toHaveBeenCalledTimes(1);
+    expect(onSlidingComplete).toHaveBeenCalledWith(0.8);
+  });
+
+  it('reports the prop value when sliding completes without a drag', async () => {
+    const onSlidingComplete = vi.fn();
+    await render(
+      <Slider value={0.4} onValueChange={vi.fn()} onSlidingComplete={onSlidingComplete} testID="sl"/>,
+      options,
+    );
+    if (isIOS) {
       await fireEvent(screen.getByTestId('sl'), 'editingChanged', {nativeEvent: {isEditing: false}});
     } else {
       await act(async () => {
         slider('sl').props.onValueChangeFinished();
       });
     }
-    expect(onSlidingComplete).toHaveBeenCalledTimes(1);
     expect(onSlidingComplete).toHaveBeenCalledWith(0.4);
   });
 

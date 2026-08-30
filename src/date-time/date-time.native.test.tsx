@@ -3,7 +3,7 @@ import {Platform} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose';
 import {AccentProvider} from '../accent';
-import {host, modifier, nodes} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {formatValue} from './shared';
 import {DateTimePicker} from '.';
 
@@ -31,6 +31,11 @@ const pill = () => host(p => modifier(p, 'background') != null);
 const dialog = () => nodes().find(n => 'initialDate' in n.props);
 
 describe(`DateTimePicker (${Platform.OS})`, () => {
+  (isIOS ? it.skip : it)('carries the testID as a Compose modifier', async () => {
+    await render(<DateTimePicker value={JUNE_15} testID="dt"/>, options);
+    expect(byComposeTestID('dt')).toBeTruthy();
+  });
+
   it('renders the native picker with its label and value', async () => {
     await render(<DateTimePicker label="Starts" value={JUNE_15} onChange={vi.fn()} testID="dt"/>, options);
     if (isIOS) {

@@ -33,7 +33,7 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
       <dialog
         ref={ref}
         className={['ui-alert', sheet && 'ui-alert--sheet'].filter(Boolean).join(' ')}
-        aria-labelledby={testID ? `${testID}-title` : undefined}
+        aria-label={title}
         onClose={onDismiss}
         onClick={onBackdrop}
         data-testid={testID}>

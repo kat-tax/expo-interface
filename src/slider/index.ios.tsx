@@ -1,6 +1,7 @@
 import type {SliderProps} from './types';
 import type {ViewModifier} from '@expo/ui/swift-ui/modifiers';
 
+import {useEffect, useRef} from 'react';
 import {HStack, Slider as SwiftUISlider, Text} from '@expo/ui/swift-ui';
 import {disabled as disabledMod, foregroundStyle, tint} from '@expo/ui/swift-ui/modifiers';
 import {useColor} from '../theme';
@@ -24,6 +25,12 @@ export function Slider({
   testID,
 }: SliderProps) {
   const labelColor = useColor(disabled ? 'secondaryLabel' : 'label');
+  // The value the drag last reported: `onSlidingComplete` fires on release,
+  // which can be before a controlling parent re-renders the `value` prop.
+  const latest = useRef(value);
+  useEffect(() => {
+    latest.current = value;
+  }, [value]);
   const modifiers: ViewModifier[] = [];
   if (accentColor) modifiers.push(tint(accentColor));
   if (disabled) modifiers.push(disabledMod(true));
@@ -34,9 +41,12 @@ export function Slider({
       min={min}
       max={max}
       step={step}
-      onValueChange={onValueChange}
+      onValueChange={next => {
+        latest.current = next;
+        onValueChange(next);
+      }}
       onEditingChanged={
-        onSlidingComplete ? editing => { if (!editing) onSlidingComplete(value); } : undefined
+        onSlidingComplete ? editing => { if (!editing) onSlidingComplete(latest.current); } : undefined
       }
       modifiers={modifiers}
       testID={testID}

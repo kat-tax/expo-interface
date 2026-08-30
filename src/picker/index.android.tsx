@@ -3,7 +3,7 @@ import type {PickerProps, PickerValue} from './types';
 import {useState} from 'react';
 import unfoldMore from '@expo/material-symbols/unfold_more.xml';
 import {useMaterialColors, DropdownMenu, DropdownMenuItem, Column, Row, Text, Icon} from '@expo/ui/jetpack-compose';
-import {background, clickable, clip, fillMaxWidth, padding, Shapes} from '@expo/ui/jetpack-compose/modifiers';
+import {background, clickable, clip, fillMaxWidth, padding, Shapes, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {extractItems, labelFor, PickerItem, useSelectedValue} from './shared';
 
 /**
@@ -20,6 +20,7 @@ function PickerComponent<T extends PickerValue>({
   accentColor,
   selectedValue,
   onValueChange,
+  testID,
 }: PickerProps<T>) {
   const colors = useMaterialColors();
   const items = extractItems<T>(children);
@@ -30,7 +31,7 @@ function PickerComponent<T extends PickerValue>({
   // a Form, and the web pill uses `secondaryLabel` to match.
   const colorValue = accentColor && !disabled ? accentColor : colors.onSurfaceVariant;
   return (
-    <Column modifiers={[fillMaxWidth()]}>
+    <Column modifiers={[fillMaxWidth(), ...(testID ? [testIDModifier(testID)] : [])]}>
       <Row
         verticalAlignment="center"
         horizontalArrangement="spaceBetween"
