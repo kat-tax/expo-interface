@@ -1,6 +1,6 @@
 # Expo Interface
 
-A cross-platform UI kit for [Expo](https://expo.dev) built on
+> A cross-platform UI kit for [Expo](https://expo.dev) built on
 [`@expo/ui`](https://docs.expo.dev/versions/v56.0.0/sdk/ui/):
 
 - Every component renders the platform's own control.
@@ -14,7 +14,7 @@ npx expo install expo-interface @expo/ui @expo/material-symbols
 ```
 
 Peer dependencies and Android icon setup are covered in
-[Install details](#install-details).
+[install details](#install-details).
 
 ## Setup
 
@@ -142,13 +142,13 @@ export const share = icon(
 );
 ```
 
-### Theme
+### Colors
 
-- Colors follow the system's light or dark scheme and take a tint from the `AccentProvider` seed.
+- Follow the system's light or dark scheme and take a color tint from the `AccentProvider` seed.
 - A screen looks native on each platform without any per-platform styling.
 - There are two ways to read colors: `theme` in styles, and `useColor` everywhere else.
 
-###### `useColor`
+##### `useColor`
 
 Returns a color token as a plain string that tracks the active scheme and accent.
 Use it for props that won't accept a platform color object from `theme`, such as
@@ -156,21 +156,23 @@ symbol tints or `@expo/ui` components:
 ```tsx
 import {SymbolView} from 'expo-symbols';
 import {useColor} from 'expo-interface';
+
 // Inside a component...
 const tint = useColor('tint');
+
 // Inside component return...
 <SymbolView name="star" tintColor={tint}/>
 ```
 
-###### `theme`
+##### `theme`
 
-A static object with one entry per color token. Each entry is a platform color
-reference (`PlatformColor` on iOS, a theme attribute on Android, a CSS variable on web),
-so the OS resolves the actual value and updates it when the scheme changes,
-with no re-render required. Use it directly in styles:
+A static object with one entry per color token. Each entry is a platform color reference (`PlatformColor` on iOS, a theme attribute on Android, a CSS variable on web).
+
+The OS resolves the actual value and updates it when the scheme changes, with no re-render required:
 
 ```tsx
 import {theme} from 'expo-interface';
+
 // Inside a component...
 <View style={{
   backgroundColor: theme.backgroundElement,
@@ -178,7 +180,7 @@ import {theme} from 'expo-interface';
 }}/>
 ```
 
-### Color Tokens
+#### Color Tokens
 
 | ID | Description |
 | --- | --- |
@@ -197,7 +199,7 @@ import {theme} from 'expo-interface';
 | `destructive` | Delete buttons, failed states and other destructive actions |
 | `onDestructive` | Text and icons drawn on top of `destructive` |
 
-### Other exports
+#### Other exports
 
 | Export | Purpose |
 | --- | --- |
