@@ -1,21 +1,12 @@
 import type {MenuItem} from '../menu/types';
-import type {HostNode} from '../../jest/native';
+import type {HostNode} from '../__tests__/native';
 import {Platform} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {Text} from '@expo/ui';
 import * as icons from '../__stories__/icons';
-import {byComposeTestID, host, modifier, nodes} from '../../jest/native';
+import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {ContextMenu} from '.';
 
-/** Provides the Material palette behind `useMaterialColors` (Android). */
-jest.mock('expo', () => {
-  const expo = jest.requireActual<typeof import('expo')>('expo');
-  const ExpoUI = {getMaterialColors: () => ({onSurface: '#1D1B20FF', onSurfaceVariant: '#49454FFF'})};
-  return {
-    ...expo,
-    requireNativeModule: (name: string) => name === 'ExpoUI' ? ExpoUI : expo.requireNativeModule(name),
-  };
-});
 
 const isIOS = Platform.OS === 'ios';
 const children = (node: HostNode) => (node.children ?? []).filter((c): c is HostNode => typeof c === 'object');

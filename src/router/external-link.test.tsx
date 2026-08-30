@@ -5,7 +5,7 @@ import {openBrowserAsync, WebBrowserPresentationStyle} from 'expo-web-browser';
 import {renderApp} from '../__tests__/router';
 import {ExternalLink} from './external-link';
 
-jest.mock('expo-web-browser');
+vi.mock('expo-web-browser');
 
 const app = {
   index: () => <ExternalLink href="https://expo.dev" testID="docs">Expo docs</ExternalLink>,

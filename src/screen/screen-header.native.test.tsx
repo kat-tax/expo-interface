@@ -2,7 +2,7 @@ import {Platform, StyleSheet, Text} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {bound, colors} from '../theme';
-import {nodes} from '../../jest/native';
+import {nodes} from '../__tests__/native';
 import {ScreenHeader} from './header';
 
 const metrics = {
@@ -33,7 +33,7 @@ describe(`ScreenHeader (${Platform.OS})`, () => {
     await mount(<ScreenHeader title="Settings"/>);
     expect(screen.queryByLabelText('Go back')).toBeNull();
 
-    const onBack = jest.fn();
+    const onBack = vi.fn();
     await mount(<ScreenHeader title="Settings" onBack={onBack}/>);
     await fireEvent.press(screen.getByLabelText('Go back'));
     expect(onBack).toHaveBeenCalledTimes(1);

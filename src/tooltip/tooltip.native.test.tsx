@@ -1,8 +1,8 @@
-import type {HostNode} from '../../jest/native';
+import type {HostNode} from '../__tests__/native';
 import {Platform} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {Text} from '@expo/ui';
-import {byComposeTestID, host, modifier} from '../../jest/native';
+import {byComposeTestID, host, modifier} from '../__tests__/native';
 import {Tooltip} from '.';
 
 const isIOS = Platform.OS === 'ios';

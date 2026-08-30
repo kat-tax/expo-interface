@@ -1,3 +1,5 @@
+// Matchers are registered by vitest/setup.web.ts; imported for the types.
+import '@testing-library/jest-dom/vitest';
 import type {MenuItem} from '../menu/types';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import {ContextMenu} from '.';
@@ -22,11 +24,13 @@ function toggleEvent(newState: 'open' | 'closed') {
 
 type PopoverElement = Omit<HTMLElement, 'showPopover'> & {showPopover?: () => void};
 const proto = HTMLElement.prototype as PopoverElement;
-const showPopover = jest.fn();
+const showPopover = vi.fn();
 
+// jsdom 30's UA stylesheet hides closed popovers (`display: none`), so the
+// menu is outside the accessibility tree and role queries need `hidden: true`;
+// but it still ships no imperative Popover API, so `showPopover` is stubbed.
 describe('ContextMenu (web)', () => {
   beforeAll(() => {
-    // jsdom does not implement the Popover API.
     proto.showPopover = showPopover;
   });
 
@@ -43,13 +47,14 @@ describe('ContextMenu (web)', () => {
     const wrapper = screen.getByTestId('row');
     expect(wrapper).toHaveClass('ui-context-menu');
     expect(wrapper).toHaveTextContent('Holiday photos');
-    const menu = screen.getByRole('menu');
+    const menu = screen.getByRole('menu', {hidden: true});
+    expect(menu).not.toBeVisible();
     expect(menu.parentElement).toBe(wrapper);
     expect(menu).toHaveAttribute('popover', 'auto');
     expect(menu).not.toHaveClass('ui-menu__list--anchored');
-    expect(screen.getAllByRole('menuitem').map(e => e.textContent)).toEqual(['Share', 'Delete']);
-    expect(screen.getByRole('menuitem', {name: 'Delete'})).toHaveClass('ui-menu__item--destructive');
-    expect(screen.getByRole('separator')).toBeInTheDocument();
+    expect(screen.getAllByRole('menuitem', {hidden: true}).map(e => e.textContent)).toEqual(['Share', 'Delete']);
+    expect(screen.getByRole('menuitem', {name: 'Delete', hidden: true})).toHaveClass('ui-menu__item--destructive');
+    expect(screen.getByRole('separator', {hidden: true})).toBeInTheDocument();
   });
 
   it('opens the menu at the pointer on right-click', () => {
@@ -61,7 +66,7 @@ describe('ContextMenu (web)', () => {
     const notCancelled = fireEvent.contextMenu(screen.getByTestId('row'), {clientX: 40, clientY: 60});
     expect(notCancelled).toBe(false);
     expect(showPopover).toHaveBeenCalledTimes(1);
-    const menu = screen.getByRole('menu');
+    const menu = screen.getByRole('menu', {hidden: true});
     expect(menu.style.left).toBe('40px');
     expect(menu.style.top).toBe('60px');
   });
@@ -72,14 +77,14 @@ describe('ContextMenu (web)', () => {
         <span>Item</span>
       </ContextMenu>,
     );
-    const menu = screen.getByRole('menu');
-    jest.spyOn(menu, 'matches').mockImplementation(selector => selector === ':popover-open');
+    const menu = screen.getByRole('menu', {hidden: true});
+    vi.spyOn(menu, 'matches').mockImplementation(selector => selector === ':popover-open');
     fireEvent.contextMenu(screen.getByTestId('row'), {clientX: 1, clientY: 2});
     expect(showPopover).not.toHaveBeenCalled();
   });
 
   it('opens after a touch long-press and cancels when the finger lifts or moves', () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     try {
       render(
         <ContextMenu items={items} testID="row">
@@ -88,31 +93,31 @@ describe('ContextMenu (web)', () => {
       );
       const row = screen.getByTestId('row');
       fireEvent(row, pointerEvent('pointerdown', 'touch', {clientX: 10, clientY: 20}));
-      act(() => jest.advanceTimersByTime(499));
+      act(() => vi.advanceTimersByTime(499));
       expect(showPopover).not.toHaveBeenCalled();
-      act(() => jest.advanceTimersByTime(1));
+      act(() => vi.advanceTimersByTime(1));
       expect(showPopover).toHaveBeenCalledTimes(1);
-      const menu = screen.getByRole('menu');
+      const menu = screen.getByRole('menu', {hidden: true});
       expect(menu.style.left).toBe('10px');
       expect(menu.style.top).toBe('20px');
 
       showPopover.mockClear();
       fireEvent(row, pointerEvent('pointerdown', 'touch'));
       fireEvent(row, pointerEvent('pointerup', 'touch'));
-      act(() => jest.advanceTimersByTime(500));
+      act(() => vi.advanceTimersByTime(500));
       expect(showPopover).not.toHaveBeenCalled();
 
       fireEvent(row, pointerEvent('pointerdown', 'touch'));
       fireEvent(row, pointerEvent('pointermove', 'touch'));
-      act(() => jest.advanceTimersByTime(500));
+      act(() => vi.advanceTimersByTime(500));
       expect(showPopover).not.toHaveBeenCalled();
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 
   it('ignores mouse pointers for the long-press', () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     try {
       render(
         <ContextMenu items={items} testID="row">
@@ -120,15 +125,15 @@ describe('ContextMenu (web)', () => {
         </ContextMenu>,
       );
       fireEvent(screen.getByTestId('row'), pointerEvent('pointerdown', 'mouse'));
-      act(() => jest.advanceTimersByTime(1000));
+      act(() => vi.advanceTimersByTime(1000));
       expect(showPopover).not.toHaveBeenCalled();
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 
   it('passes a plain click to onPress', () => {
-    const onPress = jest.fn();
+    const onPress = vi.fn();
     render(
       <ContextMenu items={items} onPress={onPress} testID="row">
         <span>Item</span>
@@ -139,7 +144,7 @@ describe('ContextMenu (web)', () => {
   });
 
   it('does nothing when disabled', () => {
-    const onPress = jest.fn();
+    const onPress = vi.fn();
     render(
       <ContextMenu items={items} onPress={onPress} disabled testID="row">
         <span>Item</span>
@@ -153,13 +158,13 @@ describe('ContextMenu (web)', () => {
   });
 
   it('calls the entry handler when an entry is picked', () => {
-    const onDelete = jest.fn();
+    const onDelete = vi.fn();
     render(
       <ContextMenu items={[{label: 'Delete', role: 'destructive', onPress: onDelete}]}>
         <span>Item</span>
       </ContextMenu>,
     );
-    fireEvent.click(screen.getByRole('menuitem', {name: 'Delete'}));
+    fireEvent.click(screen.getByRole('menuitem', {name: 'Delete', hidden: true}));
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
 
@@ -170,10 +175,10 @@ describe('ContextMenu (web)', () => {
       </ContextMenu>,
     );
     fireEvent.contextMenu(screen.getByTestId('row'), {clientX: 5000, clientY: -50});
-    const menu = screen.getByRole('menu');
+    const menu = screen.getByRole('menu', {hidden: true});
     fireEvent(menu, toggleEvent('open'));
     expect(menu.style.left).toBe(`${window.innerWidth - 8}px`);
     expect(menu.style.top).toBe('8px');
-    expect(document.activeElement).toBe(screen.getByRole('menuitem', {name: 'Share'}));
+    expect(document.activeElement).toBe(screen.getByRole('menuitem', {name: 'Share', hidden: true}));
   });
 });

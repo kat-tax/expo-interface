@@ -3,7 +3,7 @@ import {screen as dom} from '@testing-library/react';
 import {renderHook, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import {colors, theme} from '../theme';
-import {host} from '../../jest/native';
+import {stackHeaders} from '../__tests__/native';
 import {renderApp} from '../__tests__/router';
 import {TabStack} from '.';
 
@@ -43,9 +43,8 @@ describe(`TabStack (${Platform.OS})`, () => {
   } else {
     it('renders the native header with the title', async () => {
       await renderApp(app);
-      const header = host(p => p.title === 'Drops');
-      expect(header.type).toBe('RNSScreenStackHeaderConfig');
-      expect(header.props).toMatchObject({
+      const header = stackHeaders().find(h => h.title === 'Drops');
+      expect(header).toMatchObject({
         hidden: false,
         backgroundColor: colors.light.background,
         titleColor: colors.light.label,

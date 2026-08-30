@@ -19,7 +19,7 @@ describe('ScreenHeader (web)', () => {
     mount(<ScreenHeader title="Settings"/>);
     expect(screen.queryByLabelText('Go back')).toBeNull();
 
-    const onBack = jest.fn();
+    const onBack = vi.fn();
     mount(<ScreenHeader title="Settings" onBack={onBack}/>);
     fireEvent.click(screen.getByLabelText('Go back'));
     expect(onBack).toHaveBeenCalledTimes(1);

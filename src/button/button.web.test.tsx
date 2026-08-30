@@ -10,7 +10,7 @@ describe('Button (web)', () => {
   });
 
   it('calls onPress on click and not when disabled', () => {
-    const onPress = jest.fn();
+    const onPress = vi.fn();
     const {rerender} = render(<Button label="Save" onPress={onPress}/>);
     fireEvent.click(screen.getByRole('button'));
     expect(onPress).toHaveBeenCalledTimes(1);

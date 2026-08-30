@@ -1,13 +1,15 @@
+// Matchers are registered by vitest/setup.web.ts; imported for the types.
+import '@testing-library/jest-dom/vitest';
 import type {AlertAction} from './types';
 import {fireEvent, render, screen, within} from '@testing-library/react';
 import {Alert} from '.';
 
 type DialogPrototype = Omit<HTMLDialogElement, 'showModal' | 'close'> & {showModal?: () => void; close?: () => void};
 const proto = HTMLDialogElement.prototype as DialogPrototype;
-const showModal = jest.fn(function (this: HTMLDialogElement) {
+const showModal = vi.fn(function (this: HTMLDialogElement) {
   this.setAttribute('open', '');
 });
-const close = jest.fn(function (this: HTMLDialogElement) {
+const close = vi.fn(function (this: HTMLDialogElement) {
   this.removeAttribute('open');
   this.dispatchEvent(new Event('close'));
 });
@@ -100,8 +102,8 @@ describe('Alert (web)', () => {
   });
 
   it('runs the action handler, closes and reports the dismissal', () => {
-    const onPress = jest.fn();
-    const onDismiss = jest.fn();
+    const onPress = vi.fn();
+    const onDismiss = vi.fn();
     render(
       <Alert
         title="Delete?"
@@ -119,7 +121,7 @@ describe('Alert (web)', () => {
   });
 
   it('reports the dismissal when the dialog closes on its own (Escape)', () => {
-    const onDismiss = jest.fn();
+    const onDismiss = vi.fn();
     render(<Alert title="Hi" visible onDismiss={onDismiss} testID="alert"/>);
     fireEvent(dialog(), new Event('close'));
     expect(onDismiss).toHaveBeenCalledTimes(1);

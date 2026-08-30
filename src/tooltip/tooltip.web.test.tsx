@@ -1,3 +1,5 @@
+// Matchers are registered by vitest/setup.web.ts; imported for the types.
+import '@testing-library/jest-dom/vitest';
 import type {ReactNode} from 'react';
 import {render, screen} from '@testing-library/react';
 import {Tooltip} from '.';
@@ -36,33 +38,34 @@ describe('Tooltip (web)', () => {
 
   it('renders a popover="hint" when the Interest Invoker API exists', async () => {
     // `interestfor` support is detected once at module load, so re-load the
-    // component in an isolated registry (with its own React copy, so hooks
-    // and the renderer agree) after polyfilling the detection.
+    // component from a reset module registry (with React and the renderer
+    // imported alongside, so hooks and the renderer agree) after polyfilling
+    // the detection.
     Object.defineProperty(HTMLButtonElement.prototype, 'interestForElement', {value: null, configurable: true});
     const container = document.body.appendChild(document.createElement('div'));
     try {
-      let cleanup = async () => {};
-      jest.isolateModules(() => {
-        const React = jest.requireActual<typeof import('react')>('react');
-        const {createRoot} = jest.requireActual<ReactDOMClient>('react-dom/client');
-        const {Tooltip: InterestTooltip} = jest.requireActual<typeof import('.')>('.');
-        const root = createRoot(container);
-        React.act(() => {
-          root.render(<InterestTooltip text="Hint text" testID="hint">Public</InterestTooltip>);
-        });
-        cleanup = async () => React.act(() => root.unmount());
+      vi.resetModules();
+      const React = await vi.importActual<typeof import('react')>('react');
+      const {createRoot} = await vi.importActual<ReactDOMClient>('react-dom/client');
+      const {Tooltip: InterestTooltip} = await vi.importActual<typeof import('.')>('.');
+      const root = createRoot(container);
+      React.act(() => {
+        root.render(<InterestTooltip text="Hint text" testID="hint">Public</InterestTooltip>);
       });
-      const trigger = container.querySelector('[data-testid="hint"]');
-      const hint = container.querySelector('[role="tooltip"]');
-      expect(trigger).not.toBeNull();
-      expect(hint).not.toBeNull();
-      expect(trigger).not.toHaveAttribute('title');
-      expect(trigger).toHaveAttribute('interestfor', hint?.id);
-      expect(hint?.id).toMatch(/^ui-tooltip-/);
-      expect(hint).toHaveAttribute('popover', 'hint');
-      expect(hint).toHaveClass('ui-tooltip__hint');
-      expect(hint).toHaveTextContent('Hint text');
-      await cleanup();
+      try {
+        const trigger = container.querySelector('[data-testid="hint"]');
+        const hint = container.querySelector('[role="tooltip"]');
+        expect(trigger).not.toBeNull();
+        expect(hint).not.toBeNull();
+        expect(trigger).not.toHaveAttribute('title');
+        expect(trigger).toHaveAttribute('interestfor', hint?.id);
+        expect(hint?.id).toMatch(/^ui-tooltip-/);
+        expect(hint).toHaveAttribute('popover', 'hint');
+        expect(hint).toHaveClass('ui-tooltip__hint');
+        expect(hint).toHaveTextContent('Hint text');
+      } finally {
+        React.act(() => root.unmount());
+      }
     } finally {
       container.remove();
       delete (HTMLButtonElement.prototype as {interestForElement?: unknown}).interestForElement;

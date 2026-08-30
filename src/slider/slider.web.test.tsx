@@ -3,7 +3,7 @@ import {Slider} from '.';
 
 describe('Slider (web)', () => {
   it('renders a native range input in a labelled row', () => {
-    render(<Slider label="Brightness" value={0.5} onValueChange={jest.fn()} testID="brightness"/>);
+    render(<Slider label="Brightness" value={0.5} onValueChange={vi.fn()} testID="brightness"/>);
     const input = screen.getByRole('slider', {name: 'Brightness'});
     expect(input).toHaveAttribute('type', 'range');
     expect(input).toHaveClass('ui-slider__input');
@@ -16,7 +16,7 @@ describe('Slider (web)', () => {
   });
 
   it('defaults to a continuous 0–1 range', () => {
-    render(<Slider value={0.25} onValueChange={jest.fn()}/>);
+    render(<Slider value={0.25} onValueChange={vi.fn()}/>);
     const input = screen.getByRole('slider');
     expect(input).toHaveAttribute('min', '0');
     expect(input).toHaveAttribute('max', '1');
@@ -24,7 +24,7 @@ describe('Slider (web)', () => {
   });
 
   it('forwards min, max and step', () => {
-    render(<Slider value={40} min={0} max={100} step={10} onValueChange={jest.fn()}/>);
+    render(<Slider value={40} min={0} max={100} step={10} onValueChange={vi.fn()}/>);
     const input = screen.getByRole('slider');
     expect(input).toHaveAttribute('min', '0');
     expect(input).toHaveAttribute('max', '100');
@@ -33,7 +33,7 @@ describe('Slider (web)', () => {
   });
 
   it('reports numeric values through onValueChange', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     render(<Slider value={0.5} onValueChange={onValueChange}/>);
     fireEvent.change(screen.getByRole('slider'), {target: {value: '0.75'}});
     expect(onValueChange).toHaveBeenCalledTimes(1);
@@ -41,8 +41,8 @@ describe('Slider (web)', () => {
   });
 
   it('reports the final value when the thumb is released', () => {
-    const onSlidingComplete = jest.fn();
-    render(<Slider value={30} min={0} max={100} onValueChange={jest.fn()} onSlidingComplete={onSlidingComplete}/>);
+    const onSlidingComplete = vi.fn();
+    render(<Slider value={30} min={0} max={100} onValueChange={vi.fn()} onSlidingComplete={onSlidingComplete}/>);
     const input = screen.getByRole('slider');
     fireEvent.pointerUp(input);
     expect(onSlidingComplete).toHaveBeenLastCalledWith(30);
@@ -51,25 +51,25 @@ describe('Slider (web)', () => {
   });
 
   it('disables the input and marks the row', () => {
-    render(<Slider label="Volume" value={0.5} onValueChange={jest.fn()} disabled testID="volume"/>);
+    render(<Slider label="Volume" value={0.5} onValueChange={vi.fn()} disabled testID="volume"/>);
     expect(screen.getByRole('slider')).toBeDisabled();
     expect(screen.getByTestId('volume')).toHaveClass('ui-slider--disabled');
   });
 
   it('exposes a custom accent through a CSS custom property', () => {
-    render(<Slider value={0.5} onValueChange={jest.fn()} accentColor="#FF9500" testID="warm"/>);
+    render(<Slider value={0.5} onValueChange={vi.fn()} accentColor="#FF9500" testID="warm"/>);
     expect(screen.getByTestId('warm').style.getPropertyValue('--ui-slider-accent')).toBe('#FF9500');
   });
 
   it('omits the label text and accessible name without a label', () => {
-    render(<Slider value={0.5} onValueChange={jest.fn()} testID="bare"/>);
+    render(<Slider value={0.5} onValueChange={vi.fn()} testID="bare"/>);
     const input = screen.getByRole('slider');
     expect(input).not.toHaveAttribute('aria-label');
     expect(screen.getByTestId('bare').querySelector('span')).toBeNull();
   });
 
   it('flattens the row style into inline CSS', () => {
-    render(<Slider value={0.5} onValueChange={jest.fn()} style={{opacity: 0.5}} testID="styled"/>);
+    render(<Slider value={0.5} onValueChange={vi.fn()} style={{opacity: 0.5}} testID="styled"/>);
     expect(screen.getByTestId('styled')).toHaveStyle({opacity: 0.5});
   });
 });

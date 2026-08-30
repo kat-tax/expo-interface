@@ -33,6 +33,7 @@
   ],
   "files": [
     "src",
+    "!src/matchers.d.ts",
     "!src/__stories__",
     "!src/__tests__",
     "!src/**/*.stories.tsx",
@@ -48,9 +49,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit && bun run --cwd example typecheck && bun run --cwd storybook typecheck",
     "lint": "eslint . --max-warnings 0",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "start": "bun run --cwd example start",
     "web": "bun run --cwd example web",
     "ios": "bun run --cwd example ios",
@@ -59,18 +60,19 @@
     "storybook:web": "bun run --cwd storybook web",
     "storybook:ios": "bun run --cwd storybook ios",
     "storybook:android": "bun run --cwd storybook android",
-    "storybook:build": "bun run --cwd storybook build"
+    "storybook:build": "bun run --cwd storybook build",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "qrcode-generator": "^2.0.4"
   },
   "peerDependencies": {
     "@expo/material-symbols": "*",
-    "@expo/ui": "^56.0.0",
-    "expo": "^56.0.0",
+    "@expo/ui": "^57.0.0",
+    "expo": "^57.0.0",
     "expo-constants": "*",
     "expo-image": "*",
-    "expo-router": "^56.0.0",
+    "expo-router": "^57.0.0",
     "expo-status-bar": "*",
     "expo-symbols": "*",
     "expo-system-ui": "*",
@@ -88,17 +90,20 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/react-native": "^14.0.1",
-    "@types/jest": "^29.5.14",
     "@types/react": "~19.2.2",
+    "@typescript-eslint/parser": "8.59.0",
+    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/ui": "^4.1.11",
     "eslint": "^9.39.5",
-    "eslint-config-expo": "~56.0.4",
+    "eslint-config-expo": "~57.0.2",
     "globals": "^16.0.0",
-    "jest": "^29.7.0",
-    "jest-expo": "~56.0.5",
-    "typescript": "~6.0.3"
+    "jsdom": "^30.0.1",
+    "test-renderer": "^1.2.0",
+    "typescript": "~6.0.3",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11",
+    "vitest-expo": "^57.1.0",
+    "vitest-native": "^0.13.0"
   },
-  "packageManager": "bun@1.4.0",
-  "overrides": {
-    "react-native-screens": "~4.26.0"
-  }
+  "packageManager": "bun@1.4.0"
 }

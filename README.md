@@ -1,7 +1,7 @@
 # Expo Interface
 
 > A cross-platform UI kit for [Expo](https://expo.dev) built on
-[`@expo/ui`](https://docs.expo.dev/versions/v56.0.0/sdk/ui/):
+[`@expo/ui`](https://docs.expo.dev/versions/v57.0.0/sdk/ui/):
 
 - Every component renders the platform's own control.
 - SwiftUI on iOS, Jetpack Compose (Material 3) on Android, plain DOM on web.
@@ -239,11 +239,12 @@ The [example](./example) app, dropfiles, uses every component and imports the
 package from `../src`, so it doubles as the development harness.
 
 ```sh
-bun install
+bun install        # bun >= 1.4
 bun run web        # or ios, android
 bun run typecheck  # package, example and storybook
 bun run lint       # eslint (eslint-config-expo)
-bun run test       # jest, once per platform (ios, android, web)
+bun run test       # vitest, once per platform (ios, android, web)
+bun run test:ui    # vitest watch mode with the browser UI
 ```
 
 ### Storybook
@@ -265,9 +266,10 @@ plain React Native views opt out with `parameters: {native: false}`.
 
 ### Tests
 
-`jest.config.js` runs the suite three times with the `jest-expo` platform
-presets, so each `index.ios.tsx` / `index.android.tsx` / `index.web.tsx`
-implementation is exercised. The file name picks the platforms:
+Vitest (`vitest-expo`) runs the suite three times — an ios, android and web
+project — so each `index.ios.tsx` / `index.android.tsx` / `index.web.tsx`
+implementation is exercised (`vitest.config.mts`; the web pipeline lives in
+`vitest.config.web.mts`). The file name picks the platforms:
 
 | Pattern | Platforms |
 | --- | --- |
@@ -276,21 +278,25 @@ implementation is exercised. The file name picks the platforms:
 | `*.ios.test.tsx` / `*.android.test.tsx` | one platform |
 | `*.web.test.tsx` | web |
 
-Web tests use `@testing-library/react` against the real DOM. Native tests use
+Web tests use `@testing-library/react` against the real DOM (jsdom +
+react-native-web). Native tests run real React Native and use
 `@testing-library/react-native`; `@expo/ui` controls render as host views whose
-props are the payload sent to SwiftUI/Compose, and `jest/native.ts` has helpers
-to assert on them.
+props are the payload sent to SwiftUI/Compose, and `src/__tests__/native.ts`
+has helpers to assert on them. `bun run test:coverage` writes an interactive
+HTML test report to `test-report/` and coverage to `coverage/`.
 
 ### CI
 
 GitHub Actions ([.github/workflows](./.github/workflows)):
 
 - **CI** (`ci.yml`) — on every push and pull request: typecheck, lint, tests
-  with coverage, a Metro export of the example app for ios, android and web
-  (proves every platform file and `@expo/material-symbols` asset resolves
-  without Xcode or Gradle), and a web Storybook build uploaded as an artifact.
+  (HTML report and coverage as artifacts), a Metro export of the example app
+  for ios, android and web (proves every platform file and
+  `@expo/material-symbols` asset resolves without Xcode or Gradle), and a web
+  Storybook build uploaded as an artifact.
 - **Storybook** (`storybook.yml`) — on push to `master`: publishes the web
-  Storybook to GitHub Pages. Enable Pages with the "GitHub Actions" source in
+  Storybook to GitHub Pages, with the Vitest HTML report at `/tests` and
+  coverage at `/coverage`. Enable Pages with the "GitHub Actions" source in
   the repository settings.
 - **Release** (`release.yml`) — on a `v*` tag matching `package.json`:
   re-runs the checks, publishes to npm with provenance (needs an `NPM_TOKEN`

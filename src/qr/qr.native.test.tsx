@@ -1,6 +1,6 @@
 import {Platform} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
-import {host} from '../../jest/native';
+import {host} from '../__tests__/native';
 import {QRCode} from '.';
 
 /** `expo-image` renders a `ViewManagerAdapter_ExpoImage` host view carrying the source list. */

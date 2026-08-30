@@ -7,14 +7,16 @@ import {bound, colors, inset} from '../theme';
 import {hostAccentProps} from './host-accent';
 import {Screen} from '.';
 
-// react-native-web reads the scheme from `matchMedia` once at module load, so
-// swap the hook itself. `babel-plugin-react-native-web` rewrites `react-native`
-// imports to these per-module paths, which is why the package root is not mocked.
+// react-native-web reads the scheme from `matchMedia` (jsdom has none, so it
+// always reports light) — swap the hook itself. The web project aliases
+// `react-native` to react-native-web, so mocking the alias covers every
+// import under test; the per-module `dist/exports/*` path no longer would,
+// because the dependency optimizer pre-bundles those files.
 const mockScheme: {value: ColorSchemeName} = {value: 'light'};
-jest.mock('react-native-web/dist/exports/useColorScheme', () => ({
-  __esModule: true,
-  default: () => mockScheme.value,
-}));
+vi.mock('react-native', async importOriginal => {
+  const rn = await importOriginal<typeof import('react-native')>();
+  return {...rn, useColorScheme: () => mockScheme.value};
+});
 
 /** Web `SafeAreaView` requires a provider. */
 function mount(ui: React.ReactElement) {

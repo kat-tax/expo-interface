@@ -8,6 +8,7 @@ module.exports = defineConfig([
     '**/dist/',
     '**/.expo/',
     'coverage/',
+    'test-report/',
     'example/ios/',
     'example/android/',
     'storybook/ios/',
@@ -34,14 +35,22 @@ module.exports = defineConfig([
     },
   },
   {
-    files: ['**/*.test.{ts,tsx}', 'jest/**/*.{ts,tsx}'],
+    files: ['**/*.test.{ts,tsx}', 'vitest/**/*.{ts,tsx}', 'src/__tests__/**/*.{ts,tsx}'],
     languageOptions: {
-      globals: globals.jest,
+      globals: globals.vitest,
     },
   },
   {
-    files: ['**/*.config.js', 'jest/**/*.js'],
+    files: ['**/*.config.js'],
     languageOptions: {
+      globals: globals.node,
+    },
+  },
+  {
+    // eslint-config-expo only wires the TypeScript parser up for .ts/.tsx.
+    files: ['**/*.mts'],
+    languageOptions: {
+      parser: require('@typescript-eslint/parser'),
       globals: globals.node,
     },
   },

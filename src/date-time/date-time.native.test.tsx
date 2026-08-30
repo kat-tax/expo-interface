@@ -3,7 +3,7 @@ import {Platform} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose';
 import {AccentProvider} from '../accent';
-import {host, modifier, nodes} from '../../jest/native';
+import {host, modifier, nodes} from '../__tests__/native';
 import {formatValue} from './shared';
 import {DateTimePicker} from '.';
 
@@ -32,7 +32,7 @@ const dialog = () => nodes().find(n => 'initialDate' in n.props);
 
 describe(`DateTimePicker (${Platform.OS})`, () => {
   it('renders the native picker with its label and value', async () => {
-    await render(<DateTimePicker label="Starts" value={JUNE_15} onChange={jest.fn()} testID="dt"/>, options);
+    await render(<DateTimePicker label="Starts" value={JUNE_15} onChange={vi.fn()} testID="dt"/>, options);
     if (isIOS) {
       const {props} = screen.getByTestId('dt');
       expect(props.title).toBe('Starts');
@@ -153,7 +153,7 @@ describe(`DateTimePicker (${Platform.OS})`, () => {
   });
 
   (isIOS ? it : it.skip)('reports the picked date and stays controlled', async () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const picked = new Date(2026, 11, 24, 18, 0);
     await render(<DateTimePicker value={JUNE_15} onChange={onChange} testID="dt"/>, options);
     await fireEvent(screen.getByTestId('dt'), 'dateChange', {nativeEvent: {date: picked.toISOString()}});
@@ -171,7 +171,7 @@ describe(`DateTimePicker (${Platform.OS})`, () => {
   });
 
   (isIOS ? it.skip : it)('walks through the date and time dialogs in datetime mode', async () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     await render(<DateTimePicker value={JUNE_15} onChange={onChange}/>, options);
     await act(async () => {
       modifier(pill().props, 'clickable')?.eventListener();
@@ -198,7 +198,7 @@ describe(`DateTimePicker (${Platform.OS})`, () => {
   });
 
   (isIOS ? it.skip : it)('commits the picked day when the time dialog is dismissed', async () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     await render(<DateTimePicker onChange={onChange}/>, options);
     await act(async () => {
       modifier(pill().props, 'clickable')?.eventListener();
@@ -217,7 +217,7 @@ describe(`DateTimePicker (${Platform.OS})`, () => {
   });
 
   (isIOS ? it.skip : it)('opens only the matching dialog in single-component modes', async () => {
-    const onChange = jest.fn();
+    const onChange = vi.fn();
     const {rerender} = await render(<DateTimePicker mode="date" value={JUNE_15} onChange={onChange}/>, options);
     await act(async () => {
       modifier(pill().props, 'clickable')?.eventListener();

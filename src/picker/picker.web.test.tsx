@@ -11,7 +11,7 @@ const select = () => screen.getByRole('combobox') as HTMLSelectElement;
 
 describe('Picker (web)', () => {
   it('renders a labelled native <select> over the value pill', () => {
-    render(<Picker label="Size" selectedValue="m" onValueChange={jest.fn()} testID="size">{items}</Picker>);
+    render(<Picker label="Size" selectedValue="m" onValueChange={vi.fn()} testID="size">{items}</Picker>);
     const control = screen.getByRole('combobox', {name: 'Size'});
     expect(control.tagName).toBe('SELECT');
     expect(control).toHaveValue('m');
@@ -33,7 +33,7 @@ describe('Picker (web)', () => {
   });
 
   it('reports the selected value and stays controlled', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     render(<Picker selectedValue="s" onValueChange={onValueChange}>{items}</Picker>);
     fireEvent.change(select(), {target: {value: 'l'}});
     expect(onValueChange).toHaveBeenCalledTimes(1);
@@ -42,7 +42,7 @@ describe('Picker (web)', () => {
   });
 
   it('manages its own selection when uncontrolled, seeded with the first item', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     render(<Picker onValueChange={onValueChange}>{items}</Picker>);
     expect(select()).toHaveValue('s');
     fireEvent.change(select(), {target: {value: 'm'}});
@@ -52,7 +52,7 @@ describe('Picker (web)', () => {
   });
 
   it('keeps numeric values typed', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     render(
       <Picker selectedValue={15} onValueChange={onValueChange}>
         <Picker.Item label="5 minutes" value={5}/>
@@ -66,7 +66,7 @@ describe('Picker (web)', () => {
   });
 
   it('disables the select and dims the row', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     render(<Picker label="Size" selectedValue="m" onValueChange={onValueChange} disabled>{items}</Picker>);
     expect(select()).toBeDisabled();
     expect(select().style.cursor).toBe('default');

@@ -46,3 +46,4 @@ storybook/.rnstorybook/storybook.requires.ts
 
 # tests
 coverage/
+test-report/

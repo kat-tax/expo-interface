@@ -2,7 +2,7 @@ import {Platform} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {colors} from '../theme';
 import {Typography} from '../typography';
-import {byComposeTestID, host, modifier, nodes} from '../../jest/native';
+import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {FieldGroup} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -22,7 +22,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
     );
     if (isIOS) {
       const [form] = nodes();
-      expect(form.type).toBe('ViewManagerAdapter_ExpoUI');
+      expect(form.type).toBe('ViewManagerAdapter_ExpoUI_FormView');
       expect(form.props.modifiers).toEqual([]);
     } else {
       const {props} = byComposeTestID('group');
@@ -137,7 +137,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
       expect((form.children as {type: string}[]).map(c => c.type)).toEqual([
         'RCTText',
         'RCTText',
-        'ViewManagerAdapter_ExpoUI',
+        'ViewManagerAdapter_ExpoUI_SectionView',
       ]);
       const contents = nodes().filter(n => n.props?.name === 'content');
       expect(contents).toHaveLength(1);

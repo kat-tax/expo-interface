@@ -2,7 +2,7 @@ import {Platform} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import {colors} from '../theme';
-import {byComposeTestID, modifier} from '../../jest/native';
+import {byComposeTestID, modifier} from '../__tests__/native';
 import {Progress} from '.';
 
 const isIOS = Platform.OS === 'ios';

@@ -3,7 +3,7 @@ import {Checkbox} from '.';
 
 describe('Checkbox (web)', () => {
   it('renders a native checkbox wrapped in a <label> row', () => {
-    render(<Checkbox label="Remember me" value onValueChange={jest.fn()} testID="remember"/>);
+    render(<Checkbox label="Remember me" value onValueChange={vi.fn()} testID="remember"/>);
     const input = screen.getByRole('checkbox', {name: 'Remember me'});
     expect(input).toBeChecked();
     expect(input).toHaveClass('ui-checkbox__input');
@@ -16,7 +16,7 @@ describe('Checkbox (web)', () => {
   });
 
   it('reports the next checked state through onValueChange', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     const {rerender} = render(<Checkbox label="Terms" value={false} onValueChange={onValueChange}/>);
     fireEvent.click(screen.getByRole('checkbox'));
     expect(onValueChange).toHaveBeenCalledWith(true);
@@ -28,26 +28,26 @@ describe('Checkbox (web)', () => {
   });
 
   it('toggles when the label text is clicked', () => {
-    const onValueChange = jest.fn();
+    const onValueChange = vi.fn();
     render(<Checkbox label="Newsletter" value={false} onValueChange={onValueChange}/>);
     fireEvent.click(screen.getByText('Newsletter'));
     expect(onValueChange).toHaveBeenCalledWith(true);
   });
 
   it('disables the input and marks the row', () => {
-    render(<Checkbox label="Updates" value onValueChange={jest.fn()} disabled testID="updates"/>);
+    render(<Checkbox label="Updates" value onValueChange={vi.fn()} disabled testID="updates"/>);
     expect(screen.getByRole('checkbox')).toBeDisabled();
     expect(screen.getByTestId('updates')).toHaveClass('ui-checkbox--disabled');
   });
 
   it('exposes a custom accent through a CSS custom property on the row', () => {
-    render(<Checkbox label="Highlight" value onValueChange={jest.fn()} accentColor="#FF9500" testID="row"/>);
+    render(<Checkbox label="Highlight" value onValueChange={vi.fn()} accentColor="#FF9500" testID="row"/>);
     expect(screen.getByTestId('row').style.getPropertyValue('--ui-checkbox-accent')).toBe('#FF9500');
   });
 
   it('renders the bare input when there is no label', () => {
     const {container} = render(
-      <Checkbox value={false} onValueChange={jest.fn()} accentColor="#34C759" testID="bare"/>,
+      <Checkbox value={false} onValueChange={vi.fn()} accentColor="#34C759" testID="bare"/>,
     );
     const input = screen.getByTestId('bare');
     expect(input).toBe(screen.getByRole('checkbox'));
@@ -57,7 +57,7 @@ describe('Checkbox (web)', () => {
   });
 
   it('flattens the row style into inline CSS', () => {
-    render(<Checkbox label="Styled" value onValueChange={jest.fn()} style={{opacity: 0.5}} testID="styled"/>);
+    render(<Checkbox label="Styled" value onValueChange={vi.fn()} style={{opacity: 0.5}} testID="styled"/>);
     expect(screen.getByTestId('styled')).toHaveStyle({opacity: 0.5});
   });
 });
