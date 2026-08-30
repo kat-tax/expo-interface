@@ -6,6 +6,18 @@ import {onAccent as contrastOf} from '../accent';
 import {useColor} from '../theme';
 import {SIZE_ICON} from './shared';
 
+/** Web-only additions: hook the button up to a native `popover` element. */
+interface WebButtonProps extends ButtonProps {
+  /**
+   * `id` of a `[popover]` element this button toggles (the `popovertarget`
+   * attribute). The browser then manages open/close, `aria-expanded` and
+   * light-dismiss without JavaScript.
+   */
+  popoverTarget?: string;
+  /** @default 'toggle' */
+  popoverTargetAction?: 'toggle' | 'show' | 'hide';
+}
+
 /**
  * On web the button is a real `<button>` element styled via `button.css`, so it
  * reads as a native web control rather than a ported Android/Material button.
@@ -24,7 +36,9 @@ export function Button({
   hideLabel = false,
   disabled = false,
   testID,
-}: ButtonProps) {
+  popoverTarget,
+  popoverTargetAction,
+}: WebButtonProps) {
   const themeTint = useColor('tint');
   const destructive = useColor('destructive');
   const themeOnAccent = useColor(role === 'destructive' ? 'onDestructive' : 'onTint');
@@ -53,6 +67,8 @@ export function Button({
       className={className}
       disabled={disabled}
       onClick={onPress}
+      popoverTarget={popoverTarget}
+      popoverTargetAction={popoverTarget ? popoverTargetAction : undefined}
       data-testid={testID}
       aria-label={iconOnly ? label : undefined}>
       {prefixIcon ? (

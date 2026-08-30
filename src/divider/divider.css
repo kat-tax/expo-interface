@@ -1,0 +1,16 @@
+.ui-divider {
+  --ui-divider-color: var(--color-separator);
+  flex-shrink: 0;
+  align-self: stretch;
+  width: 100%;
+  height: 1px;
+  margin: 0;
+  border: none;
+  background: var(--ui-divider-color);
+}
+
+.ui-divider--vertical {
+  width: 1px;
+  height: auto;
+  min-height: 1em;
+}

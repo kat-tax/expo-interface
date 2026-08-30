@@ -25,3 +25,27 @@
   border-radius: 999px;
   background: var(--ui-progress-bar);
 }
+
+.ui-progress-ring {
+  flex-shrink: 0;
+  display: inline-block;
+  transform: rotate(-90deg);
+}
+
+.ui-progress-ring__track {
+  stroke: var(--ui-progress-track);
+}
+
+.ui-progress-ring__bar {
+  stroke: var(--ui-progress-bar);
+  transition: stroke-dashoffset 0.2s ease;
+}
+
+.ui-progress-ring--indeterminate {
+  animation: ui-progress-spin 0.9s linear infinite;
+}
+
+@keyframes ui-progress-spin {
+  from { transform: rotate(-90deg); }
+  to { transform: rotate(270deg); }
+}

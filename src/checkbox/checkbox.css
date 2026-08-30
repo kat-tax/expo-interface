@@ -1,0 +1,29 @@
+.ui-checkbox {
+  --ui-checkbox-accent: var(--color-tint);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ui-checkbox__input {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--ui-checkbox-accent);
+}
+
+.ui-checkbox--disabled,
+.ui-checkbox__input:disabled {
+  cursor: default;
+}
+
+.ui-checkbox--disabled {
+  opacity: 0.4;
+}

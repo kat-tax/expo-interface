@@ -1,0 +1,32 @@
+.ui-collapsible {
+  width: 100%;
+}
+
+.ui-collapsible__summary {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ui-collapsible__summary::-webkit-details-marker {
+  display: none;
+}
+
+.ui-collapsible__chevron {
+  flex-shrink: 0;
+  color: var(--color-tertiary-label);
+  transition: transform 0.15s ease;
+}
+
+.ui-collapsible[open] .ui-collapsible__chevron {
+  transform: rotate(90deg);
+}
+
+.ui-collapsible__content {
+  padding-top: 8px;
+}

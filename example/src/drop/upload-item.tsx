@@ -3,7 +3,7 @@ import type {UploadStatus} from '@/file/types';
 import {Column, Row, Spacer, Text} from '@expo/ui';
 import {SymbolView} from 'expo-symbols';
 import {FileIcon} from '@/file/icon';
-import {Button, Progress, fillWidth, useColor, spacing} from 'expo-interface';
+import {Button, Progress, Tooltip, fillWidth, useColor, spacing} from 'expo-interface';
 import * as icon from '@/icons';
 
 export interface UploadItemProps {
@@ -38,12 +38,18 @@ export function UploadItem({file, onRemove, onRetry}: UploadItemProps) {
             {file.name}
           </Text>
           <Row spacing={spacing.one} alignment="center">
-            <Text textStyle={{fontSize: 13, color: subtle}}>{file.size}</Text>
-            <SymbolView
-              name={failed ? icon.failed.symbol : icon.complete.symbol}
-              size={14}
-              tintColor={accent}
-            />
+            <Tooltip text="File size">
+              <Text textStyle={{fontSize: 13, color: subtle}}>{file.size}</Text>
+            </Tooltip>
+            {status === 'uploading' ? (
+              <Progress variant="circular" value={progress} size={14} color={accent}/>
+            ) : (
+              <SymbolView
+                name={failed ? icon.failed.symbol : icon.complete.symbol}
+                size={14}
+                tintColor={accent}
+              />
+            )}
             <Text textStyle={{fontSize: 13, fontWeight: '500', color: accent}}>
               {STATUS_LABEL[status](progress)}
             </Text>

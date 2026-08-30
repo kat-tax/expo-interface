@@ -1,0 +1,40 @@
+/* The trigger is an unstyled <button> so it can carry `interestfor`. */
+.ui-tooltip {
+  -webkit-appearance: none;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: default;
+}
+
+.ui-tooltip:focus-visible {
+  outline: 2px solid var(--color-tint);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Native hint popover, anchored above the trigger and flipping below. */
+.ui-tooltip__hint {
+  inset: auto;
+  margin: 0;
+  margin-block: 6px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-label);
+  color: var(--color-background);
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  position-area: top;
+  position-try-fallbacks: flip-block;
+}

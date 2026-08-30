@@ -1,0 +1,61 @@
+.ui-stepper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.ui-stepper__control {
+  display: inline-flex;
+  flex-shrink: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.ui-stepper__buttons {
+  display: inline-flex;
+  flex-direction: row;
+  border-radius: 8px;
+  background: var(--color-pill-background);
+  overflow: hidden;
+}
+
+.ui-stepper__button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 42px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-label);
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ui-stepper__button + .ui-stepper__button {
+  border-left: 1px solid var(--color-separator);
+}
+
+.ui-stepper__button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-label) 8%, transparent);
+}
+
+.ui-stepper__button:active:not(:disabled) {
+  background: color-mix(in srgb, var(--color-label) 16%, transparent);
+}
+
+.ui-stepper__button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.ui-stepper--disabled {
+  opacity: 0.4;
+}

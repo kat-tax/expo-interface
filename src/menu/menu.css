@@ -1,0 +1,83 @@
+/*
+ * The popup is a native `[popover="auto"]` element: the browser puts it in the
+ * top layer, closes it on outside click / Escape (light dismiss), and toggles
+ * it from the trigger's `popovertarget` — no JS open/close state. Placement is
+ * CSS anchor positioning relative to the trigger's `anchor-name`, flipping to
+ * stay on screen. Context menus instead set `left`/`top` at the pointer.
+ */
+.ui-menu {
+  display: inline-flex;
+}
+
+.ui-menu__list {
+  box-sizing: border-box;
+  min-width: 200px;
+  inset: auto;
+  margin: 0;
+  padding: 6px;
+  border: 1px solid var(--color-separator);
+  border-radius: 12px;
+  background: var(--color-background-element);
+  color: var(--color-label);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+  overflow: visible;
+}
+
+.ui-menu__list--anchored {
+  position-area: bottom span-left;
+  position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+  margin-block: 4px;
+}
+
+.ui-menu__list::backdrop {
+  background: transparent;
+}
+
+.ui-menu__item {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-label);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ui-menu__item:hover:not(:disabled),
+.ui-menu__item:focus-visible {
+  background: color-mix(in srgb, var(--color-label) 8%, transparent);
+  outline: none;
+}
+
+.ui-menu__item:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ui-menu__item--destructive {
+  color: var(--color-destructive);
+}
+
+.ui-menu__separator {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--color-separator);
+}
+
+.ui-context-menu {
+  display: contents;
+}
