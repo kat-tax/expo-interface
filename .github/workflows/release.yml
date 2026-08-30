@@ -34,7 +34,7 @@ jobs:
       - name: Lint
         run: bun run lint
       - name: Test
-        run: bun run test --ci
+        run: bun run test
       - name: Publish
         run: npm publish --provenance --access public
         env:
