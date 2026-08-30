@@ -1,8 +1,9 @@
 name: Release
 
 # Publishes to npm when a `v*` tag is pushed. The tag must match the version
-# in package.json. Needs an `NPM_TOKEN` repository secret (an automation
-# token), or switch to npm trusted publishing and drop the token.
+# in package.json. Publishes via npm trusted publishing (OIDC) — this repo
+# and workflow are registered as a trusted publisher on npmjs.com, so no
+# token secret is involved and provenance is attested automatically.
 
 on:
   push:
@@ -18,10 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          registry-url: https://registry.npmjs.org
+      - name: Update npm (trusted publishing needs >= 11.5)
+        run: npm install -g npm@latest
       - name: Check tag matches package version
         run: |
           version="$(node -p "require('./package.json').version")"
@@ -37,8 +36,6 @@ jobs:
         run: bun run test
       - name: Publish
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: GitHub release
         run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
         env:
