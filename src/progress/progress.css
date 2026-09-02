@@ -8,6 +8,15 @@
   -webkit-appearance: none;
 }
 
+/*
+ * With `appearance: none` Chromium lays the bar out as an inline-block on a
+ * line box, so the value only paints about half the track height. Flex
+ * stretches the bar (and its value) to the full 6px.
+ */
+.ui-progress::-webkit-meter-inner-element {
+  display: flex;
+}
+
 .ui-progress::-webkit-meter-bar {
   border: none;
   border-radius: 999px;
