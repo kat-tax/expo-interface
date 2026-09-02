@@ -1,0 +1,102 @@
+import {Meta} from '@storybook/addon-docs/blocks';
+
+<Meta title="Guides/Installation"/>
+
+# Installation
+
+```sh
+npx expo install expo-interface @expo/ui @expo/material-symbols
+```
+
+The components are built on standard Expo modules, which are peer
+dependencies. Most Expo Router apps already have them; if any are missing:
+
+```sh
+npx expo install expo-router expo-symbols expo-image expo-constants expo-status-bar expo-system-ui expo-web-browser react-native-safe-area-context
+```
+
+Jetpack Compose draws icons from XML vector drawables, which
+`@expo/material-symbols` provides. Register the extension in `metro.config.js`:
+
+```js
+const {getDefaultConfig} = require('expo/metro-config');
+const config = getDefaultConfig(__dirname);
+config.resolver.assetExts.push('xml');
+module.exports = config;
+```
+
+## Setup
+
+### 1. Wrap the app in `AccentProvider`
+
+`seed` is any hex color; the default is `#007AFF`.
+
+```tsx
+// app/_layout.tsx
+import {ThemeProvider, Stack} from 'expo-router';
+import {AccentProvider, useNavTheme} from 'expo-interface';
+
+function Navigation() {
+  return (
+    <ThemeProvider value={useNavTheme()}>
+      <Stack screenOptions={{headerShown: false}}/>
+    </ThemeProvider>
+  );
+}
+
+export default function Layout() {
+  return (
+    <AccentProvider seed="#8959EA">
+      <Navigation/>
+    </AccentProvider>
+  );
+}
+```
+
+### 2. Emit the palette on web
+
+On web the colors are CSS custom properties, emitted once from the root HTML.
+
+```tsx
+// app/+html.tsx
+import {ScrollViewStyleReset} from 'expo-router/html';
+import {getThemeCSS} from 'expo-interface';
+
+export default function Root({children}: React.PropsWithChildren) {
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <style dangerouslySetInnerHTML={{__html: getThemeCSS()}}/>
+        <ScrollViewStyleReset/>
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+### 3. Build screens
+
+```tsx
+import {Screen, FieldGroup, Switch, Button} from 'expo-interface';
+
+export default function Home() {
+  return (
+    <Screen native>
+      <FieldGroup>
+        <FieldGroup.Section title="Sync">
+          <Switch label="Notifications" value={on} onValueChange={setOn}/>
+          <Button label="Continue" onPress={save}/>
+        </FieldGroup.Section>
+      </FieldGroup>
+    </Screen>
+  );
+}
+```
+
+Everything is exported from `expo-interface`; see the
+[Overview](?path=/docs/overview--docs) for the full component list, and the
+[Theming](?path=/docs/guides-theming--docs) and
+[Icons](?path=/docs/guides-icons--docs) guides for colors and icon tokens.

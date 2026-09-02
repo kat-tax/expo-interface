@@ -64,7 +64,7 @@ const preview: Preview = {
     },
     options: {
       storySort: {
-        order: ['Introduction', 'Guides', ['Theming', 'Icons'], 'Layout', 'Components'],
+        order: ['Overview', 'Guides', ['Installation', 'Theming', 'Icons'], 'Layout', 'Components'],
       },
     },
   },
