@@ -78,21 +78,17 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Closed: Story = {};
-
-export const Open: Story = {
-  args: {isPresented: true},
-};
+export const Default: Story = {};
 
 export const SnapPoints: Story = {
-  args: {isPresented: true, snapPoints: ['half', 'full']},
+  args: {snapPoints: ['half', 'full']},
 };
 
 export const NoDragIndicator: Story = {
-  args: {isPresented: true, showDragIndicator: false},
+  args: {showDragIndicator: false},
 };
 
 export const AccentCascade: Story = {
   parameters: {accent: '#8959EA'},
-  args: {isPresented: true, children: <FormContent/>},
+  args: {children: <FormContent/>},
 };

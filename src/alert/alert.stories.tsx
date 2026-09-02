@@ -143,10 +143,6 @@ export const SheetDestructive: Story = {
   },
 };
 
-export const InitiallyVisible: Story = {
-  args: {visible: true},
-};
-
 export const DeleteAccountFlow: Story = {
   render: args => <DeleteAccount onDismiss={args.onDismiss}/>,
 };
