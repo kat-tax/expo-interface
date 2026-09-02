@@ -14,7 +14,7 @@ import {clampStep, stepBounds} from './shared';
 export function Stepper(props: StepperProps) {
   const {label, value, onValueChange, step = 1, min, max, formatValue, disabled, testID, style} = props;
   const {canDecrement, canIncrement} = stepBounds(props);
-  const vars = flatten((StyleSheet.flatten(style) ?? undefined) as TextStyle | undefined) as CSSProperties;
+  const vars = flatten(StyleSheet.flatten(style) as TextStyle) as CSSProperties;
   return (
     <div
       className={['ui-stepper', disabled && 'ui-stepper--disabled'].filter(Boolean).join(' ')}

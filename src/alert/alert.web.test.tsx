@@ -141,4 +141,9 @@ describe('Alert (web)', () => {
     expect(element).toHaveAccessibleName('Only a title');
     expect(element.querySelector('.ui-alert__body')?.childElementCount).toBe(1);
   });
+
+  it('renders only the confirm actions without a cancel action', () => {
+    render(<Alert title="Saved" visible testID="alert" actions={[{label: 'Undo'}, {label: 'Got it'}]}/>);
+    expect(actionButtons().map(b => b.textContent)).toEqual(['Undo', 'Got it']);
+  });
 });

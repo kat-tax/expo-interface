@@ -22,7 +22,7 @@ export function Checkbox({
 }: CheckboxProps) {
   const vars = {
     ...(accentColor ? {'--ui-checkbox-accent': accentColor} : null),
-    ...flatten((StyleSheet.flatten(style) ?? undefined) as TextStyle | undefined),
+    ...flatten(StyleSheet.flatten(style) as TextStyle),
   } as CSSProperties;
   const input = (
     <input

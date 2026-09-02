@@ -168,4 +168,14 @@ describe(`Alert (${Platform.OS})`, () => {
       expect(onDismiss).toHaveBeenCalledTimes(2);
     }
   });
+
+  it('renders only the confirm actions without a cancel action', async () => {
+    await render(<Alert title="Saved" visible testID="alert" actions={[{label: 'Undo'}, {label: 'Got it'}]}/>);
+    if (isIOS) {
+      expect(children(slot('actions')).map(b => b.props.label)).toEqual(['Undo', 'Got it']);
+    } else {
+      expect(buttonsIn('confirmButton').map(b => b.label)).toEqual(['Undo', 'Got it']);
+      expect(hasSlot('dismissButton')).toBe(false);
+    }
+  });
 });

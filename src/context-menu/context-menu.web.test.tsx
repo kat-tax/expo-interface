@@ -181,4 +181,17 @@ describe('ContextMenu (web)', () => {
     expect(menu.style.top).toBe('8px');
     expect(document.activeElement).toBe(screen.getByRole('menuitem', {name: 'Share', hidden: true}));
   });
+
+  it('ignores a lift or move without a pending long-press', () => {
+    render(
+      <ContextMenu items={items} testID="row">
+        <span>Item</span>
+      </ContextMenu>,
+    );
+    const row = screen.getByTestId('row');
+    fireEvent(row, pointerEvent('pointerup', 'touch'));
+    fireEvent(row, pointerEvent('pointercancel', 'touch'));
+    fireEvent(row, pointerEvent('pointermove', 'touch'));
+    expect(showPopover).not.toHaveBeenCalled();
+  });
 });

@@ -1,12 +1,14 @@
 import {Platform, Text} from 'react-native';
-import {act, fireEvent, screen as dom} from '@testing-library/react';
+import {act, fireEvent, render, screen as dom} from '@testing-library/react';
 import {screen} from '@testing-library/react-native';
 import {Stack, router} from 'expo-router';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {Button} from '../button';
 import {bound} from '../theme';
 import {stackHeaders} from '../__tests__/native';
 import {renderApp} from '../__tests__/router';
 import {ConstrainedStackHeader} from '.';
+import {ConstrainedStackHeader as WebStackHeader} from './index.web';
 
 const app = {
   _layout: () => (
@@ -42,7 +44,33 @@ describe(`ConstrainedStackHeader (${Platform.OS})`, () => {
       expect(dom.queryByText('Detail')).toBeNull();
       expect(dom.getByText('Home screen')).toBeInTheDocument();
     });
-  } else {
+
+
+    it('prefers a string headerTitle and falls back to the route name', () => {
+      const goBack = vi.fn();
+      const {rerender} = render(
+        <SafeAreaProvider>
+          <WebStackHeader
+            navigation={{goBack}}
+            route={{name: 'detail'}}
+            back={{title: 'Home'}}
+            options={{title: 'Ignored', headerTitle: 'Custom'}}
+          />
+        </SafeAreaProvider>,
+      );
+      expect(dom.getByText('Custom')).toBeInTheDocument();
+      expect(dom.queryByText('Ignored')).toBeNull();
+      fireEvent.click(dom.getByLabelText('Go back'));
+      expect(goBack).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <SafeAreaProvider>
+          <WebStackHeader navigation={{goBack}} route={{name: 'detail'}} options={{}}/>
+        </SafeAreaProvider>,
+      );
+      expect(dom.getByText('detail')).toBeInTheDocument();
+      expect(dom.queryByLabelText('Go back')).toBeNull();
+    });  } else {
     it('renders nothing, leaving the native header to the stack options', async () => {
       expect(ConstrainedStackHeader()).toBeNull();
       await renderApp(app);

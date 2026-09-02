@@ -185,4 +185,17 @@ describe(`Picker (${Platform.OS})`, () => {
     }
     expect(onValueChange).toHaveBeenCalledWith('m');
   });
+
+  (isIOS ? it.skip : it)('collapses the dropdown on dismiss and carries no testID modifier without one', async () => {
+    await render(<Picker selectedValue="m">{items}</Picker>, options);
+    expect(nodes()[0].props.modifiers).toHaveLength(1);
+    expect(modifier(nodes()[0].props, 'testID')).toBeUndefined();
+    await act(async () => {
+      modifier(pill().props, 'clickable')?.eventListener();
+    });
+    expect(host(p => p.expanded != null).props.expanded).toBe(true);
+    const [menu] = screen.container.queryAll(i => typeof i.props.onDismissRequest === 'function');
+    await fireEvent(menu, 'dismissRequest');
+    expect(host(p => p.expanded != null).props.expanded).toBe(false);
+  });
 });

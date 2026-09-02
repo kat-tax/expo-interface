@@ -1,7 +1,7 @@
 import {Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {Text} from '@expo/ui';
-import {byComposeTestID, host, modifier} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {Collapsible} from '.';
 
 
@@ -71,5 +71,11 @@ describe(`Collapsible (${Platform.OS})`, () => {
     const row = host(p => modifier(p, 'clickable') !== undefined);
     expect(row.props.colors).toEqual({containerColor: 'transparent'});
     expect(host(p => p.slotName === 'trailingContent')).toBeTruthy();
+  });
+
+  (isIOS ? it.skip : it)('renders the list item alone without a testID wrapper', async () => {
+    await render(<Collapsible label="More"/>);
+    expect(nodes().some(n => modifier(n.props, 'testID') != null)).toBe(false);
+    expect(host(p => p.text === 'More')).toBeTruthy();
   });
 });

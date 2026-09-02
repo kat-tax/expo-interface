@@ -1,6 +1,6 @@
 import type {TabRoute} from './types';
 import {Platform, Text} from 'react-native';
-import {screen as dom} from '@testing-library/react';
+import {fireEvent, screen as dom, waitFor} from '@testing-library/react';
 import {screen} from '@testing-library/react-native';
 import Constants from 'expo-constants';
 import {colors} from '../theme';
@@ -12,9 +12,8 @@ const routes: TabRoute[] = [
   {href: '/settings', name: 'settings', label: 'Settings', icon: {ios: 'gearshape', android: 'settings', web: 'settings'}},
 ];
 
-// `Tabs` is imported lazily: on web the module graph reaches `expo-router/ui`,
-// which the web project cannot load (see the skip note below), and a static
-// import would fail the whole suite at collection.
+// `Tabs` is imported lazily so the native `react-native-screens` mock below
+// is extended before `expo-router/unstable-native-tabs` loads.
 const app = async (props: Record<string, any> = {}) => {
   const {Tabs} = await import('.');
   return {
@@ -28,16 +27,10 @@ describe(`Tabs (${Platform.OS})`, () => {
   if (Platform.OS === 'web') {
     const appName = String(Constants.expoConfig?.name);
 
-    // SKIPPED until vitest.config.web.mts can load `expo-router/ui`:
-    // the subpath is not in the dependency optimizer's include list, so it is
-    // externalized to Node, whose ESM loader rejects expo-modules-core's
-    // TypeScript entry ("Stripping types is currently unsupported for files
-    // under node_modules"). Adding 'expo-router/ui' to the include list gets
-    // it bundled, but its `__exportStar(require("./Tabs"))` CJS shim defeats
-    // the optimizer's named-export detection and every export comes back
-    // `undefined`. Both need config-level work; the specs stay written so
-    // they can be re-enabled by deleting `.skip`.
-    describe.skip('web tab bar', () => {
+    // `expo-router/ui` reaches the web project through the alias in
+    // vitest.config.web.mts: its ESM stub over a CJS module yields no named
+    // exports once pre-bundled, so the CJS entry is loaded directly.
+    describe('web tab bar', () => {
       it('renders a floating bar link per route around the active screen', async () => {
         await renderApp(await app());
         const links = dom.getAllByRole('link');
@@ -76,6 +69,16 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(dom.getByTestId('logo').textContent).toBe('Acme');
         expect(dom.queryByText(appName)).toBeNull();
         expect(document.querySelector('img')).toBeNull();
+      });
+
+      it('dims a link while it is pressed', async () => {
+        await renderApp(await app());
+        const [home] = dom.getAllByRole('link');
+        fireEvent.mouseDown(home);
+        // react-native-web enters the pressed state after its 50ms press delay.
+        await waitFor(() => expect(getComputedStyle(home).opacity).toBe('0.7'));
+        fireEvent.mouseUp(home);
+        expect(getComputedStyle(home).opacity).not.toBe('0.7');
       });
     });
   } else {

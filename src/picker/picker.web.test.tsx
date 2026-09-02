@@ -99,4 +99,17 @@ describe('Picker (web)', () => {
     expect(screen.queryAllByRole('option')).toHaveLength(0);
     expect(select()).not.toHaveValue();
   });
+
+  it('ignores a change that matches no item', () => {
+    const onValueChange = vi.fn();
+    render(<Picker selectedValue="s" onValueChange={onValueChange}>{items}</Picker>);
+    fireEvent.change(select(), {target: {value: 'xl'}});
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
+  it('renders an unset select when mounted without items', () => {
+    render(<Picker/>);
+    expect(select()).not.toHaveValue();
+    expect(screen.queryAllByRole('option')).toHaveLength(0);
+  });
 });

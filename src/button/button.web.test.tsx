@@ -1,4 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react';
+import * as icons from '../__stories__/icons';
 import {Button} from '.';
 
 describe('Button (web)', () => {
@@ -63,5 +64,18 @@ describe('Button (web)', () => {
   it('forwards testID as data-testid', () => {
     render(<Button label="x" testID="primary"/>);
     expect(screen.getByTestId('primary')).toBeInTheDocument();
+  });
+
+  it('renders leading and trailing symbols, dropping the trailing one in icon-only mode', () => {
+    const {rerender} = render(<Button label="Next" prefixIcon={icons.share} suffixIcon={icons.chevron}/>);
+    const button = screen.getByRole('button', {name: 'Next'});
+    expect(button.childElementCount).toBe(3);
+    expect(button.querySelectorAll('.ui-button__label')).toHaveLength(1);
+
+    rerender(<Button label="Next" variant="outlined" suffixIcon={icons.chevron}/>);
+    expect(screen.getByRole('button', {name: 'Next'}).childElementCount).toBe(2);
+
+    rerender(<Button label="Next" prefixIcon={icons.share} suffixIcon={icons.chevron} hideLabel/>);
+    expect(screen.getByRole('button', {name: 'Next'}).childElementCount).toBe(1);
   });
 });

@@ -81,4 +81,12 @@ describe(`ListItem (${Platform.OS})`, () => {
       expect(modifier(row('row').props, 'clickable')).toMatchObject({$type: 'clickable'});
     }
   });
+
+  (isIOS ? it.skip : it)('passes numeric and element headlines through without a testID', async () => {
+    const {rerender} = await render(<ListItem>{42}</ListItem>);
+    expect(nodes()[0].props.modifiers).toEqual([]);
+    expect(host(p => String(p.text) === '42').props.color).toBe(colors.light.label);
+    await rerender(<ListItem><Text>Rich</Text></ListItem>);
+    expect(JSON.stringify(slot('headlineContent')[0])).toContain('"Rich"');
+  });
 });

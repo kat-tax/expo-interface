@@ -197,4 +197,70 @@ describe(`FieldGroup (${Platform.OS})`, () => {
     const {props} = isIOS ? nodes()[0] : byComposeTestID('group');
     expect(modifier(props, 'background')).toEqual({$type: 'background', color: '#123456'});
   });
+
+  (isIOS ? it.skip : it)('renders a section with only a header and no rows', async () => {
+    await render(
+      <FieldGroup>
+        <FieldGroup.Section title="Empty"/>
+      </FieldGroup>,
+    );
+    expect(host(p => p.text === 'Empty')).toBeTruthy();
+    expect(rows()).toHaveLength(0);
+  });
+
+  (isIOS ? it.skip : it)('flattens fragments inside a section, drops empty children and wraps raw text', async () => {
+    await render(
+      <FieldGroup>
+        <FieldGroup.Section title="Mixed">
+          <>
+            <Typography>One</Typography>
+            <Typography>Two</Typography>
+          </>
+          {false}
+          {null}
+          Plain text
+          {42}
+        </FieldGroup.Section>
+      </FieldGroup>,
+    );
+    const boxes = rows();
+    expect(boxes).toHaveLength(4);
+    expect(host(p => p.text === 'Plain text').props.color).toBe(colors.light.label);
+    expect(host(p => String(p.text) === '42')).toBeTruthy();
+    expect(radii(boxes[0].props)).toMatchObject({topStart: 20, bottomStart: 4});
+    expect(radii(boxes[3].props)).toMatchObject({topStart: 4, bottomStart: 20});
+  });
+
+  (isIOS ? it.skip : it)('unwraps fragments at the group level around explicit sections', async () => {
+    await render(
+      <FieldGroup>
+        <></>
+        <>
+          <Typography>Alpha</Typography>
+          <FieldGroup.Section title="Explicit">
+            <Typography>Beta</Typography>
+          </FieldGroup.Section>
+          <Typography>Gamma</Typography>
+        </>
+      </FieldGroup>,
+    );
+    const boxes = rows();
+    expect(boxes).toHaveLength(3);
+    expect(host(p => p.text === 'Explicit')).toBeTruthy();
+    // Alpha and Gamma each sit in their own implicit section around the explicit one.
+    for (const box of boxes) {
+      expect(radii(box.props)).toMatchObject({topStart: 20, bottomStart: 20});
+    }
+  });
+
+  (isIOS ? it.skip : it)('renders the slot markers transparently on their own', async () => {
+    await render(
+      <>
+        <FieldGroup.SectionHeader><Typography>Header</Typography></FieldGroup.SectionHeader>
+        <FieldGroup.SectionFooter><Typography>Footer</Typography></FieldGroup.SectionFooter>
+      </>,
+    );
+    expect(screen.getByText('Header')).toBeOnTheScreen();
+    expect(screen.getByText('Footer')).toBeOnTheScreen();
+  });
 });

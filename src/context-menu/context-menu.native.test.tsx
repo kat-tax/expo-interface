@@ -1,7 +1,7 @@
 import type {MenuItem} from '../menu/types';
 import type {HostNode} from '../__tests__/native';
 import {Platform} from 'react-native';
-import {render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {Text} from '@expo/ui';
 import * as icons from '../__stories__/icons';
 import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
@@ -99,5 +99,37 @@ describe(`ContextMenu (${Platform.OS})`, () => {
       const box = byComposeTestID('row');
       expect(modifier(box.props, 'combinedClickable')).toBeUndefined();
     }
+  });
+
+  (isIOS ? it.skip : it)('opens on long-press, taps through to onPress and closes again', async () => {
+    const onPress = vi.fn();
+    const onShare = vi.fn();
+    await render(
+      <ContextMenu items={[{label: 'Share', onPress: onShare}]} onPress={onPress} testID="row">
+        <Text>Item</Text>
+      </ContextMenu>,
+    );
+    const expanded = () => nodes()[0].props.expanded;
+    const gesture = (event: 'click' | 'longClick') =>
+      act(async () => {
+        modifier(byComposeTestID('row').props, 'combinedClickable')?.eventListener({event});
+      });
+
+    await gesture('click');
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(expanded()).toBe(false);
+
+    await gesture('longClick');
+    expect(expanded()).toBe(true);
+
+    const [menu] = screen.container.queryAll(i => typeof i.props.onDismissRequest === 'function');
+    await fireEvent(menu, 'dismissRequest');
+    expect(expanded()).toBe(false);
+
+    await gesture('longClick');
+    const [entry] = screen.container.queryAll(i => typeof i.props.onItemPressed === 'function');
+    await fireEvent(entry, 'itemPressed');
+    expect(onShare).toHaveBeenCalledTimes(1);
+    expect(expanded()).toBe(false);
   });
 });

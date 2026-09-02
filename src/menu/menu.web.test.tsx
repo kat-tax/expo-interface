@@ -143,4 +143,24 @@ describe('Menu (web)', () => {
     expect(screen.getByRole('button', {name: 'One'})).toHaveAttribute('popovertarget', one.id);
     expect(screen.getByRole('button', {name: 'Two'})).toHaveAttribute('popovertarget', two.id);
   });
+
+  it('measures the trigger to place the popup when CSS anchor positioning is missing', async () => {
+    // `MenuList` reads `CSS.supports` once at module load, so reload it.
+    const supports = vi.spyOn(CSS, 'supports').mockReturnValue(false);
+    vi.resetModules();
+    try {
+      const {MenuList} = await import('./list');
+      const anchor = document.createElement('button');
+      vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue({right: 300, bottom: 40} as DOMRect);
+      render(<MenuList id="ui-menu-x" items={items} anchor="--ui-menu-x" anchorRef={{current: anchor}}/>);
+      const menu = screen.getByRole('menu', {hidden: true});
+      expect(menu).not.toHaveClass('ui-menu__list--anchored');
+      expect(menu.style.getPropertyValue('position-anchor')).toBe('');
+      fireEvent(menu, toggleEvent('open'));
+      expect(menu.style.left).toBe('300px');
+      expect(menu.style.top).toBe('44px');
+    } finally {
+      supports.mockRestore();
+    }
+  });
 });

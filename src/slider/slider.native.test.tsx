@@ -174,4 +174,9 @@ describe(`Slider (${Platform.OS})`, () => {
     const {props} = slider('sl');
     expect(isIOS ? props.onEditingChanged : props.onValueChangeFinished).toBeUndefined();
   });
+
+  (isIOS ? it.skip : it)('carries no testID modifier without a testID', async () => {
+    await render(<Slider value={0.5} onValueChange={vi.fn()}/>, options);
+    expect(nodes()[0].props.modifiers).toEqual([{$type: 'fillMaxWidth'}]);
+  });
 });

@@ -245,4 +245,32 @@ describe(`DateTimePicker (${Platform.OS})`, () => {
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(dialog()).toBeUndefined();
   });
+
+  (isIOS ? it.skip : it)('closes the date dialog without a change when dismissed', async () => {
+    const onChange = vi.fn();
+    await render(<DateTimePicker mode="date" value={JUNE_15} onChange={onChange}/>, options);
+    await act(async () => {
+      modifier(pill().props, 'clickable')?.eventListener();
+    });
+    expect(dialog()).toBeDefined();
+    await act(async () => {
+      dialog()?.props.onDismissRequest();
+    });
+    expect(dialog()).toBeUndefined();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  (isIOS ? it.skip : it)('applies a picked time to the current date in time mode', async () => {
+    const onChange = vi.fn();
+    await render(<DateTimePicker mode="time" value={JUNE_15} onChange={onChange}/>, options);
+    await act(async () => {
+      modifier(pill().props, 'clickable')?.eventListener();
+    });
+    await act(async () => {
+      dialog()?.props.onDateSelected({nativeEvent: {date: new Date(2000, 0, 1, 18, 45).toISOString()}});
+    });
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange.mock.calls[0][0].getTime()).toBe(new Date(2026, 5, 15, 18, 45).getTime());
+    expect(dialog()).toBeUndefined();
+  });
 });

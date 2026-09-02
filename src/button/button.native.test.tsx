@@ -1,7 +1,8 @@
 import {Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
-import {byComposeTestID, host, modifier} from '../__tests__/native';
+import * as icons from '../__stories__/icons';
+import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {Button} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -102,5 +103,106 @@ describe(`Button (${Platform.OS})`, () => {
     await render(<Button label="Save" onPress={onPress} testID="save"/>);
     await fireEvent.press(screen.getByTestId('save'));
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a leading icon beside the label', async () => {
+    await render(<Button label="Share" prefixIcon={icons.share} testID="share"/>);
+    const {props} = button('share');
+    if (isIOS) {
+      expect(props.label).toBe('Share');
+      expect(props.systemImage).toBe('square.and.arrow.up');
+      expect(modifier(props, 'labelStyle')).toBeUndefined();
+    } else {
+      const icon = host(p => p.tint != null && p.size === 18);
+      expect(icon.props.tint).toBe('#FFFFFF');
+      expect(host(p => modifier(p, 'width')?.width === 8)).toBeTruthy();
+      expect(host(p => p.text === 'Share')).toBeTruthy();
+      expect(props.contentPadding).toEqual({start: 16, top: 10, end: 24, bottom: 10});
+    }
+  });
+
+  it('composes the label by hand for a trailing icon', async () => {
+    await render(
+      <Button
+        label="Delete"
+        variant="outlined"
+        role="destructive"
+        prefixIcon={icons.share}
+        suffixIcon={icons.trash}
+        testID="del"
+      />,
+    );
+    const {props} = button('del');
+    if (isIOS) {
+      expect(props.label).toBeUndefined();
+      expect(props.role).toBe('destructive');
+      const stack = host(p => p.spacing === 8);
+      expect(modifier(stack.props, 'frame')).toBeUndefined();
+      const symbols = nodes(stack).filter(n => typeof n.props.systemName === 'string');
+      expect(symbols.map(n => n.props.systemName)).toEqual(['square.and.arrow.up', 'trash']);
+      expect(symbols.map(n => modifier(n.props, 'foregroundStyle')?.color)).toEqual(['#FF3B30', '#FF3B30']);
+      expect(host(p => p.text === 'Delete', stack)).toBeTruthy();
+    } else {
+      const drawables = nodes().filter(n => n.type.endsWith('IconView'));
+      expect(drawables).toHaveLength(2);
+      expect(drawables.map(n => n.props.tint)).toEqual(['#FF3B30', '#FF3B30']);
+      expect(nodes().filter(n => modifier(n.props, 'width')?.width === 8)).toHaveLength(2);
+      expect(host(p => p.text === 'Delete')).toBeTruthy();
+    }
+  });
+
+  it('drops the label and trailing icon in icon-only mode', async () => {
+    await render(<Button label="Share" prefixIcon={icons.share} suffixIcon={icons.trash} hideLabel testID="share"/>);
+    const {props} = button('share');
+    if (isIOS) {
+      expect(props.label).toBe('Share');
+      expect(props.systemImage).toBe('square.and.arrow.up');
+      expect(modifier(props, 'labelStyle')).toEqual({$type: 'labelStyle', style: 'iconOnly'});
+      expect(nodes().some(n => n.props.spacing === 8)).toBe(false);
+    } else {
+      const icon = host(p => p.contentDescription === 'Share');
+      expect(icon.props.tint).toBe('#FFFFFF');
+      expect(nodes().filter(n => n.type.endsWith('IconView'))).toHaveLength(1);
+      expect(nodes().some(n => typeof n.props.text === 'string')).toBe(false);
+    }
+  });
+
+  it('keeps the label when hideLabel has no icon to show instead', async () => {
+    await render(<Button label="Plain" hideLabel testID="plain"/>);
+    const {props} = button('plain');
+    if (isIOS) {
+      expect(props.label).toBe('Plain');
+      expect(modifier(props, 'labelStyle')).toBeUndefined();
+    } else {
+      expect(host(p => p.text === 'Plain')).toBeTruthy();
+    }
+  });
+
+  it('applies a custom accent with its own contrast color', async () => {
+    await render(<Button label="Go" color="#FFCC00" testID="go"/>);
+    const {props} = button('go');
+    if (isIOS) {
+      expect(modifier(props, 'tint')).toEqual({$type: 'tint', color: '#FFCC00'});
+    } else {
+      expect(props.colors).toEqual({containerColor: '#FFCC00', contentColor: '#000000'});
+    }
+  });
+
+  (isIOS ? it.skip : it)('maps the rounded and pill shapes', async () => {
+    await render(
+      <>
+        <Button label="R" shape="rounded" testID="rounded"/>
+        <Button label="P" shape="pill" testID="pill"/>
+      </>,
+    );
+    expect(button('rounded').props.shape).toMatchObject({type: 'roundedCorner'});
+    expect(button('pill').props.shape).toMatchObject({type: 'pill'});
+  });
+
+  (isIOS ? it.skip : it)('disables the icon-only button', async () => {
+    await render(<Button label="Share" prefixIcon={icons.share} hideLabel disabled testID="share"/>);
+    const {props} = button('share');
+    expect(props.enabled).toBe(false);
+    expect(props.onClick).toBeUndefined();
   });
 });

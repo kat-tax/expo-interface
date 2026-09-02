@@ -26,7 +26,7 @@ export function Slider({
 }: SliderProps) {
   const vars = {
     ...(accentColor ? {'--ui-slider-accent': accentColor} : null),
-    ...flatten((StyleSheet.flatten(style) ?? undefined) as TextStyle | undefined),
+    ...flatten(StyleSheet.flatten(style) as TextStyle),
   } as CSSProperties;
   const read = (event: ChangeEvent<HTMLInputElement>) => Number(event.target.value);
   return (

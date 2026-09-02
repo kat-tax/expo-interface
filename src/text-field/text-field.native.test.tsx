@@ -1,7 +1,7 @@
 import {Platform} from 'react-native';
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 import {useNativeState} from '@expo/ui';
-import {byComposeTestID, host, modifier} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {useSyncedState} from './shared';
 import {TextField} from '.';
 
@@ -171,6 +171,24 @@ describe(`TextField (${Platform.OS})`, () => {
     const {props} = field('code');
     expect(props.autoFocus).toBe(true);
     expect(props.maxLength).toBe(6);
+  });
+
+  (isIOS ? it : it.skip)('submits the current text through the SwiftUI modifier', async () => {
+    const onSubmit = vi.fn();
+    await render(<TextField value="hello" onSubmit={onSubmit} testID="query"/>);
+    modifier(field('query').props, 'onSubmit')?.eventListener();
+    expect(onSubmit).toHaveBeenCalledWith('hello');
+  });
+
+  (isIOS ? it.skip : it)('maps the explicit default keyboard to text', async () => {
+    await render(<TextField keyboardType="default" testID="plain"/>);
+    expect(field('plain').props.keyboardOptions.keyboardType).toBe('text');
+  });
+
+  (isIOS ? it.skip : it)('carries no testID modifier without a testID', async () => {
+    await render(<TextField/>);
+    expect(modifier(nodes()[0].props, 'testID')).toBeUndefined();
+    expect(modifier(nodes()[0].props, 'fillMaxWidth')).toBeDefined();
   });
 });
 

@@ -59,9 +59,10 @@ function SectionFooter(props: FieldSectionFooterProps) {
 function Section({children, title, titleUppercase = false, hidden}: FieldSectionProps) {
   const card = useColor('backgroundElement');
   const subtle = useColor('secondaryLabel');
+  const label = useColor('label');
   if (hidden) return null;
 
-  const {header, footer, rows} = extractSlots(children);
+  const {header, footer, rows} = extractSlots(children, label);
   const headerNode = header ?? (title ? (
     <Text
       color={subtle}
@@ -118,33 +119,33 @@ function cornerRadii(index: number, total: number) {
   return {topStart: top, topEnd: top, bottomStart: bottom, bottomEnd: bottom};
 }
 
-/** Pulls `SectionHeader`/`SectionFooter` slots out of a section's children. */
-function extractSlots(children: ReactNode) {
+/**
+ * Pulls `SectionHeader`/`SectionFooter` slots out of a section's children.
+ * Empty children (`null`, booleans) are dropped, and raw strings or numbers
+ * become a `Text` row, since Compose slots cannot render them directly.
+ */
+function extractSlots(children: ReactNode, textColor: string) {
   let header: ReactNode | undefined;
   let footer: ReactNode | undefined;
   const rows: ReactNode[] = [];
 
   const walk = (node: ReactNode) => {
-    Children.forEach(node, child => {
+    for (const child of Children.toArray(node)) {
       if (!isValidElement(child)) {
-        rows.push(child);
-        return;
+        rows.push(<Text color={textColor}>{String(child)}</Text>);
+        continue;
       }
       const props = child.props as {children?: ReactNode};
       if (child.type === SectionHeader) {
         header = props.children;
-        return;
-      }
-      if (child.type === SectionFooter) {
+      } else if (child.type === SectionFooter) {
         footer = props.children;
-        return;
-      }
-      if (child.type === Fragment) {
+      } else if (child.type === Fragment) {
         walk(props.children);
-        return;
+      } else {
+        rows.push(child);
       }
-      rows.push(child);
-    });
+    }
   };
 
   walk(children);
@@ -175,13 +176,12 @@ function groupChildren(children: ReactNode): ReactNode[] {
       return;
     }
     if (isValidElement(child) && child.type === Fragment) {
-      for (const nested of groupChildren((child.props as {children?: ReactNode}).children)) {
-        if (isSection(nested)) {
-          flush();
-          result.push(nested);
-        } else {
-          buffered.push(nested);
-        }
+      // The recursion yields sections only (loose rows come back wrapped in
+      // their own implicit section), so they close any open implicit section.
+      const nested = groupChildren((child.props as {children?: ReactNode}).children);
+      if (nested.length > 0) {
+        flush();
+        result.push(...nested);
       }
       return;
     }

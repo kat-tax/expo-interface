@@ -191,4 +191,10 @@ describe(`SegmentedControl (${Platform.OS})`, () => {
     }
     expect(onValueChange).toHaveBeenCalledWith('week');
   });
+
+  (isIOS ? it.skip : it)('carries no testID modifier without a testID', async () => {
+    await render(<SegmentedControl selectedValue="day">{items}</SegmentedControl>, options);
+    expect(modifier(nodes()[0].props, 'testID')).toBeUndefined();
+    expect(modifier(nodes()[0].props, 'fillMaxWidth')).toBeDefined();
+  });
 });

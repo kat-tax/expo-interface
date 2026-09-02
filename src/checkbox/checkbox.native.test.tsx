@@ -124,4 +124,19 @@ describe(`Checkbox (${Platform.OS})`, () => {
     expect(onValueChange).toHaveBeenCalledTimes(1);
     expect(onValueChange).toHaveBeenCalledWith(true);
   });
+
+  (isIOS ? it.skip : it)('toggles from the labelled row itself', async () => {
+    const onValueChange = vi.fn();
+    await render(<Checkbox label="Terms" value={false} onValueChange={onValueChange} testID="cb"/>, options);
+    const row = host(p => modifier(p, 'toggleable') != null);
+    await act(async () => {
+      modifier(row.props, 'toggleable')?.eventListener();
+    });
+    expect(onValueChange).toHaveBeenCalledWith(true);
+  });
+
+  (isIOS ? it.skip : it)('carries no testID modifier without a testID', async () => {
+    await render(<Checkbox value onValueChange={vi.fn()}/>, options);
+    expect(nodes()[0].props.modifiers).toEqual([]);
+  });
 });

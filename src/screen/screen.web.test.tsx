@@ -12,10 +12,16 @@ import {Screen} from '.';
 // `react-native` to react-native-web, so mocking the alias covers every
 // import under test; the per-module `dist/exports/*` path no longer would,
 // because the dependency optimizer pre-bundles those files.
-const mockScheme: {value: ColorSchemeName} = {value: 'light'};
+const mockScheme: {value: ColorSchemeName | undefined} = {value: 'light'};
 vi.mock('react-native', async importOriginal => {
   const rn = await importOriginal<typeof import('react-native')>();
-  return {...rn, useColorScheme: () => mockScheme.value};
+  return {
+    ...rn,
+    useColorScheme: () => mockScheme.value,
+    // jsdom has no `matchMedia`, so model `Appearance` reporting no scheme at
+    // module load: `Screen` then falls back to the light background.
+    Appearance: {...rn.Appearance, getColorScheme: () => null},
+  };
 });
 
 /** Web `SafeAreaView` requires a provider. */
@@ -92,5 +98,12 @@ describe('Screen (web)', () => {
     mount(<Screen><View testID="kid"/></Screen>);
     expect(parts(screen.getByTestId('kid')).safeArea).toHaveStyle({backgroundColor: colors.dark.background});
     expect(document.body).toHaveStyle({backgroundColor: colors.dark.background});
+  });
+
+  it('falls back to the light palette when the scheme is unknown', () => {
+    mockScheme.value = undefined;
+    mount(<Screen><View testID="kid"/></Screen>);
+    expect(parts(screen.getByTestId('kid')).safeArea).toHaveStyle({backgroundColor: colors.light.background});
+    expect(document.body).toHaveStyle({backgroundColor: colors.light.background});
   });
 });

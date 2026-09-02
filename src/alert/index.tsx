@@ -17,8 +17,7 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
   const {cancel, others} = splitActions(actions);
 
   useEffect(() => {
-    const dialog = ref.current;
-    if (!dialog) return;
+    const dialog = ref.current!;
     if (visible && !dialog.open) dialog.showModal();
     else if (!visible && dialog.open) dialog.close();
   }, [visible]);

@@ -1,5 +1,5 @@
 import {Platform} from 'react-native';
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import {AccentProvider, onAccent} from './accent';
 import {clamp, colors, flatten, getThemeCSS, theme, useColor, useNavTheme} from './theme';
 
@@ -124,3 +124,37 @@ describe('clamp', () => {
     expect(clamp(3)).toMatchObject({WebkitLineClamp: 3, display: '-webkit-box'});
   });
 });
+
+if (Platform.OS !== 'web') {
+  describe(`dark scheme (${Platform.OS})`, () => {
+    const wrapper = ({children}: React.PropsWithChildren) => (
+      <AccentProvider seed="#8959EA">{children}</AccentProvider>
+    );
+
+    beforeEach(async () => {
+      const {setColorScheme} = await import('vitest-native/helpers');
+      await act(async () => setColorScheme('dark'));
+    });
+
+    afterEach(async () => {
+      const {setColorScheme} = await import('vitest-native/helpers');
+      await act(async () => setColorScheme('light'));
+    });
+
+    it('resolves useColor from the dark palette, keeping the live tint', async () => {
+      const {result} = await renderHook(() => [useColor('label'), useColor('tint')], {wrapper});
+      expect(result.current).toEqual([colors.dark.label, '#8959EA']);
+    });
+
+    it('maps the dark palette onto the navigation theme', async () => {
+      const {result} = await renderHook(() => useNavTheme(), {wrapper});
+      expect(result.current.colors).toMatchObject({
+        primary: '#8959EA',
+        background: colors.dark.background,
+        card: colors.dark.backgroundElement,
+        text: colors.dark.label,
+        border: colors.dark.separator,
+      });
+    });
+  });
+}

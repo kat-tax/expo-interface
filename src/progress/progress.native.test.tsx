@@ -2,7 +2,7 @@ import {Platform} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import {colors} from '../theme';
-import {byComposeTestID, modifier} from '../__tests__/native';
+import {byComposeTestID, modifier, nodes} from '../__tests__/native';
 import {Progress} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -78,5 +78,10 @@ describe(`Progress (${Platform.OS})`, () => {
     } else {
       expect(props.color).toBe('#8959EA');
     }
+  });
+
+  (isIOS ? it.skip : it)('carries no testID modifier without a testID', async () => {
+    await render(<Progress value={0.5}/>);
+    expect(nodes()[0].props.modifiers).toEqual([{$type: 'fillMaxWidth'}]);
   });
 });

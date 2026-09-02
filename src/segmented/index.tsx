@@ -24,7 +24,7 @@ function SegmentedControlComponent<T extends PickerValue>({
 }: SegmentedControlProps<T>) {
   const items = extractItems<T>(children);
   const [current, setValue] = useSelectedValue(selectedValue, onValueChange, items[0]?.value);
-  const vars = flatten((StyleSheet.flatten(style) ?? undefined) as TextStyle | undefined) as CSSProperties;
+  const vars = flatten(StyleSheet.flatten(style) as TextStyle) as CSSProperties;
   return (
     <div
       className={['ui-segmented', disabled && 'ui-segmented--disabled'].filter(Boolean).join(' ')}
