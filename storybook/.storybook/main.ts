@@ -1,4 +1,5 @@
 import type {StorybookConfig} from '@storybook/react-native-web-vite';
+import type {Plugin, PluginOption} from 'vite';
 import path from 'node:path';
 import remarkGfm from 'remark-gfm';
 import {EXPO_WEB_PACKAGES, metroCompat} from '../../vitest/metro-compat.ts';
@@ -33,10 +34,16 @@ const main: StorybookConfig = {
   core: {disableTelemetry: true},
   async viteFinal(config, {configDir}) {
     const {mergeConfig} = await import('vite');
-    return mergeConfig(config, {
-      // `expo-interface` resolves to the package source (the tsconfig path
-      // only covers TS files; MDX pages import it too).
-      resolve: {alias: {'expo-interface': path.resolve(configDir, '../../src/index.ts')}},
+    // The framework registers `vite-tsconfig-paths`; Vite 8 resolves tsconfig
+    // `paths` natively and warns about the plugin, so swap it for the option.
+    const plugins = (await flattenPlugins(config.plugins)).filter(plugin => plugin.name !== 'vite-tsconfig-paths');
+    return mergeConfig({...config, plugins}, {
+      resolve: {
+        tsconfigPaths: true,
+        // `expo-interface` resolves to the package source (the tsconfig path
+        // only covers TS files; MDX pages import it too).
+        alias: {'expo-interface': path.resolve(configDir, '../../src/index.ts')},
+      },
       plugins: [
         // Same Metro-compat pipeline as the Vitest web project: the Expo
         // packages are pre-bundled with Metro's resolution quirks patched.
@@ -61,3 +68,11 @@ const main: StorybookConfig = {
 };
 
 export default main;
+
+/** Resolves Vite's nested, possibly async `PluginOption` list into plain plugins. */
+async function flattenPlugins(options: PluginOption | undefined): Promise<Plugin[]> {
+  const resolved = await options;
+  if (!resolved) return [];
+  if (Array.isArray(resolved)) return (await Promise.all(resolved.map(flattenPlugins))).flat();
+  return [resolved];
+}
