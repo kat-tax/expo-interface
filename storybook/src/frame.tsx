@@ -48,8 +48,11 @@ const renderVars = (palette: Record<string, string>) =>
 /**
  * The kit's web styling is driven by CSS custom properties that an app emits
  * from `+html.tsx`; Storybook has no HTML template, so inject them. Also adds
- * `[data-scheme]` overrides so the Storybook toolbar can force a light or
- * dark palette regardless of the OS `prefers-color-scheme`.
+ * `[data-theme]` overrides so the Storybook toolbar can force a light or dark
+ * palette regardless of the OS `prefers-color-scheme` (the attribute @expo/ui
+ * uses for the same purpose; `.storybook/globals.ts` sets it). `color-scheme`
+ * is forced along with the variables so `light-dark()` in the kit's CSS
+ * follows too.
  */
 export function injectThemeCSS() {
   if (Platform.OS !== 'web' || typeof document === 'undefined') return;
@@ -57,8 +60,8 @@ export function injectThemeCSS() {
   const style = document.createElement('style');
   style.id = 'expo-interface-theme';
   style.textContent = `${getThemeCSS()}
-    :root[data-scheme="light"] { color-scheme: light; ${renderVars(colors.light)} }
-    :root[data-scheme="dark"] { color-scheme: dark; ${renderVars(colors.dark)} }
+    :root[data-theme="light"] { color-scheme: light; ${renderVars(colors.light)} }
+    :root[data-theme="dark"] { color-scheme: dark; ${renderVars(colors.dark)} }
   `;
   document.head.appendChild(style);
 }

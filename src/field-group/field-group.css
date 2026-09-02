@@ -7,12 +7,22 @@
 }
 
 /*
- * @expo/ui hardcodes inverted iOS grouped-list colors on web (#f2f2f7 page,
- * #ffffff cards). Light mode should match native: white page, grey cards.
- * Target only section cards — not nested pills/controls inside rows.
+ * @expo/ui paints inverted iOS grouped-list colors on web (grey page, white
+ * cards in light mode). Match native instead: the page is the screen
+ * background and the cards the raised element color, in both schemes, so the
+ * cards follow the kit palette rather than @expo/ui's own (which switches on
+ * `prefers-color-scheme` and can disagree with a forced scheme). Target only
+ * section cards — not nested pills/controls inside rows.
  */
-@media (prefers-color-scheme: light) {
-  .field-group [class*='r-borderRadius-']:not([class*='r-borderRadius-'] [class*='r-borderRadius-']) {
-    background-color: var(--color-background-element) !important;
-  }
+.field-group [class*='r-borderRadius-']:not([class*='r-borderRadius-'] [class*='r-borderRadius-']) {
+  background-color: var(--color-background-element) !important;
+}
+
+/*
+ * Row dividers: @expo/ui paints them in its gray-100, which is within a few
+ * shades of the card color above in both schemes. The selected-background
+ * token is one step away from the card in either scheme: visible, not heavy.
+ */
+.field-group [class*='r-borderRadius-']:not([class*='r-borderRadius-'] [class*='r-borderRadius-']) > [role='separator'] {
+  background-color: var(--color-background-selected) !important;
 }

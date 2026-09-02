@@ -1,2 +1,64 @@
 <link rel="preconnect" href="https://rsms.me/">
 <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<script>
+  // Makes `prefers-color-scheme` follow the toolbar's scheme choice, which
+  // `.storybook/globals.ts` mirrors to `<html data-theme>`. CSS custom
+  // properties are overridden per `[data-theme]` (see `src/frame.tsx`), but
+  // react-native-web's `useColorScheme` (used by `Screen` and by @expo/ui's
+  // universal web components: `Text`, `ListItem`, `BottomSheet`) reads the OS
+  // scheme through `matchMedia`, so a forced scheme has to reach it there.
+  // react-native-web captures the query once at module load, hence this runs
+  // in the head, before any module script. Removing `data-theme` (`system`)
+  // hands the native query back through.
+  (() => {
+    const SCHEME = /prefers-color-scheme\s*:\s*(light|dark)/;
+    const native = window.matchMedia.bind(window);
+    const root = document.documentElement;
+    const lists = new Set();
+
+    const forced = () => {
+      const theme = root.dataset.theme;
+      return theme === 'light' || theme === 'dark' ? theme : null;
+    };
+
+    class SchemeQueryList extends EventTarget {
+      constructor(media, scheme) {
+        super();
+        this.media = media;
+        this.scheme = scheme;
+        this.onchange = null;
+        this.source = native(media);
+        this.last = this.matches;
+        this.source.addEventListener('change', () => this.update());
+        lists.add(this);
+      }
+      get matches() {
+        const theme = forced();
+        return theme ? theme === this.scheme : this.source.matches;
+      }
+      update() {
+        const matches = this.matches;
+        if (matches === this.last) return;
+        this.last = matches;
+        const event = new MediaQueryListEvent('change', {matches, media: this.media});
+        if (typeof this.onchange === 'function') this.onchange(event);
+        this.dispatchEvent(event);
+      }
+      // Legacy listener API, which react-native-web still uses.
+      addListener(listener) {
+        this.addEventListener('change', listener);
+      }
+      removeListener(listener) {
+        this.removeEventListener('change', listener);
+      }
+    }
+
+    window.matchMedia = query => {
+      const match = SCHEME.exec(String(query));
+      return match ? new SchemeQueryList(String(query), match[1]) : native(query);
+    };
+
+    new MutationObserver(() => lists.forEach(list => list.update()))
+      .observe(root, {attributes: true, attributeFilter: ['data-theme']});
+  })();
+</script>

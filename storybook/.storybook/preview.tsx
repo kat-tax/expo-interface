@@ -1,21 +1,13 @@
 import type {Preview} from '@storybook/react-native-web-vite';
-import {useEffect} from 'react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {AccentProvider} from 'expo-interface';
 import {Frame, frameParameters, injectThemeCSS} from '../src/frame';
-import {preferredTheme} from './theme';
+import {ThemedDocsContainer} from './docs-container';
+import {ACCENT_SEED, normalizeAccent} from './theme';
+// Mirrors the scheme global to `<html data-theme>` and feeds the docs theme.
+import './globals';
 
 injectThemeCSS();
-
-/** Applies the toolbar's scheme choice to the `[data-scheme]` CSS overrides. */
-function Scheme({value}: {value?: string}) {
-  useEffect(() => {
-    const root = document.documentElement;
-    if (value === 'light' || value === 'dark') root.dataset.scheme = value;
-    else delete root.dataset.scheme;
-  }, [value]);
-  return null;
-}
 
 const preview: Preview = {
   decorators: [
@@ -23,8 +15,7 @@ const preview: Preview = {
     // Storybook UI) provides; `Screen` reads insets from it.
     (Story, {parameters, globals, viewMode}) => (
       <SafeAreaProvider>
-        <AccentProvider seed={parameters.accent}>
-          <Scheme value={globals.scheme}/>
+        <AccentProvider seed={normalizeAccent(globals.accent ?? parameters.accent)}>
           <Frame native={parameters.native !== false} fill={viewMode === 'story'}>
             <Story/>
           </Frame>
@@ -46,9 +37,15 @@ const preview: Preview = {
         dynamicTitle: true,
       },
     },
+    // Set from the manager's accent picker (`.storybook/manager.tsx`), which
+    // offers presets and a custom color; no toolbar menu of its own.
+    accent: {
+      description: 'Accent seed passed to `AccentProvider`',
+    },
   },
   initialGlobals: {
     scheme: 'system',
+    accent: ACCENT_SEED,
   },
   parameters: {
     ...frameParameters,
@@ -62,12 +59,12 @@ const preview: Preview = {
       },
     },
     docs: {
-      theme: preferredTheme(),
+      container: ThemedDocsContainer,
       codePanel: true,
     },
     options: {
       storySort: {
-        order: ['Introduction', 'Guides', ['Theming', 'Icons', 'Development'], 'Layout', 'Components'],
+        order: ['Introduction', 'Guides', ['Theming', 'Icons'], 'Layout', 'Components'],
       },
     },
   },

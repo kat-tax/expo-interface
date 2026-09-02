@@ -35,16 +35,15 @@
   transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+/*
+ * Raised segment (iOS: white light / systemGray2-ish dark). `light-dark()`
+ * follows the element's `color-scheme`, which the theme CSS sets from the OS
+ * and which a host can force (Storybook's scheme toolbar does).
+ */
 .ui-segmented__item[aria-checked='true'] {
-  background: #ffffff;
+  background: light-dark(#ffffff, #636366);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
   font-weight: 600;
-}
-
-@media (prefers-color-scheme: dark) {
-  .ui-segmented__item[aria-checked='true'] {
-    background: #636366;
-  }
 }
 
 .ui-segmented__item:disabled {
