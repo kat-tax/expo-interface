@@ -30,6 +30,14 @@ function set(next: ThemeGlobals) {
  * own web palette honors the same attribute, and `preview-head.html` routes
  * `matchMedia('(prefers-color-scheme: …)')` (react-native-web's
  * `useColorScheme`) through it too.
+ *
+ * Also drops the inline `background-color` that `Screen` mirrors to `<body>`
+ * through expo-system-ui: it is written once at module load from the OS
+ * scheme and only refreshed while a `Screen` is mounted, so under a forced
+ * scheme it would keep the wrong color and show through as a flash between
+ * pages. Without it the kit's `body { background-color: var(--color-background) }`
+ * applies, which follows `[data-theme]`; a mounted `Screen` writes the same
+ * forced color back.
  */
 function applyScheme() {
   if (typeof document === 'undefined') return;
@@ -37,6 +45,7 @@ function applyScheme() {
   const {scheme} = globals;
   if (scheme === 'light' || scheme === 'dark') root.dataset.theme = scheme;
   else delete root.dataset.theme;
+  document.body?.style.removeProperty('background-color');
 }
 
 if (typeof window !== 'undefined') {

@@ -52,7 +52,9 @@ const renderVars = (palette: Record<string, string>) =>
  * palette regardless of the OS `prefers-color-scheme` (the attribute @expo/ui
  * uses for the same purpose; `.storybook/globals.ts` sets it). `color-scheme`
  * is forced along with the variables so `light-dark()` in the kit's CSS
- * follows too.
+ * follows too. Storybook's "preparing" overlay, shown while a story or docs
+ * page loads, is hard-coded white; painting it with the scheme background
+ * keeps it from flashing in the dark palette.
  */
 export function injectThemeCSS() {
   if (Platform.OS !== 'web' || typeof document === 'undefined') return;
@@ -62,6 +64,7 @@ export function injectThemeCSS() {
   style.textContent = `${getThemeCSS()}
     :root[data-theme="light"] { color-scheme: light; ${renderVars(colors.light)} }
     :root[data-theme="dark"] { color-scheme: dark; ${renderVars(colors.dark)} }
+    .sb-preparing-story, .sb-preparing-docs { background-color: var(--color-background); }
   `;
   document.head.appendChild(style);
 }
