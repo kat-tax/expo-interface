@@ -28,6 +28,13 @@ import {
 import type {IconToken} from 'expo-interface';
 import * as icons from '../../../src/__stories__/icons';
 import type {CardEntry} from './cards';
+// The overlay previews below reuse the real overlays' classes without
+// rendering the components, so their stylesheets have to be imported here:
+// the static build only ships a component's CSS with the chunks that import
+// it (the dev server loads every stylesheet reachable from the barrel).
+import '../../../src/alert/alert.css';
+import '../../../src/menu/menu.css';
+import '../../../src/tooltip/tooltip.css';
 
 /**
  * One live preview per export, in the state the Expo screenshots show:

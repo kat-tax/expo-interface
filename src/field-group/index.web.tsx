@@ -3,8 +3,8 @@ import {FieldGroup as BaseFieldGroup, type FieldGroupProps} from '@expo/ui';
 
 /**
  * Web hook for `field-group.css`. Clears the universal component's hardcoded
- * scroll background so the wrapper supplies the app palette; section cards are
- * recolored in CSS (light mode only — dark matches @expo/ui).
+ * scroll background so the wrapper supplies the app palette; section cards
+ * and row dividers are recolored to the kit tokens in the CSS.
  */
 function FieldGroup({style, ...props}: FieldGroupProps) {
   return (

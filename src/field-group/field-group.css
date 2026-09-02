@@ -11,18 +11,24 @@
  * cards in light mode). Match native instead: the page is the screen
  * background and the cards the raised element color, in both schemes, so the
  * cards follow the kit palette rather than @expo/ui's own (which switches on
- * `prefers-color-scheme` and can disagree with a forced scheme). Target only
- * section cards — not nested pills/controls inside rows.
+ * `prefers-color-scheme` and can disagree with a forced scheme).
+ *
+ * The section card reads `--expo-ui-background`, so remap that variable here
+ * rather than matching react-native-web class names: those carry the property
+ * name (`r-borderRadius-…`) only in development and are hashed to `r-…` in a
+ * production build. Nothing else the kit renders inside a group reads it.
  */
-.field-group [class*='r-borderRadius-']:not([class*='r-borderRadius-'] [class*='r-borderRadius-']) {
-  background-color: var(--color-background-element) !important;
+.field-group {
+  --expo-ui-background: var(--color-background-element);
 }
 
 /*
  * Row dividers: @expo/ui paints them in its gray-100, which is within a few
  * shades of the card color above in both schemes. The selected-background
  * token is one step away from the card in either scheme: visible, not heavy.
+ * `role="separator"` is the only stable hook; kit overlays inside a row (a
+ * Menu's own separator) carry `ui-*` classes and keep their color.
  */
-.field-group [class*='r-borderRadius-']:not([class*='r-borderRadius-'] [class*='r-borderRadius-']) > [role='separator'] {
-  background-color: var(--color-background-selected) !important;
+.field-group [role='separator']:not([class^='ui-']) {
+  background-color: var(--color-background-selected);
 }
