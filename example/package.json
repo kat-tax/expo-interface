@@ -29,6 +29,7 @@
     "expo-system-ui": "~57.0.3",
     "expo-web-browser": "~57.0.2",
     "nanoid": "^3.3.18",
+    "qrcode-generator": "^2.0.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",

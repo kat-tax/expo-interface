@@ -1,8 +1,9 @@
 import {useState} from 'react';
 import {Column, Row, Text, RNHostView} from '@expo/ui';
-import {useColor, spacing, Button, QRCode} from 'expo-interface';
+import {useColor, spacing, Button} from 'expo-interface';
 import {setStringAsync} from 'expo-clipboard';
 import {shareAsync} from 'expo-sharing';
+import {QRCode} from './qr';
 import {getDrop} from './data';
 import {dropUrl, DROP_ORIGIN} from './host';
 

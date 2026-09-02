@@ -38,7 +38,6 @@ export {Picker} from './picker';
 export type {PickerItemProps, PickerOption, PickerProps, PickerValue} from './picker/types';
 export {Progress} from './progress';
 export type {ProgressProps, ProgressVariant} from './progress/types';
-export {QRCode, type QRCodeProps} from './qr';
 export {SegmentedControl} from './segmented';
 export type {SegmentedControlProps} from './segmented/types';
 export {Slider} from './slider';

@@ -117,7 +117,6 @@ positioning and `<dialog>`.
 | [ContextMenu](src/menu/types.ts) | Menu of actions opened by long-pressing (or right-clicking) its content | ✓ | ✓ | ✓ |
 | [Tooltip](src/tooltip/types.ts) | Short hint shown on hover, focus or long-press; an accessibility hint on iOS | | ✓ | ✓ |
 | [Alert](src/alert/types.ts) | Modal dialog or action sheet with a title, message and actions | ✓ | ✓ | ✓ |
-| [QRCode](src/qr/index.tsx) | Renders a value as a QR code image | ✓ | ✓ | ✓ |
 | [ExternalLink](src/router/external-link.tsx) | Link that opens in an in-app browser on native and a new tab on web | ✓ | ✓ | ✓ |
 | [Typography](src/typography/types.ts) | Text in the platform type scale, with `Title`, `Body`, `Caption` and other variants as shortcuts | ✓ | ✓ | ✓ |
 

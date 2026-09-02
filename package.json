@@ -63,9 +63,6 @@
     "storybook:build": "bun run --cwd storybook build",
     "test:ui": "vitest --ui"
   },
-  "dependencies": {
-    "qrcode-generator": "^2.0.4"
-  },
   "peerDependencies": {
     "@expo/material-symbols": "*",
     "@expo/ui": "^57.0.0",
