@@ -60,6 +60,10 @@ export const Disabled: Story = {
   args: {disabled: true},
 };
 
+export const FillWidth: Story = {
+  args: {fillWidth: true},
+};
+
 export const Sizes: Story = {
   render: args => (
     <Column modifiers={fillWidth} spacing={12}>

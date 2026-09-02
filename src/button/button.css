@@ -6,6 +6,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* Hug the content even inside a flex column that stretches its children. */
+  width: fit-content;
   border-radius: 999px;
   border: 1px solid transparent;
   padding: 10px 18px;
@@ -88,6 +90,10 @@
 
 .ui-button--text.ui-button--large {
   padding-inline: 14px;
+}
+
+.ui-button--fill {
+  width: 100%;
 }
 
 .ui-button--destructive {

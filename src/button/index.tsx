@@ -35,6 +35,7 @@ export function Button({
   suffixIcon,
   hideLabel = false,
   disabled = false,
+  fillWidth = false,
   testID,
   popoverTarget,
   popoverTargetAction,
@@ -58,6 +59,7 @@ export function Button({
     !shape && 'ui-button--pill',
     iconOnly && 'ui-button--icon-only',
     role === 'destructive' && 'ui-button--destructive',
+    fillWidth && 'ui-button--fill',
   ].filter(Boolean).join(' ');
 
   return (

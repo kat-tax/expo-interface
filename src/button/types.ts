@@ -67,6 +67,13 @@ export interface ButtonProps {
   hideLabel?: boolean;
   /** Disables interaction and dims the button. */
   disabled?: boolean;
+  /**
+   * Stretch the button to its container's full width. By default the button
+   * hugs its content, even when the parent would stretch it (a flex column on
+   * web, a `Host` on Android).
+   * @default false
+   */
+  fillWidth?: boolean;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
 }

@@ -71,6 +71,32 @@ describe(`Button (${Platform.OS})`, () => {
     }
   });
 
+  it('hugs its content unless fillWidth is set', async () => {
+    await render(<Button label="Go" testID="hug"/>);
+    const {props} = button('hug');
+    if (isIOS) {
+      expect(props.label).toBe('Go');
+      expect(() => host(p => !!modifier(p, 'frame'))).toThrow();
+    } else {
+      expect(modifier(props, 'wrapContentWidth')).toEqual({$type: 'wrapContentWidth', alignment: 'start'});
+      expect(modifier(props, 'wrapContentHeight')).toEqual({$type: 'wrapContentHeight', alignment: 'top'});
+      expect(modifier(props, 'fillMaxWidth')).toBeUndefined();
+    }
+  });
+
+  it('fills the width on request', async () => {
+    await render(<Button label="Go" fillWidth testID="fill"/>);
+    const {props} = button('fill');
+    if (isIOS) {
+      // The frame goes on the composed label so the bordered style fills too.
+      expect(props.label).toBeUndefined();
+      expect(modifier(host(p => !!modifier(p, 'frame')).props, 'frame')?.maxWidth).toBeGreaterThan(0);
+    } else {
+      expect(modifier(props, 'fillMaxWidth')).toBeDefined();
+      expect(modifier(props, 'wrapContentWidth')).toBeUndefined();
+    }
+  });
+
   (isIOS ? it : it.skip)('calls onPress', async () => {
     const onPress = vi.fn();
     await render(<Button label="Save" onPress={onPress} testID="save"/>);

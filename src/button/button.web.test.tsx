@@ -53,6 +53,13 @@ describe('Button (web)', () => {
     expect(button).toHaveAttribute('popovertargetaction', 'show');
   });
 
+  it('fills the width only on request', () => {
+    const {rerender} = render(<Button label="Go"/>);
+    expect(screen.getByRole('button')).not.toHaveClass('ui-button--fill');
+    rerender(<Button label="Go" fillWidth/>);
+    expect(screen.getByRole('button')).toHaveClass('ui-button--fill');
+  });
+
   it('forwards testID as data-testid', () => {
     render(<Button label="x" testID="primary"/>);
     expect(screen.getByTestId('primary')).toBeInTheDocument();

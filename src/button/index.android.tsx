@@ -1,5 +1,5 @@
 import type {ButtonProps, ButtonShape, ButtonVariant} from './types';
-import {testID as testIDModifier, width} from '@expo/ui/jetpack-compose/modifiers';
+import {fillMaxWidth, testID as testIDModifier, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
 import {Button as ComposeButton, OutlinedButton, TextButton, Icon, IconButton, FilledIconButton, OutlinedIconButton, Spacer, Shape, Text} from '@expo/ui/jetpack-compose';
 import {SIZE_ICON, SIZE_TEXT, androidContentPadding} from './shared';
 import {onAccent as contrastOf} from '../accent';
@@ -47,6 +47,7 @@ export function Button({
   suffixIcon,
   hideLabel = false,
   disabled,
+  fillWidth = false,
   testID,
 }: ButtonProps) {
   const themeTint = useColor('tint');
@@ -63,7 +64,13 @@ export function Button({
   const iconSize = SIZE_ICON[size];
   const textSize = SIZE_TEXT[size];
   const resolvedShape = resolveShape(shape);
-  const modifiers = testID ? [testIDModifier(testID)] : [];
+  // A `Host` measures a direct child with its own (tight) constraints, which
+  // a Compose button would fill on both axes; wrap to the content instead.
+  const modifiers = [
+    fillWidth ? fillMaxWidth() : wrapContentWidth('start'),
+    wrapContentHeight('top'),
+  ];
+  if (testID) modifiers.push(testIDModifier(testID));
   const iconOnly = hideLabel && !!prefixIcon?.drawable;
 
   if (iconOnly) {
