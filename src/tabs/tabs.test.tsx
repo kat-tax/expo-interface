@@ -90,8 +90,12 @@ describe(`Tabs (${Platform.OS})`, () => {
     beforeAll(async () => {
       const {createElement} = await import('react');
       const {extendPresetMock} = await import('vitest-native/helpers');
-      const el = (name: string) => (props: Record<string, any>) =>
-        createElement(name, props, props.children);
+      const el = (name: string) => {
+        const Host = (props: Record<string, any>) =>
+          createElement(name, props, props.children);
+        Host.displayName = name;
+        return Host;
+      };
       extendPresetMock('react-native-screens', {
         SafeAreaView: el('RNSSafeAreaView'),
         Tabs: {

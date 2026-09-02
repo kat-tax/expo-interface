@@ -1,0 +1,176 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "react", "import"],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "builtin": true,
+    "browser": true,
+    "es2022": true,
+    "shared-node-browser": true
+  },
+  "globals": {
+    "__DEV__": "readonly",
+    "ErrorUtils": "readonly",
+    "console": "readonly",
+    "exports": "readonly",
+    "global": "readonly",
+    "module": "readonly",
+    "process": "readonly",
+    "require": "readonly",
+    "requestIdleCallback": "readonly",
+    "cancelIdleCallback": "readonly",
+    "setImmediate": "readonly",
+    "clearImmediate": "readonly"
+  },
+  "ignorePatterns": [
+    "**/node_modules/",
+    "**/dist/",
+    "**/.expo/",
+    "coverage/",
+    "test-report/",
+    "example/ios/",
+    "example/android/",
+    "storybook/ios/",
+    "storybook/android/",
+    "storybook/.rnstorybook/storybook.requires.ts"
+  ],
+  "rules": {
+    // ── eslint-config-expo core ──────────────────────────────────────────
+    "eqeqeq": ["warn", "smart"],
+    "no-dupe-class-members": "error",
+    "no-dupe-keys": "error",
+    "no-duplicate-case": "error",
+    "no-empty-character-class": "warn",
+    "no-empty-pattern": "warn",
+    "no-extend-native": "warn",
+    "no-extra-bind": "warn",
+    "no-redeclare": "warn",
+    "no-undef": "error",
+    "no-unreachable": "warn",
+    "no-unsafe-negation": "warn",
+    "no-unused-expressions": ["warn", {"allowShortCircuit": true, "enforceForJSX": true}],
+    "no-unused-labels": "warn",
+    "no-unused-vars": [
+      "warn",
+      {
+        "vars": "all",
+        "args": "none",
+        "ignoreRestSiblings": true,
+        "caughtErrors": "all",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ],
+    "no-useless-constructor": "warn",
+    "no-var": "error",
+    "no-with": "warn",
+    "unicode-bom": ["warn", "never"],
+    "use-isnan": "error",
+    "valid-typeof": "error",
+
+    // ── eslint-plugin-import (recommended + errors) ──────────────────────
+    "import/default": "off",
+    "import/export": "error",
+    "import/first": "warn",
+    "import/named": "error",
+    "import/namespace": "error",
+    "import/no-duplicates": "warn",
+    "import/no-named-as-default": "warn",
+    "import/no-named-as-default-member": "warn",
+
+    // ── @typescript-eslint ───────────────────────────────────────────────
+    "typescript/array-type": ["warn", {"default": "array"}],
+    "typescript/consistent-type-assertions": [
+      "warn",
+      {"assertionStyle": "as", "objectLiteralTypeAssertions": "allow"}
+    ],
+    "typescript/no-empty-object-type": "warn",
+    "typescript/no-extra-non-null-assertion": "warn",
+    "typescript/no-wrapper-object-types": "warn",
+    // `src/index.ts` pulls in the ambient CSS module declarations via a path reference.
+    "typescript/triple-slash-reference": ["error", {"path": "always"}],
+
+    // ── eslint-plugin-react (recommended) ────────────────────────────────
+    "react/display-name": "error",
+    "react/jsx-key": "error",
+    "react/jsx-no-comment-textnodes": "error",
+    "react/jsx-no-duplicate-props": "error",
+    "react/jsx-no-target-blank": "off",
+    "react/jsx-no-undef": "error",
+    "react/no-children-prop": "error",
+    "react/no-danger-with-children": "error",
+    "react/no-direct-mutation-state": "error",
+    "react/no-find-dom-node": "error",
+    "react/no-is-mounted": "error",
+    "react/no-render-return-value": "error",
+    "react/no-string-refs": "error",
+    "react/no-this-in-sfc": "warn",
+    "react/no-unescaped-entities": "error",
+    "react/no-unknown-property": "warn",
+    "react/no-unsafe": "error",
+    "react/react-in-jsx-scope": "off",
+    "react/require-render-return": "error",
+
+    // ── eslint-plugin-react-hooks (recommended, incl. React Compiler) ────
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "warn",
+    "react/error-boundaries": "error",
+    "react/globals": "error",
+    "react/immutability": "error",
+    "react/incompatible-library": "error",
+    "react/preserve-manual-memoization": "error",
+    "react/purity": "error",
+    "react/refs": "error",
+    "react/set-state-in-effect": "error",
+    "react/set-state-in-render": "error",
+    "react/static-components": "error",
+    "react/unsupported-syntax": "error",
+    "react/use-memo": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.ts", "**/*.tsx", "**/*.mts"],
+      "rules": {
+        // TypeScript already reports undefined identifiers.
+        "no-undef": "off",
+        // Prevent CJS `require` unless importing assets, to align with Metro behavior.
+        "typescript/no-require-imports": [
+          "warn",
+          {
+            "allow": [
+              "\\.(aac|aiff|avif|bmp|caf|db|gif|heic|html|jpeg|jpg|json|m4a|m4v|mov|mp3|mp4|mpeg|mpg|otf|pdf|png|psd|svg|ttf|wav|webm|webp|xml|yaml|yml|zip)$"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      // react-native-web only exposes its named exports from the ESM build;
+      // oxlint resolves the CJS `main` entry and reports `export *` as empty.
+      "files": ["storybook/.storybook/react-native-shim.js"],
+      "rules": {
+        "import/export": "off"
+      }
+    },
+    {
+      "files": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "vitest/**/*.ts",
+        "vitest/**/*.tsx",
+        "src/__tests__/**/*.ts",
+        "src/__tests__/**/*.tsx"
+      ],
+      "env": {
+        "vitest": true
+      }
+    },
+    {
+      "files": ["**/*.config.js", "**/*.config.mts", "**/metro.config.js"],
+      "env": {
+        "node": true
+      }
+    }
+  ]
+}

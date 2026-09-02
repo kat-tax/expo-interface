@@ -242,7 +242,7 @@ package from `../src`, so it doubles as the development harness.
 bun install        # bun >= 1.4
 bun run web        # or ios, android
 bun run typecheck  # package, example and storybook
-bun run lint       # eslint (eslint-config-expo)
+bun run lint       # oxlint
 bun run test       # vitest, once per platform (ios, android, web)
 bun run test:ui    # vitest watch mode with the browser UI
 ```
