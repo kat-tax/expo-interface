@@ -49,3 +49,5 @@ storybook/.rnstorybook/storybook.requires.ts
 # tests
 coverage/
 test-report/
+# vitest browser mode saves a screenshot next to a failing story
+__screenshots__/

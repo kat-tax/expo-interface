@@ -61,6 +61,7 @@
     "storybook:ios": "bun run --cwd storybook ios",
     "storybook:android": "bun run --cwd storybook android",
     "storybook:build": "bun run --cwd storybook build",
+    "storybook:test": "bun run --cwd storybook test",
     "test:ui": "vitest --ui"
   },
   "peerDependencies": {

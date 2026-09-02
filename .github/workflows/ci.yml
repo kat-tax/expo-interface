@@ -78,6 +78,13 @@ jobs:
         run: bun run storybook:build
         env:
           CI: 1
+      - name: Install Playwright Chromium
+        run: bunx playwright install --with-deps chromium
+        working-directory: storybook
+      - name: Test stories (@storybook/addon-vitest, headless Chromium)
+        run: bun run storybook:test
+        env:
+          CI: 1
       - uses: actions/upload-artifact@v7
         with:
           name: storybook

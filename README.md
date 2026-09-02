@@ -263,6 +263,7 @@ shared by two Storybooks in the [storybook](./storybook) workspace:
 bun run storybook:web      # web storybook + docs site (Vite)
 bun run storybook:ios      # or storybook:android — on-device storybook
 bun run storybook:build    # static web build in storybook/dist
+bun run storybook:test     # every story as a Vitest test in headless Chromium
 ```
 
 The shared decorator (`storybook/src/frame.tsx`) wraps stories in
@@ -293,6 +294,14 @@ props are the payload sent to SwiftUI/Compose, and `src/__tests__/native.ts`
 has helpers to assert on them. `bun run test:coverage` writes an interactive
 HTML test report to `test-report/` and coverage to `coverage/`.
 
+The stories double as tests: `@storybook/addon-vitest`
+(`storybook/vitest.config.mts`) renders every web story in headless Chromium
+through Vitest browser mode, so a story that throws while mounting fails the
+run. `bun run storybook:test` runs them from the CLI (Playwright's Chromium
+must be installed: `bunx playwright install chromium` in `storybook/`); in
+`storybook:web` the testing widget at the bottom of the sidebar runs them
+live.
+
 ### CI
 
 GitHub Actions ([.github/workflows](./.github/workflows)):
@@ -301,7 +310,8 @@ GitHub Actions ([.github/workflows](./.github/workflows)):
   (HTML report and coverage as artifacts), a Metro export of the example app
   for ios, android and web (proves every platform file and
   `@expo/material-symbols` asset resolves without Xcode or Gradle), and a web
-  Storybook build uploaded as an artifact.
+  Storybook build uploaded as an artifact after its stories pass as Vitest
+  browser tests.
 - **Storybook** (`storybook.yml`) — on push to `master`: publishes the web
   Storybook to GitHub Pages, with the Vitest HTML report at `/tests` and
   coverage at `/coverage`. Enable Pages with the "GitHub Actions" source in
