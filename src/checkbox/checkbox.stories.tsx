@@ -75,6 +75,9 @@ export const CustomAccent: Story = {
 
 export const NoLabel: Story = {
   args: {label: undefined},
+  // A bare box has no accessible name of its own; the surrounding row (a
+  // `ListItem`) must name it, so the automated axe check is skipped here.
+  globals: {a11y: {manual: true}},
 };
 
 export const SignupForm: Story = {

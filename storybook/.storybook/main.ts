@@ -16,6 +16,9 @@ const main: StorybookConfig = {
     // Runs the stories as Vitest browser tests (`../vitest.config.mts`) and
     // adds the testing widget to the sidebar.
     '@storybook/addon-vitest',
+    // axe-core checks in the Accessibility panel; they also run inside the
+    // story tests (see `parameters.a11y` in preview.tsx).
+    '@storybook/addon-a11y',
     {
       name: '@storybook/addon-docs',
       options: {

@@ -49,6 +49,19 @@ const preview: Preview = {
   },
   parameters: {
     ...frameParameters,
+    a11y: {
+      // axe-core violations fail the story tests (`storybook:test`), not just
+      // warn in the Accessibility panel.
+      test: 'error',
+      config: {
+        rules: [
+          // The palette mirrors the iOS system colors (tint #007AFF, red
+          // #FF3B30, tertiary labels, 40% disabled labels), which sit below
+          // the 4.5:1 text ratio by design; contrast stays a design review.
+          {id: 'color-contrast', enabled: false},
+        ],
+      },
+    },
     // The frame paints the scheme background itself.
     layout: 'fullscreen',
     backgrounds: {disable: true},

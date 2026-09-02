@@ -21,6 +21,7 @@ export function ScreenHeader({title, onBack, trailing}: ScreenHeaderProps) {
         {onBack ? (
           <Pressable
             onPress={onBack}
+            role="button"
             accessibilityLabel="Go back"
             style={styles.back}>
             <SymbolView

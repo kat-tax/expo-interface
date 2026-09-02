@@ -71,6 +71,9 @@ export const CustomAccent: Story = {
 
 export const NoLabel: Story = {
   args: {label: undefined},
+  // A bare switch has no accessible name of its own; the surrounding row (a
+  // `ListItem`) must name it, so the automated axe check is skipped here.
+  globals: {a11y: {manual: true}},
 };
 
 export const SettingsForm: Story = {

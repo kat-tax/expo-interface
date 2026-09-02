@@ -28,6 +28,8 @@ export function Switch({
       value={value}
       onValueChange={onValueChange}
       disabled={disabled}
+      // The label is a sibling, not a <label>, so name the input directly.
+      accessibilityLabel={label}
       thumbColor={THUMB}
       trackColor={{true: onColor, false: offColor}}
       testID={label == null ? testID : undefined}

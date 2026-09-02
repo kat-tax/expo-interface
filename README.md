@@ -297,7 +297,9 @@ HTML test report to `test-report/` and coverage to `coverage/`.
 The stories double as tests: `@storybook/addon-vitest`
 (`storybook/vitest.config.mts`) renders every web story in headless Chromium
 through Vitest browser mode, so a story that throws while mounting fails the
-run. `bun run storybook:test` runs them from the CLI (Playwright's Chromium
+run, and `@storybook/addon-a11y` runs axe-core on each rendered story as part
+of it (`parameters.a11y.test: 'error'`; the `color-contrast` rule is off
+because the palette follows the iOS system colors). `bun run storybook:test` runs them from the CLI (Playwright's Chromium
 must be installed: `bunx playwright install chromium` in `storybook/`); in
 `storybook:web` the testing widget at the bottom of the sidebar runs them
 live.
