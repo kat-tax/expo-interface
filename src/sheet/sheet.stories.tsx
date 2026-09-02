@@ -65,7 +65,7 @@ function FormContent() {
 const meta = {
   title: 'Components/Sheet',
   component: Sheet,
-  parameters: {native: false},
+  parameters: {docs: {description: {component: 'Bottom sheet that inherits the accent color. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}, native: false},
   args: {
     isPresented: false,
     showDragIndicator: true,

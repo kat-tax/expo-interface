@@ -60,6 +60,7 @@ function Form({onValueChange, onSlidingComplete}: Pick<SliderProps, 'onValueChan
 const meta = {
   title: 'Components/Slider',
   component: Slider,
+  parameters: {docs: {description: {component: 'Thumb dragged along a continuous or stepped range. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {
     label: 'Brightness',
     value: 0.5,

@@ -58,6 +58,7 @@ function SignUp({onChangeText, onSubmit}: Pick<TextFieldProps, 'onChangeText' | 
 const meta = {
   title: 'Components/TextField',
   component: TextField,
+  parameters: {docs: {description: {component: 'Single or multiline text input with keyboard type, capitalization and secure entry. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {
     placeholder: 'Name',
     value: '',

@@ -20,7 +20,7 @@ const SAMPLE = 'The quick brown fox jumps over the lazy dog';
 const meta = {
   title: 'Components/Typography',
   component: Typography,
-  parameters: {native: false},
+  parameters: {docs: {description: {component: 'Text in the platform type scale, with `Title`, `Body`, `Caption` and other variants as shortcuts.'}}, native: false},
   args: {
     children: SAMPLE,
     variant: 'body',

@@ -1,0 +1,66 @@
+import {Meta} from '@storybook/addon-docs/blocks';
+
+<Meta title="Guides/Icons"/>
+
+# Icons
+
+Icon props take an `IconToken`: an `expo-symbols` name, or a
+`{ios, android, web}` map, plus an optional Android drawable.
+
+- **iOS** renders SF Symbols through `expo-symbols`.
+- **Android** renders Material Symbols. Jetpack Compose draws them from XML
+  vector drawables, which `@expo/material-symbols` provides.
+- **Web** renders the Material Symbols web font by name.
+
+## Defining tokens
+
+Keep drawables in an `.android.ts` file so the XML is only bundled on Android.
+The plain `.ts` twin exports an empty map for the other platforms.
+
+```ts
+// icons.drawables.android.ts
+import share from '@expo/material-symbols/share.xml';
+export const drawables = {share};
+```
+
+```ts
+// icons.drawables.ts
+import type {ImageSourcePropType} from 'react-native';
+export const drawables: Record<string, ImageSourcePropType | undefined> = {};
+```
+
+```ts
+// icons.ts
+import {icon} from 'expo-interface';
+import {drawables} from './icons.drawables';
+
+export const share = icon(
+  {ios: 'square.and.arrow.up', android: 'share', web: 'share'},
+  drawables.share,
+);
+```
+
+## Using tokens
+
+Pass the token to any icon prop, for example on a button, list item or menu
+item:
+
+```tsx
+import {Button, ListItem} from 'expo-interface';
+import * as icons from './icons';
+
+<Button label="Share" prefixIcon={icons.share} onPress={share}/>
+<ListItem title="Settings" leading={icons.settings}/>
+```
+
+## Metro
+
+Register the `.xml` extension so Metro bundles the drawables:
+
+```js
+// metro.config.js
+const {getDefaultConfig} = require('expo/metro-config');
+const config = getDefaultConfig(__dirname);
+config.resolver.assetExts.push('xml');
+module.exports = config;
+```

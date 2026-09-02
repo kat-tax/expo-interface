@@ -30,8 +30,6 @@ jobs:
         run: bun run storybook:build
         env:
           CI: 1
-          # Pages serves project sites from `/<repo>/`.
-          EXPO_BASE_URL: /${{ github.event.repository.name }}
       - name: Test report and coverage
         run: |
           bun run test:coverage

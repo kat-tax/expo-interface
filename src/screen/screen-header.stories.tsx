@@ -7,7 +7,7 @@ const meta = {
   title: 'Layout/ScreenHeader',
   component: ScreenHeader,
   // Plain React Native views; no `@expo/ui` Host needed.
-  parameters: {native: false},
+  parameters: {docs: {description: {component: 'Simple header bar with an optional back button and a trailing slot.'}}, native: false},
   args: {
     title: 'Settings',
     onBack: fn(),

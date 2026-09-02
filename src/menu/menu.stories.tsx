@@ -9,6 +9,7 @@ import {Menu} from '.';
 const meta = {
   title: 'Components/Menu',
   component: Menu,
+  parameters: {docs: {description: {component: 'Dropdown menu of actions opened from a button. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {
     label: 'Export',
     variant: 'filled',

@@ -1,0 +1,111 @@
+import {ColorItem, ColorPalette, Meta} from '@storybook/addon-docs/blocks';
+import {colors} from 'expo-interface';
+
+<Meta title="Guides/Theming"/>
+
+export const TOKENS = {
+  label: 'Primary text: titles, body copy and row labels',
+  secondaryLabel: 'Secondary text: subtitles, captions and supporting text',
+  tertiaryLabel: 'Placeholders, disabled hints and decorative glyphs such as chevrons',
+  background: 'Screen background behind all content',
+  backgroundElement: 'Raised or inset surfaces: cards, sheets and grouped list rows',
+  backgroundSelected: 'Background of a selected or pressed element',
+  separator: 'Hairline separators between rows and borders around controls',
+  pillBackground: 'Track behind pill-shaped controls: pickers, segments, steppers',
+  tint: 'Interactive elements such as buttons, switches and links; the accent seed',
+  onTint: 'Text and icons drawn on top of tint, for example a filled button label',
+  switchTrack: 'Track of a switch in the off position',
+  switchOn: 'Success states such as a completed upload',
+  destructive: 'Delete buttons, failed states and other destructive actions',
+  onDestructive: 'Text and icons drawn on top of destructive',
+};
+
+# Theming
+
+Colors follow the system's light or dark scheme and take a tint from the
+`AccentProvider` seed, so a screen looks native on each platform without any
+per-platform styling. There are two ways to read a color: `theme` in styles
+and `useColor` everywhere else.
+
+## Accent
+
+`AccentProvider` takes a single hex `seed` (default `#007AFF`) and applies it
+everywhere:
+
+- **Android** generates a full Material 3 palette from the seed (the Material
+  You algorithm) through the Compose `Host`.
+- **iOS** applies the seed verbatim as the SwiftUI tint, like a single-color
+  `AccentColor` asset.
+- **Web** emits the seed as the `--color-tint` custom property; a runtime seed
+  overrides it inline so every CSS consumer updates without re-rendering.
+
+```tsx
+<AccentProvider seed="#8959EA">
+  <App/>
+</AccentProvider>
+```
+
+`useAccentSeed()` returns the active seed and `onAccent(seed)` the black or
+white contrast color for content drawn on top of it.
+
+## `useColor`
+
+Returns a color token as a plain string that tracks the active scheme and
+accent. Use it for props that won't accept a platform color object from
+`theme`, such as symbol tints or `@expo/ui` components:
+
+```tsx
+import {SymbolView} from 'expo-symbols';
+import {useColor} from 'expo-interface';
+
+const tint = useColor('tint');
+
+<SymbolView name="star" tintColor={tint}/>
+```
+
+## `theme`
+
+A static object with one entry per color token. Each entry is a platform
+color reference: `PlatformColor` on iOS, a theme attribute on Android, a CSS
+variable on web. The OS resolves the actual value and updates it when the
+scheme changes, with no re-render required:
+
+```tsx
+import {theme} from 'expo-interface';
+
+<View style={{
+  backgroundColor: theme.backgroundElement,
+  borderColor: theme.separator,
+}}/>
+```
+
+## Color tokens
+
+The swatches below are the concrete light and dark palettes from `colors`;
+`tint` and `onTint` derive from the accent seed.
+
+<ColorPalette>
+  {Object.entries(TOKENS).map(([token, description]) => (
+    <ColorItem
+      key={token}
+      title={token}
+      subtitle={description}
+      colors={{light: colors.light[token], dark: colors.dark[token]}}
+    />
+  ))}
+</ColorPalette>
+
+## Layout and type constants
+
+| Export | Purpose |
+| --- | --- |
+| `useNavTheme()` | React Navigation theme built from the palette and accent |
+| `getThemeCSS()` | Palette as CSS variables, for `+html.tsx` |
+| `colors` | Raw light and dark palettes |
+| `spacing`, `bound`, `inset` | Layout constants |
+| `fonts`, `fontWeights`, `variants` | Type constants |
+
+`spacing` is a small scale (`half`, `one` … `six`, from 2 to 64 points),
+`bound.contentMaxWidth` caps content at 800 points on wide screens, and
+`inset` carries the per-platform top bar and bottom tab heights that `Screen`
+pads for.

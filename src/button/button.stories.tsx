@@ -8,6 +8,7 @@ import {Button} from '.';
 const meta = {
   title: 'Components/Button',
   component: Button,
+  parameters: {docs: {description: {component: 'Filled, outlined or text button with optional icons, sizes, shapes and a destructive role. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {
     label: 'Continue',
     variant: 'filled',

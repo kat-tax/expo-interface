@@ -57,6 +57,7 @@ const items = [
 const meta = {
   title: 'Components/SegmentedControl',
   component: SegmentedControl,
+  parameters: {docs: {description: {component: 'Row of segments that selects one option. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {
     label: 'Range',
     selectedValue: 'week',

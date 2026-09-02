@@ -39,6 +39,7 @@ function Form({onValueChange}: Pick<StepperProps, 'onValueChange'>) {
 const meta = {
   title: 'Components/Stepper',
   component: Stepper,
+  parameters: {docs: {description: {component: 'Number adjusted with increment and decrement buttons. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {
     label: 'Quantity',
     value: 1,

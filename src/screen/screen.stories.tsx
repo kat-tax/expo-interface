@@ -41,7 +41,7 @@ const meta = {
   title: 'Layout/Screen',
   component: Screen,
   // `Screen` mounts the `@expo/ui` Host itself; keep the global decorator's out.
-  parameters: {native: false},
+  parameters: {docs: {description: {component: 'Screen container that handles safe areas, status bar, background and content width, optionally hosting native `@expo/ui` content.'}}, native: false},
   args: {
     native: false,
     header: false,

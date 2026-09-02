@@ -6,7 +6,7 @@ import {QRCode} from '.';
 const meta = {
   title: 'Components/QRCode',
   component: QRCode,
-  parameters: {native: false},
+  parameters: {docs: {description: {component: 'Renders a value as a QR code image.'}}, native: false},
   args: {
     value: 'https://expo.dev',
     size: 200,
