@@ -6,10 +6,12 @@ import {
   Button,
   Checkbox,
   Collapsible,
+  ColorPicker,
   DateTimePicker,
   Divider,
   FieldGroup,
   Footnote,
+  Gauge,
   Headline,
   ListItem,
   Picker,
@@ -254,6 +256,16 @@ export const components: CardEntry[] = [
       </Collapsible>
     ),
   },
+  {
+    name: 'ColorPicker',
+    href: docs('components-colorpicker'),
+    preview: (
+      <>
+        <ColorPicker label="Accent" value="#FF6347" onValueChange={noop}/>
+        <ColorPicker label="Background" value="#5AC8FA80" onValueChange={noop}/>
+      </>
+    ),
+  },
   {name: 'ContextMenu', href: docs('components-contextmenu'), preview: <ContextMenuPreview/>},
   {
     name: 'DateTimePicker',
@@ -279,6 +291,19 @@ export const components: CardEntry[] = [
     ),
   },
   {name: 'FieldGroup', href: docs('components-fieldgroup'), preview: <FieldGroupPreview/>},
+  {
+    name: 'Gauge',
+    href: docs('components-gauge'),
+    preview: (
+      <>
+        <Gauge label="Speed" value={211} max={260} currentValueLabel="211" minimumValueLabel="0" maximumValueLabel="260"/>
+        <Row>
+          <Gauge variant="circular" value={211} max={260} currentValueLabel="211" minimumValueLabel="0" maximumValueLabel="260"/>
+          <Gauge variant="circularCapacity" value={0.72} currentValueLabel="72%"/>
+        </Row>
+      </>
+    ),
+  },
   {name: 'ListItem', href: docs('components-listitem'), preview: <ListItemPreview/>},
   {name: 'Menu', href: docs('components-menu'), stage: 'center', preview: <MenuPreview/>},
   {

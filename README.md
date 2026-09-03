@@ -107,12 +107,14 @@ positioning and `<dialog>`.
 | [TextField](src/text-field/types.ts) | Single or multiline text input with keyboard type, capitalization and secure entry | ✓ | ✓ | ✓ |
 | [Switch](src/switch/types.ts) | On/off toggle with a leading label | ✓ | ✓ | ✓ |
 | [Checkbox](src/checkbox/types.ts) | Checked/unchecked box with a leading label | ✓ | ✓ | ✓ |
+| [ColorPicker](src/color-picker/types.ts) | Label with a rainbow-ringed color well that opens the iOS-style color picker (Grid, Spectrum, Sliders, opacity) | ✓ | ✓ | ✓ |
 | [Slider](src/slider/types.ts) | Thumb dragged along a continuous or stepped range | ✓ | ✓ | ✓ |
 | [Stepper](src/stepper/types.ts) | Number adjusted with increment and decrement buttons | ✓ | ✓ | ✓ |
 | [Picker](src/picker/types.ts) | Dropdown that selects one option from a list | ✓ | ✓ | ✓ |
 | [SegmentedControl](src/segmented/types.ts) | Row of segments that selects one option | ✓ | ✓ | ✓ |
 | [DateTimePicker](src/date-time/types.ts) | Picks a date, a time or both, with optional bounds | ✓ | ✓ | ✓ |
 | [Progress](src/progress/types.ts) | Linear bar or circular ring, determinate or indeterminate | ✓ | ✓ | ✓ |
+| [Gauge](src/gauge/types.ts) | Value within a range in the SwiftUI gauge styles: capacity bars, marker bar, open or closed ring | ✓ | ✓ | ✓ |
 | [Menu](src/menu/types.ts) | Dropdown menu of actions opened from a button | ✓ | ✓ | ✓ |
 | [ContextMenu](src/menu/types.ts) | Menu of actions opened by long-pressing (or right-clicking) its content | ✓ | ✓ | ✓ |
 | [Tooltip](src/tooltip/types.ts) | Short hint shown on hover, focus or long-press; an accessibility hint on iOS | | ✓ | ✓ |

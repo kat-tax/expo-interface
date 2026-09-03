@@ -1,0 +1,66 @@
+/*
+ * The iOS ColorPicker row: label on the leading edge, the 28pt color well on
+ * the trailing edge. The well is a 3pt rainbow ring (yellow up, red right,
+ * blue down, green left), a 2pt transparent gap and an 18pt swatch.
+ */
+.ui-color-picker {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-label);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.ui-color-picker:disabled {
+  cursor: default;
+}
+
+.ui-color-picker--disabled {
+  opacity: 0.4;
+}
+
+.ui-color-picker__well {
+  position: relative;
+  flex-shrink: 0;
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    hsl(60 100% 50%),
+    hsl(0 100% 50%) 60deg,
+    hsl(300 100% 50%) 120deg,
+    hsl(240 100% 50%) 180deg,
+    hsl(180 100% 50%) 240deg,
+    hsl(120 100% 50%) 300deg,
+    hsl(60 100% 50%)
+  );
+  -webkit-mask: radial-gradient(circle, transparent 10.5px, #000 11px);
+  mask: radial-gradient(circle, transparent 10.5px, #000 11px);
+}
+
+.ui-color-picker__swatch {
+  position: absolute;
+  inset: 5px;
+  display: block;
+  border-radius: 50%;
+  background: var(--ui-color-picker-value);
+}
+
+.ui-color-picker:focus-visible {
+  outline: 2px solid var(--color-tint);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

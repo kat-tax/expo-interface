@@ -1,0 +1,200 @@
+/*
+ * SwiftUI gauge styles redrawn on web. Sizes are the points measured from
+ * iOS (see shared.ts); the unfilled tracks are iOS `tertiarySystemFill`
+ * (automatic) and `systemFill` (linearCapacity), which `light-dark()`
+ * resolves per scheme.
+ */
+.ui-gauge,
+.ui-gauge-ring {
+  --ui-gauge-accent: var(--color-tint);
+  --ui-gauge-knockout: var(--color-background);
+  --ui-gauge-track: light-dark(rgba(118, 118, 128, 0.12), rgba(118, 118, 128, 0.24));
+  --ui-gauge-fill-track: light-dark(rgba(120, 120, 128, 0.2), rgba(120, 120, 128, 0.36));
+  box-sizing: border-box;
+  font-family: var(--font-display);
+  font-size: 17px;
+  line-height: 22px;
+  color: var(--color-label);
+}
+
+.ui-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.ui-gauge__label {
+  color: var(--color-label);
+}
+
+.ui-gauge__bound,
+.ui-gauge__current {
+  color: var(--ui-gauge-accent);
+  white-space: nowrap;
+}
+
+.ui-gauge__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.ui-gauge__track {
+  position: relative;
+  display: block;
+  flex: 1;
+  min-width: 0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.ui-gauge__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ui-gauge-accent);
+}
+
+/* automatic: thick capacity bar, label centered above, value centered below */
+.ui-gauge--automatic .ui-gauge__label {
+  margin-bottom: 14px;
+}
+
+.ui-gauge--automatic .ui-gauge__track {
+  height: 15px;
+  background: var(--ui-gauge-track);
+}
+
+.ui-gauge--automatic .ui-gauge__current {
+  margin-top: 9px;
+}
+
+/* linear (accessoryLinear): tinted bar with a knocked-out point marker */
+.ui-gauge--linear {
+  flex-direction: row;
+  gap: 8px;
+}
+
+/* The track is as tall as the marker so the knockout can overhang the bar. */
+.ui-gauge--linear .ui-gauge__track {
+  height: 15px;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.ui-gauge--linear .ui-gauge__track::before {
+  content: '';
+  position: absolute;
+  inset: 3.75px 0;
+  border-radius: 999px;
+  background: var(--ui-gauge-accent);
+}
+
+.ui-gauge__marker {
+  position: absolute;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--ui-gauge-knockout);
+  transform: translate(-50%, -50%);
+}
+
+.ui-gauge__dot {
+  width: 7.5px;
+  height: 7.5px;
+  border-radius: 50%;
+  background: var(--ui-gauge-accent);
+}
+
+/*
+ * linearCapacity (accessoryLinearCapacity): thin bar in a label/bar/value
+ * stack. The grid columns and rows are set inline per rendered label.
+ */
+.ui-gauge--linear-capacity {
+  display: grid;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 4px;
+}
+
+.ui-gauge--linear-capacity .ui-gauge__label,
+.ui-gauge--linear-capacity .ui-gauge__current {
+  justify-self: start;
+}
+
+.ui-gauge--linear-capacity .ui-gauge__track {
+  height: 4px;
+  background: var(--ui-gauge-fill-track);
+}
+
+.ui-gauge--linear-capacity .ui-gauge__current {
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* circular styles: 58pt ring drawn in SVG with HTML labels over it */
+.ui-gauge-ring {
+  position: relative;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.ui-gauge-ring__svg {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.ui-gauge-ring__arc,
+.ui-gauge-ring__fill {
+  stroke: var(--ui-gauge-accent);
+}
+
+.ui-gauge-ring__track {
+  stroke: var(--ui-gauge-accent);
+  opacity: 0.3;
+}
+
+.ui-gauge-ring__knockout {
+  fill: var(--ui-gauge-knockout);
+}
+
+.ui-gauge-ring__dot {
+  fill: var(--ui-gauge-accent);
+}
+
+.ui-gauge-ring__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  line-height: 29px;
+  color: var(--ui-gauge-accent);
+  white-space: nowrap;
+}
+
+.ui-gauge-ring__center--label {
+  color: var(--color-label);
+}
+
+/* Centered 17px below the ring center (29 + 17 - half the 12px line). */
+.ui-gauge-ring__bounds {
+  position: absolute;
+  top: 40px;
+  left: 12px;
+  display: flex;
+  justify-content: space-between;
+  width: 34px;
+  font-size: 10px;
+  line-height: 12px;
+  color: var(--ui-gauge-accent);
+}
