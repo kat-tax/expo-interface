@@ -92,7 +92,6 @@ export function Screen({
       {fab != null ? (
         <View
           testID="screen-fab"
-          pointerEvents="box-none"
           style={[
             styles.fab,
             Platform.OS === 'web'
@@ -124,6 +123,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: theme.spacing.three,
     bottom: theme.spacing.three,
+    // Only the button takes presses, not the slot it sits in.
+    pointerEvents: 'box-none',
   },
   // react-native-web passes `fixed` through to the CSS; React Native's types do not know it.
   fabFixed: {

@@ -40,7 +40,6 @@ export function Card({
       {card}
       <View
         testID={testID ? `${testID}-overlay` : undefined}
-        pointerEvents="box-none"
         style={[styles.overlay, {padding}]}>
         {overlay}
       </View>
@@ -56,6 +55,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
     bottom: 0,
+    pointerEvents: 'box-none',
     flexDirection: 'row',
     alignItems: 'center',
   },

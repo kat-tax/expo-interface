@@ -3,6 +3,7 @@ import {Stack} from 'expo-router';
 import {Platform} from 'react-native';
 import {ConstrainedStackHeader} from '../stack-header';
 import {StackHeaderContext} from '../stack-header/context';
+import {useHeaderSlot} from '../tabs/context';
 import {useNavTheme} from '../theme';
 
 export interface TabStackProps {
@@ -22,12 +23,18 @@ export interface TabStackProps {
  * so a screen reads the same everywhere — one header, one `headerRight`,
  * one back button — and `Screen` can tell there is a header above it
  * without being told.
+ *
+ * Under a web `Tabs` bar that takes headers, that row is the bar itself: the
+ * header folds into it, and the screen pays the bar's inset as it would with
+ * no header at all.
  */
 export function TabStack({title, headerRight}: TabStackProps) {
   const {colors} = useNavTheme();
+  // Web only: a slot means the header is drawn by the bar above, not here.
+  const folds = useHeaderSlot() !== null;
 
   return (
-    <StackHeaderContext.Provider value={true}>
+    <StackHeaderContext.Provider value={!folds}>
       <Stack
         screenOptions={{
           headerShown: true,

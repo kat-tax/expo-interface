@@ -6,6 +6,7 @@ import {colors, theme} from '../theme';
 import {stackHeaders} from '../__tests__/native';
 import {renderApp} from '../__tests__/router';
 import {ConstrainedStackHeader} from '../stack-header';
+import {HeaderSlotContext, createHeaderSlot} from '../tabs/context';
 import {TabStack} from '.';
 
 const app = {
@@ -37,6 +38,15 @@ describe(`TabStack (${Platform.OS})`, () => {
       expect(screenOptions.headerStyle).toEqual({backgroundColor: colors.light.background});
     }
     expect(children.props).toEqual({name: 'index', options: {title: 'Drops'}});
+  });
+
+  it('leaves the top inset to the screen where the header folds into the bar', async () => {
+    const slot = createHeaderSlot();
+    const {result} = await renderHook(() => TabStack({title: 'Drops'}), {
+      wrapper: ({children}) => <HeaderSlotContext.Provider value={slot}>{children}</HeaderSlotContext.Provider>,
+    });
+    // No header is drawn under the bar, so `Screen` pays the bar's inset itself.
+    expect(result.current.props.value).toBe(false);
   });
 
   it('passes the header trailing slot to the index screen', async () => {

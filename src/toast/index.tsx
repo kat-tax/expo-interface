@@ -24,7 +24,7 @@ export function Toast({message, visible, action, onDismiss, duration = TOAST_DUR
   if (!visible) return null;
 
   return (
-    <View pointerEvents="box-none" style={styles.slot}>
+    <View style={styles.slot}>
       <Surface
         raised
         radius="pill"
@@ -66,6 +66,8 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: spacing.four,
     alignItems: 'center',
+    // The strip spans the screen; only the toast in it takes presses.
+    pointerEvents: 'box-none',
   },
   toast: {
     flexDirection: 'row',

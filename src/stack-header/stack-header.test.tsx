@@ -7,6 +7,7 @@ import {Button} from '../button';
 import {bound} from '../theme';
 import {stackHeaders} from '../__tests__/native';
 import {renderApp} from '../__tests__/router';
+import {HeaderSlotContext, createHeaderSlot} from '../tabs/context';
 import {ConstrainedStackHeader} from '.';
 import {ConstrainedStackHeader as WebStackHeader} from './index.web';
 
@@ -45,6 +46,29 @@ describe(`ConstrainedStackHeader (${Platform.OS})`, () => {
       expect(dom.getByText('Home screen')).toBeInTheDocument();
     });
 
+
+    it('hands its header to a bar slot and draws nothing itself', () => {
+      const slot = createHeaderSlot();
+      const goBack = vi.fn();
+      const {container} = render(
+        <SafeAreaProvider>
+          <HeaderSlotContext.Provider value={slot}>
+            <WebStackHeader
+              navigation={{goBack}}
+              route={{name: 'detail'}}
+              back={{title: 'Drops'}}
+              options={{title: 'Detail', headerRight: () => <Button label="Edit"/>}}
+            />
+          </HeaderSlotContext.Provider>
+        </SafeAreaProvider>,
+      );
+      expect(container.textContent).toBe('');
+      const header = slot.get()!;
+      expect(header.title).toBe('Detail');
+      expect(header.trailing).toBeTruthy();
+      header.onBack!();
+      expect(goBack).toHaveBeenCalledTimes(1);
+    });
 
     it('prefers a string headerTitle and falls back to the route name', () => {
       const goBack = vi.fn();

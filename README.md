@@ -101,11 +101,11 @@ positioning and `<dialog>`.
 | [HeaderMenu](src/header-menu/index.tsx) | Menu for a stack header's trailing slot; survives Android's header re-parenting on a tab switch | ✓ | ✓ | ✓ |
 | [NativeHost](src/host/index.tsx) | Accent-seeded `@expo/ui` host for controls that sit inside a React Native layout | ✓ | ✓ | ✓ |
 | [Surface](src/surface/types.ts) | A box in the theme's colors — a bar, a floating strip, a card, a drop target — drawn in React Native so it can hold what is not native | ✓ | ✓ | ✓ |
-| [Toolbar](src/toolbar/types.ts) | Bar of tools along a canvas: the controls are one native view, with an optional React Native field between the groups | ✓ | ✓ | ✓ |
+| [Toolbar](src/toolbar/types.ts) | Bar of tools along a canvas: the controls are one native view, with an optional React Native field between the groups and a compact density for many tools | ✓ | ✓ | ✓ |
 | [KeyboardBar](src/keyboard/index.tsx) | Bottom bar that sticks to the keyboard and reports its height (`react-native-keyboard-controller`, optional) | ✓ | ✓ | ✓ |
-| [Tabs](src/tabs/types.ts) | Tab bar for `expo-router`: native tabs on iOS and Android, a floating top bar with a logo and action slots on web; can be hidden | ✓ | ✓ | ✓ |
+| [Tabs](src/tabs/types.ts) | Tab bar for `expo-router`: native tabs on iOS and Android, a floating top bar with a logo and action slots on web, which takes the screen's header; can be hidden | ✓ | ✓ | ✓ |
 | [TabStack](src/tab-stack/index.tsx) | Preconfigured `expo-router` stack for the root screen of a tab, with a header trailing slot | ✓ | ✓ | ✓ |
-| [ConstrainedStackHeader](src/stack-header/index.tsx) | Stack header that matches the content max-width on web; `TabStack` uses it there so a screen has a header on every platform | | | ✓ |
+| [ConstrainedStackHeader](src/stack-header/index.tsx) | Stack header that matches the content max-width on web; `TabStack` uses it there so a screen has a header on every platform, and it folds into the tab bar where there is one | | | ✓ |
 | [Sheet](src/sheet/index.tsx) | Bottom sheet that inherits the accent color | ✓ | ✓ | ✓ |
 | [FieldGroup](src/field-group/types.ts) | Scrollable settings form made of titled sections of rows, each with an optional footer note | ✓ | ✓ | ✓ |
 | [ListItem](src/list-item/types.ts) | Tappable row with leading, trailing and supporting text slots and an optional trailing text action | ✓ | ✓ | ✓ |
@@ -328,6 +328,15 @@ a Compose view refuses, so its host is rebuilt on every focus change.
 ```tsx
 <TabStack title="Documents" headerRight={() => <HeaderMenu label="New…" icon={icon.add} items={items}/>}/>
 ```
+
+On web a screen under `Tabs` has one bar over it, not two: `ConstrainedStackHeader`
+hands its title, back button and `headerRight` to the floating tab bar (the
+title where the app's name goes, the trailing slot where `webActions` do) and
+draws nothing itself, so the bar is the screen's header. The bar keeps the
+height of its tabs, and a `HeaderMenu` folded into it drops to their size.
+`Tabs hidden` then hides the tabs rather than the bar, leaving a screen that
+takes the whole display with its title and actions; `webFoldHeader={false}`
+keeps the two rows.
 
 ## Install details
 

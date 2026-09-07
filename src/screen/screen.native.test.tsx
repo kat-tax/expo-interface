@@ -127,11 +127,12 @@ describe(`Screen (${Platform.OS})`, () => {
       );
       const slot = screen.getByTestId('screen-fab');
       expect(screen.getByText('New')).toBeOnTheScreen();
-      expect(slot.props.pointerEvents).toBe('box-none');
       expect(StyleSheet.flatten(slot.props.style)).toMatchObject({
         position: 'absolute',
         right: spacing.three + 4,
         bottom: spacing.three + 34,
+        // Only the button takes presses, not the slot around it.
+        pointerEvents: 'box-none',
       });
       // The slot is a sibling of the content, on top of it.
       const last = parts().safeArea.children?.at(-1);

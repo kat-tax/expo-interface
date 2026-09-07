@@ -41,8 +41,7 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, ch
   return (
     <View
       testID={testID ? `${testID}-bounds` : undefined}
-      pointerEvents="box-none"
-      style={StyleSheet.absoluteFill}
+      style={styles.bounds}
       onLayout={onBounds}>
       {at ? (
         <Surface
@@ -81,6 +80,13 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, ch
 }
 
 const styles = StyleSheet.create({
+  // The measured box covers the screen but takes no presses of its own; only
+  // the card in it does. `pointerEvents` lives in the style, not the prop,
+  // which React Native has deprecated.
+  bounds: {
+    ...StyleSheet.absoluteFill,
+    pointerEvents: 'box-none',
+  },
   card: {
     position: 'absolute',
     gap: spacing.one,

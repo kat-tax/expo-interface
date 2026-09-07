@@ -57,9 +57,11 @@ export function NativeHost({children, style, fit = false, onLayoutContent, point
         // The universal host hugs its content on web as soon as
         // `matchContents` is set at all, on either axis; the default here is
         // a block that fills its container, as it is natively.
-        style={[fit ? null : styles.fill, style]}
+        // Touch handling goes in the style, where React Native has taken it
+        // since 0.71; as a prop it warns on every render on web. Last, so an
+        // explicit `pointerEvents` beats one the caller's own style carries.
+        style={[fit ? null : styles.fill, style, pointerEvents ? {pointerEvents} : null]}
         onLayoutContent={onLayoutContent}
-        pointerEvents={pointerEvents}
         {...hostAccentProps(seed)}>
         {children}
       </Host>

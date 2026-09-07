@@ -22,8 +22,9 @@ describe(`PopupMenu (${Platform.OS})`, () => {
       position: 'absolute',
       left: 120,
       top: 48,
+      // The menu is a window of its own; the anchor takes no touches.
+      pointerEvents: 'box-none',
     });
-    expect(hostView().props.pointerEvents).toBe('box-none');
   });
 
   it('opens with a point and closes without one', async () => {

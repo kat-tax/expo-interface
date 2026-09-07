@@ -3,6 +3,7 @@ import {Platform} from 'react-native';
 import {render as renderDom, screen as dom} from '@testing-library/react';
 import {act, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
+import {InBarContext} from '../tabs/context';
 import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {HeaderMenu} from '.';
 
@@ -32,6 +33,18 @@ describe(`HeaderMenu (${Platform.OS})`, () => {
       expect(trigger).toHaveAttribute('data-testid', 'new');
       expect(dom.getAllByRole('menuitem', {hidden: true}).map(e => e.textContent)).toEqual(['Blank document', 'Import files…']);
       expect(document.querySelector('[style*="--expo-ui-primary-500"]')).toBeNull();
+    });
+
+    it('drops to the bar size when it is folded into the web tab bar', () => {
+      renderDom(
+        <InBarContext.Provider value={true}>
+          <HeaderMenu label="New…" icon={icons.add} items={items}/>
+        </InBarContext.Provider>,
+      );
+      const trigger = dom.getByRole('button', {name: 'New…'});
+      // The bar is the height of its tabs; a header-sized button would grow it.
+      expect(trigger).toHaveClass('ui-button--small');
+      expect(trigger).not.toHaveClass('ui-button--medium');
     });
 
     it('takes the label tone, hides the label and disables', () => {

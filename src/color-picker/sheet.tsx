@@ -223,7 +223,6 @@ function Spectrum({color, onChange}: {color: RGBA; onChange: (next: RGBA) => voi
       <Image source={{uri: SPECTRUM}} style={StyleSheet.absoluteFill} contentFit="fill"/>
       {size.width > 0 ? (
         <View
-          pointerEvents="none"
           style={[
             styles.handle,
             {
@@ -310,14 +309,13 @@ function Slider({label, value, colorAt, checkered, onChange}: SliderProps) {
       onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}
       style={styles.track}>
       {checkered ? <Image source={{uri: CHECKER}} style={StyleSheet.absoluteFill} contentFit="cover"/> : null}
-      <View style={styles.band} pointerEvents="none">
+      <View style={styles.band}>
         {Array.from({length: SEGMENTS}, (_, i) => (
           <View key={i} style={[styles.segment, {backgroundColor: colorAt((i + 0.5) / SEGMENTS)}]}/>
         ))}
       </View>
       {width > 0 ? (
         <View
-          pointerEvents="none"
           style={[styles.thumb, {left: THUMB_INSET + value * travel, backgroundColor: colorAt(value)}]}
         />
       ) : null}
@@ -394,11 +392,13 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#ffffff',
     boxShadow: '0 1px 4px rgba(0, 0, 0, 0.25)',
+    // The drag is the surface's; the marker on it never takes a press.
+    pointerEvents: 'none',
   },
   sliders: {gap: 12},
   sliderRow: {flexDirection: 'row', alignItems: 'center', gap: 12},
   track: {flex: 1, height: TRACK, borderRadius: TRACK / 2, overflow: 'hidden'},
-  band: {position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, flexDirection: 'row'},
+  band: {position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, flexDirection: 'row', pointerEvents: 'none'},
   segment: {flex: 1},
   thumb: {
     position: 'absolute',
@@ -409,6 +409,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#ffffff',
     boxShadow: '0 1px 4px rgba(0, 0, 0, 0.25)',
+    pointerEvents: 'none',
   },
   field: {
     width: 72,

@@ -6,6 +6,7 @@ import {Platform} from 'react-native';
 import {useIsFocused} from 'expo-router';
 import {NativeHost} from '../host';
 import {Menu} from '../menu';
+import {useInBar} from '../tabs/context';
 
 /**
  * A header action is the platform's, not the kit's smallest button: on iOS
@@ -14,6 +15,10 @@ import {Menu} from '../menu';
  */
 const TRIGGER_SIZE = Platform.select<ButtonSize>({ios: 'large', default: 'medium'});
 const TRIGGER_ICON = Platform.select({ios: 22, default: 24});
+
+/** Folded into the web tab bar, the trigger is the bar's size, not a header's. */
+const BAR_SIZE: ButtonSize = 'small';
+const BAR_ICON = 18;
 
 export interface HeaderMenuProps {
   /** Trigger text (kept for accessibility when `hideLabel` is set). */
@@ -63,6 +68,8 @@ export function HeaderMenu(props: HeaderMenuProps) {
 }
 
 function HeaderMenuTrigger({label, icon, items, hideLabel, tone = 'accent', disabled, onOpenChange, testID}: HeaderMenuProps) {
+  // In the bar the menu sits beside the tabs, which are smaller than a header.
+  const inBar = useInBar();
   return (
     <Menu
       label={label}
@@ -73,8 +80,8 @@ function HeaderMenuTrigger({label, icon, items, hideLabel, tone = 'accent', disa
       disabled={disabled}
       onOpenChange={onOpenChange}
       variant="text"
-      size={TRIGGER_SIZE}
-      iconSize={TRIGGER_ICON}
+      size={inBar ? BAR_SIZE : TRIGGER_SIZE}
+      iconSize={inBar ? BAR_ICON : TRIGGER_ICON}
       testID={testID}
     />
   );

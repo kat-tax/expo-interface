@@ -1,8 +1,9 @@
 import type {TabRoute} from './types';
 import {Platform, Text} from 'react-native';
-import {fireEvent, screen as dom, waitFor} from '@testing-library/react';
+import {act, fireEvent, screen as dom, waitFor} from '@testing-library/react';
 import {screen} from '@testing-library/react-native';
 import Constants from 'expo-constants';
+import {router} from 'expo-router';
 import {colors} from '../theme';
 import {nodes} from '../__tests__/native';
 import {renderApp} from '../__tests__/router';
@@ -19,6 +20,20 @@ const app = async (props: Record<string, any> = {}) => {
   return {
     _layout: () => <Tabs routes={routes} {...props}/>,
     index: () => <Text>Home screen</Text>,
+    settings: () => <Text>Settings screen</Text>,
+  };
+};
+
+/** A tab holding a `TabStack`, whose screens hand their header to the bar. */
+const stackApp = async (props: Record<string, any> = {}) => {
+  const {Tabs} = await import('.');
+  const {TabStack} = await import('../tab-stack');
+  const stacked: TabRoute[] = [{...routes[0], href: '/home', name: 'home'}, routes[1]];
+  return {
+    _layout: () => <Tabs routes={stacked} {...props}/>,
+    'home/_layout': () => <TabStack title="Drops" headerRight={() => <Text testID="new">New…</Text>}/>,
+    'home/index': () => <Text>Home screen</Text>,
+    'home/detail': () => <Text>Detail screen</Text>,
     settings: () => <Text>Settings screen</Text>,
   };
 };
@@ -75,9 +90,8 @@ describe(`Tabs (${Platform.OS})`, () => {
         await renderApp(await app({hidden: true}));
         const links = dom.getAllByRole('link', {hidden: true});
         expect(links).toHaveLength(2);
-        // The list (the links' grandparent) is display: none; the active screen still renders.
-        const list = links[0].parentElement!.parentElement!;
-        expect(getComputedStyle(list).display).toBe('none');
+        // The bar is display: none; the routes stay in it and the active screen renders.
+        expect(getComputedStyle(dom.getByTestId('tab-bar')).display).toBe('none');
         expect(dom.getByText('Home screen')).toBeInTheDocument();
       });
 
@@ -102,6 +116,56 @@ describe(`Tabs (${Platform.OS})`, () => {
         const style = getComputedStyle(logo);
         expect(style.flexShrink).toBe('1');
         expect(style.minWidth).toBe('0px');
+      });
+
+      it('folds a tab screen header into the bar instead of drawing one under it', async () => {
+        await renderApp(await stackApp(), '/home');
+        const bar = dom.getByTestId('tab-bar');
+        // The title and the trailing slot are the bar's; there is no second row.
+        expect(bar.contains(dom.getByText('Drops'))).toBe(true);
+        expect(bar.contains(dom.getByTestId('new'))).toBe(true);
+        expect(dom.getAllByText('Drops')).toHaveLength(1);
+        // The title takes the app name's place; a mark beside it would stay.
+        expect(dom.queryByText(appName)).toBeNull();
+        expect(dom.getByText('Home screen')).toBeInTheDocument();
+      });
+
+      it('keeps one height whatever a screen folds into it', async () => {
+        await renderApp(await stackApp(), '/home');
+        expect(getComputedStyle(dom.getByTestId('tab-bar-row')).height).toBe('56px');
+      });
+
+      it('gives a pushed screen a back button in the bar', async () => {
+        await renderApp(await stackApp(), '/home');
+        expect(dom.queryByLabelText('Go back')).toBeNull();
+        await act(async () => router.push('/home/detail'));
+        const bar = dom.getByTestId('tab-bar');
+        expect(bar.contains(dom.getByText('detail'))).toBe(true);
+        const back = dom.getByLabelText('Go back');
+        expect(bar.contains(back)).toBe(true);
+
+        // It dims while it is held, like the bar's own links.
+        fireEvent.mouseDown(back);
+        await waitFor(() => expect(getComputedStyle(back).opacity).toBe('0.7'));
+        fireEvent.mouseUp(back);
+        expect(getComputedStyle(back).opacity).not.toBe('0.7');
+
+        fireEvent.click(back);
+        expect(dom.queryByText('detail')).toBeNull();
+        expect(dom.getByText('Drops')).toBeInTheDocument();
+      });
+
+      it('keeps the bar as the header while the tabs are hidden', async () => {
+        await renderApp(await stackApp({hidden: true}), '/home');
+        expect(getComputedStyle(dom.getByTestId('tab-bar')).display).not.toBe('none');
+        expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).toBe('none');
+        expect(dom.getByTestId('tab-bar').contains(dom.getByText('Drops'))).toBe(true);
+      });
+
+      it('leaves the header to the screen when the fold is off', async () => {
+        await renderApp(await stackApp({webFoldHeader: false}), '/home');
+        expect(dom.getByTestId('tab-bar').contains(dom.getByText('Drops'))).toBe(false);
+        expect(dom.getByText(appName)).toBeInTheDocument();
       });
 
       it('dims a link while it is pressed', async () => {

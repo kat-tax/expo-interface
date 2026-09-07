@@ -23,7 +23,7 @@ export type {NativeHostProps} from './host';
 export {Surface} from './surface';
 export type {SurfaceBorder, SurfaceColor, SurfaceProps} from './surface/types';
 export {Toolbar} from './toolbar';
-export type {ToolbarPlacement, ToolbarProps} from './toolbar/types';
+export type {ToolbarDensity, ToolbarPlacement, ToolbarProps} from './toolbar/types';
 export {Sheet} from './sheet';
 export {ConstrainedStackHeader} from './stack-header';
 export {TabStack} from './tab-stack';

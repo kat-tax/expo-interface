@@ -54,8 +54,9 @@ describe(`Card (${Platform.OS})`, () => {
       right: 0,
       bottom: 0,
       padding: 16,
+      // In the style, where React Native takes it; the prop is deprecated.
+      pointerEvents: 'box-none',
     });
-    expect(overlay.props.pointerEvents).toBe('box-none');
     // Pressing the star does not press the card.
     await fireEvent.press(screen.getByText('Star'));
     expect(onStar).toHaveBeenCalledTimes(1);

@@ -1,4 +1,4 @@
-import {Platform} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import {render as renderDom, screen as dom} from '@testing-library/react';
 import {render} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
@@ -34,7 +34,7 @@ describe(`NativeHost (${Platform.OS})`, () => {
     const hostView = nodes().find(n => n.type === HOST)!;
     // A block that fills its container, since `@expo/ui`'s host hugs its
     // content on web as soon as `matchContents` is set on either axis.
-    expect(hostView.props.style).toEqual([{alignSelf: 'stretch'}, {margin: 4}]);
+    expect(StyleSheet.flatten(hostView.props.style)).toEqual({alignSelf: 'stretch', margin: 4});
     // Both native hosts split `matchContents` into one prop per axis.
     expect(hostView.props.matchContentsVertical).toBe(true);
     expect(hostView.props.matchContentsHorizontal).toBeUndefined();
