@@ -17,10 +17,17 @@ export interface CardProps extends PropsWithChildren {
   footer?: ReactNode;
   /**
    * Controls floated over the card's trailing edge, level with the footer —
-   * a star, a menu. Outside the card's press target, so they take their own
+   * a menu, a count. Outside the card's press target, so they take their own
    * presses (and are real sibling buttons on web).
    */
   overlay?: ReactNode;
+  /**
+   * Controls floated over the card's top trailing corner, where the body's
+   * picture is — a star, a status chip. The same slot as `overlay` at the
+   * other end of the card, and a card may carry both; keep it drawn rather
+   * than revealed, since a phone has no hover to reveal it with.
+   */
+  badge?: ReactNode;
   /** Called when the card is pressed. */
   onPress?: () => void;
   /** Called on a long press (a context menu). */

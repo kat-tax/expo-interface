@@ -20,6 +20,32 @@ describe(`NativeHost (${Platform.OS})`, () => {
       expect(hostView.style.getPropertyValue('--expo-ui-primary-500')).not.toBe('');
       expect(dom.getByRole('switch')).toBeTruthy();
     });
+
+    it('hugs its content by size, leaving the alignment to the row it is in', () => {
+      const {container} = renderDom(<NativeHost fit/>);
+      const style = getComputedStyle(container.firstElementChild!);
+      // The universal host hugs with `align-self: flex-start`, which also
+      // pins it to the top of a row that centres its children — where iOS and
+      // Android centre it. A definite cross size hugs without saying where:
+      // measured in Chromium, this sits at y 15..42 of a 56-high centred row
+      // where `flex-start` sat at 0..27, and is still unstretched (0..27,
+      // 27 high) in a row with no alignment of its own.
+      expect(style.alignSelf).toBe('auto');
+      expect(style.width).toBe('fit-content');
+      expect(style.height).toBe('fit-content');
+    });
+
+    it('fills its container across the axis it does not hug', () => {
+      const {container} = renderDom(<NativeHost/>);
+      // Without `fit` the host is a block, as it is natively, so the universal
+      // host's hug has to be undone rather than replaced.
+      expect(getComputedStyle(container.firstElementChild!).alignSelf).toBe('stretch');
+    });
+
+    it('lets a caller place it themselves', () => {
+      const {container} = renderDom(<NativeHost fit style={{alignSelf: 'flex-end'}}/>);
+      expect(getComputedStyle(container.firstElementChild!).alignSelf).toBe('flex-end');
+    });
     return;
   }
 

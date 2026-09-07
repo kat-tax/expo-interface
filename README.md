@@ -109,7 +109,7 @@ positioning and `<dialog>`.
 | [Sheet](src/sheet/index.tsx) | Bottom sheet that inherits the accent color | ✓ | ✓ | ✓ |
 | [FieldGroup](src/field-group/types.ts) | Scrollable settings form made of titled sections of rows, each with an optional footer note | ✓ | ✓ | ✓ |
 | [ListItem](src/list-item/types.ts) | Tappable row with leading, trailing and supporting text slots and an optional trailing text action | ✓ | ✓ | ✓ |
-| [Card](src/card/types.ts) | Pressable surface with header, body, footer and overlay slots | ✓ | ✓ | ✓ |
+| [Card](src/card/types.ts) | Pressable surface with header, body, footer, and floating badge and overlay slots outside its press target | ✓ | ✓ | ✓ |
 | [Fab](src/fab/types.ts) | Floating action button: Material 3 on Android, drawn in SwiftUI on iOS, a DOM button on web; can open a menu | ✓ | ✓ | ✓ |
 | [Collapsible](src/collapsible/types.ts) | Row that expands and collapses its content | ✓ | ✓ | ✓ |
 | [Divider](src/divider/types.ts) | Horizontal or vertical hairline separator | ✓ | ✓ | ✓ |
@@ -330,13 +330,18 @@ a Compose view refuses, so its host is rebuilt on every focus change.
 ```
 
 On web a screen under `Tabs` has one bar over it, not two: `ConstrainedStackHeader`
-hands its title, back button and `headerRight` to the floating tab bar (the
-title where the app's name goes, the trailing slot where `webActions` do) and
-draws nothing itself, so the bar is the screen's header. The bar keeps the
-height of its tabs, and a `HeaderMenu` folded into it drops to their size.
-`Tabs hidden` then hides the tabs rather than the bar, leaving a screen that
-takes the whole display with its title and actions; `webFoldHeader={false}`
-keeps the two rows.
+hands its header to the floating tab bar and draws nothing itself, so the bar
+is the screen's header. A pushed screen hands over all of it — the back button
+in the mark's place, the title where the app's name goes, `headerRight` where
+`webActions` go. A tab's own screen hands over `headerRight` alone and keeps
+its title, since the tab beside it in the bar is already saying it. Only the
+focused screen's header is in the bar, so returning to a tab does not find the
+one you left there.
+
+The bar keeps the height of its tabs, and a `HeaderMenu` folded into it drops
+to their size. `Tabs hidden` hides the tabs rather than the bar while a pushed
+screen's header is folded in, leaving a screen that takes the whole display
+with its title and the way back; `webFoldHeader={false}` keeps the two rows.
 
 ## Install details
 

@@ -69,6 +69,55 @@ describe('PopupMenu (web)', () => {
     expect(menu.style.getPropertyValue('position-anchor')).toBe(anchor.style.getPropertyValue('anchor-name'));
   });
 
+  it('waits for the press that raised it to end before opening', () => {
+    const {rerender} = render(<PopupMenu items={items} at={null} testID="popup"/>);
+
+    // A context menu is raised from the right button going down. The browser
+    // settled what that press dismisses at `pointerdown`, so a popup shown
+    // while it is still held is hidden again by the release.
+    document.dispatchEvent(new Event('pointerdown'));
+    rerender(<PopupMenu items={items} at={{x: 120, y: 48}} testID="popup"/>);
+    expect(showPopover).not.toHaveBeenCalled();
+
+    document.dispatchEvent(new Event('pointerup'));
+    expect(showPopover).toHaveBeenCalledTimes(1);
+
+    // And the wait is over: the next press dismisses it like any other.
+    document.dispatchEvent(new Event('pointerup'));
+    expect(showPopover).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives up the wait when the pointer is cancelled, and when the point is', () => {
+    const {rerender} = render(<PopupMenu items={items} at={null} testID="popup"/>);
+    document.dispatchEvent(new Event('pointerdown'));
+    rerender(<PopupMenu items={items} at={{x: 1, y: 1}} testID="popup"/>);
+    document.dispatchEvent(new Event('pointercancel'));
+    expect(showPopover).toHaveBeenCalledTimes(1);
+
+    // A point cleared while the press is still held leaves nothing waiting.
+    const second = render(<PopupMenu items={items} at={null} testID="second"/>);
+    document.dispatchEvent(new Event('pointerdown'));
+    second.rerender(<PopupMenu items={items} at={{x: 2, y: 2}} testID="second"/>);
+    second.rerender(<PopupMenu items={items} at={null} testID="second"/>);
+    document.dispatchEvent(new Event('pointerup'));
+    expect(showPopover).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens straight away when nothing is being pressed', () => {
+    const {rerender} = render(<PopupMenu items={items} at={null} testID="popup"/>);
+    rerender(<PopupMenu items={items} at={{x: 3, y: 3}} testID="popup"/>);
+    expect(showPopover).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves an open popup up while the point moves under it', () => {
+    const {rerender} = render(<PopupMenu items={items} at={{x: 1, y: 1}} testID="popup"/>);
+    expect(showPopover).toHaveBeenCalledTimes(1);
+    rerender(<PopupMenu items={items} at={{x: 2, y: 2}} testID="popup"/>);
+    // The anchor follows the point; the popup is already up, so it stays up.
+    expect(screen.getByTestId('popup').style.left).toBe('2px');
+    expect(showPopover).toHaveBeenCalledTimes(1);
+  });
+
   it('closes the popup when the point is cleared', () => {
     const {rerender} = render(<PopupMenu items={items} at={{x: 10, y: 10}} testID="popup"/>);
     expect(showPopover).toHaveBeenCalledTimes(1);

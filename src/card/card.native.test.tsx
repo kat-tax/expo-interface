@@ -62,6 +62,46 @@ describe(`Card (${Platform.OS})`, () => {
     expect(onStar).toHaveBeenCalledTimes(1);
   });
 
+  it('floats a badge over the other end, and carries both at once', async () => {
+    const onStar = vi.fn();
+    const onCard = vi.fn();
+    await render(
+      <Card
+        onPress={onCard}
+        padding={16}
+        badge={<Text onPress={onStar}>Star</Text>}
+        overlay={<Text>More</Text>}
+        footer={<Text>Yesterday</Text>}
+        testID="card">
+        <Text>Preview</Text>
+      </Card>,
+    );
+    // The badge is at the top of the same trailing edge the overlay is at the
+    // bottom of, so a card can carry a star over its picture and a menu below.
+    expect(StyleSheet.flatten(screen.getByTestId('card-badge').props.style)).toMatchObject({
+      position: 'absolute',
+      right: 0,
+      top: 0,
+      padding: 16,
+      pointerEvents: 'box-none',
+    });
+    expect(StyleSheet.flatten(screen.getByTestId('card-overlay').props.style)).toMatchObject({bottom: 0});
+
+    await fireEvent.press(screen.getByText('Star'));
+    expect(onStar).toHaveBeenCalledTimes(1);
+    expect(onCard).not.toHaveBeenCalled();
+  });
+
+  it('carries a badge on its own, with nothing down by the footer', async () => {
+    await render(
+      <Card badge={<Text>Star</Text>}>
+        <Text>Preview</Text>
+      </Card>,
+    );
+    expect(screen.getByText('Star')).toBeOnTheScreen();
+    expect(screen.queryByTestId('card-overlay')).toBeNull();
+  });
+
   it('needs no testID for its overlay', async () => {
     await render(<Card overlay={<Text>Star</Text>}><Text>Preview</Text></Card>);
     expect(screen.getByText('Star')).toBeOnTheScreen();

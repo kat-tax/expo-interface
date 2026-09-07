@@ -23,8 +23,10 @@ export interface PopupMenuProps {
    */
   at: MenuPoint | null;
   /**
-   * Keeps only the entries whose label contains this text, for a menu typed
-   * into (a slash command). Case-insensitive; an empty string keeps them all.
+   * Keeps only the entries this text finds, for a menu typed into (a slash
+   * command): the ones whose label contains it, and the ones that answer to
+   * it by one of their `keywords`. Case-insensitive; an empty string keeps
+   * them all.
    */
   filter?: string;
   /** Called when the menu closes, so the caller can clear `at`. */
@@ -37,5 +39,11 @@ export interface PopupMenuProps {
 export function filterItems(items: MenuItem[], filter?: string): MenuItem[] {
   const query = filter?.trim().toLowerCase();
   if (!query) return items;
-  return items.filter(item => item.label.toLowerCase().includes(query));
+  return items.filter(item => answersTo(item, query));
+}
+
+/** Whether one entry is found by a query, by its label or by its keywords. */
+function answersTo(item: MenuItem, query: string): boolean {
+  if (item.label.toLowerCase().includes(query)) return true;
+  return item.keywords?.some(word => word.toLowerCase().includes(query)) ?? false;
 }

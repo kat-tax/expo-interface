@@ -118,16 +118,41 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(style.minWidth).toBe('0px');
       });
 
-      it('folds a tab screen header into the bar instead of drawing one under it', async () => {
+      it('takes a root screen trailing slot but leaves its title to the tab', async () => {
         await renderApp(await stackApp(), '/home');
         const bar = dom.getByTestId('tab-bar');
-        // The title and the trailing slot are the bar's; there is no second row.
-        expect(bar.contains(dom.getByText('Drops'))).toBe(true);
+        // The screen's `headerRight` folds in; there is no second row for it.
         expect(bar.contains(dom.getByTestId('new'))).toBe(true);
-        expect(dom.getAllByText('Drops')).toHaveLength(1);
-        // The title takes the app name's place; a mark beside it would stay.
-        expect(dom.queryByText(appName)).toBeNull();
+        // Its title does not: the tab beside it in the bar already says it, so
+        // the logo slot stays the app's.
+        expect(dom.queryByText('Drops')).toBeNull();
+        expect(bar.contains(dom.getByText(appName))).toBe(true);
         expect(dom.getByText('Home screen')).toBeInTheDocument();
+      });
+
+      it('folds a pushed screen header in, title and all', async () => {
+        await renderApp(await stackApp(), '/home');
+        await act(async () => router.push('/home/detail'));
+        const bar = dom.getByTestId('tab-bar');
+        // The title takes the app name's place, once, in the bar alone.
+        expect(bar.contains(dom.getByText('detail'))).toBe(true);
+        expect(dom.getAllByText('detail')).toHaveLength(1);
+        expect(dom.queryByText(appName)).toBeNull();
+        expect(dom.getByText('Detail screen')).toBeInTheDocument();
+      });
+
+      it('lets go of a header when its tab loses focus', async () => {
+        await renderApp(await stackApp(), '/home');
+        await act(async () => router.push('/home/detail'));
+        expect(dom.getByTestId('tab-bar').textContent).toContain('detail');
+
+        // The tab the user leaves does not render again, so a header published
+        // on render alone would stay in the bar over the tab they moved to.
+        await act(async () => router.push('/settings'));
+        expect(dom.getByText('Settings screen')).toBeInTheDocument();
+        expect(dom.getByTestId('tab-bar').textContent).not.toContain('detail');
+        expect(dom.queryByLabelText('Go back')).toBeNull();
+        expect(dom.getByText(appName)).toBeInTheDocument();
       });
 
       it('keeps one height whatever a screen folds into it', async () => {
@@ -150,16 +175,24 @@ describe(`Tabs (${Platform.OS})`, () => {
         fireEvent.mouseUp(back);
         expect(getComputedStyle(back).opacity).not.toBe('0.7');
 
+        // Back on the tab's own screen the bar is the logo's again.
         fireEvent.click(back);
         expect(dom.queryByText('detail')).toBeNull();
-        expect(dom.getByText('Drops')).toBeInTheDocument();
+        expect(dom.getByText(appName)).toBeInTheDocument();
+        expect(dom.getByText('Home screen')).toBeInTheDocument();
       });
 
       it('keeps the bar as the header while the tabs are hidden', async () => {
         await renderApp(await stackApp({hidden: true}), '/home');
+        // Nothing is folded in yet, so `hidden` hides the bar outright.
+        expect(getComputedStyle(dom.getByTestId('tab-bar')).display).toBe('none');
+
+        // A pushed screen's header keeps it: the way back is in it.
+        await act(async () => router.push('/home/detail'));
         expect(getComputedStyle(dom.getByTestId('tab-bar')).display).not.toBe('none');
         expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).toBe('none');
-        expect(dom.getByTestId('tab-bar').contains(dom.getByText('Drops'))).toBe(true);
+        expect(dom.getByTestId('tab-bar').contains(dom.getByText('detail'))).toBe(true);
+        expect(dom.getByLabelText('Go back')).toBeInTheDocument();
       });
 
       it('leaves the header to the screen when the fold is off', async () => {

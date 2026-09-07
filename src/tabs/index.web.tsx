@@ -26,11 +26,13 @@ export function Tabs({
   // One slot per bar, built once: the headers below publish into it.
   const [store] = useState(createHeaderSlot);
   const slot = webFoldHeader ? store : null;
-  // Only whether a header is folded in, not which: the bar reads that itself,
-  // so a screen's own re-render never re-renders the screens. The same reader
-  // answers a static render, where no header has published — publishing is an
-  // effect, and effects do not run there.
-  const isFolded = () => (slot ? slot.get() !== null : false);
+  // Only whether a pushed screen's header is folded in, not which: the bar
+  // reads that itself, so a screen's own re-render never re-renders the
+  // screens. The same reader answers a static render, where no header has
+  // published — publishing is an effect, and effects do not run there.
+  // A tab's own screen folds in a trailing slot at most, which is no reason to
+  // keep a hidden bar: without a back button in it there would be no way out.
+  const isFolded = () => slot?.get()?.title != null;
   const folded = useSyncExternalStore(slot ? slot.subscribe : noSubscription, isFolded, isFolded);
   // The bar stays while it carries a screen's header, even with the tabs hidden.
   const shown = !hidden || folded;
@@ -77,10 +79,12 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
   const isPreset = typeof logo === 'string';
   const isTextOnly = logo === 'text-only';
   const isIconOnly = logo === 'icon-only';
-  // A folded header owns both ends of the bar: its title in the logo slot,
-  // where the app's name would be, and its trailing content where the bar's
-  // own actions would be. A pushed screen's back button takes the mark's
-  // place; a root screen keeps the mark beside its title.
+  // A pushed screen owns both ends of the bar: its back button in the mark's
+  // place and its title where the app's name goes, and its trailing content
+  // where the bar's own actions would be. A tab's own screen folds in the
+  // trailing content alone and leaves the logo slot to `webLogo`, since the
+  // tab beside it is already its title.
+  const title = header?.title;
   const trailing = header?.trailing ?? actions;
   const mark = isPreset
     ? !isTextOnly && icon != null && (
@@ -90,15 +94,15 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
         contentFit="contain"
       />
     )
-    : !header && logo;
+    : title == null && logo;
   return (
     <View {...props} testID="tab-bar" style={[styles.list, !shown && styles.hidden]}>
       <View testID="tab-bar-row" style={styles.inner}>
         <View style={styles.logo}>
           {header?.onBack ? <BackButton onPress={header.onBack}/> : mark}
-          {header ? (
+          {title != null ? (
             <Headline color="label" numberOfLines={1} style={styles.title}>
-              {header.title}
+              {title}
             </Headline>
           ) : isPreset && !isIconOnly ? (
             <Headline color="label">

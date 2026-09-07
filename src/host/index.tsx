@@ -1,7 +1,7 @@
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {createContext, useContext} from 'react';
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import {Host} from '@expo/ui';
 import {useAccentSeed} from '../accent';
 import {hostAccentProps} from '../screen/host-accent';
@@ -60,7 +60,7 @@ export function NativeHost({children, style, fit = false, onLayoutContent, point
         // Touch handling goes in the style, where React Native has taken it
         // since 0.71; as a prop it warns on every render on web. Last, so an
         // explicit `pointerEvents` beats one the caller's own style carries.
-        style={[fit ? null : styles.fill, style, pointerEvents ? {pointerEvents} : null]}
+        style={[fit ? styles.fit : styles.fill, style, pointerEvents ? {pointerEvents} : null]}
         onLayoutContent={onLayoutContent}
         {...hostAccentProps(seed)}>
         {children}
@@ -71,4 +71,17 @@ export function NativeHost({children, style, fit = false, onLayoutContent, point
 
 const styles = StyleSheet.create({
   fill: {alignSelf: 'stretch'},
+  /**
+   * Hugging the content is `align-self: flex-start` in the universal host,
+   * which also decides where the host sits: a row that centres its children
+   * left this one at the top, where iOS and Android centre it. Sizing to the
+   * content says the same thing without taking the alignment — a definite
+   * cross size is never stretched, so a parent with an alignment of its own
+   * gets to use it, and one without still gets a box the size of its content.
+   * `fit-content` is CSS react-native-web passes through; the platform
+   * toolkits size the host themselves, so there is nothing to say natively.
+   */
+  fit: Platform.OS === 'web'
+    ? {alignSelf: 'auto', width: 'fit-content' as 'auto', height: 'fit-content' as 'auto'}
+    : {},
 });

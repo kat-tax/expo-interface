@@ -29,8 +29,13 @@ export function useInBar(): boolean {
 
 /** A screen's header, as the web tab bar draws it — see {@link HeaderSlot}. */
 export interface WebHeader {
-  /** The screen's title, in the bar's logo slot. */
-  title: string;
+  /**
+   * A pushed screen's title, which takes the bar's logo slot along with the
+   * back button beside it. Both are set together, or neither is: a tab's own
+   * screen leaves the slot to `webLogo`, since its title is the tab next to
+   * it and the bar would be saying it twice.
+   */
+  title?: string;
   /** Set on a pushed screen: a back button before the title. */
   onBack?: () => void;
   /** The screen's `headerRight`, in the bar's actions slot. */

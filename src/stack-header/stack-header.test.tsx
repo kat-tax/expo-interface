@@ -47,27 +47,41 @@ describe(`ConstrainedStackHeader (${Platform.OS})`, () => {
     });
 
 
-    it('hands its header to a bar slot and draws nothing itself', () => {
+    it('hands its header to a bar slot and draws nothing itself', async () => {
       const slot = createHeaderSlot();
-      const goBack = vi.fn();
-      const {container} = render(
-        <SafeAreaProvider>
+      // The header publishes only while its screen is the focused one, so it
+      // needs the navigator it always has in place of a bare render.
+      await renderApp({
+        ...app,
+        _layout: () => (
           <HeaderSlotContext.Provider value={slot}>
-            <WebStackHeader
-              navigation={{goBack}}
-              route={{name: 'detail'}}
-              back={{title: 'Drops'}}
-              options={{title: 'Detail', headerRight: () => <Button label="Edit"/>}}
-            />
+            <Stack screenOptions={{headerShown: true, header: ConstrainedStackHeader}}>
+              <Stack.Screen name="index" options={{title: 'Drops', headerRight: () => <Button label="New"/>}}/>
+              <Stack.Screen
+                name="detail"
+                options={{title: 'Detail', headerRight: () => <Button label="Edit"/>}}
+              />
+            </Stack>
           </HeaderSlotContext.Provider>
-        </SafeAreaProvider>,
-      );
-      expect(container.textContent).toBe('');
+        ),
+      });
+
+      // A tab's own screen hands over its trailing slot and keeps its title.
+      expect(dom.queryByText('Drops')).toBeNull();
+      expect(slot.get()!.title).toBeUndefined();
+      expect(slot.get()!.trailing).toBeTruthy();
+
+      // A pushed screen hands over all three, and still draws none of them.
+      act(() => router.push('/detail'));
+      expect(dom.queryByText('Detail')).toBeNull();
+      expect(dom.getByText('Detail screen')).toBeInTheDocument();
       const header = slot.get()!;
       expect(header.title).toBe('Detail');
       expect(header.trailing).toBeTruthy();
-      header.onBack!();
-      expect(goBack).toHaveBeenCalledTimes(1);
+
+      act(() => header.onBack!());
+      expect(dom.getByText('Home screen')).toBeInTheDocument();
+      expect(slot.get()!.title).toBeUndefined();
     });
 
     it('prefers a string headerTitle and falls back to the route name', () => {

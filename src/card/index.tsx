@@ -2,12 +2,13 @@ import type {CardProps} from './types';
 import {StyleSheet, View} from 'react-native';
 import {Surface} from '../surface';
 
-/** A pressable surface with header, body, footer and overlay slots. */
+/** A pressable surface with header, body, footer and two floating slots. */
 export function Card({
   children,
   header,
   footer,
   overlay,
+  badge,
   onPress,
   onLongPress,
   label,
@@ -33,16 +34,27 @@ export function Card({
     </Surface>
   );
 
-  if (!overlay) return card;
+  if (!overlay && !badge) return card;
 
+  // Both slots are siblings of the card rather than children of it: what they
+  // hold is a button, and a button cannot be nested in the card's own.
   return (
     <View style={styles.stack}>
       {card}
-      <View
-        testID={testID ? `${testID}-overlay` : undefined}
-        style={[styles.overlay, {padding}]}>
-        {overlay}
-      </View>
+      {badge ? (
+        <View
+          testID={testID ? `${testID}-badge` : undefined}
+          style={[styles.float, styles.badge, {padding}]}>
+          {badge}
+        </View>
+      ) : null}
+      {overlay ? (
+        <View
+          testID={testID ? `${testID}-overlay` : undefined}
+          style={[styles.float, styles.overlay, {padding}]}>
+          {overlay}
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -51,12 +63,15 @@ const styles = StyleSheet.create({
   stack: {
     position: 'relative',
   },
-  overlay: {
+  // What the two floating slots share: the card's trailing edge, taking no
+  // presses of their own so the card behind keeps the rest of its face.
+  float: {
     position: 'absolute',
     right: 0,
-    bottom: 0,
     pointerEvents: 'box-none',
     flexDirection: 'row',
     alignItems: 'center',
   },
+  overlay: {bottom: 0},
+  badge: {top: 0},
 });

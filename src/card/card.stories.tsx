@@ -71,6 +71,39 @@ export const WithOverlay: Story = {
   ),
 };
 
+export const WithABadge: Story = {
+  parameters: {docs: {description: {story: 'The two floating slots at once: a star over the picture in `badge`, the menu level with the footer in `overlay`. Both sit outside the card\'s press target, and both stay drawn — a phone has no hover to reveal them with.'}}},
+  render: args => (
+    <View style={styles.column}>
+      <Card
+        {...args}
+        badge={<IconToggle label="Favourite" icon={icons.star} value onValueChange={fn()}/>}
+        overlay={
+          <NativeHost fit>
+            <Menu
+              label="More"
+              icon={icons.settings}
+              hideLabel
+              variant="text"
+              size="small"
+              items={[{label: 'Rename'}, {label: 'Delete', role: 'destructive'}]}
+            />
+          </NativeHost>
+        }
+        footer={
+          <View>
+            <Headline color="label">Holiday photos</Headline>
+            <Caption color="secondaryLabel">Edited yesterday</Caption>
+          </View>
+        }>
+        <View style={styles.preview}>
+          <Footnote color="tertiaryLabel">Preview</Footnote>
+        </View>
+      </Card>
+    </View>
+  ),
+};
+
 export const Disabled: Story = {
   args: {disabled: true},
 };

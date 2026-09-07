@@ -27,6 +27,13 @@ export interface MenuItem {
   role?: 'default' | 'destructive';
   /** Greys the item out and ignores presses. */
   disabled?: boolean;
+  /**
+   * Extra words the entry answers to when the menu is filtered — a synonym,
+   * an abbreviation, what the same thing is called elsewhere. Never drawn,
+   * and only read by `PopupMenu`'s `filter`: `todo` finds a task list, `h1` a
+   * heading.
+   */
+  keywords?: string[];
   /** Draw a separator above this item. */
   separator?: boolean;
   /** Called when the item is selected; the menu then closes. */
