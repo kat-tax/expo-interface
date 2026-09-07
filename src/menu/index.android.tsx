@@ -15,20 +15,24 @@ const SWATCH_SIZE = 16;
  * dot), a trailing check when active; destructive items use the theme
  * danger color.
  */
-export function Menu({label, icon, items, testID, trigger: _trigger, ...button}: MenuProps) {
+export function Menu({label, icon, items, testID, trigger: _trigger, onOpenChange, ...button}: MenuProps) {
   const [expanded, setExpanded] = useState(false);
+  const setOpen = (open: boolean) => {
+    setExpanded(open);
+    onOpenChange?.(open);
+  };
   return (
-    <DropdownMenu expanded={expanded} onDismissRequest={() => setExpanded(false)}>
+    <DropdownMenu expanded={expanded} onDismissRequest={() => setOpen(false)}>
       <DropdownMenu.Trigger>
         <Button
           {...button}
           label={label}
           prefixIcon={icon}
-          onPress={() => setExpanded(true)}
+          onPress={() => setOpen(true)}
           testID={testID}
         />
       </DropdownMenu.Trigger>
-      <MenuItems items={items} onClose={() => setExpanded(false)}/>
+      <MenuItems items={items} onClose={() => setOpen(false)}/>
     </DropdownMenu>
   );
 }

@@ -8,6 +8,7 @@ describe('button shared helpers', () => {
   });
 
   it('maps sizes and shapes onto SwiftUI modifiers', () => {
+    expect(swiftControlSize('inline')).toBe('small');
     expect(swiftControlSize('small')).toBe('small');
     expect(swiftControlSize('medium')).toBe('regular');
     expect(swiftControlSize('large')).toBe('large');
@@ -17,6 +18,9 @@ describe('button shared helpers', () => {
   });
 
   it('tightens the leading padding of Compose buttons that carry an icon', () => {
+    // The bar size has no padding at all, icon or not.
+    expect(androidContentPadding('inline')).toEqual({start: 0, top: 0, end: 0, bottom: 0});
+    expect(androidContentPadding('inline', true)).toEqual({start: 0, top: 0, end: 0, bottom: 0});
     expect(androidContentPadding('small')).toEqual({start: 16, top: 6, end: 16, bottom: 6});
     expect(androidContentPadding('small', true)).toEqual({start: 12, top: 6, end: 16, bottom: 6});
     expect(androidContentPadding('medium')).toEqual({start: 24, top: 10, end: 24, bottom: 10});

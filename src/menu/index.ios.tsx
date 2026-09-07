@@ -2,8 +2,8 @@ import type {MenuItem, MenuProps} from './types';
 import type {ViewModifier} from '@expo/ui/swift-ui/modifiers';
 
 import {Fragment} from 'react';
-import {Button, Divider, Menu as SwiftUIMenu, Toggle} from '@expo/ui/swift-ui';
-import {buttonBorderShape, buttonStyle, controlSize, disabled as disabledMod, labelStyle, tint} from '@expo/ui/swift-ui/modifiers';
+import {Button, Divider, Image, Menu as SwiftUIMenu, Toggle} from '@expo/ui/swift-ui';
+import {accessibilityLabel, buttonBorderShape, buttonStyle, controlSize, disabled as disabledMod, labelStyle, tint} from '@expo/ui/swift-ui/modifiers';
 import {iosSymbol, swiftBorderShape, swiftControlSize} from '../button/shared';
 import {useColor} from '../theme';
 
@@ -28,6 +28,7 @@ export function Menu({
   shape,
   color,
   tone = 'accent',
+  iconSize,
   hideLabel,
   disabled,
   testID,
@@ -40,14 +41,21 @@ export function Menu({
     controlSize(swiftControlSize(size)),
     tint(accent),
   ];
+  // A `systemImage` label takes its size from the control size, so an icon
+  // sized on its own (a header action's 22pt symbol) is drawn as the label.
+  const sizedIcon = hideLabel && icon && iconSize !== undefined;
+
   if (shape) modifiers.push(buttonBorderShape(swiftBorderShape(shape)));
-  if (hideLabel && icon) modifiers.push(labelStyle('iconOnly'));
+  if (hideLabel && icon && !sizedIcon) modifiers.push(labelStyle('iconOnly'));
+  if (sizedIcon) modifiers.push(accessibilityLabel(label));
   if (disabled) modifiers.push(disabledMod(true));
 
   return (
     <SwiftUIMenu
-      label={label}
-      systemImage={icon ? iosSymbol(icon) : undefined}
+      label={sizedIcon
+        ? <Image systemName={iosSymbol(icon!)} color={accent} size={iconSize}/>
+        : label}
+      systemImage={icon && !sizedIcon ? iosSymbol(icon) : undefined}
       modifiers={modifiers}
       testID={testID}>
       <MenuItems items={items}/>

@@ -43,7 +43,7 @@ export type MenuTrigger = 'button' | 'link';
  * `DropdownMenu` on Android, and a `role="menu"` popup on web. The trigger
  * looks like the kit's `Button` and takes the same styling props.
  */
-export interface MenuProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape' | 'color' | 'tone' | 'hideLabel' | 'disabled'> {
+export interface MenuProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape' | 'color' | 'tone' | 'iconSize' | 'hideLabel' | 'disabled'> {
   /** Trigger text (kept for accessibility when `hideLabel` is set). */
   label: string;
   /** Trigger icon. */
@@ -57,6 +57,13 @@ export interface MenuProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape
    * @default 'button'
    */
   trigger?: MenuTrigger;
+  /**
+   * Called when the menu opens and when it closes. Reported on Android (the
+   * kit owns the `DropdownMenu`'s expanded state) and on web (the popover's
+   * `toggle` event); SwiftUI's `Menu` and `contextMenu` have no presentation
+   * binding, so iOS never reports it.
+   */
+  onOpenChange?: (open: boolean) => void;
   /** Identifier used to locate the trigger in end-to-end tests. */
   testID?: string;
 }
@@ -94,6 +101,13 @@ export interface ContextMenuProps {
   at?: MenuPoint | null;
   /** Called when a menu opened by `at` (or a gesture) closes. */
   onDismiss?: () => void;
+  /**
+   * Called when the menu opens and when it closes. Reported on Android (the
+   * kit owns the `DropdownMenu`'s expanded state) and on web (the popover's
+   * `toggle` event); SwiftUI's `Menu` and `contextMenu` have no presentation
+   * binding, so iOS never reports it.
+   */
+  onOpenChange?: (open: boolean) => void;
   /** Identifier used to locate the trigger in end-to-end tests. */
   testID?: string;
 }

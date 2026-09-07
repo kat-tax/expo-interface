@@ -28,7 +28,10 @@ export interface ColorPickerProps {
   /**
    * Preset colors (`#RRGGBB`) drawn as a row of round swatches before the
    * well on every platform, the selected one ringed; tapping one picks it.
-   * The well still opens the full picker for any other color.
+   * The well still opens the full picker for any other color. More swatches
+   * than the row's width holds wrap onto further lines rather than squeeze
+   * (a Compose `FlowRow`, a wrapping flex row, lines of their own under the
+   * label on iOS).
    */
   swatches?: string[];
   /** Disables interaction. */

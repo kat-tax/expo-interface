@@ -24,8 +24,12 @@ export type ButtonVariant = 'filled' | 'outlined' | 'text';
  */
 export type ButtonRole = 'default' | 'destructive';
 
-/** Control size of the button. */
-export type ButtonSize = 'small' | 'medium' | 'large';
+/**
+ * Control size of the button. `inline` is the bar size: no padding at all, so
+ * the button is exactly its content — a tool in a toolbar or a header row,
+ * where a padded button would set the bar's height.
+ */
+export type ButtonSize = 'inline' | 'small' | 'medium' | 'large';
 
 /** Border shape of the button. */
 export type ButtonShape = 'rounded' | 'pill' | 'circle';
@@ -72,6 +76,12 @@ export interface ButtonProps {
    * Border shape of the button. When omitted, each platform uses its default.
    */
   shape?: ButtonShape;
+  /**
+   * Size of the button's icons in points/dp. Defaults to the size that goes
+   * with `size`; a header action's icon is larger than its label (24 on
+   * Android, 22 on iOS), which is why it can be set on its own.
+   */
+  iconSize?: number;
   /** Leading icon. Also used as the sole icon when `hideLabel` is true. */
   prefixIcon?: IconToken;
   /** Trailing icon. Ignored when `hideLabel` is true. */

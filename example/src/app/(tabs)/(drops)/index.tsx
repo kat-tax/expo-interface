@@ -1,5 +1,4 @@
 import type {Href} from 'expo-router';
-import {Platform} from 'react-native';
 import {router} from 'expo-router';
 import {Fab, Screen} from 'expo-interface';
 import {DropList} from '@/drop/list';
@@ -11,7 +10,6 @@ export default function HomeScreen() {
   return (
     <Screen
       native
-      header={Platform.OS !== 'web'}
       // The screen floats the button over the list: bottom trailing, above the safe-area inset.
       fab={<Fab label="New drop" icon={icons.upload} onPress={() => router.push(`/${first.id}` as Href)}/>}>
       <DropList

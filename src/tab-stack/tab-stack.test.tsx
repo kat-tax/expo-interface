@@ -5,6 +5,7 @@ import {AccentProvider} from '../accent';
 import {colors, theme} from '../theme';
 import {stackHeaders} from '../__tests__/native';
 import {renderApp} from '../__tests__/router';
+import {ConstrainedStackHeader} from '../stack-header';
 import {TabStack} from '.';
 
 const app = {
@@ -17,12 +18,16 @@ describe(`TabStack (${Platform.OS})`, () => {
     const {result} = await renderHook(() => TabStack({title: 'Drops'}), {
       wrapper: ({children}) => <AccentProvider seed="#8959EA">{children}</AccentProvider>,
     });
-    const {screenOptions, children} = result.current.props;
+    // The stack sits under the header context, so `Screen` knows without being told.
+    expect(result.current.props.value).toBe(true);
+    const {screenOptions, children} = result.current.props.children.props;
     expect(screenOptions).toMatchObject({
-      headerShown: Platform.OS !== 'web',
+      headerShown: true,
       headerShadowVisible: false,
       headerBackButtonDisplayMode: 'minimal',
     });
+    // Web draws the header itself; the native stacks use their own bar.
+    expect(screenOptions.header).toBe(Platform.OS === 'web' ? ConstrainedStackHeader : undefined);
     if (Platform.OS === 'web') {
       expect(screenOptions.headerTintColor).toBe(theme.label);
       expect(screenOptions.headerStyle).toEqual({backgroundColor: theme.background});
@@ -37,14 +42,14 @@ describe(`TabStack (${Platform.OS})`, () => {
   it('passes the header trailing slot to the index screen', async () => {
     const headerRight = () => <Text>New…</Text>;
     const {result} = await renderHook(() => TabStack({title: 'Drops', headerRight}));
-    expect(result.current.props.children.props.options).toEqual({title: 'Drops', headerRight});
+    expect(result.current.props.children.props.children.props.options).toEqual({title: 'Drops', headerRight});
   });
 
   if (Platform.OS === 'web') {
-    it('renders the index screen without a header', async () => {
+    it('renders the index screen under the web stack header', async () => {
       await renderApp(app);
       expect(dom.getByText('Home screen')).toBeInTheDocument();
-      expect(dom.queryByText('Drops')).toBeNull();
+      expect(dom.getByText('Drops')).toBeInTheDocument();
     });
   } else {
     it('renders the native header with the title', async () => {

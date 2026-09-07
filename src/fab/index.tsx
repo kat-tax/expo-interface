@@ -13,7 +13,7 @@ import {FAB_ICON} from './shared';
  * `MenuList` the `Menu` opens, anchored above the button by CSS anchor
  * positioning. Where it floats is the screen's job (`Screen`'s `fab` slot).
  */
-export function Fab({label, icon, onPress, items, size = 'regular', disabled, testID}: FabProps) {
+export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rounded', disabled, onOpenChange, testID}: FabProps) {
   const ident = menuIdent(useId());
   const anchor = `--${ident}`;
   const wrapper = useRef<HTMLSpanElement>(null);
@@ -22,7 +22,7 @@ export function Fab({label, icon, onPress, items, size = 'regular', disabled, te
     <span ref={wrapper} className="ui-fab__anchor" style={{anchorName: anchor} as CSSProperties}>
       <button
         type="button"
-        className={`ui-fab ui-fab--${size}`}
+        className={`ui-fab ui-fab--${size} ui-fab--${shape}`}
         aria-label={extended ? undefined : label}
         disabled={disabled}
         onClick={items ? undefined : onPress}
@@ -31,7 +31,7 @@ export function Fab({label, icon, onPress, items, size = 'regular', disabled, te
         <SymbolView name={icon.symbol} size={FAB_ICON[size]} tintColor="currentColor"/>
         {extended ? <span className="ui-fab__label">{label}</span> : null}
       </button>
-      {items ? <MenuList id={ident} items={items} anchor={anchor} anchorRef={wrapper}/> : null}
+      {items ? <MenuList id={ident} items={items} anchor={anchor} anchorRef={wrapper} onOpenChange={onOpenChange}/> : null}
     </span>
   );
 }

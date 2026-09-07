@@ -1,5 +1,6 @@
 import type {BottomSheetProps} from '@expo/ui';
 import {BottomSheet} from '@expo/ui';
+import {NativeHostContext} from '../host';
 
 /**
  * Accent-aware bottom sheet. `@expo/ui`'s `BottomSheet` mounts its own `Host`
@@ -13,6 +14,10 @@ import {BottomSheet} from '@expo/ui';
  * - Web (this file): accent flows through CSS custom properties; vaul sheet
  *   width is constrained via `global.css`.
  */
-export function Sheet(props: BottomSheetProps) {
-  return <BottomSheet {...props}/>;
+export function Sheet({children, ...props}: BottomSheetProps) {
+  return (
+    <NativeHostContext.Provider value={true}>
+      <BottomSheet {...props}>{children}</BottomSheet>
+    </NativeHostContext.Provider>
+  );
 }

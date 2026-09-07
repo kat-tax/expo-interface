@@ -15,11 +15,13 @@ const meta = {
     label: 'New',
     icon: icons.add,
     size: 'regular',
+    shape: 'rounded',
     disabled: false,
     onPress: fn(),
   },
   argTypes: {
     size: {control: 'select', options: ['small', 'regular', 'large', 'extended']},
+    shape: {control: 'inline-radio', options: ['rounded', 'circle']},
   },
   render: args => (
     <View style={styles.row}>
@@ -43,6 +45,28 @@ export const Large: Story = {
 
 export const Extended: Story = {
   args: {size: 'extended', label: 'New document'},
+};
+
+/** Material 3's own shape: the corner radius grows with the button. */
+export const Sizes: Story = {
+  render: args => (
+    <View style={styles.row}>
+      <Fab {...args} size="small" label="Edit" icon={icons.add}/>
+      <Fab {...args} size="regular" label="New" icon={icons.add}/>
+      <Fab {...args} size="large" label="Mail" icon={icons.share}/>
+    </View>
+  ),
+};
+
+/** The older circular button, and the capsule an extended one becomes. */
+export const Circle: Story = {
+  args: {shape: 'circle'},
+  render: args => (
+    <View style={styles.row}>
+      <Fab {...args} size="regular" label="New" icon={icons.add}/>
+      <Fab {...args} size="extended" label="New document" icon={icons.add}/>
+    </View>
+  ),
 };
 
 export const Disabled: Story = {

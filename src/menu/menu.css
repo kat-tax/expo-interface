@@ -61,6 +61,12 @@
   margin-block: 4px;
 }
 
+/* Anchored to a point in the content: the popup opens away from it. */
+.ui-menu__list--point {
+  position-area: bottom span-right;
+  margin-block: 0;
+}
+
 .ui-menu__list::backdrop {
   background: transparent;
 }
@@ -132,4 +138,14 @@
 
 .ui-context-menu {
   display: contents;
+}
+
+/*
+ * A menu opened at a point over content the kit did not draw: a zero-size
+ * anchor in the content's own coordinates, which the popup is placed against.
+ */
+.ui-popup-menu {
+  position: absolute;
+  width: 0;
+  height: 0;
 }

@@ -51,6 +51,9 @@ export interface AlertProps {
    * Optional trigger rendered in place (for example the `Button` that opens
    * the alert). SwiftUI presents alerts from a view in the hierarchy, so on
    * iOS an invisible zero-size anchor is used when no trigger is given.
+   * Native content when the alert sits inside a host (`Screen native`, a
+   * `NativeHost`), React Native content when it does not — outside a host
+   * the alert mounts one of its own for the dialog alone.
    */
   children?: ReactNode;
   /** Identifier used to locate the component in end-to-end tests. */

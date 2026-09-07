@@ -7,6 +7,7 @@ import {colors, inset, spacing} from '../theme';
 import {Switch} from '../switch';
 import {host, modifier, nodes} from '../__tests__/native';
 import {hostAccentProps} from './host-accent';
+import {StackHeaderContext} from '../stack-header/context';
 import {Screen} from '.';
 
 vi.mock('expo-system-ui');
@@ -79,6 +80,21 @@ describe(`Screen (${Platform.OS})`, () => {
     const {safeArea, root} = parts();
     expect(safeArea.props.edges).toEqual(['left', 'right', 'bottom']);
     expect(StyleSheet.flatten(root.props.style).paddingTop).toBe(0);
+  });
+
+  it('takes the header from the navigator above it, and the prop over that', async () => {
+    await render(
+      <StackHeaderContext.Provider value={true}>
+        <Screen><View/></Screen>
+      </StackHeaderContext.Provider>,
+    );
+    expect(StyleSheet.flatten(parts().root.props.style).paddingTop).toBe(0);
+    await render(
+      <StackHeaderContext.Provider value={true}>
+        <Screen header={false}><View/></Screen>
+      </StackHeaderContext.Provider>,
+    );
+    expect(StyleSheet.flatten(parts().root.props.style).paddingTop).toBe(inset.topBar);
   });
 
   it('constrains content width and pads it with gutter', async () => {

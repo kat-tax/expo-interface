@@ -47,7 +47,13 @@ export interface TextFieldProps {
   value?: string;
   /** Called whenever the text changes. */
   onChangeText?: (text: string) => void;
-  /** Called when the user presses the keyboard return key. Receives the text. */
+  /**
+   * Called when the user presses the keyboard return key. Receives the text.
+   * On web the browser reports Enter but not Shift+Enter (React Native Web's
+   * `TextInput` keeps the modified key for a newline), so a field that walks
+   * a list both ways takes the forward step here and the backward one from
+   * `onKeyPress`.
+   */
   onSubmit?: (text: string) => void;
   /**
    * Called on a key press with the key's name (`Enter`, `Escape`, `a`) and

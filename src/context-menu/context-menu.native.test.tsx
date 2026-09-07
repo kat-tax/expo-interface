@@ -141,6 +141,27 @@ describe(`ContextMenu (${Platform.OS})`, () => {
     expect(onDismiss).toHaveBeenCalledTimes(2);
   });
 
+  (isIOS ? it.skip : it)('reports the popup opening and closing, including from `at`', async () => {
+    const onOpenChange = vi.fn();
+    const {rerender} = await render(
+      <ContextMenu items={items} onOpenChange={onOpenChange} testID="row">
+        <Text>Item</Text>
+      </ContextMenu>,
+    );
+    // Not reported while it stays closed.
+    expect(onOpenChange).not.toHaveBeenCalled();
+    await rerender(
+      <ContextMenu items={items} at={{x: 8, y: 12}} onOpenChange={onOpenChange} testID="row">
+        <Text>Item</Text>
+      </ContextMenu>,
+    );
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    const [menu] = screen.container.queryAll(i => typeof i.props.onDismissRequest === 'function');
+    await fireEvent(menu, 'dismissRequest');
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    expect(onOpenChange).toHaveBeenCalledTimes(2);
+  });
+
   (isIOS ? it.skip : it)('opens at the point given by `at` and anchors the dropdown there', async () => {
     const onDismiss = vi.fn();
     const {rerender} = await render(

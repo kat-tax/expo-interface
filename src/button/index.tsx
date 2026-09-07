@@ -32,6 +32,7 @@ export function Button({
   color,
   tone = 'accent',
   shape,
+  iconSize: iconSizeProp,
   prefixIcon,
   suffixIcon,
   hideLabel = false,
@@ -51,7 +52,7 @@ export function Button({
   // A custom accent brings its own contrast color for filled content.
   const onAccent = color ? contrastOf(color) : themeOnAccent;
   const iconOnly = hideLabel && !!prefixIcon;
-  const iconSize = SIZE_ICON[size];
+  const iconSize = iconSizeProp ?? SIZE_ICON[size];
   const style = color
     ? ({'--ui-button-accent': color, '--ui-button-on-accent': onAccent} as CSSProperties)
     : undefined;

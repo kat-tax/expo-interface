@@ -1,8 +1,23 @@
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {createContext, useContext} from 'react';
+import {StyleSheet} from 'react-native';
 import {Host} from '@expo/ui';
 import {useAccentSeed} from '../accent';
 import {hostAccentProps} from '../screen/host-accent';
+
+/** True below a native host — see {@link useNativeHost}. */
+export const NativeHostContext = createContext(false);
+
+/**
+ * Whether this point in the tree is already inside a native host: a
+ * `NativeHost`, a `Screen native`, a `Sheet`'s content. Components that
+ * present natively (`Alert`) mount a host of their own when there is none,
+ * so they can be rendered anywhere; nesting hosts is not allowed.
+ */
+export function useNativeHost(): boolean {
+  return useContext(NativeHostContext);
+}
 
 export interface NativeHostProps extends PropsWithChildren {
   style?: StyleProp<ViewStyle>;
@@ -12,6 +27,17 @@ export interface NativeHostProps extends PropsWithChildren {
    * @default false
    */
   fit?: boolean;
+  /**
+   * Called when the native content has been laid out, with its size. Use it
+   * to give the host an explicit React Native size where a parent lays out
+   * before the platform toolkit has measured (a stack header's toolbar).
+   */
+  onLayoutContent?: (event: {nativeEvent: {width: number; height: number}}) => void;
+  /**
+   * Touch handling of the host view; `none` for a host that only presents
+   * something (a dialog, a popup) and should not take presses itself.
+   */
+  pointerEvents?: 'box-none' | 'none' | 'box-only' | 'auto';
 }
 
 /**
@@ -22,11 +48,25 @@ export interface NativeHostProps extends PropsWithChildren {
  * seeded like the screen would be (`hostAccentProps`). On web it is a plain
  * view carrying the `@expo/ui` palette.
  */
-export function NativeHost({children, style, fit = false}: NativeHostProps) {
+export function NativeHost({children, style, fit = false, onLayoutContent, pointerEvents}: NativeHostProps) {
   const seed = useAccentSeed();
   return (
-    <Host matchContents={fit ? true : {vertical: true}} style={style} {...hostAccentProps(seed)}>
-      {children}
-    </Host>
+    <NativeHostContext.Provider value={true}>
+      <Host
+        matchContents={fit ? true : {vertical: true}}
+        // The universal host hugs its content on web as soon as
+        // `matchContents` is set at all, on either axis; the default here is
+        // a block that fills its container, as it is natively.
+        style={[fit ? null : styles.fill, style]}
+        onLayoutContent={onLayoutContent}
+        pointerEvents={pointerEvents}
+        {...hostAccentProps(seed)}>
+        {children}
+      </Host>
+    </NativeHostContext.Provider>
   );
 }
+
+const styles = StyleSheet.create({
+  fill: {alignSelf: 'stretch'},
+});

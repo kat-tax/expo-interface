@@ -121,6 +121,20 @@ describe(`ColorPicker (${Platform.OS})`, () => {
       expect(onValueChange).toHaveBeenLastCalledWith('#00FF0080');
     });
 
+    it('moves the swatches to lines of their own when they no longer fit beside the label', async () => {
+      const swatches = Array.from({length: 24}, (_, i) => `#${i.toString(16).padStart(2, '0').repeat(3)}`);
+      await render(
+        <ColorPicker label="Accent" value="#000000" swatches={swatches} onValueChange={vi.fn()} testID="cp"/>,
+        options,
+      );
+      // A column: the label with the well over lines of swatches.
+      const column = screen.getByTestId('cp');
+      expect(column.type).toContain('VStack');
+      expect(nodes().filter(n => modifier(n.props, 'accessibilityLabel')?.label?.startsWith('Color #'))).toHaveLength(24);
+      expect(screen.getByTestId('cp-well')).toBeTruthy();
+      expect(nodes().filter(n => n.type.includes('HStack')).length).toBeGreaterThan(2);
+    });
+
     it('drops the alpha of a preset when opacity is unsupported and can go without a label', async () => {
       const onValueChange = vi.fn();
       await render(

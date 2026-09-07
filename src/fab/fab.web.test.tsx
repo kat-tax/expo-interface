@@ -11,11 +11,11 @@ const items: MenuItem[] = [
 ];
 
 describe('Fab (web)', () => {
-  it('renders a circular button named by its label', () => {
+  it('renders a rounded button named by its label', () => {
     const onPress = vi.fn();
     render(<Fab label="New" icon={icons.add} onPress={onPress} testID="new"/>);
     const button = screen.getByRole('button', {name: 'New'});
-    expect(button).toHaveClass('ui-fab', 'ui-fab--regular');
+    expect(button).toHaveClass('ui-fab', 'ui-fab--regular', 'ui-fab--rounded');
     expect(button).toHaveAttribute('aria-label', 'New');
     expect(button).toHaveAttribute('data-testid', 'new');
     expect(button).not.toHaveAttribute('popovertarget');
@@ -38,6 +38,15 @@ describe('Fab (web)', () => {
     expect(screen.getByRole('button', {name: 'Large'})).toHaveClass('ui-fab--large');
     const extended = screen.getByRole('button', {name: 'New document'});
     expect(extended).toHaveClass('ui-fab--extended');
+    // The circular shape rounds a square button fully, and an extended one into a capsule.
+    render(
+      <>
+        <Fab label="Round" icon={icons.add} shape="circle"/>
+        <Fab label="Capsule" icon={icons.add} size="extended" shape="circle"/>
+      </>,
+    );
+    expect(screen.getByRole('button', {name: 'Round'})).toHaveClass('ui-fab--circle');
+    expect(screen.getByRole('button', {name: 'Capsule'})).toHaveClass('ui-fab--extended', 'ui-fab--circle');
     expect(extended).not.toHaveAttribute('aria-label');
     expect(extended.querySelector('.ui-fab__label')).toHaveTextContent('New document');
   });

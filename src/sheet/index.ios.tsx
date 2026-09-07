@@ -3,6 +3,7 @@ import type {BottomSheetProps} from '@expo/ui';
 import {tint} from '@expo/ui/swift-ui/modifiers';
 import {BottomSheet} from '@expo/ui';
 import {useAccentSeed} from '../accent';
+import {NativeHostContext} from '../host';
 
 /**
  * iOS: apply the accent seed as a `tint` presentation modifier on the sheet's
@@ -13,8 +14,10 @@ import {useAccentSeed} from '../accent';
 export function Sheet({children, modifiers, ...props}: BottomSheetProps) {
   const seed = useAccentSeed();
   return (
-    <BottomSheet {...props} modifiers={[tint(seed), ...(modifiers ?? [])]}>
-      {children}
-    </BottomSheet>
+    <NativeHostContext.Provider value={true}>
+      <BottomSheet {...props} modifiers={[tint(seed), ...(modifiers ?? [])]}>
+        {children}
+      </BottomSheet>
+    </NativeHostContext.Provider>
   );
 }

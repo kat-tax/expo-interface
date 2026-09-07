@@ -131,6 +131,17 @@ describe('Menu (web)', () => {
     expect(menu.style.left).toBe('');
   });
 
+  it('reports the popup opening and closing', () => {
+    const onOpenChange = vi.fn();
+    render(<Menu label="Export" items={items} onOpenChange={onOpenChange}/>);
+    const menu = screen.getByRole('menu', {hidden: true});
+    fireEvent(menu, toggleEvent('open'));
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    fireEvent(menu, toggleEvent('closed'));
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    expect(onOpenChange).toHaveBeenCalledTimes(2);
+  });
+
   it('gives each menu its own popover id', () => {
     render(
       <>
@@ -207,6 +218,23 @@ describe('Menu (web)', () => {
       fireEvent(menu, toggleEvent('open'));
       expect(menu.style.left).toBe('300px');
       expect(menu.style.top).toBe('44px');
+
+    } finally {
+      supports.mockRestore();
+    }
+  });
+  it('opens from the point, not the trigger, without CSS anchor positioning', async () => {
+    const supports = vi.spyOn(CSS, 'supports').mockReturnValue(false);
+    vi.resetModules();
+    try {
+      const {MenuList} = await import('./list');
+      const point = document.createElement('span');
+      vi.spyOn(point, 'getBoundingClientRect').mockReturnValue({left: 120, right: 120, bottom: 60} as DOMRect);
+      render(<MenuList id="ui-menu-y" items={items} anchor="--ui-menu-y" atPoint anchorRef={{current: point}}/>);
+      const menu = screen.getByRole('menu', {hidden: true});
+      fireEvent(menu, toggleEvent('open'));
+      expect(menu.style.left).toBe('120px');
+      expect(menu.style.top).toBe('64px');
     } finally {
       supports.mockRestore();
     }

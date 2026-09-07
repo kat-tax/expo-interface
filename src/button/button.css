@@ -22,6 +22,20 @@
   transition: background-color 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
 }
 
+/*
+ * The bar size: no padding at all, so a button in a toolbar or a header row
+ * is exactly its content and never sets the bar's height. The compound
+ * selectors outrank the per-variant padding below.
+ */
+.ui-button--inline,
+.ui-button--text.ui-button--inline,
+.ui-button--icon-only.ui-button--inline,
+.ui-button--circle.ui-button--inline {
+  font-size: 15px;
+  padding: 0;
+  gap: 6px;
+}
+
 .ui-button--small {
   font-size: 13px;
   padding: 6px 12px;

@@ -33,6 +33,13 @@ describe('Button (web)', () => {
     expect(screen.getByRole('button')).not.toHaveClass('ui-button--pill');
   });
 
+  it('takes the bar size and an icon size of its own', () => {
+    render(<Button label="Back" size="inline" prefixIcon={{symbol: {ios: 'chevron.left', web: 'arrow_back'}}} iconSize={20} hideLabel/>);
+    const button = screen.getByRole('button', {name: 'Back'});
+    expect(button).toHaveClass('ui-button--inline', 'ui-button--icon-only');
+    expect(button.querySelector('.ui-button__label')).toBeNull();
+  });
+
   it('keeps the label as an accessible name in icon-only mode', () => {
     render(<Button label="Share" prefixIcon={{symbol: {ios: 'square.and.arrow.up', web: 'share'}}} hideLabel/>);
     const button = screen.getByRole('button', {name: 'Share'});

@@ -5,7 +5,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import * as icons from '../__stories__/icons';
 import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
-import {FAB_ICON, FAB_SIZE} from './shared';
+import {FAB_ICON, FAB_RADIUS, FAB_SIZE} from './shared';
 import {Fab} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -48,7 +48,13 @@ describe(`Fab (${Platform.OS})`, () => {
       expect(modifier(button.props, 'disabled')).toBeUndefined();
       const stack = face();
       expect(modifier(stack.props, 'frame')).toEqual({$type: 'frame', width: FAB_SIZE.regular, height: FAB_SIZE.regular});
-      expect(modifier(stack.props, 'background')).toMatchObject({color: '#007AFF', shape: 'circle'});
+      // Material 3's rounded square, in Apple's continuous corners.
+      expect(modifier(stack.props, 'background')).toMatchObject({
+        color: '#007AFF',
+        shape: 'roundedRectangle',
+        cornerRadius: FAB_RADIUS.regular,
+        roundedCornerStyle: 'continuous',
+      });
       expect(modifier(stack.props, 'shadow')).toMatchObject({radius: 4, y: 2});
       expect(modifier(stack.props, 'padding')).toBeUndefined();
       const image = host(p => p.systemName === 'plus');
@@ -93,13 +99,37 @@ describe(`Fab (${Platform.OS})`, () => {
     }
   });
 
+  it('takes the circular shape, and the capsule for an extended one', async () => {
+    await render(
+      <>
+        <Fab label="New" icon={icons.add} shape="circle" testID="round"/>
+        <Fab label="New document" icon={icons.add} size="extended" shape="circle" testID="capsule"/>
+      </>,
+    );
+    if (isIOS) {
+      const [round, capsule] = screen.container
+        .queryAll(i => !!modifier(i.props, 'background'))
+        .map(n => modifier(n.props, 'background'));
+      expect(round).toMatchObject({shape: 'circle'});
+      expect(capsule).toMatchObject({shape: 'capsule'});
+    } else {
+      // Compose draws the rounded square itself; a circle is a clip of half
+      // the button's height.
+      expect(modifier(byComposeTestID('round').props, 'clip')?.shape).toMatchObject({type: 'roundedCorner', radius: FAB_SIZE.regular / 2});
+      expect(modifier(byComposeTestID('capsule').props, 'clip')?.shape).toMatchObject({type: 'roundedCorner', radius: FAB_SIZE.extended / 2});
+      // The default shape is Material's own, left to the components.
+      await render(<Fab label="New" icon={icons.add} testID="default"/>);
+      expect(modifier(byComposeTestID('default').props, 'clip')).toBeUndefined();
+    }
+  });
+
   it('shows the label beside the icon when extended', async () => {
     await render(<Fab label="New document" icon={icons.add} size="extended" testID="new"/>);
     if (isIOS) {
       const stack = face();
       expect(modifier(stack.props, 'frame')).toEqual({$type: 'frame', height: 56});
       expect(modifier(stack.props, 'padding')).toEqual({$type: 'padding', horizontal: 20});
-      expect(modifier(stack.props, 'background')).toMatchObject({shape: 'capsule'});
+      expect(modifier(stack.props, 'background')).toMatchObject({shape: 'roundedRectangle', cornerRadius: FAB_RADIUS.extended});
       const text = host(p => p.text === 'New document');
       expect(modifier(text.props, 'foregroundStyle')?.color).toBe('#FFFFFF');
       expect(modifier(text.props, 'font')).toMatchObject({weight: 'semibold'});

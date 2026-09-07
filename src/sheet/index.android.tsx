@@ -3,6 +3,7 @@ import type {BottomSheetProps} from '@expo/ui';
 import {HostPaletteContext, useMaterialColors} from '@expo/ui/jetpack-compose';
 import {BottomSheet} from '@expo/ui';
 import {useAccentSeed} from '../accent';
+import {NativeHostContext} from '../host';
 
 /**
  * Android: the sheet's internal `Host` is not seeded (no `seedColor` prop is
@@ -17,9 +18,11 @@ export function Sheet({children, ...props}: BottomSheetProps) {
   const palette = useMaterialColors({seedColor: seed});
   return (
     <BottomSheet {...props}>
-      <HostPaletteContext.Provider value={palette}>
-        {children}
-      </HostPaletteContext.Provider>
+      <NativeHostContext.Provider value={true}>
+        <HostPaletteContext.Provider value={palette}>
+          {children}
+        </HostPaletteContext.Provider>
+      </NativeHostContext.Provider>
     </BottomSheet>
   );
 }

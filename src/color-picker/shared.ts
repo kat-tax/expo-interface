@@ -202,3 +202,22 @@ export function useColorValue(
   );
   return [current, update];
 }
+
+/** Diameter of a preset swatch (and of its ring when selected) plus its gap. */
+export const SWATCH_STEP = 38;
+
+/**
+ * How many preset swatches fit on a line `width` points wide, `reserved`
+ * points of it already taken (the label and the well beside them, the form's
+ * insets). At least one: a single swatch always shows.
+ */
+export function swatchesPerLine(width: number, reserved: number): number {
+  return Math.max(1, Math.floor((width - reserved) / SWATCH_STEP));
+}
+
+/** Splits `items` into lines of at most `size`. */
+export function chunk<T>(items: T[], size: number): T[][] {
+  const lines: T[][] = [];
+  for (let i = 0; i < items.length; i += size) lines.push(items.slice(i, i + size));
+  return lines;
+}

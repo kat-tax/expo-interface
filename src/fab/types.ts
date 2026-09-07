@@ -2,10 +2,18 @@ import type {IconToken} from '../icons';
 import type {MenuItem} from '../menu/types';
 
 /**
- * Size of a `Fab`. `regular`, `small` and `large` are circles (56, 40 and
- * 96 points); `extended` is a capsule that shows the label beside the icon.
+ * Size of a `Fab`. `regular`, `small` and `large` are squares (56, 40 and
+ * 96 points); `extended` is 56 tall and as wide as its label needs.
  */
 export type FabSize = 'small' | 'regular' | 'large' | 'extended';
+
+/**
+ * Shape of a `Fab`. `rounded` is Material 3's own — a rounded square whose
+ * corners grow with the size (12, 16 and 28 points, 16 extended) — and
+ * `circle` the older circular button, which an extended one draws as the
+ * capsule that can hold its label.
+ */
+export type FabShape = 'rounded' | 'circle';
 
 /**
  * Floating action button: the screen's primary action, floating over its
@@ -28,10 +36,20 @@ export interface FabProps {
   /** With items the button opens a menu instead of pressing. */
   items?: MenuItem[];
   /**
+   * Called when the `items` menu opens and closes. Reported on Android and
+   * web; SwiftUI's `Menu` has no presentation binding, so not on iOS.
+   */
+  onOpenChange?: (open: boolean) => void;
+  /**
    * The size.
    * @default 'regular'
    */
   size?: FabSize;
+  /**
+   * The shape.
+   * @default 'rounded'
+   */
+  shape?: FabShape;
   /** Disables interaction and dims the button. */
   disabled?: boolean;
   /** Identifier used to locate the button in end-to-end tests. */

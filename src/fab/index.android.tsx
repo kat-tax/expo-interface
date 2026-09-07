@@ -11,11 +11,11 @@ import {
   SmallFloatingActionButton,
   Text,
 } from '@expo/ui/jetpack-compose';
-import {alpha, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {alpha, clip, Shapes, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {NativeHost} from '../host';
 import {MenuItems} from '../menu/index.android';
 import {useColor} from '../theme';
-import {FAB_ICON} from './shared';
+import {FAB_ICON, FAB_SIZE} from './shared';
 
 const VARIANT: Record<FabSize, typeof FloatingActionButton> = {
   small: SmallFloatingActionButton,
@@ -30,16 +30,25 @@ const VARIANT: Record<FabSize, typeof FloatingActionButton> = {
  * accent-seeded host so it can float over a React Native screen. With
  * `items` the button is the trigger of the same Compose `DropdownMenu` the
  * kit's `Menu` anchors, so the menu is shared and only the trigger differs.
+ *
+ * The `rounded` shape is Material's own, so it is left to the components;
+ * `circle` clips the container to half its height, which also clips away the
+ * elevation shadow Compose draws outside it.
  */
-export function Fab({label, icon, onPress, items, size = 'regular', disabled, testID}: FabProps) {
+export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rounded', disabled, onOpenChange, testID}: FabProps) {
   const tint = useColor('tint');
   const onTint = useColor('onTint');
   const [expanded, setExpanded] = useState(false);
   const Component = VARIANT[size];
   const modifiers: ModifierConfig[] = [];
+  if (shape === 'circle') modifiers.push(clip(Shapes.RoundedCorner(FAB_SIZE[size] / 2)));
   if (disabled) modifiers.push(alpha(0.4));
   if (testID) modifiers.push(testIDModifier(testID));
-  const press = items ? () => setExpanded(true) : onPress;
+  const setOpen = (open: boolean) => {
+    setExpanded(open);
+    onOpenChange?.(open);
+  };
+  const press = items ? () => setOpen(true) : onPress;
 
   const button = (
     <Component containerColor={tint} onClick={disabled ? undefined : press} modifiers={modifiers}>
@@ -62,9 +71,9 @@ export function Fab({label, icon, onPress, items, size = 'regular', disabled, te
   return (
     <NativeHost fit>
       {items ? (
-        <DropdownMenu expanded={expanded} onDismissRequest={() => setExpanded(false)}>
+        <DropdownMenu expanded={expanded} onDismissRequest={() => setOpen(false)}>
           <DropdownMenu.Trigger>{button}</DropdownMenu.Trigger>
-          <MenuItems items={items} onClose={() => setExpanded(false)}/>
+          <MenuItems items={items} onClose={() => setOpen(false)}/>
         </DropdownMenu>
       ) : button}
     </NativeHost>

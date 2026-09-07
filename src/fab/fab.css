@@ -1,8 +1,10 @@
 /*
- * The Material floating action button geometry on the web: a 56px circle
- * (40 small, 96 large) or a 56px capsule when extended, filled with the tint,
- * the icon and label in the contrast color, lifted by a soft shadow. Where it
- * floats is the screen's job (`Screen`'s `fab` slot fixes it to the viewport).
+ * The Material floating action button geometry on the web: a 56px rounded
+ * square (40 small, 96 large, 56 tall when extended), filled with the tint,
+ * the icon and label in the contrast color, lifted by a soft shadow. The
+ * corner radius grows with the size, as Material 3's tokens do; `circle`
+ * rounds it fully instead. Where it floats is the screen's job (`Screen`'s
+ * `fab` slot fixes it to the viewport).
  */
 .ui-fab__anchor {
   display: inline-flex;
@@ -22,7 +24,7 @@
   margin: 0;
   padding: 0;
   border: none;
-  border-radius: 50%;
+  border-radius: 16px;
   background: var(--color-tint);
   color: var(--color-on-tint);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
@@ -39,17 +41,27 @@
 .ui-fab--small {
   width: 40px;
   height: 40px;
+  border-radius: 12px;
 }
 
 .ui-fab--large {
   width: 96px;
   height: 96px;
+  border-radius: 28px;
 }
 
 .ui-fab--extended {
   width: auto;
   height: 56px;
   padding: 0 20px;
+}
+
+/* The older circular button; an extended one becomes the capsule instead. */
+.ui-fab--circle {
+  border-radius: 50%;
+}
+
+.ui-fab--extended.ui-fab--circle {
   border-radius: 999px;
 }
 

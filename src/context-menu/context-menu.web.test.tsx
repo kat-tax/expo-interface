@@ -83,6 +83,23 @@ describe('ContextMenu (web)', () => {
     expect(showPopover).not.toHaveBeenCalled();
   });
 
+  it('reports the popup opening and closing', () => {
+    const onOpenChange = vi.fn();
+    const onDismiss = vi.fn();
+    render(
+      <ContextMenu items={items} onOpenChange={onOpenChange} onDismiss={onDismiss} testID="row">
+        <span>Item</span>
+      </ContextMenu>,
+    );
+    const menu = screen.getByRole('menu', {hidden: true});
+    fireEvent(menu, toggleEvent('open'));
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    expect(onDismiss).not.toHaveBeenCalled();
+    fireEvent(menu, toggleEvent('closed'));
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
   it('opens after a touch long-press and cancels when the finger lifts or moves', () => {
     vi.useFakeTimers();
     try {

@@ -9,6 +9,7 @@ import {Image} from 'expo-image';
 import app from 'expo-constants';
 
 import {theme, spacing, bound} from '../theme';
+import {TabBarContext} from './context';
 import {Headline, Label} from '../typography';
 
 export function Tabs({
@@ -20,19 +21,22 @@ export function Tabs({
   webActionsPlacement = 'before',
 }: TabBarProps) {
   return (
-    <WebTabs>
-      <TabSlot style={styles.slot}/>
-      {/* The triggers stay in the list even while the bar is hidden: that is where the router looks for the routes. */}
-      <TabList asChild>
-        <WebTabList logo={webLogo} icon={webIcon} hidden={hidden} actions={webActions} actionsPlacement={webActionsPlacement}>
-          {routes.map(route => (
-            <TabTrigger key={route.name} name={route.name} href={route.href} asChild>
-              <TabLink icon={route.icon}>{route.label}</TabLink>
-            </TabTrigger>
-          ))}
-        </WebTabList>
-      </TabList>
-    </WebTabs>
+    // The bar floats over the screens; a header under it leaves its space clear.
+    <TabBarContext.Provider value={!hidden}>
+      <WebTabs>
+        <TabSlot style={styles.slot}/>
+        {/* The triggers stay in the list even while the bar is hidden: that is where the router looks for the routes. */}
+        <TabList asChild>
+          <WebTabList logo={webLogo} icon={webIcon} hidden={hidden} actions={webActions} actionsPlacement={webActionsPlacement}>
+            {routes.map(route => (
+              <TabTrigger key={route.name} name={route.name} href={route.href} asChild>
+                <TabLink icon={route.icon}>{route.label}</TabLink>
+              </TabTrigger>
+            ))}
+          </WebTabList>
+        </TabList>
+      </WebTabs>
+    </TabBarContext.Provider>
   );
 }
 

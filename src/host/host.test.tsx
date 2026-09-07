@@ -32,7 +32,9 @@ describe(`NativeHost (${Platform.OS})`, () => {
       </AccentProvider>,
     );
     const hostView = nodes().find(n => n.type === HOST)!;
-    expect(hostView.props.style).toEqual({margin: 4});
+    // A block that fills its container, since `@expo/ui`'s host hugs its
+    // content on web as soon as `matchContents` is set on either axis.
+    expect(hostView.props.style).toEqual([{alignSelf: 'stretch'}, {margin: 4}]);
     // Both native hosts split `matchContents` into one prop per axis.
     expect(hostView.props.matchContentsVertical).toBe(true);
     expect(hostView.props.matchContentsHorizontal).toBeUndefined();

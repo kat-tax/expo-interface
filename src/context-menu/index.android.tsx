@@ -1,6 +1,6 @@
 import type {ContextMenuProps} from '../menu/types';
 
-import {useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {Box, DropdownMenu} from '@expo/ui/jetpack-compose';
 import {combinedClickable, matchParentSize, offset, size, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {MenuItems} from '../menu/index.android';
@@ -15,7 +15,7 @@ import {MenuItems} from '../menu/index.android';
  * Compose menu does), or a zero-size box offset to the `at` point, which is
  * how the menu opens where a canvas says it was asked for.
  */
-export function ContextMenu({items, children, onPress, disabled, at, onDismiss, testID}: ContextMenuProps) {
+export function ContextMenu({items, children, onPress, disabled, at, onDismiss, onOpenChange, testID}: ContextMenuProps) {
   const [expanded, setExpanded] = useState(false);
   const [point, setPoint] = useState(at ?? null);
   // A new `at` (including one given at mount) opens the menu there; derived
@@ -32,6 +32,15 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
     setExpanded(false);
     onDismiss?.();
   };
+
+  // The popup's state, reported once per change: `at` opens the menu during
+  // render (the derive above), so the report cannot live in a handler.
+  const reported = useRef(false);
+  useEffect(() => {
+    if (reported.current === expanded) return;
+    reported.current = expanded;
+    onOpenChange?.(expanded);
+  }, [expanded, onOpenChange]);
 
   const modifiers = [
     ...(disabled ? [] : [combinedClickable({onClick: onPress, onLongClick: () => {

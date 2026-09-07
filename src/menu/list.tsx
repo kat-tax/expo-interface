@@ -21,14 +21,20 @@ interface MenuListProps {
   items: MenuItem[];
   /** `anchor-name` of the trigger; the popup is laid out relative to it. */
   anchor?: string;
+  /**
+   * The anchor is a point in the content rather than a trigger, so the popup
+   * opens from it to the trailing edge instead of aligning its own trailing
+   * edge to the trigger's.
+   */
+  atPoint?: boolean;
   /** Element to measure when the browser lacks CSS anchor positioning. */
   anchorRef?: React.RefObject<HTMLElement | null>;
   /** Fixed viewport position (context menus) instead of an anchor. */
   position?: {x: number; y: number} | null;
   /** Exposes the popover element so callers can `showPopover()` programmatically. */
   popoverRef?: React.RefObject<HTMLDivElement | null>;
-  /** Called when the popover closes (light dismiss, Escape, or a pick). */
-  onClose?: () => void;
+  /** Called when the popover opens and closes (light dismiss, Escape, a pick). */
+  onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -39,7 +45,7 @@ interface MenuListProps {
  * menu declaratively. Placement is CSS anchor positioning (see `menu.css`),
  * with a measured fallback for engines without it.
  */
-export function MenuList({id, items, anchor, anchorRef, position, popoverRef, onClose}: MenuListProps) {
+export function MenuList({id, items, anchor, atPoint, anchorRef, position, popoverRef, onOpenChange}: MenuListProps) {
   const localRef = useRef<HTMLDivElement>(null);
   const ref = popoverRef ?? localRef;
   const anchored = !!anchor && !position;
@@ -54,13 +60,13 @@ export function MenuList({id, items, anchor, anchorRef, position, popoverRef, on
   const onToggle = (event: ToggleEvent<HTMLDivElement>) => {
     const popover = event.currentTarget;
     if (event.newState !== 'open') {
-      onClose?.();
+      onOpenChange?.(false);
       return;
     }
     // Fallback placement: below the trigger, right-aligned, kept on screen.
     if (anchored && !ANCHOR_SUPPORTED && anchorRef?.current) {
       const rect = anchorRef.current.getBoundingClientRect();
-      popover.style.left = `${Math.max(VIEWPORT_GAP, rect.right - popover.offsetWidth)}px`;
+      popover.style.left = `${Math.max(VIEWPORT_GAP, atPoint ? rect.left : rect.right - popover.offsetWidth)}px`;
       popover.style.top = `${rect.bottom + 4}px`;
     }
     // Pointer placement: nudge back inside the viewport.
@@ -71,6 +77,7 @@ export function MenuList({id, items, anchor, anchorRef, position, popoverRef, on
       popover.style.top = `${Math.max(VIEWPORT_GAP, Math.min(position.y, maxY))}px`;
     }
     (popover.querySelector('button:not(:disabled)') as HTMLButtonElement | null)?.focus();
+    onOpenChange?.(true);
   };
 
   return (
@@ -79,7 +86,11 @@ export function MenuList({id, items, anchor, anchorRef, position, popoverRef, on
       id={id}
       role="menu"
       popover="auto"
-      className={['ui-menu__list', anchored && ANCHOR_SUPPORTED && 'ui-menu__list--anchored'].filter(Boolean).join(' ')}
+      className={[
+        'ui-menu__list',
+        anchored && ANCHOR_SUPPORTED && 'ui-menu__list--anchored',
+        anchored && ANCHOR_SUPPORTED && atPoint && 'ui-menu__list--point',
+      ].filter(Boolean).join(' ')}
       style={style as CSSProperties}
       onToggle={onToggle}>
       {items.map((item, index) => (

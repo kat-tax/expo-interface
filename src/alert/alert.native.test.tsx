@@ -4,6 +4,7 @@ import {Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import {Button} from '../button';
+import {NativeHost} from '../host';
 import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {Alert} from '.';
 
@@ -29,6 +30,21 @@ describe(`Alert (${Platform.OS})`, () => {
     expect(byComposeTestID('alert')).toBeTruthy();
   });
 
+  it('mounts a host of its own outside one, and none inside', async () => {
+    const HOST = 'ViewManagerAdapter_ExpoUI_HostView';
+    const hosts = () => nodes().filter(n => n.type === HOST).length;
+    await render(<Alert title="Hi" visible testID="alert"/>);
+    // Rendered in a React Native layout: the dialog needs a host of its own.
+    expect(hosts()).toBe(1);
+    await render(
+      <NativeHost>
+        <Alert title="Hi" visible testID="alert"/>
+      </NativeHost>,
+    );
+    // Inside one already: nesting hosts is not allowed.
+    expect(hosts()).toBe(1);
+  });
+
   it('presents the native alert while visible', async () => {
     await render(<Alert title="Link copied" message="Share it anywhere." visible testID="alert"/>);
     if (isIOS) {
@@ -37,7 +53,7 @@ describe(`Alert (${Platform.OS})`, () => {
       expect(alert.props.titleVisibility).toBeUndefined();
       expect(host(p => p.text === 'Share it anywhere.', slot('message'))).toBeTruthy();
     } else {
-      expect(nodes()[0].props.colors).toEqual({containerColor: '#ECE6F0FF'});
+      expect(host(p => !!p.colors).props.colors).toEqual({containerColor: '#ECE6F0FF'});
       expect(host(p => p.text === 'Link copied', slot('title')).props).toMatchObject({
         color: '#1D1B20FF',
         typography: 'headlineSmall',
@@ -54,7 +70,8 @@ describe(`Alert (${Platform.OS})`, () => {
     if (isIOS) {
       expect(screen.getByTestId('alert').props.isPresented).toBe(false);
     } else {
-      expect(screen.toJSON()).toBeNull();
+      // Only the alert's own host is left: the dialog itself is unmounted.
+      expect(hasSlot('title')).toBe(false);
     }
   });
 

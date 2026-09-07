@@ -100,19 +100,24 @@ positioning and `<dialog>`.
 | [ScreenHeader](src/screen/header.tsx) | Simple header bar with an optional back button and a trailing slot | ✓ | ✓ | ✓ |
 | [HeaderMenu](src/header-menu/index.tsx) | Menu for a stack header's trailing slot; survives Android's header re-parenting on a tab switch | ✓ | ✓ | ✓ |
 | [NativeHost](src/host/index.tsx) | Accent-seeded `@expo/ui` host for controls that sit inside a React Native layout | ✓ | ✓ | ✓ |
+| [Surface](src/surface/types.ts) | A box in the theme's colors — a bar, a floating strip, a card, a drop target — drawn in React Native so it can hold what is not native | ✓ | ✓ | ✓ |
+| [Toolbar](src/toolbar/types.ts) | Bar of tools along a canvas: the controls are one native view, with an optional React Native field between the groups | ✓ | ✓ | ✓ |
 | [KeyboardBar](src/keyboard/index.tsx) | Bottom bar that sticks to the keyboard and reports its height (`react-native-keyboard-controller`, optional) | ✓ | ✓ | ✓ |
 | [Tabs](src/tabs/types.ts) | Tab bar for `expo-router`: native tabs on iOS and Android, a floating top bar with a logo and action slots on web; can be hidden | ✓ | ✓ | ✓ |
 | [TabStack](src/tab-stack/index.tsx) | Preconfigured `expo-router` stack for the root screen of a tab, with a header trailing slot | ✓ | ✓ | ✓ |
-| [ConstrainedStackHeader](src/stack-header/index.tsx) | Stack header that matches the content max-width on web | | | ✓ |
+| [ConstrainedStackHeader](src/stack-header/index.tsx) | Stack header that matches the content max-width on web; `TabStack` uses it there so a screen has a header on every platform | | | ✓ |
 | [Sheet](src/sheet/index.tsx) | Bottom sheet that inherits the accent color | ✓ | ✓ | ✓ |
 | [FieldGroup](src/field-group/types.ts) | Scrollable settings form made of titled sections of rows, each with an optional footer note | ✓ | ✓ | ✓ |
 | [ListItem](src/list-item/types.ts) | Tappable row with leading, trailing and supporting text slots and an optional trailing text action | ✓ | ✓ | ✓ |
+| [Card](src/card/types.ts) | Pressable surface with header, body, footer and overlay slots | ✓ | ✓ | ✓ |
 | [Fab](src/fab/types.ts) | Floating action button: Material 3 on Android, drawn in SwiftUI on iOS, a DOM button on web; can open a menu | ✓ | ✓ | ✓ |
 | [Collapsible](src/collapsible/types.ts) | Row that expands and collapses its content | ✓ | ✓ | ✓ |
 | [Divider](src/divider/types.ts) | Horizontal or vertical hairline separator | ✓ | ✓ | ✓ |
+| [Avatar](src/avatar/types.ts) | A person as a colored circle with their initials, hashed from the name | ✓ | ✓ | ✓ |
 | [Button](src/button/types.ts) | Filled, outlined or text button with optional icons, sizes, shapes and a destructive role | ✓ | ✓ | ✓ |
 | [TextField](src/text-field/types.ts) | Single or multiline text input with keyboard type, capitalization and secure entry | ✓ | ✓ | ✓ |
 | [Switch](src/switch/types.ts) | On/off toggle with a leading label | ✓ | ✓ | ✓ |
+| [IconToggle](src/icon-toggle/types.ts) | Round icon button with two states: the outline when off, the filled glyph when on | ✓ | ✓ | ✓ |
 | [Checkbox](src/checkbox/types.ts) | Checked/unchecked box with a leading label | ✓ | ✓ | ✓ |
 | [ColorPicker](src/color-picker/types.ts) | Label with a color well that opens the iOS-style color picker (Grid, Spectrum, Sliders, opacity), optionally with preset swatches | ✓ | ✓ | ✓ |
 | [Slider](src/slider/types.ts) | Thumb dragged along a continuous or stepped range | ✓ | ✓ | ✓ |
@@ -121,13 +126,48 @@ positioning and `<dialog>`.
 | [SegmentedControl](src/segmented/types.ts) | Row of segments that selects one option | ✓ | ✓ | ✓ |
 | [DateTimePicker](src/date-time/types.ts) | Picks a date, a time or both, with optional bounds | ✓ | ✓ | ✓ |
 | [Progress](src/progress/types.ts) | Linear bar or circular ring, determinate or indeterminate | ✓ | ✓ | ✓ |
+| [Spinner](src/spinner/index.tsx) | The platform's activity indicator, in a host of its own when it sits in a React Native layout | ✓ | ✓ | ✓ |
 | [Gauge](src/gauge/types.ts) | Value within a range in the SwiftUI gauge styles: capacity bars, marker bar, open or closed ring | ✓ | ✓ | ✓ |
 | [Menu](src/menu/types.ts) | Dropdown menu of actions opened from a button (or a text link on web); items can be checked or carry a color swatch | ✓ | ✓ | ✓ |
 | [ContextMenu](src/menu/types.ts) | Menu of actions opened by long-pressing (or right-clicking) its content, or at a point the content reports | ✓ | ✓ | ✓ |
+| [PopupMenu](src/popup-menu/types.ts) | The platform's menu opened at a point over content the kit did not draw: a canvas, a WebView, an editor | ✓ | ✓ | ✓ |
+| [Popover](src/popover/types.ts) | Card pointing at a rectangle on a canvas, with a title, a message and action chips | ✓ | ✓ | ✓ |
 | [Tooltip](src/tooltip/types.ts) | Short hint shown on hover, focus or long-press; an accessibility hint on iOS | | ✓ | ✓ |
-| [Alert](src/alert/types.ts) | Modal dialog or action sheet with a title, message and actions | ✓ | ✓ | ✓ |
+| [Alert](src/alert/types.ts) | Modal dialog or action sheet with a title, message and actions; mounts its own host natively, so it can be rendered anywhere | ✓ | ✓ | ✓ |
+| [Toast](src/toast/types.ts) | Brief message over the screen: the Material `Snackbar` on Android, a drawn capsule on iOS and web | ✓ | ✓ | ✓ |
 | [ExternalLink](src/router/external-link.tsx) | Link that opens in an in-app browser on native and a new tab on web | ✓ | ✓ | ✓ |
 | [Typography](src/typography/types.ts) | Text in the platform type scale, with `Title`, `Body`, `Caption` and other variants as shortcuts | ✓ | ✓ | ✓ |
+
+### Hosts
+
+Native views live inside an `@expo/ui` host. `Screen native` mounts one around
+a whole screen; where a screen cannot be native — a canvas, an editor, a list
+of React Native rows — `NativeHost` mounts one around a group of controls, at
+the accent seed the screen would have used.
+
+Three components mount a host themselves when there is none above them, so
+they can be rendered anywhere in a React Native tree: `Alert`, `Spinner` and
+`PopupMenu` (`Toast` and `Toolbar` do the same for the parts of them that are
+native). Inside a host they render bare, since hosts cannot nest. `useNativeHost()`
+reports whether there is one above, for components of your own that need the
+same choice.
+
+### Forms in a sheet
+
+`FieldGroup` is not only for a settings tab: a `Sheet` full of one is how the
+kit does a form. The question is the section's title and the note under it is
+the section's footer, so the sheet needs no headings of its own.
+
+```tsx
+<Sheet isPresented={open} onDismiss={close}>
+  <FieldGroup>
+    <FieldGroup.Section title="Rename document" footer="The name is shown to everyone with the link.">
+      <TextField value={name} onChangeText={setName} autoFocus returnKeyType="done" onSubmit={save}/>
+      <Button label="Save" onPress={save}/>
+    </FieldGroup.Section>
+  </FieldGroup>
+</Sheet>
+```
 
 ### Icons
 

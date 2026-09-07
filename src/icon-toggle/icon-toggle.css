@@ -1,0 +1,32 @@
+/*
+ * A bare round button: the icon is the whole control, with a hit target a
+ * touch bigger and a hover ring in the label color.
+ */
+.ui-icon-toggle {
+  -webkit-appearance: none;
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: content-box;
+  width: var(--ui-icon-toggle-size);
+  height: var(--ui-icon-toggle-size);
+  margin: 0;
+  padding: 4px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.ui-icon-toggle:hover:not(:disabled),
+.ui-icon-toggle:focus-visible {
+  background: color-mix(in srgb, var(--color-label) 8%, transparent);
+  outline: none;
+}
+
+.ui-icon-toggle:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

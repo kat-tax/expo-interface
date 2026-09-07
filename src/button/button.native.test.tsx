@@ -22,6 +22,45 @@ describe(`Button (${Platform.OS})`, () => {
     }
   });
 
+  it('draws the bar size with no padding at all', async () => {
+    const onPress = vi.fn();
+    await render(<Button label="Back" prefixIcon={icons.add} hideLabel size="inline" onPress={onPress} testID="bar"/>);
+    const {props} = button('bar');
+    if (isIOS) {
+      expect(modifier(props, 'padding')).toEqual({$type: 'padding', all: 0});
+      expect(modifier(props, 'controlSize')?.size).toBe('small');
+    } else {
+      // A clickable row, not a Material button: its container cannot shrink.
+      expect(props.contentPadding).toBeUndefined();
+      expect(props.verticalAlignment).toBe('center');
+      expect(modifier(props, 'clickable')).toBeTruthy();
+      expect(host(p => p.contentDescription === 'Back').props.size).toBe(20);
+    }
+  });
+
+  (isIOS ? it.skip : it)('dims a disabled bar button instead of making it clickable', async () => {
+    await render(<Button label="Back" size="inline" disabled testID="bar"/>);
+    const {props} = button('bar');
+    expect(modifier(props, 'alpha')).toEqual({$type: 'alpha', alpha: 0.45});
+    expect(modifier(props, 'clickable')).toBeUndefined();
+    // No handler, no ripple either.
+    await render(<Button label="Back" size="inline" testID="idle"/>);
+    expect(modifier(button('idle').props, 'clickable')).toBeUndefined();
+  });
+
+  it('sizes the icon on its own', async () => {
+    await render(<Button label="More" prefixIcon={icons.add} hideLabel iconSize={24} testID="more"/>);
+    const {props} = button('more');
+    if (isIOS) {
+      // A sized symbol is drawn as the label: `systemImage` takes the control size.
+      expect(props.systemImage).toBeUndefined();
+      expect(modifier(props, 'accessibilityLabel')?.label).toBe('More');
+      expect(modifier(host(p => p.systemName === 'plus').props, 'font')?.size).toBe(24);
+    } else {
+      expect(host(p => p.contentDescription === 'More').props.size).toBe(24);
+    }
+  });
+
   it('brands the button with the accent seed', async () => {
     await render(
       <AccentProvider seed="#8959EA">
@@ -226,6 +265,12 @@ describe(`Button (${Platform.OS})`, () => {
     );
     expect(button('rounded').props.shape).toMatchObject({type: 'roundedCorner'});
     expect(button('pill').props.shape).toMatchObject({type: 'pill'});
+  });
+
+  (isIOS ? it.skip : it)('inscribes the circle shape in the button, so its content is not clipped away', async () => {
+    await render(<Button label="More" prefixIcon={icons.add} hideLabel shape="circle" variant="text" testID="round"/>);
+    // A circle without a radius is a zero-size outline: an empty button.
+    expect(button('round').props.shape).toMatchObject({type: 'circle', radius: 1});
   });
 
   (isIOS ? it.skip : it)('disables the icon-only button', async () => {

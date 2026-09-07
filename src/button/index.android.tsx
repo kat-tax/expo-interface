@@ -1,6 +1,6 @@
 import type {ButtonProps, ButtonShape, ButtonVariant} from './types';
-import {fillMaxWidth, testID as testIDModifier, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
-import {Button as ComposeButton, OutlinedButton, TextButton, Icon, IconButton, FilledIconButton, OutlinedIconButton, Spacer, Shape, Text} from '@expo/ui/jetpack-compose';
+import {alpha, clickable, fillMaxWidth, testID as testIDModifier, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
+import {Button as ComposeButton, OutlinedButton, TextButton, Icon, IconButton, FilledIconButton, OutlinedIconButton, Row, Spacer, Shape, Text} from '@expo/ui/jetpack-compose';
 import {SIZE_ICON, SIZE_TEXT, androidContentPadding} from './shared';
 import {onAccent as contrastOf} from '../accent';
 import {useColor} from '../theme';
@@ -25,7 +25,10 @@ function resolveShape(shape?: ButtonShape) {
     case 'pill':
       return Shape.Pill({});
     case 'circle':
-      return Shape.Circle({});
+      // The native `radius` (a fraction of the shorter side) defaults to 0, so
+      // a circle without one is a zero-size outline that clips the content
+      // away — an empty button. 1 inscribes the circle in the button's box.
+      return Shape.Circle({radius: 1});
   }
 }
 
@@ -44,6 +47,7 @@ export function Button({
   tone = 'accent',
   size = 'medium',
   shape,
+  iconSize: iconSizeProp,
   prefixIcon,
   suffixIcon,
   hideLabel = false,
@@ -65,7 +69,7 @@ export function Button({
   const colors = onFilled
     ? {containerColor: accent, contentColor: onAccent}
     : {contentColor: accent};
-  const iconSize = SIZE_ICON[size];
+  const iconSize = iconSizeProp ?? SIZE_ICON[size];
   const textSize = SIZE_TEXT[size];
   const resolvedShape = resolveShape(shape);
   // A `Host` measures a direct child with its own (tight) constraints, which
@@ -76,6 +80,48 @@ export function Button({
   ];
   if (testID) modifiers.push(testIDModifier(testID));
   const iconOnly = hideLabel && !!prefixIcon?.drawable;
+
+  // Shared by the Material buttons and the inline row. The label is dropped
+  // only when there is an icon to stand in for it (`iconOnly`), so a
+  // `hideLabel` without a drawable still reads.
+  const content = (
+    <>
+      {prefixIcon?.drawable ? (
+        <>
+          <Icon
+            source={prefixIcon.drawable}
+            size={iconSize}
+            tint={textColor}
+            contentDescription={iconOnly ? label : undefined}
+          />
+          {iconOnly ? null : <Spacer modifiers={[width(8)]}/>}
+        </>
+      ) : null}
+      {iconOnly ? null : <Text color={textColor} style={{fontSize: textSize}}>{label}</Text>}
+      {suffixIcon?.drawable && !iconOnly ? (
+        <>
+          <Spacer modifiers={[width(8)]}/>
+          <Icon source={suffixIcon.drawable} size={iconSize} tint={textColor}/>
+        </>
+      ) : null}
+    </>
+  );
+
+  // The bar size: Material's buttons keep a minimum height, and its icon
+  // buttons a 40dp container, that no modifier can shrink — so an inline
+  // button is a clickable row of exactly its content instead.
+  if (size === 'inline') {
+    return (
+      <Row
+        verticalAlignment="center"
+        modifiers={[
+          ...modifiers,
+          ...(disabled ? [alpha(0.45)] : onPress ? [clickable(onPress)] : []),
+        ]}>
+        {content}
+      </Row>
+    );
+  }
 
   if (iconOnly) {
     const IconComponent = ICON_ONLY_COMPONENT[variant];
@@ -107,19 +153,7 @@ export function Button({
       shape={resolvedShape}
       contentPadding={pad}
       modifiers={modifiers}>
-      {prefixIcon?.drawable ? (
-        <>
-          <Icon source={prefixIcon.drawable} size={iconSize} tint={textColor}/>
-          <Spacer modifiers={[width(8)]}/>
-        </>
-      ) : null}
-      <Text color={textColor} style={{fontSize: textSize}}>{label}</Text>
-      {suffixIcon?.drawable ? (
-        <>
-          <Spacer modifiers={[width(8)]}/>
-          <Icon source={suffixIcon.drawable} size={iconSize} tint={textColor}/>
-        </>
-      ) : null}
+      {content}
     </Component>
   );
 }

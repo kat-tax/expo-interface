@@ -1,11 +1,22 @@
 import type {FabSize} from './types';
 
-/** Diameter of the circular sizes and height of the extended one, in points (Material's). */
+/** Side of the square sizes and height of the extended one, in points (Material's). */
 export const FAB_SIZE: Record<FabSize, number> = {
   small: 40,
   regular: 56,
   large: 96,
   extended: 56,
+};
+
+/**
+ * Corner radius of the `rounded` shape per size: Material 3's own tokens,
+ * which grow with the button (`circle` is half the height instead).
+ */
+export const FAB_RADIUS: Record<FabSize, number> = {
+  small: 12,
+  regular: 16,
+  large: 28,
+  extended: 16,
 };
 
 /** Icon size per `FabSize`. */

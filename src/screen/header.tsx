@@ -2,6 +2,7 @@ import {Platform, Pressable, StyleSheet, Text, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SymbolView} from 'expo-symbols';
 import {bound, spacing, useColor} from '../theme';
+import {useTabBarInset} from '../tabs/context';
 
 interface ScreenHeaderProps {
   title: string;
@@ -11,9 +12,11 @@ interface ScreenHeaderProps {
 
 export function ScreenHeader({title, onBack, trailing}: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
+  const tabBar = useTabBarInset();
   const label = useColor('label');
   const background = useColor('background');
-  const paddingTop = Platform.OS === 'web' ? 0 : insets.top;
+  // Under the status bar natively; under the floating tab bar on web.
+  const paddingTop = Platform.OS === 'web' ? tabBar : insets.top;
 
   return (
     <View style={[styles.bar, {backgroundColor: background, paddingTop}]}>

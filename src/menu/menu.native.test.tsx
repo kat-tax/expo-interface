@@ -214,6 +214,18 @@ describe(`Menu (${Platform.OS})`, () => {
     expect(nodes()[0].props.expanded).toBe(true);
   });
 
+  (isIOS ? it.skip : it)('reports the dropdown opening and closing', async () => {
+    const onOpenChange = vi.fn();
+    await render(<Menu label="Export" items={items} onOpenChange={onOpenChange} testID="export"/>);
+    const [button] = screen.container.queryAll(i => typeof i.props.onButtonPressed === 'function');
+    await fireEvent(button, 'buttonPressed');
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    const [menu] = screen.container.queryAll(i => typeof i.props.onDismissRequest === 'function');
+    await fireEvent(menu, 'dismissRequest');
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    expect(onOpenChange).toHaveBeenCalledTimes(2);
+  });
+
   (isIOS ? it.skip : it)('closes the dropdown when an entry is picked or it is dismissed', async () => {
     const onShare = vi.fn();
     await render(<Menu label="Export" items={[{label: 'Share', onPress: onShare}]} testID="export"/>);

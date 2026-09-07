@@ -14,7 +14,7 @@ import {MenuList, menuIdent} from './list';
  * `aria-expanded` are all handled by the browser. The wrapper carries the
  * `anchor-name` that CSS anchor positioning places the popup against.
  */
-export function Menu({label, icon, items, trigger = 'button', testID, ...button}: MenuProps) {
+export function Menu({label, icon, items, trigger = 'button', onOpenChange, testID, ...button}: MenuProps) {
   const ident = menuIdent(useId());
   const anchor = `--${ident}`;
   const wrapper = useRef<HTMLSpanElement>(null);
@@ -28,7 +28,7 @@ export function Menu({label, icon, items, trigger = 'button', testID, ...button}
           popoverTarget={ident}
           data-testid={testID}
           aria-label={button.hideLabel ? label : undefined}>
-          {icon ? <SymbolView name={icon.symbol} size={SIZE_ICON[button.size ?? 'medium']} tintColor="currentColor"/> : null}
+          {icon ? <SymbolView name={icon.symbol} size={button.iconSize ?? SIZE_ICON[button.size ?? 'medium']} tintColor="currentColor"/> : null}
           {button.hideLabel ? null : <span>{label}</span>}
         </button>
       ) : (
@@ -40,7 +40,7 @@ export function Menu({label, icon, items, trigger = 'button', testID, ...button}
           testID={testID}
         />
       )}
-      <MenuList id={ident} items={items} anchor={anchor} anchorRef={wrapper}/>
+      <MenuList id={ident} items={items} anchor={anchor} anchorRef={wrapper} onOpenChange={onOpenChange}/>
     </span>
   );
 }

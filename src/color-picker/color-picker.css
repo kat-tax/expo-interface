@@ -78,7 +78,9 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  flex-shrink: 0;
+  /* A phone is too narrow for a palette of eight: wrap rather than squeeze. */
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
 }
 

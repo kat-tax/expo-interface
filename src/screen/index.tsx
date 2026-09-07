@@ -9,6 +9,8 @@ import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Appearance, Platform, StyleSheet, View} from 'react-native';
 import {setBackgroundColorAsync} from 'expo-system-ui';
 import {useAccentSeed} from '../accent';
+import {NativeHostContext} from '../host';
+import {useStackHeader} from '../stack-header/context';
 import {useColorScheme} from '../scheme';
 import * as theme from '../theme';
 
@@ -35,7 +37,12 @@ setBackgroundColorAsync(background(Appearance.getColorScheme() ?? 'unspecified')
 export interface ScreenProps extends PropsWithChildren {
   /** Whether to expect an @expo/ui or normal RN component children. */
   native?: boolean;
-  /** Screen sits below a stack header — skip redundant top inset/padding. */
+  /**
+   * Whether the screen sits below a stack header, and so skips the top inset
+   * it would otherwise leave for the status bar. Inferred from the navigator
+   * above it — a `TabStack` shows a header on every platform — so it only
+   * needs setting under a plain `Stack` with its header hidden.
+   */
   header?: boolean;
   /** Whether to apply a horizontal padding to the screen. */
   gutter?: boolean;
@@ -51,11 +58,13 @@ export interface ScreenProps extends PropsWithChildren {
 export function Screen({
   children,
   native = false,
-  header = false,
+  header,
   gutter = false,
   fab,
 }: ScreenProps) {
   const seed = useAccentSeed();
+  const stackHeader = useStackHeader();
+  const underHeader = header ?? stackHeader;
   const scheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const backgroundColor = background(scheme);
@@ -67,14 +76,16 @@ export function Screen({
   return (
     <SafeAreaView
       style={{flex: 1, backgroundColor}}
-      edges={header ? CONTENT_EDGES : undefined}>
+      edges={underHeader ? CONTENT_EDGES : undefined}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'}/>
-      <View style={[styles.root, {paddingTop: header ? 0 : theme.inset.topBar}]}>
+      <View style={[styles.root, {paddingTop: underHeader ? 0 : theme.inset.topBar}]}>
         <View style={[styles.content, gutter ? styles.gutter : undefined]}>
           {!native ? children : (
-            <Host style={{flex: 1}} {...hostAccentProps(seed)}>
-              {children}
-            </Host>
+            <NativeHostContext.Provider value={true}>
+              <Host style={{flex: 1}} {...hostAccentProps(seed)}>
+                {children}
+              </Host>
+            </NativeHostContext.Provider>
           )}
         </View>
       </View>

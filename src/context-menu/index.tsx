@@ -15,7 +15,7 @@ const LONG_PRESS_MS = 500;
  * the content's first element (its own coordinates), falling back to the
  * viewport when the content has no box of its own.
  */
-export function ContextMenu({items, children, onPress, disabled, at, onDismiss, testID}: ContextMenuProps) {
+export function ContextMenu({items, children, onPress, disabled, at, onDismiss, onOpenChange, testID}: ContextMenuProps) {
   const ident = menuIdent(useId());
   const popover = useRef<HTMLDivElement>(null);
   const wrapper = useRef<HTMLDivElement>(null);
@@ -67,7 +67,16 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
       onClick={disabled ? undefined : onPress}
       data-testid={testID}>
       {children}
-      <MenuList id={ident} items={items} position={position} popoverRef={popover} onClose={onDismiss}/>
+      <MenuList
+        id={ident}
+        items={items}
+        position={position}
+        popoverRef={popover}
+        onOpenChange={isOpen => {
+          onOpenChange?.(isOpen);
+          if (!isOpen) onDismiss?.();
+        }}
+      />
     </div>
   );
 }

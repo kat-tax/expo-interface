@@ -15,6 +15,8 @@ import {
   toCss,
   toHex,
   well,
+  chunk,
+  swatchesPerLine,
 } from './shared';
 
 describe('ColorPicker shared', () => {
@@ -103,5 +105,15 @@ describe('ColorPicker shared', () => {
     expect(spectrum).toContain('stop-color="rgb(255,0,0)"');
     expect(spectrum).toContain('preserveAspectRatio="none"');
     expect(checkerSvg()).toContain('fill="#d9d9d9"');
+  });
+
+  it('splits the swatches into the lines a width holds', () => {
+    // 38 points a swatch: five fit a 430pt phone line once the form's insets go.
+    expect(swatchesPerLine(430, 64)).toBe(9);
+    expect(swatchesPerLine(430, 180)).toBe(6);
+    // Never nothing: a single swatch always shows.
+    expect(swatchesPerLine(40, 64)).toBe(1);
+    expect(chunk(['a', 'b', 'c', 'd', 'e'], 2)).toEqual([['a', 'b'], ['c', 'd'], ['e']]);
+    expect(chunk([], 2)).toEqual([]);
   });
 });

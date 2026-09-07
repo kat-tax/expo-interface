@@ -6,6 +6,7 @@ import {useWindowDimensions} from 'react-native';
 import {
   Box,
   Column,
+  FlowRow,
   ModalBottomSheet,
   RNHostView,
   Row,
@@ -62,7 +63,11 @@ export function ColorPicker({
       {label != null ? (
         <Text color={disabled ? colors.onSurfaceVariant : colors.onSurface}>{label}</Text>
       ) : <Spacer/>}
-      <Row verticalAlignment="center" horizontalArrangement={{spacedBy: 8}} modifiers={disabled ? [alpha(0.4)] : []}>
+      {/* A flow row so a phone's width wraps the swatches instead of squeezing them. */}
+      <FlowRow
+        verticalArrangement={{spacedBy: 8}}
+        horizontalArrangement={{spacedBy: 8}}
+        modifiers={disabled ? [alpha(0.4)] : []}>
         {swatches?.map(seed => {
           const selected = toHex(parseColor(seed), false) === currentHex;
           const inner = selected ? SWATCH_SELECTED : SWATCH_INNER;
@@ -109,7 +114,7 @@ export function ColorPicker({
             testID={testID ? `${testID}-sheet` : undefined}
           />
         </PickerSheet>
-      </Row>
+      </FlowRow>
     </Row>
   );
 }

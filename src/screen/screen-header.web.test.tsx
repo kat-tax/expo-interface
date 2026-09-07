@@ -1,7 +1,8 @@
 import {fireEvent, render, screen} from '@testing-library/react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {Button} from '../button';
-import {bound} from '../theme';
+import {bound, inset} from '../theme';
+import {TabBarContext} from '../tabs/context';
 import {ScreenHeader} from './header';
 
 function mount(ui: React.ReactElement) {
@@ -30,9 +31,20 @@ describe('ScreenHeader (web)', () => {
     expect(screen.getByRole('button', {name: 'Done'})).toBeInTheDocument();
   });
 
-  it('applies no safe-area padding on web', () => {
+  it('applies no safe-area padding on web, and clears a floating tab bar', () => {
     mount(<ScreenHeader title="Settings"/>);
-    const bar = screen.getByText('Settings').parentElement!.parentElement!;
-    expect(getComputedStyle(bar).paddingTop).toBe('0px');
+    const bar = () => screen.getByText('Settings').parentElement!.parentElement!;
+    expect(getComputedStyle(bar()).paddingTop).toBe('0px');
+
+    // Under a shown web tab bar the header starts below it.
+    render(
+      <SafeAreaProvider>
+        <TabBarContext.Provider value={true}>
+          <ScreenHeader title="Under the bar"/>
+        </TabBarContext.Provider>
+      </SafeAreaProvider>,
+    );
+    const under = screen.getByText('Under the bar').parentElement!.parentElement!;
+    expect(getComputedStyle(under).paddingTop).toBe(`${inset.topBar}px`);
   });
 });

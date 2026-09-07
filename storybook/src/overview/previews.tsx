@@ -2,8 +2,10 @@ import type {PropsWithChildren} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {SymbolView} from 'expo-symbols';
 import {
+  Avatar,
   Body,
   Button,
+  Card,
   Checkbox,
   Collapsible,
   ColorPicker,
@@ -14,6 +16,7 @@ import {
   Footnote,
   Gauge,
   Headline,
+  IconToggle,
   KeyboardBar,
   ListItem,
   Picker,
@@ -23,11 +26,15 @@ import {
   ScreenHeader,
   SegmentedControl,
   Slider,
+  Spinner,
   Stepper,
+  Surface,
   Switch,
   TextField,
   Title,
   Title3,
+  Toast,
+  Toolbar,
   useColor,
 } from 'expo-interface';
 import type {IconToken} from 'expo-interface';
@@ -69,6 +76,48 @@ function Row({children}: PropsWithChildren) {
 /** Phone-like frame for screen-level layouts; restores the kit's real surfaces inside. */
 function Device({children}: PropsWithChildren) {
   return <div style={styles.device}>{children}</div>;
+}
+
+/** A document card: a preview over its title. */
+function CardPreview() {
+  return (
+    <Card
+      label="Holiday photos"
+      onPress={noop}
+      footer={<Headline color="label">Holiday photos</Headline>}>
+      <View style={styles.cardPreview}>
+        <Footnote color="tertiaryLabel">Preview</Footnote>
+      </View>
+    </Card>
+  );
+}
+
+/** A toolbar over a strip of canvas, with the tools it would carry. */
+function ToolbarPreview() {
+  return (
+    <View style={styles.toolbarStage}>
+      <Footnote color="tertiaryLabel">A canvas above the bar</Footnote>
+      <Toolbar
+        leading={
+          <>
+            <Button label="Add" prefixIcon={icons.add} hideLabel variant="text" tone="label" size="inline" onPress={noop}/>
+            <Divider vertical/>
+            <Button label="Share" prefixIcon={icons.share} hideLabel variant="text" tone="label" size="inline" onPress={noop}/>
+          </>
+        }
+        trailing={<Button label="Export" variant="text" size="small" onPress={noop}/>}
+      />
+    </View>
+  );
+}
+
+/** The toast pinned in a box of its own, since it floats over a screen. */
+function ToastPreview() {
+  return (
+    <View style={styles.toastStage}>
+      <Toast message="3 files added" visible action={{label: 'Undo', onPress: noop}}/>
+    </View>
+  );
 }
 
 // Overlays
@@ -253,6 +302,22 @@ export const layout: CardEntry[] = [
   {name: 'Screen', href: docs('layout-screen'), stage: 'device', preview: <ScreenPreview/>},
   {name: 'ScreenHeader', href: docs('layout-screenheader'), preview: <ScreenHeaderPreview/>},
   {name: 'KeyboardBar', href: docs('layout-keyboardbar'), stage: 'device', preview: <KeyboardBarPreview/>},
+  {
+    name: 'Surface',
+    href: docs('layout-surface'),
+    preview: (
+      <>
+        <Surface border="all" padding={12}>
+          <Headline color="label">Holiday photos</Headline>
+          <Footnote color="secondaryLabel">Edited yesterday</Footnote>
+        </Surface>
+        <Surface color="background" border="top" radius={0} padding={12}>
+          <Footnote color="secondaryLabel">A bar along a canvas</Footnote>
+        </Surface>
+      </>
+    ),
+  },
+  {name: 'Toolbar', href: docs('layout-toolbar'), preview: <ToolbarPreview/>},
 ];
 
 export const components: CardEntry[] = [
@@ -310,6 +375,23 @@ export const components: CardEntry[] = [
     ),
   },
   {
+    name: 'Avatar',
+    href: docs('components-avatar'),
+    stage: 'center',
+    preview: (
+      <Row>
+        {['Ada Lovelace', 'Grace Hopper', 'Alan Turing'].map(name => (
+          <Avatar key={name} name={name}/>
+        ))}
+      </Row>
+    ),
+  },
+  {
+    name: 'Card',
+    href: docs('components-card'),
+    preview: <CardPreview/>,
+  },
+  {
     name: 'Divider',
     href: docs('components-divider'),
     preview: (
@@ -335,6 +417,17 @@ export const components: CardEntry[] = [
           <Gauge variant="circularCapacity" value={0.72} currentValueLabel="72%"/>
         </Row>
       </>
+    ),
+  },
+  {
+    name: 'IconToggle',
+    href: docs('components-icontoggle'),
+    stage: 'center',
+    preview: (
+      <Row>
+        <IconToggle label="Favourite" icon={icons.star} value onValueChange={noop}/>
+        <IconToggle label="Share" icon={icons.share} value={false} onValueChange={noop}/>
+      </Row>
     ),
   },
   {name: 'ListItem', href: docs('components-listitem'), preview: <ListItemPreview/>},
@@ -382,6 +475,12 @@ export const components: CardEntry[] = [
   },
   {name: 'Sheet', href: docs('components-sheet'), stage: 'device', backdrop: true, preview: <SheetPreview/>},
   {
+    name: 'Spinner',
+    href: docs('components-spinner'),
+    stage: 'center',
+    preview: <Spinner size={40}/>,
+  },
+  {
     name: 'Slider',
     href: docs('components-slider'),
     preview: (
@@ -421,6 +520,7 @@ export const components: CardEntry[] = [
       </>
     ),
   },
+  {name: 'Toast', href: docs('components-toast'), stage: 'center', preview: <ToastPreview/>},
   {name: 'Tooltip', href: docs('components-tooltip'), stage: 'center', preview: <TooltipPreview/>},
   {name: 'Typography', href: docs('components-typography'), preview: <TypographyPreview/>},
 ];
@@ -468,4 +568,7 @@ const styles = {
   group: {overflow: 'hidden', borderRadius: 12, background: 'var(--color-background-element)'} as const,
   keyboardBar: {flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 8, paddingVertical: 4, borderTopWidth: 1, borderTopColor: 'var(--color-separator)'} as const,
   keyboardSpacer: {flex: 1} as const,
+  cardPreview: {height: 72, alignItems: 'center', justifyContent: 'center'} as const,
+  toolbarStage: {width: 260, gap: 16} as const,
+  toastStage: {width: 260, height: 96} as const,
 };

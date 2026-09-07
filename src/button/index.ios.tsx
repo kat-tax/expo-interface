@@ -1,7 +1,7 @@
 import type {ButtonProps, ButtonVariant} from './types';
 import type {ViewModifier} from '@expo/ui/swift-ui/modifiers';
 import {Button as SwiftUIButton, HStack, Image, Text} from '@expo/ui/swift-ui';
-import {buttonStyle, buttonBorderShape, controlSize, labelStyle, tint, disabled as disabledMod} from '@expo/ui/swift-ui/modifiers';
+import {accessibilityLabel, buttonStyle, buttonBorderShape, controlSize, labelStyle, padding, tint, disabled as disabledMod} from '@expo/ui/swift-ui/modifiers';
 import {ICON_GAP, SIZE_ICON, iosSymbol, swiftBorderShape, swiftControlSize} from './shared';
 import {onAccent as contrastOf} from '../accent';
 import {fillWidth as fillWidthModifiers} from '../fill';
@@ -27,6 +27,7 @@ export function Button({
   tone = 'accent',
   size = 'medium',
   shape,
+  iconSize: iconSizeProp,
   prefixIcon,
   suffixIcon,
   hideLabel = false,
@@ -46,6 +47,8 @@ export function Button({
   // A custom accent brings its own contrast color for filled content.
   const onAccent = color ? contrastOf(color) : themeOnAccent;
   const iconColor = variant === 'filled' ? onAccent : accent;
+  const iconSize = iconSizeProp ?? SIZE_ICON[size];
+  const buttonRole = role === 'destructive' ? 'destructive' : 'default';
   const modifiers: ViewModifier[] = [
     buttonStyle(VARIANT_STYLE[variant]),
     controlSize(swiftControlSize(size)),
@@ -53,22 +56,39 @@ export function Button({
   ];
 
   if (shape) modifiers.push(buttonBorderShape(swiftBorderShape(shape)));
+  // The bar size: exactly the content, so the button doesn't set the bar's height.
+  if (size === 'inline') modifiers.push(padding({all: 0}));
   if (disabled) modifiers.push(disabledMod(true));
   if (iconOnly) modifiers.push(labelStyle('iconOnly'));
+
+  // A `systemImage` label takes its size from the control size, so an icon
+  // sized on its own (a header action's 22pt symbol) is composed by hand.
+  if (iconOnly && iconSizeProp !== undefined) {
+    return (
+      <SwiftUIButton
+        role={buttonRole}
+        onPress={onPress}
+        modifiers={[...modifiers, accessibilityLabel(label)]}
+        testID={testID}>
+        <Image systemName={iosSymbol(prefixIcon!)} color={iconColor} size={iconSize}/>
+      </SwiftUIButton>
+    );
+  }
+
   // SwiftUI has no trailing-icon `Label`, and a bordered style only paints
   // behind the label, so both cases compose the label by hand: the frame
   // that fills the width goes on the label, not the button.
   if ((hasSuffix || fillWidth) && !iconOnly) {
     return (
       <SwiftUIButton
-        role={role === 'destructive' ? 'destructive' : 'default'}
+        role={buttonRole}
         onPress={onPress}
         modifiers={modifiers}
         testID={testID}>
         <HStack spacing={ICON_GAP} modifiers={fillWidth ? fillWidthModifiers : undefined}>
-          {prefixIcon ? <Image systemName={iosSymbol(prefixIcon)} color={iconColor} size={SIZE_ICON[size]}/> : null}
+          {prefixIcon ? <Image systemName={iosSymbol(prefixIcon)} color={iconColor} size={iconSize}/> : null}
           <Text>{label}</Text>
-          {hasSuffix ? <Image systemName={iosSymbol(suffixIcon!)} color={iconColor} size={SIZE_ICON[size]}/> : null}
+          {hasSuffix ? <Image systemName={iosSymbol(suffixIcon!)} color={iconColor} size={iconSize}/> : null}
         </HStack>
       </SwiftUIButton>
     );
@@ -77,7 +97,7 @@ export function Button({
   return (
     <SwiftUIButton
       label={label}
-      role={role === 'destructive' ? 'destructive' : 'default'}
+      role={buttonRole}
       systemImage={prefixIcon ? iosSymbol(prefixIcon) : undefined}
       modifiers={modifiers}
       onPress={onPress}
