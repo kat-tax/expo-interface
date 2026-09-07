@@ -1,9 +1,20 @@
 import type {TextFieldProps} from './types';
-import type {TextStyle} from 'react-native';
+import type {NativeSyntheticEvent, TextInputKeyPressEventData, TextStyle} from 'react-native';
 
+import {useRef} from 'react';
 import {StyleSheet, TextInput} from 'react-native';
 import {fonts, fontWeights, theme, variants} from '../theme';
-import {keyboardTypeFor, useTextValue} from './shared';
+import {InlineTextField} from './inline';
+import {keyboardTypeFor, useAutoFocus, useTextValue} from './shared';
+
+/**
+ * The `row` variant is the form row below; `inline` is the borderless field
+ * for a React Native layout (the same `TextInput`, sized to its room).
+ */
+export function TextField(props: TextFieldProps) {
+  if (props.variant === 'inline') return <InlineTextField {...props}/>;
+  return <RowTextField {...props}/>;
+}
 
 /**
  * On web the field mirrors the native iOS/Android row: a borderless, full-width
@@ -11,11 +22,12 @@ import {keyboardTypeFor, useTextValue} from './shared';
  * typography so it sits flush inside a `FieldGroup.Section`. The browser focus
  * outline is suppressed to match the chromeless iOS `Form` look.
  */
-export function TextField({
+function RowTextField({
   placeholder,
   value,
   onChangeText,
   onSubmit,
+  onKeyPress,
   disabled,
   secureTextEntry,
   keyboardType,
@@ -23,16 +35,21 @@ export function TextField({
   autoCorrect,
   multiline,
   autoFocus,
+  returnKeyType,
+  submitBehavior,
   maxLength,
   accentColor,
   testID,
   style,
 }: TextFieldProps) {
+  const input = useRef<TextInput>(null);
   const [current, setValue] = useTextValue(value, onChangeText);
   const cursor = accentColor ?? (theme.tint as string);
+  useAutoFocus(input, autoFocus);
 
   return (
     <TextInput
+      ref={input}
       value={current}
       onChangeText={setValue}
       placeholder={placeholder}
@@ -43,11 +60,14 @@ export function TextField({
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
       multiline={multiline}
-      autoFocus={autoFocus}
       maxLength={maxLength}
       cursorColor={cursor}
       selectionColor={cursor}
+      returnKeyType={returnKeyType}
+      submitBehavior={submitBehavior}
       onSubmitEditing={onSubmit ? event => onSubmit(event.nativeEvent.text) : undefined}
+      onKeyPress={onKeyPress ? (event: NativeSyntheticEvent<TextInputKeyPressEventData & {shiftKey?: boolean}>) =>
+        onKeyPress(event.nativeEvent.key, event.nativeEvent.shiftKey === true) : undefined}
       aria-label={placeholder}
       testID={testID}
       style={[styles.input, disabled && styles.disabled, style]}

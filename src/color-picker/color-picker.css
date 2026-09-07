@@ -64,3 +64,73 @@
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/*
+ * With presets the row is a `<div>`; the swatches and the well are buttons of
+ * their own. A preset is a 28px circle in its color; the selected one shrinks
+ * inside a 30px ring in the label color.
+ */
+.ui-color-picker--presets {
+  cursor: default;
+}
+
+.ui-color-picker__presets {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.ui-color-picker__preset {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ui-color-picker__preset::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 50%;
+  background: var(--ui-color-picker-preset);
+}
+
+.ui-color-picker__preset--selected {
+  background: var(--color-label);
+}
+
+.ui-color-picker__preset--selected::after {
+  inset: 4px;
+}
+
+.ui-color-picker__open {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ui-color-picker__preset:disabled,
+.ui-color-picker__open:disabled {
+  cursor: default;
+}
+
+.ui-color-picker__preset:focus-visible,
+.ui-color-picker__open:focus-visible {
+  outline: 2px solid var(--color-tint);
+  outline-offset: 2px;
+  border-radius: 50%;
+}

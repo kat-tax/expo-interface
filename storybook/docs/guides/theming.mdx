@@ -79,6 +79,32 @@ import {theme} from 'expo-interface';
 }}/>
 ```
 
+## `usePalette`
+
+Returns the resolved palette of the current scheme as plain color strings on
+every platform, with the live accent as `tint`. `useColor` stays the right
+call for styles (on web it hands out the CSS variable, which follows the
+scheme without a re-render); `usePalette` is for canvases, native views and
+anything else that cannot read a variable.
+
+## Color scheme
+
+`useColorScheme()` answers `'light'` or `'dark'` from one stable
+subscription; every kit component follows it. `setColorScheme('system' |
+'light' | 'dark')` forces a scheme or follows the system again:
+`Appearance.setColorScheme` natively, and on web the forced palette written
+on the root element with `color-scheme` and `data-theme`, remembered in
+`localStorage` so `getThemeBootScript()` in `+html.tsx` applies it before
+the bundle runs (`getThemeCSS()` carries the matching `:root[data-theme]`
+palettes).
+
+```tsx
+import {getThemeBootScript, getThemeCSS} from 'expo-interface';
+
+<style dangerouslySetInnerHTML={{__html: getThemeCSS()}}/>
+<script dangerouslySetInnerHTML={{__html: getThemeBootScript()}}/>
+```
+
 ## Color tokens
 
 The swatches below are the concrete light and dark palettes from `colors`;
@@ -101,6 +127,9 @@ The swatches below are the concrete light and dark palettes from `colors`;
 | --- | --- |
 | `useNavTheme()` | React Navigation theme built from the palette and accent |
 | `getThemeCSS()` | Palette as CSS variables, for `+html.tsx` |
+| `getThemeBootScript()` | Script applying a saved forced scheme before the bundle runs, for `+html.tsx` |
+| `useColorScheme()`, `setColorScheme()` | The scheme as a store, and forcing it |
+| `usePalette()` | Resolved palette as plain colors |
 | `colors` | Raw light and dark palettes |
 | `spacing`, `bound`, `inset` | Layout constants |
 | `fonts`, `fontWeights`, `variants` | Type constants |

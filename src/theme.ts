@@ -2,14 +2,18 @@ import './global.css';
 import type {CSSProperties} from 'react';
 import type {ColorValue, TextStyle} from 'react-native';
 
+import {useMemo} from 'react';
 import {DefaultTheme} from 'expo-router';
-import {Platform, PlatformColor, useColorScheme} from 'react-native';
+import {Platform, PlatformColor} from 'react-native';
 import {TypographyVariant, TypographyStyle} from './typography/types';
 import {ACCENT_SEED, onAccent, useAccentSeed} from './accent';
+import {useColorScheme} from './scheme';
 
 export type VariantMap = Record<TypographyVariant, TypographyStyle>;
 export type ColorTokens = keyof typeof colors[keyof typeof colors];
 export type ColorValues = typeof colors[keyof typeof colors];
+/** A resolved palette: one plain color string per token (see `usePalette`). */
+export type Palette = Record<ColorTokens, string>;
 export type ColorNative = ColorValue | (() => ColorValue);
 
 export const VALID_STYLES = [
@@ -378,7 +382,7 @@ export function useNavTheme() {
   if (Platform.OS === 'web') return nav;
   /* eslint-disable react-hooks/rules-of-hooks -- Platform.OS is a runtime constant. */
   const seed = useAccentSeed();
-  const palette = colors[useColorScheme() === 'dark' ? 'dark' : 'light'];
+  const palette = colors[useColorScheme()];
   /* eslint-enable react-hooks/rules-of-hooks */
   return {
     ...nav,
@@ -445,11 +449,28 @@ export function useColor(token: ColorTokens): string {
   if (Platform.OS === 'web') return theme[token] as string;
   /* eslint-disable react-hooks/rules-of-hooks -- Platform.OS is a runtime constant. */
   const seed = useAccentSeed();
-  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const scheme = useColorScheme();
   /* eslint-enable react-hooks/rules-of-hooks */
   if (token === 'tint') return seed;
   if (token === 'onTint') return onAccent(seed);
   return colors[scheme][token];
+}
+
+/**
+ * The resolved palette of the current scheme, with the live accent seed as
+ * `tint` and its contrast as `onTint`: plain color strings on every platform,
+ * including web. `useColor` stays the right call for styles (on web it hands
+ * out the CSS variable, which follows the scheme without a re-render);
+ * `usePalette` is for canvases, native views and anything else that cannot
+ * read a variable.
+ */
+export function usePalette(): Palette {
+  const seed = useAccentSeed();
+  const scheme = useColorScheme();
+  return useMemo(
+    () => ({...colors[scheme], tint: seed, onTint: onAccent(seed)}),
+    [scheme, seed],
+  );
 }
 
 export function getPlatformToken(specifics: {
@@ -471,10 +492,20 @@ export function getPlatformToken(specifics: {
   }
 }
 
+/**
+ * The palette as `--color-*` custom properties for `+html.tsx`: the light
+ * values on `:root`, the dark ones under the `prefers-color-scheme` media
+ * query, and both again keyed on `data-theme`, which `setColorScheme` (and
+ * the `getThemeBootScript` boot script) set on the root element to force a
+ * scheme regardless of the system's. `tint`/`onTint` are the same in both
+ * schemes, so the forced palettes leave them to the defaults and to
+ * `AccentProvider`.
+ */
 export function getThemeCSS(): string {
   const format = (s: string) => s.replace(/[A-Z]/g, v => `-${v.toLowerCase()}`);
-  const render = (o: ColorValues) => Object.entries(o).map(([k,v]) =>
-    `\t\t${`--color-${format(k)}`}: ${v};`).join('\n');
+  const render = (o: ColorValues, skipAccent = false) => Object.entries(o)
+    .filter(([k]) => !skipAccent || (k !== 'tint' && k !== 'onTint'))
+    .map(([k,v]) => `\t\t${`--color-${format(k)}`}: ${v};`).join('\n');
   return `
     :root {
       color-scheme: light dark;
@@ -484,6 +515,14 @@ export function getThemeCSS(): string {
       :root {
         ${render(colors.dark)}
       }
+    }
+    :root[data-theme="light"] {
+      color-scheme: light;
+      ${render(colors.light, true)}
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      ${render(colors.dark, true)}
     }
   `;
 }

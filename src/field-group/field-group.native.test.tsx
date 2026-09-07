@@ -25,11 +25,100 @@ describe(`FieldGroup (${Platform.OS})`, () => {
       expect(form.type).toBe('ViewManagerAdapter_ExpoUI_FormView');
       expect(form.props.modifiers).toEqual([]);
     } else {
-      const {props} = byComposeTestID('group');
+      const group = byComposeTestID('group');
+      const {props} = group;
+      // A scrolling `Column`, not a `LazyColumn`: rows are composed once, so
+      // React Native views hosted inside them attach once.
+      expect(group.type).toBe('ViewManagerAdapter_ExpoUI_ColumnView');
       expect(props.verticalArrangement).toEqual({spacedBy: 24});
-      expect(props.contentPadding).toEqual({start: 16, end: 16, top: 16, bottom: 16});
+      expect(modifier(props, 'verticalScroll')).toBeDefined();
+      expect(modifier(props, 'fillMaxWidth')).toBeDefined();
+      expect(modifier(props, 'padding')).toEqual({$type: 'padding', start: 16, top: 16, end: 16, bottom: 16});
       // No background: the app palette paints the screen behind the group.
       expect(modifier(props, 'background')).toBeUndefined();
+    }
+  });
+
+  it('renders the footer prop under the rows in the secondary color', async () => {
+    await render(
+      <FieldGroup>
+        <FieldGroup.Section title="Connection" footer="Optional. When signed in, documents are backed up.">
+          <Typography>Row</Typography>
+        </FieldGroup.Section>
+      </FieldGroup>,
+    );
+    const text = host(p => String(p.text).startsWith('Optional.'));
+    if (isIOS) {
+      const footer = host(p => p.name === 'footer');
+      expect(host(p => String(p.text).startsWith('Optional.'), footer)).toBeTruthy();
+      expect(modifier(text.props, 'foregroundStyle')).toMatchObject({color: colors.light.secondaryLabel});
+      expect(modifier(text.props, 'font')).toMatchObject({size: 13});
+    } else {
+      expect(text.props.color).toBe(colors.light.secondaryLabel);
+      expect(text.props.typography).toBe('bodySmall');
+      expect(host(p => modifier(p, 'padding')?.top === 4)).toBeTruthy();
+      expect(rows()).toHaveLength(1);
+    }
+  });
+
+  it('colors the footer for an error', async () => {
+    await render(
+      <FieldGroup>
+        <FieldGroup.Section title="Connection" footer="The server could not be reached." footerColor="destructive">
+          <Typography>Row</Typography>
+        </FieldGroup.Section>
+      </FieldGroup>,
+    );
+    const text = host(p => String(p.text).startsWith('The server'));
+    if (isIOS) {
+      expect(modifier(text.props, 'foregroundStyle')).toMatchObject({color: colors.light.destructive});
+    } else {
+      expect(text.props.color).toBe(colors.light.destructive);
+    }
+  });
+
+  it('lets a SectionFooter slot win over the footer prop', async () => {
+    await render(
+      <FieldGroup>
+        <FieldGroup.Section title="About" footer="Ignored">
+          <Typography>Row</Typography>
+          <FieldGroup.SectionFooter>
+            <Typography testID="footer">Custom</Typography>
+          </FieldGroup.SectionFooter>
+        </FieldGroup.Section>
+      </FieldGroup>,
+    );
+    expect(host(p => p.testID === 'footer')).toBeTruthy();
+    expect(nodes().some(n => n.props?.text === 'Ignored')).toBe(false);
+  });
+
+  it('renders a standalone section with its footer', async () => {
+    await render(
+      <FieldGroup.Section title="Alone" footer="Note">
+        <Typography>Row</Typography>
+      </FieldGroup.Section>,
+    );
+    expect(host(p => p.text === 'Note')).toBeTruthy();
+    if (isIOS) {
+      expect(nodes()[0].type).toBe('ViewManagerAdapter_ExpoUI_SectionView');
+    }
+  });
+
+  it('keeps sections with a footer inside a fragment', async () => {
+    await render(
+      <FieldGroup>
+        <>
+          <FieldGroup.Section title="One" footer="First note">
+            <Typography>Row</Typography>
+          </FieldGroup.Section>
+        </>
+        {null}
+      </FieldGroup>,
+    );
+    expect(host(p => p.text === 'First note')).toBeTruthy();
+    if (isIOS) {
+      // Still one native section, not one nested in an implicit one.
+      expect(nodes().filter(n => n.type === 'ViewManagerAdapter_ExpoUI_SectionView')).toHaveLength(1);
     }
   });
 

@@ -1,0 +1,65 @@
+/*
+ * The web row with a trailing action: the universal row's geometry (12px by
+ * 16px padding, a 12px gap between the slots), the row's own control beside
+ * the action's `<button>` rather than around it.
+ */
+.ui-list-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 16px;
+}
+
+.ui-list-item__row {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-label);
+  font: inherit;
+  text-align: start;
+}
+
+.ui-list-item__row--pressable {
+  cursor: pointer;
+}
+
+.ui-list-item__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ui-list-item__headline {
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--color-label);
+}
+
+.ui-list-item__supporting {
+  font-family: var(--font-display);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--color-secondary-label);
+}
+
+.ui-list-item__slot {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+}

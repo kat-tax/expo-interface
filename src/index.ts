@@ -4,22 +4,36 @@ export * from './theme';
 export * from './accent';
 export * from './icons';
 export {fillWidth} from './fill';
+export {
+  SCHEME_STORAGE_KEY,
+  getColorSchemeMode,
+  getThemeBootScript,
+  setColorScheme,
+  useColorScheme,
+} from './scheme';
+export type {ColorScheme, ColorSchemeMode} from './scheme';
 
 // Layout
 export {Screen} from './screen';
+export type {ScreenProps} from './screen';
 export {ScreenHeader} from './screen/header';
 export {hostAccentProps} from './screen/host-accent';
+export {NativeHost} from './host';
+export type {NativeHostProps} from './host';
 export {Sheet} from './sheet';
 export {ConstrainedStackHeader} from './stack-header';
 export {TabStack} from './tab-stack';
+export type {TabStackProps} from './tab-stack';
 export {Tabs} from './tabs';
 export type {TabBarProps, TabRoute, WebLogo} from './tabs/types';
+export {KeyboardBar} from './keyboard';
+export type {KeyboardBarProps, KeyboardLibrary, KeyboardState} from './keyboard';
 
 // Components
 export {Alert} from './alert';
 export type {AlertAction, AlertActionRole, AlertProps} from './alert/types';
 export {Button} from './button';
-export type {ButtonProps, ButtonRole, ButtonShape, ButtonSize, ButtonVariant} from './button/types';
+export type {ButtonProps, ButtonRole, ButtonShape, ButtonSize, ButtonTone, ButtonVariant} from './button/types';
 export {Checkbox} from './checkbox';
 export type {CheckboxProps} from './checkbox/types';
 export {Collapsible} from './collapsible';
@@ -31,13 +45,18 @@ export {DateTimePicker} from './date-time';
 export type {DateTimeMode, DateTimePickerProps} from './date-time/types';
 export {Divider} from './divider';
 export type {DividerProps} from './divider/types';
-export {FieldGroup, type FieldGroupProps} from './field-group';
+export {Fab} from './fab';
+export type {FabProps, FabSize} from './fab/types';
+export {FieldGroup} from './field-group';
+export type {FieldGroupProps, FieldGroupSectionProps, FieldSectionFooterColor} from './field-group/types';
 export {Gauge} from './gauge';
 export type {GaugeProps, GaugeVariant} from './gauge/types';
+export {HeaderMenu} from './header-menu';
+export type {HeaderMenuProps} from './header-menu';
 export {ListItem} from './list-item';
-export type {ListItemProps} from './list-item/types';
+export type {ListItemAction, ListItemProps} from './list-item/types';
 export {Menu} from './menu';
-export type {ContextMenuProps, MenuItem, MenuProps} from './menu/types';
+export type {ContextMenuProps, MenuItem, MenuPoint, MenuProps, MenuTrigger} from './menu/types';
 export {Picker} from './picker';
 export type {PickerItemProps, PickerOption, PickerProps, PickerValue} from './picker/types';
 export {Progress} from './progress';
@@ -53,7 +72,14 @@ export type {SwitchProps} from './switch/types';
 export {Tooltip} from './tooltip';
 export type {TooltipProps} from './tooltip/types';
 export {TextField} from './text-field';
-export type {TextFieldCapitalize, TextFieldKeyboard, TextFieldProps} from './text-field/types';
+export type {
+  TextFieldCapitalize,
+  TextFieldKeyboard,
+  TextFieldProps,
+  TextFieldReturnKey,
+  TextFieldSubmitBehavior,
+  TextFieldVariant,
+} from './text-field/types';
 export {ExternalLink} from './router/external-link';
 
 // Typography

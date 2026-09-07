@@ -91,6 +91,20 @@ export const CustomHeaderFooter: Story = {
   ),
 };
 
+export const SectionFooters: Story = {
+  render: args => (
+    <FieldGroup {...args}>
+      <FieldGroup.Section title="Connection" footer="Optional. When signed in, your drops are backed up and sharing is enabled.">
+        <ListItem action={{label: 'Sign in', onPress: args.onPress}}>Account</ListItem>
+        <TextField placeholder="Display name"/>
+      </FieldGroup.Section>
+      <FieldGroup.Section title="Sync" footer="The server could not be reached: check the connection." footerColor="destructive">
+        <Switch label="Back up drops" value onValueChange={fn()}/>
+      </FieldGroup.Section>
+    </FieldGroup>
+  ),
+};
+
 export const ImplicitSection: Story = {
   render: args => (
     <FieldGroup {...args}>

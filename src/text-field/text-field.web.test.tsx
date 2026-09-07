@@ -82,6 +82,42 @@ describe('TextField (web)', () => {
     expect(area).toHaveAttribute('aria-label', 'Notes');
   });
 
+  it('labels the keyboard action key and reports key presses', () => {
+    const onKeyPress = vi.fn();
+    render(<TextField returnKeyType="search" onKeyPress={onKeyPress} testID="query"/>);
+    const input = screen.getByTestId('query');
+    expect(input).toHaveAttribute('enterkeyhint', 'search');
+    fireEvent.keyDown(input, {key: 'Enter', shiftKey: true});
+    expect(onKeyPress).toHaveBeenCalledWith('Enter', true);
+    fireEvent.keyDown(input, {key: 'Escape'});
+    expect(onKeyPress).toHaveBeenLastCalledWith('Escape', false);
+  });
+
+  it('focuses on mount with autoFocus', () => {
+    render(<TextField autoFocus testID="query"/>);
+    expect(document.activeElement).toBe(screen.getByTestId('query'));
+  });
+
+  it('renders the inline variant as a borderless input that grows to its room', () => {
+    const onSubmit = vi.fn();
+    render(<TextField variant="inline" placeholder="Find in document" returnKeyType="next" onSubmit={onSubmit} autoFocus testID="find"/>);
+    const input = screen.getByRole('textbox', {name: 'Find in document'});
+    expect(input).toBe(screen.getByTestId('find'));
+    expect(input).toHaveAttribute('enterkeyhint', 'next');
+    expect(document.activeElement).toBe(input);
+    expect(getComputedStyle(input).flexGrow).toBe('1');
+    fireEvent.change(input, {target: {value: 'hello'}});
+    fireEvent.keyDown(input, {key: 'Enter', keyCode: 13});
+    expect(onSubmit).toHaveBeenCalledWith('hello');
+  });
+
+  it('dims and locks the inline variant when disabled', () => {
+    render(<TextField variant="inline" value="Locked" disabled testID="field"/>);
+    const input = screen.getByTestId('field');
+    expect(input).toHaveAttribute('readonly');
+    expect(getComputedStyle(input).opacity).toBe('0.4');
+  });
+
   it('forwards capitalization, autocorrect and length limits', () => {
     render(<TextField autoCapitalize="none" autoCorrect={false} maxLength={6} testID="code"/>);
     const input = screen.getByTestId('code');

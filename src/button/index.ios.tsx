@@ -24,6 +24,7 @@ export function Button({
   variant = 'filled',
   role = 'default',
   color,
+  tone = 'accent',
   size = 'medium',
   shape,
   prefixIcon,
@@ -34,11 +35,14 @@ export function Button({
   testID,
 }: ButtonProps) {
   const themeTint = useColor('tint');
+  const themeLabel = useColor('label');
   const destructive = useColor('destructive');
   const themeOnAccent = useColor(role === 'destructive' ? 'onDestructive' : 'onTint');
   const hasSuffix = !!suffixIcon && !hideLabel;
   const iconOnly = hideLabel && !!prefixIcon;
-  const accent = color ?? (role === 'destructive' ? destructive : themeTint);
+  // The label tone only applies to the text variant: a tool, not a call to action.
+  const labelTone = variant === 'text' && tone === 'label' && role !== 'destructive';
+  const accent = color ?? (role === 'destructive' ? destructive : labelTone ? themeLabel : themeTint);
   // A custom accent brings its own contrast color for filled content.
   const onAccent = color ? contrastOf(color) : themeOnAccent;
   const iconColor = variant === 'filled' ? onAccent : accent;

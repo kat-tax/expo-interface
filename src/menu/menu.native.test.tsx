@@ -116,11 +116,11 @@ describe(`Menu (${Platform.OS})`, () => {
       expect(del.props).toMatchObject({label: 'Delete', systemImage: 'trash', role: 'destructive'});
     } else {
       expect(share.props.enabled).toBe(true);
-      expect(share.props.elementColors).toEqual({textColor: '#1D1B20FF', leadingIconColor: '#1D1B20FF'});
+      expect(share.props.elementColors).toEqual({textColor: '#1D1B20FF', leadingIconColor: '#1D1B20FF', trailingIconColor: '#1D1B20FF'});
       expect(children(share).map(c => c.props.slotName)).toEqual(['leadingIcon', 'text']);
       expect(children(rename).map(c => c.props.slotName)).toEqual(['text']);
       expect(divider.props.color).toBe('rgba(60, 60, 67, 0.29)');
-      expect(del.props.elementColors).toEqual({textColor: '#FF3B30', leadingIconColor: '#FF3B30'});
+      expect(del.props.elementColors).toEqual({textColor: '#FF3B30', leadingIconColor: '#FF3B30', trailingIconColor: '#FF3B30'});
       expect(host(p => p.text === 'Delete').props.color).toBe('#FF3B30');
       expect(host(p => p.slotName === 'leadingIcon', del).children?.[0]).toMatchObject({props: {tint: '#FF3B30', size: 20}});
     }
@@ -147,6 +147,63 @@ describe(`Menu (${Platform.OS})`, () => {
       expect(screen.container.queryAll(i => typeof i.props.onItemPressed === 'function')).toHaveLength(0);
       expect(host(p => p.text === 'Locked').props.color).toBe('#49454FFF');
       expect(host(p => p.slotName === 'leadingIcon').children?.[0]).toMatchObject({props: {tint: '#49454FFF'}});
+    }
+  });
+
+  it('marks the active entry with a check', async () => {
+    const onPress = vi.fn();
+    await render(<Menu label="Sort" items={[{label: 'Name', active: true, icon: icons.star, onPress}, {label: 'Date'}]} testID="sort"/>);
+    const [name, date] = entries();
+    if (isIOS) {
+      // A checked toggle is how a SwiftUI menu shows the current state.
+      expect(name.type).toContain('Toggle');
+      expect(name.props).toMatchObject({isOn: true, label: 'Name', systemImage: 'star'});
+      expect(date.type).toContain('Button');
+      await fireEvent(screen.container.queryAll(i => typeof i.props.onIsOnChange === 'function')[0], 'isOnChange', {nativeEvent: {isOn: false}});
+      expect(onPress).toHaveBeenCalledTimes(1);
+    } else {
+      expect(children(name).map(c => c.props.slotName)).toEqual(['leadingIcon', 'text', 'trailingIcon']);
+      expect(host(p => p.text === '✓', name)).toBeTruthy();
+      expect(children(date).map(c => c.props.slotName)).toEqual(['text']);
+    }
+  });
+
+  (isIOS ? it : it.skip)('renders an active entry without an icon, and a disabled one', async () => {
+    await render(<Menu label="Sort" items={[{label: 'Name', active: true}, {label: 'Size', active: true, disabled: true}]} testID="sort"/>);
+    const [name, size] = entries();
+    expect(name.props.systemImage).toBeUndefined();
+    expect(name.props.modifiers).toBeUndefined();
+    expect(modifier(size.props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
+  });
+
+  (isIOS ? it.skip : it)('draws a color dot for a swatch entry', async () => {
+    await render(<Menu label="Ink" items={[{label: 'Red', swatch: '#FF0000', icon: icons.star}]} testID="ink"/>);
+    const [red] = entries();
+    const leading = host(p => p.slotName === 'leadingIcon', red);
+    const dot = children(leading)[0];
+    expect(dot.type).toContain('Box');
+    expect(modifier(dot.props, 'background')).toEqual({$type: 'background', color: '#FF0000'});
+    expect(modifier(dot.props, 'size')).toEqual({$type: 'size', width: 16, height: 16});
+    expect(nodes(red).some(n => n.type.endsWith('IconView'))).toBe(false);
+  });
+
+  it('draws the text variant in the label color with the label tone', async () => {
+    await render(<Menu label="More" items={items} variant="text" tone="label" testID="more"/>);
+    const {props} = trigger('more');
+    if (isIOS) {
+      expect(modifier(props, 'tint')?.color).toBe('#000000');
+    } else {
+      expect(props.colors).toEqual({contentColor: '#000000'});
+    }
+  });
+
+  it('ignores the label tone for a filled trigger', async () => {
+    await render(<Menu label="More" items={items} tone="label" testID="more"/>);
+    const {props} = trigger('more');
+    if (isIOS) {
+      expect(modifier(props, 'tint')?.color).toBe('#007AFF');
+    } else {
+      expect(props.colors).toEqual({containerColor: '#007AFF', contentColor: '#FFFFFF'});
     }
   });
 

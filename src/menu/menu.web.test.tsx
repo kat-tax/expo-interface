@@ -144,6 +144,54 @@ describe('Menu (web)', () => {
     expect(screen.getByRole('button', {name: 'Two'})).toHaveAttribute('popovertarget', two.id);
   });
 
+  it('renders a text link trigger wired to the popover', () => {
+    render(<Menu label="New…" icon={icons.add} items={items} trigger="link" testID="new"/>);
+    const trigger = screen.getByRole('button', {name: 'New…'});
+    const menu = screen.getByRole('menu', {hidden: true});
+    expect(trigger).toHaveClass('ui-menu__link');
+    expect(trigger).not.toHaveClass('ui-button');
+    expect(trigger).toHaveAttribute('popovertarget', menu.id);
+    expect(trigger).toHaveAttribute('data-testid', 'new');
+    expect(trigger.textContent).toBe('New…');
+    expect(trigger).not.toHaveAttribute('aria-label');
+  });
+
+  it('renders a link trigger without an icon, sized like a small button', () => {
+    render(<Menu label="Sort" items={items} trigger="link" size="small"/>);
+    const trigger = screen.getByRole('button', {name: 'Sort'});
+    expect(trigger.childElementCount).toBe(1);
+    expect(trigger.firstElementChild?.tagName).toBe('SPAN');
+  });
+
+  it('collapses the link trigger to its icon and disables it', () => {
+    render(<Menu label="New" icon={icons.add} items={items} trigger="link" hideLabel disabled/>);
+    const trigger = screen.getByRole('button', {name: 'New'});
+    expect(trigger).toHaveAttribute('aria-label', 'New');
+    expect(trigger.textContent).toBe('');
+    expect(trigger).toBeDisabled();
+  });
+
+  it('marks the active entry with a tick', () => {
+    render(<Menu label="Sort" items={[{label: 'Name', active: true}, {label: 'Date'}]}/>);
+    // The tick is decoration (`aria-hidden`), so the entry keeps its plain name.
+    const name = screen.getByRole('menuitem', {name: 'Name', hidden: true});
+    expect(name).toHaveClass('ui-menu__item--active');
+    expect(name).toHaveAttribute('aria-current', 'true');
+    expect(name.querySelector('.ui-menu__check')).not.toBeNull();
+    const date = screen.getByRole('menuitem', {name: 'Date', hidden: true});
+    expect(date).not.toHaveClass('ui-menu__item--active');
+    expect(date).not.toHaveAttribute('aria-current');
+  });
+
+  it('draws a color dot for a swatch entry in place of the icon', () => {
+    render(<Menu label="Ink" items={[{label: 'Red', swatch: '#FF0000', icon: icons.star}]}/>);
+    const red = screen.getByRole('menuitem', {name: 'Red', hidden: true});
+    const dot = red.querySelector('.ui-menu__swatch') as HTMLElement;
+    expect(dot).not.toBeNull();
+    expect(dot.style.background).toMatch(/rgb\(255, 0, 0\)|#FF0000/i);
+    expect(red.childElementCount).toBe(2);
+  });
+
   it('measures the trigger to place the popup when CSS anchor positioning is missing', async () => {
     // `MenuList` reads `CSS.supports` once at module load, so reload it.
     const supports = vi.spyOn(CSS, 'supports').mockReturnValue(false);

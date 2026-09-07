@@ -1,7 +1,7 @@
 import {Platform} from 'react-native';
 import {act, renderHook} from '@testing-library/react-native';
 import {AccentProvider, onAccent} from './accent';
-import {clamp, colors, flatten, getThemeCSS, theme, useColor, useNavTheme} from './theme';
+import {clamp, colors, flatten, getThemeCSS, theme, useColor, useNavTheme, usePalette} from './theme';
 
 const TOKENS = Object.keys(colors.light) as (keyof typeof colors.light)[];
 
@@ -45,11 +45,38 @@ describe('getThemeCSS', () => {
     expect(css).toContain('color-scheme: light dark;');
   });
 
-  it('declares every token once per scheme', () => {
+  it('declares every token once per scheme, and again per forced scheme', () => {
     for (const token of TOKENS) {
       const name = `--color-${token.replace(/[A-Z]/g, v => `-${v.toLowerCase()}`)}:`;
-      expect(css.split(name).length - 1).toBe(2);
+      // The accent is the same in both schemes and left to `AccentProvider`.
+      expect(css.split(name).length - 1).toBe(token === 'tint' || token === 'onTint' ? 2 : 4);
     }
+  });
+
+  it('keys the forced palettes on data-theme with a matching color-scheme', () => {
+    expect(css).toContain(':root[data-theme="light"]');
+    expect(css).toContain(':root[data-theme="dark"]');
+    expect(css).toContain('color-scheme: dark;');
+    expect(css).toContain('color-scheme: light;');
+  });
+});
+
+describe('usePalette', () => {
+  const wrapper = ({children}: React.PropsWithChildren) => (
+    <AccentProvider seed="#8959EA">{children}</AccentProvider>
+  );
+
+  it('resolves the light palette with the live accent as plain colors on every platform', async () => {
+    const {result} = await renderHook(() => usePalette(), {wrapper});
+    expect(result.current).toEqual({...colors.light, tint: '#8959EA', onTint: onAccent('#8959EA')});
+    expect(result.current.background).toBe('#ffffff');
+  });
+
+  it('keeps the same object between renders with the same inputs', async () => {
+    const {result, rerender} = await renderHook(() => usePalette(), {wrapper});
+    const first = result.current;
+    await rerender({});
+    expect(result.current).toBe(first);
   });
 });
 
@@ -155,6 +182,11 @@ if (Platform.OS !== 'web') {
         text: colors.dark.label,
         border: colors.dark.separator,
       });
+    });
+
+    it('resolves the dark palette from usePalette', async () => {
+      const {result} = await renderHook(() => usePalette(), {wrapper});
+      expect(result.current).toEqual({...colors.dark, tint: '#8959EA', onTint: onAccent('#8959EA')});
     });
   });
 }

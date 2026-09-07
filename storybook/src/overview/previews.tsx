@@ -9,12 +9,15 @@ import {
   ColorPicker,
   DateTimePicker,
   Divider,
+  Fab,
   FieldGroup,
   Footnote,
   Gauge,
   Headline,
+  KeyboardBar,
   ListItem,
   Picker,
+  NativeHost,
   Progress,
   Screen,
   ScreenHeader,
@@ -176,11 +179,39 @@ function ScreenPreview() {
   );
 }
 
+function KeyboardBarPreview() {
+  return (
+    <Device>
+      <Screen header gutter>
+        <View style={styles.article}>
+          <Title>Notes</Title>
+          <Body color="secondaryLabel">The bar below rides up on the keyboard; the content is told how much it covers.</Body>
+        </View>
+      </Screen>
+      <KeyboardBar style={styles.keyboardBar}>
+        <NativeHost fit><Button label="Attach" prefixIcon={icons.add} hideLabel size="small" variant="text" tone="label" onPress={noop}/></NativeHost>
+        <View style={styles.keyboardSpacer}/>
+        <NativeHost fit><Button label="Send" prefixIcon={icons.share} size="small" onPress={noop}/></NativeHost>
+      </KeyboardBar>
+    </Device>
+  );
+}
+
 function ScreenHeaderPreview() {
   return <ScreenHeader title="Edit profile" onBack={noop} trailing={<Button label="Save" variant="text" onPress={noop}/>}/>;
 }
 
 // Controls
+
+function FabPreview() {
+  return (
+    <Row>
+      <Fab label="New" icon={icons.add} size="small" onPress={noop}/>
+      <Fab label="New" icon={icons.add} onPress={noop}/>
+      <Fab label="New document" icon={icons.add} size="extended" onPress={noop}/>
+    </Row>
+  );
+}
 
 function FieldGroupPreview() {
   return (
@@ -221,6 +252,7 @@ function TypographyPreview() {
 export const layout: CardEntry[] = [
   {name: 'Screen', href: docs('layout-screen'), stage: 'device', preview: <ScreenPreview/>},
   {name: 'ScreenHeader', href: docs('layout-screenheader'), preview: <ScreenHeaderPreview/>},
+  {name: 'KeyboardBar', href: docs('layout-keyboardbar'), stage: 'device', preview: <KeyboardBarPreview/>},
 ];
 
 export const components: CardEntry[] = [
@@ -290,6 +322,7 @@ export const components: CardEntry[] = [
       </>
     ),
   },
+  {name: 'Fab', href: docs('components-fab'), stage: 'center', preview: <FabPreview/>},
   {name: 'FieldGroup', href: docs('components-fieldgroup'), preview: <FieldGroupPreview/>},
   {
     name: 'Gauge',
@@ -433,4 +466,6 @@ const styles = {
   contextMenu: {position: 'relative', display: 'flex', flexDirection: 'column'} as const,
   contextMenuList: {alignSelf: 'flex-end', marginTop: -12, marginRight: 16, minWidth: 160} as const,
   group: {overflow: 'hidden', borderRadius: 12, background: 'var(--color-background-element)'} as const,
+  keyboardBar: {flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 8, paddingVertical: 4, borderTopWidth: 1, borderTopColor: 'var(--color-separator)'} as const,
+  keyboardSpacer: {flex: 1} as const,
 };

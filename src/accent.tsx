@@ -1,6 +1,7 @@
-import type {PropsWithChildren} from 'react';
-import {createContext, useContext, useEffect} from 'react';
+import type {ComponentType, PropsWithChildren} from 'react';
+import {createContext, Fragment, useContext, useEffect} from 'react';
 import {Platform} from 'react-native';
+import {loadKeyboardController} from './keyboard/library';
 
 /**
  * Default accent seed (iOS systemBlue). A single color that seeds the tint on
@@ -16,6 +17,13 @@ import {Platform} from 'react-native';
 export const ACCENT_SEED = '#007AFF';
 
 const AccentContext = createContext(ACCENT_SEED);
+
+/**
+ * `react-native-keyboard-controller`'s provider when the app has the library
+ * (natively only; never on web), so `KeyboardBar` can read the keyboard's
+ * movement anywhere under the kit's root. A fragment otherwise.
+ */
+const KeyboardProvider: ComponentType<PropsWithChildren> = loadKeyboardController()?.KeyboardProvider ?? Fragment;
 
 /** The active accent seed color (hardcoded default or user-supplied). */
 export function useAccentSeed(): string {
@@ -39,11 +47,12 @@ export function onAccent(seed: string): '#000000' | '#FFFFFF' {
 }
 
 /**
- * Provides the accent seed to the app. Pass `seed` to apply a user-supplied
- * accent; omit it for the hardcoded default. On web the seed is mirrored to
- * the `--color-tint`/`--color-on-tint` custom properties (inline styles win
- * over the `:root` defaults emitted by `getThemeCSS`), so all CSS consumers
- * react without JS recomputation.
+ * Provides the accent seed to the app, and the keyboard provider natively
+ * (see `KeyboardBar`). Pass `seed` to apply a user-supplied accent; omit it
+ * for the hardcoded default. On web the seed is mirrored to the
+ * `--color-tint`/`--color-on-tint` custom properties (inline styles win over
+ * the `:root` defaults emitted by `getThemeCSS`), so all CSS consumers react
+ * without JS recomputation.
  */
 export function AccentProvider({seed = ACCENT_SEED, children}: PropsWithChildren<{seed?: string}>) {
   useEffect(() => {
@@ -58,5 +67,9 @@ export function AccentProvider({seed = ACCENT_SEED, children}: PropsWithChildren
     root.style.setProperty('--color-on-tint', onAccent(seed));
   }, [seed]);
 
-  return <AccentContext.Provider value={seed}>{children}</AccentContext.Provider>;
+  return (
+    <KeyboardProvider>
+      <AccentContext.Provider value={seed}>{children}</AccentContext.Provider>
+    </KeyboardProvider>
+  );
 }

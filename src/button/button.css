@@ -101,6 +101,12 @@
   --ui-button-on-accent: var(--color-on-destructive);
 }
 
+/* The `label` tone: a text button drawn as a tool, in the primary text color. */
+.ui-button--label {
+  --ui-button-accent: var(--color-label);
+  --ui-button-on-accent: var(--color-background);
+}
+
 .ui-button__label {
   display: inline-block;
 }

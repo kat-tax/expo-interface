@@ -1,4 +1,5 @@
 import type {TabTriggerSlotProps, TabListProps} from 'expo-router/ui';
+import type {ReactNode} from 'react';
 import type {TabBarProps, TabRoute, WebLogo} from './types';
 
 import {Tabs as WebTabs, TabSlot, TabList, TabTrigger} from 'expo-router/ui';
@@ -10,12 +11,20 @@ import app from 'expo-constants';
 import {theme, spacing, bound} from '../theme';
 import {Headline, Label} from '../typography';
 
-export function Tabs({routes, webLogo = 'icon-and-text', webIcon}: TabBarProps) {
+export function Tabs({
+  routes,
+  hidden = false,
+  webLogo = 'icon-and-text',
+  webIcon,
+  webActions,
+  webActionsPlacement = 'before',
+}: TabBarProps) {
   return (
     <WebTabs>
       <TabSlot style={styles.slot}/>
+      {/* The triggers stay in the list even while the bar is hidden: that is where the router looks for the routes. */}
       <TabList asChild>
-        <WebTabList logo={webLogo} icon={webIcon}>
+        <WebTabList logo={webLogo} icon={webIcon} hidden={hidden} actions={webActions} actionsPlacement={webActionsPlacement}>
           {routes.map(route => (
             <TabTrigger key={route.name} name={route.name} href={route.href} asChild>
               <TabLink icon={route.icon}>{route.label}</TabLink>
@@ -27,12 +36,20 @@ export function Tabs({routes, webLogo = 'icon-and-text', webIcon}: TabBarProps) 
   );
 }
 
-export function WebTabList({logo, icon, ...props}: TabListProps & {logo: WebLogo, icon?: TabBarProps['webIcon']}) {
+interface WebTabListProps extends TabListProps {
+  logo: WebLogo;
+  icon?: TabBarProps['webIcon'];
+  hidden?: boolean;
+  actions?: ReactNode;
+  actionsPlacement?: 'before' | 'after';
+}
+
+export function WebTabList({logo, icon, hidden = false, actions, actionsPlacement = 'before', ...props}: WebTabListProps) {
   const isPreset = typeof logo === 'string';
   const isTextOnly = logo === 'text-only';
   const isIconOnly = logo === 'icon-only';
   return (
-    <View {...props} style={styles.list}>
+    <View {...props} style={[styles.list, hidden && styles.hidden]}>
       <View style={styles.inner}>
         <View style={styles.logo}>
           {!isPreset ? logo : (
@@ -52,7 +69,9 @@ export function WebTabList({logo, icon, ...props}: TabListProps & {logo: WebLogo
             </>
           )}
         </View>
+        {actionsPlacement === 'before' ? actions : null}
         {props.children}
+        {actionsPlacement === 'after' ? actions : null}
       </View>
     </View>
   );
@@ -81,6 +100,9 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: spacing.three,
   },
+  hidden: {
+    display: 'none',
+  },
   inner: {
     flexGrow: 1,
     flexDirection: 'row',
@@ -97,6 +119,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 'auto',
     gap: spacing.two,
+    // The slot shrinks before the tabs do, so a title in it is bounded by the bar.
+    flexShrink: 1,
+    minWidth: 0,
   },
   icon: {
     width: 24,

@@ -34,6 +34,12 @@ describe(`TabStack (${Platform.OS})`, () => {
     expect(children.props).toEqual({name: 'index', options: {title: 'Drops'}});
   });
 
+  it('passes the header trailing slot to the index screen', async () => {
+    const headerRight = () => <Text>New…</Text>;
+    const {result} = await renderHook(() => TabStack({title: 'Drops', headerRight}));
+    expect(result.current.props.children.props.options).toEqual({title: 'Drops', headerRight});
+  });
+
   if (Platform.OS === 'web') {
     it('renders the index screen without a header', async () => {
       await renderApp(app);

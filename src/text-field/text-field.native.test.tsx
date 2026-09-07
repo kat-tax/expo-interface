@@ -185,6 +185,81 @@ describe(`TextField (${Platform.OS})`, () => {
     expect(field('plain').props.keyboardOptions.keyboardType).toBe('text');
   });
 
+  it('labels the keyboard action key from returnKeyType', async () => {
+    const onSubmit = vi.fn();
+    await render(
+      <>
+        <TextField returnKeyType="next" onSubmit={onSubmit} testID="next"/>
+        <TextField returnKeyType="search" testID="search"/>
+      </>,
+    );
+    if (isIOS) {
+      expect(modifier(field('next').props, 'submitLabel')).toEqual({$type: 'submitLabel', submitLabel: 'next'});
+      expect(modifier(field('search').props, 'submitLabel')).toEqual({$type: 'submitLabel', submitLabel: 'search'});
+    } else {
+      expect(field('next').props.keyboardOptions.imeAction).toBe('next');
+      // The key still reports through onSubmit, whichever action it shows.
+      const [view] = screen.container.queryAll(i => typeof i.props.onKeyboardAction === 'function');
+      await fireEvent(view, 'keyboardAction', {nativeEvent: {action: 'next', value: 'query'}});
+      expect(onSubmit).toHaveBeenCalledWith('query');
+      // Without a submit handler the key is still labelled, but wired to nothing.
+      expect(field('search').props.keyboardOptions.imeAction).toBe('search');
+      expect(screen.container.queryAll(i => typeof i.props.onKeyboardAction === 'function')).toHaveLength(1);
+    }
+  });
+
+  it('renders the inline variant as a React Native input', async () => {
+    const onSubmit = vi.fn();
+    const onKeyPress = vi.fn();
+    await render(
+      <TextField
+        variant="inline"
+        placeholder="Find in document"
+        returnKeyType="next"
+        submitBehavior="submit"
+        autoCapitalize="none"
+        autoCorrect={false}
+        onSubmit={onSubmit}
+        onKeyPress={onKeyPress}
+        testID="find"
+      />,
+    );
+    const input = screen.getByPlaceholderText('Find in document');
+    expect(input.props.returnKeyType).toBe('next');
+    expect(input.props.submitBehavior).toBe('submit');
+    expect(input.props.autoCapitalize).toBe('none');
+    expect(input.props.placeholderTextColor).toBe('#9094A0');
+    expect(nodes().some(n => n.type.startsWith('ViewManagerAdapter_ExpoUI'))).toBe(false);
+    await fireEvent(input, 'submitEditing', {nativeEvent: {text: 'hello'}});
+    expect(onSubmit).toHaveBeenCalledWith('hello');
+    await fireEvent(input, 'keyPress', {nativeEvent: {key: 'Enter', shiftKey: true}});
+    expect(onKeyPress).toHaveBeenCalledWith('Enter', true);
+    await fireEvent(input, 'keyPress', {nativeEvent: {key: 'Escape'}});
+    expect(onKeyPress).toHaveBeenLastCalledWith('Escape', false);
+  });
+
+  it('keeps the inline variant controlled and tinted', async () => {
+    const onChangeText = vi.fn();
+    await render(
+      <TextField variant="inline" value="Ada" onChangeText={onChangeText} accentColor="#FF9500" testID="name"/>,
+    );
+    const input = screen.getByTestId('name');
+    expect(input.props.value).toBe('Ada');
+    expect(input.props.editable).toBe(true);
+    expect(input.props.cursorColor).toBe('#FF9500');
+    expect(input.props.onSubmitEditing).toBeUndefined();
+    expect(input.props.onKeyPress).toBeUndefined();
+    await fireEvent.changeText(input, 'Ada L');
+    expect(onChangeText).toHaveBeenCalledWith('Ada L');
+  });
+
+  it('locks and dims the inline variant when disabled', async () => {
+    await render(<TextField variant="inline" value="Locked" disabled testID="name"/>);
+    const input = screen.getByTestId('name');
+    expect(input.props.editable).toBe(false);
+    expect(input.props.style).toEqual(expect.arrayContaining([{opacity: 0.4}]));
+  });
+
   (isIOS ? it.skip : it)('carries no testID modifier without a testID', async () => {
     await render(<TextField/>);
     expect(modifier(nodes()[0].props, 'testID')).toBeUndefined();

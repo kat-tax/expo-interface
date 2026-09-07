@@ -1,0 +1,72 @@
+/*
+ * The Material floating action button geometry on the web: a 56px circle
+ * (40 small, 96 large) or a 56px capsule when extended, filled with the tint,
+ * the icon and label in the contrast color, lifted by a soft shadow. Where it
+ * floats is the screen's job (`Screen`'s `fab` slot fixes it to the viewport).
+ */
+.ui-fab__anchor {
+  display: inline-flex;
+}
+
+.ui-fab {
+  -webkit-appearance: none;
+  appearance: none;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-sizing: border-box;
+  width: 56px;
+  height: 56px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-tint);
+  color: var(--color-on-tint);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+.ui-fab--small {
+  width: 40px;
+  height: 40px;
+}
+
+.ui-fab--large {
+  width: 96px;
+  height: 96px;
+}
+
+.ui-fab--extended {
+  width: auto;
+  height: 56px;
+  padding: 0 20px;
+  border-radius: 999px;
+}
+
+.ui-fab:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.ui-fab:active:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+.ui-fab:focus-visible {
+  outline: 2px solid var(--color-label);
+  outline-offset: 2px;
+}
+
+.ui-fab:disabled {
+  opacity: 0.45;
+  cursor: default;
+}

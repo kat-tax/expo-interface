@@ -9,6 +9,38 @@
   display: inline-flex;
 }
 
+/* The `link` trigger: a text link like the tab bar's tabs, in the tint. */
+.ui-menu__link {
+  -webkit-appearance: none;
+  appearance: none;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-tint);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ui-menu__link:hover:not(:disabled),
+.ui-menu__link:focus-visible {
+  opacity: 0.7;
+  outline: none;
+}
+
+.ui-menu__link:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .ui-menu__list {
   box-sizing: border-box;
   min-width: 200px;
@@ -70,6 +102,26 @@
 
 .ui-menu__item--destructive {
   color: var(--color-destructive);
+}
+
+/* The current state: highlighted like a hover, with a tick at the trailing edge. */
+.ui-menu__item--active {
+  background: var(--color-background-selected);
+}
+
+.ui-menu__check {
+  margin-inline-start: auto;
+  padding-inline-start: 12px;
+  font-weight: 600;
+}
+
+/* A color dot in place of the icon, for a palette. */
+.ui-menu__swatch {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid var(--color-separator);
 }
 
 .ui-menu__separator {

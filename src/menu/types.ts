@@ -2,12 +2,24 @@ import type {ReactNode} from 'react';
 import type {IconToken} from '../icons';
 import type {ButtonProps} from '../button/types';
 
-/** One entry of a `Menu` / `ContextMenu`. */
+/** One entry of a `Menu` / `ContextMenu` / `Fab` menu. */
 export interface MenuItem {
   /** Item text. */
   label: string;
   /** Leading icon. */
   icon?: IconToken;
+  /**
+   * A color dot (`#rrggbb`) in place of the icon, for a palette. Drawn on
+   * Android and web; iOS menus render images monochrome, so the dot is not
+   * shown there.
+   */
+  swatch?: string;
+  /**
+   * The item is the current state (the block's kind, the sort order): a
+   * check mark. SwiftUI shows it as a checked `Toggle` item, Compose as a
+   * trailing check, the web popup as a tick.
+   */
+  active?: boolean;
   /**
    * `destructive` renders the item in the danger color.
    * @default 'default'
@@ -21,6 +33,9 @@ export interface MenuItem {
   onPress?: () => void;
 }
 
+/** How the web `Menu` trigger looks. */
+export type MenuTrigger = 'button' | 'link';
+
 /**
  * Cross-platform dropdown menu opened from a button.
  *
@@ -28,15 +43,28 @@ export interface MenuItem {
  * `DropdownMenu` on Android, and a `role="menu"` popup on web. The trigger
  * looks like the kit's `Button` and takes the same styling props.
  */
-export interface MenuProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape' | 'color' | 'hideLabel' | 'disabled'> {
+export interface MenuProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape' | 'color' | 'tone' | 'hideLabel' | 'disabled'> {
   /** Trigger text (kept for accessibility when `hideLabel` is set). */
   label: string;
   /** Trigger icon. */
   icon?: IconToken;
   /** Entries shown when the menu opens. */
   items: MenuItem[];
+  /**
+   * Web only: `button` renders the kit's button, `link` a text link like the
+   * tab bar's tabs (the icon and the label in the tint), for a menu that
+   * sits in a bar.
+   * @default 'button'
+   */
+  trigger?: MenuTrigger;
   /** Identifier used to locate the trigger in end-to-end tests. */
   testID?: string;
+}
+
+/** A point a `ContextMenu` opens at, in the coordinates of its content. */
+export interface MenuPoint {
+  x: number;
+  y: number;
 }
 
 /**
@@ -55,6 +83,17 @@ export interface ContextMenuProps {
   onPress?: () => void;
   /** Disables the menu. */
   disabled?: boolean;
+  /**
+   * Opens the menu at this point whenever it changes, so a canvas can open
+   * it where it says it was asked for (a right click it received itself, a
+   * press on a block's grip). Relative to the content's top-left corner on
+   * Android and web (web also accepts viewport coordinates for content that
+   * fills it). iOS has no menu at a point: the long-press stays the only
+   * trigger there. Pair with `onDismiss` to clear it once the menu closes.
+   */
+  at?: MenuPoint | null;
+  /** Called when a menu opened by `at` (or a gesture) closes. */
+  onDismiss?: () => void;
   /** Identifier used to locate the trigger in end-to-end tests. */
   testID?: string;
 }

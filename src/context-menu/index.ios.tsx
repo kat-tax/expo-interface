@@ -7,7 +7,9 @@ import {MenuItems} from '../menu/index.ios';
 /**
  * iOS renders SwiftUI's `contextMenu`: a long-press on `children` lifts it
  * into a preview with the entries beneath. `children` must be SwiftUI
- * content. A plain tap is passed to `onPress` through `onTapGesture`.
+ * content. A plain tap is passed to `onPress` through `onTapGesture`. SwiftUI
+ * has no menu at a point, so `at` is ignored here (the long-press stays the
+ * trigger) and `onDismiss` is not reported.
  */
 export function ContextMenu({items, children, onPress, disabled, testID}: ContextMenuProps) {
   if (disabled) return <>{children}</>;

@@ -204,6 +204,42 @@ describe('ColorPicker (web)', () => {
     expect(onValueChange).toHaveBeenLastCalledWith('#FF634700');
   });
 
+  it('draws preset swatches as buttons of their own before the well', () => {
+    const onValueChange = vi.fn();
+    render(
+      <ColorPicker label="Accent" value="#FF634780" swatches={['#FF6347', '#00FF00']} onValueChange={onValueChange} testID="cp"/>,
+    );
+    const row = screen.getByTestId('cp');
+    expect(row.tagName).toBe('DIV');
+    expect(row).toHaveClass('ui-color-picker', 'ui-color-picker--presets');
+    expect(row).toHaveTextContent('Accent');
+    const red = screen.getByRole('button', {name: 'Color #FF6347'});
+    const green = screen.getByRole('button', {name: 'Color #00FF00'});
+    expect(red).toHaveClass('ui-color-picker__preset--selected');
+    expect(red).toHaveAttribute('aria-pressed', 'true');
+    expect(green).not.toHaveClass('ui-color-picker__preset--selected');
+    expect(green.style.getPropertyValue('--ui-color-picker-preset')).toBe('#00FF00');
+    // Picking keeps the current alpha and moves the ring.
+    fireEvent.click(green);
+    expect(onValueChange).toHaveBeenLastCalledWith('#00FF0080');
+    expect(green).toHaveAttribute('aria-pressed', 'true');
+    expect(row.style.getPropertyValue('--ui-color-picker-value')).toBe('rgba(0, 255, 0, 0.502)');
+    // The well is a button of its own that still opens the picker.
+    const well = screen.getByRole('button', {name: 'Accent'});
+    expect(well).toHaveClass('ui-color-picker__open');
+    expect(well).toHaveAttribute('aria-haspopup', 'dialog');
+    fireEvent.click(well);
+    expect(well).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('names a bare well "Color" and disables the presets with the row', () => {
+    render(<ColorPicker value="#FF6347" swatches={['#00FF00']} disabled onValueChange={vi.fn()} testID="cp"/>);
+    expect(screen.getByTestId('cp')).toHaveClass('ui-color-picker--disabled');
+    expect(screen.getByRole('button', {name: 'Color'})).toBeDisabled();
+    expect(screen.getByRole('button', {name: 'Color #00FF00'})).toBeDisabled();
+  });
+
   it('saves the current color and reapplies it from the saved swatches', () => {
     const onValueChange = vi.fn();
     render(<ColorPicker value="#123456" onValueChange={onValueChange}/>);

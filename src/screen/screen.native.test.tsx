@@ -1,6 +1,6 @@
-import {Platform, StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, Text, View} from 'react-native';
 import {act, render, screen} from '@testing-library/react-native';
-import {setColorScheme} from 'vitest-native/helpers';
+import {setColorScheme, setInsets} from 'vitest-native/helpers';
 import {setBackgroundColorAsync} from 'expo-system-ui';
 import {AccentProvider} from '../accent';
 import {colors, inset, spacing} from '../theme';
@@ -99,5 +99,34 @@ describe(`Screen (${Platform.OS})`, () => {
     await render(<Screen><View/></Screen>);
     expect(parts().safeArea.props.style.backgroundColor).toBe(colors.dark.background);
     expect(setBackgroundColorAsync).toHaveBeenLastCalledWith(colors.dark.background);
+  });
+
+  it('floats the fab slot at the bottom trailing corner, above the safe-area insets', async () => {
+    await act(async () => setInsets({top: 0, left: 0, right: 4, bottom: 34}));
+    try {
+      await render(
+        <Screen fab={<Text>New</Text>}>
+          <View/>
+        </Screen>,
+      );
+      const slot = screen.getByTestId('screen-fab');
+      expect(screen.getByText('New')).toBeOnTheScreen();
+      expect(slot.props.pointerEvents).toBe('box-none');
+      expect(StyleSheet.flatten(slot.props.style)).toMatchObject({
+        position: 'absolute',
+        right: spacing.three + 4,
+        bottom: spacing.three + 34,
+      });
+      // The slot is a sibling of the content, on top of it.
+      const last = parts().safeArea.children?.at(-1);
+      expect(typeof last === 'object' && last?.props.testID).toBe('screen-fab');
+    } finally {
+      await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 0}));
+    }
+  });
+
+  it('renders no fab slot without a fab', async () => {
+    await render(<Screen><View/></Screen>);
+    expect(screen.queryByTestId('screen-fab')).toBeNull();
   });
 });

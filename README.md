@@ -41,12 +41,14 @@ Peer dependencies and Android icon setup are covered in
    }
    ```
 
-2. On web, emit the palette as CSS variables in the root HTML.
+2. On web, emit the palette as CSS variables in the root HTML, and the boot
+   script that applies a scheme the user forced (see `setColorScheme`) before
+   the bundle runs.
 
    ```tsx
    // app/+html.tsx
    import {ScrollViewStyleReset} from 'expo-router/html';
-   import {getThemeCSS} from 'expo-interface';
+   import {getThemeBootScript, getThemeCSS} from 'expo-interface';
 
    export default function Root({children}: React.PropsWithChildren) {
      return (
@@ -55,6 +57,7 @@ Peer dependencies and Android icon setup are covered in
            <meta charSet="utf-8"/>
            <meta name="viewport" content="width=device-width, initial-scale=1"/>
            <style dangerouslySetInnerHTML={{__html: getThemeCSS()}}/>
+           <script dangerouslySetInnerHTML={{__html: getThemeBootScript()}}/>
            <ScrollViewStyleReset/>
          </head>
          <body>{children}</body>
@@ -93,21 +96,25 @@ positioning and `<dialog>`.
 
 | Component | Description | iOS | Android | Web |
 | --- | --- | :-: | :-: | :-: |
-| [Screen](src/screen/index.tsx) | Screen container that handles safe areas, status bar, background and content width, optionally hosting native content | ✓ | ✓ | ✓ |
+| [Screen](src/screen/index.tsx) | Screen container that handles safe areas, status bar, background and content width, optionally hosting native content and placing a floating action button | ✓ | ✓ | ✓ |
 | [ScreenHeader](src/screen/header.tsx) | Simple header bar with an optional back button and a trailing slot | ✓ | ✓ | ✓ |
-| [Tabs](src/tabs/types.ts) | Tab bar for `expo-router`: native tabs on iOS and Android, a floating top bar with a logo on web | ✓ | ✓ | ✓ |
-| [TabStack](src/tab-stack/index.tsx) | Preconfigured `expo-router` stack for the root screen of a tab | ✓ | ✓ | ✓ |
+| [HeaderMenu](src/header-menu/index.tsx) | Menu for a stack header's trailing slot; survives Android's header re-parenting on a tab switch | ✓ | ✓ | ✓ |
+| [NativeHost](src/host/index.tsx) | Accent-seeded `@expo/ui` host for controls that sit inside a React Native layout | ✓ | ✓ | ✓ |
+| [KeyboardBar](src/keyboard/index.tsx) | Bottom bar that sticks to the keyboard and reports its height (`react-native-keyboard-controller`, optional) | ✓ | ✓ | ✓ |
+| [Tabs](src/tabs/types.ts) | Tab bar for `expo-router`: native tabs on iOS and Android, a floating top bar with a logo and action slots on web; can be hidden | ✓ | ✓ | ✓ |
+| [TabStack](src/tab-stack/index.tsx) | Preconfigured `expo-router` stack for the root screen of a tab, with a header trailing slot | ✓ | ✓ | ✓ |
 | [ConstrainedStackHeader](src/stack-header/index.tsx) | Stack header that matches the content max-width on web | | | ✓ |
 | [Sheet](src/sheet/index.tsx) | Bottom sheet that inherits the accent color | ✓ | ✓ | ✓ |
-| [FieldGroup](src/field-group/index.tsx) | Scrollable settings form made of titled sections of rows | ✓ | ✓ | ✓ |
-| [ListItem](src/list-item/types.ts) | Tappable row with leading, trailing and supporting text slots | ✓ | ✓ | ✓ |
+| [FieldGroup](src/field-group/types.ts) | Scrollable settings form made of titled sections of rows, each with an optional footer note | ✓ | ✓ | ✓ |
+| [ListItem](src/list-item/types.ts) | Tappable row with leading, trailing and supporting text slots and an optional trailing text action | ✓ | ✓ | ✓ |
+| [Fab](src/fab/types.ts) | Floating action button: Material 3 on Android, drawn in SwiftUI on iOS, a DOM button on web; can open a menu | ✓ | ✓ | ✓ |
 | [Collapsible](src/collapsible/types.ts) | Row that expands and collapses its content | ✓ | ✓ | ✓ |
 | [Divider](src/divider/types.ts) | Horizontal or vertical hairline separator | ✓ | ✓ | ✓ |
 | [Button](src/button/types.ts) | Filled, outlined or text button with optional icons, sizes, shapes and a destructive role | ✓ | ✓ | ✓ |
 | [TextField](src/text-field/types.ts) | Single or multiline text input with keyboard type, capitalization and secure entry | ✓ | ✓ | ✓ |
 | [Switch](src/switch/types.ts) | On/off toggle with a leading label | ✓ | ✓ | ✓ |
 | [Checkbox](src/checkbox/types.ts) | Checked/unchecked box with a leading label | ✓ | ✓ | ✓ |
-| [ColorPicker](src/color-picker/types.ts) | Label with a rainbow-ringed color well that opens the iOS-style color picker (Grid, Spectrum, Sliders, opacity) | ✓ | ✓ | ✓ |
+| [ColorPicker](src/color-picker/types.ts) | Label with a color well that opens the iOS-style color picker (Grid, Spectrum, Sliders, opacity), optionally with preset swatches | ✓ | ✓ | ✓ |
 | [Slider](src/slider/types.ts) | Thumb dragged along a continuous or stepped range | ✓ | ✓ | ✓ |
 | [Stepper](src/stepper/types.ts) | Number adjusted with increment and decrement buttons | ✓ | ✓ | ✓ |
 | [Picker](src/picker/types.ts) | Dropdown that selects one option from a list | ✓ | ✓ | ✓ |
@@ -115,8 +122,8 @@ positioning and `<dialog>`.
 | [DateTimePicker](src/date-time/types.ts) | Picks a date, a time or both, with optional bounds | ✓ | ✓ | ✓ |
 | [Progress](src/progress/types.ts) | Linear bar or circular ring, determinate or indeterminate | ✓ | ✓ | ✓ |
 | [Gauge](src/gauge/types.ts) | Value within a range in the SwiftUI gauge styles: capacity bars, marker bar, open or closed ring | ✓ | ✓ | ✓ |
-| [Menu](src/menu/types.ts) | Dropdown menu of actions opened from a button | ✓ | ✓ | ✓ |
-| [ContextMenu](src/menu/types.ts) | Menu of actions opened by long-pressing (or right-clicking) its content | ✓ | ✓ | ✓ |
+| [Menu](src/menu/types.ts) | Dropdown menu of actions opened from a button (or a text link on web); items can be checked or carry a color swatch | ✓ | ✓ | ✓ |
+| [ContextMenu](src/menu/types.ts) | Menu of actions opened by long-pressing (or right-clicking) its content, or at a point the content reports | ✓ | ✓ | ✓ |
 | [Tooltip](src/tooltip/types.ts) | Short hint shown on hover, focus or long-press; an accessibility hint on iOS | | ✓ | ✓ |
 | [Alert](src/alert/types.ts) | Modal dialog or action sheet with a title, message and actions | ✓ | ✓ | ✓ |
 | [ExternalLink](src/router/external-link.tsx) | Link that opens in an in-app browser on native and a new tab on web | ✓ | ✓ | ✓ |
@@ -202,15 +209,85 @@ import {theme} from 'expo-interface';
 | `destructive` | Delete buttons, failed states and other destructive actions |
 | `onDestructive` | Text and icons drawn on top of `destructive` |
 
+#### `usePalette`
+
+Returns the resolved palette of the current scheme as plain color strings on
+every platform, with the live accent as `tint`. `useColor` stays the right
+call for styles (on web it hands out the CSS variable, which follows the
+scheme without a re-render); `usePalette` is for canvases, native views and
+anything else that cannot read a variable:
+
+```tsx
+const palette = usePalette();
+canvas.setTheme({background: palette.background, text: palette.label, link: palette.tint});
+```
+
+#### Color scheme
+
+`useColorScheme()` answers `'light'` or `'dark'` from one stable subscription
+(React Native's own hook re-subscribes on every render and, on web, can miss
+the `matchMedia` event when an ancestor re-renders during it). Every kit
+component follows it.
+
+`setColorScheme('system' | 'light' | 'dark')` forces a scheme or follows the
+system again: `Appearance.setColorScheme` natively; on web (which has no such
+call) the palette of the forced scheme is written on the root element along
+with `color-scheme` and `data-theme`, every `Appearance` listener hears the
+change, and the choice is saved in `localStorage` so `getThemeBootScript()`
+in `+html.tsx` applies it before the bundle runs. `getThemeCSS()` carries the
+matching `:root[data-theme]` palettes.
+
+```tsx
+<SegmentedControl label="Theme" selectedValue={mode} onValueChange={mode => {
+  setMode(mode);
+  setColorScheme(mode);
+}}>
+```
+
 #### Other exports
 
 | Export | Purpose |
 | --- | --- |
 | `useNavTheme()` | React Navigation theme built from the palette and accent |
 | `getThemeCSS()` | Palette as CSS variables, for `+html.tsx` |
+| `getThemeBootScript()` | Script applying a saved forced scheme before the bundle runs, for `+html.tsx` |
+| `useColorScheme()`, `setColorScheme()` | The scheme as a store, and forcing it |
+| `usePalette()` | Resolved palette as plain colors |
 | `colors` | Raw light and dark palettes |
 | `spacing`, `bound`, `inset` | Layout constants |
 | `fonts`, `fontWeights`, `variants` | Type constants |
+
+### Keyboard
+
+`KeyboardBar` is a bottom bar that sticks to the keyboard by a transform,
+never a resize, and reports the keyboard's height through `onKeyboard` so the
+content above it can pad or scroll by that much. It needs
+`react-native-keyboard-controller`, an optional peer the kit loads only
+natively (the library's Reanimated cannot render on the server, so nothing of
+it reaches the web bundle, where the bar is a plain view); `AccentProvider`
+mounts its `KeyboardProvider` when the library is installed.
+
+```sh
+npx expo install react-native-keyboard-controller
+```
+
+`TextField` takes `returnKeyType` and `submitBehavior` for the keyboard's
+action key, and its `inline` variant is a borderless React Native input for a
+field inside a React Native layout, which focuses on mount with `autoFocus`
+and makes sure the keyboard came on Android.
+
+### Menus and headers
+
+`Menu` items take `active` (a check mark) and `swatch` (a color dot);
+`ContextMenu` opens at a point its content reports through `at`. On web
+`Menu` renders a text link with `trigger="link"`, for a bar. `HeaderMenu` is
+the menu for a stack header's trailing slot (`TabStack`'s `headerRight`): on
+Android the native stack re-parents the header's views on a tab switch, which
+a Compose view refuses, so its host is rebuilt on every focus change.
+
+```tsx
+<TabStack title="Documents" headerRight={() => <HeaderMenu label="New…" icon={icon.add} items={items}/>}/>
+```
 
 ## Install details
 

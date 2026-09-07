@@ -82,6 +82,56 @@ describe(`ListItem (${Platform.OS})`, () => {
     }
   });
 
+  it('renders a trailing text action natively, after the trailing content', async () => {
+    const onSignIn = vi.fn();
+    await render(
+      <ListItem trailing={<Text>T</Text>} action={{label: 'Sign in', onPress: onSignIn}} testID="row">
+        Account
+      </ListItem>,
+    );
+    if (isIOS) {
+      // The kit's text button rides in the trailing accessory with the trailing content.
+      const button = host(p => p.label === 'Sign in');
+      expect(modifier(button.props, 'buttonStyle')).toEqual({$type: 'buttonStyle', style: 'plain'});
+      expect(modifier(button.props, 'controlSize')).toEqual({$type: 'controlSize', size: 'small'});
+      expect(modifier(button.props, 'tint')?.color).toBe(colors.light.tint);
+      expect(JSON.stringify(accessories().at(-1))).toContain('"T"');
+      await fireEvent.press(screen.container.queryAll(i => i.props.label === 'Sign in')[0]);
+      expect(onSignIn).toHaveBeenCalledTimes(1);
+    } else {
+      const [trailing] = slot('trailingContent');
+      expect(JSON.stringify(trailing)).toContain('"T"');
+      const button = host(p => typeof p.onButtonPressed === 'function', trailing);
+      expect(button.props.colors).toEqual({contentColor: colors.light.tint});
+      expect(host(p => p.text === 'Sign in', button).props.color).toBe(colors.light.tint);
+      await fireEvent(screen.container.queryAll(i => typeof i.props.onButtonPressed === 'function')[0], 'buttonPressed');
+      expect(onSignIn).toHaveBeenCalledTimes(1);
+      // The row itself stays inert without an onPress.
+      expect(modifier(row('row').props, 'clickable')).toBeUndefined();
+    }
+  });
+
+  it('greys out a disabled action and colors a destructive one', async () => {
+    const onPress = vi.fn();
+    await render(
+      <>
+        <ListItem action={{label: 'Signing in…', onPress, disabled: true}} testID="busy">Account</ListItem>
+        <ListItem action={{label: 'Sign out', onPress, role: 'destructive'}} testID="out">Account</ListItem>
+      </>,
+    );
+    if (isIOS) {
+      expect(modifier(host(p => p.label === 'Signing in…').props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
+      expect(modifier(host(p => p.label === 'Sign out').props, 'tint')?.color).toBe(colors.light.destructive);
+      expect(host(p => p.label === 'Sign out').props.role).toBe('destructive');
+    } else {
+      const [busy, out] = nodes().filter(n => typeof n.props.onButtonPressed === 'function' || n.props.enabled === false);
+      expect(busy.props.enabled).toBe(false);
+      expect(host(p => p.text === 'Signing in…').props.color).toBe(colors.light.tertiaryLabel);
+      expect(out.props.colors).toEqual({contentColor: colors.light.destructive});
+      expect(host(p => p.text === 'Sign out').props.color).toBe(colors.light.destructive);
+    }
+  });
+
   (isIOS ? it.skip : it)('passes numeric and element headlines through without a testID', async () => {
     const {rerender} = await render(<ListItem>{42}</ListItem>);
     expect(nodes()[0].props.modifiers).toEqual([]);

@@ -70,6 +70,23 @@ export const WithControl: Story = {
   globals: {a11y: {manual: true}},
 };
 
+export const WithAction: Story = {
+  args: {
+    children: 'Account',
+    supporting: 'Signed out',
+    action: {label: 'Sign in', onPress: fn()},
+    onPress: undefined,
+  },
+};
+
+export const DestructiveAction: Story = {
+  args: {
+    children: 'ada@example.com',
+    action: {label: 'Sign out', role: 'destructive', onPress: fn()},
+    onPress: undefined,
+  },
+};
+
 export const NotPressable: Story = {
   args: {onPress: undefined, supporting: 'Read-only row'},
 };

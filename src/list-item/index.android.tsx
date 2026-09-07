@@ -1,22 +1,39 @@
 import type {ReactNode} from 'react';
 import type {ListItemProps} from './types';
-import {ListItem as ComposeListItem, Text} from '@expo/ui/jetpack-compose';
-import {clickable, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {ListItem as ComposeListItem, Row, Text, TextButton} from '@expo/ui/jetpack-compose';
+import {clickable, testID as testIDModifier, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
 import {useColor} from '../theme';
 
 /**
  * Android uses the Material 3 Compose `ListItem` directly so the container
  * can be made transparent — the M3 default paints the Host palette's
  * `surface`, which reads as a grey panel over the app's screen background
- * (web/iOS rows are transparent).
+ * (web/iOS rows are transparent). An `action` is a `TextButton` in the
+ * trailing slot, after any `trailing` content.
  */
-export function ListItem({children, leading, trailing, supporting, onPress, testID}: ListItemProps) {
+export function ListItem({children, leading, trailing, action, supporting, onPress, testID}: ListItemProps) {
   const label = useColor('label');
   const subtle = useColor('secondaryLabel');
+  const tint = useColor('tint');
+  const destructive = useColor('destructive');
+  const muted = useColor('tertiaryLabel');
   const modifiers = [
     ...(onPress ? [clickable(onPress)] : []),
     ...(testID ? [testIDModifier(testID)] : []),
   ];
+  const actionColor = action?.role === 'destructive' ? destructive : tint;
+  const trailingContent = action ? (
+    <Row verticalAlignment="center" horizontalArrangement={{spacedBy: 8}}>
+      {trailing}
+      <TextButton
+        onClick={action.disabled ? undefined : action.onPress}
+        enabled={!action.disabled}
+        colors={{contentColor: actionColor}}
+        modifiers={[wrapContentWidth('end'), wrapContentHeight('centerVertically')]}>
+        <Text color={action.disabled ? muted : actionColor}>{action.label}</Text>
+      </TextButton>
+    </Row>
+  ) : trailing;
   return (
     <ComposeListItem colors={{containerColor: '#00000000'}} modifiers={modifiers}>
       <ComposeListItem.HeadlineContent>
@@ -34,8 +51,8 @@ export function ListItem({children, leading, trailing, supporting, onPress, test
           )}
         </ComposeListItem.SupportingContent>
       ) : null}
-      {trailing != null ? (
-        <ComposeListItem.TrailingContent>{trailing}</ComposeListItem.TrailingContent>
+      {trailingContent != null ? (
+        <ComposeListItem.TrailingContent>{trailingContent}</ComposeListItem.TrailingContent>
       ) : null}
     </ComposeListItem>
   );

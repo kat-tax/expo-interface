@@ -2,11 +2,10 @@ import type {ColorPickerProps} from './types';
 import type {ModifierConfig} from '@expo/ui/jetpack-compose/modifiers';
 
 import {useEffect, useRef, useState} from 'react';
-import {StyleSheet, useWindowDimensions, View} from 'react-native';
-import {Image} from 'expo-image';
+import {useWindowDimensions} from 'react-native';
 import {
+  Box,
   Column,
-  Host,
   ModalBottomSheet,
   RNHostView,
   Row,
@@ -15,64 +14,102 @@ import {
   useMaterialColors,
   type ModalBottomSheetRef,
 } from '@expo/ui/jetpack-compose';
-import {alpha, clickable, fillMaxWidth, padding, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {alpha, background, clickable, clip, fillMaxWidth, padding, Shapes, size, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {useColor} from '../theme';
 import {ColorPickerSheet} from './sheet';
-import {parseColor, ringSvg, svgDataUri, toCss, toHex, useColorValue, well} from './shared';
+import {parseColor, toCss, toHex, useColorValue, well} from './shared';
 
-const RING = svgDataUri(ringSvg());
 /** Horizontal inset of the sheet content (the `@expo/ui` `BottomSheet` default). */
 const SHEET_INSET = 16;
+/** Diameter of a preset swatch, and of its ring when selected. */
+const SWATCH = 30;
+const SWATCH_INNER = 28;
+const SWATCH_SELECTED = 22;
+const NONE = '#00000000';
 
 /**
- * Android redraws the iOS row: a Compose `Row` with the label and, hosted as
- * a React Native view, the 28dp color well (rainbow ring, transparent gap,
- * color swatch). Tapping the row opens the iOS picker redrawn in a Material
- * `ModalBottomSheet`, fully expanded and with the sheet's own swipe gestures
- * off so that dragging across the spectrum and sliders stays with the picker.
- * The sheet lives in the same hosted subtree as the well, so the row stays a
- * plain Compose child of its `Host`.
+ * Android redraws the iOS row in Compose through and through: a `Row` with
+ * the label and, at the trailing edge, the preset swatches and the 28dp
+ * color well (a circle in the color, ringed in `separator`). Tapping the row
+ * opens the iOS picker redrawn in a Material `ModalBottomSheet`, fully
+ * expanded and with the sheet's own swipe gestures off so that dragging
+ * across the spectrum and sliders stays with the picker; the sheet lives in
+ * its own window, so the row is a plain Compose child of its host and hosts
+ * no React Native view of its own (which a recomposing list would re-add).
  */
 export function ColorPicker({
   label,
   value,
   onValueChange,
   supportsOpacity = true,
+  swatches,
   disabled,
   testID,
 }: ColorPickerProps) {
   const colors = useMaterialColors();
   const {width} = useWindowDimensions();
+  const ring = useColor('separator');
+  const labelColor = useColor('label');
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useColorValue(value, onValueChange, supportsOpacity);
   const modifiers: ModifierConfig[] = [fillMaxWidth()];
   if (!disabled) modifiers.push(clickable(() => setOpen(true)));
   if (testID) modifiers.push(testIDModifier(testID));
+  const currentHex = toHex({...current, a: 1}, false);
 
   return (
     <Row verticalAlignment="center" horizontalArrangement="spaceBetween" modifiers={modifiers}>
       {label != null ? (
         <Text color={disabled ? colors.onSurfaceVariant : colors.onSurface}>{label}</Text>
       ) : <Spacer/>}
-      <RNHostView matchContents modifiers={disabled ? [alpha(0.4)] : []}>
-        {/* `box-none` lets the tap fall through to the Compose row's `clickable`. */}
-        <View style={styles.well} pointerEvents="box-none" accessibilityLabel={`Selected color ${toHex(current, supportsOpacity)}`}>
-          <View style={styles.face} pointerEvents="none">
-            <Image source={{uri: RING}} style={StyleSheet.absoluteFill} contentFit="fill"/>
-            <View style={[styles.swatch, {backgroundColor: toCss(current)}]}/>
-          </View>
-          <PickerSheet open={open} onClose={() => setOpen(false)}>
-            <ColorPickerSheet
-              title={label ?? 'Colors'}
-              value={toHex(current, true)}
-              supportsOpacity={supportsOpacity}
-              onValueChange={hex => setCurrent(parseColor(hex))}
-              onClose={() => setOpen(false)}
-              width={width - SHEET_INSET * 2}
-              testID={testID ? `${testID}-sheet` : undefined}
-            />
-          </PickerSheet>
-        </View>
-      </RNHostView>
+      <Row verticalAlignment="center" horizontalArrangement={{spacedBy: 8}} modifiers={disabled ? [alpha(0.4)] : []}>
+        {swatches?.map(seed => {
+          const selected = toHex(parseColor(seed), false) === currentHex;
+          const inner = selected ? SWATCH_SELECTED : SWATCH_INNER;
+          return (
+            // The ring is a circle behind a smaller circle: a border modifier would be square.
+            <Box
+              key={seed}
+              contentAlignment="center"
+              modifiers={[
+                size(SWATCH, SWATCH),
+                clip(Shapes.Circle),
+                background(selected ? labelColor : NONE),
+                ...(disabled ? [] : [clickable(() => setCurrent({...parseColor(seed), a: current.a}))]),
+                ...(testID ? [testIDModifier(`${testID}-swatch-${seed}`)] : []),
+              ]}>
+              <Box modifiers={[size(inner, inner), clip(Shapes.Circle), background(seed)]}/>
+            </Box>
+          );
+        })}
+        <Box
+          contentAlignment="center"
+          modifiers={[
+            size(well.size, well.size),
+            clip(Shapes.Circle),
+            background(ring),
+            ...(testID ? [testIDModifier(`${testID}-well`)] : []),
+          ]}>
+          <Box
+            modifiers={[
+              size(well.size - 2 * well.ring, well.size - 2 * well.ring),
+              clip(Shapes.Circle),
+              background(toCss(current)),
+            ]}
+          />
+        </Box>
+        <PickerSheet open={open} onClose={() => setOpen(false)}>
+          <ColorPickerSheet
+            title={label ?? 'Colors'}
+            value={toHex(current, true)}
+            supportsOpacity={supportsOpacity}
+            onValueChange={hex => setCurrent(parseColor(hex))}
+            onClose={() => setOpen(false)}
+            width={width - SHEET_INSET * 2}
+            testID={testID ? `${testID}-sheet` : undefined}
+          />
+        </PickerSheet>
+      </Row>
     </Row>
   );
 }
@@ -80,6 +117,8 @@ export function ColorPicker({
 /**
  * The Material bottom sheet hosting the picker, mounted while `open` and
  * unmounted after its hide animation (the `@expo/ui` `BottomSheet` pattern).
+ * A Compose child of the row: the sheet presents in its own window, so the
+ * React Native picker inside it is hosted there, outside the form.
  */
 function PickerSheet({open, onClose, children}: React.PropsWithChildren<{open: boolean; onClose: () => void}>) {
   const ref = useRef<ModalBottomSheetRef>(null);
@@ -97,21 +136,10 @@ function PickerSheet({open, onClose, children}: React.PropsWithChildren<{open: b
   }, [open]);
   if (!mounted) return null;
   return (
-    <Host style={styles.sheetHost} pointerEvents="none">
-      <ModalBottomSheet ref={ref} onDismissRequest={onClose} skipPartiallyExpanded sheetGesturesEnabled={false}>
-        <Column modifiers={[padding(SHEET_INSET, 0, SHEET_INSET, 0)]}>
-          <RNHostView matchContents>{children as React.ReactElement}</RNHostView>
-        </Column>
-      </ModalBottomSheet>
-    </Host>
+    <ModalBottomSheet ref={ref} onDismissRequest={onClose} skipPartiallyExpanded sheetGesturesEnabled={false}>
+      <Column modifiers={[padding(SHEET_INSET, 0, SHEET_INSET, 0)]}>
+        <RNHostView matchContents>{children as React.ReactElement}</RNHostView>
+      </Column>
+    </ModalBottomSheet>
   );
 }
-
-const inner = well.size - 2 * (well.ring + well.gap);
-
-const styles = StyleSheet.create({
-  well: {width: well.size, height: well.size},
-  face: {position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, alignItems: 'center', justifyContent: 'center'},
-  swatch: {width: inner, height: inner, borderRadius: inner / 2},
-  sheetHost: {position: 'absolute'},
-});

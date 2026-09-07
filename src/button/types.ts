@@ -30,6 +30,14 @@ export type ButtonSize = 'small' | 'medium' | 'large';
 /** Border shape of the button. */
 export type ButtonShape = 'rounded' | 'pill' | 'circle';
 
+/**
+ * Color the `text` variant draws its label and icons in. `accent` is the
+ * theme tint (a call to action); `label` is the primary text color, for
+ * tools in a toolbar where the accent is kept for the one that is active.
+ * Filled and outlined buttons ignore it. An explicit `color` wins.
+ */
+export type ButtonTone = 'accent' | 'label';
+
 export interface ButtonProps {
   /**
    * Text shown inside the button. Required for accessibility even when
@@ -50,6 +58,11 @@ export interface ButtonProps {
   role?: ButtonRole;
   /** Accent color (tint) for the button. Defaults to the platform/theme tint. */
   color?: string;
+  /**
+   * Color of the `text` variant's content.
+   * @default 'accent'
+   */
+  tone?: ButtonTone;
   /**
    * Control size of the button.
    * @default 'medium'

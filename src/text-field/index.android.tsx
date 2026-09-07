@@ -1,9 +1,10 @@
-import type {TextFieldKeyboard, TextFieldProps} from './types';
-import type {TextFieldColors, TextFieldKeyboardType} from '@expo/ui/jetpack-compose';
+import type {TextFieldKeyboard, TextFieldProps, TextFieldReturnKey} from './types';
+import type {TextFieldColors, TextFieldImeAction, TextFieldKeyboardActions, TextFieldKeyboardType} from '@expo/ui/jetpack-compose';
 
 import {TextField as ComposeTextField, Text, useMaterialColors, useNativeState} from '@expo/ui/jetpack-compose';
 import {fillMaxWidth, offset, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {useColor} from '../theme';
+import {InlineTextField} from './inline';
 import {useSyncedState} from './shared';
 
 const TRANSPARENT = 'transparent';
@@ -19,13 +20,24 @@ const TRANSPARENT = 'transparent';
 const CONTENT_PADDING = 16;
 
 /**
+ * The `row` variant is the Compose field; `inline` is a React Native
+ * `TextInput` for fields inside a React Native layout.
+ */
+export function TextField(props: TextFieldProps) {
+  if (props.variant === 'inline') return <InlineTextField {...props}/>;
+  return <RowTextField {...props}/>;
+}
+
+/**
  * Android's Material `TextField` ships with a filled background and a bottom
  * indicator line that clash with the iOS `Form` look. Here those are stripped
  * to transparent so the field reads as a plain borderless row — the placeholder
  * doubles as the label — living natively inside the surrounding
- * `Host`/`FieldGroup`.
+ * `Host`/`FieldGroup`. The keyboard's action key is `returnKeyType` (`done`
+ * when there is only an `onSubmit`); Compose keeps the field focused after
+ * it, so `submitBehavior` has nothing to add here.
  */
-export function TextField({
+function RowTextField({
   placeholder,
   value,
   onChangeText,
@@ -37,6 +49,7 @@ export function TextField({
   autoCorrect,
   multiline,
   autoFocus,
+  returnKeyType,
   maxLength,
   accentColor,
   testID,
@@ -79,9 +92,9 @@ export function TextField({
         keyboardType: keyboardTypeFor(keyboardType, secureTextEntry),
         capitalization: autoCapitalize,
         autoCorrectEnabled: autoCorrect,
-        imeAction: onSubmit ? 'done' : 'default',
+        imeAction: imeActionFor(returnKeyType, !!onSubmit),
       }}
-      keyboardActions={onSubmit ? {onDone: onSubmit} : undefined}
+      keyboardActions={onSubmit ? keyboardActionsFor(onSubmit) : undefined}
       colors={fieldColors}
       textStyle={{fontSize: 16, color: colors.onSurface}}
       modifiers={[
@@ -96,6 +109,17 @@ export function TextField({
       ) : null}
     </ComposeTextField>
   );
+}
+
+/** The action key: the requested one, `done` for a bare `onSubmit`, the default otherwise. */
+export function imeActionFor(returnKeyType: TextFieldReturnKey | undefined, hasSubmit: boolean): TextFieldImeAction {
+  if (returnKeyType) return returnKeyType;
+  return hasSubmit ? 'done' : 'default';
+}
+
+/** Every action key reports through `onSubmit`, whichever `imeAction` is shown. */
+export function keyboardActionsFor(onSubmit: (text: string) => void): TextFieldKeyboardActions {
+  return {onDone: onSubmit, onGo: onSubmit, onNext: onSubmit, onSearch: onSubmit, onSend: onSubmit};
 }
 
 function keyboardTypeFor(

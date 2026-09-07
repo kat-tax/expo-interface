@@ -1,26 +1,25 @@
 import type {ColorSchemeName} from 'react-native';
-import {View} from 'react-native';
+import {Text, View} from 'react-native';
 import {render, screen} from '@testing-library/react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {Switch} from '../switch';
-import {bound, colors, inset} from '../theme';
+import {bound, inset, spacing, theme} from '../theme';
 import {hostAccentProps} from './host-accent';
 import {Screen} from '.';
 
 // react-native-web reads the scheme from `matchMedia` (jsdom has none, so it
-// always reports light) — swap the hook itself. The web project aliases
-// `react-native` to react-native-web, so mocking the alias covers every
-// import under test; the per-module `dist/exports/*` path no longer would,
-// because the dependency optimizer pre-bundles those files.
-const mockScheme: {value: ColorSchemeName | undefined} = {value: 'light'};
+// always reports light) — swap `Appearance` itself, which the kit's
+// `useColorScheme` store reads. The web project aliases `react-native` to
+// react-native-web, so mocking the alias covers every import under test.
+// Hoisted with the mock: `Screen` reads the scheme at module load, before
+// the test body's declarations would run (it reads no scheme then, like a
+// server render, and falls back to the unspecified one).
+const mockScheme = vi.hoisted((): {value: ColorSchemeName | undefined} => ({value: undefined}));
 vi.mock('react-native', async importOriginal => {
   const rn = await importOriginal<typeof import('react-native')>();
   return {
     ...rn,
-    useColorScheme: () => mockScheme.value,
-    // jsdom has no `matchMedia`, so model `Appearance` reporting no scheme at
-    // module load: `Screen` then falls back to the light background.
-    Appearance: {...rn.Appearance, getColorScheme: () => null},
+    Appearance: {...rn.Appearance, getColorScheme: () => mockScheme.value},
   };
 });
 
@@ -38,7 +37,7 @@ function parts(child: HTMLElement, native = false) {
 }
 
 describe('Screen (web)', () => {
-  afterEach(() => {
+  beforeEach(() => {
     mockScheme.value = 'light';
   });
 
@@ -87,23 +86,41 @@ describe('Screen (web)', () => {
     expect(hasGutter()).toBe(true);
   });
 
-  it('paints the scheme background and mirrors it to the document body', () => {
+  it('paints the palette variable, not a literal, so the static export follows the scheme before hydration', () => {
     mount(<Screen><View testID="kid"/></Screen>);
-    expect(parts(screen.getByTestId('kid')).safeArea).toHaveStyle({backgroundColor: colors.light.background});
-    expect(document.body).toHaveStyle({backgroundColor: colors.light.background});
+    expect(theme.background).toBe('var(--color-background)');
+    expect(getComputedStyle(parts(screen.getByTestId('kid')).safeArea).backgroundColor).toBe(theme.background);
+    expect(document.body.style.backgroundColor).toBe(theme.background);
   });
 
-  it('switches to the dark palette', () => {
+  it('keeps the variable in the dark scheme and when the scheme is unknown', () => {
     mockScheme.value = 'dark';
-    mount(<Screen><View testID="kid"/></Screen>);
-    expect(parts(screen.getByTestId('kid')).safeArea).toHaveStyle({backgroundColor: colors.dark.background});
-    expect(document.body).toHaveStyle({backgroundColor: colors.dark.background});
-  });
+    const {unmount} = mount(<Screen><View testID="kid"/></Screen>);
+    expect(getComputedStyle(parts(screen.getByTestId('kid')).safeArea).backgroundColor).toBe(theme.background);
+    unmount();
 
-  it('falls back to the light palette when the scheme is unknown', () => {
     mockScheme.value = undefined;
     mount(<Screen><View testID="kid"/></Screen>);
-    expect(parts(screen.getByTestId('kid')).safeArea).toHaveStyle({backgroundColor: colors.light.background});
-    expect(document.body).toHaveStyle({backgroundColor: colors.light.background});
+    expect(getComputedStyle(parts(screen.getByTestId('kid')).safeArea).backgroundColor).toBe(theme.background);
+  });
+
+  it('fixes the fab slot to the viewport corner', () => {
+    mount(
+      <Screen fab={<Text testID="fab">New</Text>}>
+        <View testID="kid"/>
+      </Screen>,
+    );
+    const slot = screen.getByTestId('screen-fab');
+    expect(slot.contains(screen.getByTestId('fab'))).toBe(true);
+    const style = getComputedStyle(slot);
+    expect(style.position).toBe('fixed');
+    expect(style.right).toBe(`${spacing.three}px`);
+    expect(style.bottom).toBe(`${spacing.three}px`);
+    expect(slot.parentElement).toBe(parts(screen.getByTestId('kid')).safeArea);
+  });
+
+  it('renders no fab slot without a fab', () => {
+    mount(<Screen><View testID="kid"/></Screen>);
+    expect(screen.queryByTestId('screen-fab')).toBeNull();
   });
 });

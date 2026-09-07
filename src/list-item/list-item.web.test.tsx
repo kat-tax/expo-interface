@@ -47,4 +47,55 @@ describe('ListItem (web)', () => {
     render(<ListItem testID="row">Static</ListItem>);
     expect(() => fireEvent.click(screen.getByTestId('row'))).not.toThrow();
   });
+
+  it('renders a trailing action as a button beside an inert row', () => {
+    const onSignIn = vi.fn();
+    render(
+      <ListItem leading={<span>L</span>} trailing={<span>T</span>} supporting="Signed out" action={{label: 'Sign in', onPress: onSignIn}} testID="row">
+        Account
+      </ListItem>,
+    );
+    const row = screen.getByTestId('row');
+    expect(row).toHaveClass('ui-list-item');
+    expect(row.querySelector('.ui-list-item__row')?.tagName).toBe('DIV');
+    expect(row.querySelector('.ui-list-item__headline')).toHaveTextContent('Account');
+    expect(row.querySelector('.ui-list-item__supporting')).toHaveTextContent('Signed out');
+    const slots = row.querySelectorAll('.ui-list-item__slot');
+    expect(slots[0]).toHaveTextContent('L');
+    expect(slots[1]).toHaveTextContent('T');
+    const action = screen.getByRole('button', {name: 'Sign in'});
+    expect(action).toHaveClass('ui-button--text', 'ui-button--small');
+    expect(action.parentElement).toBe(row);
+    fireEvent.click(action);
+    expect(onSignIn).toHaveBeenCalledTimes(1);
+    expect(screen.getAllByRole('button')).toHaveLength(1);
+  });
+
+  it('keeps the row pressable beside the action, without the action pressing it', () => {
+    const onPress = vi.fn();
+    const onSignOut = vi.fn();
+    render(
+      <ListItem onPress={onPress} supporting={<em>Rich</em>} action={{label: 'Sign out', onPress: onSignOut, role: 'destructive', disabled: true}} testID="row">
+        Account
+      </ListItem>,
+    );
+    const row = screen.getByRole('button', {name: /Account/});
+    expect(row).toHaveClass('ui-list-item__row--pressable');
+    fireEvent.click(row);
+    expect(onPress).toHaveBeenCalledTimes(1);
+    const action = screen.getByRole('button', {name: 'Sign out'});
+    expect(action).toHaveClass('ui-button--destructive');
+    expect(action).toBeDisabled();
+    fireEvent.click(action);
+    expect(onSignOut).not.toHaveBeenCalled();
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('row').querySelector('.ui-list-item__slot')).toBeNull();
+  });
+
+  it('renders an action row without supporting text, or with a number', () => {
+    const {rerender} = render(<ListItem action={{label: 'Clear', onPress: vi.fn()}} testID="row">Cache</ListItem>);
+    expect(screen.getByTestId('row').querySelector('.ui-list-item__supporting')).toBeNull();
+    rerender(<ListItem supporting={42} action={{label: 'Clear', onPress: vi.fn()}} testID="row">Cache</ListItem>);
+    expect(screen.getByTestId('row').querySelector('.ui-list-item__supporting')).toHaveTextContent('42');
+  });
 });

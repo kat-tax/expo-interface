@@ -1,12 +1,8 @@
 import type {ReactNode, ReactElement} from 'react';
-import type {
-  FieldGroupProps,
-  FieldSectionProps,
-  FieldSectionHeaderProps,
-  FieldSectionFooterProps,
-} from '@expo/ui';
+import type {FieldSectionHeaderProps, FieldSectionFooterProps} from '@expo/ui';
+import type {FieldGroupProps, FieldGroupSectionProps} from './types';
 import {Children, Fragment, isValidElement} from 'react';
-import {Box, Column, LazyColumn, Text} from '@expo/ui/jetpack-compose';
+import {Box, Column, Text} from '@expo/ui/jetpack-compose';
 import {
   background,
   clip,
@@ -15,6 +11,7 @@ import {
   padding,
   Shapes,
   testID as testIDModifier,
+  verticalScroll,
   type ModifierConfig,
 } from '@expo/ui/jetpack-compose/modifiers';
 import {useColor} from '../theme';
@@ -22,6 +19,12 @@ import {useColor} from '../theme';
 /**
  * Android `FieldGroup`. Mirrors `@expo/ui`'s Material 3 connected-list
  * layout, with app deviations for web parity:
+ * - the group is a scrolling `Column`, not a `LazyColumn`: a lazy list
+ *   disposes and recomposes its items as it scrolls and on any state change,
+ *   and every React Native view hosted inside an item is then added to the
+ *   view tree a second time while still attached ("The specified child
+ *   already has a parent"). A settings form has a dozen rows and does not
+ *   need laziness; composed once, its rows can hold anything the kit offers;
  * - the group has no background (the universal one paints the Host palette's
  *   `surface`, a grey panel over the app's screen background);
  * - rows use the `backgroundElement` token instead of the seeded
@@ -33,16 +36,13 @@ import {useColor} from '../theme';
  */
 function FieldGroupBase({children, style, hidden, testID}: FieldGroupProps) {
   if (hidden) return null;
-  const modifiers: ModifierConfig[] = [];
+  const modifiers: ModifierConfig[] = [fillMaxWidth(), verticalScroll(), padding(16, 16, 16, 16)];
   if (style?.backgroundColor) modifiers.push(background(String(style.backgroundColor)));
   if (testID) modifiers.push(testIDModifier(testID));
   return (
-    <LazyColumn
-      verticalArrangement={{spacedBy: 24}}
-      contentPadding={{start: 16, end: 16, top: 16, bottom: 16}}
-      modifiers={modifiers}>
+    <Column verticalArrangement={{spacedBy: 24}} modifiers={modifiers}>
       {groupChildren(children)}
-    </LazyColumn>
+    </Column>
   );
 }
 
@@ -56,9 +56,10 @@ function SectionFooter(props: FieldSectionFooterProps) {
   return <>{props.children}</>;
 }
 
-function Section({children, title, titleUppercase = false, hidden}: FieldSectionProps) {
+function Section({children, title, titleUppercase = false, hidden, footer: footerText, footerColor = 'secondaryLabel'}: FieldGroupSectionProps) {
   const card = useColor('backgroundElement');
   const subtle = useColor('secondaryLabel');
+  const danger = useColor('destructive');
   const label = useColor('label');
   if (hidden) return null;
 
@@ -68,6 +69,11 @@ function Section({children, title, titleUppercase = false, hidden}: FieldSection
       color={subtle}
       style={{typography: 'titleMedium', letterSpacing: titleUppercase ? 0.5 : undefined}}>
       {titleUppercase ? title.toUpperCase() : title}
+    </Text>
+  ) : null);
+  const footerNode = footer ?? (footerText != null ? (
+    <Text color={footerColor === 'destructive' ? danger : subtle} style={{typography: 'bodySmall'}}>
+      {footerText}
     </Text>
   ) : null);
 
@@ -94,7 +100,7 @@ function Section({children, title, titleUppercase = false, hidden}: FieldSection
           ))}
         </Column>
       ) : null}
-      {footer ? <Column modifiers={[padding(16, 4, 16, 0)]}>{footer}</Column> : null}
+      {footerNode ? <Column modifiers={[padding(16, 4, 16, 0)]}>{footerNode}</Column> : null}
     </Column>
   );
 }
@@ -105,7 +111,7 @@ export const FieldGroup = Object.assign(FieldGroupBase, {
   SectionFooter,
 });
 
-export type {FieldGroupProps};
+export type {FieldGroupProps, FieldGroupSectionProps};
 
 /**
  * Per-position corner radii producing the Material 3 grouped-list look:

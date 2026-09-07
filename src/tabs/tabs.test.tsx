@@ -71,6 +71,39 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(document.querySelector('img')).toBeNull();
       });
 
+      it('hides the bar but keeps the routes when hidden', async () => {
+        await renderApp(await app({hidden: true}));
+        const links = dom.getAllByRole('link', {hidden: true});
+        expect(links).toHaveLength(2);
+        // The list (the links' grandparent) is display: none; the active screen still renders.
+        const list = links[0].parentElement!.parentElement!;
+        expect(getComputedStyle(list).display).toBe('none');
+        expect(dom.getByText('Home screen')).toBeInTheDocument();
+      });
+
+      it('renders actions between the logo and the tabs, or after them', async () => {
+        await renderApp(await app({webActions: <Text testID="actions">New…</Text>}));
+        const actions = dom.getByTestId('actions');
+        const [home] = dom.getAllByRole('link');
+        expect(actions.compareDocumentPosition(home) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(dom.getByText(appName).compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      });
+
+      it('renders actions after the tabs on request', async () => {
+        await renderApp(await app({webActions: <Text testID="actions">New…</Text>, webActionsPlacement: 'after'}));
+        const actions = dom.getByTestId('actions');
+        const [, settings] = dom.getAllByRole('link');
+        expect(settings.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      });
+
+      it('lets the logo slot shrink before the tabs', async () => {
+        await renderApp(await app({webLogo: <Text testID="logo">A very long document title that must be bounded</Text>}));
+        const logo = dom.getByTestId('logo').parentElement!;
+        const style = getComputedStyle(logo);
+        expect(style.flexShrink).toBe('1');
+        expect(style.minWidth).toBe('0px');
+      });
+
       it('dims a link while it is pressed', async () => {
         await renderApp(await app());
         const [home] = dom.getAllByRole('link');
@@ -115,6 +148,12 @@ describe(`Tabs (${Platform.OS})`, () => {
       if (isIOS) {
         expect(tabs.map(t => t.props.icon)).toEqual([{sf: 'house'}, {sf: 'gearshape'}]);
       }
+      expect(screen.getByText('Home screen')).toBeOnTheScreen();
+    });
+
+    it('passes hidden to the native tab bar', async () => {
+      await renderApp(await app({hidden: true}));
+      expect(triggers()).toHaveLength(2);
       expect(screen.getByText('Home screen')).toBeOnTheScreen();
     });
 

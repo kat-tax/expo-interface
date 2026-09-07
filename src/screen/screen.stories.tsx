@@ -3,8 +3,10 @@ import {fn} from 'storybook/test';
 import {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Body, Title} from '../typography';
+import {Fab} from '../fab';
 import {FieldGroup} from '../field-group';
 import {Switch} from '../switch';
+import * as icons from '../__stories__/icons';
 import {ScreenHeader} from './header';
 import {Screen} from '.';
 
@@ -72,6 +74,15 @@ export const UnderHeader: Story = {
         <Article/>
       </Screen>
     </View>
+  ),
+};
+
+export const WithFab: Story = {
+  args: {header: true, gutter: true},
+  render: args => (
+    <Screen {...args} fab={<Fab label="New" icon={icons.add} onPress={fn()}/>}>
+      <Article/>
+    </Screen>
   ),
 };
 

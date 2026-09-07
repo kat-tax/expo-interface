@@ -30,6 +30,7 @@ export function Button({
   role = 'default',
   size = 'medium',
   color,
+  tone = 'accent',
   shape,
   prefixIcon,
   suffixIcon,
@@ -41,9 +42,12 @@ export function Button({
   popoverTargetAction,
 }: WebButtonProps) {
   const themeTint = useColor('tint');
+  const themeLabel = useColor('label');
   const destructive = useColor('destructive');
   const themeOnAccent = useColor(role === 'destructive' ? 'onDestructive' : 'onTint');
-  const accent = color ?? (role === 'destructive' ? destructive : themeTint);
+  // The label tone only applies to the text variant: a tool, not a call to action.
+  const labelTone = variant === 'text' && tone === 'label' && role !== 'destructive';
+  const accent = color ?? (role === 'destructive' ? destructive : labelTone ? themeLabel : themeTint);
   // A custom accent brings its own contrast color for filled content.
   const onAccent = color ? contrastOf(color) : themeOnAccent;
   const iconOnly = hideLabel && !!prefixIcon;
@@ -59,6 +63,7 @@ export function Button({
     !shape && 'ui-button--pill',
     iconOnly && 'ui-button--icon-only',
     role === 'destructive' && 'ui-button--destructive',
+    labelTone && !color && 'ui-button--label',
     fillWidth && 'ui-button--fill',
   ].filter(Boolean).join(' ');
 

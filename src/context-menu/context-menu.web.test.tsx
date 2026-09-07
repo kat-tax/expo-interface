@@ -182,6 +182,71 @@ describe('ContextMenu (web)', () => {
     expect(document.activeElement).toBe(screen.getByRole('menuitem', {name: 'Share', hidden: true}));
   });
 
+  it('opens at the point given by `at`, relative to the content, and reports the close', () => {
+    const onDismiss = vi.fn();
+    const {rerender} = render(
+      <ContextMenu items={items} at={{x: 40, y: 60}} onDismiss={onDismiss} testID="row">
+        <span>Canvas</span>
+      </ContextMenu>,
+    );
+    const content = screen.getByText('Canvas');
+    vi.spyOn(content, 'getBoundingClientRect').mockReturnValue({left: 100, top: 200} as DOMRect);
+    expect(showPopover).toHaveBeenCalledTimes(1);
+    const menu = screen.getByRole('menu', {hidden: true});
+    // The first measurement happened before the spy: the point is taken as given.
+    expect(menu.style.left).toBe('40px');
+    expect(menu.style.top).toBe('60px');
+
+    rerender(
+      <ContextMenu items={items} at={{x: 10, y: 20}} onDismiss={onDismiss} testID="row">
+        <span>Canvas</span>
+      </ContextMenu>,
+    );
+    expect(showPopover).toHaveBeenCalledTimes(2);
+    expect(menu.style.left).toBe('110px');
+    expect(menu.style.top).toBe('220px');
+
+    fireEvent(menu, toggleEvent('closed'));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reopen for `at` while already open, disabled, or cleared', () => {
+    const {rerender} = render(
+      <ContextMenu items={items} at={{x: 1, y: 2}} disabled testID="row">
+        <span>Canvas</span>
+      </ContextMenu>,
+    );
+    expect(showPopover).not.toHaveBeenCalled();
+
+    rerender(
+      <ContextMenu items={items} at={null} testID="row">
+        <span>Canvas</span>
+      </ContextMenu>,
+    );
+    expect(showPopover).not.toHaveBeenCalled();
+
+    const menu = screen.getByRole('menu', {hidden: true});
+    vi.spyOn(menu, 'matches').mockImplementation(selector => selector === ':popover-open');
+    rerender(
+      <ContextMenu items={items} at={{x: 3, y: 4}} testID="row">
+        <span>Canvas</span>
+      </ContextMenu>,
+    );
+    expect(showPopover).not.toHaveBeenCalled();
+    expect(menu.style.left).toBe('3px');
+  });
+
+  it('measures `at` from the viewport when the content has no element of its own', () => {
+    render(
+      <ContextMenu items={items} at={{x: 5, y: 6}} testID="row">
+        Plain text
+      </ContextMenu>,
+    );
+    const menu = screen.getByRole('menu', {hidden: true});
+    expect(menu.style.left).toBe('5px');
+    expect(menu.style.top).toBe('6px');
+  });
+
   it('ignores a lift or move without a pending long-press', () => {
     render(
       <ContextMenu items={items} testID="row">

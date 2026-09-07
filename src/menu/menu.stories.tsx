@@ -84,6 +84,40 @@ export const ItemStates: Story = {
   },
 };
 
+export const ActiveItem: Story = {
+  args: {
+    label: 'Sort by',
+    variant: 'outlined',
+    items: [
+      {label: 'Name', active: true, onPress: fn()},
+      {label: 'Date modified', onPress: fn()},
+      {label: 'Size', onPress: fn()},
+    ],
+  },
+};
+
+export const Swatches: Story = {
+  args: {
+    label: 'Ink',
+    variant: 'outlined',
+    items: [
+      {label: 'Blue', swatch: '#007AFF', active: true, onPress: fn()},
+      {label: 'Red', swatch: '#FF3B30', onPress: fn()},
+      {label: 'Green', swatch: '#34C759', onPress: fn()},
+      {label: 'Custom…', icon: icons.settings, separator: true, onPress: fn()},
+    ],
+  },
+};
+
+export const LabelTone: Story = {
+  args: {label: 'More', icon: icons.settings, hideLabel: true, variant: 'text', tone: 'label'},
+};
+
+export const LinkTrigger: Story = {
+  args: {label: 'New…', icon: icons.add, trigger: 'link'},
+  parameters: {docs: {description: {story: 'Web only: a text link like the tab bar\'s tabs, for a menu in a bar. Natively the trigger stays the kit button.'}}},
+};
+
 export const Sizes: Story = {
   render: args => (
     <Column modifiers={fillWidth} spacing={12}>

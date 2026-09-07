@@ -27,17 +27,19 @@ interface MenuListProps {
   position?: {x: number; y: number} | null;
   /** Exposes the popover element so callers can `showPopover()` programmatically. */
   popoverRef?: React.RefObject<HTMLDivElement | null>;
+  /** Called when the popover closes (light dismiss, Escape, or a pick). */
+  onClose?: () => void;
 }
 
 /**
- * Web `role="menu"` popup shared by `Menu` and `ContextMenu`, rendered as a
- * native `popover="auto"` element. The browser handles the top layer, light
- * dismiss (outside click / Escape) and the trigger's `aria-expanded`; every
- * item carries `popovertargetaction="hide"` so picking one closes the menu
- * declaratively. Placement is CSS anchor positioning (see `menu.css`), with a
- * measured fallback for engines without it.
+ * Web `role="menu"` popup shared by `Menu`, `ContextMenu` and `Fab`, rendered
+ * as a native `popover="auto"` element. The browser handles the top layer,
+ * light dismiss (outside click / Escape) and the trigger's `aria-expanded`;
+ * every item carries `popovertargetaction="hide"` so picking one closes the
+ * menu declaratively. Placement is CSS anchor positioning (see `menu.css`),
+ * with a measured fallback for engines without it.
  */
-export function MenuList({id, items, anchor, anchorRef, position, popoverRef}: MenuListProps) {
+export function MenuList({id, items, anchor, anchorRef, position, popoverRef, onClose}: MenuListProps) {
   const localRef = useRef<HTMLDivElement>(null);
   const ref = popoverRef ?? localRef;
   const anchored = !!anchor && !position;
@@ -51,7 +53,10 @@ export function MenuList({id, items, anchor, anchorRef, position, popoverRef}: M
 
   const onToggle = (event: ToggleEvent<HTMLDivElement>) => {
     const popover = event.currentTarget;
-    if (event.newState !== 'open') return;
+    if (event.newState !== 'open') {
+      onClose?.();
+      return;
+    }
     // Fallback placement: below the trigger, right-aligned, kept on screen.
     if (anchored && !ANCHOR_SUPPORTED && anchorRef?.current) {
       const rect = anchorRef.current.getBoundingClientRect();
@@ -83,13 +88,23 @@ export function MenuList({id, items, anchor, anchorRef, position, popoverRef}: M
           <button
             type="button"
             role="menuitem"
-            className={['ui-menu__item', item.role === 'destructive' && 'ui-menu__item--destructive'].filter(Boolean).join(' ')}
+            aria-current={item.active ? 'true' : undefined}
+            className={[
+              'ui-menu__item',
+              item.role === 'destructive' && 'ui-menu__item--destructive',
+              item.active && 'ui-menu__item--active',
+            ].filter(Boolean).join(' ')}
             disabled={item.disabled}
             popoverTarget={id}
             popoverTargetAction="hide"
             onClick={item.onPress}>
-            {item.icon ? <SymbolView name={item.icon.symbol} size={ICON_SIZE} tintColor="currentColor"/> : null}
+            {item.swatch ? (
+              <span className="ui-menu__swatch" style={{background: item.swatch}} aria-hidden="true"/>
+            ) : item.icon ? (
+              <SymbolView name={item.icon.symbol} size={ICON_SIZE} tintColor="currentColor"/>
+            ) : null}
             <span>{item.label}</span>
+            {item.active ? <span className="ui-menu__check" aria-hidden="true">✓</span> : null}
           </button>
         </div>
       ))}

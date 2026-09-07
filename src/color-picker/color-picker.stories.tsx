@@ -70,6 +70,15 @@ export const Disabled: Story = {
   args: {disabled: true},
 };
 
+export const WithSwatches: Story = {
+  args: {
+    label: 'Accent',
+    value: '#007AFF',
+    supportsOpacity: false,
+    swatches: ['#007AFF', '#6750A4', '#0B6E4F', '#B3261E', '#C2410C'],
+  },
+};
+
 export const NoLabel: Story = {
   args: {label: undefined},
   // A bare well is named "Color" on web; the surrounding row should still

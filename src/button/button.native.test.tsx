@@ -188,6 +188,35 @@ describe(`Button (${Platform.OS})`, () => {
     }
   });
 
+  it('draws the text variant in the label color with the label tone', async () => {
+    await render(<Button label="Undo" variant="text" tone="label" testID="undo"/>);
+    const {props} = button('undo');
+    if (isIOS) {
+      expect(modifier(props, 'tint')).toEqual({$type: 'tint', color: '#000000'});
+    } else {
+      expect(props.colors).toEqual({contentColor: '#000000'});
+    }
+  });
+
+  it('ignores the label tone for filled buttons, the destructive role and an explicit color', async () => {
+    await render(
+      <>
+        <Button label="Go" tone="label" testID="filled"/>
+        <Button label="Delete" variant="text" role="destructive" tone="label" testID="del"/>
+        <Button label="Custom" variant="text" tone="label" color="#FFCC00" testID="custom"/>
+      </>,
+    );
+    if (isIOS) {
+      expect(modifier(button('filled').props, 'tint')?.color).toBe('#007AFF');
+      expect(modifier(button('del').props, 'tint')?.color).toBe('#FF3B30');
+      expect(modifier(button('custom').props, 'tint')?.color).toBe('#FFCC00');
+    } else {
+      expect(button('filled').props.colors).toEqual({containerColor: '#007AFF', contentColor: '#FFFFFF'});
+      expect(button('del').props.colors).toEqual({contentColor: '#FF3B30'});
+      expect(button('custom').props.colors).toEqual({contentColor: '#FFCC00'});
+    }
+  });
+
   (isIOS ? it.skip : it)('maps the rounded and pill shapes', async () => {
     await render(
       <>

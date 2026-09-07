@@ -2,13 +2,14 @@ import type {TabBarProps} from './types';
 import {NativeTabs} from 'expo-router/unstable-native-tabs';
 import {useColor} from '../theme';
 
-export function Tabs({routes}: TabBarProps) {
+export function Tabs({routes, hidden = false}: TabBarProps) {
   const rippleColor = useColor('pillBackground');
   const indicatorColor = useColor('backgroundElement');
   const labelColor = useColor('label');
 
   return (
     <NativeTabs
+      hidden={hidden}
       backgroundColor="transparent"
       indicatorColor={indicatorColor}
       rippleColor={rippleColor}
