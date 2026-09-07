@@ -11,6 +11,7 @@ const meta = {
   args: {
     label: 'Favourite',
     icon: icons.star,
+    activeIcon: icons.starFilled,
     value: false,
     size: 24,
     disabled: false,

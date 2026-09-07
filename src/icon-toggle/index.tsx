@@ -1,7 +1,7 @@
 import './icon-toggle.css';
 import type {CSSProperties} from 'react';
 import type {IconToggleProps} from './types';
-import {SymbolView} from 'expo-symbols';
+import {Symbol} from '../symbol';
 import {useColor} from '../theme';
 
 /**
@@ -34,8 +34,8 @@ export function IconToggle({
       disabled={disabled}
       onClick={() => onValueChange(!value)}
       data-testid={testID}>
-      <SymbolView
-        name={(value ? activeIcon ?? icon : icon).symbol}
+      <Symbol
+        icon={value ? activeIcon ?? icon : icon}
         size={size}
         tintColor={value ? on : off}
       />

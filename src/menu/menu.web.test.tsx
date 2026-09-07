@@ -40,7 +40,7 @@ describe('Menu (web)', () => {
     render(<Menu label="Export" items={items}/>);
     const menu = screen.getByRole('menu', {hidden: true});
     const entries = screen.getAllByRole('menuitem', {hidden: true});
-    expect(entries.map(e => e.textContent)).toEqual(['Share', 'Rename', 'Delete']);
+    expect(entries.map(e => e.querySelector('.ui-menu__label')?.textContent)).toEqual(['Share', 'Rename', 'Delete']);
     for (const entry of entries) {
       expect(entry).toHaveAttribute('type', 'button');
       expect(entry).toHaveAttribute('popovertarget', menu.id);
@@ -163,7 +163,7 @@ describe('Menu (web)', () => {
     expect(trigger).not.toHaveClass('ui-button');
     expect(trigger).toHaveAttribute('popovertarget', menu.id);
     expect(trigger).toHaveAttribute('data-testid', 'new');
-    expect(trigger.textContent).toBe('New…');
+    expect(trigger.querySelector('.ui-menu__label')).toHaveTextContent('New…');
     expect(trigger).not.toHaveAttribute('aria-label');
   });
 
@@ -178,7 +178,8 @@ describe('Menu (web)', () => {
     render(<Menu label="New" icon={icons.add} items={items} trigger="link" hideLabel disabled/>);
     const trigger = screen.getByRole('button', {name: 'New'});
     expect(trigger).toHaveAttribute('aria-label', 'New');
-    expect(trigger.textContent).toBe('');
+    expect(trigger.querySelector('.ui-menu__label')).toBeNull();
+    expect(trigger.querySelector('.ui-symbol')).toHaveTextContent('add');
     expect(trigger).toBeDisabled();
   });
 

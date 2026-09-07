@@ -31,7 +31,9 @@ describe(`HeaderMenu (${Platform.OS})`, () => {
       const trigger = dom.getByRole('button', {name: 'New…'});
       expect(trigger).toHaveClass('ui-button--text', 'ui-button--medium');
       expect(trigger).toHaveAttribute('data-testid', 'new');
-      expect(dom.getAllByRole('menuitem', {hidden: true}).map(e => e.textContent)).toEqual(['Blank document', 'Import files…']);
+      expect(dom.getAllByRole('menuitem', {hidden: true})
+        .map(e => e.querySelector('.ui-menu__label')?.textContent))
+        .toEqual(['Blank document', 'Import files…']);
       expect(document.querySelector('[style*="--expo-ui-primary-500"]')).toBeNull();
     });
 

@@ -2,7 +2,7 @@ import './fab.css';
 import type {CSSProperties} from 'react';
 import type {FabProps} from './types';
 import {useId, useRef} from 'react';
-import {SymbolView} from 'expo-symbols';
+import {Symbol} from '../symbol';
 import {MenuList, menuIdent} from '../menu/list';
 import {FAB_ICON} from './shared';
 
@@ -28,7 +28,7 @@ export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rou
         onClick={items ? undefined : onPress}
         popoverTarget={items ? ident : undefined}
         data-testid={testID}>
-        <SymbolView name={icon.symbol} size={FAB_ICON[size]} tintColor="currentColor"/>
+        <Symbol icon={icon} size={FAB_ICON[size]} tintColor="currentColor"/>
         {extended ? <span className="ui-fab__label">{label}</span> : null}
       </button>
       {items ? <MenuList id={ident} items={items} anchor={anchor} anchorRef={wrapper} onOpenChange={onOpenChange}/> : null}

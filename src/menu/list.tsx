@@ -1,7 +1,7 @@
 import type {CSSProperties, ToggleEvent} from 'react';
 import type {MenuItem} from './types';
 import {useRef} from 'react';
-import {SymbolView} from 'expo-symbols';
+import {Symbol} from '../symbol';
 
 const ICON_SIZE = 16;
 const VIEWPORT_GAP = 8;
@@ -112,9 +112,9 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
             {item.swatch ? (
               <span className="ui-menu__swatch" style={{background: item.swatch}} aria-hidden="true"/>
             ) : item.icon ? (
-              <SymbolView name={item.icon.symbol} size={ICON_SIZE} tintColor="currentColor"/>
+              <Symbol icon={item.icon} size={ICON_SIZE} tintColor="currentColor"/>
             ) : null}
-            <span>{item.label}</span>
+            <span className="ui-menu__label">{item.label}</span>
             {item.active ? <span className="ui-menu__check" aria-hidden="true">✓</span> : null}
           </button>
         </div>

@@ -18,10 +18,16 @@ export const SIZE_TEXT: Record<ButtonSize, number> = {
   large: 17,
 };
 
+/**
+ * The SF Symbol a token names on iOS. SF Symbols keeps the solid form of a
+ * symbol under its own `.fill` name, so a filled token is that name with the
+ * suffix — unless it already carries one, which lets a token name an exact
+ * symbol (`star.slash.fill`) and keep it.
+ */
 export function iosSymbol(token: IconToken): SFSymbol {
-  const {symbol} = token;
-  if (typeof symbol === 'string') return symbol;
-  return symbol.ios ?? 'questionmark';
+  const {symbol, fill} = token;
+  const name = typeof symbol === 'string' ? symbol : symbol.ios ?? 'questionmark';
+  return fill && !name.endsWith('.fill') ? `${name}.fill` as SFSymbol : name;
 }
 
 export function swiftControlSize(size: ButtonSize) {

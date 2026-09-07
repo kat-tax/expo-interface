@@ -10,7 +10,8 @@ Icon props take an `IconToken`: an `expo-symbols` name, or a
 - **iOS** renders SF Symbols through `expo-symbols`.
 - **Android** renders Material Symbols. Jetpack Compose draws them from XML
   vector drawables, which `@expo/material-symbols` provides.
-- **Web** renders the Material Symbols web font by name.
+- **Web** writes the symbol's name in the Material Symbols web font, whose
+  ligatures draw it as the glyph.
 
 ## Defining tokens
 
@@ -52,6 +53,59 @@ import * as icons from './icons';
 <Button label="Share" prefixIcon={icons.share} onPress={share}/>
 <ListItem title="Settings" leading={icons.settings}/>
 ```
+
+## Filled icons
+
+`fill` asks for the solid form of the same symbol — the star a favourite gets,
+the heart a like — so a toggle names its icon once rather than twice:
+
+```ts
+export const star = icon(
+  {ios: 'star', android: 'star', web: 'star'},
+  drawables.star,
+);
+
+export const starFilled = icon(
+  {ios: 'star', android: 'star', web: 'star'},
+  drawables.star_fill,
+  {fill: true},
+);
+```
+
+```tsx
+<IconToggle label="Favourite" icon={icons.star} activeIcon={icons.starFilled} .../>
+```
+
+Each platform draws it from what it has:
+
+- **iOS** appends SF Symbols' own `.fill` to the name (`star` → `star.fill`).
+  A token that already names a solid symbol keeps the name it was given.
+- **Web** sets the `FILL 1` axis of the Material Symbols *variable* font.
+  `expo-symbols` bundles a static instance cut at `FILL 0`, which has no axes
+  at all, so an app that wants filled icons registers the variable family
+  itself — under `Material Symbols Outlined`, or under its own name in
+  `--ui-symbol-font`:
+
+  ```css
+  @font-face {
+    font-family: 'Material Symbols Outlined';
+    src: url('./assets/MaterialSymbolsOutlined.woff2') format('woff2-variations');
+    font-weight: 100 700;
+    font-display: block;
+  }
+  ```
+
+  Serve it from the app's own bundle rather than a CDN so an offline web build
+  still draws. Without the family a filled token quietly draws its outline —
+  which is what this site does, since it ships only the static instance.
+- **Android** draws the token's `drawable`, so that drawable has to be the
+  filled vector — Jetpack Compose renders XML vectors, not font glyphs, and
+  nothing at runtime can fill one. `@expo/material-symbols` ships only the
+  outlined set; the filled vector comes from its CLI:
+
+  ```sh
+  npx add-material-symbols --fill star
+  ```
 
 ## Metro
 

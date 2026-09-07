@@ -6,7 +6,6 @@ import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
 import {IconToggle} from '.';
 
 const isIOS = Platform.OS === 'ios';
-const filled = {...icons.star, symbol: {ios: 'star.fill', android: 'star', web: 'star'}} as typeof icons.star;
 
 describe(`IconToggle (${Platform.OS})`, () => {
   it('draws the off icon in the secondary color and reports the press', async () => {
@@ -15,7 +14,7 @@ describe(`IconToggle (${Platform.OS})`, () => {
       <IconToggle
         label="Favourite"
         icon={icons.star}
-        activeIcon={filled}
+        activeIcon={icons.starFilled}
         value={false}
         onValueChange={onValueChange}
         testID="star"
@@ -50,7 +49,7 @@ describe(`IconToggle (${Platform.OS})`, () => {
       <IconToggle
         label="Favourite"
         icon={icons.star}
-        activeIcon={filled}
+        activeIcon={icons.starFilled}
         value
         color="#8959EA"
         size={18}
@@ -68,6 +67,8 @@ describe(`IconToggle (${Platform.OS})`, () => {
       const {props} = byComposeTestID('star');
       expect(props.checked).toBe(true);
       expect(props.colors.checkedContentColor).toBe('#8959EA');
+      // Compose draws XML vectors rather than glyphs, so the fill is the
+      // `activeIcon`'s own drawable; the host view reports no `source`.
       expect(host(p => p.contentDescription === 'Favourite').props.tint).toBe('#8959EA');
     }
   });

@@ -1,0 +1,38 @@
+/*
+ * The icon glyph on web: the symbol's own name written in Material Symbols,
+ * which the font's `rlig` ligatures map to the icon. A plain `<span>` rather
+ * than `expo-symbols`' `SymbolView`, because `SymbolView` writes its font
+ * family as an inline style on a nested element — nothing above it can reach
+ * the family, and the family is where fill lives.
+ */
+.ui-symbol {
+  /*
+   * `expo-symbols` bundles a static Material Symbols instance cut at `FILL 0`,
+   * so the outline is all it can draw. An app that wants filled icons
+   * registers the variable family under `Material Symbols Outlined` (or names
+   * its own family in `--ui-symbol-font`); the static instance stays as the
+   * fallback, and a filled token quietly draws its outline without it.
+   */
+  font-family: var(--ui-symbol-font, 'Material Symbols Outlined'), 'MaterialSymbols_400Regular';
+  font-variation-settings: 'FILL' 0;
+  font-weight: normal;
+  font-style: normal;
+  /* The em box is the icon's box: Material Symbols advances exactly 1em. */
+  display: inline-block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  line-height: 1;
+  /* Nothing may come between the letters of the ligature. */
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  text-transform: none;
+  direction: ltr;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ui-symbol--filled {
+  font-variation-settings: 'FILL' 1;
+}

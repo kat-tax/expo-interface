@@ -192,6 +192,48 @@ export const share = icon(
 );
 ```
 
+#### Filled icons
+
+`fill` asks for the solid form of the same symbol — the star a favourite gets,
+the heart a like — so a toggle names its icon once rather than twice:
+
+```ts
+export const star = icon({ios: 'star', android: 'star', web: 'star'}, drawables.star);
+export const starFilled = icon(
+  {ios: 'star', android: 'star', web: 'star'},
+  drawables.star_fill,
+  {fill: true},
+);
+
+<IconToggle label="Favourite" icon={star} activeIcon={starFilled} .../>
+```
+
+Each platform draws it from what it has:
+
+| Platform | How a filled token draws | What the app provides |
+| --- | --- | --- |
+| iOS | SF Symbols' own `.fill` name (`star` → `star.fill`); a token that already names a solid symbol keeps it | nothing |
+| Web | the `FILL 1` axis of the Material Symbols **variable** font | the variable family (below) |
+| Android | the token's `drawable`, which has to be the filled vector — Compose renders XML vectors, not font glyphs | `npx add-material-symbols --fill star` |
+
+`expo-symbols` bundles a static Material Symbols instance cut at `FILL 0`,
+which carries no variable axes, so filled icons on web need the variable
+family registered under `Material Symbols Outlined` — or under a name of your
+own in `--ui-symbol-font`:
+
+```css
+@font-face {
+  font-family: 'Material Symbols Outlined';
+  src: url('./assets/MaterialSymbolsOutlined.woff2') format('woff2-variations');
+  font-weight: 100 700;
+  font-display: block;
+}
+```
+
+Serve it from the app's own bundle rather than a CDN so an offline web build
+still draws. Without the family a filled token quietly draws its outline; the
+static instance stays as the fallback, so unfilled icons need no setup at all.
+
 ### Colors
 
 - Follow the system's light or dark scheme and take a color tint from the `AccentProvider` seed.
@@ -351,7 +393,7 @@ dependencies.
 Most Expo Router apps already have these dependencies, but incase any are missing:
 
 ```sh
-npx expo install expo-router expo-symbols expo-image expo-constants expo-status-bar expo-system-ui expo-web-browser react-native-safe-area-context
+npx expo install expo-router expo-symbols expo-font expo-image expo-constants expo-status-bar expo-system-ui expo-web-browser react-native-safe-area-context
 ```
 
 Jetpack Compose draws icons from XML vector drawables, which

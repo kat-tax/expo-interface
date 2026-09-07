@@ -19,7 +19,9 @@ describe('Fab (web)', () => {
     expect(button).toHaveAttribute('aria-label', 'New');
     expect(button).toHaveAttribute('data-testid', 'new');
     expect(button).not.toHaveAttribute('popovertarget');
-    expect(button.textContent).toBe('');
+    // The glyph is the whole button: an icon, and no label beside it.
+    expect(button.querySelector('.ui-fab__label')).toBeNull();
+    expect(button.querySelector('.ui-symbol')).toHaveTextContent('add');
     expect(button.parentElement).toHaveClass('ui-fab__anchor');
     expect(screen.queryByRole('menu', {hidden: true})).toBeNull();
     fireEvent.click(button);
@@ -69,7 +71,9 @@ describe('Fab (web)', () => {
     expect(button).toHaveAttribute('popovertarget', menu.id);
     expect(menu).toHaveClass('ui-menu__list', 'ui-menu__list--anchored');
     expect(menu.parentElement?.style.getPropertyValue('anchor-name')).toBe(`--${menu.id}`);
-    expect(screen.getAllByRole('menuitem', {hidden: true}).map(e => e.textContent)).toEqual(['Blank document', 'Import files…']);
+    expect(screen.getAllByRole('menuitem', {hidden: true})
+      .map(e => e.querySelector('.ui-menu__label')?.textContent))
+      .toEqual(['Blank document', 'Import files…']);
     fireEvent.click(button);
     expect(onPress).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('menuitem', {name: 'Blank document', hidden: true}));

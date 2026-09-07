@@ -33,6 +33,21 @@ describe('IconToggle (web)', () => {
     expect(toggle.style.getPropertyValue('--ui-icon-toggle-size')).toBe('18px');
   });
 
+  it('draws the outline while off and the solid glyph while on', () => {
+    const {rerender} = render(
+      <IconToggle label="Favourite" icon={icons.star} activeIcon={icons.starFilled} value={false} onValueChange={vi.fn()}/>,
+    );
+    const glyph = () => screen.getByRole('button', {name: 'Favourite'}).querySelector('.ui-symbol');
+    expect(glyph()).toHaveTextContent('star');
+    expect(glyph()).not.toHaveClass('ui-symbol--filled');
+    rerender(
+      <IconToggle label="Favourite" icon={icons.star} activeIcon={icons.starFilled} value onValueChange={vi.fn()}/>,
+    );
+    // The same star, now asking the font for `FILL 1`.
+    expect(glyph()).toHaveTextContent('star');
+    expect(glyph()).toHaveClass('ui-symbol--filled');
+  });
+
   it('keeps the one icon when there is no second', () => {
     render(<IconToggle label="Pin" icon={icons.star} value onValueChange={vi.fn()}/>);
     expect(screen.getByRole('button', {name: 'Pin'})).toHaveAttribute('aria-pressed', 'true');

@@ -7,6 +7,16 @@ describe('button shared helpers', () => {
     expect(iosSymbol({symbol: {android: 'delete', web: 'delete'}})).toBe('questionmark');
   });
 
+  it('names the solid form of a filled token', () => {
+    expect(iosSymbol({symbol: 'star', fill: true})).toBe('star.fill');
+    expect(iosSymbol({symbol: {ios: 'star', android: 'star', web: 'star'}, fill: true})).toBe('star.fill');
+    // A token that already names a solid symbol keeps the name it was given.
+    expect(iosSymbol({symbol: {ios: 'star.fill', android: 'star', web: 'star'}, fill: true})).toBe('star.fill');
+    // Without `fill` the outline stands, suffix or not.
+    expect(iosSymbol({symbol: 'star'})).toBe('star');
+    expect(iosSymbol({symbol: 'star.fill'})).toBe('star.fill');
+  });
+
   it('maps sizes and shapes onto SwiftUI modifiers', () => {
     expect(swiftControlSize('inline')).toBe('small');
     expect(swiftControlSize('small')).toBe('small');
