@@ -1,4 +1,11 @@
+/*
+ * The iOS segmented control redrawn on web: a grey track holding a raised
+ * selected segment. Every measurement arrives as a custom property from
+ * `shared.ts`, so the three platforms lay the control out from one table.
+ */
 .ui-segmented {
+  --ui-segmented-fill: var(--color-segment-selected);
+  --ui-segmented-on-fill: var(--color-label);
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -11,37 +18,44 @@
   display: inline-flex;
   flex-shrink: 0;
   flex-direction: row;
-  padding: 2px;
-  border-radius: 9px;
+  box-sizing: border-box;
+  height: var(--ui-segmented-height);
+  padding: var(--ui-segmented-inset);
+  border-radius: var(--ui-segmented-radius);
   background: var(--color-pill-background);
 }
 
 .ui-segmented__item {
   -webkit-appearance: none;
   appearance: none;
-  min-width: 48px;
+  box-sizing: border-box;
+  min-width: var(--ui-segmented-min-width);
   margin: 0;
-  padding: 4px 12px;
+  padding: 0 var(--ui-segmented-padding);
   border: none;
-  border-radius: 7px;
+  border-radius: var(--ui-segmented-segment-radius);
   background: transparent;
   color: var(--color-label);
   font-family: var(--font-display);
-  font-size: 13px;
+  font-size: var(--ui-segmented-font-size);
   font-weight: 500;
-  line-height: 18px;
+  line-height: 1;
   white-space: nowrap;
   cursor: pointer;
   transition: background-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 /*
- * Raised segment (iOS: white light / systemGray2-ish dark). `light-dark()`
- * follows the element's `color-scheme`, which the theme CSS sets from the OS
- * and which a host can force (Storybook's scheme toolbar does).
+ * Raised segment. The fill is the `segmentSelected` palette token (white
+ * light / systemGray2 dark), replaced inline by an `accentColor`. Both
+ * schemes are emitted as `--color-*` by `getThemeCSS`, which follows the OS
+ * and a host-forced `data-theme` alike — `light-dark()` cannot be used here,
+ * as Lightning CSS (Metro's and Storybook's CSS pipeline) lowers it to a
+ * custom-property pair it never defines, dropping the declaration.
  */
 .ui-segmented__item[aria-checked='true'] {
-  background: light-dark(#ffffff, #636366);
+  background: var(--ui-segmented-fill);
+  color: var(--ui-segmented-on-fill);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
   font-weight: 600;
 }

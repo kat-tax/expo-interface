@@ -122,6 +122,7 @@ export const colors = {
     tint: ACCENT_SEED,
     onTint: onAccent(ACCENT_SEED),
     pillBackground: 'rgba(118, 118, 128, 0.12)',
+    segmentSelected: '#FFFFFF',
     switchTrack: '#e9e9ea',
     switchOn: '#34C759',
     destructive: '#FF3B30',
@@ -138,6 +139,7 @@ export const colors = {
     tint: ACCENT_SEED,
     onTint: onAccent(ACCENT_SEED),
     pillBackground: 'rgba(118, 118, 128, 0.24)',
+    segmentSelected: '#636366',
     switchTrack: '#39393d',
     switchOn: '#30D158',
     destructive: '#FF453A',
@@ -298,6 +300,21 @@ export const theme = {
     android: () => PlatformColor('?android:attr/colorControlHighlight'),
     web: 'var(--color-pill-background)',
     default: colors.light.pillBackground,
+  }),
+  /**
+   * Raised segment of a segmented control — the selected pill sitting on the
+   * `pillBackground` track. iOS has no system color for it (UIKit paints the
+   * `selectedSegmentTintColor` itself), so the two schemes differ by value
+   * rather than by platform: use `useColor('segmentSelected')`, which is
+   * scheme-aware everywhere; the static entry below is the light value.
+   * - Web: `var(--color-segment-selected)`.
+   * - Fallback: #FFFFFF light / #636366 dark.
+   */
+  segmentSelected: getPlatformToken({
+    ios: colors.light.segmentSelected,
+    android: colors.light.segmentSelected,
+    web: 'var(--color-segment-selected)',
+    default: colors.light.segmentSelected,
   }),
   /**
    * Switch "off" track.

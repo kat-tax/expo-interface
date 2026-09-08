@@ -73,12 +73,53 @@ describe('SegmentedControl (web)', () => {
     expect(screen.getByTestId('range')).toHaveClass('ui-segmented--disabled');
   });
 
-  it('colors only the selected segment with a custom accent', () => {
+  it('fills the selected segment with a custom accent', () => {
     render(
-      <SegmentedControl selectedValue="week" accentColor="#FF9500" onValueChange={vi.fn()}>{items}</SegmentedControl>,
+      <SegmentedControl selectedValue="week" accentColor="#FF9500" onValueChange={vi.fn()} testID="accent">
+        {items}
+      </SegmentedControl>,
     );
-    expect(radio('Week')).toHaveStyle({color: '#FF9500'});
-    expect(radio('Day').style.color).toBe('');
+    // The fill and its contrast cascade as custom properties, so only the
+    // `[aria-checked]` segment picks them up.
+    const row = screen.getByTestId('accent');
+    expect(row.style.getPropertyValue('--ui-segmented-fill')).toBe('#FF9500');
+    expect(row.style.getPropertyValue('--ui-segmented-on-fill')).toBe('#000000');
+    expect(radio('Week').style.background).toBe('');
+  });
+
+  it('falls back to the neutral raised fill without an accent', () => {
+    render(<SegmentedControl selectedValue="week" testID="plain">{items}</SegmentedControl>);
+    const row = screen.getByTestId('plain');
+    expect(row.style.getPropertyValue('--ui-segmented-fill')).toBe('');
+    expect(row.style.getPropertyValue('--ui-segmented-on-fill')).toBe('');
+  });
+
+  it('measures the track and its segments from the size', () => {
+    const {rerender} = render(<SegmentedControl size="small" testID="sized">{items}</SegmentedControl>);
+    const vars = () => {
+      const {style} = screen.getByTestId('sized');
+      return {
+        height: style.getPropertyValue('--ui-segmented-height'),
+        radius: style.getPropertyValue('--ui-segmented-radius'),
+        segment: style.getPropertyValue('--ui-segmented-segment-radius'),
+        font: style.getPropertyValue('--ui-segmented-font-size'),
+      };
+    };
+    expect(vars()).toEqual({height: '28px', radius: '8px', segment: '6px', font: '12px'});
+    rerender(<SegmentedControl size="large" testID="sized">{items}</SegmentedControl>);
+    expect(vars()).toEqual({height: '40px', radius: '11px', segment: '9px', font: '15px'});
+  });
+
+  it('defaults to the medium rounded control and capsules the pill shape', () => {
+    const {rerender} = render(<SegmentedControl testID="shaped">{items}</SegmentedControl>);
+    const radii = () => {
+      const {style} = screen.getByTestId('shaped');
+      return [style.getPropertyValue('--ui-segmented-radius'), style.getPropertyValue('--ui-segmented-segment-radius')];
+    };
+    expect(radii()).toEqual(['9px', '7px']);
+    rerender(<SegmentedControl shape="pill" testID="shaped">{items}</SegmentedControl>);
+    // Half the 32px track, less the 2px inset on the segment.
+    expect(radii()).toEqual(['16px', '14px']);
   });
 
   it('omits the label text and accessible name without a label', () => {

@@ -68,6 +68,8 @@ const meta = {
   argTypes: {
     accentColor: {control: 'color'},
     selectedValue: {control: 'select', options: ['day', 'week', 'month']},
+    size: {control: 'inline-radio', options: ['small', 'medium', 'large']},
+    shape: {control: 'inline-radio', options: ['rounded', 'pill']},
   },
   render: args => <Controlled {...args}/>,
 } satisfies Meta<typeof SegmentedControl>;
@@ -118,6 +120,30 @@ export const NumericValues: Story = {
       <SegmentedControl.Item key={3} label="3" value={3}/>,
     ],
   },
+};
+
+export const Sizes: Story = {
+  render: args => (
+    <Column modifiers={fillWidth} spacing={16}>
+      {(['small', 'medium', 'large'] as const).map(size => (
+        <Controlled {...args} key={size} label={size} size={size}>{items}</Controlled>
+      ))}
+    </Column>
+  ),
+};
+
+export const Pill: Story = {
+  args: {shape: 'pill'},
+};
+
+export const Shapes: Story = {
+  render: args => (
+    <Column modifiers={fillWidth} spacing={16}>
+      {(['rounded', 'pill'] as const).map(shape => (
+        <Controlled {...args} key={shape} label={shape} shape={shape}>{items}</Controlled>
+      ))}
+    </Column>
+  ),
 };
 
 export const SettingsForm: Story = {

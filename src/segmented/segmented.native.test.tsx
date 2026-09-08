@@ -1,27 +1,12 @@
-import type {PropsWithChildren} from 'react';
 import {Platform} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose';
 import {AccentProvider} from '../accent';
+import {colors} from '../theme';
 import {byComposeTestID, host, modifier, nodes, type HostNode} from '../__tests__/native';
 import {SegmentedControl} from '.';
 
 const isIOS = Platform.OS === 'ios';
-const control = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
-
-/** Android reads the Material palette from the Host; no native module runs under Jest, so seed one. */
-const palette: Partial<MaterialColors> = {
-  onSurface: '#1B1B1FFF',
-  onSurfaceVariant: '#45464FFF',
-  outline: '#767680FF',
-};
-
-function Material({children}: PropsWithChildren) {
-  if (isIOS) return <>{children}</>;
-  return <HostPaletteContext.Provider value={palette as MaterialColors}>{children}</HostPaletteContext.Provider>;
-}
-
-const options = {wrapper: Material};
+const light = colors.light;
 
 const items = [
   <SegmentedControl.Item key="day" label="Day" value="day"/>,
@@ -29,11 +14,33 @@ const items = [
   <SegmentedControl.Item key="month" label="Month" value="month"/>,
 ];
 
-/** The Compose `SegmentedButton` whose label slot renders `label` (Android only). */
+/** The Compose `Box` whose `Text` child renders `label` (Android only). */
 function segment(label: string): HostNode {
-  const match = nodes().find(n => 'selected' in n.props && nodes(n).some(c => c.props.text === label));
+  const match = nodes().find(n => modifier(n.props, 'selectable') && nodes(n).some(c => c.props?.text === label));
   if (!match) throw new Error(`No segment labelled ${label}`);
   return match;
+}
+
+/** The segment's own state, read off the modifiers Compose is handed. */
+function state(label: string) {
+  const {props} = segment(label);
+  return {
+    selected: modifier(props, 'selectable')?.selected as boolean,
+    fill: modifier(props, 'background')?.color as string | undefined,
+    radius: modifier(props, 'clip')?.shape?.radius as number,
+    height: modifier(props, 'height')?.height as number,
+  };
+}
+
+/** The track `Row` wrapping the segments (Android only). */
+const track = () => host(p => modifier(p, 'selectableGroup') !== undefined);
+
+/** Press a segment the way Compose does: a global event routed to `selectable`. */
+async function press(label: string) {
+  const {props} = segment(label);
+  await act(async () => {
+    props.onGlobalEvent({nativeEvent: {payload: ['selectable', {}]}});
+  });
 }
 
 /** SwiftUI picker options as `[text, tag]` pairs (iOS only). */
@@ -43,7 +50,6 @@ describe(`SegmentedControl (${Platform.OS})`, () => {
   it('renders the native segmented control with its label and items', async () => {
     await render(
       <SegmentedControl label="Range" selectedValue="week" onValueChange={vi.fn()} testID="sg">{items}</SegmentedControl>,
-      options,
     );
     if (isIOS) {
       const {props} = screen.getByTestId('sg');
@@ -54,24 +60,23 @@ describe(`SegmentedControl (${Platform.OS})`, () => {
       expect(modifier(props, 'disabled')).toBeUndefined();
       expect(tags()).toEqual([['Day', 'day'], ['Week', 'week'], ['Month', 'month']]);
     } else {
-      const row = control('sg');
+      const row = byComposeTestID('sg');
       expect(modifier(row.props, 'fillMaxWidth')).toBeDefined();
       expect(row.props.horizontalArrangement).toBe('spaceBetween');
-      expect(host(p => p.text === 'Range').props.color).toBe(palette.onSurface);
-      expect(segment('Day').props.selected).toBe(false);
-      expect(segment('Week').props.selected).toBe(true);
-      expect(segment('Month').props.selected).toBe(false);
-      expect(segment('Week').props.enabled).toBe(true);
+      expect(host(p => p.text === 'Range').props.color).toBe(light.label);
+      expect(state('Day').selected).toBe(false);
+      expect(state('Week').selected).toBe(true);
+      expect(state('Month').selected).toBe(false);
     }
   });
 
   it('seeds an uncontrolled control with the first item', async () => {
-    await render(<SegmentedControl testID="sg">{items}</SegmentedControl>, options);
+    await render(<SegmentedControl testID="sg">{items}</SegmentedControl>);
     if (isIOS) {
       expect(screen.getByTestId('sg').props.selection).toBe('day');
     } else {
-      expect(segment('Day').props.selected).toBe(true);
-      expect(segment('Week').props.selected).toBe(false);
+      expect(state('Day').selected).toBe(true);
+      expect(state('Week').selected).toBe(false);
     }
   });
 
@@ -81,48 +86,84 @@ describe(`SegmentedControl (${Platform.OS})`, () => {
         <SegmentedControl.Item label="One" value={1}/>
         <SegmentedControl.Item label="Two" value={2}/>
       </SegmentedControl>,
-      options,
     );
     if (isIOS) {
       expect(screen.getByTestId('sg').props.selection).toBe(2);
       expect(tags()).toEqual([['One', 1], ['Two', 2]]);
     } else {
-      expect(segment('Two').props.selected).toBe(true);
+      expect(state('Two').selected).toBe(true);
     }
   });
 
-  it('fills the selected segment with the accent seed', async () => {
+  it('raises only the selected segment, on the neutral track', async () => {
+    await render(<SegmentedControl selectedValue="day" testID="sg">{items}</SegmentedControl>);
+    if (isIOS) {
+      // The system control paints its own indicator; no fill modifier is emitted.
+      expect(modifier(screen.getByTestId('sg').props, 'tint')).toBeUndefined();
+    } else {
+      expect(modifier(track().props, 'background')?.color).toBe(light.pillBackground);
+      expect(state('Day').fill).toBe(light.segmentSelected);
+      expect(state('Week').fill).toBeUndefined();
+      expect(host(p => p.text === 'Day').props.color).toBe(light.label);
+      // The raised segment casts the same soft shadow the iOS indicator does.
+      expect(modifier(segment('Day').props, 'dropShadow')).toBeDefined();
+      expect(modifier(segment('Week').props, 'dropShadow')).toBeUndefined();
+    }
+  });
+
+  it('leaves the fill neutral under a custom accent seed', async () => {
     await render(
       <AccentProvider seed="#8959EA">
         <SegmentedControl selectedValue="day" testID="sg">{items}</SegmentedControl>
       </AccentProvider>,
-      options,
     );
     if (isIOS) {
-      // The Host `tint` cascade colors it; no per-instance modifier is emitted.
       expect(modifier(screen.getByTestId('sg').props, 'tint')).toBeUndefined();
     } else {
-      expect(segment('Day').props.colors).toEqual({
-        activeContainerColor: '#8959EA',
-        activeContentColor: '#FFFFFF',
-        activeBorderColor: palette.outline,
-        inactiveContainerColor: '#00000000',
-        inactiveContentColor: palette.onSurface,
-        inactiveBorderColor: palette.outline,
-      });
+      // The accent seed tints buttons and switches, not the raised segment.
+      expect(state('Day').fill).toBe(light.segmentSelected);
     }
   });
 
-  it('applies an explicit accentColor', async () => {
+  it('applies an explicit accentColor as the selected fill', async () => {
     await render(
       <SegmentedControl selectedValue="day" accentColor="#FFCC00" testID="sg">{items}</SegmentedControl>,
-      options,
     );
     if (isIOS) {
       expect(modifier(screen.getByTestId('sg').props, 'tint')).toEqual({$type: 'tint', color: '#FFCC00'});
     } else {
-      expect(segment('Week').props.colors.activeContainerColor).toBe('#FFCC00');
-      expect(segment('Week').props.colors.activeContentColor).toBe('#000000');
+      expect(state('Day').fill).toBe('#FFCC00');
+      expect(host(p => p.text === 'Day').props.color).toBe('#000000');
+      expect(host(p => p.text === 'Week').props.color).toBe(light.label);
+    }
+  });
+
+  it('measures the track and its segments from the size', async () => {
+    await render(<SegmentedControl selectedValue="day" size="large" testID="sg">{items}</SegmentedControl>);
+    if (isIOS) {
+      expect(modifier(screen.getByTestId('sg').props, 'controlSize')).toEqual({$type: 'controlSize', size: 'large'});
+    } else {
+      expect(modifier(track().props, 'clip')?.shape.radius).toBe(11);
+      expect(state('Day')).toMatchObject({radius: 9, height: 36});
+      expect(host(p => p.text === 'Day').props.fontSize).toBe(15);
+    }
+  });
+
+  it('capsules the pill shape and leaves the rounded one to the system corner', async () => {
+    const {rerender} = await render(<SegmentedControl selectedValue="day" testID="sg">{items}</SegmentedControl>);
+    if (isIOS) {
+      expect(modifier(screen.getByTestId('sg').props, 'clipShape')).toBeUndefined();
+    } else {
+      expect(modifier(track().props, 'clip')?.shape.radius).toBe(9);
+      expect(state('Day').radius).toBe(7);
+    }
+    await rerender(<SegmentedControl selectedValue="day" shape="pill" testID="sg">{items}</SegmentedControl>);
+    if (isIOS) {
+      expect(modifier(screen.getByTestId('sg').props, 'clipShape')).toEqual({$type: 'clipShape', shape: 'capsule'});
+    } else {
+      // Half the 32dp track, less the 2dp inset on the segment.
+      expect(modifier(track().props, 'clip')?.shape.radius).toBe(16);
+      expect(state('Day').radius).toBe(14);
     }
   });
 
@@ -132,23 +173,20 @@ describe(`SegmentedControl (${Platform.OS})`, () => {
       <SegmentedControl label="Range" selectedValue="day" onValueChange={onValueChange} disabled testID="sg">
         {items}
       </SegmentedControl>,
-      options,
     );
     if (isIOS) {
       expect(modifier(screen.getByTestId('sg').props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
     } else {
-      for (const label of ['Day', 'Week', 'Month']) expect(segment(label).props.enabled).toBe(false);
-      expect(host(p => p.text === 'Range').props.color).toBe(palette.onSurfaceVariant);
-      // `@expo/ui` always wires the press handler; the control drops its own callback.
-      await act(async () => {
-        segment('Week').props.onButtonPressed();
-      });
+      expect(modifier(track().props, 'alpha')).toEqual({$type: 'alpha', alpha: 0.4});
+      // The segments drop `selectable` entirely, so nothing is left to press.
+      for (const label of ['Day', 'Week', 'Month'])
+        expect(nodes().find(n => nodes(n).some(c => c.props?.text === label && modifier(n.props, 'selectable')))).toBeUndefined();
       expect(onValueChange).not.toHaveBeenCalled();
     }
   });
 
   it('renders without a label', async () => {
-    await render(<SegmentedControl selectedValue="day" testID="sg">{items}</SegmentedControl>, options);
+    await render(<SegmentedControl selectedValue="day" testID="sg">{items}</SegmentedControl>);
     if (isIOS) {
       expect(screen.getByTestId('sg').props.label).toBeUndefined();
     } else {
@@ -161,16 +199,13 @@ describe(`SegmentedControl (${Platform.OS})`, () => {
     const onValueChange = vi.fn();
     await render(
       <SegmentedControl selectedValue="day" onValueChange={onValueChange} testID="sg">{items}</SegmentedControl>,
-      options,
     );
     if (isIOS) {
       await fireEvent(screen.getByTestId('sg'), 'selectionChange', {nativeEvent: {selection: 'month'}});
       expect(screen.getByTestId('sg').props.selection).toBe('day');
     } else {
-      await act(async () => {
-        segment('Month').props.onButtonPressed();
-      });
-      expect(segment('Day').props.selected).toBe(true);
+      await press('Month');
+      expect(state('Day').selected).toBe(true);
     }
     expect(onValueChange).toHaveBeenCalledTimes(1);
     expect(onValueChange).toHaveBeenCalledWith('month');
@@ -178,22 +213,20 @@ describe(`SegmentedControl (${Platform.OS})`, () => {
 
   it('updates its own selection when uncontrolled', async () => {
     const onValueChange = vi.fn();
-    await render(<SegmentedControl onValueChange={onValueChange} testID="sg">{items}</SegmentedControl>, options);
+    await render(<SegmentedControl onValueChange={onValueChange} testID="sg">{items}</SegmentedControl>);
     if (isIOS) {
       await fireEvent(screen.getByTestId('sg'), 'selectionChange', {nativeEvent: {selection: 'week'}});
       expect(screen.getByTestId('sg').props.selection).toBe('week');
     } else {
-      await act(async () => {
-        segment('Week').props.onButtonPressed();
-      });
-      expect(segment('Week').props.selected).toBe(true);
-      expect(segment('Day').props.selected).toBe(false);
+      await press('Week');
+      expect(state('Week').selected).toBe(true);
+      expect(state('Day').selected).toBe(false);
     }
     expect(onValueChange).toHaveBeenCalledWith('week');
   });
 
   (isIOS ? it.skip : it)('carries no testID modifier without a testID', async () => {
-    await render(<SegmentedControl selectedValue="day">{items}</SegmentedControl>, options);
+    await render(<SegmentedControl selectedValue="day">{items}</SegmentedControl>);
     expect(modifier(nodes()[0].props, 'testID')).toBeUndefined();
     expect(modifier(nodes()[0].props, 'fillMaxWidth')).toBeDefined();
   });

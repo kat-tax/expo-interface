@@ -80,7 +80,7 @@ export type {PopupMenuProps} from './popup-menu/types';
 export {Progress} from './progress';
 export type {ProgressProps, ProgressVariant} from './progress/types';
 export {SegmentedControl} from './segmented';
-export type {SegmentedControlProps} from './segmented/types';
+export type {SegmentedControlProps, SegmentedControlShape, SegmentedControlSize} from './segmented/types';
 export {Slider} from './slider';
 export type {SliderProps} from './slider/types';
 export {Spinner} from './spinner';

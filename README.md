@@ -125,7 +125,7 @@ positioning and `<dialog>`.
 | [Slider](src/slider/types.ts) | Thumb dragged along a continuous or stepped range | ✓ | ✓ | ✓ |
 | [Stepper](src/stepper/types.ts) | Number adjusted with increment and decrement buttons | ✓ | ✓ | ✓ |
 | [Picker](src/picker/types.ts) | Dropdown that selects one option from a list | ✓ | ✓ | ✓ |
-| [SegmentedControl](src/segmented/types.ts) | Row of segments that selects one option | ✓ | ✓ | ✓ |
+| [SegmentedControl](src/segmented/types.ts) | Row of segments that selects one option, in three sizes and two shapes | ✓ | ✓ | ✓ |
 | [DateTimePicker](src/date-time/types.ts) | Picks a date, a time or both, with optional bounds | ✓ | ✓ | ✓ |
 | [Progress](src/progress/types.ts) | Linear bar or circular ring, determinate or indeterminate | ✓ | ✓ | ✓ |
 | [Spinner](src/spinner/index.tsx) | The platform's activity indicator, in a host of its own when it sits in a React Native layout | ✓ | ✓ | ✓ |
@@ -286,6 +286,7 @@ import {theme} from 'expo-interface';
 | `backgroundSelected` | Background of a selected or pressed element |
 | `separator` | Hairline separators between rows and borders around controls |
 | `pillBackground` | Track behind pill-shaped controls: pickers, segments, steppers |
+| `segmentSelected` | Raised segment of a segmented control, sitting on that track |
 | `tint` | Interactive elements such as buttons, switches and links; the accent seed |
 | `onTint` | Text and icons drawn on top of `tint`, for example a filled button label |
 | `switchTrack` | Track of a switch in the off position |
