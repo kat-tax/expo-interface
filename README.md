@@ -110,7 +110,7 @@ positioning and `<dialog>`.
 | [ConstrainedStackHeader](src/stack-header/index.tsx) | Stack header that matches the content max-width on web; `TabStack` uses it there so a screen has a header on every platform, and it folds into the tab bar where there is one | | | ✓ |
 | [Sheet](src/sheet/index.tsx) | Bottom sheet that inherits the accent color | ✓ | ✓ | ✓ |
 | [FieldGroup](src/field-group/types.ts) | Scrollable settings form made of titled sections of rows, each with an optional footer note | ✓ | ✓ | ✓ |
-| [ListItem](src/list-item/types.ts) | Tappable row with leading, trailing and supporting text slots and an optional trailing text action | ✓ | ✓ | ✓ |
+| [ListItem](src/list-item/types.ts) | Tappable row with leading, trailing and supporting text slots and an optional trailing action, as text or a filled control | ✓ | ✓ | ✓ |
 | [Card](src/card/types.ts) | Pressable surface with header, body, footer, and floating badge and overlay slots outside its press target | ✓ | ✓ | ✓ |
 | [Fab](src/fab/types.ts) | Floating action button: Material 3 on Android, drawn in SwiftUI on iOS, a DOM button on web; can open a menu | ✓ | ✓ | ✓ |
 | [Collapsible](src/collapsible/types.ts) | Row that expands and collapses its content | ✓ | ✓ | ✓ |

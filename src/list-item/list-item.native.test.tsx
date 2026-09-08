@@ -111,6 +111,20 @@ describe(`ListItem (${Platform.OS})`, () => {
     }
   });
 
+  it('draws a filled action as a rounded control in the accent', async () => {
+    await render(<ListItem action={{label: 'Sign in', variant: 'filled', onPress: vi.fn()}} testID="row">Account</ListItem>);
+    if (isIOS) {
+      const button = host(p => p.label === 'Sign in');
+      expect(modifier(button.props, 'buttonStyle')).toEqual({$type: 'buttonStyle', style: 'borderedProminent'});
+      expect(modifier(button.props, 'buttonBorderShape')).toMatchObject({shape: 'roundedRectangle'});
+    } else {
+      const button = host(p => typeof p.onButtonPressed === 'function');
+      expect(button.props.colors).toEqual({containerColor: colors.light.tint, contentColor: colors.light.onTint});
+      expect(button.props.contentPadding).toEqual({start: 16, top: 6, end: 16, bottom: 6});
+      expect(host(p => p.text === 'Sign in', button).props.color).toBe(colors.light.onTint);
+    }
+  });
+
   it('greys out a disabled action and colors a destructive one', async () => {
     const onPress = vi.fn();
     await render(
@@ -130,6 +144,21 @@ describe(`ListItem (${Platform.OS})`, () => {
       expect(out.props.colors).toEqual({contentColor: colors.light.destructive});
       expect(host(p => p.text === 'Sign out').props.color).toBe(colors.light.destructive);
     }
+  });
+
+  (isIOS ? it.skip : it)('lays a row without its own inset out as a plain Row', async () => {
+    await render(
+      <ListItem inset={false} leading={<Text>L</Text>} supporting="Signed out" testID="row">
+        Account
+      </ListItem>,
+    );
+    // No Compose ListItem: its 16dp inset is baked in and would double the container's.
+    expect(slot('headlineContent')).toHaveLength(0);
+    const text = host(p => p.text === 'Account');
+    expect(text.props.color).toBe(colors.light.label);
+    expect(host(p => p.text === 'Signed out').props.color).toBe(colors.light.secondaryLabel);
+    expect(JSON.stringify(nodes()[0])).toContain('"L"');
+    expect(modifier(byComposeTestID('row').props, 'testID')).toBeTruthy();
   });
 
   (isIOS ? it.skip : it)('passes numeric and element headlines through without a testID', async () => {

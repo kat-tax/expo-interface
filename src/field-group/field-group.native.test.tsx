@@ -3,6 +3,7 @@ import {render, screen} from '@testing-library/react-native';
 import {colors} from '../theme';
 import {Typography} from '../typography';
 import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
+import {ListItem} from '../list-item';
 import {FieldGroup} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -238,6 +239,20 @@ describe(`FieldGroup (${Platform.OS})`, () => {
       expect(radii(boxes[1].props)).toMatchObject({topStart: 4, bottomStart: 20});
       expect(radii(boxes[2].props)).toMatchObject({topStart: 20, bottomStart: 20});
     }
+  });
+
+  (isIOS ? it.skip : it)('takes the inset off the ListItem rows it is given, unless one asks for it', async () => {
+    await render(
+      <FieldGroup>
+        <FieldGroup.Section title="Connection">
+          <ListItem testID="flushed">Account</ListItem>
+          <ListItem inset testID="kept">Backup</ListItem>
+        </FieldGroup.Section>
+      </FieldGroup>,
+    );
+    // The flushed row is a plain Row; the one that asked keeps its Compose ListItem.
+    expect(byComposeTestID('flushed').type).toBe('ViewManagerAdapter_ExpoUI_RowView');
+    expect(byComposeTestID('kept').type).toBe('ViewManagerAdapter_ExpoUI_ListItemView');
   });
 
   it('hides the group and sections', async () => {

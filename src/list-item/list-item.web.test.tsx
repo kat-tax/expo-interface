@@ -2,11 +2,13 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import {ListItem} from '.';
 
 describe('ListItem (web)', () => {
-  it('renders the headline in a row', () => {
+  it('renders the headline in an inert row', () => {
     render(<ListItem testID="row">Wi-Fi</ListItem>);
     const row = screen.getByTestId('row');
-    expect(row).toHaveTextContent('Wi-Fi');
-    expect(row.querySelectorAll(':scope > div')).toHaveLength(1);
+    expect(row.tagName).toBe('DIV');
+    expect(row).toHaveClass('ui-list-item');
+    expect(row.querySelector('.ui-list-item__headline')).toHaveTextContent('Wi-Fi');
+    expect(row.querySelector('.ui-list-item__slot')).toBeNull();
   });
 
   it('renders leading and trailing slots around the headline', () => {
@@ -16,16 +18,15 @@ describe('ListItem (web)', () => {
       </ListItem>,
     );
     const row = screen.getByTestId('row');
-    const [leading, main, trailing] = Array.from(row.querySelectorAll(':scope > div'));
+    const [leading, trailing] = row.querySelectorAll('.ui-list-item__slot');
     expect(leading).toHaveTextContent('L');
-    expect(main).toHaveTextContent('Head');
+    expect(row.querySelector('.ui-list-item__main')).toHaveTextContent('Head');
     expect(trailing).toHaveTextContent('T');
   });
 
   it('renders supporting text below the headline', () => {
     render(<ListItem supporting="Connected" testID="row">Wi-Fi</ListItem>);
-    const row = screen.getByTestId('row');
-    const main = row.querySelector(':scope > div')!;
+    const main = screen.getByTestId('row').querySelector('.ui-list-item__main')!;
     expect(main.children).toHaveLength(2);
     expect(main.children[0]).toHaveTextContent('Wi-Fi');
     expect(main.children[1]).toHaveTextContent('Connected');
@@ -36,10 +37,12 @@ describe('ListItem (web)', () => {
     expect(screen.getByTestId('rich')).toHaveTextContent('Rich');
   });
 
-  it('calls onPress over the whole row', () => {
+  it('calls onPress over the whole row, which is the button itself', () => {
     const onPress = vi.fn();
     render(<ListItem onPress={onPress} testID="row">Tap</ListItem>);
-    fireEvent.click(screen.getByTestId('row'));
+    const row = screen.getByTestId('row');
+    expect(row.tagName).toBe('BUTTON');
+    fireEvent.click(row);
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
@@ -90,6 +93,24 @@ describe('ListItem (web)', () => {
     expect(onSignOut).not.toHaveBeenCalled();
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('row').querySelector('.ui-list-item__slot')).toBeNull();
+  });
+
+  it('draws a filled action as a rounded control', () => {
+    render(<ListItem action={{label: 'Sign in', variant: 'filled', onPress: vi.fn()}} testID="row">Account</ListItem>);
+    const action = screen.getByRole('button', {name: 'Sign in'});
+    expect(action).toHaveClass('ui-button--filled', 'ui-button--rounded', 'ui-button--small');
+    expect(action).not.toHaveClass('ui-button--text');
+  });
+
+  it('drops its own padding when the container draws the inset', () => {
+    const {rerender} = render(<ListItem inset={false} testID="row">Account</ListItem>);
+    expect(screen.getByTestId('row')).toHaveClass('ui-list-item', 'ui-list-item--flush');
+    rerender(<ListItem inset={false} onPress={vi.fn()} testID="row">Account</ListItem>);
+    expect(screen.getByTestId('row')).toHaveClass('ui-list-item--flush');
+    rerender(<ListItem inset={false} action={{label: 'Sign in', onPress: vi.fn()}} testID="row">Account</ListItem>);
+    expect(screen.getByTestId('row')).toHaveClass('ui-list-item--flush');
+    rerender(<ListItem testID="row">Account</ListItem>);
+    expect(screen.getByTestId('row')).not.toHaveClass('ui-list-item--flush');
   });
 
   it('renders an action row without supporting text, or with a number', () => {

@@ -17,6 +17,14 @@ export interface ListItemAction {
    * @default 'default'
    */
   role?: 'default' | 'destructive';
+  /**
+   * How much chrome the action carries: `text` is the label on its own (a
+   * link at the row's edge, the platform default for a settings row);
+   * `filled` is a small rounded control in the accent color, for a call to
+   * action that should read as a button beside the row's other controls.
+   * @default 'text'
+   */
+  variant?: 'text' | 'filled';
 }
 
 /**
@@ -35,6 +43,13 @@ export interface ListItemProps {
   action?: ListItemAction;
   /** Secondary content below the headline; strings get subtle styling. */
   supporting?: string | ReactNode;
+  /**
+   * Whether the row draws its own padding. A `FieldGroup.Section` insets and
+   * sizes every row it holds, and turns this off for the rows it is given —
+   * a row that padded itself again would sit further in than its siblings.
+   * @default true
+   */
+  inset?: boolean;
   /** Tap handler, active over the entire row. */
   onPress?: () => void;
   /** Identifier used to locate the row in end-to-end tests. */

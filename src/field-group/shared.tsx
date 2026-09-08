@@ -2,6 +2,7 @@ import type {ComponentType, ReactElement, ReactNode} from 'react';
 import type {FieldGroupSectionProps, FieldSectionFooterColor} from './types';
 import {Children, Fragment, isValidElement} from 'react';
 import {FieldGroup as Base} from '@expo/ui';
+import {flushRows} from './rows';
 
 /** Renders the `footer` prop's text in the platform's own text control. */
 export type FooterRenderer = (footer: string, color: FieldSectionFooterColor) => ReactNode;
@@ -24,7 +25,7 @@ export function baseSection(
   ) : null;
   return (
     <Base.Section {...props}>
-      {children}
+      {flushRows(children)}
       {note}
     </Base.Section>
   );

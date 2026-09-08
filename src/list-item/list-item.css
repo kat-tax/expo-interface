@@ -1,29 +1,45 @@
 /*
- * The web row with a trailing action: the universal row's geometry (12px by
- * 16px padding, a 12px gap between the slots), the row's own control beside
- * the action's `<button>` rather than around it.
+ * The web row: 12px by 16px padding, a 12px gap between the slots. With a
+ * trailing action the row's own control (a `<button>` when it presses, a
+ * `<div>` otherwise) sits beside the action's `<button>` rather than around
+ * it, and takes the same geometry minus the padding the outer row already
+ * carries.
  */
-.ui-list-item {
+.ui-list-item,
+.ui-list-item__row {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 12px;
   box-sizing: border-box;
+  min-width: 0;
+}
+
+.ui-list-item {
   width: 100%;
   padding: 12px 16px;
 }
 
 .ui-list-item__row {
+  flex: 1;
+  padding: 0;
+}
+
+/*
+ * A row whose container draws the inset itself (a `FieldGroup.Section`):
+ * only enough padding for a two-line row to breathe, since the container
+ * centers a shorter row in its own minimum height.
+ */
+.ui-list-item--flush {
+  padding: 6px 0;
+}
+
+/* A pressable row is a `<button>`: strip the control's own chrome. */
+button.ui-list-item,
+.ui-list-item__row {
   -webkit-appearance: none;
   appearance: none;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-  min-width: 0;
   margin: 0;
-  padding: 0;
   border: none;
   background: transparent;
   color: var(--color-label);
@@ -31,6 +47,7 @@
   text-align: start;
 }
 
+button.ui-list-item,
 .ui-list-item__row--pressable {
   cursor: pointer;
 }

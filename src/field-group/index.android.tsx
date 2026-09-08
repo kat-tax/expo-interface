@@ -15,6 +15,7 @@ import {
   type ModifierConfig,
 } from '@expo/ui/jetpack-compose/modifiers';
 import {useColor} from '../theme';
+import {flushRow} from './rows';
 
 /**
  * Android `FieldGroup`. Mirrors `@expo/ui`'s Material 3 connected-list
@@ -149,7 +150,7 @@ function extractSlots(children: ReactNode, textColor: string) {
       } else if (child.type === Fragment) {
         walk(props.children);
       } else {
-        rows.push(child);
+        rows.push(flushRow(child));
       }
     }
   };

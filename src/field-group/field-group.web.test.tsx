@@ -1,4 +1,5 @@
 import {render, screen} from '@testing-library/react';
+import {ListItem} from '../list-item';
 import {FieldGroup} from '.';
 
 describe('FieldGroup (web)', () => {
@@ -145,6 +146,21 @@ describe('FieldGroup (web)', () => {
       </FieldGroup.Section>,
     );
     expect(screen.getByTestId('section')).toHaveTextContent('Note');
+  });
+
+  it('takes the inset off the ListItem rows it is given, unless one asks for it', () => {
+    render(
+      <FieldGroup>
+        <FieldGroup.Section title="Connection">
+          <ListItem testID="flushed">Account</ListItem>
+          <ListItem inset testID="kept">Account</ListItem>
+          <span data-testid="other">Row</span>
+        </FieldGroup.Section>
+      </FieldGroup>,
+    );
+    expect(screen.getByTestId('flushed')).toHaveClass('ui-list-item--flush');
+    expect(screen.getByTestId('kept')).not.toHaveClass('ui-list-item--flush');
+    expect(screen.getByTestId('other')).toHaveTextContent('Row');
   });
 
   it('exposes the compound section components', () => {

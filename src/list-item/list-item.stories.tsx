@@ -79,6 +79,14 @@ export const WithAction: Story = {
   },
 };
 
+export const FilledAction: Story = {
+  args: {
+    children: 'Account',
+    action: {label: 'Sign in', variant: 'filled', onPress: fn()},
+    onPress: undefined,
+  },
+};
+
 export const DestructiveAction: Story = {
   args: {
     children: 'ada@example.com',
