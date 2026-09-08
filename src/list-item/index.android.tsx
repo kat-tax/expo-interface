@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react';
 import type {ListItemProps} from './types';
 import {Button, Column, ListItem as ComposeListItem, Row, Shape, Text, TextButton} from '@expo/ui/jetpack-compose';
-import {clickable, fillMaxWidth, padding, testID as testIDModifier, weight, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
+import {clickable, fillMaxWidth, testID as testIDModifier, weight, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
 import {androidContentPadding} from '../button/shared';
 import {useColor} from '../theme';
 
@@ -16,7 +16,10 @@ const ROUNDED = Shape.RoundedCorner({cornerRadii: {topStart: 12, topEnd: 12, bot
  * `Button` for the `filled` variant) in the trailing slot, after any
  * `trailing` content. Without its own inset the row is a plain `Row`
  * instead: the M3 `ListItem`'s 16dp is baked in and no modifier can take it
- * back off, so it would double the inset its container already drew.
+ * back off, so it would double the inset its container already drew. The
+ * `Row` carries no padding of its own either — its container hands down a
+ * minimum height and centers the row within it, so padding would not fill
+ * that height but add to it, standing the row taller than its siblings.
  */
 export function ListItem({children, leading, trailing, action, supporting, inset = true, onPress, testID}: ListItemProps) {
   const label = useColor('label');
@@ -62,7 +65,7 @@ export function ListItem({children, leading, trailing, action, supporting, inset
       <Row
         verticalAlignment="center"
         horizontalArrangement={{spacedBy: 12}}
-        modifiers={[fillMaxWidth(), padding(0, 8, 0, 8), ...modifiers]}>
+        modifiers={[fillMaxWidth(), ...modifiers]}>
         {leading}
         <Column verticalArrangement={{spacedBy: 2}} modifiers={[weight(1)]}>
           {headline}

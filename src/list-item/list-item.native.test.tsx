@@ -159,6 +159,9 @@ describe(`ListItem (${Platform.OS})`, () => {
     expect(host(p => p.text === 'Signed out').props.color).toBe(colors.light.secondaryLabel);
     expect(JSON.stringify(nodes()[0])).toContain('"L"');
     expect(modifier(byComposeTestID('row').props, 'testID')).toBeTruthy();
+    // No padding: the container hands down a minimum height and centers the
+    // row in it, so padding here would stand the row taller than its siblings.
+    expect(modifier(byComposeTestID('row').props, 'padding')).toBeUndefined();
   });
 
   (isIOS ? it.skip : it)('passes numeric and element headlines through without a testID', async () => {
