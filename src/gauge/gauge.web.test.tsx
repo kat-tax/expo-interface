@@ -1,5 +1,5 @@
 import {render, screen} from '@testing-library/react';
-import {gauge} from './shared';
+import {gauge, track} from './shared';
 import {Gauge} from '.';
 
 const labels = {
@@ -148,6 +148,15 @@ describe('Gauge (web)', () => {
   it('omits the fill of an empty capacity ring so the round cap does not show', () => {
     render(<Gauge value={0} variant="circularCapacity" testID="g"/>);
     expect(screen.getByTestId('g').querySelector('.ui-gauge-ring__fill')).toBeNull();
+  });
+
+  it('sets both unfilled tracks from the scheme table', () => {
+    render(<Gauge value={0.5} testID="g"/>);
+    const {style} = screen.getByTestId('g');
+    // Not `light-dark()`: Lightning CSS lowers it to a pair it never defines,
+    // and the whole declaration is dropped in a production build.
+    expect(style.getPropertyValue('--ui-gauge-track')).toBe(track.automatic.light);
+    expect(style.getPropertyValue('--ui-gauge-fill-track')).toBe(track.linearCapacity.light);
   });
 
   it('exposes a custom accent through a CSS custom property', () => {

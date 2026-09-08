@@ -3,7 +3,8 @@ import type {CSSProperties} from 'react';
 import type {GaugeProps} from './types';
 import {StyleSheet, type TextStyle} from 'react-native';
 import {flatten} from '../theme';
-import {fraction, gauge, markerOffset} from './shared';
+import {useColorScheme} from '../scheme';
+import {fraction, gauge, markerOffset, track} from './shared';
 
 const polar = (angle: number, radius: number, center: number) => ({
   x: center + radius * Math.cos((angle * Math.PI) / 180),
@@ -15,7 +16,8 @@ const polar = (angle: number, radius: number, center: number) => ({
  * and inline SVG (the rings), sized in CSS pixels to the geometry measured
  * from iOS. Colors flow through custom properties: the accent tints the
  * indicator and the value labels, the descriptive label keeps the label
- * color, and the marker knockout paints the scheme background.
+ * color, the marker knockout paints the scheme background, and the unfilled
+ * tracks come from the same per-scheme table Android draws them from.
  */
 export function Gauge({
   value,
@@ -31,7 +33,10 @@ export function Gauge({
   style,
 }: GaugeProps) {
   const f = fraction(value, min, max);
+  const scheme = useColorScheme();
   const vars = {
+    '--ui-gauge-track': track.automatic[scheme],
+    '--ui-gauge-fill-track': track.linearCapacity[scheme],
     ...(accentColor ? {'--ui-gauge-accent': accentColor} : null),
     ...flatten(StyleSheet.flatten(style) as TextStyle),
   } as CSSProperties;

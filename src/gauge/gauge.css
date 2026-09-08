@@ -1,15 +1,17 @@
 /*
  * SwiftUI gauge styles redrawn on web. Sizes are the points measured from
- * iOS (see shared.ts); the unfilled tracks are iOS `tertiarySystemFill`
- * (automatic) and `systemFill` (linearCapacity), which `light-dark()`
- * resolves per scheme.
+ * iOS (see shared.ts). The unfilled tracks are iOS `tertiarySystemFill`
+ * (automatic) and `systemFill` (linearCapacity): the component sets
+ * `--ui-gauge-track` and `--ui-gauge-fill-track` from `shared.ts`'s per-scheme
+ * table, the one Android draws them from too. They were `light-dark()` calls
+ * here, which Lightning CSS — Metro's CSS pipeline and Storybook's production
+ * build both — lowers to a custom-property pair it never defines, leaving an
+ * invalid value that drops the declaration.
  */
 .ui-gauge,
 .ui-gauge-ring {
   --ui-gauge-accent: var(--color-tint);
   --ui-gauge-knockout: var(--color-background);
-  --ui-gauge-track: light-dark(rgba(118, 118, 128, 0.12), rgba(118, 118, 128, 0.24));
-  --ui-gauge-fill-track: light-dark(rgba(120, 120, 128, 0.2), rgba(120, 120, 128, 0.36));
   box-sizing: border-box;
   font-family: var(--font-display);
   font-size: 17px;
