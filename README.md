@@ -416,7 +416,7 @@ dependencies.
 Most Expo Router apps already have these dependencies, but incase any are missing:
 
 ```sh
-npx expo install expo-router expo-symbols expo-font expo-image expo-constants expo-status-bar expo-system-ui expo-web-browser react-native-safe-area-context
+npx expo install expo-router expo-symbols expo-asset expo-image expo-constants expo-status-bar expo-system-ui expo-web-browser react-native-safe-area-context
 ```
 
 Jetpack Compose draws icons from XML vector drawables, which

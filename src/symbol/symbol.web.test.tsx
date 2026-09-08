@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
-import {Symbol} from '.';
+import {Symbol, registerSymbolFont} from '.';
 
 /** The glyph the kit drew, or `null` when it drew nothing. */
 function glyph(container: HTMLElement) {
@@ -54,8 +54,17 @@ describe('Symbol (web)', () => {
     expect(screen.getByRole('button', {name: 'Favourite'})).toBeInTheDocument();
   });
 
-  it('registers the Material Symbols family it draws with', () => {
-    expect(document.getElementById('expo-generated-fonts')?.textContent)
-      .toContain('font-family:"MaterialSymbols_400Regular"');
+  it('registers the Material Symbols family it draws with, once', () => {
+    // Written on import, before anything is painted.
+    const rule = document.getElementById('expo-interface-symbol-font')?.textContent;
+    expect(rule).toContain('font-family:"MaterialSymbols_400Regular"');
+    // Blocked rather than swapped: the ligature is the icon's name in text.
+    expect(rule).toContain('font-display:block');
+    expect(registerSymbolFont()).toBe(false);
+    expect(document.querySelectorAll('#expo-interface-symbol-font')).toHaveLength(1);
+  });
+
+  it('writes no rule where there is no document, as on a static render', () => {
+    expect(registerSymbolFont(undefined)).toBe(false);
   });
 });

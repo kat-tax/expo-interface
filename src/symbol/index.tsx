@@ -1,7 +1,7 @@
 import './symbol.css';
 import type {CSSProperties} from 'react';
 import type {IconToken} from '../icons';
-import {FontDisplay, loadAsync} from 'expo-font';
+import {Asset} from 'expo-asset';
 import regular from 'expo-symbols/androidWeights/regular';
 
 export interface SymbolProps {
@@ -16,20 +16,42 @@ export interface SymbolProps {
   tintColor?: string;
 }
 
+/** The element the `@font-face` lives in, and the guard against a second one. */
+const FONT_STYLE_ID = 'expo-interface-symbol-font';
+
 /**
- * The static Material Symbols instance `expo-symbols` ships, registered here
- * because the kit draws the glyph itself rather than through `SymbolView`.
- * `block` rather than the default `auto`, so the ligature — the icon's name —
- * is never painted as words while the font loads.
+ * Registers the static Material Symbols instance `expo-symbols` ships: the
+ * family `symbol.css` draws with, since the kit writes the glyph itself rather
+ * than letting `SymbolView` load it.
  *
- * `loadAsync` writes the `@font-face` synchronously and returns the browser's
- * *verification* of the family, which nothing here waits on; `allSettled`
- * keeps a check that fails (or never answers) from surfacing as an unhandled
- * rejection, leaving the icon unpainted exactly as `SymbolView` would.
+ * The rule is written by hand rather than through `expo-font`'s `loadAsync`,
+ * which writes the same one and then starts a `fontfaceobserver` poll to
+ * *verify* the family. Nothing here waits on that: it outlives a jsdom test
+ * environment (an uncaught `TypeError` in a timer, long after the test that
+ * started it), and on a static render `loadAsync` throws outright — "expo-font
+ * server context accessed outside of withServerContext()" — because a page's
+ * fonts are collected while its route renders, not when a module is imported.
+ * All the kit wants is the rule.
+ *
+ * `font-display: block` rather than the default `auto`, so the ligature — the
+ * icon's name — is never painted as words while the font loads.
+ *
+ * @returns whether the rule was written. `false` where it is already there, or
+ * where there is no document to write it to: a static render, which paints
+ * nothing and hands the page to a browser that runs this on import.
  */
-void Promise.allSettled([
-  loadAsync({[regular.name]: {uri: regular.font, display: FontDisplay.BLOCK}}),
-]);
+export function registerSymbolFont(doc: Document | undefined = globalThis.document): boolean {
+  if (!doc || doc.getElementById(FONT_STYLE_ID)) return false;
+  const style = doc.createElement('style');
+  style.id = FONT_STYLE_ID;
+  const {uri} = Asset.fromModule(regular.font);
+  style.textContent = `@font-face{font-family:${JSON.stringify(regular.name)};src:url(${JSON.stringify(uri)});font-display:block}`;
+  doc.head.append(style);
+  return true;
+}
+
+// On import, so the family is in place before the first paint.
+registerSymbolFont();
 
 /**
  * Draws an `IconToken` on web as a Material Symbols ligature in a `<span>`,
