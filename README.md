@@ -99,6 +99,8 @@ positioning and `<dialog>`.
 | [Screen](src/screen/index.tsx) | Screen container that handles safe areas, status bar, background and content width, optionally hosting native content and placing a floating action button | ✓ | ✓ | ✓ |
 | [ScreenHeader](src/screen/header.tsx) | Simple header bar with an optional back button and a trailing slot | ✓ | ✓ | ✓ |
 | [HeaderMenu](src/header-menu/index.tsx) | Menu for a stack header's trailing slot; survives Android's header re-parenting on a tab switch | ✓ | ✓ | ✓ |
+| [HeaderAction](src/header-action/index.tsx) | The same trigger with a press instead of a menu: a plain action at the platform's header size | ✓ | ✓ | ✓ |
+| [HeaderActions](src/header-actions/index.tsx) | Row of header controls for a slot that takes one node, spaced the way each platform spaces its own — and one host for all of them | ✓ | ✓ | ✓ |
 | [NativeHost](src/host/index.tsx) | Accent-seeded `@expo/ui` host for controls that sit inside a React Native layout | ✓ | ✓ | ✓ |
 | [Surface](src/surface/types.ts) | A box in the theme's colors — a bar, a floating strip, a card, a drop target — drawn in React Native so it can hold what is not native | ✓ | ✓ | ✓ |
 | [Toolbar](src/toolbar/types.ts) | Bar of tools along a canvas: the controls are one native view, with an optional React Native field between the groups and a compact density for many tools | ✓ | ✓ | ✓ |
@@ -371,6 +373,26 @@ a Compose view refuses, so its host is rebuilt on every focus change.
 <TabStack title="Documents" headerRight={() => <HeaderMenu label="New…" icon={icon.add} items={items}/>}/>
 ```
 
+`HeaderAction` is the same trigger with a press instead of a menu, and
+`HeaderActions` is the row for a slot that takes one node:
+
+```tsx
+headerRight={() => (
+  <HeaderActions>
+    <HeaderAction label="Share" icon={icon.share} hideLabel tone="label" onPress={share}/>
+    <HeaderMenu label="Export" icon={icon.export} hideLabel tone="label" items={exports}/>
+  </HeaderActions>
+)}
+```
+
+A plain `Button` is the wrong thing in a header: the app would have to size it
+itself, it would not shrink when the web tab bar carries the header, and
+natively it is a SwiftUI or Compose view, which a React Native header cannot
+hold without a host. The row spaces its children the way each platform spaces
+its own header actions — none on Android, where Material's icon buttons carry
+their own 48dp container, which is the app bar's action pitch — and is the one
+host for all of them, rather than one host per control.
+
 On web a screen under `Tabs` has one bar over it, not two: `ConstrainedStackHeader`
 hands its header to the floating tab bar and draws nothing itself, so the bar
 is the screen's header. A pushed screen hands over all of it — the back button
@@ -380,10 +402,11 @@ its title, since the tab beside it in the bar is already saying it. Only the
 focused screen's header is in the bar, so returning to a tab does not find the
 one you left there.
 
-The bar keeps the height of its tabs, and a `HeaderMenu` folded into it drops
-to their size. `Tabs hidden` hides the tabs rather than the bar while a pushed
-screen's header is folded in, leaving a screen that takes the whole display
-with its title and the way back; `webFoldHeader={false}` keeps the two rows.
+The bar keeps the height of its tabs, and a header control folded into it
+drops to their size. `Tabs hidden` hides the tabs rather than the bar while a
+pushed screen's header is folded in, leaving a screen that takes the whole
+display with its title and the way back; `webFoldHeader={false}` keeps the two
+rows.
 
 ## Install details
 

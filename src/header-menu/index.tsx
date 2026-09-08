@@ -1,24 +1,8 @@
-import type {ButtonSize, ButtonTone} from '../button/types';
+import type {ButtonTone} from '../button/types';
 import type {IconToken} from '../icons';
 import type {MenuItem} from '../menu/types';
-import {useState} from 'react';
-import {Platform} from 'react-native';
-import {useIsFocused} from 'expo-router';
-import {NativeHost} from '../host';
+import {HeaderHost, useHeaderTrigger} from '../header/shared';
 import {Menu} from '../menu';
-import {useInBar} from '../tabs/context';
-
-/**
- * A header action is the platform's, not the kit's smallest button: on iOS
- * 17pt text or a 22pt symbol, on Android a Material text button beside a
- * 24dp icon.
- */
-const TRIGGER_SIZE = Platform.select<ButtonSize>({ios: 'large', default: 'medium'});
-const TRIGGER_ICON = Platform.select({ios: 22, default: 24});
-
-/** Folded into the web tab bar, the trigger is the bar's size, not a header's. */
-const BAR_SIZE: ButtonSize = 'small';
-const BAR_ICON = 18;
 
 export interface HeaderMenuProps {
   /** Trigger text (kept for accessibility when `hideLabel` is set). */
@@ -44,32 +28,24 @@ export interface HeaderMenuProps {
 }
 
 /**
- * A `Menu` for a stack header's trailing slot (`TabStack`'s `headerRight`,
- * a `Stack.Screen`'s `headerRight` option): the trigger at the platform's
- * header size, in its own accent-seeded host so it can live in the React
- * Native header.
- *
- * On Android the native stack re-parents the header's views on a tab switch,
- * and a Compose view refuses a second parent ("The specified child already
- * has a parent"). The host is therefore keyed on the screen's focus, so the
- * Compose view is created afresh each time the header is rebuilt rather
- * than re-added. Needs a navigator above it on Android (it reads the
- * screen's focus); on web it is the plain `Menu` trigger, for a custom
- * header such as `ConstrainedStackHeader`.
+ * A `Menu` for a stack header's trailing slot (`TabStack`'s `headerRight`, a
+ * `Stack.Screen`'s `headerRight` option): the trigger at the platform's header
+ * size, in its own accent-seeded host so it can live in the React Native
+ * header — or in the one a `HeaderActions` around it already mounted. Needs a
+ * navigator above it on Android (it reads the screen's focus); on web it is
+ * the plain `Menu` trigger, for a custom header such as
+ * `ConstrainedStackHeader`. See `HeaderAction` for one that presses.
  */
 export function HeaderMenu(props: HeaderMenuProps) {
-  if (Platform.OS === 'web') return <HeaderMenuTrigger {...props}/>;
-  if (Platform.OS === 'android') return <AndroidHeaderMenu {...props}/>;
   return (
-    <NativeHost fit>
+    <HeaderHost>
       <HeaderMenuTrigger {...props}/>
-    </NativeHost>
+    </HeaderHost>
   );
 }
 
 function HeaderMenuTrigger({label, icon, items, hideLabel, tone = 'accent', disabled, onOpenChange, testID}: HeaderMenuProps) {
-  // In the bar the menu sits beside the tabs, which are smaller than a header.
-  const inBar = useInBar();
+  const {size, iconSize} = useHeaderTrigger();
   return (
     <Menu
       label={label}
@@ -80,34 +56,9 @@ function HeaderMenuTrigger({label, icon, items, hideLabel, tone = 'accent', disa
       disabled={disabled}
       onOpenChange={onOpenChange}
       variant="text"
-      size={inBar ? BAR_SIZE : TRIGGER_SIZE}
-      iconSize={inBar ? BAR_ICON : TRIGGER_ICON}
+      size={size}
+      iconSize={iconSize}
       testID={testID}
     />
-  );
-}
-
-function AndroidHeaderMenu(props: HeaderMenuProps) {
-  // Keyed on the screen's focus: a fresh host, and Compose view, per rebuild.
-  return <AndroidHeaderTrigger key={useIsFocused() ? 'focused' : 'blurred'} {...props}/>;
-}
-
-function AndroidHeaderTrigger(props: HeaderMenuProps) {
-  // The toolbar lays its end-gravity subviews out against the header's end
-  // inset once React has given them a size. A host measured by Compose alone
-  // reports none, so one created after the toolbar was laid out overflows
-  // past the inset, flush with the screen's edge. Reporting the measured
-  // size back as the host's own style puts it back where the first mount was.
-  const [size, setSize] = useState<{width: number; height: number} | null>(null);
-  return (
-    <NativeHost
-      fit
-      style={size ?? undefined}
-      onLayoutContent={({nativeEvent}) => {
-        if (nativeEvent.width === size?.width && nativeEvent.height === size?.height) return;
-        setSize({width: nativeEvent.width, height: nativeEvent.height});
-      }}>
-      <HeaderMenuTrigger {...props}/>
-    </NativeHost>
   );
 }

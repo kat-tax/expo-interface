@@ -1,13 +1,12 @@
 import type {Href} from 'expo-router';
-import type {IconToken} from '@/icons';
 import type {FileItemProps} from '@/file/item';
 
 import {SymbolView} from 'expo-symbols';
 import {router, useNavigation} from 'expo-router';
 import {useLayoutEffect, useState} from 'react';
-import {Platform, Pressable, StyleSheet, View, type ViewStyle} from 'react-native';
+import {Platform, type ViewStyle} from 'react-native';
 import {ScrollView, Column, Row, Spacer, Text} from '@expo/ui';
-import {useColor, spacing, fillWidth, Button} from 'expo-interface';
+import {useColor, spacing, fillWidth, Button, HeaderAction, HeaderActions} from 'expo-interface';
 import * as icon from '@/icons';
 
 import {getDrop} from './data';
@@ -145,59 +144,31 @@ function useDropUploadHeader(id: string) {
 
 function DropUploadHeaderActions({id}: {id: string}) {
   return (
-    <View style={headerStyles.actions}>
-      <HeaderActionButton
+    <HeaderActions>
+      <HeaderAction
         icon={icon.share}
         label="Share"
+        hideLabel
+        tone="label"
         onPress={() => router.push(`/${id}/share` as Href)}
       />
-      <HeaderActionButton
+      <HeaderAction
         icon={icon.fileFind}
         label="Files"
+        hideLabel
+        tone="label"
         onPress={() => router.push(`/${id}/files` as Href)}
       />
-      <HeaderActionButton
+      <HeaderAction
         icon={icon.edit}
         label="Edit"
+        hideLabel
+        tone="label"
         onPress={() => router.push(`/${id}/edit` as Href)}
       />
-    </View>
+    </HeaderActions>
   );
 }
-
-function HeaderActionButton({
-  icon: iconToken,
-  label,
-  onPress,
-}: {
-  icon: IconToken;
-  label: string;
-  onPress: () => void;
-}) {
-  const tint = useColor('label');
-
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityLabel={label}
-      accessibilityRole="button"
-      style={headerStyles.action}>
-      <SymbolView name={iconToken.symbol} size={22} tintColor={tint}/>
-    </Pressable>
-  );
-}
-
-const headerStyles = StyleSheet.create({
-  actions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.one,
-    marginRight: spacing.one,
-  },
-  action: {
-    padding: spacing.one,
-  },
-});
 
 function formatExpiry(d: Date): string {
   const date = d.toLocaleDateString('en-US', {
