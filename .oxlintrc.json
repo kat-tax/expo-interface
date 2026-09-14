@@ -154,6 +154,14 @@
       }
     },
     {
+      // React Native's codegen reads an event's payload as a `Readonly<{}>`
+      // literal; an event with nothing to say is an empty one.
+      "files": ["src/windows/specs/*NativeComponent.ts"],
+      "rules": {
+        "typescript/no-empty-object-type": "off"
+      }
+    },
+    {
       "files": [
         "**/*.test.ts",
         "**/*.test.tsx",

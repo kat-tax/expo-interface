@@ -28,6 +28,14 @@ export function AppleIcon(props: IconProps) {
   );
 }
 
+export function WindowsIcon(props: IconProps) {
+  return (
+    <svg {...base} fill="currentColor" {...props}>
+      <path d="M3 5.5l7.5-1v7H3zm8.5-1.2L21 3v8.5h-9.5zM3 12.5h7.5v7L3 18.5zm8.5 0H21V21l-9.5-1.3z"/>
+    </svg>
+  );
+}
+
 export function GlobeIcon(props: IconProps) {
   return (
     <svg {...base} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" {...props}>

@@ -21,7 +21,7 @@ export default defineConfig({
     globals: true,
     clearMocks: true,
     include: ['src/**/*.test.{ts,tsx}'],
-    exclude: [...configDefaults.exclude, '**/*.native.test.*', '**/*.ios.test.*', '**/*.android.test.*'],
+    exclude: [...configDefaults.exclude, '**/*.native.test.*', '**/*.ios.test.*', '**/*.android.test.*', '**/*.windows.test.*'],
     setupFiles: ['./vitest/setup.web.ts'],
     deps: {
       optimizer: {

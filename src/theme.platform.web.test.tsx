@@ -1,12 +1,13 @@
 import type {ColorValue} from 'react-native';
 import {colors, getPlatformToken, theme} from './theme';
 
-// On a platform that is neither iOS, Android nor web, `getPlatformToken`
-// falls through to each token's `default` value. Mocking `Platform.OS` on
-// the web alias is the only way to reach that path in the suite.
+// On a platform that is neither iOS, Android, web nor Windows,
+// `getPlatformToken` falls through to each token's `default` value. Mocking
+// `Platform.OS` on the web alias is the only way to reach that path in the
+// suite (Windows has a project of its own: `theme.windows.test.tsx`).
 vi.mock('react-native', async importOriginal => {
   const rn = await importOriginal<typeof import('react-native')>();
-  return {...rn, Platform: {...rn.Platform, OS: 'windows'}};
+  return {...rn, Platform: {...rn.Platform, OS: 'macos'}};
 });
 
 describe('theme on other platforms', () => {

@@ -52,7 +52,15 @@ function patchAppearance() {
   };
 }
 
-if (Platform.OS === 'web') patchAppearance();
+/**
+ * Windows shares the patch: react-native-windows follows the OS scheme and
+ * its `Appearance.setColorScheme` cannot be relied on to change it, so a
+ * forced scheme is kept here, where `useColorScheme`, `useColor` and every
+ * XAML island (`useXamlProps`) read it.
+ */
+const FORCED_IN_JS = Platform.OS === 'web' || Platform.OS === 'windows';
+
+if (FORCED_IN_JS) patchAppearance();
 
 const subscribe = (onChange: () => void) => {
   const subscription = Appearance.addChangeListener(onChange);
@@ -86,15 +94,22 @@ const toKebab = (token: string) => token.replace(/[A-Z]/g, c => `-${c.toLowerCas
  *   follow, `data-theme` is set for `@expo/ui`'s own styles, the choice is
  *   saved under `storageKey` for `getThemeBootScript`, and the `Appearance`
  *   listeners hear the change.
+ * - Windows: the forced scheme is kept in JavaScript like web's and the
+ *   `Appearance` listeners hear it, so `useColorScheme` and the XAML islands
+ *   (which take the scheme as a prop) follow; `Appearance.setColorScheme` is
+ *   asked as well, for whatever react-native-windows draws itself.
  */
 export function setColorScheme(mode: ColorSchemeMode, storageKey = SCHEME_STORAGE_KEY): void {
-  if (Platform.OS !== 'web') {
+  if (!FORCED_IN_JS) {
     Appearance.setColorScheme(mode === 'system' ? 'unspecified' : mode);
     return;
   }
   patchAppearance();
   forced = mode === 'system' ? null : mode;
-  if (typeof document !== 'undefined') {
+  if (Platform.OS === 'windows') {
+    Appearance.setColorScheme(mode === 'system' ? 'unspecified' : mode);
+  }
+  if (Platform.OS === 'web' && typeof document !== 'undefined') {
     const root = document.documentElement;
     for (const token of Object.keys(colors.light) as (keyof typeof colors.light)[]) {
       if (token === 'tint' || token === 'onTint') continue;
@@ -106,11 +121,13 @@ export function setColorScheme(mode: ColorSchemeMode, storageKey = SCHEME_STORAG
     if (forced) root.dataset.theme = forced;
     else delete root.dataset.theme;
   }
-  try {
-    if (forced) localStorage.setItem(storageKey, forced);
-    else localStorage.removeItem(storageKey);
-  } catch {
-    // Storage may be unavailable (privacy mode, server render); the scheme still applies.
+  if (Platform.OS === 'web') {
+    try {
+      if (forced) localStorage.setItem(storageKey, forced);
+      else localStorage.removeItem(storageKey);
+    } catch {
+      // Storage may be unavailable (privacy mode, server render); the scheme still applies.
+    }
   }
   const colorScheme: ColorSchemeName = forced ?? system!.getColorScheme() ?? 'light';
   for (const listener of listeners) listener({colorScheme});

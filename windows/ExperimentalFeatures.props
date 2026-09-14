@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup Label="Microsoft.ReactNative Experimental Features">
+    <!--
+      The kit's controls are XAML islands in Fabric component views: New
+      Architecture only. Used when building the library's own solution; a
+      consuming app decides for itself, and react-native-windows 0.82 and
+      later have no other architecture.
+    -->
+    <RnwNewArch>true</RnwNewArch>
+
+    <!--
+      Compile against the published Microsoft.ReactNative NuGet packages
+      rather than the framework's source. Used when building the library's
+      own solution; a consuming app decides for itself.
+    -->
+    <UseExperimentalNuget>true</UseExperimentalNuget>
+
+    <ReactExperimentalFeaturesSet>true</ReactExperimentalFeaturesSet>
+  </PropertyGroup>
+
+</Project>

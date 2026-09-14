@@ -83,6 +83,13 @@ export const fonts = Platform.select({
     mono: 'ui-monospace',
     rounded: 'ui-rounded',
   },
+  // The Windows 11 UI faces; DirectWrite falls back to Segoe UI on Windows 10.
+  windows: {
+    sans: 'Segoe UI Variable Text',
+    serif: 'Cambria',
+    mono: 'Cascadia Mono',
+    rounded: 'Segoe UI Variable Text',
+  },
   default: {
     sans: 'normal',
     serif: 'serif',
@@ -152,7 +159,10 @@ export const colors = {
  *
  * 1. `theme.*` (this object) — opaque platform values: iOS `PlatformColor`
  *    (resolved by UIKit per scheme), Android theme attributes, web
- *    `var(--color-*)` custom properties. Use in styles that the platform
+ *    `var(--color-*)` custom properties, Windows Fluent theme resources
+ *    (`PlatformColor('TextFillColorPrimary')`, resolved by
+ *    react-native-windows per scheme and in high contrast; a token with no
+ *    Fluent twin keeps the light literal). Use in styles that the platform
  *    resolves natively.
  * 2. `useColor(token)` — a concrete string usable anywhere: on native the
  *    scheme palette hex (tint/onTint from the live accent seed — identical
@@ -178,6 +188,7 @@ export const theme = {
     ios: () => PlatformColor('label'),
     android: () => PlatformColor('?android:attr/textColorPrimary'),
     web: 'var(--color-label)',
+    windows: () => PlatformColor('TextFillColorPrimary'),
     default: colors.light.label,
   }),
   /**
@@ -191,6 +202,7 @@ export const theme = {
     ios: () => PlatformColor('secondaryLabel'),
     android: () => PlatformColor('?android:attr/textColorSecondary'),
     web: 'var(--color-secondary-label)',
+    windows: () => PlatformColor('TextFillColorSecondary'),
     default: colors.light.secondaryLabel,
   }),
   /**
@@ -204,6 +216,9 @@ export const theme = {
     ios: () => PlatformColor('tertiaryLabel'),
     android: () => PlatformColor('?android:attr/textColorTertiary'),
     web: 'var(--color-tertiary-label)',
+    // Fluent's tertiary text is not among the resources react-native-windows
+    // resolves; the disabled text is the nearest.
+    windows: () => PlatformColor('TextFillColorDisabled'),
     default: colors.light.tertiaryLabel,
   }),
   /**
@@ -217,6 +232,7 @@ export const theme = {
     ios: () => PlatformColor('systemBackground'),
     android: () => PlatformColor('?android:attr/colorBackground'),
     web: 'var(--color-background)',
+    windows: () => PlatformColor('SolidBackgroundFillColorBase'),
     default: colors.light.background,
   }),
   /**
@@ -230,6 +246,7 @@ export const theme = {
     ios: () => PlatformColor('secondarySystemBackground'),
     android: () => PlatformColor('?android:attr/colorBackgroundFloating'),
     web: 'var(--color-background-element)',
+    windows: () => PlatformColor('ControlFillColorDefault'),
     default: colors.light.backgroundElement,
   }),
   /**
@@ -243,6 +260,7 @@ export const theme = {
     ios: () => PlatformColor('tertiarySystemBackground'),
     android: () => PlatformColor('?android:attr/colorControlHighlight'),
     web: 'var(--color-background-selected)',
+    windows: () => PlatformColor('SubtleFillColorSecondary'),
     default: colors.light.backgroundSelected,
   }),
   /**
@@ -256,6 +274,7 @@ export const theme = {
     ios: () => PlatformColor('separator'),
     android: () => PlatformColor('?android:attr/colorControlHighlight'),
     web: 'var(--color-separator)',
+    windows: () => PlatformColor('ControlStrokeColorDefault'),
     default: colors.light.separator,
   }),
   /**
@@ -299,6 +318,7 @@ export const theme = {
     ios: () => PlatformColor('secondarySystemFill'),
     android: () => PlatformColor('?android:attr/colorControlHighlight'),
     web: 'var(--color-pill-background)',
+    windows: () => PlatformColor('ControlAltFillColorTertiary'),
     default: colors.light.pillBackground,
   }),
   /**
@@ -314,6 +334,7 @@ export const theme = {
     ios: colors.light.segmentSelected,
     android: colors.light.segmentSelected,
     web: 'var(--color-segment-selected)',
+    windows: () => PlatformColor('ControlFillColorDefault'),
     default: colors.light.segmentSelected,
   }),
   /**
@@ -328,6 +349,7 @@ export const theme = {
     ios: () => PlatformColor('systemGray5'),
     android: () => PlatformColor('?android:attr/colorControlHighlight'),
     web: 'var(--color-switch-track)',
+    windows: () => PlatformColor('ControlAltFillColorSecondary'),
     default: colors.light.switchTrack,
   }),
   /**
@@ -442,11 +464,32 @@ const androidVars: VariantMap = {
   label: {fontSize: 12, fontWeight: 'medium', lineHeight: 16},
 };
 
+/**
+ * The Fluent type ramp (Segoe UI Variable), with the kit's variants laid on
+ * it: `largeTitle` is Fluent's Title Large, `title` its Title, `title2` its
+ * Subtitle, `title3` its Body Large, `headline` its Body Strong, `body` its
+ * Body and `caption` its Caption.
+ */
+const windowsVars: VariantMap = {
+  largeTitle: {fontSize: 40, fontWeight: 'semibold', lineHeight: 52},
+  title: {fontSize: 28, fontWeight: 'semibold', lineHeight: 36},
+  title2: {fontSize: 20, fontWeight: 'semibold', lineHeight: 28},
+  title3: {fontSize: 18, fontWeight: 'semibold', lineHeight: 24},
+  headline: {fontSize: 14, fontWeight: 'semibold', lineHeight: 20},
+  body: {fontSize: 14, fontWeight: 'normal', lineHeight: 20},
+  callout: {fontSize: 14, fontWeight: 'normal', lineHeight: 20},
+  subheadline: {fontSize: 13, fontWeight: 'normal', lineHeight: 18},
+  footnote: {fontSize: 12, fontWeight: 'normal', lineHeight: 16},
+  caption: {fontSize: 12, fontWeight: 'normal', lineHeight: 16},
+  label: {fontSize: 14, fontWeight: 'normal', lineHeight: 20},
+};
+
 export const variants = Platform.select({
   default: iosVars,
   android: androidVars,
   ios: iosVars,
   web: iosVars,
+  windows: windowsVars,
 });
 
 /**
@@ -495,6 +538,11 @@ export function getPlatformToken(specifics: {
   android: ColorNative;
   ios: ColorNative;
   web: ColorValue;
+  /**
+   * A Fluent theme resource `PlatformColor` where react-native-windows
+   * resolves one; a token without one takes the `default` literal.
+   */
+  windows?: ColorNative;
 }): ColorValue {
   const get = (c: ColorNative) => typeof c === 'function' ? c() : c;
   switch (Platform.OS) {
@@ -504,6 +552,8 @@ export function getPlatformToken(specifics: {
       return get(specifics.android);
     case 'web':
       return specifics.web;
+    case 'windows':
+      return get(specifics.windows ?? specifics.default);
     default:
       return specifics.default;
   }

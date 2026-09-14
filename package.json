@@ -1,7 +1,7 @@
 {
   "name": "expo-interface",
-  "version": "0.9.3",
-  "description": "Native-first universal UI kit for Expo — SwiftUI on iOS, Jetpack Compose on Android, real DOM on web — built on @expo/ui.",
+  "version": "0.10.0",
+  "description": "Native-first universal UI kit for Expo — SwiftUI on iOS, Jetpack Compose on Android, real DOM on web, WinUI 3 on Windows — built on @expo/ui and react-native-windows.",
   "license": "MIT",
   "author": "kat-tax",
   "homepage": "https://github.com/kat-tax/expo-interface#readme",
@@ -18,6 +18,8 @@
     "react-native",
     "swiftui",
     "jetpack-compose",
+    "winui",
+    "react-native-windows",
     "ui-kit",
     "design-system",
     "universal"
@@ -41,9 +43,23 @@
     "!src/**/*.stories.tsx",
     "!src/**/*.test.ts",
     "!src/**/*.test.tsx",
+    "windows",
+    "react-native.config.js",
     "README.md",
     "LICENSE"
   ],
+  "codegenConfig": {
+    "name": "ExpoInterfaceSpec",
+    "type": "all",
+    "jsSrcsDir": "src/windows/specs",
+    "includesGeneratedCode": true,
+    "windows": {
+      "namespace": "winrt::ExpoInterface::Codegen",
+      "generators": ["componentsWindows"],
+      "outputDirectory": "windows/ExpoInterface/codegen",
+      "separateDataTypes": true
+    }
+  },
   "workspaces": [
     "example",
     "storybook"
@@ -64,7 +80,8 @@
     "storybook:android": "bun run --cwd storybook android",
     "storybook:build": "bun run --cwd storybook build",
     "storybook:test": "bun run --cwd storybook test",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "codegen:windows": "npm exec --yes --package=@react-native-windows/codegen@0.84.0 --package=@react-native/codegen@0.84.1 -- react-native-windows-codegen --files src/windows/specs/*NativeComponent.ts --libraryName ExpoInterfaceSpec --namespace winrt::ExpoInterface::Codegen --outputDirectory windows/ExpoInterface/codegen --componentsWindows"
   },
   "peerDependencies": {
     "@expo/material-symbols": "*",

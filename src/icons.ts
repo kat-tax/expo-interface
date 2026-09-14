@@ -1,11 +1,22 @@
 import type {ImageSourcePropType} from 'react-native';
-import type {SymbolViewProps} from 'expo-symbols';
+import type {AndroidSymbol, SFSymbol, SymbolViewProps} from 'expo-symbols';
+
+/**
+ * The symbol an icon token names: an `expo-symbols` name, either a bare SF
+ * Symbol or a per-platform map. `windows` is a Segoe Fluent Icons code point
+ * (`E72D`); without it Windows draws the Fluent twin of the Material name
+ * (see `symbol/segoe.ts`).
+ */
+export type IconSymbol =
+  | SymbolViewProps['name']
+  | {ios: SFSymbol; android: AndroidSymbol; web: AndroidSymbol; windows?: string};
 
 /**
  * A platform-agnostic icon reference consumed by `Button` and friends.
  *
  * - `symbol`: the `expo-symbols` name, either a single string or a
- *   `{ios, android, web}` map (SF Symbol on iOS, Material Symbol elsewhere).
+ *   `{ios, android, web}` map (SF Symbol on iOS, Material Symbol elsewhere),
+ *   optionally with a `windows` Segoe Fluent Icons code point.
  * - `drawable`: optional Android drawable (for example an
  *   `@expo/material-symbols/<name>.xml` import) used by Jetpack Compose
  *   controls, which render drawables rather than symbol glyphs.
@@ -14,7 +25,7 @@ import type {SymbolViewProps} from 'expo-symbols';
  *   needs to draw it.
  */
 export interface IconToken {
-  symbol: SymbolViewProps['name'];
+  symbol: IconSymbol;
   drawable?: ImageSourcePropType;
   fill?: boolean;
 }
@@ -51,13 +62,15 @@ export interface IconToken {
  *
  * Each platform draws it from what it has: iOS appends SF Symbols' own
  * `.fill` suffix, web sets the `FILL 1` axis of the Material Symbols variable
- * font (see the README — an app registers the family), and Jetpack Compose
+ * font (see the README — an app registers the family), Jetpack Compose
  * draws the `drawable`, which has to be the filled vector
  * (`npx add-material-symbols --fill star`) because Compose renders XML
- * drawables rather than font glyphs.
+ * drawables rather than font glyphs, and Windows draws the Segoe Fluent
+ * Icons glyph the Material name maps to — or the token's own `windows` code
+ * point (`{..., windows: 'E72D'}`) for a name the map has not met.
  */
 export function icon(
-  symbol: SymbolViewProps['name'],
+  symbol: IconSymbol,
   drawable?: ImageSourcePropType,
   options?: {fill?: boolean},
 ): IconToken {

@@ -1,5 +1,5 @@
-import {ThemeProvider, Stack} from 'expo-router';
-import {AccentProvider, useNavTheme} from 'expo-interface';
+import {ThemeProvider} from 'expo-router';
+import {AccentProvider, Stack, useNavTheme} from 'expo-interface';
 
 /** Separate component so useNavTheme reads the accent seed from the provider. */
 function Navigation() {

@@ -1,0 +1,275 @@
+import {Meta} from '@storybook/addon-docs/blocks';
+
+<Meta title="Guides/Windows"/>
+
+# Windows
+
+The kit runs on Windows through [react-native-windows](https://microsoft.github.io/react-native-windows/)
+(New Architecture), and every control that has a Windows control draws it:
+WinUI 3 XAML controls, hosted in XAML islands inside Fabric component views,
+themed by Fluent and branded with the kit's accent. The pieces:
+
+- **`index.windows.tsx` per component** — the Windows implementation, resolved
+  by Metro for the `windows` platform like the `.ios`, `.android` and `.web`
+  files are for theirs. None of them imports `@expo/ui`, which has no Windows
+  implementation.
+- **`windows/ExpoInterface`** — a C++/WinRT library of Fabric native
+  components, one per WinUI control the kit hosts (`ExpoInterfaceButton`,
+  `ExpoInterfaceToggleSwitch`, ...). Their JavaScript specs live in
+  `src/windows/specs` and are compiled by React Native's codegen when the app
+  builds. The library is autolinked into an app that depends on
+  `expo-interface`.
+- **Fluent tokens** — `theme.*` resolves to Fluent theme resources
+  (`PlatformColor('TextFillColorPrimary')`), `fonts` to Segoe UI Variable,
+  `variants` to the Fluent type ramp, and icons to Segoe Fluent Icons.
+
+## Versions
+
+Expo pins React Native; react-native-windows ships per React Native minor.
+Pick the pairing that exists:
+
+| Expo SDK | React Native | react-native-windows |
+| --- | --- | --- |
+| 54 | 0.81 | 0.81 — the pairing [expo-desktop](https://github.com/shirakaba/expo-desktop) ships templates for |
+| 55 | 0.83 | 0.83 |
+| 56 | 0.85 | 0.85 (preview at the time of writing) |
+| 57 | 0.86 | not yet released |
+
+The kit's peer range is Expo 57, whose React Native has no react-native-windows
+release yet. The Windows platform files use react-native-windows 0.82's Fabric
+API (the release that brought XAML islands to community modules), and the
+native library was compiled and run in a react-native-windows 0.84 app
+(React Native 0.84) while it was written: every island renders its WinUI
+control in both themes, its events reach JavaScript, and its menus and
+dropdowns open as windowed popups. A Windows build follows the next
+react-native-windows release without changes to the kit; until then, a Windows
+app of the kit is one on an earlier SDK whose react-native-windows exists.
+
+## Setting up an app
+
+[expo-desktop](https://github.com/shirakaba/expo-desktop) is the community
+project that brings react-native-windows (and react-native-macos) to Expo: it
+provides an Expo Modules Core for Windows (`expo-desktop-modules-core`),
+stubs for the Expo packages an app imports on every platform
+(`expo-desktop-stubs`), a config plugin that generates the `windows/` project
+on `prebuild` (`expo-desktop-config-plugins`, `expo-desktop-prebuild-config`)
+and a Metro config that resolves `react-native` to `react-native-windows`
+for the `windows` platform (`expo-desktop-metro-config`, on
+`@rnx-kit/metro-config`). A new app:
+
+```sh
+npx expo-desktop@beta create-app --template expo-desktop-template-blank-typescript@beta
+cd MyApp
+npx expo-desktop@beta prebuild --template expo-desktop-template-bare-minimum@beta
+npx expo install expo-interface @expo/material-symbols
+node --run windows
+```
+
+An existing Expo app adds the same packages and the `windows` platform:
+
+```json
+// app.json
+{
+  "expo": {
+    "platforms": ["ios", "android", "web", "windows"],
+    "newArchEnabled": true,
+    "plugins": [["expo-desktop-config-plugins", {"displayName": "My App"}]]
+  }
+}
+```
+
+```js
+// metro.config.js
+const {getDefaultConfig} = require('expo/metro-config');
+const {makeMetroConfig} = require('@rnx-kit/metro-config');
+
+const config = makeMetroConfig(getDefaultConfig(__dirname));
+config.resolver.assetExts.push('xml');
+module.exports = config;
+```
+
+Then `npx expo-desktop prebuild` writes the `windows/` folder from the
+react-native-windows `cpp-app` template, and `npx react-native run-windows`
+(or `node --run windows`) builds and starts it. The kit needs nothing of its
+own: `react-native.config.js` in the package tells react-native-windows'
+autolinking where `windows/ExpoInterface` is, the codegen headers for its
+specs ship with the package, and the app's build compiles the library.
+
+The machine needs what react-native-windows needs — Visual Studio 2022 with
+the C++ desktop workload and the Windows 11 SDK, which
+`rnw-dependencies.ps1` checks and installs:
+
+```powershell
+Set-ExecutionPolicy Unrestricted -Scope Process -Force
+iex (New-Object System.Net.WebClient).DownloadString('https://aka.ms/rnw-vs2022-deps.ps1')
+```
+
+## Writing the app
+
+Nothing changes in a screen: the same `Screen`, `FieldGroup`, `Switch` and
+`Button` draw WinUI controls. Two things are Windows-aware at the app level.
+
+### Navigation
+
+`react-native-screens` draws nothing on Windows, so Expo Router's native stack
+and native tabs cannot be used there. The kit exports a `Stack` that is Expo
+Router's on iOS, Android and web and a stack of its own on Windows — Expo
+Router's stack router under a drawn header, so `router.push`, `Link` and
+`Stack.Screen` options all work — and its `Tabs` draws a WinUI
+`NavigationView` in its top mode over the focused tab. Use the kit's `Stack`
+in the root layout:
+
+```tsx
+// app/_layout.tsx
+import {ThemeProvider} from 'expo-router';
+import {AccentProvider, Stack, useNavTheme} from 'expo-interface';
+
+function Navigation() {
+  return (
+    <ThemeProvider value={useNavTheme()}>
+      <Stack screenOptions={{headerShown: false}}/>
+    </ThemeProvider>
+  );
+}
+
+export default function Layout() {
+  return (
+    <AccentProvider seed="#8959EA">
+      <Navigation/>
+    </AccentProvider>
+  );
+}
+```
+
+`TabStack` is that stack with the tab's root screen titled, as on the other
+platforms.
+
+### Icons
+
+Windows draws Segoe Fluent Icons. A token whose Material name has a Fluent
+twin draws it without any change — `share` is `E72D`, `settings` is `E713`,
+`star` is `E734` (and `E735` filled); see `SEGOE_GLYPHS` for the table. A
+token can name its own code point with `windows`:
+
+```ts
+export const drop = icon(
+  {ios: 'shippingbox', android: 'inventory_2', web: 'inventory_2', windows: 'E7B8'},
+  drawables.inventory_2,
+);
+```
+
+A token with neither draws nothing on Windows, as a bare SF Symbol name draws
+nothing on Android and web.
+
+### Colors and the scheme
+
+`useColor`, `usePalette` and `AccentProvider` work as everywhere; every XAML
+island takes the accent seed and the scheme as props, so a seeded app is
+branded in WinUI too — the accent button's fill, the switch's on track, the
+slider's thumb, the check mark, the selection indicators. `setColorScheme`
+forces a scheme in JavaScript (react-native-windows follows the OS on its
+own), which the islands follow.
+
+`theme.*` on Windows resolves to Fluent theme resources where one matches —
+`label` is `TextFillColorPrimary`, `background` is
+`SolidBackgroundFillColorBase`, `separator` is `ControlStrokeColorDefault` —
+which react-native-windows resolves per scheme and in high contrast. Tokens
+with no Fluent twin (`tint`, `destructive`, `switchOn`) keep the palette
+literal; `useColor` answers the palette for all of them.
+
+## What each component draws
+
+| Component | Windows |
+| --- | --- |
+| Button | WinUI `Button`: the accent style for `filled`, the standard one for `outlined`, transparent for `text`; Segoe glyphs |
+| Switch | WinUI `ToggleSwitch` at the trailing edge of a drawn row |
+| Checkbox | WinUI `CheckBox` at the trailing edge of a drawn row |
+| Slider | WinUI `Slider` |
+| Stepper | WinUI `NumberBox` with inline spin buttons (`formatValue` is not applied, as on iOS) |
+| Picker | WinUI `ComboBox` |
+| SegmentedControl | WinUI `SelectorBar` (one size and shape; `accentColor` colors the indicator) |
+| DateTimePicker | WinUI `CalendarDatePicker` and `TimePicker`, one or both by `mode` |
+| Progress, Spinner | WinUI `ProgressBar` / `ProgressRing` |
+| TextField | WinUI `TextBox` / `PasswordBox`, borderless in a row; the `inline` variant is React Native's input. `autoCapitalize` has no Windows equivalent; Enter submits and keeps the focus |
+| ColorPicker | A color well opening a `Flyout` with the WinUI `ColorPicker`; presets are drawn |
+| Menu, HeaderMenu, ContextMenu, PopupMenu | WinUI `MenuFlyout` — below the trigger, at the pointer on a right click or long press, or at a point |
+| Alert | a dialog in `ContentDialog`'s arrangement — smoke over the whole window, the card with the title, the message and the actions — drawn in a windowed `Popup`, since a `ContentDialog` can only cover its own island (the `sheet` form is a dialog too) |
+| Popover | WinUI `Flyout` with the title, message and actions; a popover with `children` is drawn |
+| Toast | WinUI `InfoBar` over the bottom of the screen |
+| Tooltip | react-native-windows' own tooltip, on hover and focus |
+| IconToggle | WinUI `ToggleButton` with a `FontIcon` |
+| Avatar | WinUI `PersonPicture` |
+| Tabs | WinUI `NavigationView` (top mode) over the focused tab |
+| Stack, TabStack | Expo Router's stack router under a drawn header |
+| Gauge | Bars drawn in React Native; rings are the WinUI `ProgressRing` |
+| Fab | Drawn, as on iOS; with `items` a `MenuFlyout` |
+| Collapsible | Drawn (a WinUI `Expander` could not hold React Native content) |
+| Sheet | React Native's `Modal`, which react-native-windows presents as a window of its own. On react-native-windows 0.84 a `Modal` cannot host an island: keep the kit's controls out of a sheet there, or draw the sheet's content with React Native views |
+| FieldGroup, ListItem, Card, Surface, Toolbar, Divider, Typography | Drawn with Fluent metrics and the Segoe UI Variable ramp |
+| ConstrainedStackHeader, KeyboardBar | Nothing to draw: no web bar, no soft keyboard |
+
+## How a control is hosted
+
+Each native component is a Fabric component view whose content is a
+`Microsoft.UI.Xaml.XamlIsland`. The island holds a `YogaXamlPanel` — a panel
+that measures its control unconstrained and reports the size it wants to the
+component's state — and the component registers a measure handler that hands
+that size to Yoga, so a button hugs its content like a native button unless a
+style stretches it. Props reach the control in `UpdateProps`; events go back
+through the codegen'd emitter. `XamlHost.h` holds what every control shares:
+the island, the measurement, the accent (the WinUI accent brushes overridden
+in both theme dictionaries from the seed) and the theme.
+
+Adding a control is a spec in `src/windows/specs`, a view in
+`windows/ExpoInterface` and a line in the package provider; the specs are the
+contract, and the tests assert on the props the islands receive. After a spec
+change, `bun run codegen:windows` regenerates the headers in
+`windows/ExpoInterface/codegen`, which are committed and shipped: an app
+builds the library from `node_modules`, where react-native-windows' own
+build-time `codegen-windows` has no React Native project to run in, so the
+library turns that step off (`RunCodegenWindows`).
+
+XAML is brought up before the first control is built: the island initializer
+creates react-native-windows' `XamlApplication` (which initializes WinUI for
+the thread and merges the control resources) unless the app already has an
+application object. Islands follow the system theme like any WinUI control, so
+the React Native tree behind them must paint the scheme's background — the
+kit's `Screen` does — or dark controls sit on a white window. Menus, dropdowns
+and the popover open as windowed popups, which is why they can extend past
+their island; the alert's dialog is a windowed popup sized to the app window
+for the same reason, since a `ContentDialog` can only cover the island it
+lives in, and React Native's `Modal` cannot host an island on
+react-native-windows 0.84.
+
+## Development
+
+The Vitest suite has a `windows` project: the iOS engine told it is Windows,
+with `.windows.*` files resolved first and `@expo/ui` forbidden. The islands
+render as host views named after their native components, and the
+`*.windows.test.tsx` files assert on their props and fire their events.
+
+```sh
+bun run test                       # ios, android, windows, web
+bunx vitest run --project windows  # Windows alone
+bun run codegen:windows            # regenerate the C++ headers from the specs
+```
+
+The native library builds inside a react-native-windows app — the app's
+`run-windows` builds it, or MSBuild on the app's solution does. It has no
+build of its own outside one, since it compiles against the app's
+`node_modules/react-native-windows`.
+
+To start the built `.exe` directly rather than through `run-windows` (which
+registers the app with package identity), the app must bootstrap the Windows
+App Runtime itself: the `cpp-app` template turns the Windows App SDK's
+auto-initializer off, so set both in the app project's `Globals`
+
+```xml
+<WindowsPackageType>None</WindowsPackageType>
+<WindowsAppSdkAutoInitialize>true</WindowsAppSdkAutoInitialize>
+```
+
+and have the Windows App Runtime of the SDK's version installed (its
+`Microsoft.WindowsAppSDK.Runtime` package carries the MSIX files under
+`tools/MSIX`). Without the bootstrap the app aborts on start with
+`Microsoft.UI.Dispatching.DispatcherQueueController` not registered.

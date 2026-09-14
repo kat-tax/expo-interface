@@ -1,0 +1,10 @@
+namespace ExpoInterface
+{
+  // A XAML panel that reports its child's desired size to Yoga: the bridge
+  // between the island's XAML layout and React Native's. See YogaXamlPanel.h.
+  [default_interface]
+  [webhosthidden]
+  runtimeclass YogaXamlPanel : Microsoft.UI.Xaml.Controls.Panel
+  {
+  }
+}

@@ -4,7 +4,8 @@
 [`@expo/ui`](https://docs.expo.dev/versions/v57.0.0/sdk/ui/):
 
 - Every component renders the platform's own control.
-- SwiftUI on iOS, Jetpack Compose (Material 3) on Android, plain DOM on web.
+- SwiftUI on iOS, Jetpack Compose (Material 3) on Android, plain DOM on web,
+  WinUI 3 (XAML) on Windows through react-native-windows.
 - A single accent color seeds the theme everywhere, on all platforms.
 
 ## Install
@@ -19,10 +20,13 @@ Peer dependencies and Android icon setup are covered in
 ## Setup
 
 1. Wrap the app in `AccentProvider`. `seed` is any hex color; the default is `#007AFF`.
+   The kit's `Stack` is Expo Router's native stack on iOS, Android and web, and
+   a stack of its own on Windows, where there is no native one (see
+   [Windows](#windows)).
    ```tsx
    // app/_layout.tsx
-   import {ThemeProvider, Stack} from 'expo-router';
-   import {AccentProvider, useNavTheme} from 'expo-interface';
+   import {ThemeProvider} from 'expo-router';
+   import {AccentProvider, Stack, useNavTheme} from 'expo-interface';
 
    function Navigation() {
      return (
@@ -91,54 +95,55 @@ Everything is exported from `expo-interface`. Component names link to their
 props. Value controls are controlled: pair `value` with `onValueChange`.
 
 Each component renders the native control of its platform (SwiftUI, Material 3
-Compose, or a DOM element). Web overlays use the Popover API, CSS anchor
-positioning and `<dialog>`.
+Compose, WinUI 3, or a DOM element). Web overlays use the Popover API, CSS
+anchor positioning and `<dialog>`; Windows overlays are WinUI flyouts and
+dialogs.
 
-| Component | Description | iOS | Android | Web |
-| --- | --- | :-: | :-: | :-: |
-| [Screen](src/screen/index.tsx) | Screen container that handles safe areas, status bar, background and content width, optionally hosting native content and placing a floating action button | ✓ | ✓ | ✓ |
-| [ScreenHeader](src/screen/header.tsx) | Simple header bar with an optional back button and a trailing slot | ✓ | ✓ | ✓ |
-| [HeaderMenu](src/header-menu/index.tsx) | Menu for a stack header's trailing slot; survives Android's header re-parenting on a tab switch | ✓ | ✓ | ✓ |
-| [HeaderAction](src/header-action/index.tsx) | The same trigger with a press instead of a menu: a plain action at the platform's header size | ✓ | ✓ | ✓ |
-| [HeaderActions](src/header-actions/index.tsx) | Row of header controls for a slot that takes one node, spaced the way each platform spaces its own — and one host for all of them | ✓ | ✓ | ✓ |
-| [NativeHost](src/host/index.tsx) | Accent-seeded `@expo/ui` host for controls that sit inside a React Native layout | ✓ | ✓ | ✓ |
-| [Surface](src/surface/types.ts) | A box in the theme's colors — a bar, a floating strip, a card, a drop target — drawn in React Native so it can hold what is not native | ✓ | ✓ | ✓ |
-| [Toolbar](src/toolbar/types.ts) | Bar of tools along a canvas: the controls are one native view, with an optional React Native field between the groups and a compact density for many tools | ✓ | ✓ | ✓ |
-| [KeyboardBar](src/keyboard/index.tsx) | Bottom bar that sticks to the keyboard and reports its height (`react-native-keyboard-controller`, optional) | ✓ | ✓ | ✓ |
-| [Tabs](src/tabs/types.ts) | Tab bar for `expo-router`: native tabs on iOS and Android, a floating top bar with a logo and action slots on web, which takes the screen's header; can be hidden | ✓ | ✓ | ✓ |
-| [TabStack](src/tab-stack/index.tsx) | Preconfigured `expo-router` stack for the root screen of a tab, with a header trailing slot | ✓ | ✓ | ✓ |
-| [ConstrainedStackHeader](src/stack-header/index.tsx) | Stack header that matches the content max-width on web; `TabStack` uses it there so a screen has a header on every platform, and it folds into the tab bar where there is one | | | ✓ |
-| [Sheet](src/sheet/index.tsx) | Bottom sheet that inherits the accent color | ✓ | ✓ | ✓ |
-| [FieldGroup](src/field-group/types.ts) | Scrollable settings form made of titled sections of rows, each with an optional footer note | ✓ | ✓ | ✓ |
-| [ListItem](src/list-item/types.ts) | Tappable row with leading, trailing and supporting text slots and an optional trailing action, as text or a filled control | ✓ | ✓ | ✓ |
-| [Card](src/card/types.ts) | Pressable surface with header, body, footer, and floating badge and overlay slots outside its press target | ✓ | ✓ | ✓ |
-| [Fab](src/fab/types.ts) | Floating action button: Material 3 on Android, drawn in SwiftUI on iOS, a DOM button on web; can open a menu | ✓ | ✓ | ✓ |
-| [Collapsible](src/collapsible/types.ts) | Row that expands and collapses its content | ✓ | ✓ | ✓ |
-| [Divider](src/divider/types.ts) | Horizontal or vertical hairline separator | ✓ | ✓ | ✓ |
-| [Avatar](src/avatar/types.ts) | A person as a colored circle with their initials, hashed from the name | ✓ | ✓ | ✓ |
-| [Button](src/button/types.ts) | Filled, outlined or text button with optional icons, sizes, shapes and a destructive role | ✓ | ✓ | ✓ |
-| [TextField](src/text-field/types.ts) | Single or multiline text input with keyboard type, capitalization and secure entry | ✓ | ✓ | ✓ |
-| [Switch](src/switch/types.ts) | On/off toggle with a leading label | ✓ | ✓ | ✓ |
-| [IconToggle](src/icon-toggle/types.ts) | Round icon button with two states: the outline when off, the filled glyph when on | ✓ | ✓ | ✓ |
-| [Checkbox](src/checkbox/types.ts) | Checked/unchecked box with a leading label | ✓ | ✓ | ✓ |
-| [ColorPicker](src/color-picker/types.ts) | Label with a color well that opens the iOS-style color picker (Grid, Spectrum, Sliders, opacity), optionally with preset swatches | ✓ | ✓ | ✓ |
-| [Slider](src/slider/types.ts) | Thumb dragged along a continuous or stepped range | ✓ | ✓ | ✓ |
-| [Stepper](src/stepper/types.ts) | Number adjusted with increment and decrement buttons | ✓ | ✓ | ✓ |
-| [Picker](src/picker/types.ts) | Dropdown that selects one option from a list | ✓ | ✓ | ✓ |
-| [SegmentedControl](src/segmented/types.ts) | Row of segments that selects one option, in three sizes and two shapes | ✓ | ✓ | ✓ |
-| [DateTimePicker](src/date-time/types.ts) | Picks a date, a time or both, with optional bounds | ✓ | ✓ | ✓ |
-| [Progress](src/progress/types.ts) | Linear bar or circular ring, determinate or indeterminate | ✓ | ✓ | ✓ |
-| [Spinner](src/spinner/index.tsx) | The platform's activity indicator, in a host of its own when it sits in a React Native layout | ✓ | ✓ | ✓ |
-| [Gauge](src/gauge/types.ts) | Value within a range in the SwiftUI gauge styles: capacity bars, marker bar, open or closed ring | ✓ | ✓ | ✓ |
-| [Menu](src/menu/types.ts) | Dropdown menu of actions opened from a button (or a text link on web); items can be checked or carry a color swatch | ✓ | ✓ | ✓ |
-| [ContextMenu](src/menu/types.ts) | Menu of actions opened by long-pressing (or right-clicking) its content, or at a point the content reports | ✓ | ✓ | ✓ |
-| [PopupMenu](src/popup-menu/types.ts) | The platform's menu opened at a point over content the kit did not draw: a canvas, a WebView, an editor | ✓ | ✓ | ✓ |
-| [Popover](src/popover/types.ts) | Card pointing at a rectangle on a canvas, with a title, a message and action chips | ✓ | ✓ | ✓ |
-| [Tooltip](src/tooltip/types.ts) | Short hint shown on hover, focus or long-press; an accessibility hint on iOS | | ✓ | ✓ |
-| [Alert](src/alert/types.ts) | Modal dialog or action sheet with a title, message and actions; mounts its own host natively, so it can be rendered anywhere | ✓ | ✓ | ✓ |
-| [Toast](src/toast/types.ts) | Brief message over the screen: the Material `Snackbar` on Android, a drawn capsule on iOS and web | ✓ | ✓ | ✓ |
-| [ExternalLink](src/router/external-link.tsx) | Link that opens in an in-app browser on native and a new tab on web | ✓ | ✓ | ✓ |
-| [Typography](src/typography/types.ts) | Text in the platform type scale, with `Title`, `Body`, `Caption` and other variants as shortcuts | ✓ | ✓ | ✓ |
+| Component | Description | iOS | Android | Web | Windows |
+| --- | --- | :-: | :-: | :-: | :-: |
+| [Screen](src/screen/index.tsx) | Screen container that handles safe areas, status bar, background and content width, optionally hosting native content and placing a floating action button | ✓ | ✓ | ✓ | ✓ |
+| [ScreenHeader](src/screen/header.tsx) | Simple header bar with an optional back button and a trailing slot | ✓ | ✓ | ✓ | ✓ |
+| [HeaderMenu](src/header-menu/index.tsx) | Menu for a stack header's trailing slot; survives Android's header re-parenting on a tab switch | ✓ | ✓ | ✓ | ✓ |
+| [HeaderAction](src/header-action/index.tsx) | The same trigger with a press instead of a menu: a plain action at the platform's header size | ✓ | ✓ | ✓ | ✓ |
+| [HeaderActions](src/header-actions/index.tsx) | Row of header controls for a slot that takes one node, spaced the way each platform spaces its own — and one host for all of them | ✓ | ✓ | ✓ | ✓ |
+| [NativeHost](src/host/index.tsx) | Accent-seeded `@expo/ui` host for controls that sit inside a React Native layout | ✓ | ✓ | ✓ | ✓ |
+| [Surface](src/surface/types.ts) | A box in the theme's colors — a bar, a floating strip, a card, a drop target — drawn in React Native so it can hold what is not native | ✓ | ✓ | ✓ | ✓ |
+| [Toolbar](src/toolbar/types.ts) | Bar of tools along a canvas: the controls are one native view, with an optional React Native field between the groups and a compact density for many tools | ✓ | ✓ | ✓ | ✓ |
+| [KeyboardBar](src/keyboard/index.tsx) | Bottom bar that sticks to the keyboard and reports its height (`react-native-keyboard-controller`, optional) | ✓ | ✓ | ✓ | ✓ |
+| [Tabs](src/tabs/types.ts) | Tab bar for `expo-router`: native tabs on iOS and Android, a floating top bar with a logo and action slots on web, which takes the screen's header; can be hidden | ✓ | ✓ | ✓ | ✓ |
+| [TabStack](src/tab-stack/index.tsx) | Preconfigured `expo-router` stack for the root screen of a tab, with a header trailing slot | ✓ | ✓ | ✓ | ✓ |
+| [ConstrainedStackHeader](src/stack-header/index.tsx) | Stack header that matches the content max-width on web; `TabStack` uses it there so a screen has a header on every platform, and it folds into the tab bar where there is one | | | ✓ | |
+| [Sheet](src/sheet/index.tsx) | Bottom sheet that inherits the accent color | ✓ | ✓ | ✓ | ✓ |
+| [FieldGroup](src/field-group/types.ts) | Scrollable settings form made of titled sections of rows, each with an optional footer note | ✓ | ✓ | ✓ | ✓ |
+| [ListItem](src/list-item/types.ts) | Tappable row with leading, trailing and supporting text slots and an optional trailing action, as text or a filled control | ✓ | ✓ | ✓ | ✓ |
+| [Card](src/card/types.ts) | Pressable surface with header, body, footer, and floating badge and overlay slots outside its press target | ✓ | ✓ | ✓ | ✓ |
+| [Fab](src/fab/types.ts) | Floating action button: Material 3 on Android, drawn in SwiftUI on iOS, a DOM button on web; can open a menu | ✓ | ✓ | ✓ | ✓ |
+| [Collapsible](src/collapsible/types.ts) | Row that expands and collapses its content | ✓ | ✓ | ✓ | ✓ |
+| [Divider](src/divider/types.ts) | Horizontal or vertical hairline separator | ✓ | ✓ | ✓ | ✓ |
+| [Avatar](src/avatar/types.ts) | A person as a colored circle with their initials, hashed from the name | ✓ | ✓ | ✓ | ✓ |
+| [Button](src/button/types.ts) | Filled, outlined or text button with optional icons, sizes, shapes and a destructive role | ✓ | ✓ | ✓ | ✓ |
+| [TextField](src/text-field/types.ts) | Single or multiline text input with keyboard type, capitalization and secure entry | ✓ | ✓ | ✓ | ✓ |
+| [Switch](src/switch/types.ts) | On/off toggle with a leading label | ✓ | ✓ | ✓ | ✓ |
+| [IconToggle](src/icon-toggle/types.ts) | Round icon button with two states: the outline when off, the filled glyph when on | ✓ | ✓ | ✓ | ✓ |
+| [Checkbox](src/checkbox/types.ts) | Checked/unchecked box with a leading label | ✓ | ✓ | ✓ | ✓ |
+| [ColorPicker](src/color-picker/types.ts) | Label with a color well that opens the iOS-style color picker (Grid, Spectrum, Sliders, opacity), optionally with preset swatches | ✓ | ✓ | ✓ | ✓ |
+| [Slider](src/slider/types.ts) | Thumb dragged along a continuous or stepped range | ✓ | ✓ | ✓ | ✓ |
+| [Stepper](src/stepper/types.ts) | Number adjusted with increment and decrement buttons | ✓ | ✓ | ✓ | ✓ |
+| [Picker](src/picker/types.ts) | Dropdown that selects one option from a list | ✓ | ✓ | ✓ | ✓ |
+| [SegmentedControl](src/segmented/types.ts) | Row of segments that selects one option, in three sizes and two shapes | ✓ | ✓ | ✓ | ✓ |
+| [DateTimePicker](src/date-time/types.ts) | Picks a date, a time or both, with optional bounds | ✓ | ✓ | ✓ | ✓ |
+| [Progress](src/progress/types.ts) | Linear bar or circular ring, determinate or indeterminate | ✓ | ✓ | ✓ | ✓ |
+| [Spinner](src/spinner/index.tsx) | The platform's activity indicator, in a host of its own when it sits in a React Native layout | ✓ | ✓ | ✓ | ✓ |
+| [Gauge](src/gauge/types.ts) | Value within a range in the SwiftUI gauge styles: capacity bars, marker bar, open or closed ring | ✓ | ✓ | ✓ | ✓ |
+| [Menu](src/menu/types.ts) | Dropdown menu of actions opened from a button (or a text link on web); items can be checked or carry a color swatch | ✓ | ✓ | ✓ | ✓ |
+| [ContextMenu](src/menu/types.ts) | Menu of actions opened by long-pressing (or right-clicking) its content, or at a point the content reports | ✓ | ✓ | ✓ | ✓ |
+| [PopupMenu](src/popup-menu/types.ts) | The platform's menu opened at a point over content the kit did not draw: a canvas, a WebView, an editor | ✓ | ✓ | ✓ | ✓ |
+| [Popover](src/popover/types.ts) | Card pointing at a rectangle on a canvas, with a title, a message and action chips | ✓ | ✓ | ✓ | ✓ |
+| [Tooltip](src/tooltip/types.ts) | Short hint shown on hover, focus or long-press; an accessibility hint on iOS | | ✓ | ✓ | ✓ |
+| [Alert](src/alert/types.ts) | Modal dialog or action sheet with a title, message and actions; mounts its own host natively, so it can be rendered anywhere | ✓ | ✓ | ✓ | ✓ |
+| [Toast](src/toast/types.ts) | Brief message over the screen: the Material `Snackbar` on Android, a drawn capsule on iOS and web | ✓ | ✓ | ✓ | ✓ |
+| [ExternalLink](src/router/external-link.tsx) | Link that opens in an in-app browser on native and a new tab on web | ✓ | ✓ | ✓ | ✓ |
+| [Typography](src/typography/types.ts) | Text in the platform type scale, with `Title`, `Body`, `Caption` and other variants as shortcuts | ✓ | ✓ | ✓ | ✓ |
 
 ### Hosts
 
@@ -175,7 +180,9 @@ the section's footer, so the sheet needs no headings of its own.
 
 Icon props take an `IconToken`: an `expo-symbols` name, or a
 `{ios, android, web}` map, plus an optional Android drawable. Keep drawables in
-an `.android.ts` file so the XML is only bundled there.
+an `.android.ts` file so the XML is only bundled there. Windows draws Segoe
+Fluent Icons: the Fluent twin of the Material name (`SEGOE_GLYPHS`), or the
+code point a token names with `windows: 'E72D'`.
 
 ```ts
 // icons.drawables.android.ts
@@ -409,6 +416,50 @@ pushed screen's header is folded in, leaving a screen that takes the whole
 display with its title and the way back; `webFoldHeader={false}` keeps the two
 rows.
 
+## Windows
+
+On Windows the kit draws WinUI 3 controls: each component's `index.windows.tsx`
+renders a Fabric native component from the kit's own C++ library
+(`windows/ExpoInterface`), which hosts the WinUI control in a XAML island —
+a `Button`, `ToggleSwitch`, `CheckBox`, `Slider`, `NumberBox`, `ComboBox`,
+`SelectorBar`, `CalendarDatePicker`, `TimePicker`, `ProgressBar`,
+`ProgressRing`, `TextBox`, `ColorPicker`, `MenuFlyout`, `Popup`,
+`Flyout`, `InfoBar`, `ToggleButton`, `PersonPicture` or `NavigationView`,
+themed by Fluent and branded with the accent seed. What has no WinUI control
+(a card, a form section, a toolbar) is drawn with Fluent metrics in Segoe UI
+Variable, and icons are Segoe Fluent Icons. Nothing of `@expo/ui` is imported
+on Windows.
+
+The platform is react-native-windows (New Architecture, 0.82 or later) in an
+Expo app, which [expo-desktop](https://github.com/shirakaba/expo-desktop) sets
+up: its Expo Modules Core for Windows, its stubs for the Expo packages, its
+config plugin that writes the `windows/` project on `prebuild` and its Metro
+config. The kit's library is autolinked into that project and built with the
+app; the codegen headers for its specs ship with the package
+(`bun run codegen:windows` regenerates them). react-native-windows ships per
+React Native minor, so the Expo SDK decides the pairing:
+
+| Expo SDK | React Native | react-native-windows |
+| --- | --- | --- |
+| 54 | 0.81 | 0.81 (the pairing expo-desktop ships templates for) |
+| 55 | 0.83 | 0.83 |
+| 56 | 0.85 | 0.85 |
+| 57 | 0.86 | not yet released |
+
+The kit's Windows files use react-native-windows 0.82's Fabric API, and the
+native library was compiled and run in a react-native-windows 0.84 app while
+it was written (every island renders, its events reach JavaScript), so a
+Windows build of an SDK 57 app follows the next react-native-windows release
+without changes here. The
+[Windows guide](storybook/docs/guides/windows.mdx) has the setup, what each
+component draws, and how a control is hosted.
+
+Two things are Windows-aware in an app: the root layout uses the kit's `Stack`
+(Expo Router's native stack needs `react-native-screens`, which has no Windows
+renderer; the kit's is Expo Router's stack router under a drawn header there),
+and `Tabs` draws a WinUI `NavigationView`. `setColorScheme` forces the scheme
+in JavaScript, which every island follows.
+
 ## Install details
 
 The components are built on standard Expo modules, which are peer
@@ -441,7 +492,7 @@ bun install        # bun >= 1.4
 bun run web        # or ios, android
 bun run typecheck  # package, example and storybook
 bun run lint       # oxlint
-bun run test       # vitest, once per platform (ios, android, web)
+bun run test       # vitest, once per platform (ios, android, windows, web)
 bun run test:ui    # vitest watch mode with the browser UI
 ```
 
@@ -474,17 +525,27 @@ project (`vitest/metro-compat.ts`).
 
 ### Tests
 
-Vitest (`vitest-expo`) runs the suite three times — an ios, android and web
-project — so each `index.ios.tsx` / `index.android.tsx` / `index.web.tsx`
-implementation is exercised (`vitest.config.mts`; the web pipeline lives in
-`vitest.config.web.mts`). The file name picks the platforms:
+Vitest (`vitest-expo`) runs the suite four times — an ios, android, windows
+and web project — so each `index.ios.tsx` / `index.android.tsx` /
+`index.windows.tsx` / `index.web.tsx` implementation is exercised
+(`vitest.config.mts`; the web pipeline lives in `vitest.config.web.mts`). The
+file name picks the platforms:
 
 | Pattern | Platforms |
 | --- | --- |
-| `*.test.ts(x)` | ios, android, web |
+| `*.test.ts` | ios, android, windows, web |
+| `*.test.tsx` | ios, android, web |
 | `*.native.test.tsx` | ios, android |
 | `*.ios.test.tsx` / `*.android.test.tsx` | one platform |
+| `*.windows.test.tsx` | windows |
 | `*.web.test.tsx` | web |
+
+The windows project is the iOS engine told it is Windows (`vitest-native` has
+no Windows engine): `Platform.OS`, `Platform.select` and the platform file
+resolution say Windows, `@expo/ui` is forbidden, and the XAML islands render
+as host views named after their native components (`ExpoInterfaceButton`)
+whose props are the payload the C++ side receives — `src/__tests__/windows.ts`
+finds them and fires their events.
 
 Web tests use `@testing-library/react` against the real DOM (jsdom +
 react-native-web). Native tests run real React Native and use

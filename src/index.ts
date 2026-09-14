@@ -4,6 +4,7 @@ export * from './theme';
 export * from './accent';
 export * from './icons';
 export {fillWidth} from './fill';
+export {SEGOE_GLYPHS, windowsGlyph} from './symbol/segoe';
 export {
   SCHEME_STORAGE_KEY,
   getColorSchemeMode,
@@ -26,6 +27,7 @@ export {Toolbar} from './toolbar';
 export type {ToolbarDensity, ToolbarPlacement, ToolbarProps} from './toolbar/types';
 export {Sheet} from './sheet';
 export {ConstrainedStackHeader} from './stack-header';
+export {Stack} from './router/stack';
 export {TabStack} from './tab-stack';
 export type {TabStackProps} from './tab-stack';
 export {Tabs} from './tabs';
