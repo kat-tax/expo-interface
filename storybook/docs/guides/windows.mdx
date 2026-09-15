@@ -136,7 +136,12 @@ export default function Layout() {
 ```
 
 `TabStack` is that stack with the tab's root screen titled, as on the other
-platforms.
+platforms. A modal route — `presentation: 'modal'` in its options — opens as
+a card over smoke above the screen it came from, the way a WinUI dialog is
+arranged, with its title and a back button in the card; Escape and a press on
+the smoke close it. React Native's `Modal` is not involved (it cannot hold an
+island on react-native-windows 0.84): the stack is a layer host, and a `Sheet`
+anywhere below it draws in the same way.
 
 `ExternalLink` opens its href in the default browser through React Native's
 `Linking`, which react-native-windows implements. There is no in-app browser
@@ -206,12 +211,12 @@ literal; `useColor` answers the palette for all of them.
 | IconToggle | WinUI `ToggleButton` with a `FontIcon` |
 | Avatar | WinUI `PersonPicture` |
 | Tabs | WinUI `NavigationView` (top mode) over the focused tab |
-| Stack, TabStack | Expo Router's stack router under a drawn header |
+| Stack, TabStack | Expo Router's stack router under a drawn header; a screen with `presentation: 'modal'` (or `formSheet`, `containedModal`, `fullScreenModal`) is a card over smoke above the screen below, a `transparentModal` lies over the window as it is — Escape, the smoke and the back button dismiss it; Alt+Left, the keyboard's back key and the mouse's back button pop the stack |
 | ExternalLink | Expo Router's `Link`, opening the href in the default browser through React Native's `Linking`: there is no in-app browser, and `expo-web-browser` has no Windows module |
 | Gauge | Bars drawn in React Native; rings are the WinUI `ProgressRing` |
 | Fab | Drawn, as on iOS; with `items` a `MenuFlyout` |
 | Collapsible | Drawn (a WinUI `Expander` could not hold React Native content) |
-| Sheet | React Native's `Modal`, which react-native-windows presents as a window of its own. On react-native-windows 0.84 a `Modal` cannot host an island: keep the kit's controls out of a sheet there, or draw the sheet's content with React Native views |
+| Sheet | A layer drawn in React Native over the window — WinUI's smoke and a centred card, the content scrolling inside — covering the whole window under the kit's `Stack` (a layer host) and the nearest ancestor elsewhere. Islands inside it are fine; React Native's `Modal` is not used |
 | FieldGroup, ListItem, Card, Surface, Toolbar, Divider, Typography | Drawn with Fluent metrics and the Segoe UI Variable ramp |
 | ConstrainedStackHeader, KeyboardBar | Nothing to draw: no web bar, no soft keyboard |
 

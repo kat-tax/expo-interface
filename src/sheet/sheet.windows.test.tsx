@@ -1,31 +1,46 @@
-import type {TestInstance} from 'test-renderer';
-import {render, screen} from '@testing-library/react-native';
-import {Text} from 'react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
+import {Text, View} from 'react-native';
 import {useNativeHost} from '../host';
+import {LayerHost} from '../windows/layer';
 import {Sheet} from '.';
-
-/** The modal window: the one node asked to close. */
-function modal(): TestInstance {
-  const container = (screen as unknown as {container: {queryAll(predicate: (node: TestInstance) => boolean): TestInstance[]}}).container;
-  return container.queryAll(node => typeof node.props.onRequestClose === 'function')[0];
-}
 
 function Hosted() {
   return <Text>{useNativeHost() ? 'hosted' : 'bare'}</Text>;
 }
 
 describe('Sheet (windows)', () => {
-  it('presents the content in a modal window while presented, as hosted content', async () => {
+  it('presents the content in a layer over the host, as hosted content, and dismisses from the smoke and Escape', async () => {
     const onDismiss = vi.fn();
     await render(
-      <Sheet isPresented onDismiss={onDismiss}>
-        <Hosted/>
-      </Sheet>,
+      <LayerHost testID="host">
+        <View testID="content">
+          <Sheet isPresented onDismiss={onDismiss}>
+            <Hosted/>
+          </Sheet>
+        </View>
+      </LayerHost>,
     );
     expect(screen.getByText('hosted')).toBeOnTheScreen();
-    const window = modal();
-    expect(window.props.visible).toBe(true);
-    window.props.onRequestClose();
+    expect(screen.getByTestId('content').queryAll(node => node.props.testID === 'sheet')).toHaveLength(0);
+    await fireEvent.press(screen.getByLabelText('Dismiss'));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    // Escape reaches the host from wherever the focus is.
+    await fireEvent(screen.getByTestId('host'), 'keyDown', {nativeEvent: {key: 'Escape'}});
+    expect(onDismiss).toHaveBeenCalledTimes(2);
+  });
+
+  it('draws in place without a host, taking Escape itself', async () => {
+    const onDismiss = vi.fn();
+    await render(
+      <View testID="content">
+        <Sheet isPresented onDismiss={onDismiss}>
+          <Text>Form</Text>
+        </Sheet>
+      </View>,
+    );
+    expect(screen.getByText('Form')).toBeOnTheScreen();
+    expect(screen.getByTestId('content').queryAll(node => node.props.testID === 'sheet')).toHaveLength(1);
+    await fireEvent(screen.getByTestId('sheet'), 'keyDown', {nativeEvent: {key: 'Escape'}});
     expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
