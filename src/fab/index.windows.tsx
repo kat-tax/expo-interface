@@ -1,9 +1,10 @@
 import type {FabProps} from './types';
 import {useState} from 'react';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import XamlMenuFlyout from '../windows/specs/ExpoInterfaceMenuFlyoutNativeComponent';
 import {useXamlProps} from '../windows';
 import {menuItemsProp} from '../menu/windows';
+import {StatePressable} from '../surface/pressable';
 import {pressFeedback} from '../surface/shared';
 import {Symbol} from '../symbol';
 import {onAccent} from '../accent';
@@ -16,8 +17,10 @@ const SHADOW = '0 4px 12px rgba(0, 0, 0, 0.24)';
  * Windows draws the floating action button, as iOS does: Fluent has no
  * such control, so it is the Material geometry — a rounded square or a
  * circle, the extended capsule with its label — filled with the accent seed
- * and raised on a shadow, with a Segoe glyph. With `items` a press opens a
- * WinUI 3 `MenuFlyout` above the button, from an island laid over it.
+ * and raised on a shadow, with a Segoe glyph; it dims a little under the
+ * pointer and more while pressed, as an accent button does, and takes the
+ * focus ring, Enter and Space. With `items` a press opens a WinUI 3
+ * `MenuFlyout` above the button, from an island laid over it.
  */
 export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rounded', disabled, onOpenChange, testID}: FabProps) {
   const xaml = useXamlProps();
@@ -34,7 +37,7 @@ export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rou
   const contrast = onAccent(tint);
   return (
     <View style={styles.anchor}>
-      <Pressable
+      <StatePressable
         role="button"
         accessibilityLabel={label}
         disabled={disabled}
@@ -44,12 +47,12 @@ export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rou
           {height: side, minWidth: side, borderRadius: radius, backgroundColor: tint},
           extended && styles.extended,
           disabled && styles.disabled,
-          pressFeedback(state),
+          pressFeedback(state, 'accent'),
         ]}
         testID={testID}>
         <Symbol icon={icon} size={FAB_ICON[size]} tintColor={contrast}/>
         {extended ? <Text style={[styles.label, {color: contrast}]}>{label}</Text> : null}
-      </Pressable>
+      </StatePressable>
       {items ? (
         <XamlMenuFlyout
           items={menuItemsProp(items)}

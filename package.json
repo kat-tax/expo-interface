@@ -1,6 +1,6 @@
 {
   "name": "expo-interface",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Native-first universal UI kit for Expo — SwiftUI on iOS, Jetpack Compose on Android, real DOM on web, WinUI 3 on Windows — built on @expo/ui and react-native-windows.",
   "license": "MIT",
   "author": "kat-tax",
@@ -81,7 +81,8 @@
     "storybook:build": "bun run --cwd storybook build",
     "storybook:test": "bun run --cwd storybook test",
     "test:ui": "vitest --ui",
-    "codegen:windows": "npm exec --yes --package=@react-native-windows/codegen@0.84.0 --package=@react-native/codegen@0.84.1 -- react-native-windows-codegen --files src/windows/specs/*NativeComponent.ts --libraryName ExpoInterfaceSpec --namespace winrt::ExpoInterface::Codegen --outputDirectory windows/ExpoInterface/codegen --componentsWindows"
+    "codegen:windows": "npm exec --yes --package=@react-native-windows/codegen@0.84.0 --package=@react-native/codegen@0.84.1 -- react-native-windows-codegen --files src/windows/specs/*NativeComponent.ts --libraryName ExpoInterfaceSpec --namespace winrt::ExpoInterface::Codegen --outputDirectory windows/ExpoInterface/codegen --componentsWindows",
+    "segoe:windows": "node scripts/segoe-glyphs.ts"
   },
   "peerDependencies": {
     "@expo/material-symbols": "*",

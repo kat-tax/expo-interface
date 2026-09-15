@@ -1,6 +1,7 @@
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import {Symbol} from '../symbol';
 import {icon} from '../icons';
+import {StatePressable} from '../surface/pressable';
 import {pressFeedback} from '../surface/shared';
 import {bound, fonts, fontWeights, spacing, useColor} from '../theme';
 
@@ -15,8 +16,10 @@ const BACK = icon({ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back'
 
 /**
  * Windows: the same row as everywhere, 48 points tall like a WinUI title
- * row, with the back arrow in Segoe Fluent Icons. A desktop window has no
- * status bar to leave room for.
+ * row, with the back arrow in Segoe Fluent Icons — a subtle button, with
+ * the fill under the pointer, the focus ring and Enter that a
+ * `NavigationView` back button has. A desktop window has no status bar to
+ * leave room for.
  */
 export function ScreenHeader({title, onBack, trailing}: ScreenHeaderProps) {
   const label = useColor('label');
@@ -26,13 +29,13 @@ export function ScreenHeader({title, onBack, trailing}: ScreenHeaderProps) {
     <View style={[styles.bar, {backgroundColor: background}]}>
       <View style={styles.inner}>
         {onBack ? (
-          <Pressable
+          <StatePressable
             onPress={onBack}
             role="button"
             accessibilityLabel="Go back"
-            style={state => [styles.back, pressFeedback(state)]}>
+            style={state => [styles.back, pressFeedback(state, 'subtle')]}>
             <Symbol icon={BACK} size={16} tintColor={label}/>
-          </Pressable>
+          </StatePressable>
         ) : null}
         <Text numberOfLines={1} style={[styles.title, {color: label}]}>
           {title}

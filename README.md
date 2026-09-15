@@ -142,7 +142,7 @@ dialogs.
 | [Tooltip](src/tooltip/types.ts) | Short hint shown on hover, focus or long-press; an accessibility hint on iOS | | ✓ | ✓ | ✓ |
 | [Alert](src/alert/types.ts) | Modal dialog or action sheet with a title, message and actions; mounts its own host natively, so it can be rendered anywhere | ✓ | ✓ | ✓ | ✓ |
 | [Toast](src/toast/types.ts) | Brief message over the screen: the Material `Snackbar` on Android, a drawn capsule on iOS and web | ✓ | ✓ | ✓ | ✓ |
-| [ExternalLink](src/router/external-link.tsx) | Link that opens in an in-app browser on native and a new tab on web | ✓ | ✓ | ✓ | ✓ |
+| [ExternalLink](src/router/external-link.tsx) | Link that opens in an in-app browser on iOS and Android, a new tab on web and the default browser on Windows | ✓ | ✓ | ✓ | ✓ |
 | [Typography](src/typography/types.ts) | Text in the platform type scale, with `Title`, `Body`, `Caption` and other variants as shortcuts | ✓ | ✓ | ✓ | ✓ |
 
 ### Hosts
@@ -181,8 +181,9 @@ the section's footer, so the sheet needs no headings of its own.
 Icon props take an `IconToken`: an `expo-symbols` name, or a
 `{ios, android, web}` map, plus an optional Android drawable. Keep drawables in
 an `.android.ts` file so the XML is only bundled there. Windows draws Segoe
-Fluent Icons: the Fluent twin of the Material name (`SEGOE_GLYPHS`), or the
-code point a token names with `windows: 'E72D'`.
+Fluent Icons: the Fluent twin of the Material name (`SEGOE_GLYPHS`, a table
+generated from the two catalogues, matched by name and curated by hand), or
+the code point a token names with `windows: 'E72D'`.
 
 ```ts
 // icons.drawables.android.ts
@@ -431,13 +432,16 @@ Variable, and icons are Segoe Fluent Icons. Nothing of `@expo/ui` is imported
 on Windows.
 
 The platform is react-native-windows (New Architecture, 0.82 or later) in an
-Expo app, which [expo-desktop](https://github.com/shirakaba/expo-desktop) sets
-up: its Expo Modules Core for Windows, its stubs for the Expo packages, its
-config plugin that writes the `windows/` project on `prebuild` and its Metro
-config. The kit's library is autolinked into that project and built with the
-app; the codegen headers for its specs ship with the package
-(`bun run codegen:windows` regenerates them). react-native-windows ships per
-React Native minor, so the Expo SDK decides the pairing:
+Expo app. Expo's own tooling has no `windows` platform; `expo-windows`, the
+runtime growing next to the kit in this repository, is what gives an app one —
+the Metro config, an Expo Modules Core over react-native-windows, the app
+scaffold and the modules the Expo packages call at load — and until it ships
+the project is set up by hand ([expo-desktop](https://github.com/shirakaba/expo-desktop),
+which did this for SDK 54, is the reference). The kit's library is autolinked
+into that project and built with the app; the codegen headers for its specs
+ship with the package (`bun run codegen:windows` regenerates them).
+react-native-windows ships per React Native minor, so the Expo SDK decides
+the pairing:
 
 | Expo SDK | React Native | react-native-windows |
 | --- | --- | --- |

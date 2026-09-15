@@ -30,3 +30,25 @@ export function glyphOf(icon: IconToken | undefined): string | undefined {
 export function jsonProp(items: readonly unknown[]): string {
   return JSON.stringify(items);
 }
+
+/** A key event as react-native-windows reports it: `key` and `code` carry the DOM `KeyboardEvent` names. */
+export interface KeyEvent {
+  nativeEvent: {
+    key: string;
+    code: string;
+    altKey: boolean;
+    ctrlKey: boolean;
+    metaKey: boolean;
+    shiftKey: boolean;
+  };
+}
+
+/**
+ * react-native-windows' keyboard props for a view, which React Native's own
+ * prop types do not carry; spread the result onto a `Pressable` or `View`.
+ * Typed as a bare object so the spread adds nothing the checker knows and
+ * contradicts nothing it does.
+ */
+export function keyHandlers(handlers: {onKeyDown?: (event: KeyEvent) => void; onKeyUp?: (event: KeyEvent) => void}): object {
+  return handlers;
+}

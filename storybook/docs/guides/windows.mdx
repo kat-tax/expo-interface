@@ -47,53 +47,41 @@ app of the kit is one on an earlier SDK whose react-native-windows exists.
 
 ## Setting up an app
 
+Expo's own tooling has no `windows` platform: `expo prebuild` writes no
+`windows/` folder and `expo run` has no Windows target. That is the job of
+`expo-windows`, the runtime this repository is growing next to the kit — the
+Metro config for the platform, an Expo Modules Core over react-native-windows,
+the app scaffold (`init`, `run`, `bundle`) and the modules the Expo packages
+call at load (`expo-linking`, `expo-constants`, `expo-asset`, `expo-font` and
+the rest). This section is written for it and pending it: until it ships, and
+until react-native-windows pairs with Expo 57 (see Versions), a Windows app is
+set up by hand, the way the library was verified.
+
+1. Generate a react-native-windows `cpp-app` project into `windows/` on a
+   React Native app of the matching version
+   (`npx react-native-windows-init --template cpp-app`), and in its
+   `.vcxproj` set `<WindowsPackageType>None</WindowsPackageType>` and
+   `<WindowsAppSdkAutoInitialize>true</WindowsAppSdkAutoInitialize>`, so the
+   unpackaged build bootstraps the Windows App Runtime (see Development).
+2. Install the kit. It needs nothing else of its own: `react-native.config.js`
+   in the package tells react-native-windows' autolinking where
+   `windows/ExpoInterface` is, the codegen headers for its specs ship with
+   the package, and the app's build compiles the library.
+3. Give Metro the platform: `resolver.platforms` gains `windows`,
+   `react-native` resolves to `react-native-windows` for it (what
+   react-native-windows' own `react-native start` does and `expo start` does
+   not), and `xml` joins `assetExts` for the Material Symbols drawables.
+4. Keep what has no Windows implementation out of the Windows bundle. The
+   kit's own files never import `@expo/ui`, `expo-image`, `expo-symbols`,
+   `expo-web-browser` or `expo-system-ui` there (a test imports the whole
+   package with them forbidden); an app's screens should not either, and the
+   Expo packages that need a native module — Expo Router needs
+   `expo-linking` — wait for the runtime.
+
 [expo-desktop](https://github.com/shirakaba/expo-desktop) is the community
-project that brings react-native-windows (and react-native-macos) to Expo: it
-provides an Expo Modules Core for Windows (`expo-desktop-modules-core`),
-stubs for the Expo packages an app imports on every platform
-(`expo-desktop-stubs`), a config plugin that generates the `windows/` project
-on `prebuild` (`expo-desktop-config-plugins`, `expo-desktop-prebuild-config`)
-and a Metro config that resolves `react-native` to `react-native-windows`
-for the `windows` platform (`expo-desktop-metro-config`, on
-`@rnx-kit/metro-config`). A new app:
-
-```sh
-npx expo-desktop@beta create-app --template expo-desktop-template-blank-typescript@beta
-cd MyApp
-npx expo-desktop@beta prebuild --template expo-desktop-template-bare-minimum@beta
-npx expo install expo-interface @expo/material-symbols
-node --run windows
-```
-
-An existing Expo app adds the same packages and the `windows` platform:
-
-```json
-// app.json
-{
-  "expo": {
-    "platforms": ["ios", "android", "web", "windows"],
-    "newArchEnabled": true,
-    "plugins": [["expo-desktop-config-plugins", {"displayName": "My App"}]]
-  }
-}
-```
-
-```js
-// metro.config.js
-const {getDefaultConfig} = require('expo/metro-config');
-const {makeMetroConfig} = require('@rnx-kit/metro-config');
-
-const config = makeMetroConfig(getDefaultConfig(__dirname));
-config.resolver.assetExts.push('xml');
-module.exports = config;
-```
-
-Then `npx expo-desktop prebuild` writes the `windows/` folder from the
-react-native-windows `cpp-app` template, and `npx react-native run-windows`
-(or `node --run windows`) builds and starts it. The kit needs nothing of its
-own: `react-native.config.js` in the package tells react-native-windows'
-autolinking where `windows/ExpoInterface` is, the codegen headers for its
-specs ship with the package, and the app's build compiles the library.
+project that did all of this for Expo SDK 54 on react-native-windows 0.81 —
+an Expo Modules Core, stubs, config plugins and a Metro config of its own. It
+is the reference the runtime follows, not a dependency of the kit.
 
 The machine needs what react-native-windows needs — Visual Studio 2022 with
 the C++ desktop workload and the Windows 11 SDK, which
@@ -144,12 +132,24 @@ export default function Layout() {
 `TabStack` is that stack with the tab's root screen titled, as on the other
 platforms.
 
+`ExternalLink` opens its href in the default browser through React Native's
+`Linking`, which react-native-windows implements. There is no in-app browser
+to present, and `expo-web-browser`, which opens one on iOS and Android, has
+no Windows module — importing it throws — so the kit's Windows files never
+reach for it.
+
 ### Icons
 
 Windows draws Segoe Fluent Icons. A token whose Material name has a Fluent
 twin draws it without any change — `share` is `E72D`, `settings` is `E713`,
-`star` is `E734` (and `E735` filled); see `SEGOE_GLYPHS` for the table. A
-token can name its own code point with `windows`:
+`star` is `E734` (and `E735` filled). `SEGOE_GLYPHS` is that table:
+generated by `scripts/segoe-glyphs.ts` from the Material Symbols names
+`expo-symbols` types and the Segoe Fluent Icons catalogue, a twin where the
+names match (`zoom_in` is `ZoomIn`) and a curated list where they do not
+(`arrow_back` is `Back`, `favorite` is `Heart`), with the family's solid form
+as the filled glyph wherever it has one. A name outside the table draws
+nothing; add it to the script's `CURATED` map and regenerate, or have the
+token name its own code point with `windows`:
 
 ```ts
 export const drop = icon(
@@ -201,12 +201,21 @@ literal; `useColor` answers the palette for all of them.
 | Avatar | WinUI `PersonPicture` |
 | Tabs | WinUI `NavigationView` (top mode) over the focused tab |
 | Stack, TabStack | Expo Router's stack router under a drawn header |
+| ExternalLink | Expo Router's `Link`, opening the href in the default browser through React Native's `Linking`: there is no in-app browser, and `expo-web-browser` has no Windows module |
 | Gauge | Bars drawn in React Native; rings are the WinUI `ProgressRing` |
 | Fab | Drawn, as on iOS; with `items` a `MenuFlyout` |
 | Collapsible | Drawn (a WinUI `Expander` could not hold React Native content) |
 | Sheet | React Native's `Modal`, which react-native-windows presents as a window of its own. On react-native-windows 0.84 a `Modal` cannot host an island: keep the kit's controls out of a sheet there, or draw the sheet's content with React Native views |
 | FieldGroup, ListItem, Card, Surface, Toolbar, Divider, Typography | Drawn with Fluent metrics and the Segoe UI Variable ramp |
 | ConstrainedStackHeader, KeyboardBar | Nothing to draw: no web bar, no soft keyboard |
+
+The drawn pressables — a list row, a card, the disclosure header, the
+header's back button, the floating action button — behave as WinUI's own
+controls do at a desk: the subtle fill (or a control's secondary fill) under
+the pointer and the tertiary one while pressed, react-native-windows' focus
+ring when tabbed to, Enter and Space to press. A `ContextMenu` opens on the
+Menu key and Shift+F10 as well as a right click. The XAML islands have all of
+that from WinUI itself.
 
 ## How a control is hosted
 
@@ -244,14 +253,20 @@ react-native-windows 0.84.
 ## Development
 
 The Vitest suite has a `windows` project: the iOS engine told it is Windows,
-with `.windows.*` files resolved first and `@expo/ui` forbidden. The islands
-render as host views named after their native components, and the
-`*.windows.test.tsx` files assert on their props and fire their events.
+with `.windows.*` files resolved first and the modules that have no Windows
+implementation forbidden — `@expo/ui`, `expo-image`, `expo-symbols`,
+`expo-web-browser`, `expo-system-ui` and the rest of the list in
+`vitest/setup.windows.ts` — so a `.windows` file that reaches for one fails
+its test rather than the app. One test imports the whole barrel under that
+rule, since that is what an app does. The islands render as host views named
+after their native components, and the `*.windows.test.tsx` files assert on
+their props and fire their events.
 
 ```sh
 bun run test                       # ios, android, windows, web
 bunx vitest run --project windows  # Windows alone
 bun run codegen:windows            # regenerate the C++ headers from the specs
+bun run segoe:windows              # regenerate SEGOE_GLYPHS from the icon catalogues
 ```
 
 The native library builds inside a react-native-windows app — the app's

@@ -117,7 +117,7 @@ export function Overview() {
           <Li><Strong>Stack</Strong>: the native stack of <Code>expo-router</Code> on iOS, Android and web, and a stack of the kit&apos;s own on Windows, where there is no native one</Li>
           <Li><Strong>TabStack</Strong>: preconfigured <Code>expo-router</Code> stack for the root screen of a tab</Li>
           <Li><Strong>ConstrainedStackHeader</Strong>: stack header that matches the content max-width on web</Li>
-          <Li><Strong>ExternalLink</Strong>: link that opens in an in-app browser on native and a new tab on web</Li>
+          <Li><Strong>ExternalLink</Strong>: link that opens in an in-app browser on iOS and Android, a new tab on web and the default browser on Windows</Li>
         </Ul>
       </Page>
     </Providers>

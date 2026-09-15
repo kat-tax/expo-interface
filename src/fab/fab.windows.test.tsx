@@ -52,3 +52,14 @@ describe('Fab (windows)', () => {
   });
 
 });
+
+describe('Fab pointer (windows)', () => {
+  it('dims a little under the pointer, as an accent button does', async () => {
+    await render(<Fab label="New" icon={icons.add} onPress={vi.fn()} testID="fab"/>);
+    const fab = screen.getByTestId('fab');
+    await fireEvent(fab, 'hoverIn');
+    expect(fab).toHaveStyle({opacity: 0.9});
+    await fireEvent(fab, 'hoverOut');
+    expect(fab).not.toHaveStyle({opacity: 0.9});
+  });
+});

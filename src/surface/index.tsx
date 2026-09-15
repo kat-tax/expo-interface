@@ -1,14 +1,23 @@
 import type {ViewStyle} from 'react-native';
-import type {SurfaceColor, SurfaceProps} from './types';
+import type {Feedback, SurfaceColor, SurfaceProps} from './types';
 import type {ColorTokens} from '../theme';
-import {Platform, Pressable, StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 import {useColor} from '../theme';
+import {StatePressable} from './pressable';
 import {pressFeedback} from './shared';
 
 const FILL: Record<Exclude<SurfaceColor, 'none'>, ColorTokens> = {
   background: 'background',
   element: 'backgroundElement',
   selected: 'backgroundSelected',
+};
+
+/** The feedback a pressable surface of each fill takes: a filled box is a control, a bare one a row. */
+const FEEDBACK: Record<SurfaceColor, Feedback> = {
+  background: 'subtle',
+  element: 'control',
+  selected: 'control',
+  none: 'subtle',
 };
 
 const SHADOW = '0 8px 24px rgba(0, 0, 0, 0.18)';
@@ -67,16 +76,16 @@ export function Surface({
   }
 
   return (
-    <Pressable
+    <StatePressable
       role="button"
       accessibilityLabel={label}
       disabled={disabled}
       onPress={onPress}
       onLongPress={onLongPress}
       onLayout={onLayout}
-      style={state => [box, WEB_BUTTON, pressFeedback(state), style]}
+      style={state => [box, WEB_BUTTON, pressFeedback(state, FEEDBACK[color]), style]}
       testID={testID}>
       {children}
-    </Pressable>
+    </StatePressable>
   );
 }

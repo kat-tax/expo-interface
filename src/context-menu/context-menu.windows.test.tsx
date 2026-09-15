@@ -82,3 +82,34 @@ describe('ContextMenu (windows)', () => {
     expect(screen.getByTestId('target').props.onLongPress).toBeUndefined();
   });
 });
+
+describe('ContextMenu keyboard (windows)', () => {
+  it('opens at the centre of the content on the Menu key and on Shift+F10, and on nothing else', async () => {
+    await render(
+      <ContextMenu items={items()} testID="target">
+        <Text>Document</Text>
+      </ContextMenu>,
+    );
+    const target = screen.getByTestId('target');
+    await fireEvent(target, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 120, height: 40}}});
+    await fireEvent(target, 'keyDown', {nativeEvent: {key: 'F10', shiftKey: false}});
+    expect(island(FLYOUT).props.open).toBe(false);
+    await fireEvent(target, 'keyDown', {nativeEvent: {key: 'Enter', shiftKey: true}});
+    expect(island(FLYOUT).props.open).toBe(false);
+    await fireEvent(target, 'keyDown', {nativeEvent: {key: 'ContextMenu', shiftKey: false}});
+    expect(island(FLYOUT).props).toMatchObject({open: true, x: 60, y: 20});
+    await fireIsland(island(FLYOUT), 'openChange', {open: false});
+    await fireEvent(target, 'keyDown', {nativeEvent: {key: 'F10', shiftKey: true}});
+    expect(island(FLYOUT).props).toMatchObject({open: true, x: 60, y: 20});
+  });
+
+  it('ignores the keys while disabled', async () => {
+    await render(
+      <ContextMenu items={items()} disabled testID="target">
+        <Text>Document</Text>
+      </ContextMenu>,
+    );
+    await fireEvent(screen.getByTestId('target'), 'keyDown', {nativeEvent: {key: 'ContextMenu', shiftKey: false}});
+    expect(island(FLYOUT).props.open).toBe(false);
+  });
+});

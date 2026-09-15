@@ -1,5 +1,5 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {Text, View} from 'react-native';
+import {PlatformColor, Text, View} from 'react-native';
 import {useNativeHost} from '../host';
 import {setColorScheme} from '../scheme';
 import {StackHeaderContext} from '../stack-header/context';
@@ -75,5 +75,16 @@ describe('ScreenHeader (windows)', () => {
   it('has no back arrow on a root screen', async () => {
     await render(<ScreenHeader title="Drops"/>);
     expect(screen.queryByLabelText('Go back')).toBeNull();
+  });
+});
+
+describe('ScreenHeader back button (windows)', () => {
+  it('takes the subtle fill under the pointer', async () => {
+    await render(<ScreenHeader title="Drops" onBack={vi.fn()}/>);
+    const back = screen.getByLabelText('Go back');
+    await fireEvent(back, 'hoverIn');
+    expect(back).toHaveStyle({backgroundColor: PlatformColor('SubtleFillColorSecondary')});
+    await fireEvent(back, 'hoverOut');
+    expect(back).not.toHaveStyle({backgroundColor: PlatformColor('SubtleFillColorSecondary')});
   });
 });

@@ -1,5 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import {Text} from 'react-native';
+import {PlatformColor, Text} from 'react-native';
 import {island, islands} from '../__tests__/windows';
 import {ListItem} from '.';
 
@@ -29,13 +29,35 @@ describe('ListItem (windows)', () => {
     expect(screen.getByText('Detail')).toBeOnTheScreen();
   });
 
-  it('is a pressable when it has onPress', async () => {
+  it('is a pressable named after a text headline when it has onPress', async () => {
     const onPress = vi.fn();
     await render(<ListItem onPress={onPress} testID="row">Open</ListItem>);
     const row = screen.getByTestId('row');
     expect(row.props.role).toBe('button');
+    expect(row.props.accessibilityLabel).toBe('Open');
     await fireEvent.press(row);
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the name to node children, and draws a number as its text', async () => {
+    await render(
+      <>
+        <ListItem onPress={vi.fn()} testID="node"><Text>Custom</Text></ListItem>
+        <ListItem onPress={vi.fn()} testID="count">{42}</ListItem>
+      </>,
+    );
+    expect(screen.getByTestId('node').props.accessibilityLabel).toBeUndefined();
+    expect(screen.getByTestId('count').props.accessibilityLabel).toBe('42');
+    expect(screen.getByText('42')).toBeOnTheScreen();
+  });
+
+  it('takes the subtle fill under the pointer and while pressed', async () => {
+    await render(<ListItem onPress={vi.fn()} testID="row">Open</ListItem>);
+    const row = screen.getByTestId('row');
+    await fireEvent(row, 'hoverIn');
+    expect(row).toHaveStyle({backgroundColor: PlatformColor('SubtleFillColorSecondary')});
+    await fireEvent(row, 'hoverOut');
+    expect(row).not.toHaveStyle({backgroundColor: PlatformColor('SubtleFillColorSecondary')});
   });
 
   it('renders the action as the kit button, text or filled', async () => {

@@ -1,5 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import {Text} from 'react-native';
+import {PlatformColor, Text} from 'react-native';
 import {Collapsible} from '.';
 
 describe('Collapsible (windows)', () => {
@@ -46,5 +46,21 @@ describe('Collapsible (windows)', () => {
       </Collapsible>,
     );
     expect(screen.getByText('Options')).toBeOnTheScreen();
+  });
+});
+
+describe('Collapsible header (windows)', () => {
+  it('is named after its label and takes the subtle fill under the pointer', async () => {
+    await render(
+      <Collapsible label="Advanced">
+        <Text>Options</Text>
+      </Collapsible>,
+    );
+    const header = screen.getByRole('button');
+    expect(header.props.accessibilityLabel).toBe('Advanced');
+    await fireEvent(header, 'hoverIn');
+    expect(header).toHaveStyle({backgroundColor: PlatformColor('SubtleFillColorSecondary')});
+    await fireEvent(header, 'hoverOut');
+    expect(header).not.toHaveStyle({backgroundColor: PlatformColor('SubtleFillColorSecondary')});
   });
 });

@@ -267,6 +267,11 @@ struct SelectorBarView : winrt::implements<SelectorBarView, winrt::IInspectable>
                          XamlIsland<SelectorBarView> {
   void InitializeIsland(const composition::ContentIslandComponentView &islandView) noexcept {
     m_bar = controls::SelectorBar{};
+    m_bar.LayoutUpdated([weak = get_weak()](const winrt::IInspectable &, const winrt::IInspectable &) {
+      if (auto strong = weak.get()) {
+        strong->FitToItems();
+      }
+    });
     m_bar.SelectionChanged([weak = get_weak()](const controls::SelectorBar &sender, const controls::SelectorBarSelectionChangedEventArgs &) {
       if (auto strong = weak.get()) {
         if (strong->m_applying) return;
@@ -295,6 +300,8 @@ struct SelectorBarView : winrt::implements<SelectorBarView, winrt::IInspectable>
     ApplyLook(Root(), props->theme, props->accentColor);
     if (props->options != m_options) {
       m_options = props->options;
+      m_fitted = 0;
+      m_bar.MinWidth(0);
       m_bar.Items().Clear();
       for (const auto &label : JsonStrings(ParseArray(m_options))) {
         controls::SelectorBarItem item;
@@ -316,8 +323,35 @@ struct SelectorBarView : winrt::implements<SelectorBarView, winrt::IInspectable>
   }
 
  private:
+  /**
+   * WinUI's SelectorBar asks for less width than its items take — its
+   * ItemsView measures short of the last one — so an island that hugs it
+   * clips the last label. Once the items are laid out, the right edge of the
+   * last one is the width the bar needs: kept as its MinWidth, which makes
+   * it report the full size, and reset when the items change.
+   */
+  void FitToItems() noexcept {
+    try {
+      const auto count = m_bar.Items().Size();
+      if (count == 0) return;
+      auto last = m_bar.Items().GetAt(count - 1).try_as<xaml::FrameworkElement>();
+      if (!last || !last.IsLoaded()) return;
+      const auto origin = last.TransformToVisual(m_bar).TransformPoint({0, 0});
+      const double extent = std::max(last.ActualWidth(), static_cast<double>(last.DesiredSize().Width));
+      const double width = origin.X + extent + m_bar.Padding().Right;
+      if (width <= 0 || std::abs(width - m_fitted) < 0.5) return;
+      m_fitted = width;
+      m_bar.MinWidth(width);
+      // The bar's new minimum does not reach the island's panel on its own:
+      // measure it again so the size Yoga holds is reported.
+      Root().InvalidateMeasure();
+    } catch (...) {
+    }
+  }
+
   controls::SelectorBar m_bar{nullptr};
   std::string m_options;
+  double m_fitted = 0;
   bool m_applying{false};
 };
 

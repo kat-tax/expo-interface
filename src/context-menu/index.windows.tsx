@@ -3,7 +3,7 @@ import type {ContextMenuProps} from '../menu/types';
 import {useEffect, useState} from 'react';
 import {Pressable, StyleSheet} from 'react-native';
 import XamlMenuFlyout from '../windows/specs/ExpoInterfaceMenuFlyoutNativeComponent';
-import {useXamlProps} from '../windows';
+import {keyHandlers, useXamlProps} from '../windows';
 import {menuItemsProp} from '../menu/windows';
 
 /** The secondary (right) button of a pointer, as pointer events number them. */
@@ -11,13 +11,16 @@ const SECONDARY_BUTTON = 2;
 
 /**
  * Windows: a WinUI 3 `MenuFlyout` opened at the pointer on a right click
- * (the platform's context gesture), a touch long-press, or the point `at`
- * reports. The content is wrapped in a pressable that reads the pointer;
+ * (the platform's context gesture), a touch long-press, the keyboard's Menu
+ * key or Shift+F10 while the content has the focus (at its centre, where
+ * WinUI opens a keyboard context menu), or the point `at` reports. The
+ * content is wrapped in a pressable that reads the pointer and the keys;
  * the flyout is shown from an island laid over it that takes no presses.
  */
 export function ContextMenu({items, children, onPress, disabled, at, onDismiss, onOpenChange, testID}: ContextMenuProps) {
   const xaml = useXamlProps();
   const [point, setPoint] = useState<{x: number; y: number} | null>(null);
+  const [size, setSize] = useState({width: 0, height: 0});
 
   const open = (x: number, y: number) => {
     setPoint({x, y});
@@ -43,13 +46,23 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
     open(event.nativeEvent.offsetX, event.nativeEvent.offsetY);
   };
 
+  const keyboard = keyHandlers({
+    onKeyDown: event => {
+      const {key, shiftKey} = event.nativeEvent;
+      if (disabled || !(key === 'ContextMenu' || (key === 'F10' && shiftKey))) return;
+      open(size.width / 2, size.height / 2);
+    },
+  });
+
   return (
     <Pressable
       disabled={disabled}
       onPress={onPress}
       onLongPress={disabled ? undefined : event => open(event.nativeEvent.locationX, event.nativeEvent.locationY)}
       onPointerDown={onPointerDown}
-      testID={testID}>
+      onLayout={event => setSize(event.nativeEvent.layout)}
+      testID={testID}
+      {...keyboard}>
       {children}
       <XamlMenuFlyout
         items={menuItemsProp(items)}

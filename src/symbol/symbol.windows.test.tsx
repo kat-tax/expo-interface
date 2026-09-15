@@ -33,7 +33,7 @@ describe('windowsGlyph', () => {
   it('picks the solid form for a filled token, falling back to the outline', () => {
     expect(windowsGlyph(icons.star)).toBe('E734');
     expect(windowsGlyph(icons.starFilled)).toBe('E735');
-    expect(windowsGlyph(icon({ios: 'gearshape', android: 'settings', web: 'settings'}, undefined, {fill: true}))).toBe('E713');
+    expect(windowsGlyph(icon({ios: 'square.and.arrow.up', android: 'share', web: 'share'}, undefined, {fill: true}))).toBe('E72D');
   });
 
   it('keeps a table of Fluent code points and turns them into characters', () => {

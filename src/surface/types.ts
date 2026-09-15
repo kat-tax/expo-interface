@@ -1,11 +1,30 @@
-import type {PropsWithChildren} from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {PropsWithChildren, ReactNode} from 'react';
+import type {LayoutChangeEvent, PressableProps, StyleProp, ViewStyle} from 'react-native';
 
 /** Fill of a `Surface`, from the theme's background tokens. */
 export type SurfaceColor = 'background' | 'element' | 'selected' | 'none';
 
 /** Where a `Surface` draws its hairline. */
 export type SurfaceBorder = 'none' | 'all' | 'top' | 'bottom';
+
+/** What a pressable surface is doing: held down and, where a pointer exists, hovered. */
+export interface PressState {
+  pressed: boolean;
+  hovered?: boolean;
+}
+
+/**
+ * Which fill a surface's feedback is drawn in, on the platform that draws
+ * one (Windows): `control` for a filled box such as a card, `subtle` for a
+ * bare row, `accent` for a button in the accent color, which dims instead.
+ */
+export type Feedback = 'control' | 'subtle' | 'accent';
+
+/** `Pressable` props with a style callback that also sees `hovered`. */
+export interface StatePressableProps extends Omit<PressableProps, 'style' | 'children'> {
+  style: (state: PressState) => StyleProp<ViewStyle>;
+  children?: ReactNode;
+}
 
 /**
  * A box in the theme's own colors: the bar under a canvas, the strip of
