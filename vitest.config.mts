@@ -28,10 +28,11 @@ const OTHER_PLATFORMS = {
 };
 
 const SOURCE = path.resolve(import.meta.dirname, 'src');
+const RUNTIME_SOURCE = path.resolve(import.meta.dirname, 'expo-windows', 'src');
 
 /**
- * Resolves a relative import from the kit's source to its Windows platform
- * file when there is one — `../button` to `button/index.windows.tsx`, the
+ * Resolves a relative import from the kit's source (or the runtime's) to its
+ * Windows platform file when there is one — `../button` to `button/index.windows.tsx`, the
  * way Metro does for the `windows` platform — ahead of the iOS order
  * vitest-native gives Vite (which the Node side keeps for React Native's own
  * files: they have no Windows variants outside react-native-windows).
@@ -40,7 +41,9 @@ const windowsResolution: Plugin = {
   name: 'expo-interface:windows-resolution',
   enforce: 'pre',
   resolveId(source, importer) {
-    if (!importer || !source.startsWith('.') || !path.resolve(importer).startsWith(SOURCE)) return null;
+    if (!importer || !source.startsWith('.')) return null;
+    const from = path.resolve(importer);
+    if (!from.startsWith(SOURCE) && !from.startsWith(RUNTIME_SOURCE)) return null;
     if (/\.[cm]?[jt]sx?$/.test(source)) return null;
     const base = path.resolve(path.dirname(importer), source);
     for (const extension of ['.tsx', '.ts']) {
@@ -98,11 +101,35 @@ const windowsProject = {
   },
 };
 
+/**
+ * The `expo-windows` runtime's own JavaScript — the modules an Expo package
+ * finds on Windows — tested on the same engine as the kit's Windows files;
+ * its Metro config and CLI are Node code and run as a plain Node project.
+ */
+const runtimeProject = {
+  ...windowsProject,
+  test: {
+    ...windowsProject.test,
+    name: 'expo-windows',
+    include: ['expo-windows/src/**/*.test.{ts,tsx}'],
+  },
+};
+
+const runtimeNodeProject = {
+  test: {
+    name: 'expo-windows-node',
+    environment: 'node',
+    globals: true,
+    clearMocks: true,
+    include: ['expo-windows/{metro,cli}/**/*.test.{js,ts}'],
+  },
+};
+
 export default defineConfig({
   test: {
     // Web needs a different pipeline (react-native-web in jsdom with the
     // dependency optimizer pre-bundling the Expo packages) — see the file.
-    projects: [...projects, windowsProject, './vitest.config.web.mts'],
+    projects: [...projects, windowsProject, runtimeProject, runtimeNodeProject, './vitest.config.web.mts'],
     // Terminal output plus the browsable report (`@vitest/ui`) in test-report/.
     reporters: ['default', 'html'],
     outputFile: {html: 'test-report/index.html'},
@@ -111,13 +138,16 @@ export default defineConfig({
       reportsDirectory: 'coverage',
       reporter: ['text-summary', 'html', 'lcov'],
       thresholds: {lines: 100, functions: 100, branches: 100, statements: 100},
-      include: ['src/**/*.{ts,tsx}'],
+      include: ['src/**/*.{ts,tsx}', 'expo-windows/src/**/*.{ts,tsx}', 'expo-windows/{metro,cli}/**/*.js'],
       exclude: [
         'src/**/*.stories.tsx',
         'src/**/*.test.{ts,tsx}',
         'src/__stories__/**',
         'src/__tests__/**',
         'src/**/*.d.ts',
+        'expo-windows/**/*.test.{js,ts,tsx}',
+        'expo-windows/**/*.d.ts',
+        'expo-windows/cli/index.js',
       ],
     },
   },

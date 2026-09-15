@@ -62,10 +62,11 @@
   },
   "workspaces": [
     "example",
-    "storybook"
+    "storybook",
+    "expo-windows"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit && bun run --cwd example typecheck && bun run --cwd storybook typecheck",
+    "typecheck": "tsc --noEmit && bun run --cwd expo-windows typecheck && bun run --cwd example typecheck && bun run --cwd storybook typecheck",
     "lint": "oxlint --max-warnings 0",
     "test": "vitest run",
     "test:watch": "vitest",

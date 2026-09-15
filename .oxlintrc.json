@@ -8,7 +8,8 @@
     "builtin": true,
     "browser": true,
     "es2022": true,
-    "shared-node-browser": true
+    "shared-node-browser": true,
+    "node": true
   },
   "globals": {
     "__DEV__": "readonly",
@@ -22,7 +23,16 @@
     "requestIdleCallback": "readonly",
     "cancelIdleCallback": "readonly",
     "setImmediate": "readonly",
-    "clearImmediate": "readonly"
+    "clearImmediate": "readonly",
+    "describe": "readonly",
+    "it": "readonly",
+    "test": "readonly",
+    "expect": "readonly",
+    "vi": "readonly",
+    "beforeEach": "readonly",
+    "afterEach": "readonly",
+    "beforeAll": "readonly",
+    "afterAll": "readonly"
   },
   "ignorePatterns": [
     "**/node_modules/",

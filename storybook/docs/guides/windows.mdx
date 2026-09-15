@@ -53,9 +53,13 @@ Expo's own tooling has no `windows` platform: `expo prebuild` writes no
 Metro config for the platform, an Expo Modules Core over react-native-windows,
 the app scaffold (`init`, `run`, `bundle`) and the modules the Expo packages
 call at load (`expo-linking`, `expo-constants`, `expo-asset`, `expo-font` and
-the rest). This section is written for it and pending it: until it ships, and
-until react-native-windows pairs with Expo 57 (see Versions), a Windows app is
-set up by hand, the way the library was verified.
+the rest). The runtime exists — see [its README](https://github.com/kat-tax/expo-interface/tree/master/expo-windows#readme):
+`withWindows(config)` in `metro.config.js` makes `expo start` serve a Windows
+bundle, its install gives the Expo packages their modules, and its CLI
+writes and runs the `windows/` project. Until react-native-windows pairs with
+Expo 57 (see Versions) it is proven in the kit's harness, an Expo 57 app on
+react-native-windows 0.84; the steps below are what that harness does, and
+what `expo-windows init` automates.
 
 1. Generate a react-native-windows `cpp-app` project into `windows/` on a
    React Native app of the matching version
@@ -67,10 +71,12 @@ set up by hand, the way the library was verified.
    in the package tells react-native-windows' autolinking where
    `windows/ExpoInterface` is, the codegen headers for its specs ship with
    the package, and the app's build compiles the library.
-3. Give Metro the platform: `resolver.platforms` gains `windows`,
+3. Give Metro the platform with `withWindows(getDefaultConfig(__dirname))`
+   from `expo-windows/metro`: `resolver.platforms` gains `windows`,
    `react-native` resolves to `react-native-windows` for it (what
    react-native-windows' own `react-native start` does and `expo start` does
-   not), and `xml` joins `assetExts` for the Material Symbols drawables.
+   not), the runtime's install runs before the entry, and `expo start` serves
+   the bundle.
 4. Keep what has no Windows implementation out of the Windows bundle. The
    kit's own files never import `@expo/ui`, `expo-image`, `expo-symbols`,
    `expo-web-browser` or `expo-system-ui` there (a test imports the whole

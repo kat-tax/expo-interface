@@ -49,6 +49,23 @@ describe('StatePressable (windows)', () => {
     expect(row).not.toHaveStyle(SUBTLE_HOVER);
     expect(onHoverOut).toHaveBeenCalledTimes(1);
   });
+
+  it('reads the pointer from the pointer events react-native-windows dispatches, passing them on', async () => {
+    const onPointerEnter = vi.fn();
+    const onPointerLeave = vi.fn();
+    await render(
+      <StatePressable onPointerEnter={onPointerEnter} onPointerLeave={onPointerLeave} style={state => pressFeedback(state, 'subtle')} testID="row">
+        <Text>Row</Text>
+      </StatePressable>,
+    );
+    const row = screen.getByTestId('row');
+    await fireEvent(row, 'pointerEnter', {nativeEvent: {}});
+    expect(row).toHaveStyle(SUBTLE_HOVER);
+    expect(onPointerEnter).toHaveBeenCalledTimes(1);
+    await fireEvent(row, 'pointerLeave', {nativeEvent: {}});
+    expect(row).not.toHaveStyle(SUBTLE_HOVER);
+    expect(onPointerLeave).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('pressFeedback (windows)', () => {
@@ -58,7 +75,7 @@ describe('pressFeedback (windows)', () => {
     expect(pressFeedback({pressed: false, hovered: true}, 'control')).toEqual(HOVER);
     expect(pressFeedback({pressed: true, hovered: true}, 'control')).toEqual(PRESS);
     expect(pressFeedback({pressed: false, hovered: true}, 'subtle')).toEqual(SUBTLE_HOVER);
-    expect(pressFeedback({pressed: true}, 'subtle')).toEqual({backgroundColor: PlatformColor('SubtleFillColorTertiary')});
+    expect(pressFeedback({pressed: true}, 'subtle')).toEqual({backgroundColor: PlatformColor('SubtleFillColorSecondary')});
   });
 
   it('dims an accent surface instead of filling it', () => {

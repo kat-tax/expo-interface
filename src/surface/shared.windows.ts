@@ -20,7 +20,7 @@ const FILLS = {
   },
   subtle: {
     hovered: PlatformColor('SubtleFillColorSecondary'),
-    pressed: PlatformColor('SubtleFillColorTertiary'),
+    pressed: PlatformColor('SubtleFillColorSecondary'),
   },
 };
 
