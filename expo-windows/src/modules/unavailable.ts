@@ -81,12 +81,6 @@ const NOTIFICATIONS = 'Notifications';
  * table when its module becomes real.
  */
 export const UNAVAILABLE: Record<string, UnavailableSpec> = {
-  ExpoAudio: {
-    package: 'Audio',
-    methods: ['clearAllPreloadedSources', 'clearPreloadedSource', 'getPreloadedSources', 'preload', 'setAudioModeAsync', 'setIsAudioActiveAsync'],
-    classes: ['AudioPlayer', 'AudioPlaylist', 'AudioRecorder', 'AudioStream'],
-    answers: {getRecordingPermissionsAsync: denied, requestRecordingPermissionsAsync: denied, requestNotificationPermissionsAsync: denied},
-  },
   ExpoBattery: {
     package: 'Battery',
     methods: ['getBatteryLevelAsync', 'getBatteryStateAsync', 'isBatteryOptimizationEnabledAsync', 'isLowPowerModeEnabledAsync'],
@@ -185,19 +179,11 @@ export const UNAVAILABLE: Record<string, UnavailableSpec> = {
   ExpoBarometer: sensor('Barometer'),
   ExpoLightSensor: sensor('LightSensor'),
   ExponentPedometer: sensor('Pedometer', {methods: ['getStepCountAsync'], answers: {getPermissionsAsync: denied, requestPermissionsAsync: denied}}),
-  ExpoSpeech: {package: 'Speech', methods: ['getVoices', 'isSpeaking', 'pause', 'resume', 'speak', 'stop']},
   ExpoSQLite: {
     package: 'SQLite',
     methods: ['backupDatabaseSync', 'deleteDatabaseAsync', 'deleteDatabaseSync', 'ensureDatabasePathExistsAsync', 'ensureDatabasePathExistsSync', 'importAssetDatabaseAsync'],
     classes: ['NativeDatabase', 'NativeSession', 'NativeStatement'],
     constants: {bundledExtensions: [], defaultDatabaseDirectory: ''},
-  },
-  ExpoVideoThumbnails: {package: 'VideoThumbnails', methods: ['getThumbnail']},
-  ExpoVideo: {
-    package: 'Video',
-    methods: ['clearVideoCacheAsync', 'getCurrentVideoCacheSize', 'setVideoCacheSizeAsync'],
-    classes: ['VideoPlayer', 'VideoThumbnail'],
-    constants: {isPictureInPictureSupported: false},
   },
 };
 

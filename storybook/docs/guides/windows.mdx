@@ -89,6 +89,13 @@ and image pickers open the same shell pickers (and the camera capture UI),
 system's codecs, and `expo-media-library` reads the user's Pictures, Videos
 and Music folders as the library and their folders as albums.
 
+Media plays through the runtime's engine over `Windows.Media.Playback`:
+`expo-video`'s `VideoView` is a WinUI 3 `MediaPlayerElement` island showing
+the player, `expo-audio` plays and records (over `MediaCapture`),
+`expo-video-thumbnails` renders a frame, and `expo-speech` speaks with the
+system's voices. Picture in picture, subtitle tracks and audio streams are
+other platforms', and say so.
+
 1. Generate a react-native-windows `cpp-app` project into `windows/` on a
    React Native app of the matching version
    (`npx react-native-windows-init --template cpp-app`), and in its

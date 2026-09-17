@@ -73,8 +73,9 @@ void RegisterIsland(const rn::IReactPackageBuilder &packageBuilder, TRegister re
   });
 }
 
-/** The runtime's islands: the web view. */
+/** The runtime's islands: the web view and the video view. */
 void RegisterWebView(const rn::IReactPackageBuilder &packageBuilder) noexcept;
+void RegisterVideoView(const rn::IReactPackageBuilder &packageBuilder) noexcept;
 
 } // namespace winrt::ExpoWindows
 

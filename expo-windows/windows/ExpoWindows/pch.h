@@ -49,6 +49,16 @@
 #include <winrt/Windows.Globalization.h>
 #include <winrt/Windows.Graphics.Imaging.h>
 #include <winrt/Windows.Graphics.h>
+#include <winrt/Windows.Devices.Enumeration.h>
+#include <winrt/Windows.Media.Capture.h>
+#include <winrt/Windows.Media.Core.h>
+#include <winrt/Windows.Media.Devices.h>
+#include <winrt/Windows.Media.Editing.h>
+#include <winrt/Windows.Media.MediaProperties.h>
+#include <winrt/Windows.Media.Playback.h>
+#include <winrt/Windows.Media.SpeechSynthesis.h>
+#include <winrt/Windows.Media.h>
+#include <winrt/Microsoft.UI.Xaml.Media.h>
 #include <winrt/Windows.Networking.Connectivity.h>
 #include <winrt/Windows.Networking.h>
 #include <winrt/Windows.UI.ViewManagement.h>
@@ -77,7 +87,9 @@
 #include <algorithm>
 #include <atomic>
 #include <cctype>
+#include <chrono>
 #include <cstdio>
+#include <deque>
 #include <cwctype>
 #include <filesystem>
 #include <fstream>

@@ -40,6 +40,8 @@ const ALIASES = {
  */
 const REPLACEMENTS = [
   [/[\\/]expo[\\/](src|build)[\\/]winter[\\/]fetch[\\/]fetch\.(ts|js)$/, path.join(__dirname, '..', 'src', 'winter-fetch.ts')],
+  // expo-video's native view: the runtime's island, in place of the adapter of a view manager Windows has none of.
+  [/[\\/]expo-video[\\/](src|build)[\\/]NativeVideoView\.(ts|js)$/, path.join(__dirname, '..', 'src', 'aliases', 'expo-video-view.tsx')],
 ];
 
 const TRANSFORMER = path.join(__dirname, 'transformer.js');

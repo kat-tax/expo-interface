@@ -299,6 +299,59 @@ export interface NativeMediaLibrary extends TurboModule {
   watch(on: boolean): void;
 }
 
+export interface PlayerState {
+  playing: boolean;
+  buffering: boolean;
+  currentTime: number;
+  duration: number;
+  bufferedPosition: number;
+  volume: number;
+  muted: boolean;
+  loop: boolean;
+  playbackRate: number;
+  status: 'idle' | 'loading' | 'readyToPlay' | 'error';
+  loaded: boolean;
+  isLive: boolean;
+  error?: string;
+}
+
+export type MediaEvent = {id: number; event: 'state'; playing: boolean; buffering: boolean} | {id: number; event: 'opened'; duration: number} | {id: number; event: 'ended'} | {id: number; event: 'failed'; error: string};
+
+export type SpeechEvent = {id: string; event: 'started' | 'done' | 'stopped' | 'error'; error?: string};
+
+export interface RecorderState {
+  canRecord: boolean;
+  isRecording: boolean;
+  durationMillis: number;
+  url: string | null;
+}
+
+export interface NativeMedia extends TurboModule {
+  /** A player on the source (a URI, or '' for none); its id, 0 when the engine refused. */
+  createPlayer(uri: string): number;
+  releasePlayer(id: number): boolean;
+  setSource(id: number, uri: string): boolean;
+  /** play, pause, seek, seekBy, replay, loop, muted, volume, rate — with the value the action takes. */
+  control(id: number, action: string, value: number): boolean;
+  playerState(id: number): PlayerState | null;
+  /** The shell's transport controls and now-playing metadata for a player, on or off. */
+  setNowPlaying(id: number, active: boolean, metadata: object | null): boolean;
+  /** A frame of the video at `timeMs`, within the bounds (0 for none), as JPEG at `quality` or PNG at 1. */
+  thumbnail(uri: string, timeMs: number, maxWidth: number, maxHeight: number, quality: number): Promise<{uri: string; width: number; height: number; actualTime: number}>;
+  speak(id: string, text: string, options: object): void;
+  /** stop, pause, resume. */
+  speechControl(action: string): boolean;
+  isSpeaking(): boolean;
+  voices(): Promise<{identifier: string; name: string; quality: string; language: string}[]>;
+  /** A recorder on the input (or '' for the default) into the file the URI names. */
+  prepareRecorder(id: number, uri: string, inputId: string): Promise<boolean>;
+  /** record, pause, stop. */
+  recorderControl(id: number, action: string): Promise<{url: string; durationMillis: number}>;
+  recorderState(id: number): RecorderState;
+  releaseRecorder(id: number): boolean;
+  recordingInputs(): Promise<{name: string; type: string; uid: string}[]>;
+}
+
 function get<T extends TurboModule>(name: string): T | null {
   return TurboModuleRegistry.get<T>(name);
 }
@@ -319,4 +372,5 @@ export const native = {
   fileSystem: () => get<NativeFileSystem>('ExpoWindowsFileSystem'),
   images: () => get<NativeImages>('ExpoWindowsImages'),
   mediaLibrary: () => get<NativeMediaLibrary>('ExpoWindowsMediaLibrary'),
+  media: () => get<NativeMedia>('ExpoWindowsMedia'),
 };

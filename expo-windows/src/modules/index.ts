@@ -2,6 +2,7 @@ import {registerModule} from './registry';
 import {ExpoAgeRange} from './age-range';
 import {ExpoApplication} from './application';
 import {ExpoAsset} from './asset';
+import {createAudioModule} from './audio';
 import {ExpoBackgroundFetch, ExpoBackgroundTask, ExpoTaskManager} from './background';
 import {createBlobModule} from './blob';
 import {ExpoBrightness} from './brightness';
@@ -30,11 +31,14 @@ import {createScreenOrientationModule} from './screen-orientation';
 import {ExpoSecureStore} from './secure-store';
 import {ExpoSharing} from './sharing';
 import {ExpoSMS} from './sms';
+import {createSpeechModule} from './speech';
 import {ExpoStoreReview} from './store-review';
 import {ExpoSystemUI} from './system-ui';
 import {ExpoTrackingTransparency} from './tracking';
 import {registerUnavailableModules} from './unavailable';
 import {createUpdatesModule} from './updates';
+import {createVideoModule} from './video';
+import {ExpoVideoThumbnails} from './video-thumbnails';
 import {ExpoWebBrowser} from './web-browser';
 import {ExpoWindows} from './window';
 
@@ -93,6 +97,10 @@ export function registerModules(): void {
   registerModule('ExpoImageManipulator', createImageManipulatorModule());
   registerModule('ExpoMediaLibrary', createMediaLibraryModule());
   registerModule('ExpoMediaLibraryNext', createMediaLibraryNextModule());
+  registerModule('ExpoVideo', createVideoModule());
+  registerModule('ExpoAudio', createAudioModule());
+  registerModule('ExpoSpeech', createSpeechModule());
+  registerModule('ExpoVideoThumbnails', ExpoVideoThumbnails);
   // The runtime's own: the window, for the kit's stack and any app that asks for it.
   registerModule('ExpoWindows', ExpoWindows);
   registerUnavailableModules();

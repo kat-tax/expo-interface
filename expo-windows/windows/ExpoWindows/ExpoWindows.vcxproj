@@ -107,6 +107,8 @@
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="Islands.h" />
+    <ClInclude Include="Media.h" />
+    <ClInclude Include="codegen\react\components\ExpoWindowsSpec\ExpoWindowsVideoView.g.h" />
     <ClInclude Include="codegen\react\components\ExpoWindowsSpec\ExpoWindowsWebView.g.h" />
     <ClInclude Include="ReactPackageProvider.h">
       <DependentUpon>ReactPackageProvider.idl</DependentUpon>
@@ -128,10 +130,12 @@
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="Linking.cpp" />
     <ClCompile Include="Localization.cpp" />
+    <ClCompile Include="Media.cpp" />
     <ClCompile Include="MediaLibrary.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="SecureStore.cpp" />
     <ClCompile Include="Sharing.cpp" />
+    <ClCompile Include="VideoView.cpp" />
     <ClCompile Include="WebView.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="pch.cpp">

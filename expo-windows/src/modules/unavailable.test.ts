@@ -86,11 +86,11 @@ describe('the unavailable table (windows)', () => {
     const expo = {...previous, modules: {}} as typeof globalThis.expo;
     globalThis.expo = expo;
     try {
-      const real = {speak: () => 'real'};
-      registerModule('ExpoSpeech', real);
+      const real = {getBatteryLevelAsync: () => 'real'};
+      registerModule('ExpoBattery', real);
       registerUnavailableModules();
       expect(registeredModules().sort()).toEqual(Object.keys(UNAVAILABLE).sort());
-      expect(expo.modules.ExpoSpeech).toBe(real);
+      expect(expo.modules.ExpoBattery).toBe(real);
       expect(() => (expo.modules.ExpoSQLite as {deleteDatabaseSync(): never}).deleteDatabaseSync()).toThrow(/SQLite\.deleteDatabaseSync/);
     } finally {
       globalThis.expo = previous;
