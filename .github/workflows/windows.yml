@@ -1,10 +1,12 @@
 name: Windows
 
-# Builds the Windows platform end to end on the line react-native-windows
-# ships (0.84 while Expo 57's React Native 0.86 waits for a 0.86 line): a
-# scratch Expo 57 app with React Native pinned to it, this checkout's kit and
-# runtime, `expo-windows init`, autolinking, MSBuild with the v143 toolset,
-# and the Windows JavaScript bundle. See scripts/windows-ci.sh.
+# Builds the example on Windows end to end on the line react-native-windows
+# ships (0.84 while Expo 57's React Native 0.86 waits for a 0.86 line): the
+# example's source in a scratch app with React Native pinned to it, this
+# checkout's kit and runtime, `expo-windows init` writing the Windows
+# project the way `ios/` and `android/` are generated, autolinking, the
+# Windows JavaScript bundle and MSBuild with the v143 toolset. See
+# scripts/windows-ci.sh.
 
 on:
   push:
@@ -13,6 +15,7 @@ on:
       - 'src/**'
       - 'windows/**'
       - 'expo-windows/**'
+      - 'example/**'
       - 'scripts/windows-ci/**'
       - 'scripts/windows-ci.sh'
       - '.github/workflows/windows.yml'
@@ -21,6 +24,7 @@ on:
       - 'src/**'
       - 'windows/**'
       - 'expo-windows/**'
+      - 'example/**'
       - 'scripts/windows-ci/**'
       - 'scripts/windows-ci.sh'
       - '.github/workflows/windows.yml'
@@ -59,7 +63,7 @@ jobs:
         with:
           name: windows-app
           path: |
-            ${{ runner.temp }}/winci/WinCi/windows/x64/Debug/WinCi.exe
-            ${{ runner.temp }}/winci/WinCi/windows/WinCi/Bundle
+            ${{ runner.temp }}/winci/WinCi/windows/x64/Debug/*.exe
+            ${{ runner.temp }}/winci/WinCi/windows/*/Bundle
           if-no-files-found: ignore
           retention-days: 7

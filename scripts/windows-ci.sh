@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Builds the Windows platform end to end on the line react-native-windows
-# ships: a scratch Expo 57 app from scripts/windows-ci (React Native pinned
-# to the react-native-windows release), this checkout's kit and runtime in
-# its node_modules, `expo-windows init` writing and patching the project,
-# autolinking, MSBuild with the v143 toolset, and the Windows JavaScript
-# bundle. What the harness in the guide does by hand, for CI.
+# Builds the example on Windows end to end on the line react-native-windows
+# ships: the example's source in a scratch Expo 57 app from scripts/windows-ci
+# (React Native pinned to the react-native-windows release), this checkout's
+# kit and runtime in its node_modules, `expo-windows init` writing and
+# patching the Windows project the way `ios/` and `android/` are generated,
+# autolinking, the Windows JavaScript bundle, and MSBuild with the v143
+# toolset. What the harness in the guide does by hand, for CI.
 #
 #   scripts/windows-ci.sh <workdir>
 #
@@ -21,11 +22,24 @@ CLI_VERSION="${CLI_VERSION:-20.1.0}"
 
 step() { printf '\n==== %s\n' "$1"; }
 
-step "The scratch app"
+step "The scratch app: the example's source on the pinned line"
 rm -rf "$APP"
 mkdir -p "$APP"
 cp -r "$REPO/scripts/windows-ci/." "$APP/"
+cp -r "$REPO/example/src" "$APP/src"
+cp -r "$REPO/example/assets" "$APP/assets"
+cp "$REPO/example/app.json" "$APP/app.json"
+cp "$REPO/example/tsconfig.json" "$APP/tsconfig.json"
 cd "$APP"
+# The example's path aliases, without its link to the kit's source: the kit is a package here.
+# (Relative paths: Node on Windows reads a Git Bash path against the current drive.)
+node -e "
+const fs = require('fs');
+const t = JSON.parse(fs.readFileSync('./tsconfig.json', 'utf8'));
+delete t.compilerOptions.paths['expo-interface'];
+fs.writeFileSync('./tsconfig.json', JSON.stringify(t, null, 2) + '\n');
+"
+cat tsconfig.json
 
 step "Install (the pinned line, peers relaxed for the Expo packages)"
 npm install --legacy-peer-deps --no-audit --no-fund
@@ -58,14 +72,18 @@ echo "kit $KIT, runtime $RUNTIME"
 step "expo-windows init"
 node node_modules/expo-windows/cli/index.js init --cli-version "$CLI_VERSION"
 
+# The project's name, as init derived it from the app's name.
+NAME="$(node -p "require('./node_modules/expo-windows/cli/project').findProject(process.cwd()).name")"
+echo "project $NAME"
+
 step "Autolink"
-node node_modules/@react-native-community/cli/build/bin.js autolink-windows --sln windows/WinCi.sln --proj windows/WinCi/WinCi.vcxproj --logging
-grep -q "ExpoInterface" windows/WinCi/AutolinkedNativeModules.g.cpp
-grep -q "ExpoWindows" windows/WinCi/AutolinkedNativeModules.g.cpp
+node node_modules/@react-native-community/cli/build/bin.js autolink-windows --sln "windows/$NAME.sln" --proj "windows/$NAME/$NAME.vcxproj" --logging
+grep -q "ExpoInterface" "windows/$NAME/AutolinkedNativeModules.g.cpp"
+grep -q "ExpoWindows" "windows/$NAME/AutolinkedNativeModules.g.cpp"
 
 step "The Windows JavaScript bundle"
 node node_modules/expo-windows/cli/index.js bundle
-ls -la windows/WinCi/Bundle/index.windows.bundle
+ls -la "windows/$NAME/Bundle/index.windows.bundle"
 
 step "MSBuild"
 if command -v msbuild >/dev/null 2>&1; then
@@ -73,9 +91,9 @@ if command -v msbuild >/dev/null 2>&1; then
 else
   MSBUILD="/c/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/MSBuild.exe"
 fi
-"$MSBUILD" windows/WinCi.sln -t:WinCi -restore -m -v:m -nologo \
+"$MSBUILD" "windows/$NAME.sln" -t:"$NAME" -restore -m -v:m -nologo \
   -p:Configuration=Debug -p:Platform=x64 -p:PlatformToolset="${TOOLSET:-v143}" \
   -p:RunAutolinkCheck=false -p:RestorePackagesConfig=true
-ls -la windows/x64/Debug/WinCi.exe
+ls -la "windows/x64/Debug/$NAME.exe"
 
 step "Built"

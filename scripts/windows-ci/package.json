@@ -1,5 +1,5 @@
 {
-  "name": "WinCi",
+  "name": "dropfiles-windows",
   "version": "0.0.1",
   "private": true,
   "dependencies": {
@@ -29,7 +29,10 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
     "react-native-windows": "^0.84.0",
-    "@expo-google-fonts/material-symbols": "^0.4.47"
+    "@expo/ui": "~57.0.14",
+    "expo-glass-effect": "~57.0.1",
+    "nanoid": "^3.3.18",
+    "qrcode-generator": "^2.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -27,6 +27,7 @@ const ALIASES = {
   'expo-image': path.join(__dirname, '..', 'src', 'aliases', 'expo-image.tsx'),
   'expo-glass-effect': path.join(__dirname, '..', 'src', 'aliases', 'expo-glass-effect.tsx'),
   'expo-symbols': path.join(__dirname, '..', 'src', 'aliases', 'expo-symbols.tsx'),
+  '@expo/ui': path.join(__dirname, '..', 'src', 'aliases', 'expo-ui.tsx'),
 };
 
 /**

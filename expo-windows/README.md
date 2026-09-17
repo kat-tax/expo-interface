@@ -103,6 +103,7 @@ excludes.
 | `expo-system-ui` | `setBackgroundColorAsync` paints the window itself — behind everything, and what shows while it resizes. |
 | `expo-keep-awake`, `expo-status-bar`, `expo-splash-screen` | Accepted, without effect. |
 | `expo-image`, `expo-glass-effect`, `expo-symbols` | Resolved to stand-ins: React Native's `Image`, a plain view, nothing. |
+| `@expo/ui` | Its universal layout primitives — `Host`, `Column`, `Row`, `Spacer`, `Text`, `List`, `ScrollView`, `RNHostView` — resolve to plain views laid out as they ask; its controls are the kit's on Windows. |
 
 And the runtime's own `ExpoWindows` module, for any app that asks
 `requireOptionalNativeModule('ExpoWindows')`: `setWindowTitle(title)`,
@@ -122,9 +123,10 @@ with the rectangle it covers, so `Keyboard.addListener` works on Windows
 (the system shows it only while a text control has focus, and keeps one the
 user brought up from the taskbar).
 
-What has no Windows implementation and is not listed — `@expo/ui`, and any
-package whose module calls `requireNativeModule` at import — still throws at
-import. Keep it out of the Windows bundle with a `.windows.tsx` file or a
+What has no Windows implementation and is not listed — `@expo/ui`'s
+controls past its layout primitives, and any package whose module calls
+`requireNativeModule` at import — still throws at import or renders
+nothing. Keep it out of the Windows bundle with a `.windows.tsx` file or a
 `Platform` check.
 
 ## Deep links
