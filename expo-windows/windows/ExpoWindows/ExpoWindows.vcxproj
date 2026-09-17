@@ -139,6 +139,7 @@
     <ClCompile Include="Power.cpp" />
     <ClCompile Include="SecureStore.cpp" />
     <ClCompile Include="Sensors.cpp" />
+    <ClCompile Include="SQLite.cpp" />
     <ClCompile Include="Sharing.cpp" />
     <ClCompile Include="VideoView.cpp" />
     <ClCompile Include="WebView.cpp" />

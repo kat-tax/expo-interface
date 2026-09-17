@@ -380,7 +380,39 @@ export const native = {
   location: () => get<NativeLocation>('ExpoWindowsLocation'),
   sensors: () => get<NativeSensors>('ExpoWindowsSensors'),
   notifications: () => get<NativeNotifications>('ExpoWindowsNotifications'),
+  sqlite: () => get<NativeSQLite>('ExpoWindowsSQLite'),
 };
+
+/** A column's value as `ExpoWindowsSQLite` reads it: a blob comes as `{blob}` in base64. */
+export type SQLiteCell = null | number | string | {blob: string};
+
+export interface NativeSQLite extends TurboModule {
+  /** The app's own SQLite folder in the user's local data, with forward slashes. */
+  defaultDirectory(): string;
+  ensureDirectory(path: string): SyncResult<null>;
+  fileExists(path: string): boolean;
+  deleteDatabase(path: string): SyncResult<null>;
+  /** A database handle. */
+  open(path: string): SyncResult<number>;
+  close(id: number): SyncResult<null>;
+  exec(id: number, sql: string): SyncResult<null>;
+  inTransaction(id: number): SyncResult<boolean>;
+  /** A statement handle. */
+  prepare(id: number, sql: string): SyncResult<number>;
+  bind(statement: number, params: Record<string, unknown>, blobs: Record<string, string>, asArray: boolean): SyncResult<null>;
+  step(statement: number): SyncResult<SQLiteCell[] | null>;
+  all(statement: number): SyncResult<SQLiteCell[][]>;
+  run(statement: number): SyncResult<{lastInsertRowId: number; changes: number; firstRowValues: SQLiteCell[]}>;
+  reset(statement: number): SyncResult<null>;
+  columns(statement: number): SyncResult<string[]>;
+  finalize(statement: number): SyncResult<null>;
+  backup(destination: number, destinationName: string, source: number, sourceName: string): SyncResult<null>;
+  serialize(id: number, schema: string): SyncResult<string>;
+  deserialize(id: number, schema: string, base64: string): SyncResult<null>;
+  /** `onDatabaseChange` `{databaseName, databaseFilePath, tableName, rowId}` for every change. */
+  watchChanges(id: number, name: string, path: string): SyncResult<null>;
+  loadExtension(id: number, path: string, entry: string): SyncResult<null>;
+}
 
 export type NotificationSetting = 'Enabled' | 'DisabledForApplication' | 'DisabledForUser' | 'DisabledByGroupPolicy' | 'DisabledByManifest' | 'Unsupported';
 

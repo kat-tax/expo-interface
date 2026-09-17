@@ -70,6 +70,7 @@ const REAL_MODULES = [
   'ExpoNotificationChannelManager',
   'ExpoNotificationChannelGroupManager',
   'ExpoNotificationCategoriesModule',
+  'ExpoSQLite',
   'ExpoWebBrowser',
   'ExpoWindows',
   'ExponentConstants',

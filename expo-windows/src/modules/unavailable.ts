@@ -99,12 +99,6 @@ export const UNAVAILABLE: Record<string, UnavailableSpec> = {
     answers: {getInstallationIdAsync: async () => uuidv4(), getRegistrationInfoAsync: async () => null, setRegistrationInfoAsync: async () => {}},
   },
   ExpoPrint: {package: 'Print', methods: ['print', 'printToFileAsync', 'selectPrinter'], constants: {Orientation: {portrait: 'portrait', landscape: 'landscape'}}},
-  ExpoSQLite: {
-    package: 'SQLite',
-    methods: ['backupDatabaseSync', 'deleteDatabaseAsync', 'deleteDatabaseSync', 'ensureDatabasePathExistsAsync', 'ensureDatabasePathExistsSync', 'importAssetDatabaseAsync'],
-    classes: ['NativeDatabase', 'NativeSession', 'NativeStatement'],
-    constants: {bundledExtensions: [], defaultDatabaseDirectory: ''},
-  },
 };
 
 /**

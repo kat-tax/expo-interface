@@ -38,6 +38,7 @@ import {createSensorModules} from './sensors';
 import {ExpoSharing} from './sharing';
 import {ExpoSMS} from './sms';
 import {createSpeechModule} from './speech';
+import {createSQLiteModule} from './sqlite';
 import {ExpoStoreReview} from './store-review';
 import {ExpoSystemUI} from './system-ui';
 import {ExpoTrackingTransparency} from './tracking';
@@ -113,6 +114,7 @@ export function registerModules(): void {
   registerModule('ExpoLocation', createLocationModule());
   for (const [name, module] of Object.entries(createSensorModules())) registerModule(name, module);
   for (const [name, module] of Object.entries(createNotificationModules())) registerModule(name, module);
+  registerModule('ExpoSQLite', createSQLiteModule());
   // The runtime's own: the window, for the kit's stack and any app that asks for it.
   registerModule('ExpoWindows', ExpoWindows);
   registerUnavailableModules();

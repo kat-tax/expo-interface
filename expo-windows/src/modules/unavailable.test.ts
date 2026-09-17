@@ -81,7 +81,7 @@ describe('the unavailable table (windows)', () => {
       registerUnavailableModules();
       expect(registeredModules().sort()).toEqual(Object.keys(UNAVAILABLE).sort());
       expect(expo.modules.ExpoMaps).toBe(real);
-      expect(() => (expo.modules.ExpoSQLite as {deleteDatabaseSync(): never}).deleteDatabaseSync()).toThrow(/SQLite\.deleteDatabaseSync/);
+      expect(() => (expo.modules.ExpoPrint as {print(): never}).print()).toThrow(/Print\.print/);
     } finally {
       globalThis.expo = previous;
     }
