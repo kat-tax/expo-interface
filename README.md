@@ -454,10 +454,12 @@ the pairing:
 | 57 | 0.86 | not yet released |
 
 The kit's Windows files use react-native-windows 0.82's Fabric API, and the
-native library was compiled and run in a react-native-windows 0.84 app while
-it was written (every island renders, its events reach JavaScript), so a
-Windows build of an SDK 57 app follows the next react-native-windows release
-without changes here. The
+native library is compiled and run in a react-native-windows 0.84 app —
+every island renders, its events reach JavaScript — with Expo 57's
+JavaScript on React Native pinned to that release, which is what
+`scripts/windows-ci.sh` builds end to end and the Windows workflow runs.
+An SDK 57 app on its own React Native 0.86 follows the next
+react-native-windows release without changes here. The
 [Windows guide](storybook/docs/guides/windows.mdx) has the setup, what each
 component draws, and how a control is hosted.
 

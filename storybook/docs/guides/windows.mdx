@@ -354,7 +354,14 @@ bun run segoe:windows              # regenerate SEGOE_GLYPHS from the icon catal
 The native library builds inside a react-native-windows app — the app's
 `run-windows` builds it, or MSBuild on the app's solution does. It has no
 build of its own outside one, since it compiles against the app's
-`node_modules/react-native-windows`.
+`node_modules/react-native-windows`. `scripts/windows-ci.sh <workdir>` is
+that build end to end on the line react-native-windows ships: a scratch
+Expo 57 app from `scripts/windows-ci` with React Native pinned to the
+react-native-windows release, this checkout's kit and runtime in its
+`node_modules`, `expo-windows init`, autolinking, the Windows JavaScript
+bundle and MSBuild with the v143 toolset. The Windows workflow runs it on
+every change to the kit's or the runtime's Windows files, and keeps the
+app and the bundle it built as artifacts.
 
 To start the built `.exe` directly rather than through `run-windows` (which
 registers the app with package identity), the app must bootstrap the Windows

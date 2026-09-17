@@ -1,0 +1,15 @@
+{
+  "name": "WinCi",
+  "displayName": "WinCi",
+  "expo": {
+    "name": "WinCi",
+    "slug": "winci",
+    "version": "0.0.1",
+    "scheme": "winci",
+    "orientation": "default",
+    "newArchEnabled": true,
+    "plugins": [
+      "expo-sharing"
+    ]
+  }
+}
