@@ -61,6 +61,18 @@ Expo 57 (see Versions) it is proven in the kit's harness, an Expo 57 app on
 react-native-windows 0.84; the steps below are what that harness does, and
 what `expo-windows init` automates.
 
+Every SDK 57 package imports on Windows. An Expo package opens with
+`requireNativeModule('Name')`, which throws at import when the name is not
+in the registry — and an app red-screens before its first render for a
+dependency it never calls. The runtime registers every name the SDK's
+packages ask for: the modules it implements (its README lists what each
+does), and for the rest a module built from the members the package's own
+JavaScript reads, which answers honestly when used — a method throws the
+package's `UnavailabilityError`, a permission is denied, `isAvailableAsync`
+is `false`. The Windows CI app bundles and builds with every package in its
+dependencies and a route that imports them all and asks each what it can
+do, and the runtime's tests import each package with the runtime installed.
+
 1. Generate a react-native-windows `cpp-app` project into `windows/` on a
    React Native app of the matching version
    (`npx react-native-windows-init --template cpp-app`), and in its

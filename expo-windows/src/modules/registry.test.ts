@@ -2,6 +2,44 @@ import {Linking, TurboModuleRegistry} from 'react-native';
 import {installUuidFallback, uuidv4} from '../uuid';
 import {registerModules} from './index';
 import {registeredModules, registerModule} from './registry';
+import {UNAVAILABLE} from './unavailable';
+
+/** The modules with a Windows implementation, by the name their package asks for. */
+const REAL_MODULES = [
+  'CalendarNext',
+  'EASClient',
+  'ExpoAgeRange',
+  'ExpoAppMetrics',
+  'ExpoApplication',
+  'ExpoAsset',
+  'ExpoBackgroundFetch',
+  'ExpoBackgroundTask',
+  'ExpoBlob',
+  'ExpoBrightness',
+  'ExpoCalendar',
+  'ExpoCellular',
+  'ExpoClipboard',
+  'ExpoContacts',
+  'ExpoContactsNext',
+  'ExpoDevice',
+  'ExpoFontLoader',
+  'ExpoHaptics',
+  'ExpoKeepAwake',
+  'ExpoLinking',
+  'ExpoMailComposer',
+  'ExpoObserve',
+  'ExpoSMS',
+  'ExpoScreenOrientation',
+  'ExpoSharing',
+  'ExpoStoreReview',
+  'ExpoSystemUI',
+  'ExpoTaskManager',
+  'ExpoTrackingTransparency',
+  'ExpoUpdates',
+  'ExpoWebBrowser',
+  'ExpoWindows',
+  'ExponentConstants',
+];
 
 /** Runs `body` with a fresh `expo` global — the polyfill's shape — and puts the harness's back. */
 function withFreshGlobal(body: (expo: {modules: Record<string, object>}) => void) {
@@ -40,25 +78,15 @@ describe('registry (windows)', () => {
     }
   });
 
-  it('registers every Windows module an Expo package asks for', () => {
+  it('registers every Windows module an Expo package asks for, the real ones and the unavailable table', () => {
     vi.spyOn(Linking, 'getInitialURL').mockResolvedValue(null);
     vi.spyOn(TurboModuleRegistry, 'get').mockReturnValue(null);
     withFreshGlobal(expo => {
       registerModules();
-      expect(Object.keys(expo.modules).sort()).toEqual([
-        'ExpoAsset',
-        'ExpoClipboard',
-        'ExpoDevice',
-        'ExpoFontLoader',
-        'ExpoKeepAwake',
-        'ExpoLinking',
-        'ExpoSharing',
-        'ExpoSystemUI',
-        'ExpoWebBrowser',
-        'ExpoWindows',
-        'ExponentConstants',
-      ]);
+      expect(Object.keys(expo.modules).sort()).toEqual([...REAL_MODULES, ...Object.keys(UNAVAILABLE)].sort());
       expect(typeof (expo.modules.ExpoLinking as {getLinkingURL(): unknown}).getLinkingURL).toBe('function');
+      // A real module is never shadowed by the table: none of the real names is in it.
+      for (const name of REAL_MODULES) expect(UNAVAILABLE).not.toHaveProperty(name);
     });
   });
 });

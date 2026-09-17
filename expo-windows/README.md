@@ -104,6 +104,16 @@ excludes.
 | `expo-keep-awake`, `expo-status-bar`, `expo-splash-screen` | Accepted, without effect. |
 | `expo-image`, `expo-glass-effect`, `expo-symbols` | Resolved to stand-ins: React Native's `Image`, a plain view, nothing. |
 | `@expo/ui` | Its universal layout primitives — `Host`, `Column`, `Row`, `Spacer`, `Text`, `List`, `ScrollView`, `RNHostView` — resolve to plain views laid out as they ask; its controls are the kit's on Windows. |
+| `expo-application` | The app's name and version from the embedded config. An unpackaged app has no package identity, so `applicationId` is `null`; the install time and the platform ids the package reports unavailable. |
+| `expo-updates` | Not enabled: the bundle is the one built into the app (or Metro's), so `expo-asset` and `expo-constants` stay on their embedded path. `reloadAsync` reloads the bundle the way the developer menu does. |
+| `expo-mail-composer` | The default mail client, opened on a `mailto:` link through the shell with the recipients, copies, subject and body; the outcome is `undetermined`. |
+| `expo-screen-orientation` | A window's orientation is its shape — landscape when wider than tall. The locks that constrain nothing (`DEFAULT`, `ALL`) are supported; any other is refused with the package's error code. |
+| `expo-blob` | `Blob` with its bytes in JavaScript: strings as UTF-8 (line endings made Windows' own with `endings: 'native'`), buffers and views copied, `slice`, `bytes`, `text`, and the package's `stream` and `arrayBuffer` on top. |
+| `expo-haptics` | Every call completes without effect. |
+| `expo-task-manager`, `expo-background-fetch`, `expo-background-task` | Tasks can be defined, not registered: an app runs while its window is open. The manager is unavailable and the schedulers `Restricted`. |
+| `expo-store-review`, `expo-sms`, `expo-cellular`, `expo-brightness`, `expo-tracking-transparency`, `expo-age-range`, `expo-calendar`, `expo-contacts` | What the platform has: no review prompt, no messaging, no carrier, no brightness, no advertising id, no age signal, and calendars and contacts behind package identity — permissions denied, and calls the packages guard themselves reported unavailable. |
+| `expo-eas-client`, `expo-app-metrics`, `expo-observe` | A client id for the launch, and records taken without being kept. |
+| every other SDK 57 package | Imports. Every native module a package asks for is registered — the ones above with an implementation, the rest from a table of the members each package's JavaScript reads — so `requireNativeModule` never throws at import and an app that carries the dependency renders. A feature the platform has not got yet answers honestly when used: a method throws the package's own `UnavailabilityError`, a permission is denied, `isAvailableAsync` is `false`. The table shrinks as modules become real. |
 
 And the runtime's own `ExpoWindows` module, for any app that asks
 `requireOptionalNativeModule('ExpoWindows')`: `setWindowTitle(title)`,

@@ -55,15 +55,17 @@ const windowsResolution: Plugin = {
   },
 };
 
-// `expo-modules-core` and `@expo/ui` ship TypeScript sources as their entry
-// points. Node's loader cannot type-strip inside node_modules, so keep them in
-// the Vite module graph (inline) where they are transformed like app code.
-const TS_SOURCE_PACKAGES = [/[\\/]expo-modules-core[\\/]/, /[\\/]@expo[\\/]ui[\\/]/];
+// `expo-modules-core`, `@expo/ui` and `@expo/dom-webview` ship TypeScript
+// sources as their entry points. Node's loader cannot type-strip inside
+// node_modules, so keep them in the Vite module graph (inline) where they are
+// transformed like app code.
+const TS_SOURCE_PACKAGES = [/[\\/]expo-modules-core[\\/]/, /[\\/]@expo[\\/]ui[\\/]/, /[\\/]@expo[\\/]dom-webview[\\/]/];
+const TRANSFORM_PACKAGES = ['expo-modules-core', '@expo/ui', '@expo/dom-webview'];
 
 const projects = vitestExpoProjects({
   jestCompat: false,
   platforms: ['ios', 'android'],
-  transformPackages: ['expo-modules-core', '@expo/ui'],
+  transformPackages: TRANSFORM_PACKAGES,
 }).map(project => {
   const platform = project.test.name as 'ios' | 'android';
   return {
@@ -83,7 +85,7 @@ const projects = vitestExpoProjects({
 const [iosProject] = vitestExpoProjects({
   jestCompat: false,
   platforms: ['ios'],
-  transformPackages: ['expo-modules-core', '@expo/ui'],
+  transformPackages: TRANSFORM_PACKAGES,
 });
 
 const windowsProject = {
@@ -112,6 +114,9 @@ const runtimeProject = {
     ...windowsProject.test,
     name: 'expo-windows',
     include: ['expo-windows/src/**/*.test.{ts,tsx}'],
+    // The platform without the kit's forbidden-module guard: the runtime's
+    // tests import the Expo packages to prove they load on Windows.
+    setupFiles: ['./vitest/platform.windows.ts'],
   },
 };
 
