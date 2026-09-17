@@ -73,6 +73,14 @@ is `false`. The Windows CI app bundles and builds with every package in its
 dependencies and a route that imports them all and asks each what it can
 do, and the runtime's tests import each package with the runtime installed.
 
+Web content has an island of its own: `react-native-webview` and
+`@expo/dom-webview` resolve to the runtime's `WebView` over a WinUI 3
+`WebView2`, so a page by URL or HTML, `postMessage` both ways, the load
+events and Expo's DOM components (`'use dom'`, with their marshalled props
+and native actions) work on Windows. In development the DOM component's
+page is Metro's, which needs `react-dom` and `react-native-web` in the app
+as on every platform.
+
 1. Generate a react-native-windows `cpp-app` project into `windows/` on a
    React Native app of the matching version
    (`npx react-native-windows-init --template cpp-app`), and in its

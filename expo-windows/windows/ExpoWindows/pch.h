@@ -28,6 +28,12 @@
 #include <winrt/base.h>
 #include <CppWinRTIncludes.h>
 #include <winrt/Microsoft.ReactNative.h>
+#include <winrt/Microsoft.ReactNative.Composition.h>
+#include <winrt/Microsoft.UI.Composition.h>
+#include <winrt/Microsoft.UI.Xaml.Controls.h>
+#include <winrt/Microsoft.UI.Xaml.Hosting.h>
+#include <winrt/Microsoft.UI.Xaml.h>
+#include <winrt/Microsoft.Web.WebView2.Core.h>
 #include <winrt/Microsoft.UI.h>
 #include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Microsoft.UI.Interop.h>

@@ -106,6 +106,8 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClInclude Include="Common.h" />
+    <ClInclude Include="Islands.h" />
+    <ClInclude Include="codegen\react\components\ExpoWindowsSpec\ExpoWindowsWebView.g.h" />
     <ClInclude Include="ReactPackageProvider.h">
       <DependentUpon>ReactPackageProvider.idl</DependentUpon>
     </ClInclude>
@@ -120,12 +122,14 @@
     <ClCompile Include="Crypto.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Fonts.cpp" />
+    <ClCompile Include="Islands.cpp" />
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="Linking.cpp" />
     <ClCompile Include="Localization.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="SecureStore.cpp" />
     <ClCompile Include="Sharing.cpp" />
+    <ClCompile Include="WebView.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

@@ -29,8 +29,9 @@ cp -r "$REPO/scripts/windows-ci/." "$APP/"
 cp -r "$REPO/example/src" "$APP/src"
 cp -r "$REPO/example/assets" "$APP/assets"
 cp "$REPO/example/app.json" "$APP/app.json"
-# A route the example does not have: every SDK 57 package imported and asked what it can do.
-cp "$REPO/scripts/windows-ci/probe/packages.tsx" "$APP/src/app/packages.tsx"
+# Routes the example does not have: every SDK 57 package imported and asked
+# what it can do, and the web view with a page and a DOM component.
+cp -r "$REPO/scripts/windows-ci/probe/." "$APP/src/"
 rm -rf "$APP/probe"
 cp "$REPO/example/tsconfig.json" "$APP/tsconfig.json"
 cd "$APP"

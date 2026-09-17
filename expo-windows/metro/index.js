@@ -11,7 +11,8 @@
  * `react-native` and `react-native/…` to `react-native-windows`, which is
  * what react-native-windows' own `react-native start` does and `expo start`
  * does not; resolves the packages that have no Windows implementation to the
- * runtime's own files (`expo-image`, `expo-glass-effect`, `expo-symbols`);
+ * runtime's own files (`expo-image`, `expo-glass-effect`, `expo-symbols`,
+ * `@expo/ui`, and the web views `@expo/dom-webview` and `react-native-webview`);
  * replaces `expo`'s `fetch`, a native module elsewhere, with React Native's;
  * runs `expo-windows/src/install` before everything else in the bundle,
  * which installs Expo Modules Core's global and the Windows modules; embeds
@@ -28,6 +29,8 @@ const ALIASES = {
   'expo-glass-effect': path.join(__dirname, '..', 'src', 'aliases', 'expo-glass-effect.tsx'),
   'expo-symbols': path.join(__dirname, '..', 'src', 'aliases', 'expo-symbols.tsx'),
   '@expo/ui': path.join(__dirname, '..', 'src', 'aliases', 'expo-ui.tsx'),
+  '@expo/dom-webview': path.join(__dirname, '..', 'src', 'aliases', 'expo-dom-webview.tsx'),
+  'react-native-webview': path.join(__dirname, '..', 'src', 'aliases', 'react-native-webview.tsx'),
 };
 
 /**
