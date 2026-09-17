@@ -232,6 +232,14 @@ ring when tabbed to, Enter and Space to press. A `ContextMenu` opens on the
 Menu key and Shift+F10 as well as a right click. The XAML islands have all of
 that from WinUI itself.
 
+The title bar is the app's on `expo-windows`: `useWindowChrome({extend: true})`
+in the root layout extends the content into it — no system title, the caption
+buttons drawn for the scheme over the app's own top row — and the root
+`Stack`'s header becomes the region that drags the window, leaving the
+caption buttons their room on its right. A Mica or acrylic backdrop behind
+the content is not there yet: a Win32 window on the Windows App SDK's
+composition islands has no backdrop target in this release.
+
 Keyboard shortcuts are a system: a menu item's `shortcut` (`Ctrl+S`,
 `Ctrl+Shift+N`, `F2`) is drawn beside its label as WinUI draws an accelerator
 and bound wherever the focus is while the menu is mounted, and

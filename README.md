@@ -463,7 +463,9 @@ Two things are Windows-aware in an app: the root layout uses the kit's `Stack`
 renderer; the kit's is Expo Router's stack router under a drawn header there),
 and `Tabs` draws a WinUI `NavigationView` — the top bar, or the navigation
 pane down the left side with `windowsPane`. On `expo-windows` the stack also
-names the window after the focused screen ("Settings – My App").
+names the window after the focused screen ("Settings – My App"), and
+`useWindowChrome({extend: true})` in the root layout puts the content in the
+title bar, with the root stack's header as the drag region.
 `setColorScheme` forces the scheme in JavaScript, which every island follows.
 
 ## Install details

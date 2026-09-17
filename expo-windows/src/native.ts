@@ -9,9 +9,21 @@ import {TurboModuleRegistry} from 'react-native';
  * without it.
  */
 
+export interface TitleBarInsets {
+  left: number;
+  right: number;
+  height: number;
+}
+
 export interface NativeWindow extends TurboModule {
   setTitle(title: string): void;
   getTitle(): Promise<string>;
+  /** Extends the content into the title bar, or takes it back; false where the title bar cannot be customized. */
+  setChrome(extend: boolean, theme: string): Promise<boolean>;
+  getTitleBarInsets(): Promise<TitleBarInsets>;
+  setDragRegion(x: number, y: number, width: number, height: number): void;
+  /** The window's own background, or the system's for an empty color. */
+  setBackground(color: string): void;
 }
 
 export interface DeviceConstants {

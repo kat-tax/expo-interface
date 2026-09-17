@@ -8,6 +8,8 @@ interface ScreenHeaderProps {
   title: string;
   onBack?: () => void;
   trailing?: React.ReactNode;
+  /** Windows only: the root stack's header drags the window while the content is in the title bar. Nothing here. */
+  dragRegion?: boolean;
 }
 
 export function ScreenHeader({title, onBack, trailing}: ScreenHeaderProps) {

@@ -194,7 +194,9 @@ function StackBody() {
   return (
     <LayerHost onBack={state.index > 0 ? goBack : undefined} takesFocus={depth === 1} testID="windows-stack">
       <View style={[styles.root, {backgroundColor: background}]}>
-        {baseOptions.headerShown !== false ? <ScreenHeader {...headerOf(baseOptions, base.name, baseIndex > 0 ? goBack : undefined)}/> : null}
+        {baseOptions.headerShown !== false ? (
+          <ScreenHeader {...headerOf(baseOptions, base.name, baseIndex > 0 ? goBack : undefined)} dragRegion={depth === 1}/>
+        ) : null}
         <Animated.View style={[styles.slot, entrance]}>{descriptors[base.key].render()}</Animated.View>
       </View>
       {modals.map((route, index) => {

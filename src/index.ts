@@ -32,6 +32,8 @@ export {TabStack} from './tab-stack';
 export type {TabStackProps} from './tab-stack';
 export {Tabs} from './tabs';
 export {useKeyboardShortcut} from './windows/shortcuts';
+export {useWindowChrome} from './windows/chrome';
+export type {WindowChrome, WindowChromeOptions} from './windows/chrome';
 export type {TabBarProps, TabRoute, WebLogo, WindowsPane} from './tabs/types';
 export {KeyboardBar} from './keyboard';
 export type {KeyboardBarProps, KeyboardLibrary, KeyboardState} from './keyboard';

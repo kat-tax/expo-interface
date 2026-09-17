@@ -34,6 +34,37 @@ describe('ExpoWindows (windows)', () => {
     expect(() => ExpoWindows.setWindowTitle('x')).not.toThrow();
     await expect(ExpoWindows.getWindowTitleAsync()).resolves.toBe('');
   });
+
+  it('extends the content into the title bar, reports the insets, sets the drag region and the background through the library', async () => {
+    const library = {
+      setChrome: vi.fn(async () => true),
+      getTitleBarInsets: vi.fn(async () => ({left: 0, right: 138, height: 32})),
+      setDragRegion: vi.fn(),
+      setBackground: vi.fn(),
+    };
+    withNative({ExpoWindowsWindow: library});
+    await expect(ExpoWindows.setWindowChromeAsync({extend: true, theme: 'dark'})).resolves.toBe(true);
+    expect(library.setChrome).toHaveBeenCalledWith(true, 'dark');
+    await ExpoWindows.setWindowChromeAsync({extend: false});
+    expect(library.setChrome).toHaveBeenLastCalledWith(false, 'light');
+    await expect(ExpoWindows.getTitleBarInsetsAsync()).resolves.toEqual({left: 0, right: 138, height: 32});
+    ExpoWindows.setDragRegion({x: 1, y: 2, width: 300, height: 48});
+    expect(library.setDragRegion).toHaveBeenCalledWith(1, 2, 300, 48);
+    ExpoWindows.setWindowBackground('#202020');
+    ExpoWindows.setWindowBackground(null);
+    expect(library.setBackground).toHaveBeenNthCalledWith(1, '#202020');
+    expect(library.setBackground).toHaveBeenNthCalledWith(2, '');
+    // `expo-system-ui` paints the window through the same call.
+    const {ExpoSystemUI} = await import('./system-ui');
+    await ExpoSystemUI.setBackgroundColorAsync('#101010');
+    expect(library.setBackground).toHaveBeenLastCalledWith('#101010');
+    // Without the library the chrome is not taken, and the insets are nothing.
+    withNative({});
+    await expect(ExpoWindows.setWindowChromeAsync({extend: true})).resolves.toBe(false);
+    await expect(ExpoWindows.getTitleBarInsetsAsync()).resolves.toEqual({left: 0, right: 0, height: 0});
+    expect(() => ExpoWindows.setDragRegion({x: 0, y: 0, width: 0, height: 0})).not.toThrow();
+    expect(() => ExpoWindows.setWindowBackground('#000')).not.toThrow();
+  });
 });
 
 describe('ExpoDevice with the library (windows)', () => {

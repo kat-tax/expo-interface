@@ -92,12 +92,17 @@ excludes.
 | `expo-clipboard` | Text (plain or HTML), links and images over the platform's clipboard, and `addClipboardListener` from its change event. |
 | `expo-sharing` | The share sheet, with the file and `dialogTitle`. |
 | `expo-device` | The machine's name, maker, model and SKU (`EasClientDeviceInformation`), the OS version and build, the memory, the processor, the uptime. |
-| `expo-system-ui`, `expo-keep-awake`, `expo-status-bar`, `expo-splash-screen` | Accepted, without effect. |
+| `expo-system-ui` | `setBackgroundColorAsync` paints the window itself — behind everything, and what shows while it resizes. |
+| `expo-keep-awake`, `expo-status-bar`, `expo-splash-screen` | Accepted, without effect. |
 | `expo-image`, `expo-glass-effect`, `expo-symbols` | Resolved to stand-ins: React Native's `Image`, a plain view, nothing. |
 
 And the runtime's own `ExpoWindows` module, for any app that asks
-`requireOptionalNativeModule('ExpoWindows')`: `setWindowTitle(title)` and
-`getWindowTitleAsync()`.
+`requireOptionalNativeModule('ExpoWindows')`: `setWindowTitle(title)`,
+`getWindowTitleAsync()`, `setWindowChromeAsync({extend, theme})` (the content
+into the title bar, the caption buttons drawn for the scheme),
+`getTitleBarInsetsAsync()`, `setDragRegion(rect)` and
+`setWindowBackground(color)` — what the kit's `useWindowChrome` and its
+headers drive, and `expo-system-ui`'s background paints the window through.
 
 What has no Windows implementation and is not listed — `@expo/ui`, and any
 package whose module calls `requireNativeModule` at import — still throws at

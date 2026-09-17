@@ -1,9 +1,11 @@
+import {useRef} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {Symbol} from '../symbol';
 import {icon} from '../icons';
 import {StatePressable} from '../surface/pressable';
 import {pressFeedback} from '../surface/shared';
 import {bound, fonts, fontWeights, spacing, useColor} from '../theme';
+import {reportDragRegion, useWindowChromeState} from '../windows/chrome';
 
 interface ScreenHeaderProps {
   title: string;
@@ -13,6 +15,12 @@ interface ScreenHeaderProps {
   /** Drawn in place of the back button (`headerLeft`). */
   leading?: React.ReactNode;
   trailing?: React.ReactNode;
+  /**
+   * The root stack's header: while the content is in the title bar
+   * (`useWindowChrome`), it drags the window and leaves the caption buttons
+   * their room on the right.
+   */
+  dragRegion?: boolean;
 }
 
 /** The header's back glyph: Segoe's `Back` arrow, as WinUI's own headers draw it. */
@@ -25,13 +33,20 @@ const BACK = icon({ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back'
  * `NavigationView` back button has. A desktop window has no status bar to
  * leave room for.
  */
-export function ScreenHeader({title, titleNode, onBack, leading, trailing}: ScreenHeaderProps) {
+export function ScreenHeader({title, titleNode, onBack, leading, trailing, dragRegion = false}: ScreenHeaderProps) {
   const label = useColor('label');
   const background = useColor('background');
+  const chrome = useWindowChromeState();
+  const bar = useRef<View>(null);
+  const extended = dragRegion && chrome.extended;
+  // Where the row is in the window, minus the caption buttons' room, drags the window.
+  const onLayout = () => {
+    if (extended) reportDragRegion(bar.current, chrome.insets.right);
+  };
 
   return (
-    <View style={[styles.bar, {backgroundColor: background}]}>
-      <View style={styles.inner}>
+    <View ref={bar} onLayout={onLayout} style={[styles.bar, {backgroundColor: background}]}>
+      <View style={[styles.inner, extended && {paddingRight: spacing.three + chrome.insets.right}]}>
         {leading ?? (onBack ? (
           <StatePressable
             onPress={onBack}
