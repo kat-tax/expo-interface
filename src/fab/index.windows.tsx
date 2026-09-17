@@ -3,7 +3,7 @@ import {useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import XamlMenuFlyout from '../windows/specs/ExpoInterfaceMenuFlyoutNativeComponent';
 import {useXamlProps} from '../windows';
-import {menuItemsProp} from '../menu/windows';
+import {menuItemsProp, useMenuShortcuts} from '../menu/windows';
 import {StatePressable} from '../surface/pressable';
 import {pressFeedback} from '../surface/shared';
 import {Symbol} from '../symbol';
@@ -24,6 +24,7 @@ const SHADOW = '0 4px 12px rgba(0, 0, 0, 0.24)';
  */
 export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rounded', disabled, onOpenChange, testID}: FabProps) {
   const xaml = useXamlProps();
+  useMenuShortcuts(items ?? []);
   const tint = useColor('tint');
   const [open, setOpen] = useState(false);
   const show = (next: boolean) => {
@@ -90,8 +91,13 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.5,
   },
+  // A strip along the button's bottom edge: the flyout opens below it, and the island is not over the button, whose presses it would take.
   flyout: {
-    ...StyleSheet.absoluteFill,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 1,
     pointerEvents: 'none',
   },
 });

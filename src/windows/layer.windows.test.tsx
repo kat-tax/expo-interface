@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {Pressable, Text, View} from 'react-native';
-import {Layer, LayerHost} from './layer';
+import {Layer, LayerHost, useLayerDismiss} from './layer';
 import {ModalLayer} from './modal-layer';
 
 function Toggle({label}: {label: string}) {
@@ -64,6 +64,47 @@ describe('LayerHost and Layer (windows)', () => {
     expect(onBack).toHaveBeenCalledTimes(3);
     await fireEvent(host, 'pointerDown', {nativeEvent: {button: 3}});
     expect(onBack).toHaveBeenCalledTimes(4);
+  });
+
+  it('stops a handled key and the mouse back button at the host, and lets the rest bubble on', async () => {
+    const onBack = vi.fn();
+    const dismiss = vi.fn();
+    function Dismissable() {
+      useLayerDismiss(dismiss);
+      return null;
+    }
+    await render(
+      <LayerHost onBack={onBack} testID="host">
+        <Dismissable/>
+      </LayerHost>,
+    );
+    const host = screen.getByTestId('host');
+    const handled = {nativeEvent: {key: 'ArrowLeft', altKey: true}, stopPropagation: vi.fn()};
+    await fireEvent(host, 'keyDown', handled);
+    expect(onBack).toHaveBeenCalledTimes(1);
+    expect(handled.stopPropagation).toHaveBeenCalledTimes(1);
+    const escape = {nativeEvent: {key: 'Escape', altKey: false}, stopPropagation: vi.fn()};
+    await fireEvent(host, 'keyDown', escape);
+    expect(dismiss).toHaveBeenCalledTimes(1);
+    expect(escape.stopPropagation).toHaveBeenCalledTimes(1);
+    const other = {nativeEvent: {key: 'x', altKey: false}, stopPropagation: vi.fn()};
+    await fireEvent(host, 'keyDown', other);
+    expect(other.stopPropagation).not.toHaveBeenCalled();
+    const back = {nativeEvent: {button: 3}, stopPropagation: vi.fn()};
+    await fireEvent(host, 'pointerDown', back);
+    expect(onBack).toHaveBeenCalledTimes(2);
+    expect(back.stopPropagation).toHaveBeenCalledTimes(1);
+  });
+
+  it('takes the focus on request, without a ring, and leaves it alone otherwise', async () => {
+    await render(
+      <>
+        <LayerHost takesFocus testID="root"><Text>Root</Text></LayerHost>
+        <LayerHost testID="nested"><Text>Nested</Text></LayerHost>
+      </>,
+    );
+    expect(screen.getByTestId('root').props).toMatchObject({focusable: true, enableFocusRing: false});
+    expect(screen.getByTestId('nested').props.focusable).toBeUndefined();
   });
 
   it('is unbothered by the back keys without onBack', async () => {

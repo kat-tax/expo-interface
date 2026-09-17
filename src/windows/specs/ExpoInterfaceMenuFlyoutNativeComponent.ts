@@ -11,8 +11,10 @@ type OpenEvent = Readonly<{open: boolean}>;
  * default, or at `x`/`y` (in the anchor's own coordinates) for a menu at a
  * point.
  *
- * `items` is a JSON array of `{label, glyph, swatch, active, role, disabled,
- * separator}`; a pick is reported by index and the flyout closes itself.
+ * `items` is a JSON array of `{label, glyph, swatch, shortcut, active, role,
+ * disabled, separator}` — `shortcut` is drawn as the item's accelerator
+ * text, the keys themselves are the kit's — and a pick is reported by index
+ * and the flyout closes itself.
  */
 export interface NativeProps extends ViewProps {
   /** JSON array of the entries. */

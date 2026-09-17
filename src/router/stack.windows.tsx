@@ -177,7 +177,8 @@ function StackBody() {
   // Every route in the state has a descriptor, and a descriptor its options.
   const optionsOf = (index: number) => descriptors[state.routes[index].key].options as WindowsStackOptions;
   const focused = state.routes[state.index];
-  useWindowTitle(state.key, screenTitle(focused, optionsOf(state.index)), useContext(StackDepthContext), isModal(optionsOf(state.index).presentation));
+  const depth = useContext(StackDepthContext);
+  useWindowTitle(state.key, screenTitle(focused, optionsOf(state.index)), depth, isModal(optionsOf(state.index).presentation));
 
   // The card: the last route at or below the focus that is not presented over another.
   let baseIndex = state.index;
@@ -191,7 +192,7 @@ function StackBody() {
   const background = useColor('background');
 
   return (
-    <LayerHost onBack={state.index > 0 ? goBack : undefined} testID="windows-stack">
+    <LayerHost onBack={state.index > 0 ? goBack : undefined} takesFocus={depth === 1} testID="windows-stack">
       <View style={[styles.root, {backgroundColor: background}]}>
         {baseOptions.headerShown !== false ? <ScreenHeader {...headerOf(baseOptions, base.name, baseIndex > 0 ? goBack : undefined)}/> : null}
         <Animated.View style={[styles.slot, entrance]}>{descriptors[base.key].render()}</Animated.View>

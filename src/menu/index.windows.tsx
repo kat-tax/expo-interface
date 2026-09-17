@@ -4,19 +4,22 @@ import {StyleSheet, View} from 'react-native';
 import XamlMenuFlyout from '../windows/specs/ExpoInterfaceMenuFlyoutNativeComponent';
 import {useXamlProps} from '../windows';
 import {Button} from '../button';
-import {menuItemsProp} from './windows';
+import {menuItemsProp, useMenuShortcuts} from './windows';
 
 /**
  * Windows: the kit's button (a XAML island of its own) with a WinUI 3
- * `MenuFlyout` opened below it. The flyout is shown from a second island
- * laid over the button — an empty anchor that takes no presses — so the
- * menu is placed against the trigger's rectangle, and the platform owns the
- * flyout: its light dismiss, its keyboard navigation, its position on
- * screen. `trigger="link"` is the text variant here.
+ * `MenuFlyout` opened below it. The flyout is shown from a second island —
+ * an empty anchor, a strip along the trigger's bottom edge — so the menu is
+ * placed right under the trigger, and the platform owns the flyout: its
+ * light dismiss, its keyboard navigation, its position on screen. The anchor
+ * is not laid over the trigger: an island takes the pointer for itself,
+ * whatever React Native's hit testing says. `trigger="link"` is the text
+ * variant here.
  */
 export function Menu({label, icon, items, trigger = 'button', onOpenChange, testID, ...button}: MenuProps) {
   const xaml = useXamlProps();
   const [open, setOpen] = useState(false);
+  useMenuShortcuts(items);
   const show = (next: boolean) => {
     if (next === open) return;
     setOpen(next);
@@ -48,10 +51,15 @@ const styles = StyleSheet.create({
   anchor: {
     alignSelf: 'flex-start',
   },
-  // Over the trigger, so the flyout is placed against its rectangle; the
-  // trigger keeps the presses.
+  // A strip along the trigger's bottom edge, so the flyout is placed right
+  // below it. Not over the trigger: an island takes the pointer for itself,
+  // whatever React Native's hit testing says, and would swallow the press.
   flyout: {
-    ...StyleSheet.absoluteFill,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 1,
     pointerEvents: 'none',
   },
 });

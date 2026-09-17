@@ -4,7 +4,7 @@ import {useEffect, useState} from 'react';
 import {Pressable, StyleSheet} from 'react-native';
 import XamlMenuFlyout from '../windows/specs/ExpoInterfaceMenuFlyoutNativeComponent';
 import {keyHandlers, useXamlProps} from '../windows';
-import {menuItemsProp} from '../menu/windows';
+import {menuItemsProp, useMenuShortcuts} from '../menu/windows';
 
 /** The secondary (right) button of a pointer, as pointer events number them. */
 const SECONDARY_BUTTON = 2;
@@ -19,6 +19,7 @@ const SECONDARY_BUTTON = 2;
  */
 export function ContextMenu({items, children, onPress, disabled, at, onDismiss, onOpenChange, testID}: ContextMenuProps) {
   const xaml = useXamlProps();
+  useMenuShortcuts(items);
   const [point, setPoint] = useState<{x: number; y: number} | null>(null);
   const [size, setSize] = useState({width: 0, height: 0});
 
@@ -82,8 +83,14 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
 }
 
 const styles = StyleSheet.create({
+  // One point at the content's origin: the flyout is placed at `x`/`y` from it, and the
+  // island is not over the content, whose presses and right clicks it would take.
   flyout: {
-    ...StyleSheet.absoluteFill,
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: 1,
+    height: 1,
     pointerEvents: 'none',
   },
 });

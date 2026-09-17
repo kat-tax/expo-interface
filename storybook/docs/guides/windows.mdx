@@ -232,6 +232,15 @@ ring when tabbed to, Enter and Space to press. A `ContextMenu` opens on the
 Menu key and Shift+F10 as well as a right click. The XAML islands have all of
 that from WinUI itself.
 
+Keyboard shortcuts are a system: a menu item's `shortcut` (`Ctrl+S`,
+`Ctrl+Shift+N`, `F2`) is drawn beside its label as WinUI draws an accelerator
+and bound wherever the focus is while the menu is mounted, and
+`useKeyboardShortcut('Ctrl+K', handler)` binds one from any screen. The keys
+reach the kit's `Stack` from the focused control; of two bindings to one
+shortcut, the later mounted wins, so a screen's is in front of its layout's.
+On the other platforms the hook binds nothing and the shortcut text is not
+drawn.
+
 ## How a control is hosted
 
 Each native component is a Fabric component view whose content is a

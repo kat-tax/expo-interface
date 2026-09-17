@@ -36,6 +36,14 @@ export interface MenuItem {
   keywords?: string[];
   /** Draw a separator above this item. */
   separator?: boolean;
+  /**
+   * The keyboard shortcut that selects the item, written `Ctrl+S`,
+   * `Ctrl+Shift+N`, `F2`. On Windows it is drawn beside the label, as
+   * WinUI's menus show accelerators, and bound wherever the focus is while
+   * the menu is mounted (unless the item is disabled); the other platforms
+   * ignore it.
+   */
+  shortcut?: string;
   /** Called when the item is selected; the menu then closes. */
   onPress?: () => void;
 }

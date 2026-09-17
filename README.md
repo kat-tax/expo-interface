@@ -135,7 +135,7 @@ dialogs.
 | [Progress](src/progress/types.ts) | Linear bar or circular ring, determinate or indeterminate | ✓ | ✓ | ✓ | ✓ |
 | [Spinner](src/spinner/index.tsx) | The platform's activity indicator, in a host of its own when it sits in a React Native layout | ✓ | ✓ | ✓ | ✓ |
 | [Gauge](src/gauge/types.ts) | Value within a range in the SwiftUI gauge styles: capacity bars, marker bar, open or closed ring | ✓ | ✓ | ✓ | ✓ |
-| [Menu](src/menu/types.ts) | Dropdown menu of actions opened from a button (or a text link on web); items can be checked or carry a color swatch | ✓ | ✓ | ✓ | ✓ |
+| [Menu](src/menu/types.ts) | Dropdown menu of actions opened from a button (or a text link on web); items can be checked, carry a color swatch, or a `shortcut` (drawn and bound on Windows; `useKeyboardShortcut` binds one from any screen) | ✓ | ✓ | ✓ | ✓ |
 | [ContextMenu](src/menu/types.ts) | Menu of actions opened by long-pressing (or right-clicking) its content, or at a point the content reports | ✓ | ✓ | ✓ | ✓ |
 | [PopupMenu](src/popup-menu/types.ts) | The platform's menu opened at a point over content the kit did not draw: a canvas, a WebView, an editor | ✓ | ✓ | ✓ | ✓ |
 | [Popover](src/popover/types.ts) | Card pointing at a rectangle on a canvas, with a title, a message and action chips | ✓ | ✓ | ✓ | ✓ |

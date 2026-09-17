@@ -107,6 +107,9 @@ struct MenuFlyoutView : winrt::implements<MenuFlyoutView, winrt::IInspectable>,
         item = controls::MenuFlyoutItem{};
       }
       item.Text(ToHString(JsonString(entry, L"label")));
+      // The shortcut is drawn as WinUI draws an accelerator; the kit binds the keys itself.
+      const auto shortcut = JsonString(entry, L"shortcut");
+      if (!shortcut.empty()) item.KeyboardAcceleratorTextOverride(ToHString(shortcut));
       const auto swatch = JsonString(entry, L"swatch");
       const auto glyph = JsonString(entry, L"glyph");
       Color swatchColor;

@@ -69,9 +69,15 @@ winrt::fire_and_forget LoadAsync(std::wstring family, std::string uri, ReactProm
       winrt::Windows::Web::Http::HttpClient client;
       auto bytes = co_await client.GetBufferAsync(Uri{ToWide(uri)});
       auto folder = co_await StorageFolder::GetFolderFromPathAsync(FontsDirectory());
-      auto file = co_await folder.CreateFileAsync(FileName(family, ToWide(uri)), CreationCollisionOption::ReplaceExisting);
-      co_await FileIO::WriteBufferAsync(file, bytes);
-      path = std::wstring{file.Path()};
+      const auto name = FileName(family, ToWide(uri));
+      try {
+        auto file = co_await folder.CreateFileAsync(name, CreationCollisionOption::ReplaceExisting);
+        co_await FileIO::WriteBufferAsync(file, bytes);
+        path = std::wstring{file.Path()};
+      } catch (winrt::hresult_error const &) {
+        // The file from an earlier run is still held by the font system: it is the same font.
+        path = FontsDirectory() + L"\\" + name;
+      }
     }
     Register(family, path, promise);
   } catch (winrt::hresult_error const &error) {

@@ -22,10 +22,10 @@ describe('Menu (windows)', () => {
     expect(flyout.props.open).toBe(false);
     expect(flyout.props.style).toMatchObject({position: 'absolute', pointerEvents: 'none'});
     expect(JSON.parse(flyout.props.items)).toEqual([
-      {label: 'Rename', glyph: 'E713', swatch: null, active: false, destructive: false, disabled: false, separator: false},
-      {label: 'Red', glyph: null, swatch: '#FF0000', active: true, destructive: false, disabled: false, separator: true},
-      {label: 'Duplicate', glyph: null, swatch: null, active: false, destructive: false, disabled: true, separator: false},
-      {label: 'Delete', glyph: null, swatch: null, active: false, destructive: true, disabled: false, separator: false},
+      {label: 'Rename', glyph: 'E713', swatch: null, shortcut: null, active: false, destructive: false, disabled: false, separator: false},
+      {label: 'Red', glyph: null, swatch: '#FF0000', shortcut: null, active: true, destructive: false, disabled: false, separator: true},
+      {label: 'Duplicate', glyph: null, swatch: null, shortcut: null, active: false, destructive: false, disabled: true, separator: false},
+      {label: 'Delete', glyph: null, swatch: null, shortcut: null, active: false, destructive: true, disabled: false, separator: false},
     ]);
   });
 
@@ -55,5 +55,31 @@ describe('Menu (windows)', () => {
   it('draws the link trigger as the text variant', async () => {
     await render(<Menu label="More" items={items()} trigger="link" variant="outlined"/>);
     expect(island(BUTTON).props.variant).toBe('text');
+  });
+});
+
+describe('Menu shortcuts (windows)', () => {
+  it('draws an item shortcut and binds it while the menu is mounted, except for a disabled item', async () => {
+    const {LayerHost} = await import('../windows/layer');
+    const onSave = vi.fn();
+    const onNew = vi.fn();
+    const shortcuts: MenuItem[] = [
+      {label: 'Save', shortcut: 'Ctrl+S', onPress: onSave},
+      {label: 'New', shortcut: 'Ctrl+N', onPress: onNew, disabled: true},
+    ];
+    const {unmount} = await render(
+      <LayerHost testID="host">
+        <Menu label="File" items={shortcuts}/>
+      </LayerHost>,
+    );
+    expect(JSON.parse(island(FLYOUT).props.items).map((item: {shortcut: string | null}) => item.shortcut)).toEqual(['Ctrl+S', 'Ctrl+N']);
+    const press = (key: string) => fireEvent(screen.getByTestId('host'), 'keyDown', {nativeEvent: {key, ctrlKey: true, shiftKey: false, altKey: false, metaKey: false}});
+    await press('s');
+    expect(onSave).toHaveBeenCalledTimes(1);
+    await press('n');
+    expect(onNew).not.toHaveBeenCalled();
+    unmount();
+    const {dispatchShortcut} = await import('../windows/shortcuts');
+    expect(dispatchShortcut({nativeEvent: {key: 's', code: 's', ctrlKey: true, shiftKey: false, altKey: false, metaKey: false}})).toBe(false);
   });
 });

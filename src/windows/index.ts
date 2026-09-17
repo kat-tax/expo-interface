@@ -41,6 +41,8 @@ export interface KeyEvent {
     metaKey: boolean;
     shiftKey: boolean;
   };
+  /** Keeps the event from the ancestors' handlers — a nested stack's host from the root's — once handled. */
+  stopPropagation?: () => void;
 }
 
 /**
