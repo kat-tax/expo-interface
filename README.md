@@ -462,8 +462,9 @@ Two things are Windows-aware in an app: the root layout uses the kit's `Stack`
 (Expo Router's native stack needs `react-native-screens`, which has no Windows
 renderer; the kit's is Expo Router's stack router under a drawn header there),
 and `Tabs` draws a WinUI `NavigationView` — the top bar, or the navigation
-pane down the left side with `windowsPane`. `setColorScheme` forces the scheme
-in JavaScript, which every island follows.
+pane down the left side with `windowsPane`. On `expo-windows` the stack also
+names the window after the focused screen ("Settings – My App").
+`setColorScheme` forces the scheme in JavaScript, which every island follows.
 
 ## Install details
 

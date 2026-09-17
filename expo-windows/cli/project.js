@@ -5,7 +5,7 @@
  */
 const fs = require('node:fs');
 const path = require('node:path');
-const {patchAppCpp, patchVcxproj} = require('./patch');
+const {patchAppCpp, patchSingleInstance, patchVcxproj} = require('./patch');
 
 /**
  * The generated project: the folder under `windows/` that holds a
@@ -41,7 +41,7 @@ function applyPatches(projectRoot) {
   const changed = [];
   const files = [
     [project.vcxproj, patchVcxproj],
-    ...(project.appCpp ? [[project.appCpp, patchAppCpp]] : []),
+    ...(project.appCpp ? [[project.appCpp, (/** @type {string} */ text) => patchSingleInstance(patchAppCpp(text))]] : []),
   ];
   for (const [file, patch] of /** @type {[string, (text: string) => string][]} */ (files)) {
     const before = fs.readFileSync(file, 'utf8');

@@ -1,4 +1,4 @@
-import {Linking} from 'react-native';
+import {Linking, TurboModuleRegistry} from 'react-native';
 import * as runtime from './index';
 import {nativeModuleClass, UnavailabilityError} from './modules/base';
 import {registeredModules} from './modules/registry';
@@ -6,6 +6,7 @@ import {registeredModules} from './modules/registry';
 describe('install (windows)', () => {
   it('installs the expo global where there is none, then the modules, once, keeping React Native\'s fetch', async () => {
     vi.spyOn(Linking, 'getInitialURL').mockResolvedValue(null);
+    vi.spyOn(TurboModuleRegistry, 'get').mockReturnValue(null);
     const previous = globalThis.expo;
     const saved = globalThis as {__expoWindowsFetch?: typeof globalThis.fetch};
     try {
@@ -27,6 +28,29 @@ describe('install (windows)', () => {
     } finally {
       globalThis.expo = previous;
       delete saved.__expoWindowsFetch;
+    }
+  });
+
+  it('registers the app\'s scheme as a protocol through the library, and shrugs when that fails', async () => {
+    vi.spyOn(Linking, 'getInitialURL').mockResolvedValue(null);
+    const {TurboModuleRegistry} = await import('react-native');
+    const registerProtocol = vi.fn(async () => {
+      throw new Error('registration refused');
+    });
+    vi.spyOn(TurboModuleRegistry, 'get').mockImplementation(name =>
+      (name === 'ExpoWindowsLinking' ? {getInitialUrl: async () => '', registerProtocol} : null) as never,
+    );
+    const saved = process.env.EXPO_PUBLIC_WINDOWS_APP_CONFIG;
+    process.env.EXPO_PUBLIC_WINDOWS_APP_CONFIG = JSON.stringify({name: 'WinKit', scheme: 'winkit'});
+    try {
+      vi.resetModules();
+      await import('./install.windows');
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(registerProtocol).toHaveBeenCalledWith('winkit', 'WinKit');
+    } finally {
+      if (saved === undefined) delete process.env.EXPO_PUBLIC_WINDOWS_APP_CONFIG;
+      else process.env.EXPO_PUBLIC_WINDOWS_APP_CONFIG = saved;
     }
   });
 

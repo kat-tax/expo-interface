@@ -9,6 +9,7 @@ import {createLinkingModule} from './linking';
 import {ExpoSharing} from './sharing';
 import {ExpoSystemUI} from './system-ui';
 import {ExpoWebBrowser} from './web-browser';
+import {ExpoWindows} from './window';
 
 /**
  * Registers every Windows module under the name its Expo package asks
@@ -29,4 +30,6 @@ export function registerModules(): void {
   registerModule('ExpoClipboard', createClipboardModule());
   registerModule('ExpoSharing', ExpoSharing);
   registerModule('ExpoDevice', ExpoDevice);
+  // The runtime's own: the window, for the kit's stack and any app that asks for it.
+  registerModule('ExpoWindows', ExpoWindows);
 }

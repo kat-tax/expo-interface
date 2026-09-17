@@ -1,11 +1,30 @@
+import type {TabRoute} from '../tabs/types';
 import {act, fireEvent, screen} from '@testing-library/react-native';
 import {Text} from 'react-native';
 import {router} from 'expo-router';
 import {renderApp} from '../__tests__/router';
 import {island} from '../__tests__/windows';
 import {TabStack} from '../tab-stack';
+import {Tabs} from '../tabs';
 import {Screen} from '../screen';
-import {Stack} from './stack';
+import {inFront, Stack} from './stack.windows';
+
+/** The app config `expo-constants` reports, as each test sets it. */
+const constants = vi.hoisted(() => ({config: null as {name?: string} | null}));
+vi.mock('expo-constants', () => ({
+  default: {
+    get expoConfig() {
+      return constants.config;
+    },
+  },
+}));
+
+/** The runtime's window module, as its install registers it — or none, as in an app without the runtime. */
+const runtime = vi.hoisted(() => ({module: null as {setWindowTitle(title: string): void} | null}));
+vi.mock('expo-modules-core', async importOriginal => ({
+  ...(await importOriginal<typeof import('expo-modules-core')>()),
+  requireOptionalNativeModule: (name: string) => (name === 'ExpoWindows' ? runtime.module : null),
+}));
 
 const app = (options: Record<string, unknown> = {}) => ({
   _layout: () => (
@@ -138,5 +157,72 @@ describe('Stack modals (windows)', () => {
     expect(screen.getByText('Home screen')).toBeOnTheScreen();
     await fireEvent(root, 'pointerDown', {nativeEvent: {button: 3}});
     expect(screen.getByText('Home screen')).toBeOnTheScreen();
+  });
+});
+
+describe('Stack window title (windows)', () => {
+  const tabs: TabRoute[] = [{href: '/', name: '(home)', label: 'Home', icon: {ios: 'house', android: 'home', web: 'home'}}];
+  const tabbedApp = () => ({
+    _layout: () => (
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
+        <Stack.Screen name="detail" options={{title: 'A drop'}}/>
+        <Stack.Screen name="edit" options={{title: 'Edit drop', presentation: 'modal'}}/>
+      </Stack>
+    ),
+    '(tabs)/_layout': () => <Tabs routes={tabs}/>,
+    '(tabs)/(home)/_layout': () => <TabStack title="Documents"/>,
+    '(tabs)/(home)/index': () => <Text>Documents screen</Text>,
+    detail: () => <Text>Detail screen</Text>,
+    edit: () => <Text>Edit form</Text>,
+  });
+
+  it('names the window after the focused screen of the innermost focused stack, with the app\'s name', async () => {
+    const setWindowTitle = vi.fn();
+    runtime.module = {setWindowTitle};
+    constants.config = {name: 'Files'};
+    try {
+      await renderApp(tabbedApp());
+      expect(setWindowTitle).toHaveBeenLastCalledWith('Documents – Files');
+      await act(async () => router.push('/detail'));
+      expect(setWindowTitle).toHaveBeenLastCalledWith('A drop – Files');
+      await act(async () => router.back());
+      expect(setWindowTitle).toHaveBeenLastCalledWith('Documents – Files');
+      // A modal over the tabs is in front of the tab's stack; dismissed, the tab's screen names the window again.
+      await act(async () => router.push('/edit'));
+      expect(setWindowTitle).toHaveBeenLastCalledWith('Edit drop – Files');
+      await act(async () => router.back());
+      expect(setWindowTitle).toHaveBeenLastCalledWith('Documents – Files');
+    } finally {
+      runtime.module = null;
+    }
+  });
+
+  it('puts a modal before a card, the innermost stack before an outer one, and the later mounted before the earlier', () => {
+    const card = {depth: 1, order: 0, title: 'Card', modal: false};
+    const modal = {depth: 1, order: 1, title: 'Modal', modal: true};
+    const nested = {depth: 2, order: 2, title: 'Nested', modal: false};
+    const later = {depth: 2, order: 3, title: 'Later', modal: false};
+    expect(inFront(modal, nested)).toBe(true);
+    expect(inFront(nested, modal)).toBe(false);
+    expect(inFront(nested, card)).toBe(true);
+    expect(inFront(card, nested)).toBe(false);
+    expect(inFront(later, nested)).toBe(true);
+    expect(inFront(nested, later)).toBe(false);
+  });
+
+  it('uses the title alone when it is the app\'s name, or there is no app name', async () => {
+    const setWindowTitle = vi.fn();
+    runtime.module = {setWindowTitle};
+    try {
+      constants.config = {name: 'Drops'};
+      await renderApp(app());
+      expect(setWindowTitle).toHaveBeenLastCalledWith('Drops');
+      constants.config = null;
+      await act(async () => router.push('/detail'));
+      expect(setWindowTitle).toHaveBeenLastCalledWith('A drop');
+    } finally {
+      runtime.module = null;
+    }
   });
 });

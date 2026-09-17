@@ -1,8 +1,14 @@
+import {TurboModuleRegistry} from 'react-native';
 import {ExpoAsset} from './asset';
 import {ExpoDevice} from './device';
 import {ExpoKeepAwake} from './keep-awake';
 import {ExpoSharing} from './sharing';
 import {ExpoSystemUI} from './system-ui';
+
+// Without the runtime's Windows library: the harness's registry would otherwise answer with a stand-in.
+beforeEach(() => {
+  vi.spyOn(TurboModuleRegistry, 'get').mockReturnValue(null);
+});
 
 describe('ExpoAsset (windows)', () => {
   it('answers with the URL as the local URI, as web does', async () => {

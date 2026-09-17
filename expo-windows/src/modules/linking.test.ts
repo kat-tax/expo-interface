@@ -1,7 +1,12 @@
-import {Linking} from 'react-native';
+import {Linking, TurboModuleRegistry} from 'react-native';
 import {createLinkingModule} from './linking';
 
 type UrlListener = (event: {url: string}) => void;
+
+// Without the runtime's Windows library: the harness's registry would otherwise answer with a stand-in.
+beforeEach(() => {
+  vi.spyOn(TurboModuleRegistry, 'get').mockReturnValue(null);
+});
 
 describe('ExpoLinking (windows)', () => {
   it('keeps the URL the app was launched with, and clears it on request', async () => {

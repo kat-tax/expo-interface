@@ -1,7 +1,7 @@
 {
   "name": "expo-windows",
-  "version": "0.1.0",
-  "description": "Windows for Expo apps on react-native-windows: the Metro config for the platform, an Expo Modules Core over the JavaScript registry, the modules the Expo packages call, and the app scaffold.",
+  "version": "0.2.0",
+  "description": "Windows for Expo apps on react-native-windows: the Metro config for the platform, an Expo Modules Core over the JavaScript registry, the modules the Expo packages call with a C++ library behind them, and the app scaffold.",
   "license": "MIT",
   "author": "kat-tax",
   "homepage": "https://github.com/kat-tax/expo-interface/tree/master/expo-windows#readme",
@@ -32,6 +32,13 @@
     "metro",
     "cli",
     "!cli/**/*.test.js",
+    "windows",
+    "!windows/**/x64",
+    "!windows/**/ARM64",
+    "!windows/**/Win32",
+    "!windows/**/Generated Files",
+    "!windows/**/obj",
+    "react-native.config.js",
     "README.md"
   ],
   "scripts": {

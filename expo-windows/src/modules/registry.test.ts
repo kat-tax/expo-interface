@@ -1,4 +1,4 @@
-import {Linking} from 'react-native';
+import {Linking, TurboModuleRegistry} from 'react-native';
 import {installUuidFallback, uuidv4} from '../uuid';
 import {registerModules} from './index';
 import {registeredModules, registerModule} from './registry';
@@ -42,6 +42,7 @@ describe('registry (windows)', () => {
 
   it('registers every Windows module an Expo package asks for', () => {
     vi.spyOn(Linking, 'getInitialURL').mockResolvedValue(null);
+    vi.spyOn(TurboModuleRegistry, 'get').mockReturnValue(null);
     withFreshGlobal(expo => {
       registerModules();
       expect(Object.keys(expo.modules).sort()).toEqual([
@@ -54,6 +55,7 @@ describe('registry (windows)', () => {
         'ExpoSharing',
         'ExpoSystemUI',
         'ExpoWebBrowser',
+        'ExpoWindows',
         'ExponentConstants',
       ]);
       expect(typeof (expo.modules.ExpoLinking as {getLinkingURL(): unknown}).getLinkingURL).toBe('function');

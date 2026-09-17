@@ -1,6 +1,7 @@
 import {installExpoGlobalPolyfill} from 'expo-modules-core/src/polyfill/dangerous-internal';
 import {installUuidFallback} from './uuid';
 import {registerModules} from './modules';
+import {registerAppProtocol} from './modules/linking';
 
 /**
  * Runs before the app's main module — `withWindows` adds this file to Metro's
@@ -26,3 +27,9 @@ import {registerModules} from './modules';
 installExpoGlobalPolyfill();
 installUuidFallback();
 registerModules();
+// The app's scheme as a URI protocol for this user, when the runtime's library is in the app.
+registerAppProtocol().catch(linksOpenNewInstances);
+
+function linksOpenNewInstances(): void {
+  // Without the registration a link with the scheme is not the app's; nothing else changes.
+}

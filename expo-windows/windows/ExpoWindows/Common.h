@@ -1,0 +1,27 @@
+#pragma once
+
+#include "pch.h"
+
+/**
+ * What the runtime's modules share: the app's window, string conversions,
+ * and the path a `file:` URI names.
+ */
+namespace ExpoWindows {
+
+/** The app's main window: the first visible, unowned top-level window of this process; null before it exists. */
+HWND MainWindow() noexcept;
+
+std::wstring ToWide(std::string_view utf8) noexcept;
+std::string ToUtf8(std::wstring_view wide) noexcept;
+
+/**
+ * The file path a `file:` URI names (unescaped, with backslashes), the
+ * string itself when it is a path already, and empty for a URI of any other
+ * scheme.
+ */
+std::wstring PathFromUri(std::string_view uri) noexcept;
+
+/** The message of a WinRT error, for a rejected promise. */
+std::string Message(winrt::hresult_error const &error) noexcept;
+
+} // namespace ExpoWindows

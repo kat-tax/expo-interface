@@ -215,7 +215,7 @@ literal; `useColor` answers the palette for all of them.
 | IconToggle | WinUI `ToggleButton` with a `FontIcon` |
 | Avatar | WinUI `PersonPicture` |
 | Tabs | WinUI `NavigationView` over the focused tab: the top bar, or with `windowsPane` the left pane (expanded, compact, or `auto` by window width), the pane's toggle button collapsing it to its glyphs |
-| Stack, TabStack | Expo Router's stack router under a drawn header; a screen with `presentation: 'modal'` (or `formSheet`, `containedModal`, `fullScreenModal`) is a card over smoke above the screen below, a `transparentModal` lies over the window as it is — Escape, the smoke and the back button dismiss it; Alt+Left, the keyboard's back key and the mouse's back button pop the stack |
+| Stack, TabStack | Expo Router's stack router under a drawn header; a screen with `presentation: 'modal'` (or `formSheet`, `containedModal`, `fullScreenModal`) is a card over smoke above the screen below, a `transparentModal` lies over the window as it is — Escape, the smoke and the back button dismiss it; Alt+Left, the keyboard's back key and the mouse's back button pop the stack. On `expo-windows` the window's title follows the focused screen ("Settings – My App"), from the innermost focused stack |
 | ExternalLink | Expo Router's `Link`, opening the href in the default browser through React Native's `Linking`: there is no in-app browser, and `expo-web-browser` has no Windows module |
 | Gauge | Bars drawn in React Native; rings are the WinUI `ProgressRing` |
 | Fab | Drawn, as on iOS; with `items` a `MenuFlyout` |

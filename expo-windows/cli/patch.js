@@ -67,4 +67,49 @@ function patchAppCpp(appCpp, options = {}) {
   return appCpp.replace(pattern, `$1${componentName}$2`);
 }
 
-module.exports = {safeProjectName, setProjectProperty, patchVcxproj, patchAppCpp};
+const SINGLE_INSTANCE_INCLUDE = '#include <winrt/Microsoft.Windows.AppLifecycle.h>';
+
+const SINGLE_INSTANCE = `
+  // expo-windows: one instance. A link with the app's scheme, or a second launch,
+  // reaches the running app (as React Native's \`url\` event) instead of opening
+  // another window. The wait is a COM wait: this thread is a single-threaded
+  // apartment, which a blocking get() would deadlock.
+  {
+    auto expoMainInstance = winrt::Microsoft::Windows::AppLifecycle::AppInstance::FindOrRegisterForKey(L"main");
+    if (!expoMainInstance.IsCurrent()) {
+      winrt::handle redirected{CreateEventW(nullptr, TRUE, FALSE, nullptr)};
+      auto redirect = expoMainInstance.RedirectActivationToAsync(
+          winrt::Microsoft::Windows::AppLifecycle::AppInstance::GetCurrent().GetActivatedEventArgs());
+      redirect.Completed([&redirected](auto const &, auto const &) { SetEvent(redirected.get()); });
+      DWORD signalled = 0;
+      HANDLE handles[] = {redirected.get()};
+      CoWaitForMultipleObjects(CWMO_DEFAULT, INFINITE, 1, handles, &signalled);
+      return 0;
+    }
+  }
+`;
+
+/**
+ * The app's C++ entry, made single-instance for deep links: right after the
+ * apartment is initialized, a launch that is not the first hands its
+ * activation — the URL — to the running instance and exits, and the
+ * runtime's linking module raises it there. An entry the template did not
+ * write (no `winrt::init_apartment` line) is left as it is, as is one
+ * already patched.
+ * @param {string} appCpp
+ */
+function patchSingleInstance(appCpp) {
+  if (appCpp.includes('FindOrRegisterForKey')) return appCpp;
+  const anchor = /^[ \t]*winrt::init_apartment\([^\n]*\n/m.exec(appCpp);
+  if (!anchor) return appCpp;
+  const at = anchor.index + anchor[0].length;
+  let text = `${appCpp.slice(0, at)}${SINGLE_INSTANCE}${appCpp.slice(at)}`;
+  if (!text.includes(SINGLE_INSTANCE_INCLUDE)) {
+    const include = /^#include "pch\.h"[^\n]*\n/m.exec(text);
+    const after = include ? include.index + include[0].length : 0;
+    text = `${text.slice(0, after)}${SINGLE_INSTANCE_INCLUDE}\n${text.slice(after)}`;
+  }
+  return text;
+}
+
+module.exports = {safeProjectName, setProjectProperty, patchVcxproj, patchAppCpp, patchSingleInstance};

@@ -17,7 +17,12 @@ function scaffold({withApp = true, withProject = true} = {}) {
       path.join(dir, 'DropFiles.vcxproj'),
       '<Project>\n  <PropertyGroup Label="Globals">\n    <WindowsAppSdkAutoInitialize>false</WindowsAppSdkAutoInitialize>\n  </PropertyGroup>\n</Project>\n',
     );
-    if (withApp) fs.writeFileSync(path.join(dir, 'DropFiles.cpp'), 'viewOptions.ComponentName(L"DropFiles");\n');
+    if (withApp) {
+      fs.writeFileSync(
+        path.join(dir, 'DropFiles.cpp'),
+        '#include "pch.h"\nint WinMain() {\n  winrt::init_apartment(winrt::apartment_type::single_threaded);\n  viewOptions.ComponentName(L"DropFiles");\n}\n',
+      );
+    }
   }
   return root;
 }
@@ -46,7 +51,9 @@ describe('applyPatches', () => {
     const first = applyPatches(root);
     expect(first).toEqual({name: 'DropFiles', changed: [path.join('windows', 'DropFiles', 'DropFiles.vcxproj'), path.join('windows', 'DropFiles', 'DropFiles.cpp')]});
     expect(fs.readFileSync(path.join(root, 'windows', 'DropFiles', 'DropFiles.vcxproj'), 'utf8')).toContain('<WindowsPackageType>None</WindowsPackageType>');
-    expect(fs.readFileSync(path.join(root, 'windows', 'DropFiles', 'DropFiles.cpp'), 'utf8')).toContain('L"main"');
+    const entry = fs.readFileSync(path.join(root, 'windows', 'DropFiles', 'DropFiles.cpp'), 'utf8');
+    expect(entry).toContain('L"main"');
+    expect(entry).toContain('FindOrRegisterForKey(L"main")');
     expect(applyPatches(root)).toEqual({name: 'DropFiles', changed: []});
   });
 
