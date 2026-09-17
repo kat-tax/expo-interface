@@ -7,7 +7,11 @@ import {bound, fonts, fontWeights, spacing, useColor} from '../theme';
 
 interface ScreenHeaderProps {
   title: string;
+  /** Drawn in place of the title text, when a screen renders its own (`headerTitle` as a function). */
+  titleNode?: React.ReactNode;
   onBack?: () => void;
+  /** Drawn in place of the back button (`headerLeft`). */
+  leading?: React.ReactNode;
   trailing?: React.ReactNode;
 }
 
@@ -21,14 +25,14 @@ const BACK = icon({ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back'
  * `NavigationView` back button has. A desktop window has no status bar to
  * leave room for.
  */
-export function ScreenHeader({title, onBack, trailing}: ScreenHeaderProps) {
+export function ScreenHeader({title, titleNode, onBack, leading, trailing}: ScreenHeaderProps) {
   const label = useColor('label');
   const background = useColor('background');
 
   return (
     <View style={[styles.bar, {backgroundColor: background}]}>
       <View style={styles.inner}>
-        {onBack ? (
+        {leading ?? (onBack ? (
           <StatePressable
             onPress={onBack}
             role="button"
@@ -36,10 +40,12 @@ export function ScreenHeader({title, onBack, trailing}: ScreenHeaderProps) {
             style={state => [styles.back, pressFeedback(state, 'subtle')]}>
             <Symbol icon={BACK} size={16} tintColor={label}/>
           </StatePressable>
-        ) : null}
-        <Text numberOfLines={1} style={[styles.title, {color: label}]}>
-          {title}
-        </Text>
+        ) : null)}
+        {titleNode ?? (
+          <Text numberOfLines={1} style={[styles.title, {color: label}]}>
+            {title}
+          </Text>
+        )}
         {trailing}
       </View>
     </View>

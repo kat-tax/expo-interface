@@ -3,9 +3,12 @@ import {createContext, useContext, useEffect} from 'react';
 import Constants from 'expo-constants';
 import {requireOptionalNativeModule} from 'expo-modules-core';
 import {Navigator, StackRouter} from 'expo-router';
-import {StyleSheet, View} from 'react-native';
+import {Animated, StyleSheet, View} from 'react-native';
+import type {Entrance} from '../windows/entrance';
 import {ScreenHeader} from '../screen/header';
 import {StackHeaderContext} from '../stack-header/context';
+import {useColor} from '../theme';
+import {useEntrance} from '../windows/entrance';
 import {LayerHost} from '../windows/layer';
 import {ModalLayer} from '../windows/modal-layer';
 
@@ -22,10 +25,14 @@ export type WindowsStackPresentation =
 /** The header options the Windows stack reads from a screen. */
 export interface WindowsStackOptions {
   title?: string;
-  headerTitle?: string | (() => ReactNode);
+  /** The title text, or a node drawn in its place. */
+  headerTitle?: string | ((props: {children: string; tintColor?: string}) => ReactNode);
   headerShown?: boolean;
   headerRight?: (props: {tintColor?: string}) => ReactNode;
-  headerLeft?: (props: {tintColor?: string}) => ReactNode;
+  /** Drawn in place of the back button. */
+  headerLeft?: (props: {tintColor?: string; canGoBack: boolean}) => ReactNode;
+  /** `false` hides the back button; Alt+Left and the back keys still pop. */
+  headerBackVisible?: boolean;
   /**
    * `modal`, `formSheet`, `containedModal` and `fullScreenModal` present the
    * screen in a card over smoke, as a WinUI dialog is arranged; the
@@ -33,6 +40,13 @@ export interface WindowsStackOptions {
    * the header's back button dismiss it.
    */
   presentation?: WindowsStackPresentation;
+  /**
+   * How the screen arrives: WinUI's entrance — a card slides up a little and
+   * fades in, a modal settles from a little larger — a `fade` alone, or
+   * `none`.
+   * @default 'default'
+   */
+  animation?: Entrance;
 }
 
 type NavigatorProps = ComponentProps<typeof Navigator>;
@@ -172,34 +186,41 @@ function StackBody() {
   const baseOptions = optionsOf(baseIndex);
   const modals = state.routes.slice(baseIndex + 1, state.index + 1);
   const goBack = () => navigation.goBack();
+  const entrance = useEntrance(base.key, 'card', baseOptions.animation);
+  // Painted, so that a card arriving — translucent, a little below — shows the scheme behind it, not the window's own white.
+  const background = useColor('background');
 
   return (
     <LayerHost onBack={state.index > 0 ? goBack : undefined} testID="windows-stack">
-      <View style={styles.root}>
-        {baseOptions.headerShown !== false ? (
-          <ScreenHeader
-            title={titleOf(baseOptions, base.name)}
-            onBack={baseIndex > 0 ? goBack : undefined}
-            trailing={baseOptions.headerRight?.({})}
-          />
-        ) : null}
-        <View style={styles.slot}>{descriptors[base.key].render()}</View>
+      <View style={[styles.root, {backgroundColor: background}]}>
+        {baseOptions.headerShown !== false ? <ScreenHeader {...headerOf(baseOptions, base.name, baseIndex > 0 ? goBack : undefined)}/> : null}
+        <Animated.View style={[styles.slot, entrance]}>{descriptors[base.key].render()}</Animated.View>
       </View>
       {modals.map((route, index) => {
         const options = descriptors[route.key].options as WindowsStackOptions;
         const transparent = TRANSPARENT.has(options.presentation as WindowsStackPresentation);
         const top = index === modals.length - 1;
         return (
-          <ModalLayer key={route.key} transparent={transparent} tall onDismiss={top ? goBack : undefined} testID={`modal-${route.name}`}>
-            {!transparent && options.headerShown !== false ? (
-              <ScreenHeader title={titleOf(options, route.name)} onBack={goBack} trailing={options.headerRight?.({})}/>
-            ) : null}
+          <ModalLayer key={route.key} transparent={transparent} tall onDismiss={top ? goBack : undefined} animation={options.animation} testID={`modal-${route.name}`}>
+            {!transparent && options.headerShown !== false ? <ScreenHeader {...headerOf(options, route.name, goBack)}/> : null}
             <View style={styles.slot}>{descriptors[route.key].render()}</View>
           </ModalLayer>
         );
       })}
     </LayerHost>
   );
+}
+
+/** The header row a screen's options describe: its title or title node, its leading node or back button, its trailing node. */
+function headerOf(options: WindowsStackOptions, name: string, goBack: (() => void) | undefined) {
+  const title = titleOf(options, name);
+  return {
+    title,
+    titleNode: typeof options.headerTitle === 'function' ? options.headerTitle({children: title}) : undefined,
+    leading: options.headerLeft?.({canGoBack: goBack !== undefined}),
+    onBack: options.headerBackVisible === false ? undefined : goBack,
+    trailing: options.headerRight?.({}),
+  };
 }
 
 export const Stack = Object.assign(StackNavigator, {

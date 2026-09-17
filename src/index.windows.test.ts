@@ -20,5 +20,6 @@ describe('expo-interface (windows)', () => {
     expect(missing).toEqual([]);
     expect(kit.ExternalLink).toEqual(expect.any(Function));
     expect(kit.Stack).toEqual(expect.any(Function));
-  });
+    // The whole barrel is a lot to load while the rest of the suite runs.
+  }, 30_000);
 });

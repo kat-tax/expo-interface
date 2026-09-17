@@ -1,7 +1,9 @@
 import type {ReactNode} from 'react';
-import {useEffect, useRef} from 'react';
-import {Pressable, StyleSheet, View} from 'react-native';
+import type {Entrance} from './entrance';
+import {useEffect, useId, useRef} from 'react';
+import {Animated, Pressable, StyleSheet, View} from 'react-native';
 import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
+import {useEntrance} from './entrance';
 import {keyHandlers} from './index';
 import {useLayerDismiss} from './layer';
 import {bound, useColor} from '../theme';
@@ -27,6 +29,8 @@ export interface ModalLayerProps {
    * sizing itself.
    */
   tall?: boolean;
+  /** How the card arrives: settling from a little larger as a dialog does, a fade, or at once. */
+  animation?: Entrance;
   testID?: string;
 }
 
@@ -41,11 +45,12 @@ export interface ModalLayerProps {
  * there is no host. Rendered in a host to cover the window; the kit's
  * Windows stack presents modal routes and sheets with it.
  */
-export function ModalLayer({children, onDismiss, transparent = false, tall = false, testID}: ModalLayerProps) {
+export function ModalLayer({children, onDismiss, transparent = false, tall = false, animation, testID}: ModalLayerProps) {
   const background = useColor('background');
   const separator = useColor('separator');
   const hosted = useLayerDismiss(onDismiss);
   const root = useRef<View>(null);
+  const entrance = useEntrance(useId(), 'dialog', animation);
   useEffect(() => {
     try {
       // The view is mounted by the time the effect runs.
@@ -71,7 +76,7 @@ export function ModalLayer({children, onDismiss, transparent = false, tall = fal
   return (
     <View ref={root} style={[styles.fill, styles.centre]} testID={testID} {...FOCUS_HOLDER} {...keyboard}>
       <Pressable style={styles.smoke} onPress={onDismiss} accessibilityLabel="Dismiss" role="button"/>
-      <View style={[styles.card, tall && styles.tall, {backgroundColor: background, borderColor: separator}]}>{children}</View>
+      <Animated.View style={[styles.card, tall && styles.tall, {backgroundColor: background, borderColor: separator}, entrance]}>{children}</Animated.View>
     </View>
   );
 }

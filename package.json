@@ -1,6 +1,6 @@
 {
   "name": "expo-interface",
-  "version": "0.12.0",
+  "version": "0.13.0",
   "description": "Native-first universal UI kit for Expo — SwiftUI on iOS, Jetpack Compose on Android, real DOM on web, WinUI 3 on Windows — built on @expo/ui and react-native-windows.",
   "license": "MIT",
   "author": "kat-tax",

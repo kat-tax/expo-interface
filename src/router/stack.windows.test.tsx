@@ -1,6 +1,6 @@
 import type {TabRoute} from '../tabs/types';
 import {act, fireEvent, screen} from '@testing-library/react-native';
-import {Text} from 'react-native';
+import {Animated, Text} from 'react-native';
 import {router} from 'expo-router';
 import {renderApp} from '../__tests__/router';
 import {island} from '../__tests__/windows';
@@ -157,6 +157,56 @@ describe('Stack modals (windows)', () => {
     expect(screen.getByText('Home screen')).toBeOnTheScreen();
     await fireEvent(root, 'pointerDown', {nativeEvent: {button: 3}});
     expect(screen.getByText('Home screen')).toBeOnTheScreen();
+  });
+});
+
+describe('Stack header options and motion (windows)', () => {
+  it('draws headerLeft in place of the back button, hides the back button on request, and takes a title node', async () => {
+    await renderApp({
+      _layout: () => (
+        <Stack>
+          <Stack.Screen name="index" options={{title: 'Drops', headerLeft: () => <Text testID="menu-button">Menu</Text>}}/>
+          <Stack.Screen name="detail" options={{headerBackVisible: false, headerTitle: ({children}: {children: string}) => <Text testID="custom-title">{children.toUpperCase()}</Text>}}/>
+        </Stack>
+      ),
+      index: () => <Text>Home screen</Text>,
+      detail: () => <Text>Detail screen</Text>,
+    });
+    expect(screen.getByTestId('menu-button')).toBeOnTheScreen();
+    expect(screen.queryByLabelText('Go back')).toBeNull();
+    await act(async () => router.push('/detail'));
+    expect(screen.getByTestId('custom-title')).toHaveTextContent('DETAIL');
+    expect(screen.queryByText('detail')).toBeNull();
+    expect(screen.queryByLabelText('Go back')).toBeNull();
+    // The keys still pop.
+    await fireEvent(screen.getByTestId('windows-stack'), 'keyDown', {nativeEvent: {key: 'ArrowLeft', altKey: true}});
+    expect(screen.getByText('Home screen')).toBeOnTheScreen();
+  });
+
+  it('plays the entrance on a push and a modal, and not for a screen that asks for none', async () => {
+    const start = vi.fn();
+    const timing = vi.spyOn(Animated, 'timing').mockReturnValue({start} as never);
+    await renderApp({
+      _layout: () => (
+        <Stack>
+          <Stack.Screen name="index" options={{title: 'Drops'}}/>
+          <Stack.Screen name="still" options={{animation: 'none'}}/>
+          <Stack.Screen name="edit" options={{presentation: 'modal', title: 'Edit drop'}}/>
+        </Stack>
+      ),
+      index: () => <Text>Home screen</Text>,
+      detail: () => <Text>Detail screen</Text>,
+      still: () => <Text>Still screen</Text>,
+      edit: () => <Text>Edit form</Text>,
+    });
+    expect(timing).not.toHaveBeenCalled();
+    await act(async () => router.push('/detail'));
+    expect(timing).toHaveBeenCalledTimes(1);
+    await act(async () => router.push('/still'));
+    expect(timing).toHaveBeenCalledTimes(1);
+    await act(async () => router.push('/edit'));
+    expect(timing).toHaveBeenCalledTimes(2);
+    expect(screen.getByText('Edit form')).toBeOnTheScreen();
   });
 });
 
