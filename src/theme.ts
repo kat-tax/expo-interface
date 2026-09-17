@@ -8,6 +8,8 @@ import {Platform, PlatformColor} from 'react-native';
 import {TypographyVariant, TypographyStyle} from './typography/types';
 import {ACCENT_SEED, onAccent, useAccentSeed} from './accent';
 import {useColorScheme} from './scheme';
+import {useHighContrast} from './windows/contrast';
+import {highContrastPalette} from './windows/contrast-palette';
 
 export type VariantMap = Record<TypographyVariant, TypographyStyle>;
 export type ColorTokens = keyof typeof colors[keyof typeof colors];
@@ -421,13 +423,15 @@ export function useNavTheme() {
   if (Platform.OS === 'web') return nav;
   /* eslint-disable react-hooks/rules-of-hooks -- Platform.OS is a runtime constant. */
   const seed = useAccentSeed();
-  const palette = colors[useColorScheme()];
+  const scheme = useColorScheme();
+  const contrast = useHighContrast();
   /* eslint-enable react-hooks/rules-of-hooks */
+  const palette = contrast.colors ? highContrastPalette(contrast.colors) : colors[scheme];
   return {
     ...nav,
     colors: {
       ...nav.colors,
-      primary: seed,
+      primary: contrast.colors ? palette.tint : seed,
       background: palette.background,
       card: palette.backgroundElement,
       text: palette.label,
@@ -510,7 +514,9 @@ export function useColor(token: ColorTokens): string {
   /* eslint-disable react-hooks/rules-of-hooks -- Platform.OS is a runtime constant. */
   const seed = useAccentSeed();
   const scheme = useColorScheme();
+  const contrast = useHighContrast();
   /* eslint-enable react-hooks/rules-of-hooks */
+  if (contrast.colors) return highContrastPalette(contrast.colors)[token];
   if (token === 'tint') return seed;
   if (token === 'onTint') return onAccent(seed);
   return colors[scheme][token];
@@ -527,9 +533,13 @@ export function useColor(token: ColorTokens): string {
 export function usePalette(): Palette {
   const seed = useAccentSeed();
   const scheme = useColorScheme();
+  const contrast = useHighContrast();
   return useMemo(
-    () => ({...colors[scheme], tint: seed, onTint: onAccent(seed)}),
-    [scheme, seed],
+    () =>
+      contrast.colors
+        ? highContrastPalette(contrast.colors)
+        : {...colors[scheme], tint: seed, onTint: onAccent(seed)},
+    [scheme, seed, contrast],
   );
 }
 

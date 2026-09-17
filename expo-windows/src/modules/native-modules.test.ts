@@ -1,4 +1,4 @@
-import {Linking, TurboModuleRegistry} from 'react-native';
+import {DeviceEventEmitter, Linking, TurboModuleRegistry} from 'react-native';
 import {native} from '../native';
 import {ExpoDevice} from './device';
 import {createFontLoaderModule} from './font-loader';
@@ -20,6 +20,43 @@ describe('the runtime\'s TurboModules (windows)', () => {
     expect(native.sharing()).toBeNull();
     expect(native.linking()).toBeNull();
     expect(native.fonts()).toBeNull();
+    expect(native.accessibility()).toBeNull();
+  });
+});
+
+describe('ExpoWindows high contrast (windows)', () => {
+  it('reads the setting and the system colours through the library, and reports it off without it', async () => {
+    const state = {
+      enabled: true,
+      scheme: 'High Contrast Black',
+      colors: {
+        background: '#000000',
+        text: '#FFFFFF',
+        highlight: '#1AEBFF',
+        highlightText: '#000000',
+        buttonFace: '#000000',
+        buttonText: '#FFFFFF',
+        link: '#FFFF00',
+        disabledText: '#3FF23F',
+      },
+    };
+    withNative({ExpoWindowsAccessibility: {getHighContrast: async () => state}});
+    await expect(ExpoWindows.getHighContrastAsync()).resolves.toEqual(state);
+    withNative({});
+    const off = await ExpoWindows.getHighContrastAsync();
+    expect(off.enabled).toBe(false);
+    expect(off.scheme).toBe('');
+    expect(off.colors.background).toBe('');
+  });
+
+  it('tells a listener when the library reports a change, until it is removed', () => {
+    const listener = vi.fn();
+    const subscription = ExpoWindows.addHighContrastListener(listener);
+    DeviceEventEmitter.emit('onHighContrastChanged', {enabled: false, scheme: '', colors: {}});
+    expect(listener).toHaveBeenCalledWith({enabled: false, scheme: '', colors: {}});
+    subscription.remove();
+    DeviceEventEmitter.emit('onHighContrastChanged', {enabled: true, scheme: 'High Contrast #1', colors: {}});
+    expect(listener).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -114,6 +114,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Accessibility.cpp" />
     <ClCompile Include="Clipboard.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Device.cpp" />

@@ -77,6 +77,29 @@ export interface NativeFonts extends TurboModule {
   unload(family: string): Promise<void>;
 }
 
+/** The system's colours for the parts of a window, as CSS hex: the high contrast theme's while one is on. */
+export interface SystemColors {
+  background: string;
+  text: string;
+  highlight: string;
+  highlightText: string;
+  buttonFace: string;
+  buttonText: string;
+  link: string;
+  disabledText: string;
+}
+
+export interface HighContrastState {
+  enabled: boolean;
+  /** The theme's name ("High Contrast Black"), empty while none is on. */
+  scheme: string;
+  colors: SystemColors;
+}
+
+export interface NativeAccessibility extends TurboModule {
+  getHighContrast(): Promise<HighContrastState>;
+}
+
 function get<T extends TurboModule>(name: string): T | null {
   return TurboModuleRegistry.get<T>(name);
 }
@@ -88,4 +111,5 @@ export const native = {
   sharing: () => get<NativeSharing>('ExpoWindowsSharing'),
   linking: () => get<NativeLinking>('ExpoWindowsLinking'),
   fonts: () => get<NativeFonts>('ExpoWindowsFonts'),
+  accessibility: () => get<NativeAccessibility>('ExpoWindowsAccessibility'),
 };

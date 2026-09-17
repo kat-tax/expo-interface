@@ -33,6 +33,7 @@
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Graphics.Imaging.h>
 #include <winrt/Windows.Graphics.h>
+#include <winrt/Windows.UI.ViewManagement.h>
 #include <winrt/Windows.UI.h>
 #include <winrt/Windows.Security.Cryptography.h>
 #include <winrt/Windows.Security.ExchangeActiveSyncProvisioning.h>

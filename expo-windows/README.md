@@ -102,7 +102,12 @@ And the runtime's own `ExpoWindows` module, for any app that asks
 into the title bar, the caption buttons drawn for the scheme),
 `getTitleBarInsetsAsync()`, `setDragRegion(rect)` and
 `setWindowBackground(color)` — what the kit's `useWindowChrome` and its
-headers drive, and `expo-system-ui`'s background paints the window through.
+headers drive, and `expo-system-ui`'s background paints the window through —
+and `getHighContrastAsync()` with `addHighContrastListener(listener)`: whether
+the user has a high contrast theme on, its name, and the system's colours
+for the window's parts (`background`, `text`, `highlight`, `highlightText`,
+`buttonFace`, `buttonText`, `link`, `disabledText`), which the kit's palette
+follows.
 
 What has no Windows implementation and is not listed — `@expo/ui`, and any
 package whose module calls `requireNativeModule` at import — still throws at

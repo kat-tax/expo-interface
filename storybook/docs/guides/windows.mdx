@@ -192,6 +192,18 @@ which react-native-windows resolves per scheme and in high contrast. Tokens
 with no Fluent twin (`tint`, `destructive`, `switchOn`) keep the palette
 literal; `useColor` answers the palette for all of them.
 
+High contrast is followed on `expo-windows`: while the user has a high
+contrast theme on, `useColor`, `usePalette` and the navigation theme answer
+the theme's own colours — text and separators in its text colour, surfaces
+in its window and control faces, the accent its highlight — and follow the
+user turning it on or off, as the Fluent resources do on their own.
+`useHighContrast()` reads the setting (`enabled`, the theme's `scheme` name,
+its `colors`) for anything that draws outside the palette;
+`highContrastPalette(colors)` is the mapping. A selected surface takes a
+control face, not the highlight, since the highlight is for text drawn in
+its highlight text: a selection shows through its outline, as the themes
+mean it to. Without the runtime, and everywhere else, the setting is off.
+
 ## What each component draws
 
 | Component | Windows |

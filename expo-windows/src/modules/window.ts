@@ -1,7 +1,24 @@
-import type {TitleBarInsets} from '../native';
+import type {HighContrastState, SystemColors, TitleBarInsets} from '../native';
+import {DeviceEventEmitter} from 'react-native';
 import {native} from '../native';
 
-export type {TitleBarInsets};
+export type {HighContrastState, SystemColors, TitleBarInsets};
+
+/** No high contrast theme, and no colours to speak of: what an app without the library is told. */
+const NO_CONTRAST: HighContrastState = {
+  enabled: false,
+  scheme: '',
+  colors: {
+    background: '',
+    text: '',
+    highlight: '',
+    highlightText: '',
+    buttonFace: '',
+    buttonText: '',
+    link: '',
+    disabledText: '',
+  },
+};
 
 export interface WindowChromeOptions {
   /** Extend the content into the title bar: the caption buttons over the app's own top row, no system title. */
@@ -49,5 +66,13 @@ export const ExpoWindows = {
   /** The window's own background — behind everything, and what shows while it resizes — or the system's for `null`. */
   setWindowBackground(color: string | null): void {
     native.window()?.setBackground(color ?? '');
+  },
+  /** Whether a high contrast theme is on, its name, and the system's colours for the window's parts; off without the library. */
+  async getHighContrastAsync(): Promise<HighContrastState> {
+    return (await native.accessibility()?.getHighContrast()) ?? NO_CONTRAST;
+  },
+  /** Called with the new state when the user turns high contrast on or off, or changes its theme. */
+  addHighContrastListener(listener: (state: HighContrastState) => void): {remove(): void} {
+    return DeviceEventEmitter.addListener('onHighContrastChanged', listener);
   },
 };
