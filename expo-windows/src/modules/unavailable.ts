@@ -107,8 +107,6 @@ export const UNAVAILABLE: Record<string, UnavailableSpec> = {
       requestMicrophonePermissionsAsync: denied,
     },
   },
-  ExpoCrypto: {package: 'Crypto', methods: ['digest', 'digestAsync', 'digestStringAsync', 'getRandomValues', 'randomUUID']},
-  ExpoCryptoAES: {package: 'Crypto', methods: ['decryptAsync', 'encryptAsync'], classes: ['EncryptionKey', 'SealedData']},
   ExpoDocumentPicker: {package: 'DocumentPicker', methods: ['getDocumentAsync']},
   ExpoDomWebViewModule: {package: 'DomWebView', methods: ['evalJsForWebViewAsync']},
   FileSystem: {
@@ -134,7 +132,6 @@ export const UNAVAILABLE: Record<string, UnavailableSpec> = {
     methods: ['authenticateAsync', 'cancelAuthenticate'],
     answers: {hasHardwareAsync: no, isEnrolledAsync: no, supportedAuthenticationTypesAsync: async () => [], getEnrolledLevelAsync: async () => 0},
   },
-  ExpoLocalization: {package: 'Localization', methods: ['getCalendars', 'getLocales']},
   ExpoLocation: {
     package: 'Location',
     methods: [
@@ -201,7 +198,6 @@ export const UNAVAILABLE: Record<string, UnavailableSpec> = {
     classes: ['Album', 'Asset', 'Query'],
     answers: {getPermissionsAsync: denied, requestPermissionsAsync: denied},
   },
-  ExpoNetwork: {package: 'Network', methods: ['getIpAddressAsync', 'getNetworkStateAsync', 'isAirplaneModeEnabledAsync']},
   ExpoBackgroundNotificationTasksModule: {package: NOTIFICATIONS, methods: ['registerTaskAsync', 'unregisterTaskAsync']},
   ExpoBadgeModule: {package: NOTIFICATIONS, methods: ['setBadgeCountAsync']},
   ExpoNotificationCategoriesModule: {package: NOTIFICATIONS, methods: ['deleteNotificationCategoryAsync', 'getNotificationCategoriesAsync', 'setNotificationCategoryAsync']},
@@ -232,20 +228,6 @@ export const UNAVAILABLE: Record<string, UnavailableSpec> = {
     package: 'ScreenCapture',
     methods: ['allowScreenCapture', 'disableAppSwitcherProtection', 'enableAppSwitcherProtection', 'preventScreenCapture'],
     answers: {getPermissionsAsync: denied, requestPermissionsAsync: denied},
-  },
-  ExpoSecureStore: {
-    package: 'SecureStore',
-    methods: ['deleteValueWithKeyAsync', 'getValueWithKeyAsync', 'getValueWithKeySync', 'setValueWithKeyAsync', 'setValueWithKeySync'],
-    constants: {
-      AFTER_FIRST_UNLOCK: 'AFTER_FIRST_UNLOCK',
-      AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY: 'AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY',
-      ALWAYS: 'ALWAYS',
-      ALWAYS_THIS_DEVICE_ONLY: 'ALWAYS_THIS_DEVICE_ONLY',
-      WHEN_PASSCODE_SET_THIS_DEVICE_ONLY: 'WHEN_PASSCODE_SET_THIS_DEVICE_ONLY',
-      WHEN_UNLOCKED: 'WHEN_UNLOCKED',
-      WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'WHEN_UNLOCKED_THIS_DEVICE_ONLY',
-    },
-    answers: {canUseBiometricAuthentication: () => false},
   },
   ExponentAccelerometer: sensor('Accelerometer'),
   ExponentGyroscope: sensor('Gyroscope'),

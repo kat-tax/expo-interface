@@ -1,52 +1,9 @@
 import type {SharedObject} from 'expo-modules-core';
 import type {} from 'expo-modules-core/src/polyfill/dangerous-internal';
+import {utf8Decode, utf8Encode} from '../bytes';
 
 export type BlobPart = string | ArrayBuffer | ArrayBufferView | {readonly size: number};
 export type BlobOptions = {type?: string; endings?: 'transparent' | 'native'};
-
-/** UTF-8, by hand: Hermes has `TextEncoder` but no `TextDecoder` on every version. */
-export function utf8Encode(text: string): Uint8Array {
-  const out: number[] = [];
-  for (let i = 0; i < text.length; i++) {
-    let code = text.charCodeAt(i);
-    if (code >= 0xd800 && code <= 0xdbff && i + 1 < text.length) {
-      const low = text.charCodeAt(i + 1);
-      if (low >= 0xdc00 && low <= 0xdfff) {
-        code = 0x10000 + ((code - 0xd800) << 10) + (low - 0xdc00);
-        i++;
-      }
-    }
-    if (code >= 0xd800 && code <= 0xdfff) code = 0xfffd; // a lone surrogate
-    if (code < 0x80) out.push(code);
-    else if (code < 0x800) out.push(0xc0 | (code >> 6), 0x80 | (code & 0x3f));
-    else if (code < 0x10000) out.push(0xe0 | (code >> 12), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f));
-    else out.push(0xf0 | (code >> 18), 0x80 | ((code >> 12) & 0x3f), 0x80 | ((code >> 6) & 0x3f), 0x80 | (code & 0x3f));
-  }
-  return Uint8Array.from(out);
-}
-
-export function utf8Decode(bytes: Uint8Array): string {
-  let text = '';
-  for (let i = 0; i < bytes.length; ) {
-    const first = bytes[i];
-    const length = first < 0x80 ? 1 : first >> 5 === 0b110 ? 2 : first >> 4 === 0b1110 ? 3 : first >> 3 === 0b11110 ? 4 : 0;
-    let code = length === 1 ? first : length === 2 ? first & 0x1f : length === 3 ? first & 0x0f : first & 0x07;
-    let valid = length > 0 && i + length <= bytes.length;
-    for (let j = 1; valid && j < length; j++) {
-      const next = bytes[i + j];
-      if (next >> 6 !== 0b10) valid = false;
-      else code = (code << 6) | (next & 0x3f);
-    }
-    if (!valid) {
-      text += '�';
-      i++;
-      continue;
-    }
-    text += String.fromCodePoint(code);
-    i += length;
-  }
-  return text;
-}
 
 const bytesOf = new WeakMap<object, Uint8Array>();
 

@@ -1,22 +1,4 @@
-import {createBlobModule, utf8Decode, utf8Encode} from './blob';
-
-describe('UTF-8 by hand (windows)', () => {
-  it('encodes and decodes one-, two-, three- and four-byte characters', () => {
-    const text = 'aé€\u{1F600}';
-    const bytes = utf8Encode(text);
-    expect([...bytes]).toEqual([0x61, 0xc3, 0xa9, 0xe2, 0x82, 0xac, 0xf0, 0x9f, 0x98, 0x80]);
-    expect(utf8Decode(bytes)).toBe(text);
-    expect(utf8Decode(utf8Encode(''))).toBe('');
-  });
-
-  it('replaces a lone surrogate and an invalid sequence with the replacement character', () => {
-    expect([...utf8Encode('\ud83d')]).toEqual([0xef, 0xbf, 0xbd]);
-    expect([...utf8Encode('\ud83dx')]).toEqual([0xef, 0xbf, 0xbd, 0x78]);
-    expect(utf8Decode(Uint8Array.from([0xff, 0x41]))).toBe('�A'); // an invalid lead byte
-    expect(utf8Decode(Uint8Array.from([0xe2, 0x82]))).toBe('��'); // a truncated sequence
-    expect(utf8Decode(Uint8Array.from([0xc3, 0x41]))).toBe('�A'); // a bad continuation byte
-  });
-});
+import {createBlobModule} from './blob';
 
 describe('ExpoBlob (windows)', () => {
   const {Blob} = createBlobModule();

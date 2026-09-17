@@ -87,7 +87,7 @@
       </AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>dwrite.lib;gdi32.lib;shell32.lib;user32.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>crypt32.lib;dwrite.lib;gdi32.lib;icu.lib;shell32.lib;user32.lib;windowsapp.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
       <ModuleDefinitionFile>ExpoWindows.def</ModuleDefinitionFile>
@@ -117,10 +117,14 @@
     <ClCompile Include="Accessibility.cpp" />
     <ClCompile Include="Clipboard.cpp" />
     <ClCompile Include="Common.cpp" />
+    <ClCompile Include="Crypto.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Fonts.cpp" />
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="Linking.cpp" />
+    <ClCompile Include="Localization.cpp" />
+    <ClCompile Include="Network.cpp" />
+    <ClCompile Include="SecureStore.cpp" />
     <ClCompile Include="Sharing.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="pch.cpp">

@@ -85,9 +85,22 @@ const PROBES: Probe[] = [
   ['Application.nativeApplicationVersion', () => Application.nativeApplicationVersion],
   ['Updates.isEnabled', () => Updates.isEnabled],
   ['Crypto.randomUUID()', () => Crypto.randomUUID()],
-  ['Localization.getLocales()', () => Localization.getLocales()],
+  ["Crypto.digestStringAsync('SHA-256', 'abc')", () => Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, 'abc')],
+  ['AES round trip', async () => {
+    const key = await Crypto.AESEncryptionKey.generate();
+    const sealed = await Crypto.aesEncryptAsync(new TextEncoder().encode('sealed on Windows'), key, {additionalData: new TextEncoder().encode('aad')});
+    const opened = (await Crypto.aesDecryptAsync(sealed, key, {additionalData: new TextEncoder().encode('aad')})) as Uint8Array;
+    return `${sealed.combinedSize} bytes → ${String.fromCharCode(...opened)}`;
+  }],
+  ['Localization.getLocales()[0]', () => Localization.getLocales()[0]],
+  ['Localization.getCalendars()[0]', () => Localization.getCalendars()[0]],
   ['Network.getNetworkStateAsync()', () => Network.getNetworkStateAsync()],
-  ['SecureStore.getItemAsync()', () => SecureStore.getItemAsync('probe')],
+  ['Network.getIpAddressAsync()', () => Network.getIpAddressAsync()],
+  ['SecureStore set then get', async () => {
+    await SecureStore.setItemAsync('probe', `kept at ${new Date().toISOString()}`);
+    return SecureStore.getItemAsync('probe');
+  }],
+  ['SecureStore.canUseBiometricAuthentication()', () => SecureStore.canUseBiometricAuthentication()],
   ['Battery.isAvailableAsync()', () => Battery.isAvailableAsync()],
   ['LocalAuthentication.hasHardwareAsync()', () => LocalAuthentication.hasHardwareAsync()],
   ['CameraView.isAvailableAsync()', () => Camera.CameraView.isAvailableAsync()],
