@@ -176,6 +176,129 @@ export interface NativeNetwork extends TurboModule {
   getIpAddress(): Promise<string>;
 }
 
+/** What the file module knows about a path. */
+export interface EntryInfo {
+  exists: boolean;
+  isDirectory: boolean;
+  uri: string;
+  size: number;
+  /** Milliseconds since the epoch; 0 for an entry that is not there. */
+  modificationTime: number;
+  creationTime: number;
+  /** The MIME type the system registers for the extension, or empty. */
+  type: string;
+}
+
+export interface FileSystemConstants {
+  cacheDirectory?: string;
+  documentDirectory?: string;
+  bundleDirectory?: string;
+  totalDiskSpace?: number;
+  availableDiskSpace?: number;
+}
+
+export interface NativeFileSystem extends TurboModule {
+  getConstants(): FileSystemConstants;
+  info(uri: string): SyncResult<EntryInfo>;
+  readText(uri: string): SyncResult<string>;
+  readBase64(uri: string): SyncResult<string>;
+  write(uri: string, content: string, base64: boolean, append: boolean): SyncResult<null>;
+  md5(uri: string): SyncResult<string>;
+  createFile(uri: string, overwrite: boolean, intermediates: boolean): SyncResult<null>;
+  createDirectory(uri: string, overwrite: boolean, intermediates: boolean, idempotent: boolean): SyncResult<null>;
+  remove(uri: string, idempotent: boolean): SyncResult<null>;
+  /** Copies or moves into `to` when it is a directory, else to it; answers with where the entry landed. */
+  copy(from: string, to: string, overwrite: boolean): SyncResult<string>;
+  move(from: string, to: string, overwrite: boolean): SyncResult<string>;
+  list(uri: string): SyncResult<{uri: string; isDirectory: boolean}[]>;
+  open(uri: string, mode: string): SyncResult<number>;
+  readBytes(handle: number, length: number): SyncResult<string>;
+  writeBytes(handle: number, base64: string): SyncResult<null>;
+  handleInfo(handle: number): SyncResult<{offset: number; size: number}>;
+  seek(handle: number, offset: number): SyncResult<null>;
+  close(handle: number): SyncResult<null>;
+  /** Downloads to the file, or into the directory; progress comes as `onFileSystemProgress` events with the task id. */
+  download(url: string, toUri: string, headers: Record<string, string>, taskId: string): Promise<string>;
+  upload(url: string, fileUri: string, options: Record<string, unknown>, taskId: string): Promise<{status: number; headers: Record<string, string>; body: string}>;
+  cancel(taskId: string): void;
+  pickFile(initialUri: string, mimeTypes: string[], multiple: boolean): Promise<{uri: string} | {uri: string}[]>;
+  pickDirectory(initialUri: string): Promise<{uri: string}>;
+  /** Watches a file or a directory (recursively); changes come as `onFileSystemChange` events with the id. */
+  watch(id: number, uri: string): SyncResult<null>;
+  unwatch(id: number): SyncResult<null>;
+}
+
+export interface ImageAction {
+  resize?: {width?: number | null; height?: number | null};
+  crop?: {originX: number; originY: number; width: number; height: number};
+  rotate?: number;
+  flip?: 'vertical' | 'horizontal';
+  extent?: object;
+}
+
+export interface NativeImages extends TurboModule {
+  /** The image's size, the way it is meant to be seen (EXIF orientation applied). */
+  info(uri: string): Promise<{width: number; height: number}>;
+  /** The image through the actions, encoded (`jpeg` or `png`; `compress` is the JPEG quality) into the cache. */
+  manipulate(uri: string, actions: ImageAction[], format: string, compress: number, base64: boolean): Promise<{uri: string; width: number; height: number; base64?: string}>;
+  /** The camera capture UI; null when the user takes nothing. */
+  capture(video: boolean): Promise<{uri: string} | null>;
+}
+
+export type MediaKind = 'photo' | 'video' | 'audio' | 'unknown';
+
+export interface MediaAsset {
+  /** The file's path — what the package passes back as the asset. */
+  id: string;
+  filename: string;
+  uri: string;
+  mediaType: MediaKind;
+  width: number;
+  height: number;
+  /** Milliseconds since the epoch; a photo's date taken when it has one. */
+  creationTime: number;
+  modificationTime: number;
+  /** Seconds; 0 for a photo. */
+  duration: number;
+  /** The folder under the library the file is in, or null at the library's top. */
+  albumId: string | null;
+}
+
+export interface MediaAssetInfo extends MediaAsset {
+  localUri: string;
+  exif: Record<string, unknown>;
+  location?: {latitude: number; longitude: number};
+  orientation?: number;
+  isFavorite: boolean;
+}
+
+export interface MediaAlbum {
+  /** The folder's path. */
+  id: string;
+  title: string;
+  assetCount: number;
+  type: 'album';
+  startTime: number;
+  endTime: number;
+}
+
+export interface NativeMediaLibrary extends TurboModule {
+  /** The assets of an album by id, or of the whole library for ''. */
+  assets(album: string): Promise<MediaAsset[]>;
+  assetInfo(id: string): Promise<MediaAssetInfo>;
+  albums(): Promise<MediaAlbum[]>;
+  /** A file copied into an album, or into the library for its kind for ''. */
+  createAsset(localUri: string, album: string): Promise<MediaAsset>;
+  /** A folder under the library, with the asset (when one is named) copied or moved in. */
+  createAlbum(name: string, assetId: string, move: boolean): Promise<MediaAlbum>;
+  deleteAssets(ids: string[]): Promise<boolean>;
+  deleteAlbums(ids: string[], deleteAssets: boolean): Promise<boolean>;
+  addAssetsToAlbum(ids: string[], album: string, copy: boolean): Promise<boolean>;
+  removeAssetsFromAlbum(ids: string[], album: string): Promise<boolean>;
+  /** The shell's change notifications, as `onMediaLibraryChange`, on or off. */
+  watch(on: boolean): void;
+}
+
 function get<T extends TurboModule>(name: string): T | null {
   return TurboModuleRegistry.get<T>(name);
 }
@@ -193,4 +316,7 @@ export const native = {
   secureStore: () => get<NativeSecureStore>('ExpoWindowsSecureStore'),
   localization: () => get<NativeLocalization>('ExpoWindowsLocalization'),
   network: () => get<NativeNetwork>('ExpoWindowsNetwork'),
+  fileSystem: () => get<NativeFileSystem>('ExpoWindowsFileSystem'),
+  images: () => get<NativeImages>('ExpoWindowsImages'),
+  mediaLibrary: () => get<NativeMediaLibrary>('ExpoWindowsMediaLibrary'),
 };

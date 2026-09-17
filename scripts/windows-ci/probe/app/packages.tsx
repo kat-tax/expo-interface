@@ -14,12 +14,14 @@ import * as Camera from 'expo-camera';
 import * as Cellular from 'expo-cellular';
 import * as Contacts from 'expo-contacts';
 import * as Crypto from 'expo-crypto';
-import {Paths} from 'expo-file-system';
+import {File, Paths} from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Localization from 'expo-localization';
 import * as Location from 'expo-location';
 import * as MailComposer from 'expo-mail-composer';
+import {Album, Query} from 'expo-media-library';
 import * as Network from 'expo-network';
 import * as Notifications from 'expo-notifications';
 import * as ScreenOrientation from 'expo-screen-orientation';
@@ -51,7 +53,6 @@ import 'expo-document-picker';
 import 'expo-eas-client';
 import 'expo-font';
 import 'expo-gl';
-import 'expo-image-manipulator';
 import 'expo-image-picker';
 import 'expo-insights';
 import 'expo-intent-launcher';
@@ -61,7 +62,6 @@ import 'expo-linking';
 import 'expo-live-photo';
 import 'expo-manifests';
 import 'expo-maps';
-import 'expo-media-library';
 import 'expo-mesh-gradient';
 import 'expo-navigation-bar';
 import 'expo-observe';
@@ -80,10 +80,36 @@ import 'expo-widgets';
 
 type Probe = [name: string, ask: () => unknown];
 
+/** A 1×1 red PNG, for the manipulator to grow. */
+const PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
+
 const PROBES: Probe[] = [
   ['Application.applicationName', () => Application.applicationName],
   ['Application.nativeApplicationVersion', () => Application.nativeApplicationVersion],
   ['Updates.isEnabled', () => Updates.isEnabled],
+  ['Paths.cache.uri', () => Paths.cache.uri],
+  ['File write, read, list, info', () => {
+    const file = new File(Paths.cache, 'probe.txt');
+    file.write(`written at ${new Date().toISOString()}`);
+    const listed = Paths.cache.list().some(entry => entry.uri === file.uri);
+    const text = file.textSync();
+    const {exists, size} = file.info();
+    file.delete();
+    return `${text} · listed ${listed} · exists ${exists} · ${size} bytes · gone ${!file.exists}`;
+  }],
+  ['ImageManipulator resize 1×1 PNG to 4 wide, save as JPEG', async () => {
+    const file = new File(Paths.cache, 'probe.png');
+    file.write(PNG, {encoding: 'base64'});
+    const image = await ImageManipulator.manipulate(file.uri).resize({width: 4}).renderAsync();
+    const saved = await image.saveAsync({format: SaveFormat.JPEG, compress: 0.8});
+    return `${image.width}×${image.height} → ${saved.uri.split('.').pop()} ${new File(saved.uri).size} bytes`;
+  }],
+  ['MediaLibrary Album.getAll(), Query().limit(5).exe()', async () => {
+    const albums = await Album.getAll();
+    const assets = await new Query().limit(5).exe();
+    const first = assets[0] ? ` · first ${await assets[0].getMediaType()} ${await assets[0].getWidth()}×${await assets[0].getHeight()}` : '';
+    return `${albums.length} albums · ${assets.length} of the first 5 assets${first}`;
+  }],
   ['Crypto.randomUUID()', () => Crypto.randomUUID()],
   ["Crypto.digestStringAsync('SHA-256', 'abc')", () => Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, 'abc')],
   ['AES round trip', async () => {
@@ -117,7 +143,6 @@ const PROBES: Probe[] = [
   ['Cellular.getCellularGenerationAsync()', () => Cellular.getCellularGenerationAsync()],
   ['TaskManager.isAvailableAsync()', () => TaskManager.isAvailableAsync()],
   ['Speech.getAvailableVoicesAsync()', () => Speech.getAvailableVoicesAsync()],
-  ['Paths.cache.uri', () => Paths.cache.uri],
   ["new Blob(['hi']).text()", () => new Blob(['hi']).text()],
 ];
 

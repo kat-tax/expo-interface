@@ -81,6 +81,14 @@ and native actions) work on Windows. In development the DOM component's
 page is Metro's, which needs `react-dom` and `react-native-web` in the app
 as on every platform.
 
+Files are the app's own: `expo-file-system`'s `File` and `Directory` work
+over the app's local data and the exe's folder, with downloads, uploads,
+the shell's file and folder pickers and directory watching; the document
+and image pickers open the same shell pickers (and the camera capture UI),
+`expo-image-manipulator` resizes, crops, rotates and flips through the
+system's codecs, and `expo-media-library` reads the user's Pictures, Videos
+and Music folders as the library and their folders as albums.
+
 1. Generate a react-native-windows `cpp-app` project into `windows/` on a
    React Native app of the matching version
    (`npx react-native-windows-init --template cpp-app`), and in its

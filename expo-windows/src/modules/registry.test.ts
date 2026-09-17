@@ -24,12 +24,16 @@ const REAL_MODULES = [
   'ExpoCrypto',
   'ExpoCryptoAES',
   'ExpoDevice',
+  'ExpoDocumentPicker',
   'ExpoFontLoader',
   'ExpoHaptics',
+  'ExpoImageManipulator',
   'ExpoKeepAwake',
   'ExpoLinking',
   'ExpoLocalization',
   'ExpoMailComposer',
+  'ExpoMediaLibrary',
+  'ExpoMediaLibraryNext',
   'ExpoNetwork',
   'ExpoObserve',
   'ExpoSMS',
@@ -44,6 +48,9 @@ const REAL_MODULES = [
   'ExpoWebBrowser',
   'ExpoWindows',
   'ExponentConstants',
+  'ExponentFileSystem',
+  'ExponentImagePicker',
+  'FileSystem',
 ];
 
 /** Runs `body` with a fresh `expo` global — the polyfill's shape — and puts the harness's back. */

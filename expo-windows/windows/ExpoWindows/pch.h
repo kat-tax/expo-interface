@@ -17,8 +17,10 @@
 #include <unknwn.h>
 #include <dwrite.h>
 #include <shlobj_core.h>
+#include <shlwapi.h>
 #include <inputpaneinterop.h>
 #include <shobjidl_core.h>
+#include <io.h>
 #include <wincrypt.h>
 #include <dpapi.h>
 #include <icu.h>
@@ -55,8 +57,12 @@
 #include <winrt/Windows.Security.Cryptography.Core.h>
 #include <winrt/Windows.Security.Cryptography.h>
 #include <winrt/Windows.Security.ExchangeActiveSyncProvisioning.h>
+#include <winrt/Windows.Storage.FileProperties.h>
+#include <winrt/Windows.Storage.Pickers.h>
+#include <winrt/Windows.Storage.Search.h>
 #include <winrt/Windows.Storage.Streams.h>
 #include <winrt/Windows.Storage.h>
+#include <winrt/Windows.Web.Http.Headers.h>
 #include <winrt/Windows.System.Profile.h>
 #include <winrt/Windows.System.UserProfile.h>
 #include <winrt/Windows.System.h>
@@ -80,6 +86,8 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <set>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
