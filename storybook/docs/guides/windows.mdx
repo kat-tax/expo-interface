@@ -291,9 +291,13 @@ and the headers and the top tab bar leave them their room on that side
 (a header lying in the title bar's band leaves it whether or not it is the
 root's). `I18nManager.forceRTL` alone mirrors nothing on this renderer,
 and text keeps starting at the left under RTL unless given an `align`: both
-are the renderer's, not the kit's. Scaling is handled in points throughout
-(the drag region, the title-bar insets and the keyboard's rectangle are
-converted by the window's scale), but has only been run at 100%.
+are the renderer's, not the kit's. Scaling is in points throughout: at
+125% the drawn parts and the islands grow together and stay crisp, and the
+drag region, the title-bar insets and the keyboard's rectangle are
+converted by the window's scale, so a header still clears the caption
+buttons. `useWindowDimensions` reports the window's physical size with a
+scale of 1 on react-native-windows, whatever the display's scale, and never
+updates — the kit measures its own layouts instead, and an app should too.
 
 ## How a control is hosted
 

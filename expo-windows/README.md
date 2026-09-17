@@ -50,13 +50,21 @@ module.exports = withWindows(getDefaultConfig(__dirname));
 ```
 
 ```sh
-npx expo-windows init     # writes windows/ from the cpp-app template and patches it
+npx expo-windows init     # writes windows/ from the cpp-app template and patches it; keeps your metro.config.js
 npx expo-windows run      # expo start + run-windows
 npx expo-windows bundle   # the release JavaScript, for the release build
 ```
 
-The machine needs what react-native-windows needs: Visual Studio 2022 with
-the C++ desktop workload and the Windows 11 SDK (`rnw-dependencies.ps1`).
+The machine needs what react-native-windows needs: Visual Studio with the
+C++ desktop workload and the Windows 11 SDK (`rnw-dependencies.ps1`), plus
+PowerShell 7 (`pwsh`) and a .NET SDK on the PATH — react-native-windows'
+own CLI loads its commands through them, and without `pwsh` the
+`init-windows` and `run-windows` commands are simply not there. Its 0.84
+line looks for Visual Studio 2026 (18.6) before it builds; with Visual
+Studio 2022, `init` still writes the project, and the solution builds with
+MSBuild and the v143 toolset (`-p:PlatformToolset=v143`), which is how it
+was verified here. `expo-windows` must be among the app's dependencies for
+autolinking to find its library, which `expo install` sees to.
 
 The library builds with the app: react-native-windows' autolinking finds it
 through the package's `react-native.config.js`, as it finds the kit's. Two

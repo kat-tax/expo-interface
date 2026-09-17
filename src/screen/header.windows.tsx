@@ -1,4 +1,4 @@
-import {useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {Symbol} from '../symbol';
 import {icon} from '../icons';
@@ -40,12 +40,15 @@ export function ScreenHeader({title, titleNode, onBack, leading, trailing, dragR
   const bar = useRef<View>(null);
   // A header that is not the root's but lies in the title bar's band all the same — the root's hidden, a tab's stack at the top.
   const [inBand, setInBand] = useState(false);
-  // Where the root's row is in the window, minus the caption buttons' room, drags the window.
-  const onLayout = () => {
+  // Where the root's row is in the window, minus the caption buttons' room, drags the window; any other row learns whether it is in the band.
+  const place = useCallback(() => {
     if (!chrome.extended) return;
     if (dragRegion) reportDragRegion(bar.current, chrome.insets);
     else bar.current?.measureInWindow((_x, y) => setInBand(y < chrome.insets.height));
-  };
+  }, [chrome.extended, chrome.insets, dragRegion]);
+  const onLayout = place;
+  // The chrome answers after the first layout as often as not: placed again when it does.
+  useEffect(place, [place]);
   // The caption buttons' room, on whichever side they are: the right, or the left of a right-to-left window.
   const room = chrome.extended && (dragRegion || inBand) && {
     paddingLeft: spacing.three + chrome.insets.left,

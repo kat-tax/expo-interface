@@ -54,6 +54,39 @@ function applyPatches(projectRoot) {
   return {name: project.name, changed};
 }
 
+const METRO_CONFIG = `// Expo's Metro config with the Windows runtime applied: the platform, the
+// react-native-windows redirection and the runtime's install before the entry.
+const {getDefaultConfig} = require('expo/metro-config');
+const {withWindows} = require('expo-windows/metro');
+
+module.exports = withWindows(getDefaultConfig(__dirname));
+`;
+
+/**
+ * Keeps the app's \`metro.config.js\` through \`init-windows\`, which writes
+ * react-native-windows' own over it — a config without Expo or the runtime,
+ * under which the Windows bundle fails on React Native's platform files. The
+ * returned function, called after \`init-windows\`, puts the app's back, or
+ * writes one that applies \`withWindows\` when the app had none.
+ * @param {string} projectRoot
+ * @returns {() => 'kept' | 'restored' | 'written'}
+ */
+function keepMetroConfig(projectRoot) {
+  const file = path.join(projectRoot, 'metro.config.js');
+  const before = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
+  return () => {
+    const after = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
+    if (before === null) {
+      if (after !== null && after.includes('expo-windows/metro')) return 'kept';
+      fs.writeFileSync(file, METRO_CONFIG);
+      return 'written';
+    }
+    if (after === before) return 'kept';
+    fs.writeFileSync(file, before);
+    return 'restored';
+  };
+}
+
 const SCREENS_EXCLUSION = `// react-native-screens ships a Windows project from the Paper days that does
 // not build in a New Architecture app, and Windows does not use its native
 // views (Expo Router's screens are plain views, and expo-interface's Stack
@@ -83,4 +116,4 @@ function ensureScreensExclusion(projectRoot) {
   return 'written';
 }
 
-module.exports = {findProject, applyPatches, ensureScreensExclusion, SCREENS_EXCLUSION};
+module.exports = {findProject, applyPatches, ensureScreensExclusion, keepMetroConfig, SCREENS_EXCLUSION, METRO_CONFIG};

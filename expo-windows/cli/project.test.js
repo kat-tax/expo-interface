@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const {applyPatches, findProject} = require('./project');
+const {applyPatches, findProject, keepMetroConfig, METRO_CONFIG} = require('./project');
 
 /** A throwaway app folder with a generated-looking `windows/` project in it. */
 function scaffold({withApp = true, withProject = true} = {}) {
@@ -60,6 +60,40 @@ describe('applyPatches', () => {
   it('patches only the project when the entry is missing, and refuses without a project', () => {
     expect(applyPatches(scaffold({withApp: false})).changed).toEqual([path.join('windows', 'DropFiles', 'DropFiles.vcxproj')]);
     expect(() => applyPatches(scaffold({withProject: false}))).toThrow(/No react-native-windows project/);
+  });
+});
+
+describe('keepMetroConfig', () => {
+  it('puts the app\'s metro.config.js back after init-windows wrote its own over it, and leaves an untouched one alone', () => {
+    const root = scaffold({withProject: false});
+    const file = path.join(root, 'metro.config.js');
+    const theirs = 'module.exports = withWindows(getDefaultConfig(__dirname)); // the app\'s\n';
+    fs.writeFileSync(file, theirs);
+    const restore = keepMetroConfig(root);
+    fs.writeFileSync(file, "module.exports = mergeConfig(getDefaultConfig(__dirname), config); // react-native-windows'\n");
+    expect(restore()).toBe('restored');
+    expect(fs.readFileSync(file, 'utf8')).toBe(theirs);
+    const again = keepMetroConfig(root);
+    expect(again()).toBe('kept');
+    expect(fs.readFileSync(file, 'utf8')).toBe(theirs);
+  });
+
+  it('writes a config that applies withWindows when the app had none, unless init-windows left one that does', () => {
+    const root = scaffold({withProject: false});
+    const file = path.join(root, 'metro.config.js');
+    const restore = keepMetroConfig(root);
+    fs.writeFileSync(file, "module.exports = mergeConfig(getDefaultConfig(__dirname), config); // react-native-windows'\n");
+    expect(restore()).toBe('written');
+    expect(fs.readFileSync(file, 'utf8')).toBe(METRO_CONFIG);
+    expect(METRO_CONFIG).toContain("require('expo-windows/metro')");
+    // None before, none after either: written too.
+    const bare = scaffold({withProject: false});
+    expect(keepMetroConfig(bare)()).toBe('written');
+    // None before, but one applying withWindows after: kept.
+    const ready = scaffold({withProject: false});
+    const keep = keepMetroConfig(ready);
+    fs.writeFileSync(path.join(ready, 'metro.config.js'), METRO_CONFIG);
+    expect(keep()).toBe('kept');
   });
 });
 

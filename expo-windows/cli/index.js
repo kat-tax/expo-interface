@@ -21,7 +21,7 @@ const {spawn, spawnSync} = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const {safeProjectName} = require('./patch');
-const {applyPatches, ensureScreensExclusion, findProject} = require('./project');
+const {applyPatches, ensureScreensExclusion, findProject, keepMetroConfig} = require('./project');
 
 const projectRoot = process.cwd();
 const npx = process.platform === 'win32' ? 'npx.cmd' : 'npx';
@@ -76,9 +76,16 @@ function init(args) {
     console.log('react-native.config.js exists: keep react-native-screens out of Windows autolinking in it (see the README)');
   }
   const cli = `@react-native-community/cli@${flag(args, '--cli-version') ?? 'latest'}`;
+  // init-windows writes react-native-windows' own metro.config.js over the app's: the app's is kept.
+  const restoreMetroConfig = keepMetroConfig(projectRoot);
   run(npx, ['--yes', cli, 'init-windows', '--template', 'cpp-app', '--name', name, '--namespace', name, '--overwrite', '--logging']);
+  const metro = restoreMetroConfig();
   const {changed} = applyPatches(projectRoot);
-  console.log(`windows/${name} written; patched ${changed.length ? changed.join(', ') : 'nothing'}${exclusion === 'written' ? '; react-native.config.js written' : ''}`);
+  const notes = [
+    exclusion === 'written' ? 'react-native.config.js written' : '',
+    metro === 'restored' ? 'metro.config.js kept as it was' : metro === 'written' ? 'metro.config.js written with withWindows' : '',
+  ].filter(Boolean);
+  console.log(`windows/${name} written; patched ${changed.length ? changed.join(', ') : 'nothing'}${notes.length ? `; ${notes.join('; ')}` : ''}`);
 }
 
 /** @param {string[]} args */

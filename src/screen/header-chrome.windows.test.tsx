@@ -38,7 +38,8 @@ describe('ScreenHeader as the drag region (windows)', () => {
     chrome.state = {extended: true, insets: {left: 0, right: 138, height: 32}};
     await render(<ScreenHeader title="Drops" dragRegion/>);
     await fireEvent(bar(), 'layout', layout);
-    expect(chrome.reportDragRegion).toHaveBeenCalledTimes(1);
+    // Reported as it mounts and as it is laid out; either is the same row.
+    expect(chrome.reportDragRegion).toHaveBeenCalled();
     expect(chrome.reportDragRegion).toHaveBeenCalledWith(expect.anything(), {left: 0, right: 138, height: 32});
     // The row leaves the caption buttons their room.
     expect(screen.getByText('Drops').parent).toHaveStyle({paddingLeft: spacing.three, paddingRight: spacing.three + 138});
@@ -56,6 +57,17 @@ describe('ScreenHeader as the drag region (windows)', () => {
     const lower = await render(<ScreenHeader title="Lower"/>);
     await fireEvent(lower.getByText('Lower').parent!.parent!, 'layout', layout);
     expect(lower.getByText('Lower').parent).not.toHaveStyle({paddingRight: spacing.three + 138});
+  });
+
+  it('places itself again when the chrome answers after its first layout', async () => {
+    chrome.state = {extended: false, insets: {left: 0, right: 0, height: 0}};
+    vi.spyOn(await viewPrototype(), 'measureInWindow').mockImplementation(callback => callback(0, 0, 1000, 48));
+    const {rerender} = await render(<ScreenHeader title="Drops"/>);
+    await fireEvent(bar(), 'layout', layout);
+    expect(screen.getByText('Drops').parent).not.toHaveStyle({paddingRight: spacing.three + 138});
+    chrome.state = {extended: true, insets: {left: 0, right: 138, height: 32}};
+    await rerender(<ScreenHeader title="Drops"/>);
+    expect(screen.getByText('Drops').parent).toHaveStyle({paddingRight: spacing.three + 138});
   });
 
   it('leaves the caption buttons their room on the left of a right-to-left window', async () => {
