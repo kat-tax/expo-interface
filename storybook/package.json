@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@expo/material-symbols": "^0.1.1",
-    "@expo/ui": "~57.0.14",
+    "@expo/ui": "57.0.14",
     "@gorhom/bottom-sheet": "^5.2.14",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "9.1.0",

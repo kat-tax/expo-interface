@@ -26,8 +26,9 @@ draws anything (the UI is [expo-interface](../README.md)'s job):
 4. **The scaffold.** The `expo-windows` CLI writes `windows/` with
    react-native-windows' `cpp-app` template and patches it to run as an Expo
    app — the root component Expo registers, an unpackaged app that bootstraps
-   the Windows App Runtime, one instance per app for deep links — builds and
-   launches it, and writes the release bundle.
+   the Windows App Runtime, one instance per app for deep links, the
+   properties the community's library projects read — builds and launches
+   it, and writes the release bundle.
 
 Verified in the kit's harness — an Expo 57 app on react-native-windows 0.84,
 since no react-native-windows pairs with Expo 57's React Native yet: Expo
@@ -68,17 +69,20 @@ autolinking to find its library, which `expo install` sees to.
 
 The library builds with the app: react-native-windows' autolinking finds it
 through the package's `react-native.config.js`, as it finds the kit's. Two
-things an app carries itself. `react-native-screens` ships a Windows project
-from the Paper days that does not build in a New Architecture app, and
-Windows does not use its native views (Expo Router's screens are plain views;
-the kit's `Stack` draws its own header), so the app's `react-native.config.js`
-keeps it out of autolinking:
+things an app carries itself. `react-native-screens` and
+`@react-native-community/netinfo` ship Windows projects from the Paper days
+that do not build in a New Architecture app, and Windows does not use them
+(Expo Router's screens are plain views and the kit's `Stack` draws its own
+header; the runtime answers netinfo's API from its own network library), so
+the app's `react-native.config.js`, which `expo-windows init` writes, keeps
+both out of autolinking:
 
 ```js
 // react-native.config.js
 module.exports = {
   dependencies: {
     'react-native-screens': {platforms: {windows: null}},
+    '@react-native-community/netinfo': {platforms: {windows: null}},
   },
 };
 ```
@@ -86,6 +90,23 @@ module.exports = {
 And a build that has been autolinked by hand passes
 `-p:RunAutolinkCheck=false` to MSBuild, or the check re-adds what the config
 excludes.
+
+The library projects that do build — `react-native-svg`'s and
+`@react-native-async-storage/async-storage`'s are from react-native-windows'
+0.7x line — choose their New Architecture build by reading `UseFabric` at
+their first line, before react-native-windows 0.84 derives it from
+`RnwNewArch`, and one still carries a `packages.config` that trips the Windows
+App SDK's transitive-dependency check, meant for packages.config projects
+while every project here restores through PackageReference. `expo-windows
+init` states `UseFabric` and turns that check off in the app's
+`windows/ExperimentalFeatures.props`, which every library project imports
+first; a project written by hand wants the same two lines. And
+`react-native-svg`'s project asks for the latest SDK installed where
+react-native-windows pins the app to 10.0.22621.0, so its metadata targets a
+newer SDK than the app and the app drops the reference; `expo-windows run`
+passes `WindowsTargetPlatformVersion=10.0.22621.0` to `run-windows` as an
+MSBuild property (joined to a `--msbuildprops` of your own), and a build by
+hand passes `-p:WindowsTargetPlatformVersion=10.0.22621.0`.
 
 ## What an app gets
 
@@ -132,6 +153,8 @@ excludes.
 | `@expo/ui/swift-ui`, `@expo/ui/jetpack-compose` | Every export of both subpaths, and of `…/modifiers`. The controls are the kit's WinUI islands — SwiftUI's `Button`, `Toggle`, `Slider`, `Picker` (options by `tag`, segmented by `pickerStyle`), `DatePicker`, `ProgressView`, `TextField`, `SecureField`, `Stepper`, `Gauge`, `ColorPicker`, `Menu`, `ContextMenu`, `Alert`, `ConfirmationDialog`, `BottomSheet`, `Section`, `Form`, `DisclosureGroup`, `TabView`; Compose's buttons, `Switch`, `Checkbox`, `RadioButton`, `Slider`, `DateTimePicker`, the progress and loading indicators, the text fields, `SegmentedButton` rows, `ModalBottomSheet`, `DropdownMenu`, `AlertDialog`, `Card`, the chips, `Badge`, `ListItem`, `TooltipBox`, `SnackbarHost`, the search bars, `NavigationBar`, `HorizontalPager` — the stacks, rows, columns and boxes are flex views; the layout modifiers (`frame`, `padding`, `size`, `fillMax*`, `cornerRadius`, `opacity`, `hidden`, `offset`, `zIndex`, `background`, `border`, `weight`) become styles and `onTapGesture` / `clickable` a press; the rest are kept without effect. What a desktop has no counterpart for — charts, widgets, swipe actions — renders nothing and says so once in development. |
 | `@expo/ui/community/*`, `@react-native-community/slider`, `@react-native-picker/picker`, `@react-native-community/datetimepicker`, `@react-native-segmented-control/segmented-control`, `react-native-pager-view`, `@react-native-masked-view/masked-view`, `@gorhom/bottom-sheet`, `@react-native-menu/menu`, `expo-checkbox` | The kit's `Slider`, `Picker`, `DateTimePicker`, `SegmentedControl`, `Sheet`, `ContextMenu` and `Checkbox` under each package's props and default export; the pager is a paging scroll view with the ref and page events; the masked view shows its content whole. Their own Windows ports are for the old architecture, which react-native-windows 0.84's Fabric does not build. |
 | `expo-blur`, `expo-mesh-gradient` | Stand-ins that compose: `BlurView` is a tinted translucent surface at the intensity asked (acrylic paints white inside an island), `MeshGradientView` draws its colours as bands. |
+| `@react-native-async-storage/async-storage`, `react-native-svg`, `@shopify/flash-list` | Their own Windows ports: async-storage is an architecture-neutral C++ TurboModule, react-native-svg has a Fabric build (`UseFabric`, which the New Architecture sets), and FlashList 2 is JavaScript. Autolinking picks them up (with the properties `expo-windows init` and `run` set, above); the Windows CI app depends on them and checks they are linked, and its probe route keeps a value, draws an SVG and lists rows. async-storage's module keeps its database where `ApplicationData.Current` says, which an unpackaged app cannot ask, so the runtime points it at the app's local data (`%LOCALAPPDATA%\<app>\AsyncStorage.db`) through the core application property the module reads first; an app that sets that property keeps its own. react-native-svg's shapes draw; its text did not in the harness. |
+| `@react-native-community/netinfo` | `fetch`, `refresh`, `addEventListener`, `useNetInfo` and `useNetInfoInstance` over the runtime's network library — the connection profile's kind, whether it connects and reaches the internet, and the status event. Its own Windows project is from the Paper days (the UWP library props, no New Architecture switch), so `expo-windows init` keeps it out of autolinking; `configure`'s reachability settings are kept without effect. |
 | every other SDK 57 package | Imports. Every native module a package asks for is registered — the ones above with an implementation, the rest from a table of the members each package's JavaScript reads — so `requireNativeModule` never throws at import and an app that carries the dependency renders. A feature the platform has not got yet answers honestly when used: a method throws the package's own `UnavailabilityError`, a permission is denied, `isAvailableAsync` is `false`. The table shrinks as modules become real. |
 
 And the runtime's own `ExpoWindows` module, for any app that asks

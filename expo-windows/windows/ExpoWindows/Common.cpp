@@ -24,6 +24,16 @@ BOOL CALLBACK FindMainWindow(HWND window, LPARAM parameter) noexcept {
 
 } // namespace
 
+std::filesystem::path AppDataFolder() {
+  PWSTR local = nullptr;
+  winrt::check_hresult(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &local));
+  std::filesystem::path directory(local);
+  CoTaskMemFree(local);
+  wchar_t exe[MAX_PATH]{};
+  GetModuleFileNameW(nullptr, exe, MAX_PATH);
+  return directory / std::filesystem::path(exe).stem();
+}
+
 HWND MainWindow() noexcept {
   WindowSearch search{GetCurrentProcessId(), nullptr};
   EnumWindows(FindMainWindow, reinterpret_cast<LPARAM>(&search));

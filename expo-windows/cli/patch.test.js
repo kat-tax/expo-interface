@@ -1,5 +1,14 @@
 // @ts-check
-const {patchAppCpp, patchSingleInstance, patchVcxproj, safeProjectName, setProjectProperty} = require('./patch');
+const {patchAppCpp, patchExperimentalFeatures, patchSingleInstance, patchVcxproj, safeProjectName, setProjectProperty} = require('./patch');
+
+const FEATURES = `<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Microsoft.ReactNative Experimental Features">
+    <RnwNewArch>true</RnwNewArch>
+    <UseExperimentalNuget>true</UseExperimentalNuget>
+  </PropertyGroup>
+</Project>
+`;
 
 const VCXPROJ = `<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
@@ -31,6 +40,35 @@ describe('patchVcxproj', () => {
   it('adds a property to the first group when there is no Globals one, and fails without any', () => {
     expect(setProjectProperty('<Project>\n  <PropertyGroup>\n  </PropertyGroup>\n</Project>', 'A', '1')).toContain('<PropertyGroup>\n    <A>1</A>');
     expect(() => setProjectProperty('<Project></Project>', 'A', '1')).toThrow(/PropertyGroup/);
+  });
+});
+
+describe('patchExperimentalFeatures', () => {
+  it('states UseFabric after RnwNewArch and turns the transitive-dependency check off, once', () => {
+    const patched = patchExperimentalFeatures(FEATURES);
+    expect(patched).toContain('<RnwNewArch>true</RnwNewArch>\n    <!--');
+    expect(patched).toContain('<UseFabric>true</UseFabric>\n    <WindowsAppSDKVerifyTransitiveDependencies>false</WindowsAppSDKVerifyTransitiveDependencies>\n    <UseExperimentalNuget>');
+    expect(patched.split('expo-windows: library projects').length - 1).toBe(1);
+    expect(patchExperimentalFeatures(patched)).toBe(patched);
+  });
+
+  it('replaces the values where an app set them otherwise, and refuses an Old Architecture file', () => {
+    const otherwise = FEATURES.replace('<UseExperimentalNuget>', '<UseFabric>false</UseFabric>\n    <WindowsAppSDKVerifyTransitiveDependencies>true</WindowsAppSDKVerifyTransitiveDependencies>\n    <UseExperimentalNuget>');
+    const patched = patchExperimentalFeatures(otherwise);
+    expect(patched).toContain('<UseFabric>true</UseFabric>');
+    expect(patched).toContain('<WindowsAppSDKVerifyTransitiveDependencies>false</WindowsAppSDKVerifyTransitiveDependencies>');
+    expect(patched).not.toContain('expo-windows: library projects');
+    expect(() => patchExperimentalFeatures(FEATURES.replace('<RnwNewArch>true</RnwNewArch>', '<RnwNewArch>false</RnwNewArch>'))).toThrow(/New Architecture/);
+  });
+
+  it('adds back a property removed from a patched file, under the note that is there', () => {
+    const patched = patchExperimentalFeatures(FEATURES);
+    const without = patched.replace('\n    <WindowsAppSDKVerifyTransitiveDependencies>false</WindowsAppSDKVerifyTransitiveDependencies>', '');
+    expect(without).not.toContain('WindowsAppSDKVerifyTransitiveDependencies');
+    const again = patchExperimentalFeatures(without);
+    expect(again).toContain('<RnwNewArch>true</RnwNewArch>\n    <WindowsAppSDKVerifyTransitiveDependencies>false</WindowsAppSDKVerifyTransitiveDependencies>\n    <!--');
+    expect(again.split('expo-windows: library projects').length - 1).toBe(1);
+    expect(again.split('<UseFabric>true</UseFabric>').length - 1).toBe(1);
   });
 });
 

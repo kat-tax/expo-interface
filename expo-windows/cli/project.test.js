@@ -13,6 +13,7 @@ function scaffold({withApp = true, withProject = true} = {}) {
     fs.mkdirSync(dir, {recursive: true});
     // A file that sorts before the project folder: the search skips it.
     fs.writeFileSync(path.join(root, 'windows', '.gitignore'), '');
+    fs.writeFileSync(path.join(root, 'windows', 'ExperimentalFeatures.props'), '<Project>\n  <PropertyGroup>\n    <RnwNewArch>true</RnwNewArch>\n  </PropertyGroup>\n</Project>\n');
     fs.writeFileSync(
       path.join(dir, 'DropFiles.vcxproj'),
       '<Project>\n  <PropertyGroup Label="Globals">\n    <WindowsAppSdkAutoInitialize>false</WindowsAppSdkAutoInitialize>\n  </PropertyGroup>\n</Project>\n',
@@ -49,16 +50,22 @@ describe('applyPatches', () => {
   it('patches the project and the entry, reports what changed, and changes nothing the second time', () => {
     const root = scaffold();
     const first = applyPatches(root);
-    expect(first).toEqual({name: 'DropFiles', changed: [path.join('windows', 'DropFiles', 'DropFiles.vcxproj'), path.join('windows', 'DropFiles', 'DropFiles.cpp')]});
+    expect(first).toEqual({
+      name: 'DropFiles',
+      changed: [path.join('windows', 'DropFiles', 'DropFiles.vcxproj'), path.join('windows', 'DropFiles', 'DropFiles.cpp'), path.join('windows', 'ExperimentalFeatures.props')],
+    });
     expect(fs.readFileSync(path.join(root, 'windows', 'DropFiles', 'DropFiles.vcxproj'), 'utf8')).toContain('<WindowsPackageType>None</WindowsPackageType>');
     const entry = fs.readFileSync(path.join(root, 'windows', 'DropFiles', 'DropFiles.cpp'), 'utf8');
     expect(entry).toContain('L"main"');
     expect(entry).toContain('FindOrRegisterForKey(L"main")');
+    expect(fs.readFileSync(path.join(root, 'windows', 'ExperimentalFeatures.props'), 'utf8')).toContain('<UseFabric>true</UseFabric>');
     expect(applyPatches(root)).toEqual({name: 'DropFiles', changed: []});
   });
 
-  it('patches only the project when the entry is missing, and refuses without a project', () => {
-    expect(applyPatches(scaffold({withApp: false})).changed).toEqual([path.join('windows', 'DropFiles', 'DropFiles.vcxproj')]);
+  it('patches only the project when the entry and the features file are missing, and refuses without a project', () => {
+    const root = scaffold({withApp: false});
+    fs.rmSync(path.join(root, 'windows', 'ExperimentalFeatures.props'));
+    expect(applyPatches(root).changed).toEqual([path.join('windows', 'DropFiles', 'DropFiles.vcxproj')]);
     expect(() => applyPatches(scaffold({withProject: false}))).toThrow(/No react-native-windows project/);
   });
 });
@@ -105,7 +112,7 @@ describe('ensureScreensExclusion', () => {
     expect(ensureScreensExclusion(root)).toBe('written');
     const written = fs.readFileSync(path.join(root, 'react-native.config.js'), 'utf8');
     expect(written).toBe(SCREENS_EXCLUSION);
-    expect(require(path.join(root, 'react-native.config.js'))).toEqual({dependencies: {'react-native-screens': {platforms: {windows: null}}}});
+    expect(require(path.join(root, 'react-native.config.js'))).toEqual({dependencies: {'react-native-screens': {platforms: {windows: null}}, '@react-native-community/netinfo': {platforms: {windows: null}}}});
     fs.writeFileSync(path.join(root, 'react-native.config.js'), 'module.exports = {};');
     expect(ensureScreensExclusion(root)).toBe('kept');
     expect(fs.readFileSync(path.join(root, 'react-native.config.js'), 'utf8')).toBe('module.exports = {};');

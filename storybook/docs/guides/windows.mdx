@@ -105,6 +105,21 @@ sheet and menu, `expo-checkbox`, `expo-blur` and `expo-mesh-gradient` are
 aliased the same way, so an app written for SwiftUI or Compose runs on
 Windows without a branch.
 
+The community packages with Windows ports of their own —
+`@react-native-async-storage/async-storage`, `react-native-svg` and
+`@shopify/flash-list` — need nothing from the runtime: autolinking builds
+them, and the Windows CI app depends on them so that each release proves
+they still compile and register on the pinned line.
+`@react-native-community/netinfo`'s project is from the Paper days, so the
+runtime keeps it out of autolinking and answers its API from its own network
+library. The two library projects that do build are from react-native-windows'
+0.7x line: they read `UseFabric` before 0.84 derives it from `RnwNewArch`, and
+async-storage's `packages.config` trips the Windows App SDK's
+transitive-dependency check, so `expo-windows init` states the one and turns
+the other off in the app's `windows/ExperimentalFeatures.props`; and svg's
+asks for the latest SDK installed where the app is pinned to 10.0.22621.0, so
+`expo-windows run` passes that version to MSBuild.
+
 1. Generate a react-native-windows `cpp-app` project into `windows/` on a
    React Native app of the matching version
    (`npx react-native-windows-init --template cpp-app`), and in its

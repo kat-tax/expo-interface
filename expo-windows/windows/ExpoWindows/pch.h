@@ -42,6 +42,7 @@
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Microsoft.Windows.AppLifecycle.h>
 #include <winrt/Windows.ApplicationModel.Activation.h>
+#include <winrt/Windows.ApplicationModel.Core.h>
 #include <winrt/Windows.ApplicationModel.DataTransfer.h>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.h>

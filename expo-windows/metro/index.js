@@ -49,6 +49,8 @@ const ALIASES = {
   'react-native-pager-view': path.join(__dirname, '..', 'src', 'aliases', 'community-pager-view.tsx'),
   '@react-native-masked-view/masked-view': path.join(__dirname, '..', 'src', 'aliases', 'community-masked-view.tsx'),
   '@gorhom/bottom-sheet': path.join(__dirname, '..', 'src', 'aliases', 'community-bottom-sheet.tsx'),
+  // Its Windows project is from the Paper days; the runtime's network library answers instead.
+  '@react-native-community/netinfo': path.join(__dirname, '..', 'src', 'aliases', 'netinfo.ts'),
   '@react-native-menu/menu': path.join(__dirname, '..', 'src', 'aliases', 'community-menu.tsx'),
   'expo-checkbox': path.join(__dirname, '..', 'src', 'aliases', 'expo-checkbox.tsx'),
   'expo-blur': path.join(__dirname, '..', 'src', 'aliases', 'expo-effects.tsx'),

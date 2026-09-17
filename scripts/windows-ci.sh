@@ -30,7 +30,9 @@ cp -r "$REPO/example/src" "$APP/src"
 cp -r "$REPO/example/assets" "$APP/assets"
 cp "$REPO/example/app.json" "$APP/app.json"
 # Routes the example does not have: every SDK 57 package imported and asked
-# what it can do, and the web view with a page and a DOM component.
+# what it can do, the web view with a page and a DOM component, the media
+# packages, @expo/ui's platform subpaths, and the community packages with
+# Windows ports of their own.
 cp -r "$REPO/scripts/windows-ci/probe/." "$APP/src/"
 rm -rf "$APP/probe"
 cp "$REPO/example/tsconfig.json" "$APP/tsconfig.json"
@@ -95,6 +97,14 @@ step "Autolink"
 node node_modules/@react-native-community/cli/build/bin.js autolink-windows --sln "windows/$NAME.sln" --proj "windows/$NAME/$NAME.vcxproj" --logging
 grep -q "ExpoInterface" "windows/$NAME/AutolinkedNativeModules.g.cpp"
 grep -q "ExpoWindows" "windows/$NAME/AutolinkedNativeModules.g.cpp"
+# The community packages with Windows ports of their own (async-storage's
+# architecture-neutral TurboModule and react-native-svg's Fabric build) are
+# autolinked and built here, so the app proves they compile and register on
+# the pinned line; netinfo's project is from the Paper days and stays out,
+# its package resolving to the runtime's network library instead.
+grep -q "ReactNativeAsyncStorage" "windows/$NAME/AutolinkedNativeModules.g.cpp"
+grep -q "RNSVG" "windows/$NAME/AutolinkedNativeModules.g.cpp"
+! grep -q "NetInfo" "windows/$NAME/AutolinkedNativeModules.g.cpp"
 
 step "The Windows JavaScript bundle"
 node node_modules/expo-windows/cli/index.js bundle
@@ -106,8 +116,13 @@ if command -v msbuild >/dev/null 2>&1; then
 else
   MSBUILD="/c/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/MSBuild.exe"
 fi
+# The target SDK is the one react-native-windows 0.84's New Architecture pins
+# the app to, passed globally so that a library project asking for the latest
+# SDK installed (react-native-svg's does) builds metadata the app can
+# reference; `expo-windows run` passes the same to run-windows.
 "$MSBUILD" "windows/$NAME.sln" -t:"$NAME" -restore -m -v:m -nologo \
   -p:Configuration=Debug -p:Platform=x64 -p:PlatformToolset="${TOOLSET:-v143}" \
+  -p:WindowsTargetPlatformVersion=10.0.22621.0 \
   -p:RunAutolinkCheck=false -p:RestorePackagesConfig=true
 ls -la "windows/x64/Debug/$NAME.exe"
 

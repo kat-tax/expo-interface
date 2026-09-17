@@ -11,6 +11,9 @@ namespace ExpoWindows {
 /** The app's main window: the first visible, unowned top-level window of this process; null before it exists. */
 HWND MainWindow() noexcept;
 
+/** The app's own folder in the user's local data: `%LOCALAPPDATA%\<the exe's name>`. Throws when the shell cannot say. */
+std::filesystem::path AppDataFolder();
+
 std::wstring ToWide(std::string_view utf8) noexcept;
 std::string ToUtf8(std::wstring_view wide) noexcept;
 

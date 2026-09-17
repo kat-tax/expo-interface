@@ -5,7 +5,7 @@
  */
 const fs = require('node:fs');
 const path = require('node:path');
-const {patchAppCpp, patchSingleInstance, patchVcxproj} = require('./patch');
+const {patchAppCpp, patchExperimentalFeatures, patchSingleInstance, patchVcxproj} = require('./patch');
 
 /**
  * The generated project: the folder under `windows/` that holds a
@@ -30,8 +30,10 @@ function findProject(projectRoot) {
 }
 
 /**
- * Applies the runtime's patches to the generated project, and says what
- * changed. Safe to run again: a patched file is left as it is.
+ * Applies the runtime's patches to the generated project — the project
+ * file, the C++ entry, and `windows/ExperimentalFeatures.props` for the
+ * library projects that read it — and says what changed. Safe to run
+ * again: a patched file is left as it is.
  * @param {string} projectRoot
  * @returns {{name: string; changed: string[]}}
  */
@@ -39,9 +41,11 @@ function applyPatches(projectRoot) {
   const project = findProject(projectRoot);
   if (!project) throw new Error(`No react-native-windows project under ${path.join(projectRoot, 'windows')}`);
   const changed = [];
+  const features = path.join(projectRoot, 'windows', 'ExperimentalFeatures.props');
   const files = [
     [project.vcxproj, patchVcxproj],
     ...(project.appCpp ? [[project.appCpp, (/** @type {string} */ text) => patchSingleInstance(patchAppCpp(text))]] : []),
+    ...(fs.existsSync(features) ? [[features, patchExperimentalFeatures]] : []),
   ];
   for (const [file, patch] of /** @type {[string, (text: string) => string][]} */ (files)) {
     const before = fs.readFileSync(file, 'utf8');
@@ -87,13 +91,20 @@ function keepMetroConfig(projectRoot) {
   };
 }
 
-const SCREENS_EXCLUSION = `// react-native-screens ships a Windows project from the Paper days that does
-// not build in a New Architecture app, and Windows does not use its native
-// views (Expo Router's screens are plain views, and expo-interface's Stack
-// draws its own header): keep it out of react-native-windows' autolinking.
+const SCREENS_EXCLUSION = `// react-native-screens and @react-native-community/netinfo ship Windows
+// projects from the Paper days that do not build in a New Architecture app,
+// and Windows does not use them: Expo Router's screens are plain views and
+// expo-interface's Stack draws its own header, and expo-windows answers
+// netinfo's API from its own network library. Keep both out of
+// react-native-windows' autolinking.
 module.exports = {
   dependencies: {
     'react-native-screens': {
+      platforms: {
+        windows: null,
+      },
+    },
+    '@react-native-community/netinfo': {
       platforms: {
         windows: null,
       },
@@ -103,9 +114,10 @@ module.exports = {
 `;
 
 /**
- * Writes the app's `react-native.config.js` with react-native-screens kept
- * out of Windows autolinking, when the app has none. An existing file is
- * left alone and named, so the exclusion can be added by hand.
+ * Writes the app's `react-native.config.js` with react-native-screens and
+ * netinfo kept out of Windows autolinking, when the app has none. An
+ * existing file is left alone and named, so the exclusions can be added by
+ * hand.
  * @param {string} projectRoot
  * @returns {'written' | 'kept'}
  */

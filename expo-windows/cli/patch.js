@@ -52,6 +52,52 @@ function patchVcxproj(vcxproj) {
   return text;
 }
 
+const EXPERIMENTAL_FEATURES_NOTE = `
+    <!--
+      expo-windows: library projects from react-native-windows' 0.7x line
+      (react-native-svg, async-storage) choose their New Architecture build
+      by reading UseFabric at their first line, before react-native-windows
+      derives it from RnwNewArch, so it is stated here too. And a library
+      that still carries a packages.config trips the Windows App SDK's
+      transitive-dependency check, which is for packages.config projects,
+      while every project here restores through PackageReference.
+    -->`;
+
+const EXPERIMENTAL_FEATURES = [
+  ['UseFabric', 'true'],
+  ['WindowsAppSDKVerifyTransitiveDependencies', 'false'],
+];
+
+const NEW_ARCH = /<RnwNewArch>true<\/RnwNewArch>/;
+
+/**
+ * The app's `ExperimentalFeatures.props`, which every library project
+ * imports first, with `UseFabric` stated for the libraries that read it
+ * before react-native-windows derives it from `RnwNewArch`, and the Windows
+ * App SDK's transitive-dependency check off for the ones that still carry a
+ * packages.config. A property the app set otherwise is replaced; a missing
+ * one is added after `RnwNewArch`, with the note once. A file without
+ * `RnwNewArch` is not a New Architecture app's, and is refused.
+ * @param {string} props
+ */
+function patchExperimentalFeatures(props) {
+  if (!NEW_ARCH.test(props)) {
+    throw new Error('ExperimentalFeatures.props does not set RnwNewArch: expo-windows needs a New Architecture app');
+  }
+  let text = props;
+  const added = [];
+  for (const [name, value] of EXPERIMENTAL_FEATURES) {
+    const existing = new RegExp(`<${name}>[^<]*</${name}>`);
+    if (existing.test(text)) text = text.replace(existing, `<${name}>${value}</${name}>`);
+    else added.push(`\n    <${name}>${value}</${name}>`);
+  }
+  if (added.length === 0) return text;
+  const anchor = /** @type {RegExpExecArray} */ (NEW_ARCH.exec(text));
+  const at = anchor.index + anchor[0].length;
+  const note = text.includes('expo-windows: library projects') ? '' : EXPERIMENTAL_FEATURES_NOTE;
+  return `${text.slice(0, at)}${note}${added.join('')}${text.slice(at)}`;
+}
+
 /**
  * The app's C++ entry, pointed at the component Expo registers: `expo`'s
  * `registerRootComponent` (and Expo Router's entry through it) registers
@@ -112,4 +158,4 @@ function patchSingleInstance(appCpp) {
   return text;
 }
 
-module.exports = {safeProjectName, setProjectProperty, patchVcxproj, patchAppCpp, patchSingleInstance};
+module.exports = {safeProjectName, setProjectProperty, patchVcxproj, patchExperimentalFeatures, patchAppCpp, patchSingleInstance};

@@ -44,17 +44,6 @@ std::string UriOf(fs::path const &path, bool directory) {
   return out;
 }
 
-/** The app's own folder in the user's local data: `%LOCALAPPDATA%\<the exe's name>`. */
-fs::path AppData() {
-  PWSTR local = nullptr;
-  check_hresult(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &local));
-  fs::path directory(local);
-  CoTaskMemFree(local);
-  wchar_t exe[MAX_PATH]{};
-  GetModuleFileNameW(nullptr, exe, MAX_PATH);
-  return directory / fs::path(exe).stem();
-}
-
 fs::path ExeDirectory() {
   wchar_t exe[MAX_PATH]{};
   GetModuleFileNameW(nullptr, exe, MAX_PATH);
@@ -215,7 +204,7 @@ struct ExpoWindowsFileSystem {
   REACT_CONSTANT_PROVIDER(Constants)
   void Constants(ReactConstantProvider &provider) noexcept {
     try {
-      auto data = AppData();
+      auto data = AppDataFolder();
       std::error_code error;
       fs::create_directories(data / L"cache", error);
       fs::create_directories(data / L"documents", error);

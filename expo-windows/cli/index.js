@@ -20,6 +20,7 @@
 const {spawn, spawnSync} = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
+const {withTargetSdk} = require('./msbuild');
 const {safeProjectName} = require('./patch');
 const {applyPatches, ensureScreensExclusion, findProject, keepMetroConfig} = require('./project');
 
@@ -73,7 +74,7 @@ function init(args) {
   const name = safeProjectName(appName());
   const exclusion = ensureScreensExclusion(projectRoot);
   if (exclusion === 'kept') {
-    console.log('react-native.config.js exists: keep react-native-screens out of Windows autolinking in it (see the README)');
+    console.log('react-native.config.js exists: keep react-native-screens and @react-native-community/netinfo out of Windows autolinking in it (see the README)');
   }
   const cli = `@react-native-community/cli@${flag(args, '--cli-version') ?? 'latest'}`;
   // init-windows writes react-native-windows' own metro.config.js over the app's: the app's is kept.
@@ -90,7 +91,8 @@ function init(args) {
 
 /** @param {string[]} args */
 function runApp(args) {
-  const passthrough = args.includes('--') ? args.slice(args.indexOf('--') + 1) : [];
+  // With the target SDK among the MSBuild properties: see ./msbuild.js.
+  const passthrough = withTargetSdk(args.includes('--') ? args.slice(args.indexOf('--') + 1) : []);
   const packager = !args.includes('--no-packager');
   const metro = packager ? spawn(npx, ['expo', 'start'], {cwd: projectRoot, stdio: 'inherit', shell: process.platform === 'win32'}) : null;
   const release = args.includes('--release') ? ['--release'] : [];

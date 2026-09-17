@@ -111,6 +111,7 @@
     }
   },
   "devDependencies": {
+    "@expo/ui": "57.0.14",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/react-native": "^14.0.1",
