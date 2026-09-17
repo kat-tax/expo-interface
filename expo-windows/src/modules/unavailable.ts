@@ -81,11 +81,6 @@ const NOTIFICATIONS = 'Notifications';
  * table when its module becomes real.
  */
 export const UNAVAILABLE: Record<string, UnavailableSpec> = {
-  ExpoBattery: {
-    package: 'Battery',
-    methods: ['getBatteryLevelAsync', 'getBatteryStateAsync', 'isBatteryOptimizationEnabledAsync', 'isLowPowerModeEnabledAsync'],
-    constants: {isSupported: false},
-  },
   ExpoBrownfieldModule: {package: 'Brownfield', methods: ['popToNative', 'sendMessage', 'setNativeBackEnabled']},
   ExpoBrownfieldStateModule: {package: 'Brownfield', methods: ['deleteSharedState', 'getSharedState']},
   ExpoCamera: {
@@ -103,11 +98,6 @@ export const UNAVAILABLE: Record<string, UnavailableSpec> = {
   },
   ExpoDomWebViewModule: {package: 'DomWebView', methods: ['evalJsForWebViewAsync']},
   ExpoGL: {package: 'GLView', methods: ['createCameraTextureAsync', 'createContextAsync', 'destroyContextAsync', 'destroyObjectAsync', 'takeSnapshotAsync']},
-  ExpoLocalAuthentication: {
-    package: 'LocalAuthentication',
-    methods: ['authenticateAsync', 'cancelAuthenticate'],
-    answers: {hasHardwareAsync: no, isEnrolledAsync: no, supportedAuthenticationTypesAsync: async () => [], getEnrolledLevelAsync: async () => 0},
-  },
   ExpoLocation: {
     package: 'Location',
     methods: [
@@ -166,11 +156,6 @@ export const UNAVAILABLE: Record<string, UnavailableSpec> = {
     answers: {getInstallationIdAsync: async () => uuidv4(), getRegistrationInfoAsync: async () => null, setRegistrationInfoAsync: async () => {}},
   },
   ExpoPrint: {package: 'Print', methods: ['print', 'printToFileAsync', 'selectPrinter'], constants: {Orientation: {portrait: 'portrait', landscape: 'landscape'}}},
-  ExpoScreenCapture: {
-    package: 'ScreenCapture',
-    methods: ['allowScreenCapture', 'disableAppSwitcherProtection', 'enableAppSwitcherProtection', 'preventScreenCapture'],
-    answers: {getPermissionsAsync: denied, requestPermissionsAsync: denied},
-  },
   ExponentAccelerometer: sensor('Accelerometer'),
   ExponentGyroscope: sensor('Gyroscope'),
   ExponentMagnetometer: sensor('Magnetometer'),

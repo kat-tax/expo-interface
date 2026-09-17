@@ -31,8 +31,8 @@ cp -r "$REPO/example/assets" "$APP/assets"
 cp "$REPO/example/app.json" "$APP/app.json"
 # Routes the example does not have: every SDK 57 package imported and asked
 # what it can do, the web view with a page and a DOM component, the media
-# packages, @expo/ui's platform subpaths, and the community packages with
-# Windows ports of their own.
+# packages, @expo/ui's platform subpaths, the community packages with
+# Windows ports of their own, and the device packages.
 cp -r "$REPO/scripts/windows-ci/probe/." "$APP/src/"
 rm -rf "$APP/probe"
 cp "$REPO/example/tsconfig.json" "$APP/tsconfig.json"

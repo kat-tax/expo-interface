@@ -76,6 +76,7 @@
 #include <winrt/Windows.Web.Http.Headers.h>
 #include <winrt/Windows.System.Profile.h>
 #include <winrt/Windows.System.UserProfile.h>
+#include <winrt/Windows.System.Power.h>
 #include <winrt/Windows.System.h>
 #include <winrt/Windows.Web.Http.h>
 

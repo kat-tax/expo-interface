@@ -24,6 +24,8 @@ export interface NativeWindow extends TurboModule {
   setDragRegion(x: number, y: number, width: number, height: number): void;
   /** The window's own background, or the system's for an empty color. */
   setBackground(color: string): void;
+  /** Keeps the window out of screen captures, or lets it back in; whether the system took it. */
+  setCaptureExcluded(excluded: boolean): Promise<boolean>;
 }
 
 export interface DeviceConstants {
@@ -373,4 +375,28 @@ export const native = {
   images: () => get<NativeImages>('ExpoWindowsImages'),
   mediaLibrary: () => get<NativeMediaLibrary>('ExpoWindowsMediaLibrary'),
   media: () => get<NativeMedia>('ExpoWindowsMedia'),
+  power: () => get<NativePower>('ExpoWindowsPower'),
+  localAuthentication: () => get<NativeLocalAuthentication>('ExpoWindowsLocalAuthentication'),
 };
+
+/** The machine's power, as `ExpoWindowsPower` reports it. */
+export interface PowerState {
+  hasBattery: boolean;
+  /** The charge as a fraction, or -1 without a battery. */
+  level: number;
+  state: 'UNKNOWN' | 'UNPLUGGED' | 'CHARGING' | 'FULL' | 'NOT_CHARGING';
+  /** Whether the energy saver is on. */
+  lowPowerMode: boolean;
+}
+
+export interface NativePower extends TurboModule {
+  getState(): PowerState;
+  /** Keeps the display and the system awake, or lets them sleep again. */
+  setKeepAwake(active: boolean): void;
+}
+
+/** Windows Hello: `UserConsentVerifier`'s availability and verification results, by name. */
+export interface NativeLocalAuthentication extends TurboModule {
+  checkAvailability(): Promise<'Available' | 'DeviceNotPresent' | 'NotConfiguredForUser' | 'DisabledByPolicy' | 'DeviceBusy'>;
+  verify(message: string): Promise<'Verified' | 'DeviceNotPresent' | 'NotConfiguredForUser' | 'DisabledByPolicy' | 'DeviceBusy' | 'RetriesExhausted' | 'Canceled'>;
+}

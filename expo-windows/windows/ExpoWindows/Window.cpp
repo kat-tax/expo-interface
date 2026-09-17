@@ -185,6 +185,19 @@ struct ExpoWindowsWindow {
     });
   }
 
+  /**
+   * Keeps the window out of screen captures and recordings
+   * (`WDA_EXCLUDEFROMCAPTURE`: a capture shows black where it is), or lets
+   * it back in; resolves whether the system took it.
+   */
+  REACT_METHOD(SetCaptureExcluded, L"setCaptureExcluded")
+  void SetCaptureExcluded(bool excluded, ReactPromise<bool> promise) noexcept {
+    m_context.UIDispatcher().Post([excluded, promise] {
+      auto window = MainWindow();
+      promise.Resolve(window != nullptr && SetWindowDisplayAffinity(window, excluded ? WDA_EXCLUDEFROMCAPTURE : WDA_NONE) != 0);
+    });
+  }
+
  private:
   ReactContext m_context;
 };
