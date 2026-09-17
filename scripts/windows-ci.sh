@@ -41,6 +41,17 @@ fs.writeFileSync('./tsconfig.json', JSON.stringify(t, null, 2) + '\n');
 "
 cat tsconfig.json
 
+# Another line than the template's, to smoke-run a new react-native-windows
+# release: RN_VERSION and RNW_VERSION together, e.g. 0.85.3 and 0.85.0-preview.1.
+if [ -n "${RN_VERSION:-}" ] || [ -n "${RNW_VERSION:-}" ]; then
+  RN="${RN_VERSION:?RN_VERSION goes with RNW_VERSION}"
+  RNW="${RNW_VERSION:?RNW_VERSION goes with RN_VERSION}"
+  echo "line: react-native $RN, react-native-windows $RNW"
+  npm pkg set "dependencies.react-native=$RN" "dependencies.react-native-windows=$RNW" \
+    "dependencies.@react-native/new-app-screen=$RN" "devDependencies.@react-native/babel-preset=$RN" \
+    "devDependencies.@react-native/metro-config=$RN" "devDependencies.@react-native/typescript-config=$RN"
+fi
+
 step "Install (the pinned line, peers relaxed for the Expo packages)"
 npm install --legacy-peer-deps --no-audit --no-fund
 

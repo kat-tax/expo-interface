@@ -363,7 +363,11 @@ example's Windows project the way its `ios/` and `android/` are generated,
 autolinking, the Windows JavaScript bundle and MSBuild with the v143
 toolset. The Windows workflow runs it on every change to the kit, the
 runtime or the example, and keeps the app and the bundle it built as
-artifacts. The example's routes bundle on Windows because `@expo/ui`'s
+artifacts. `RN_VERSION` and `RNW_VERSION` together build another line —
+the workflow's second job smoke-runs react-native-windows' newest preview
+that way, allowed to fail, which is how each new release is met: when a
+0.86 line ships, the pin in `scripts/windows-ci/package.json` comes off
+and the same script proves it. The example's routes bundle on Windows because `@expo/ui`'s
 universal layout primitives — `Host`, `Column`, `Row`, `Spacer`, `Text`,
 `List`, `ScrollView`, `RNHostView` — resolve to plain views there through
 the runtime; its controls do not, and are the kit's on Windows.

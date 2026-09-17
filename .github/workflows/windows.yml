@@ -39,9 +39,18 @@ permissions:
 
 jobs:
   build:
-    name: Build the pinned line
+    # The line react-native-windows ships, and its newest preview: each new
+    # release gets a smoke run here, which is how the version wall closes.
+    name: Build (react-native-windows ${{ matrix.line.rnw }})
     runs-on: windows-latest
     timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        line:
+          - {rn: '', rnw: '0.84 (the template)', cli: '20.1.0', preview: false}
+          - {rn: '0.85.3', rnw: '0.85.0-preview.1', cli: '20.2.0', preview: true}
+    continue-on-error: ${{ matrix.line.preview }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -57,11 +66,15 @@ jobs:
       - name: Build
         shell: bash
         run: scripts/windows-ci.sh "$RUNNER_TEMP/winci"
+        env:
+          RN_VERSION: ${{ matrix.line.rn }}
+          RNW_VERSION: ${{ matrix.line.rn && matrix.line.rnw || '' }}
+          CLI_VERSION: ${{ matrix.line.cli }}
       - name: Upload the app and the bundle
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: windows-app
+          name: windows-app-${{ matrix.line.cli }}-${{ matrix.line.preview && 'preview' || 'stable' }}
           path: |
             ${{ runner.temp }}/winci/WinCi/windows/x64/Debug/*.exe
             ${{ runner.temp }}/winci/WinCi/windows/*/Bundle
