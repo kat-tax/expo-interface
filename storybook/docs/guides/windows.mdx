@@ -272,8 +272,11 @@ The touch keyboard — on a tablet, or a touch screen without a keyboard
 attached — reaches React Native's `Keyboard` on `expo-windows`: the runtime
 raises `keyboardDidShow` and `keyboardDidHide` from the window's input pane
 with the rectangle it covers, so `Keyboard.addListener` and everything on it
-work as on Android, and the kit's `KeyboardBar` rides up on it by that
-height and reports it through `onKeyboard`, with no library to install.
+work as on Android, and the kit's `KeyboardBar` rides up to meet it — the
+bar measures its own bottom edge in the window, and the keyboard reports
+where its top is, so the two meet whatever the window's height has become
+since (`useWindowDimensions` never updates on a resize here) — and reports
+its height through `onKeyboard`, with no library to install.
 `ExpoWindows.showTouchKeyboardAsync()` and `hideTouchKeyboardAsync()` ask for
 it, on the system's terms: it shows only while a text control has focus, and
 a keyboard the user brought up from the taskbar stays. Without the runtime no

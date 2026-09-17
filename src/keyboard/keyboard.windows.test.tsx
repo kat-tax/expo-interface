@@ -1,10 +1,19 @@
-import {act, render, screen} from '@testing-library/react-native';
-import {Animated, DeviceEventEmitter, Text} from 'react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {Animated, DeviceEventEmitter, Text, View} from 'react-native';
 import {colors} from '../theme';
 import {loadKeyboardController} from './library';
 import {KeyboardBar} from '.';
 
 const library = loadKeyboardController();
+
+type Measurable = {measureInWindow: (cb: (x: number, y: number, w: number, h: number) => void) => void};
+
+/** The view prototype the sticky view measures through, found through a view of our own so a test can spy on it. */
+async function viewPrototype(): Promise<Measurable> {
+  let probe: Measurable | null = null;
+  await render(<View ref={(ref: unknown) => { probe = ref as Measurable; }}/>);
+  return Object.getPrototypeOf(probe!) as Measurable;
+}
 
 /** The touch keyboard's showing or hiding, as `expo-windows` raises it. */
 const show = (height: number) => act(() => {
@@ -55,6 +64,28 @@ describe('KeyboardBar (windows)', () => {
     await show(200);
     expect(onKeyboard).not.toHaveBeenCalled();
     await hide();
+  });
+
+  it('meets the keyboard\'s reported top from its own measured bottom edge, whatever the window\'s height became', async () => {
+    const timing = vi.spyOn(Animated, 'timing');
+    // The bar's bottom edge sits 760 points down the window at rest: a measurement the view makes when it is laid out.
+    const measure = vi.spyOn(await viewPrototype(), 'measureInWindow').mockImplementation(callback => callback(0, 700, 400, 60));
+    const Sticky = library!.KeyboardStickyView;
+    await render(<Sticky offset={{opened: 999}}><Text>Measured</Text></Sticky>);
+    await fireEvent(screen.getByTestId('keyboard-sticky'), 'layout');
+    expect(measure).toHaveBeenCalledTimes(1);
+    // The keyboard's top is at 500: the bar rides up by 260, not by what the caller measured under it.
+    await show(300);
+    expect(lastTarget(timing)).toBe(-260);
+    // Laid out again while up — a resize — the view measures where it is, 260 up; the measurement takes the translation out.
+    measure.mockImplementation(callback => callback(0, 440, 400, 60));
+    await fireEvent(screen.getByTestId('keyboard-sticky'), 'layout');
+    await act(() => {
+      DeviceEventEmitter.emit('keyboardDidShow', {endCoordinates: {screenX: 0, screenY: 440, width: 1000, height: 300}});
+    });
+    expect(lastTarget(timing)).toBe(-320);
+    await hide();
+    expect(lastTarget(timing)).toBe(0);
   });
 
   it('rests at the closed offset and rides up less what lies under it', async () => {
