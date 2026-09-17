@@ -379,7 +379,31 @@ export const native = {
   localAuthentication: () => get<NativeLocalAuthentication>('ExpoWindowsLocalAuthentication'),
   location: () => get<NativeLocation>('ExpoWindowsLocation'),
   sensors: () => get<NativeSensors>('ExpoWindowsSensors'),
+  notifications: () => get<NativeNotifications>('ExpoWindowsNotifications'),
 };
+
+export type NotificationSetting = 'Enabled' | 'DisabledForApplication' | 'DisabledForUser' | 'DisabledByGroupPolicy' | 'DisabledByManifest' | 'Unsupported';
+
+/** A click on one of the app's notifications, as `ExpoWindowsNotifications` reports it (`onNotificationResponse`). */
+export interface NotificationResponseEvent {
+  id: string;
+  /** `default` for the notification itself, else the action's identifier. */
+  action: string;
+  userText: string;
+}
+
+export interface NativeNotifications extends TurboModule {
+  /** Whether the user lets the app notify, by the app notification manager's setting. */
+  setting(): NotificationSetting;
+  /** A toast with the title and the body, tagged by the identifier; silent without the system sound. */
+  show(id: string, title: string, body: string, silent: boolean): Promise<void>;
+  remove(tag: string): Promise<void>;
+  removeAll(): Promise<void>;
+  /** The tags of the app's notifications in the notification center. */
+  getPresented(): Promise<string[]>;
+  /** The badge on the taskbar as a count, cleared at zero; whether the system took it. */
+  setBadge(count: number): Promise<boolean>;
+}
 
 /** `expo-location`'s `LocationObject`, as `ExpoWindowsLocation` builds it. */
 export interface NativeLocationObject {

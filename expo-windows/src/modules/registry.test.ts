@@ -61,6 +61,15 @@ const REAL_MODULES = [
   'ExpoLightSensor',
   'ExponentDeviceMotion',
   'ExponentPedometer',
+  'ExpoNotificationScheduler',
+  'ExpoNotificationPresenter',
+  'ExpoNotificationPermissionsModule',
+  'ExpoNotificationsEmitter',
+  'ExpoNotificationsHandlerModule',
+  'ExpoBadgeModule',
+  'ExpoNotificationChannelManager',
+  'ExpoNotificationChannelGroupManager',
+  'ExpoNotificationCategoriesModule',
   'ExpoWebBrowser',
   'ExpoWindows',
   'ExponentConstants',
@@ -89,6 +98,18 @@ describe('registry (windows)', () => {
       registerModule('ExpoThing', {a: 2});
       expect(expo.modules.ExpoThing).toBe(first);
       expect(registeredModules()).toEqual(['ExpoThing']);
+      expect(first).not.toHaveProperty('__expo_module_name__');
+    });
+  });
+
+  it('marks one of the core\'s own modules with its name, for the core\'s legacy emitter to listen to it directly', () => {
+    withFreshGlobal(expo => {
+      const NativeModule = globalThis.expo.NativeModule as new () => object;
+      const module = new NativeModule();
+      registerModule('ExpoEmitting', module);
+      expect(expo.modules.ExpoEmitting).toBe(module);
+      expect((module as {__expo_module_name__?: string}).__expo_module_name__).toBe('ExpoEmitting');
+      expect(Object.keys(module)).not.toContain('__expo_module_name__');
     });
   });
 

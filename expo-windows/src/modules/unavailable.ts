@@ -92,24 +92,6 @@ export const UNAVAILABLE: Record<string, UnavailableSpec> = {
   ExpoGL: {package: 'GLView', methods: ['createCameraTextureAsync', 'createContextAsync', 'destroyContextAsync', 'destroyObjectAsync', 'takeSnapshotAsync']},
   ExpoMaps: {package: 'Maps', answers: {getPermissionsAsync: denied, requestPermissionsAsync: denied}},
   ExpoBackgroundNotificationTasksModule: {package: NOTIFICATIONS, methods: ['registerTaskAsync', 'unregisterTaskAsync']},
-  ExpoBadgeModule: {package: NOTIFICATIONS, methods: ['setBadgeCountAsync']},
-  ExpoNotificationCategoriesModule: {package: NOTIFICATIONS, methods: ['deleteNotificationCategoryAsync', 'getNotificationCategoriesAsync', 'setNotificationCategoryAsync']},
-  ExpoNotificationChannelGroupManager: {
-    package: NOTIFICATIONS,
-    methods: ['deleteNotificationChannelGroupAsync', 'getNotificationChannelGroupAsync', 'getNotificationChannelGroupsAsync', 'setNotificationChannelGroupAsync'],
-  },
-  ExpoNotificationChannelManager: {
-    package: NOTIFICATIONS,
-    methods: ['deleteNotificationChannelAsync', 'getNotificationChannelAsync', 'getNotificationChannelsAsync', 'setNotificationChannelAsync'],
-  },
-  ExpoNotificationPermissionsModule: {package: NOTIFICATIONS, answers: {getPermissionsAsync: denied, requestPermissionsAsync: denied}},
-  ExpoNotificationPresenter: {package: NOTIFICATIONS, methods: ['dismissAllNotificationsAsync', 'dismissNotificationAsync', 'getPresentedNotificationsAsync']},
-  ExpoNotificationScheduler: {
-    package: NOTIFICATIONS,
-    methods: ['cancelAllScheduledNotificationsAsync', 'cancelScheduledNotificationAsync', 'getAllScheduledNotificationsAsync', 'getNextTriggerDateAsync', 'scheduleNotificationAsync'],
-  },
-  ExpoNotificationsEmitter: {package: NOTIFICATIONS, methods: ['clearLastNotificationResponse'], answers: {getLastNotificationResponse: () => null}},
-  ExpoNotificationsHandlerModule: {package: NOTIFICATIONS, methods: ['handleNotificationAsync']},
   ExpoPushTokenManager: {package: NOTIFICATIONS, methods: ['getDevicePushTokenAsync', 'unregisterForNotificationsAsync']},
   // Read at import by the package's automatic registration: no registration is kept, and none is made.
   NotificationsServerRegistrationModule: {

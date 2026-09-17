@@ -135,6 +135,7 @@
     <ClCompile Include="Media.cpp" />
     <ClCompile Include="MediaLibrary.cpp" />
     <ClCompile Include="Network.cpp" />
+    <ClCompile Include="Notifications.cpp" />
     <ClCompile Include="Power.cpp" />
     <ClCompile Include="SecureStore.cpp" />
     <ClCompile Include="Sensors.cpp" />

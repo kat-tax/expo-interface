@@ -30,6 +30,7 @@ import {ExpoMailComposer} from './mail-composer';
 import {createMediaLibraryModule, createMediaLibraryNextModule} from './media-library';
 import {createAppMetricsModule, createObserveModule} from './metrics';
 import {createNetworkModule} from './network';
+import {createNotificationModules} from './notifications';
 import {createScreenCaptureModule} from './screen-capture';
 import {createScreenOrientationModule} from './screen-orientation';
 import {ExpoSecureStore} from './secure-store';
@@ -111,6 +112,7 @@ export function registerModules(): void {
   registerModule('ExpoLocalAuthentication', createLocalAuthenticationModule());
   registerModule('ExpoLocation', createLocationModule());
   for (const [name, module] of Object.entries(createSensorModules())) registerModule(name, module);
+  for (const [name, module] of Object.entries(createNotificationModules())) registerModule(name, module);
   // The runtime's own: the window, for the kit's stack and any app that asks for it.
   registerModule('ExpoWindows', ExpoWindows);
   registerUnavailableModules();
