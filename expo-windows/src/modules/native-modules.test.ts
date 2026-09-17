@@ -49,6 +49,18 @@ describe('ExpoWindows high contrast (windows)', () => {
     expect(off.colors.background).toBe('');
   });
 
+  it('shows, hides and reads the touch keyboard through the library, and has it away without', async () => {
+    const keyboard = {show: vi.fn(async () => true), hide: vi.fn(async () => true), getState: vi.fn(async () => ({visible: true, height: 300}))};
+    withNative({ExpoWindowsKeyboard: keyboard});
+    await expect(ExpoWindows.showTouchKeyboardAsync()).resolves.toBe(true);
+    await expect(ExpoWindows.hideTouchKeyboardAsync()).resolves.toBe(true);
+    await expect(ExpoWindows.getTouchKeyboardAsync()).resolves.toEqual({visible: true, height: 300});
+    withNative({});
+    await expect(ExpoWindows.showTouchKeyboardAsync()).resolves.toBe(false);
+    await expect(ExpoWindows.hideTouchKeyboardAsync()).resolves.toBe(false);
+    await expect(ExpoWindows.getTouchKeyboardAsync()).resolves.toEqual({visible: false, height: 0});
+  });
+
   it('tells a listener when the library reports a change, until it is removed', () => {
     const listener = vi.fn();
     const subscription = ExpoWindows.addHighContrastListener(listener);

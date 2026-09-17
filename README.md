@@ -109,7 +109,7 @@ dialogs.
 | [NativeHost](src/host/index.tsx) | Accent-seeded `@expo/ui` host for controls that sit inside a React Native layout | ✓ | ✓ | ✓ | ✓ |
 | [Surface](src/surface/types.ts) | A box in the theme's colors — a bar, a floating strip, a card, a drop target — drawn in React Native so it can hold what is not native | ✓ | ✓ | ✓ | ✓ |
 | [Toolbar](src/toolbar/types.ts) | Bar of tools along a canvas: the controls are one native view, with an optional React Native field between the groups and a compact density for many tools | ✓ | ✓ | ✓ | ✓ |
-| [KeyboardBar](src/keyboard/index.tsx) | Bottom bar that sticks to the keyboard and reports its height (`react-native-keyboard-controller`, optional) | ✓ | ✓ | ✓ | ✓ |
+| [KeyboardBar](src/keyboard/index.tsx) | Bottom bar that sticks to the keyboard and reports its height (`react-native-keyboard-controller`, optional; the touch keyboard on Windows through `expo-windows`) | ✓ | ✓ | ✓ | ✓ |
 | [Tabs](src/tabs/types.ts) | Tab bar for `expo-router`: native tabs on iOS and Android, a floating top bar with a logo and action slots on web, which takes the screen's header, a WinUI `NavigationView` on Windows — the top bar, or with `windowsPane` the left pane, expanded, compact or `auto` by window width; can be hidden | ✓ | ✓ | ✓ | ✓ |
 | [TabStack](src/tab-stack/index.tsx) | Preconfigured `expo-router` stack for the root screen of a tab, with a header trailing slot | ✓ | ✓ | ✓ | ✓ |
 | [ConstrainedStackHeader](src/stack-header/index.tsx) | Stack header that matches the content max-width on web; `TabStack` uses it there so a screen has a header on every platform, and it folds into the tab bar where there is one | | | ✓ | |
@@ -358,7 +358,10 @@ content above it can pad or scroll by that much. It needs
 `react-native-keyboard-controller`, an optional peer the kit loads only
 natively (the library's Reanimated cannot render on the server, so nothing of
 it reaches the web bundle, where the bar is a plain view); `AccentProvider`
-mounts its `KeyboardProvider` when the library is installed.
+mounts its `KeyboardProvider` when the library is installed. On Windows the
+kit rides the bar on React Native's own keyboard events, which `expo-windows`
+raises from the window's touch keyboard; without the runtime nothing fires
+and the bar stays put.
 
 ```sh
 npx expo install react-native-keyboard-controller

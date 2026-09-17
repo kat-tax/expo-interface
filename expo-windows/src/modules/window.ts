@@ -75,4 +75,20 @@ export const ExpoWindows = {
   addHighContrastListener(listener: (state: HighContrastState) => void): {remove(): void} {
     return DeviceEventEmitter.addListener('onHighContrastChanged', listener);
   },
+  /**
+   * Shows the touch keyboard for the window, or hides it; whether it took.
+   * Its showing and hiding reach React Native's `Keyboard` as
+   * `keyboardDidShow` and `keyboardDidHide`, with the rectangle it covers,
+   * whoever brought it up. False without the library.
+   */
+  async showTouchKeyboardAsync(): Promise<boolean> {
+    return (await native.keyboard()?.show()) ?? false;
+  },
+  async hideTouchKeyboardAsync(): Promise<boolean> {
+    return (await native.keyboard()?.hide()) ?? false;
+  },
+  /** Whether the touch keyboard is up, and the height it covers; away without the library. */
+  async getTouchKeyboardAsync(): Promise<{visible: boolean; height: number}> {
+    return (await native.keyboard()?.getState()) ?? {visible: false, height: 0};
+  },
 };

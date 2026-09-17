@@ -17,6 +17,7 @@
 #include <unknwn.h>
 #include <dwrite.h>
 #include <shlobj_core.h>
+#include <inputpaneinterop.h>
 #include <shobjidl_core.h>
 
 // WinRT Header Files
@@ -24,6 +25,7 @@
 #include <CppWinRTIncludes.h>
 #include <winrt/Microsoft.ReactNative.h>
 #include <winrt/Microsoft.UI.h>
+#include <winrt/Microsoft.UI.Dispatching.h>
 #include <winrt/Microsoft.UI.Interop.h>
 #include <winrt/Microsoft.UI.Windowing.h>
 #include <winrt/Microsoft.Windows.AppLifecycle.h>

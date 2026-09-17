@@ -107,7 +107,12 @@ and `getHighContrastAsync()` with `addHighContrastListener(listener)`: whether
 the user has a high contrast theme on, its name, and the system's colours
 for the window's parts (`background`, `text`, `highlight`, `highlightText`,
 `buttonFace`, `buttonText`, `link`, `disabledText`), which the kit's palette
-follows.
+follows; and `showTouchKeyboardAsync()`, `hideTouchKeyboardAsync()` and
+`getTouchKeyboardAsync()` for the touch keyboard, whose showing and hiding
+the library raises as React Native's `keyboardDidShow` and `keyboardDidHide`
+with the rectangle it covers, so `Keyboard.addListener` works on Windows
+(the system shows it only while a text control has focus, and keeps one the
+user brought up from the taskbar).
 
 What has no Windows implementation and is not listed — `@expo/ui`, and any
 package whose module calls `requireNativeModule` at import — still throws at

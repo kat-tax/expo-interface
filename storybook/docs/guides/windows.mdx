@@ -234,7 +234,8 @@ mean it to. Without the runtime, and everywhere else, the setting is off.
 | Collapsible | Drawn (a WinUI `Expander` could not hold React Native content) |
 | Sheet | A layer drawn in React Native over the window — WinUI's smoke and a centred card, the content scrolling inside — covering the whole window under the kit's `Stack` (a layer host) and the nearest ancestor elsewhere. Islands inside it are fine; React Native's `Modal` is not used |
 | FieldGroup, ListItem, Card, Surface, Toolbar, Divider, Typography | Drawn with Fluent metrics and the Segoe UI Variable ramp |
-| ConstrainedStackHeader, KeyboardBar | Nothing to draw: no web bar, no soft keyboard |
+| ConstrainedStackHeader | Nothing to draw: no web bar |
+| KeyboardBar | Drawn; rides up on the touch keyboard through React Native's keyboard events, which `expo-windows` raises from the window's input pane (see below) |
 
 The drawn pressables — a list row, a card, the disclosure header, the
 header's back button, the floating action button — behave as WinUI's own
@@ -260,6 +261,17 @@ reach the kit's `Stack` from the focused control; of two bindings to one
 shortcut, the later mounted wins, so a screen's is in front of its layout's.
 On the other platforms the hook binds nothing and the shortcut text is not
 drawn.
+
+The touch keyboard — on a tablet, or a touch screen without a keyboard
+attached — reaches React Native's `Keyboard` on `expo-windows`: the runtime
+raises `keyboardDidShow` and `keyboardDidHide` from the window's input pane
+with the rectangle it covers, so `Keyboard.addListener` and everything on it
+work as on Android, and the kit's `KeyboardBar` rides up on it by that
+height and reports it through `onKeyboard`, with no library to install.
+`ExpoWindows.showTouchKeyboardAsync()` and `hideTouchKeyboardAsync()` ask for
+it, on the system's terms: it shows only while a text control has focus, and
+a keyboard the user brought up from the taskbar stays. Without the runtime no
+event fires and the bar stays put.
 
 ## How a control is hosted
 

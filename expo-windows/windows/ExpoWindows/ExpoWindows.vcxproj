@@ -119,6 +119,7 @@
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Fonts.cpp" />
+    <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="Linking.cpp" />
     <ClCompile Include="Sharing.cpp" />
     <ClCompile Include="Window.cpp" />

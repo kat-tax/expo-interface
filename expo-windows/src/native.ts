@@ -100,6 +100,13 @@ export interface NativeAccessibility extends TurboModule {
   getHighContrast(): Promise<HighContrastState>;
 }
 
+export interface NativeKeyboard extends TurboModule {
+  /** Shows the touch keyboard for the window; false where it could not be. */
+  show(): Promise<boolean>;
+  hide(): Promise<boolean>;
+  getState(): Promise<{visible: boolean; height: number}>;
+}
+
 function get<T extends TurboModule>(name: string): T | null {
   return TurboModuleRegistry.get<T>(name);
 }
@@ -112,4 +119,5 @@ export const native = {
   linking: () => get<NativeLinking>('ExpoWindowsLinking'),
   fonts: () => get<NativeFonts>('ExpoWindowsFonts'),
   accessibility: () => get<NativeAccessibility>('ExpoWindowsAccessibility'),
+  keyboard: () => get<NativeKeyboard>('ExpoWindowsKeyboard'),
 };
