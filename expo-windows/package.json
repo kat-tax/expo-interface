@@ -1,6 +1,6 @@
 {
   "name": "expo-windows",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Windows for Expo apps on react-native-windows: the Metro config for the platform, an Expo Modules Core over the JavaScript registry, the modules the Expo packages call with a C++ library behind them, and the app scaffold.",
   "license": "MIT",
   "author": "kat-tax",
@@ -46,9 +46,15 @@
   },
   "peerDependencies": {
     "expo": "^57.0.0",
+    "expo-interface": "*",
     "expo-modules-core": "*",
     "react": "*",
     "react-native": "*"
+  },
+  "peerDependenciesMeta": {
+    "expo-interface": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@expo/dom-webview": "~57.0.1",

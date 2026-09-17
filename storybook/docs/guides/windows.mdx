@@ -96,6 +96,15 @@ the player, `expo-audio` plays and records (over `MediaCapture`),
 system's voices. Picture in picture, subtitle tracks and audio streams are
 other platforms', and say so.
 
+`@expo/ui` is the kit on Windows: every export of `@expo/ui/swift-ui` and
+`@expo/ui/jetpack-compose` (and their modifiers) resolves to the runtime's
+aliases, which draw the controls as the kit's WinUI islands and the layout
+views as flex, with the layout modifiers as styles. The community slider,
+picker, date-time picker, segmented control, pager, masked view, bottom
+sheet and menu, `expo-checkbox`, `expo-blur` and `expo-mesh-gradient` are
+aliased the same way, so an app written for SwiftUI or Compose runs on
+Windows without a branch.
+
 1. Generate a react-native-windows `cpp-app` project into `windows/` on a
    React Native app of the matching version
    (`npx react-native-windows-init --template cpp-app`), and in its
