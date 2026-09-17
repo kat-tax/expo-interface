@@ -71,26 +71,16 @@ describe('the unavailable table (windows)', () => {
     }
   });
 
-  it('answers the sensors as absent, the device motion with gravity, and the pedometer with denied steps', async () => {
-    const accelerometer = unavailableModule(UNAVAILABLE.ExponentAccelerometer) as {isAvailableAsync(): Promise<boolean>; setUpdateInterval(ms: number): void};
-    await expect(accelerometer.isAvailableAsync()).resolves.toBe(false);
-    expect(accelerometer.setUpdateInterval(16)).toBeUndefined();
-    expect((unavailableModule(UNAVAILABLE.ExponentDeviceMotion) as {Gravity: number}).Gravity).toBeCloseTo(9.80665);
-    const pedometer = unavailableModule(UNAVAILABLE.ExponentPedometer) as {getStepCountAsync(): never; getPermissionsAsync(): Promise<unknown>};
-    expect(() => pedometer.getStepCountAsync()).toThrow(/Pedometer\.getStepCountAsync/);
-    await expect(pedometer.getPermissionsAsync()).resolves.toBe(DENIED);
-  });
-
   it('registers under every name, after the real modules, which it never shadows', () => {
     const previous = globalThis.expo;
     const expo = {...previous, modules: {}} as typeof globalThis.expo;
     globalThis.expo = expo;
     try {
-      const real = {getCurrentPositionAsync: () => 'real'};
-      registerModule('ExpoLocation', real);
+      const real = {getPermissionsAsync: () => 'real'};
+      registerModule('ExpoMaps', real);
       registerUnavailableModules();
       expect(registeredModules().sort()).toEqual(Object.keys(UNAVAILABLE).sort());
-      expect(expo.modules.ExpoLocation).toBe(real);
+      expect(expo.modules.ExpoMaps).toBe(real);
       expect(() => (expo.modules.ExpoSQLite as {deleteDatabaseSync(): never}).deleteDatabaseSync()).toThrow(/SQLite\.deleteDatabaseSync/);
     } finally {
       globalThis.expo = previous;

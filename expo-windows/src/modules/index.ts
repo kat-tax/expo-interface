@@ -25,6 +25,7 @@ import {ExpoKeepAwake} from './keep-awake';
 import {createLinkingModule} from './linking';
 import {createLocalAuthenticationModule} from './local-authentication';
 import {createLocalizationModule} from './localization';
+import {createLocationModule} from './location';
 import {ExpoMailComposer} from './mail-composer';
 import {createMediaLibraryModule, createMediaLibraryNextModule} from './media-library';
 import {createAppMetricsModule, createObserveModule} from './metrics';
@@ -32,6 +33,7 @@ import {createNetworkModule} from './network';
 import {createScreenCaptureModule} from './screen-capture';
 import {createScreenOrientationModule} from './screen-orientation';
 import {ExpoSecureStore} from './secure-store';
+import {createSensorModules} from './sensors';
 import {ExpoSharing} from './sharing';
 import {ExpoSMS} from './sms';
 import {createSpeechModule} from './speech';
@@ -107,6 +109,8 @@ export function registerModules(): void {
   registerModule('ExpoBattery', createBatteryModule());
   registerModule('ExpoScreenCapture', createScreenCaptureModule());
   registerModule('ExpoLocalAuthentication', createLocalAuthenticationModule());
+  registerModule('ExpoLocation', createLocationModule());
+  for (const [name, module] of Object.entries(createSensorModules())) registerModule(name, module);
   // The runtime's own: the window, for the kit's stack and any app that asks for it.
   registerModule('ExpoWindows', ExpoWindows);
   registerUnavailableModules();

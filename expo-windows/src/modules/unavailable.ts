@@ -63,14 +63,6 @@ const no = async (): Promise<false> => false;
 const denied = async () => DENIED;
 const nothing = (): void => {};
 
-function sensor(packageName: string, extra: Partial<UnavailableSpec> = {}): UnavailableSpec {
-  return {
-    package: packageName,
-    ...extra,
-    answers: {isAvailableAsync: no, setUpdateInterval: nothing, ...extra.answers},
-  };
-}
-
 const NOTIFICATIONS = 'Notifications';
 
 /**
@@ -98,37 +90,6 @@ export const UNAVAILABLE: Record<string, UnavailableSpec> = {
   },
   ExpoDomWebViewModule: {package: 'DomWebView', methods: ['evalJsForWebViewAsync']},
   ExpoGL: {package: 'GLView', methods: ['createCameraTextureAsync', 'createContextAsync', 'destroyContextAsync', 'destroyObjectAsync', 'takeSnapshotAsync']},
-  ExpoLocation: {
-    package: 'Location',
-    methods: [
-      'enableNetworkProviderAsync',
-      'geocodeAsync',
-      'getCurrentPositionAsync',
-      'getLastKnownPositionAsync',
-      'getProviderStatusAsync',
-      'hasStartedGeofencingAsync',
-      'hasStartedLocationUpdatesAsync',
-      'removeWatchAsync',
-      'reverseGeocodeAsync',
-      'startGeofencingAsync',
-      'startLocationUpdatesAsync',
-      'stopGeofencingAsync',
-      'stopLocationUpdatesAsync',
-      'watchDeviceHeading',
-      'watchMotionActivityImplAsync',
-      'watchPositionImplAsync',
-    ],
-    answers: {
-      hasServicesEnabledAsync: no,
-      getForegroundPermissionsAsync: denied,
-      getBackgroundPermissionsAsync: denied,
-      getMotionActivityPermissionsAsync: denied,
-      requestForegroundPermissionsAsync: denied,
-      requestBackgroundPermissionsAsync: denied,
-      requestMotionActivityPermissionsAsync: denied,
-      requestPermissionsAsync: denied,
-    },
-  },
   ExpoMaps: {package: 'Maps', answers: {getPermissionsAsync: denied, requestPermissionsAsync: denied}},
   ExpoBackgroundNotificationTasksModule: {package: NOTIFICATIONS, methods: ['registerTaskAsync', 'unregisterTaskAsync']},
   ExpoBadgeModule: {package: NOTIFICATIONS, methods: ['setBadgeCountAsync']},
@@ -156,14 +117,6 @@ export const UNAVAILABLE: Record<string, UnavailableSpec> = {
     answers: {getInstallationIdAsync: async () => uuidv4(), getRegistrationInfoAsync: async () => null, setRegistrationInfoAsync: async () => {}},
   },
   ExpoPrint: {package: 'Print', methods: ['print', 'printToFileAsync', 'selectPrinter'], constants: {Orientation: {portrait: 'portrait', landscape: 'landscape'}}},
-  ExponentAccelerometer: sensor('Accelerometer'),
-  ExponentGyroscope: sensor('Gyroscope'),
-  ExponentMagnetometer: sensor('Magnetometer'),
-  ExponentMagnetometerUncalibrated: sensor('MagnetometerUncalibrated'),
-  ExponentDeviceMotion: sensor('DeviceMotion', {constants: {Gravity: 9.80665}}),
-  ExpoBarometer: sensor('Barometer'),
-  ExpoLightSensor: sensor('LightSensor'),
-  ExponentPedometer: sensor('Pedometer', {methods: ['getStepCountAsync'], answers: {getPermissionsAsync: denied, requestPermissionsAsync: denied}}),
   ExpoSQLite: {
     package: 'SQLite',
     methods: ['backupDatabaseSync', 'deleteDatabaseAsync', 'deleteDatabaseSync', 'ensureDatabasePathExistsAsync', 'ensureDatabasePathExistsSync', 'importAssetDatabaseAsync'],

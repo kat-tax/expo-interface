@@ -377,7 +377,46 @@ export const native = {
   media: () => get<NativeMedia>('ExpoWindowsMedia'),
   power: () => get<NativePower>('ExpoWindowsPower'),
   localAuthentication: () => get<NativeLocalAuthentication>('ExpoWindowsLocalAuthentication'),
+  location: () => get<NativeLocation>('ExpoWindowsLocation'),
+  sensors: () => get<NativeSensors>('ExpoWindowsSensors'),
 };
+
+/** `expo-location`'s `LocationObject`, as `ExpoWindowsLocation` builds it. */
+export interface NativeLocationObject {
+  coords: {
+    latitude: number;
+    longitude: number;
+    altitude: number;
+    accuracy: number;
+    altitudeAccuracy: number | null;
+    heading: number | null;
+    speed: number | null;
+  };
+  timestamp: number;
+  mocked: boolean;
+}
+
+export interface NativeLocation extends TurboModule {
+  /** The system's answer to the app's use of location. */
+  requestAccess(): Promise<'Allowed' | 'Denied' | 'Unspecified'>;
+  getPosition(accuracyMeters: number, maximumAgeMs: number, timeoutMs: number): Promise<NativeLocationObject>;
+  /** Positions for the watch as `onLocationChanged` `{watchId, location}`; `onLocationError` `{watchId, reason}` when the service goes away. */
+  watch(id: number, intervalMs: number, distanceMeters: number, accuracyMeters: number): void;
+  /** Headings for the watch as `onHeadingChanged` `{watchId, heading}`; rejects without a compass. */
+  watchHeading(id: number): Promise<void>;
+  stopWatch(id: number): void;
+}
+
+export type SensorKind = 'accelerometer' | 'gyroscope' | 'magnetometer' | 'magnetometerUncalibrated' | 'barometer' | 'light' | 'pedometer' | 'deviceMotion';
+
+export interface NativeSensors extends TurboModule {
+  available(kind: SensorKind): boolean;
+  /** Readings for the kind as `onSensorReading` `{kind, ...reading, timestamp}`, at most every `intervalMs`. */
+  start(kind: SensorKind, intervalMs: number): void;
+  stop(kind: SensorKind): void;
+  /** The steps the system counted between two moments, in milliseconds since 1970. */
+  getStepCount(startMs: number, endMs: number): Promise<number>;
+}
 
 /** The machine's power, as `ExpoWindowsPower` reports it. */
 export interface PowerState {

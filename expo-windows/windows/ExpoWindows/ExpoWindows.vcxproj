@@ -131,11 +131,13 @@
     <ClCompile Include="Linking.cpp" />
     <ClCompile Include="LocalAuthentication.cpp" />
     <ClCompile Include="Localization.cpp" />
+    <ClCompile Include="Location.cpp" />
     <ClCompile Include="Media.cpp" />
     <ClCompile Include="MediaLibrary.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="Power.cpp" />
     <ClCompile Include="SecureStore.cpp" />
+    <ClCompile Include="Sensors.cpp" />
     <ClCompile Include="Sharing.cpp" />
     <ClCompile Include="VideoView.cpp" />
     <ClCompile Include="WebView.cpp" />

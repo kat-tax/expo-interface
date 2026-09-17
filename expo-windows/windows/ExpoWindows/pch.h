@@ -51,6 +51,8 @@
 #include <winrt/Windows.Graphics.Imaging.h>
 #include <winrt/Windows.Graphics.h>
 #include <winrt/Windows.Devices.Enumeration.h>
+#include <winrt/Windows.Devices.Geolocation.h>
+#include <winrt/Windows.Devices.Sensors.h>
 #include <winrt/Windows.Media.Capture.h>
 #include <winrt/Windows.Media.Core.h>
 #include <winrt/Windows.Media.Devices.h>
