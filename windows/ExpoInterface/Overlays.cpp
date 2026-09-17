@@ -604,6 +604,14 @@ struct InfoBarView : winrt::implements<InfoBarView, winrt::IInspectable>,
 
 // -- NavigationView (tabs) ---------------------------------------------------
 
+/**
+ * WinUI's pane widths — `OpenPaneLength` and `CompactPaneLength` — set
+ * explicitly because the kit sizes the island to them in left mode: the
+ * pane is the whole island, and the content beside it is React Native's.
+ */
+constexpr double kOpenPaneLength = 320;
+constexpr double kCompactPaneLength = 48;
+
 struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspectable>,
                             Codegen::BaseExpoInterfaceNavigationView<NavigationViewView>,
                             XamlIsland<NavigationViewView> {
@@ -614,6 +622,30 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
     m_view.IsSettingsVisible(false);
     m_view.IsPaneToggleButtonVisible(false);
     m_view.IsTitleBarAutoPaddingEnabled(false);
+    m_view.OpenPaneLength(kOpenPaneLength);
+    m_view.CompactPaneLength(kCompactPaneLength);
+    // WinUI's pane fills are for a Mica window: the default one is in-app acrylic, which
+    // has no backdrop in an island and paints solid white. The pane is transparent, over
+    // the kit's own background, as the top bar already is.
+    OverrideBrushes(m_view, {L"NavigationViewDefaultPaneBackground", L"NavigationViewExpandedPaneBackground"}, Color{0, 0, 0, 0});
+    // The toggle button flips the pane; the kit hears of it, resizes the island and
+    // asks for the other mode. Opening the compact pane is left to WinUI (the kit's
+    // switch to the expanded mode keeps it open). Collapsing the expanded pane is
+    // not: WinUI's collapse in place leaves the pane empty at the island's width,
+    // however the compact mode is applied afterwards, so the collapse is cancelled
+    // and the switch to the compact mode closes the pane instead — the transition
+    // WinUI's adaptive layout makes when a window narrows.
+    m_view.PaneOpening([weak = get_weak()](const controls::NavigationView &, const winrt::IInspectable &) {
+      if (auto strong = weak.get()) strong->ReportPaneOpen(true);
+    });
+    m_view.PaneClosing([weak = get_weak()](const controls::NavigationView &, const controls::NavigationViewPaneClosingEventArgs &args) {
+      if (auto strong = weak.get()) {
+        if (!strong->m_applying && strong->m_view.PaneDisplayMode() == controls::NavigationViewPaneDisplayMode::Left) {
+          args.Cancel(true);
+        }
+        strong->ReportPaneOpen(false);
+      }
+    });
     m_view.SelectionChanged([weak = get_weak()](const controls::NavigationView &sender, const controls::NavigationViewSelectionChangedEventArgs &args) {
       if (auto strong = weak.get()) {
         if (strong->m_applying) return;
@@ -640,6 +672,8 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
     if (!props) return;
     m_applying = true;
     ApplyLook(Root(), props->theme, props->accentColor);
+    // The island's root is white where the control is transparent, and the pane is: the kit's background goes behind it.
+    Root().as<controls::Panel>().Background(Brush(ColorOr(props->background, Color{0, 0, 0, 0})));
     if (props->items != m_items) {
       m_items = props->items;
       m_view.MenuItems().Clear();
@@ -658,6 +692,21 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
       m_view.SelectedItem(m_view.MenuItems().GetAt(index));
     }
     m_view.PaneTitle(ToHString(props->header.value_or("")));
+    // WinUI's own modes rather than a forced IsPaneOpen (WinUI reopens a forced-closed
+    // pane on entering the expanded mode) or its adaptive mode (which closes the pane
+    // on the very resize the kit makes to open it): entering the expanded mode opens
+    // the pane, entering the compact one closes it.
+    const auto mode = props->paneMode.value_or("top");
+    m_wanted = mode == "left"      ? controls::NavigationViewPaneDisplayMode::Left
+               : mode == "compact" ? controls::NavigationViewPaneDisplayMode::LeftCompact
+                                   : controls::NavigationViewPaneDisplayMode::Top;
+    // The side pane keeps the control at the open width whatever the island's: the
+    // island clips it to the compact strip, as a window shows the strip of a wider
+    // control, and the pane's open and close animations never coincide with a resize
+    // of the control — which leaves the compact pane empty.
+    m_view.MinWidth(mode == "top" ? 0.0 : kOpenPaneLength);
+    ApplyDisplayMode();
+    m_view.IsPaneToggleButtonVisible(mode != "top");
     m_applying = false;
   }
 
@@ -666,8 +715,23 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
   }
 
  private:
+  /** Puts the control in the mode the kit asked for; WinUI opens or closes the pane as the mode says. */
+  void ApplyDisplayMode() noexcept {
+    if (m_view.PaneDisplayMode() != m_wanted) m_view.PaneDisplayMode(m_wanted);
+  }
+
+  void ReportPaneOpen(bool open) noexcept {
+    if (m_applying) return;
+    if (auto emitter = EventEmitter()) {
+      Codegen::ExpoInterfaceNavigationViewEventEmitter::OnPaneOpenChange event;
+      event.open = open;
+      emitter->onPaneOpenChange(std::move(event));
+    }
+  }
+
   controls::NavigationView m_view{nullptr};
   std::string m_items;
+  controls::NavigationViewPaneDisplayMode m_wanted{controls::NavigationViewPaneDisplayMode::Top};
   bool m_applying{false};
 };
 

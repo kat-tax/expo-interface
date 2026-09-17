@@ -71,7 +71,22 @@ export interface TabBarProps {
    * @default true
    */
   webFoldHeader?: boolean;
+  /**
+   * Windows only: where the WinUI `NavigationView` puts its items. `top` is
+   * a row along the top of the window, the tab bar; `left` is the
+   * navigation pane down the left side, labels beside the glyphs, and
+   * `compact` that pane at its glyph-only width — the pane's toggle button
+   * collapses the expanded pane to its glyphs and opens the compact one over
+   * the content, as WinUI's does. `auto` follows WinUI's adaptive
+   * breakpoints by the width the tabs are given (the window's, at the
+   * root): the expanded pane from 1008 points, the compact one from 641,
+   * and the top bar in a narrower window.
+   * @default 'top'
+   */
+  windowsPane?: WindowsPane;
 }
+
+export type WindowsPane = 'top' | 'left' | 'compact' | 'auto';
 
 export type WebLogo =
   | 'icon-only'

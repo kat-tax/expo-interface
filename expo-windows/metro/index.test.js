@@ -3,6 +3,8 @@ const path = require('node:path');
 const {ALIASES, TRANSFORMER, mainFile, readPublicAppConfig, redirectReactNative, resolveWindows, withWindows} = require('./index');
 
 const REPO = path.resolve(__dirname, '..', '..');
+/** Reading a project's app config through expo/config loads the config module: slow while the whole suite runs. */
+const CONFIG_TIMEOUT = 30_000;
 
 /** A resolver that records what it was asked and answers with a source file of that name. */
 function fakeContext() {
@@ -63,7 +65,7 @@ describe('withWindows', () => {
     expect(process.env.EXPO_PUBLIC_WINDOWS_APP_CONFIG).toBeUndefined();
     withWindows(/** @type {any} */ ({projectRoot: '/nowhere'}));
     expect(process.env.EXPO_PUBLIC_WINDOWS_APP_CONFIG).toBeUndefined();
-  });
+  }, CONFIG_TIMEOUT);
 
   it('resolves through the wrapper it installs', () => {
     const {context, asked} = fakeContext();
@@ -77,7 +79,7 @@ describe('readPublicAppConfig', () => {
   it('reads the example\'s config and gives null where there is no project', () => {
     expect(JSON.parse(readPublicAppConfig(path.join(REPO, 'example')) ?? 'null')).toMatchObject({slug: expect.any(String)});
     expect(readPublicAppConfig('/nowhere/at/all')).toBeNull();
-  });
+  }, CONFIG_TIMEOUT);
 });
 
 describe('resolveWindows', () => {

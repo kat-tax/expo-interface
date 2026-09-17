@@ -28,9 +28,12 @@ struct ExpoInterfaceNavigationViewProps : winrt::implements<ExpoInterfaceNavigat
        items = cloneFromProps->items;
        selectedIndex = cloneFromProps->selectedIndex;
        header = cloneFromProps->header;
+       paneMode = cloneFromProps->paneMode;
+       background = cloneFromProps->background;
        accentColor = cloneFromProps->accentColor;
        theme = cloneFromProps->theme;
-       onSelectionChange = cloneFromProps->onSelectionChange;  
+       onSelectionChange = cloneFromProps->onSelectionChange;
+       onPaneOpenChange = cloneFromProps->onPaneOpenChange;  
      }
   }
 
@@ -47,6 +50,12 @@ struct ExpoInterfaceNavigationViewProps : winrt::implements<ExpoInterfaceNavigat
   REACT_FIELD(header)
   std::optional<std::string> header;
 
+  REACT_FIELD(paneMode)
+  std::optional<std::string> paneMode;
+
+  REACT_FIELD(background)
+  std::optional<std::string> background;
+
   REACT_FIELD(accentColor)
   std::optional<std::string> accentColor;
 
@@ -57,7 +66,16 @@ struct ExpoInterfaceNavigationViewProps : winrt::implements<ExpoInterfaceNavigat
   REACT_FIELD(onSelectionChange)
   bool onSelectionChange{false};
 
+  REACT_FIELD(onPaneOpenChange)
+  bool onPaneOpenChange{false};
+
   const winrt::Microsoft::ReactNative::ViewProps ViewProps;
+};
+
+REACT_STRUCT(ExpoInterfaceNavigationViewSpec_onPaneOpenChange)
+struct ExpoInterfaceNavigationViewSpec_onPaneOpenChange {
+  REACT_FIELD(open)
+  bool open{};
 };
 
 REACT_STRUCT(ExpoInterfaceNavigationViewSpec_onSelectionChange)
@@ -71,9 +89,16 @@ struct ExpoInterfaceNavigationViewEventEmitter {
       : m_eventEmitter(eventEmitter) {}
 
   using OnSelectionChange = ExpoInterfaceNavigationViewSpec_onSelectionChange;
+  using OnPaneOpenChange = ExpoInterfaceNavigationViewSpec_onPaneOpenChange;
 
   void onSelectionChange(OnSelectionChange &&value) const {
     m_eventEmitter.DispatchEvent(L"selectionChange", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
+      winrt::Microsoft::ReactNative::WriteValue(writer, value);
+    });
+  }
+
+  void onPaneOpenChange(OnPaneOpenChange &&value) const {
+    m_eventEmitter.DispatchEvent(L"paneOpenChange", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
       winrt::Microsoft::ReactNative::WriteValue(writer, value);
     });
   }

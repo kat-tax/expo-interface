@@ -31,7 +31,7 @@ export {Stack} from './router/stack';
 export {TabStack} from './tab-stack';
 export type {TabStackProps} from './tab-stack';
 export {Tabs} from './tabs';
-export type {TabBarProps, TabRoute, WebLogo} from './tabs/types';
+export type {TabBarProps, TabRoute, WebLogo, WindowsPane} from './tabs/types';
 export {KeyboardBar} from './keyboard';
 export type {KeyboardBarProps, KeyboardLibrary, KeyboardState} from './keyboard';
 

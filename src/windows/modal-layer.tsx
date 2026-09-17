@@ -48,7 +48,8 @@ export function ModalLayer({children, onDismiss, transparent = false, tall = fal
   const root = useRef<View>(null);
   useEffect(() => {
     try {
-      if (root.current) ViewCommands.focus(root.current);
+      // The view is mounted by the time the effect runs.
+      ViewCommands.focus(root.current as View);
     } catch {
       // A renderer without the command (the test harness) leaves the focus where it is.
     }

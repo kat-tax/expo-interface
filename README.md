@@ -110,7 +110,7 @@ dialogs.
 | [Surface](src/surface/types.ts) | A box in the theme's colors — a bar, a floating strip, a card, a drop target — drawn in React Native so it can hold what is not native | ✓ | ✓ | ✓ | ✓ |
 | [Toolbar](src/toolbar/types.ts) | Bar of tools along a canvas: the controls are one native view, with an optional React Native field between the groups and a compact density for many tools | ✓ | ✓ | ✓ | ✓ |
 | [KeyboardBar](src/keyboard/index.tsx) | Bottom bar that sticks to the keyboard and reports its height (`react-native-keyboard-controller`, optional) | ✓ | ✓ | ✓ | ✓ |
-| [Tabs](src/tabs/types.ts) | Tab bar for `expo-router`: native tabs on iOS and Android, a floating top bar with a logo and action slots on web, which takes the screen's header; can be hidden | ✓ | ✓ | ✓ | ✓ |
+| [Tabs](src/tabs/types.ts) | Tab bar for `expo-router`: native tabs on iOS and Android, a floating top bar with a logo and action slots on web, which takes the screen's header, a WinUI `NavigationView` on Windows — the top bar, or with `windowsPane` the left pane, expanded, compact or `auto` by window width; can be hidden | ✓ | ✓ | ✓ | ✓ |
 | [TabStack](src/tab-stack/index.tsx) | Preconfigured `expo-router` stack for the root screen of a tab, with a header trailing slot | ✓ | ✓ | ✓ | ✓ |
 | [ConstrainedStackHeader](src/stack-header/index.tsx) | Stack header that matches the content max-width on web; `TabStack` uses it there so a screen has a header on every platform, and it folds into the tab bar where there is one | | | ✓ | |
 | [Sheet](src/sheet/index.tsx) | Bottom sheet that inherits the accent color | ✓ | ✓ | ✓ | ✓ |
@@ -461,7 +461,8 @@ component draws, and how a control is hosted.
 Two things are Windows-aware in an app: the root layout uses the kit's `Stack`
 (Expo Router's native stack needs `react-native-screens`, which has no Windows
 renderer; the kit's is Expo Router's stack router under a drawn header there),
-and `Tabs` draws a WinUI `NavigationView`. `setColorScheme` forces the scheme
+and `Tabs` draws a WinUI `NavigationView` — the top bar, or the navigation
+pane down the left side with `windowsPane`. `setColorScheme` forces the scheme
 in JavaScript, which every island follows.
 
 ## Install details
