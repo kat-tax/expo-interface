@@ -5,6 +5,7 @@ import {Navigator, TabRouter} from 'expo-router';
 import {StyleSheet, View, useWindowDimensions} from 'react-native';
 import XamlNavigationView from '../windows/specs/ExpoInterfaceNavigationViewNativeComponent';
 import {jsonProp, useXamlProps} from '../windows';
+import {useWindowChromeState} from '../windows/chrome';
 import {windowsGlyph} from '../symbol/segoe';
 import {useColor} from '../theme';
 
@@ -76,6 +77,8 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
   const {state, navigation} = Navigator.useContext();
   const xaml = useXamlProps();
   const background = useColor('background');
+  // With the content in the title bar, the top bar's far end is under the caption buttons: it stops short of them.
+  const chrome = useWindowChromeState();
   // The width the tabs are given: the window's until the first layout, then
   // their own — react-native-windows reports no dimension change when the
   // window is resized, but the layout follows it.
@@ -102,7 +105,11 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
             if (route && route.name !== current) navigation.navigate(route.name);
           }}
           onPaneOpenChange={event => setToggle({pane: resolved, open: event.nativeEvent.open})}
-          style={side ? [styles.pane, {width: open ? PANE_WIDTH.open : PANE_WIDTH.compact}] : styles.bar}
+          style={
+            side
+              ? [styles.pane, {width: open ? PANE_WIDTH.open : PANE_WIDTH.compact}]
+              : [styles.bar, chrome.extended && {marginLeft: chrome.insets.left, marginRight: chrome.insets.right}]
+          }
           testID="tab-bar"
           {...xaml}
         />

@@ -35,4 +35,4 @@ export interface Measurable {
 }
 
 /** A header's row as the drag region: nothing to report here. */
-export function reportDragRegion(_view: Measurable | null, _rightInset: number): void {}
+export function reportDragRegion(_view: Measurable | null, _insets: {left: number; right: number}): void {}

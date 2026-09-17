@@ -9,6 +9,13 @@ import {PANE_BREAKPOINT, PANE_WIDTH, resolvePane, tabItems, Tabs} from './index.
 
 const NAV = 'ExpoInterfaceNavigationView';
 
+/** The window's chrome as the test wants it: the system title bar, or the content extended into it with the caption buttons' insets. */
+const chrome = vi.hoisted(() => ({state: {extended: false, insets: {left: 0, right: 0, height: 0}}}));
+vi.mock('../windows/chrome', async importOriginal => ({
+  ...(await importOriginal<typeof import('../windows/chrome')>()),
+  useWindowChromeState: () => chrome.state,
+}));
+
 const routes: TabRoute[] = [
   {href: '/', name: 'index', label: 'Home', icon: {ios: 'house', android: 'home', web: 'home'}},
   {href: '/settings', name: 'settings', label: 'Settings', icon: {ios: 'gearshape', android: 'settings', web: 'settings'}},
@@ -67,6 +74,26 @@ describe('Tabs (windows)', () => {
     await renderApp(app({hidden: true}));
     expect(islands(NAV)).toHaveLength(0);
     expect(screen.getByText('Home screen')).toBeOnTheScreen();
+  });
+
+  it('leaves the caption buttons their room at the top bar\'s end while the content is in the title bar', async () => {
+    chrome.state = {extended: true, insets: {left: 0, right: 138, height: 32}};
+    try {
+      await renderApp(app());
+      expect(StyleSheet.flatten(island(NAV).props.style)).toMatchObject({marginLeft: 0, marginRight: 138});
+    } finally {
+      chrome.state = {extended: false, insets: {left: 0, right: 0, height: 0}};
+    }
+  });
+
+  it('leaves a side pane alone while the content is in the title bar: the caption buttons are over the content beside it', async () => {
+    chrome.state = {extended: true, insets: {left: 0, right: 138, height: 32}};
+    try {
+      await renderApp(app({windowsPane: 'left'}));
+      expect(StyleSheet.flatten(island(NAV).props.style).marginRight).toBeUndefined();
+    } finally {
+      chrome.state = {extended: false, insets: {left: 0, right: 0, height: 0}};
+    }
   });
 
   it('carries a badge and a placement in the items, only where a tab has one', () => {

@@ -205,10 +205,22 @@ void ApplyAccent(const xaml::FrameworkElement &element, const std::optional<std:
   themes.Insert(winrt::box_value(L"Default"), dictionary(light2, light3, light3, light2));
 }
 
+/**
+ * Whether the process lays its windows out right to left — what an RTL
+ * language makes of every window, and what react-native-windows mirrors its
+ * layout by (its `I18nManager` reads the same). An island's XAML does not
+ * inherit it: it is set on each island's root.
+ */
+bool IsRightToLeft() noexcept {
+  DWORD layout = 0;
+  return GetProcessDefaultLayout(&layout) && (layout & LAYOUT_RTL) != 0;
+}
+
 void ApplyLook(
     const xaml::FrameworkElement &element,
     const std::optional<std::string> &theme,
     const std::optional<std::string> &accent) noexcept {
+  element.FlowDirection(IsRightToLeft() ? xaml::FlowDirection::RightToLeft : xaml::FlowDirection::LeftToRight);
   ApplyAccent(element, accent);
   // Set last: a theme change is what makes the tree resolve its theme
   // resources again, so the accent above is picked up.

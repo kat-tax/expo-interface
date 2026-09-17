@@ -6,6 +6,6 @@ describe('window chrome (not windows)', () => {
     expect(chrome.useWindowChrome({extend: true})).toBeUndefined();
     expect(chrome.useWindowChromeState()).toEqual({extended: false, insets: {left: 0, right: 0, height: 0}});
     expect(chrome.setDragRegion({x: 0, y: 0, width: 1, height: 1})).toBeUndefined();
-    expect(chrome.reportDragRegion(null, 0)).toBeUndefined();
+    expect(chrome.reportDragRegion(null, {left: 0, right: 0})).toBeUndefined();
   });
 });

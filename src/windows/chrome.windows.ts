@@ -91,9 +91,9 @@ export interface Measurable {
   measureInWindow(callback: (x: number, y: number, width: number, height: number) => void): void;
 }
 
-/** Measures a header's row in the window and makes it the drag region, minus the caption buttons' room on its right. */
-export function reportDragRegion(view: Measurable | null, rightInset: number): void {
+/** Measures a header's row in the window and makes it the drag region, minus the caption buttons' room on either side. */
+export function reportDragRegion(view: Measurable | null, insets: {left: number; right: number}): void {
   view?.measureInWindow((x, y, width, height) => {
-    setDragRegion({x, y, width: Math.max(0, width - rightInset), height});
+    setDragRegion({x: x + insets.left, y, width: Math.max(0, width - insets.left - insets.right), height});
   });
 }

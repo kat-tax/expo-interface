@@ -99,10 +99,13 @@ describe('useWindowChrome (windows)', () => {
   it('measures a header row in the window for the drag region, leaving the caption buttons their room', () => {
     const drag = vi.fn();
     runtime.module = {setWindowChromeAsync: async () => true, getTitleBarInsetsAsync: insets, setDragRegion: drag};
-    reportDragRegion({measureInWindow: callback => callback(48, 0, 952, 48)}, 138);
+    reportDragRegion({measureInWindow: callback => callback(48, 0, 952, 48)}, {left: 0, right: 138});
     expect(drag).toHaveBeenCalledWith({x: 48, y: 0, width: 952 - 138, height: 48});
-    reportDragRegion({measureInWindow: callback => callback(0, 0, 100, 48)}, 138);
+    // A right-to-left window has its caption buttons on the left: the region starts past them.
+    reportDragRegion({measureInWindow: callback => callback(0, 0, 1000, 48)}, {left: 138, right: 0});
+    expect(drag).toHaveBeenLastCalledWith({x: 138, y: 0, width: 1000 - 138, height: 48});
+    reportDragRegion({measureInWindow: callback => callback(0, 0, 100, 48)}, {left: 0, right: 138});
     expect(drag).toHaveBeenLastCalledWith({x: 0, y: 0, width: 0, height: 48});
-    expect(() => reportDragRegion(null, 138)).not.toThrow();
+    expect(() => reportDragRegion(null, {left: 0, right: 138})).not.toThrow();
   });
 });

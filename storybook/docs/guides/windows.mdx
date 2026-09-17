@@ -282,6 +282,19 @@ it, on the system's terms: it shows only while a text control has focus, and
 a keyboard the user brought up from the taskbar stays. Without the runtime no
 event fires and the bar stays put.
 
+Right to left follows the window, as it does for every Win32 window under an
+RTL language: react-native-windows mirrors its layout by the window's, and
+the kit sets the same flow direction on every island's root, which XAML
+does not inherit — the `NavigationView`'s pane, glyphs, badges and toggle
+mirror with the rows around them. The caption buttons then sit on the left,
+and the headers and the top tab bar leave them their room on that side
+(a header lying in the title bar's band leaves it whether or not it is the
+root's). `I18nManager.forceRTL` alone mirrors nothing on this renderer,
+and text keeps starting at the left under RTL unless given an `align`: both
+are the renderer's, not the kit's. Scaling is handled in points throughout
+(the drag region, the title-bar insets and the keyboard's rectangle are
+converted by the window's scale), but has only been run at 100%.
+
 ## How a control is hosted
 
 Each native component is a Fabric component view whose content is a
