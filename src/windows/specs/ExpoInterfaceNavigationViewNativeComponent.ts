@@ -7,7 +7,10 @@ type PaneOpenEvent = Readonly<{open: boolean}>;
 /**
  * A WinUI 3 `NavigationView` hosted in a XAML island: the Windows tab bar in
  * its top mode, or the navigation pane down the left of the window. `items`
- * is a JSON array of `{label, glyph}`; the selection is reported by index.
+ * is a JSON array of `{label, glyph, badge?, placement?}` — a count or text
+ * in an `InfoBadge`; `footer` for the pane's foot, `settings` for WinUI's
+ * own settings item — and the selection is reported by the item's index in
+ * that array, wherever the item was placed.
  * The content beside or under it is React Native's: the kit renders the
  * focused tab's screens itself, and sizes the island to the pane.
  */

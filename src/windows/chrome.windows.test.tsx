@@ -36,15 +36,19 @@ describe('useWindowChrome (windows)', () => {
   it('extends the content into the title bar through the runtime, publishes the insets, and takes it back', async () => {
     const setWindowChromeAsync = vi.fn(async () => true);
     const getTitleBarInsetsAsync = vi.fn(insets);
-    runtime.module = {setWindowChromeAsync, getTitleBarInsetsAsync, setDragRegion: vi.fn()};
+    const setDragRegion = vi.fn();
+    runtime.module = {setWindowChromeAsync, getTitleBarInsetsAsync, setDragRegion};
     const {getByTestId, rerender} = await render(<Chrome extend/>);
     await flush();
     expect(setWindowChromeAsync).toHaveBeenCalledWith({extend: true, theme: expect.stringMatching(/^(light|dark)$/)});
     expect(getByTestId('state')).toHaveTextContent('true 138 32');
+    // Nothing drags the window until a header offers itself: the system's whole top band would take the presses under it.
+    expect(setDragRegion).toHaveBeenCalledWith({x: 0, y: 0, width: 0, height: 0});
     await rerender(<Chrome extend={false}/>);
     await flush();
     expect(setWindowChromeAsync).toHaveBeenLastCalledWith({extend: false, theme: expect.any(String)});
     expect(getTitleBarInsetsAsync).toHaveBeenCalledTimes(1);
+    expect(setDragRegion).toHaveBeenCalledTimes(1);
     expect(getByTestId('state')).toHaveTextContent('false 0 0');
   });
 

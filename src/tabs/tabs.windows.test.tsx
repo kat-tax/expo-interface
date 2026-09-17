@@ -69,6 +69,21 @@ describe('Tabs (windows)', () => {
     expect(screen.getByText('Home screen')).toBeOnTheScreen();
   });
 
+  it('carries a badge and a placement in the items, only where a tab has one', () => {
+    const icon = {ios: 'house', android: 'home', web: 'home'} as const;
+    expect(JSON.parse(tabItems([
+      {href: '/', name: 'inbox', label: 'Inbox', icon, badge: 3},
+      {href: '/new', name: 'new', label: 'New', icon, badge: 'new', windowsPlacement: 'menu'},
+      {href: '/help', name: 'help', label: 'Help', icon, badge: 0, windowsPlacement: 'footer'},
+      {href: '/settings', name: 'settings', label: 'Settings', icon, windowsPlacement: 'settings'},
+    ]))).toEqual([
+      {label: 'Inbox', glyph: 'E80F', badge: 3},
+      {label: 'New', glyph: 'E80F', badge: 'new'},
+      {label: 'Help', glyph: 'E80F', placement: 'footer'},
+      {label: 'Settings', glyph: 'E80F', placement: 'settings'},
+    ]);
+  });
+
   it('leaves a tab without a Fluent glyph blank', () => {
     expect(JSON.parse(tabItems([{href: '/', name: 'odd', label: 'Odd', icon: {ios: 'house', android: 'nope' as never, web: 'nope' as never}}]))).toEqual([{label: 'Odd', glyph: null}]);
   });

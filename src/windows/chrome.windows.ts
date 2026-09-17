@@ -13,6 +13,7 @@ interface WindowsModule {
 }
 
 const NONE: WindowChrome = {extended: false, insets: {left: 0, right: 0, height: 0}};
+const NO_REGION = {x: 0, y: 0, width: 0, height: 0};
 
 /** The chrome as it stands, for every header to read. */
 let chrome: WindowChrome = NONE;
@@ -57,7 +58,12 @@ export function useWindowChrome({extend}: WindowChromeOptions): void {
       .then(async taken => {
         const extended = extend && taken;
         const insets = extended ? await windows.getTitleBarInsetsAsync() : NONE.insets;
-        if (current) publish({extended, insets});
+        if (!current) return;
+        // Extended, the system makes the whole top band the drag region until told
+        // otherwise, which would swallow presses on a pane's toggle or a top tab bar
+        // under it: nothing drags the window until a header offers itself.
+        if (extended) windows.setDragRegion(NO_REGION);
+        publish({extended, insets});
       })
       .catch(leaveTheChrome);
     return () => {

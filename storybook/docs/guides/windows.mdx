@@ -115,7 +115,11 @@ Router's stack router under a drawn header, so `router.push`, `Link` and
 `compact` at its glyph-only width, the pane's toggle button switching between
 the two, or `auto` deciding by the window's width at WinUI's own breakpoints
 (the expanded pane from 1008 points, the compact one from 641, the top bar
-below that). Use the kit's `Stack` in the root layout:
+below that). A route's `badge` is drawn in an `InfoBadge` on its item — a
+count, or a dot for other text — and `windowsPlacement` puts it at the
+pane's foot (`footer`, the bar's far end in the top mode) or makes it WinUI's
+own settings item (`settings`, with its gear and its name), where a Windows
+user looks for a settings screen. Use the kit's `Stack` in the root layout:
 
 ```tsx
 // app/_layout.tsx
@@ -226,7 +230,7 @@ mean it to. Without the runtime, and everywhere else, the setting is off.
 | Tooltip | react-native-windows' own tooltip, on hover and focus |
 | IconToggle | WinUI `ToggleButton` with a `FontIcon` |
 | Avatar | WinUI `PersonPicture` |
-| Tabs | WinUI `NavigationView` over the focused tab: the top bar, or with `windowsPane` the left pane (expanded, compact, or `auto` by window width), the pane's toggle button collapsing it to its glyphs |
+| Tabs | WinUI `NavigationView` over the focused tab: the top bar, or with `windowsPane` the left pane (expanded, compact, or `auto` by window width), the pane's toggle button collapsing it to its glyphs; a route's `badge` in an `InfoBadge`, `windowsPlacement` for footer items and the settings item |
 | Stack, TabStack | Expo Router's stack router under a drawn header (`title`, `headerTitle` as text or a node, `headerLeft`, `headerRight`, `headerBackVisible`, `headerShown`); a pushed screen arrives with WinUI's entrance — up from a little below, fading in — and a modal settles from a little larger as a `ContentDialog` does, or `animation: 'fade' | 'none'`. A screen with `presentation: 'modal'` (or `formSheet`, `containedModal`, `fullScreenModal`) is a card over smoke above the screen below, a `transparentModal` lies over the window as it is — Escape, the smoke and the back button dismiss it; Alt+Left, the keyboard's back key and the mouse's back button pop the stack. On `expo-windows` the window's title follows the focused screen ("Settings – My App"), from the innermost focused stack |
 | ExternalLink | Expo Router's `Link`, opening the href in the default browser through React Native's `Linking`: there is no in-app browser, and `expo-web-browser` has no Windows module |
 | Gauge | Bars drawn in React Native; rings are the WinUI `ProgressRing` |
@@ -249,7 +253,9 @@ The title bar is the app's on `expo-windows`: `useWindowChrome({extend: true})`
 in the root layout extends the content into it — no system title, the caption
 buttons drawn for the scheme over the app's own top row — and the root
 `Stack`'s header becomes the region that drags the window, leaving the
-caption buttons their room on its right. A Mica or acrylic backdrop behind
+caption buttons their room on its right; with that header hidden nothing
+drags the window (the system's whole top band would otherwise take the
+presses on a pane's toggle or a top tab bar under it). A Mica or acrylic backdrop behind
 the content is not there yet: a Win32 window on the Windows App SDK's
 composition islands has no backdrop target in this release.
 

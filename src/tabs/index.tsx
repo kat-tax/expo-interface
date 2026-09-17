@@ -28,6 +28,9 @@ export function Tabs({routes, hidden = false}: TabBarProps) {
             sf={route.icon.ios}
             md={route.icon.android}
           />
+          {route.badge ? (
+            <NativeTabs.Trigger.Badge>{String(route.badge)}</NativeTabs.Trigger.Badge>
+          ) : null}
         </NativeTabs.Trigger>
       ))}
     </NativeTabs>

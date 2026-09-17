@@ -201,6 +201,12 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(dom.getByText(appName)).toBeInTheDocument();
       });
 
+      it('shows a badge beside a tab\'s label, and none for nothing', async () => {
+        await renderApp(await app({routes: [{...routes[0], badge: 3}, {...routes[1], badge: 0}]}));
+        expect(dom.getAllByTestId('tab-badge')).toHaveLength(1);
+        expect(dom.getByTestId('tab-badge').textContent).toBe('3');
+      });
+
       it('dims a link while it is pressed', async () => {
         await renderApp(await app());
         const [home] = dom.getAllByRole('link');
@@ -246,6 +252,13 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(tabs.map(t => t.props.icon)).toEqual([{sf: 'house'}, {sf: 'gearshape'}]);
       }
       expect(screen.getByText('Home screen')).toBeOnTheScreen();
+    });
+
+    it('gives a tab the native badge, and none for nothing', async () => {
+      await renderApp(await app({routes: [{...routes[0], badge: 3}, {...routes[1], badge: ''}]}));
+      const [home, settings] = triggers();
+      expect(home.props.badgeValue).toBe('3');
+      expect(settings.props.badgeValue).toBeUndefined();
     });
 
     it('passes hidden to the native tab bar', async () => {

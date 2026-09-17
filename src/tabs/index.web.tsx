@@ -47,7 +47,7 @@ export function Tabs({
             <WebTabList logo={webLogo} icon={webIcon} slot={slot} hidden={hidden} shown={shown} actions={webActions} actionsPlacement={webActionsPlacement}>
               {routes.map(route => (
                 <TabTrigger key={route.name} name={route.name} href={route.href} asChild>
-                  <TabLink icon={route.icon}>{route.label}</TabLink>
+                  <TabLink icon={route.icon} badge={route.badge}>{route.label}</TabLink>
                 </TabTrigger>
               ))}
             </WebTabList>
@@ -139,12 +139,17 @@ function BackButton({onPress}: {onPress: () => void}) {
   );
 }
 
-export function TabLink({children, isFocused, icon, ...props}: TabTriggerSlotProps & {icon: TabRoute['icon']}) {
+export function TabLink({children, isFocused, icon, badge, ...props}: TabTriggerSlotProps & {icon: TabRoute['icon']; badge?: TabRoute['badge']}) {
   return (
     <Pressable {...props} style={({pressed}) => pressed && styles.pressed}>
       <View style={styles.link}>
         <SymbolView name={icon} size={18} tintColor={isFocused ? theme.label : theme.secondaryLabel}/>
         <Label color={isFocused ? 'label' : 'secondaryLabel'}>{children}</Label>
+        {badge ? (
+          <View style={styles.badge} testID="tab-badge">
+            <Label color="onTint">{String(badge)}</Label>
+          </View>
+        ) : null}
       </View>
     </Pressable>
   );
@@ -167,6 +172,13 @@ const styles = StyleSheet.create({
   },
   hidden: {
     display: 'none',
+  },
+  badge: {
+    minWidth: 18,
+    paddingHorizontal: 6,
+    borderRadius: 999,
+    alignItems: 'center',
+    backgroundColor: theme.tint,
   },
   inner: {
     flexGrow: 1,

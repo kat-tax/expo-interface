@@ -7,5 +7,5 @@ import {Pressable} from 'react-native';
  * (`pressable.windows.tsx`), and never true on iOS and Android.
  */
 export function StatePressable({style, ...rest}: StatePressableProps) {
-  return <Pressable {...rest} style={state => style({hovered: false, ...state})}/>;
+  return <Pressable {...rest} style={state => style(Object.assign({hovered: false}, state))}/>;
 }

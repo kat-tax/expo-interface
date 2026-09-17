@@ -107,4 +107,20 @@ export interface TabRoute {
     android: AndroidSymbol;
     web: AndroidSymbol;
   };
+  /**
+   * A badge on the tab: a count, or short text. Nothing for `0` or an empty
+   * string. Windows draws a count in an `InfoBadge` and any other text as
+   * its dot; iOS and Android show it as the native tab bar's badge, web as a
+   * pill beside the label.
+   */
+  badge?: number | string;
+  /**
+   * Windows only: where the `NavigationView` puts the tab. `menu` is among
+   * the items; `footer` is at the pane's foot (the bar's far end in the top
+   * mode); `settings` makes the tab WinUI's own settings item, with its gear
+   * and its name, so a settings screen is where a Windows user looks for it.
+   * The other platforms show the tab as any other.
+   * @default 'menu'
+   */
+  windowsPlacement?: 'menu' | 'footer' | 'settings';
 }

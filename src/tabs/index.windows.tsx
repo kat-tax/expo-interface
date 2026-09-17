@@ -52,11 +52,17 @@ export function Tabs({routes, hidden = false, windowsPane = 'top'}: TabBarProps)
   );
 }
 
-/** The bar's items as the island's JSON: the label and the Fluent glyph of each tab. */
+/**
+ * The bar's items as the island's JSON: the label and the Fluent glyph of
+ * each tab, its badge when it has one, and its placement when it is not
+ * among the items — the pane's foot, or WinUI's own settings item.
+ */
 export function tabItems(routes: readonly TabRoute[]): string {
   return jsonProp(routes.map(route => ({
     label: route.label,
     glyph: windowsGlyph({symbol: route.icon}) ?? null,
+    ...(route.badge ? {badge: route.badge} : {}),
+    ...(route.windowsPlacement && route.windowsPlacement !== 'menu' ? {placement: route.windowsPlacement} : {}),
   })));
 }
 

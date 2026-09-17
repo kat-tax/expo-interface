@@ -652,15 +652,27 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
     m_view.SelectionChanged([weak = get_weak()](const controls::NavigationView &sender, const controls::NavigationViewSelectionChangedEventArgs &args) {
       if (auto strong = weak.get()) {
         if (strong->m_applying) return;
-        auto selected = args.SelectedItem();
-        if (!selected) return;
-        uint32_t index = 0;
-        if (!sender.MenuItems().IndexOf(selected, index)) return;
+        // Each item is tagged with its route's index; the settings item is the settings route's.
+        int32_t index = -1;
+        if (args.IsSettingsSelected()) {
+          index = strong->m_settingsIndex;
+        } else if (auto item = args.SelectedItem().try_as<controls::NavigationViewItem>()) {
+          index = winrt::unbox_value_or<int32_t>(item.Tag(), -1);
+        }
+        if (index < 0) return;
         if (auto emitter = strong->EventEmitter()) {
           Codegen::ExpoInterfaceNavigationViewEventEmitter::OnSelectionChange event;
-          event.index = static_cast<int32_t>(index);
+          event.index = index;
           emitter->onSelectionChange(std::move(event));
         }
+      }
+    });
+    // The settings item exists once the template is applied: a selection of it asked for before is made then.
+    m_view.Loaded([weak = get_weak()](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
+      if (auto strong = weak.get()) {
+        strong->m_applying = true;
+        strong->SelectRoute(strong->m_selected);
+        strong->m_applying = false;
       }
     });
     Attach(islandView, m_view);
@@ -680,20 +692,40 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
     if (props->items != m_items) {
       m_items = props->items;
       m_view.MenuItems().Clear();
+      m_view.FooterMenuItems().Clear();
+      m_settingsIndex = -1;
+      int32_t index = 0;
       for (auto value : ParseArray(m_items)) {
-        if (value.ValueType() != JsonValueType::Object) continue;
+        if (value.ValueType() != JsonValueType::Object) {
+          ++index;
+          continue;
+        }
         auto entry = value.GetObject();
+        // The settings route takes WinUI's own settings item, at the pane's foot, with its gear and its name.
+        const auto placement = JsonString(entry, L"placement");
+        if (placement == "settings") {
+          m_settingsIndex = index++;
+          continue;
+        }
         controls::NavigationViewItem item;
         item.Content(winrt::box_value(ToHString(JsonString(entry, L"label"))));
         const auto glyph = JsonString(entry, L"glyph");
         if (!glyph.empty()) item.Icon(MakeGlyph(glyph, 16));
-        m_view.MenuItems().Append(item);
+        item.Tag(winrt::box_value(index));
+        // A count is drawn in an InfoBadge; any other badge is its dot, which it draws without a value.
+        if (entry.HasKey(L"badge")) {
+          controls::InfoBadge badge;
+          const auto value = entry.Lookup(L"badge");
+          if (value.ValueType() == JsonValueType::Number) badge.Value(static_cast<int32_t>(value.GetNumber()));
+          item.InfoBadge(badge);
+        }
+        (placement == "footer" ? m_view.FooterMenuItems() : m_view.MenuItems()).Append(item);
+        ++index;
       }
+      m_view.IsSettingsVisible(m_settingsIndex >= 0);
     }
-    const uint32_t index = static_cast<uint32_t>(std::max(0, props->selectedIndex.value_or(0)));
-    if (index < m_view.MenuItems().Size() && m_view.SelectedItem() != m_view.MenuItems().GetAt(index)) {
-      m_view.SelectedItem(m_view.MenuItems().GetAt(index));
-    }
+    m_selected = std::max(0, props->selectedIndex.value_or(0));
+    SelectRoute(m_selected);
     m_view.PaneTitle(ToHString(props->header.value_or("")));
     // WinUI's own modes rather than a forced IsPaneOpen (WinUI reopens a forced-closed
     // pane on entering the expanded mode) or its adaptive mode (which closes the pane
@@ -732,8 +764,26 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
     }
   }
 
+  /** Selects the item tagged with a route's index — the settings item for the settings route — unless it is selected already. */
+  void SelectRoute(int32_t index) noexcept {
+    winrt::IInspectable wanted{nullptr};
+    if (index == m_settingsIndex) {
+      wanted = m_view.SettingsItem();
+    } else {
+      for (const auto &items : {m_view.MenuItems(), m_view.FooterMenuItems()}) {
+        for (const auto &entry : items) {
+          auto item = entry.try_as<controls::NavigationViewItem>();
+          if (item && winrt::unbox_value_or<int32_t>(item.Tag(), -1) == index) wanted = item;
+        }
+      }
+    }
+    if (wanted && m_view.SelectedItem() != wanted) m_view.SelectedItem(wanted);
+  }
+
   controls::NavigationView m_view{nullptr};
   std::string m_items;
+  int32_t m_settingsIndex{-1};
+  int32_t m_selected{0};
   controls::NavigationViewPaneDisplayMode m_wanted{controls::NavigationViewPaneDisplayMode::Top};
   bool m_applying{false};
 };
