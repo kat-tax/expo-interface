@@ -33,7 +33,7 @@ describe(`Slider (${Platform.OS})`, () => {
       expect(props.step).toBeUndefined();
       expect(props.modifiers).toEqual([]);
       const label = host(p => p.text === 'Brightness');
-      expect(modifier(label.props, 'foregroundStyle')?.color).toBe('#000000');
+      expect(modifier(label.props, 'foregroundStyle')?.style.color).toBe('#000000');
       expect(host(p => p.spacing === 12)).toBeTruthy();
     } else {
       // `@expo/ui` normalises an omitted `steps` to 0, i.e. continuous.
@@ -85,7 +85,7 @@ describe(`Slider (${Platform.OS})`, () => {
     await render(<Slider value={0.5} onValueChange={vi.fn()} accentColor="#FF9500" testID="sl"/>, options);
     const {props} = slider('sl');
     if (isIOS) {
-      expect(modifier(props, 'tint')).toEqual({$type: 'tint', color: '#FF9500'});
+      expect(modifier(props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: '#FF9500'}});
     } else {
       expect(props.colors.thumbColor).toBe('#FF9500');
       expect(props.colors.activeTrackColor).toBe('#FF9500');
@@ -97,7 +97,7 @@ describe(`Slider (${Platform.OS})`, () => {
     const {props} = slider('sl');
     if (isIOS) {
       expect(modifier(props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
-      expect(modifier(host(p => p.text === 'Volume').props, 'foregroundStyle')?.color).toBe('#60646C');
+      expect(modifier(host(p => p.text === 'Volume').props, 'foregroundStyle')?.style.color).toBe('#60646C');
     } else {
       expect(props.enabled).toBe(false);
       expect(props.onValueChange).toBeUndefined();

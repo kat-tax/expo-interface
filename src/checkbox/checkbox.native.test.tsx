@@ -51,7 +51,7 @@ describe(`Checkbox (${Platform.OS})`, () => {
     const {props} = box('cb');
     if (isIOS) {
       expect(glyph().props.systemName).toBe('square');
-      expect(modifier(glyph().props, 'foregroundStyle')?.color).toBe('#000000');
+      expect(modifier(glyph().props, 'foregroundStyle')?.style.color).toBe('#000000');
     } else {
       expect(props.value).toBe(false);
       expect(props.colors.uncheckedColor).toBe(palette.onSurfaceVariant);
@@ -66,7 +66,7 @@ describe(`Checkbox (${Platform.OS})`, () => {
       options,
     );
     if (isIOS) {
-      expect(modifier(glyph().props, 'foregroundStyle')?.color).toBe('#8959EA');
+      expect(modifier(glyph().props, 'foregroundStyle')?.style.color).toBe('#8959EA');
     } else {
       expect(box('cb').props.colors).toEqual({
         checkedColor: '#8959EA',
@@ -79,7 +79,7 @@ describe(`Checkbox (${Platform.OS})`, () => {
   it('prefers an explicit accentColor over the seed', async () => {
     await render(<Checkbox label="Sync" value onValueChange={vi.fn()} accentColor="#FFCC00" testID="cb"/>, options);
     if (isIOS) {
-      expect(modifier(glyph().props, 'foregroundStyle')?.color).toBe('#FFCC00');
+      expect(modifier(glyph().props, 'foregroundStyle')?.style.color).toBe('#FFCC00');
     } else {
       expect(box('cb').props.colors.checkedColor).toBe('#FFCC00');
       expect(box('cb').props.colors.checkmarkColor).toBe('#000000');
@@ -91,7 +91,7 @@ describe(`Checkbox (${Platform.OS})`, () => {
     const {props} = box('cb');
     if (isIOS) {
       expect(modifier(props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
-      expect(modifier(host(p => p.text === 'Updates').props, 'foregroundStyle')?.color).toBe('#60646C');
+      expect(modifier(host(p => p.text === 'Updates').props, 'foregroundStyle')?.style.color).toBe('#60646C');
     } else {
       expect(props.enabled).toBe(false);
       expect(props.nativeClickable).toBe(false);

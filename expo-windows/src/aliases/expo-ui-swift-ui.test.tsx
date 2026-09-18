@@ -143,9 +143,28 @@ describe('@expo/ui/swift-ui layout (windows)', () => {
           <ui.DisclosureGroup.Label>Labelled</ui.DisclosureGroup.Label>
           <ui.Text>D2</ui.Text>
         </ui.DisclosureGroup>
+        <ui.NavigationStack path={['a']} onPathChange={() => {}} testID="stack">
+          <ui.NavigationLink value="a" testID="link">
+            <ui.Text>Go</ui.Text>
+          </ui.NavigationLink>
+          <ui.NavigationDestination value="a">
+            <ui.Text>Pushed</ui.Text>
+          </ui.NavigationDestination>
+          <ui.Toolbar testID="toolbar">
+            <ui.Text>Page</ui.Text>
+            <ui.Toolbar.Content>
+              <ui.Text>Tool</ui.Text>
+            </ui.Toolbar.Content>
+          </ui.Toolbar>
+        </ui.NavigationStack>
       </ui.Form>,
     );
-    for (const text of ['General', 'Row', 'Note', 'Advanced', 'Item', 'cell', 'Group', 'c', 'Key', 'Value', 'Node', 'V2', 'Nothing', 'Add something', 'More', 'Details', 'Labelled']) expect(screen.getByText(text)).toBeOnTheScreen();
+    for (const text of ['General', 'Row', 'Note', 'Advanced', 'Item', 'cell', 'Group', 'c', 'Key', 'Value', 'Node', 'V2', 'Nothing', 'Add something', 'More', 'Details', 'Labelled', 'Go', 'Page', 'Tool']) expect(screen.getByText(text)).toBeOnTheScreen();
+    // A destination is pushed by SwiftUI's stack; nothing pushes here.
+    expect(screen.queryByText('Pushed')).toBeNull();
+    expect(screen.getByTestId('stack')).toBeOnTheScreen();
+    expect(screen.getByTestId('link')).toHaveStyle({flexDirection: 'row'});
+    expect(screen.getByTestId('toolbar')).toBeOnTheScreen();
     expect(screen.getByTestId('scroll').props.horizontal).toBe(true);
     expect(screen.getByTestId('vertical').props.horizontal).toBe(false);
     expect(screen.getByTestId('grid')).toHaveStyle({gap: 2});

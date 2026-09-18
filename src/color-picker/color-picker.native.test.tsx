@@ -107,8 +107,8 @@ describe(`ColorPicker (${Platform.OS})`, () => {
       expect(swatches.map(s => modifier(s.props, 'accessibilityLabel')?.label)).toEqual(['Color #FF6347', 'Color #00FF00']);
       // The selected preset is ringed in the label color, the other is bare.
       const rings = swatches.map(s => modifier(children(s)[0].props, 'background'));
-      expect(rings[0]).toMatchObject({color: colors.light.label, shape: 'circle'});
-      expect(rings[1]).toMatchObject({color: '#00000000', shape: 'circle'});
+      expect(rings[0]).toMatchObject({style: {type: 'color', color: colors.light.label}, shape: 'circle'});
+      expect(rings[1]).toMatchObject({style: {type: 'color', color: '#00000000'}, shape: 'circle'});
       expect(modifier(children(children(swatches[0])[0])[0].props, 'frame')).toMatchObject({width: 22, height: 22});
       expect(modifier(children(children(swatches[1])[0])[0].props, 'frame')).toMatchObject({width: 28, height: 28});
       // The picker keeps its well, its own label hidden.

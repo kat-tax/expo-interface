@@ -23,7 +23,7 @@ describe(`IconToggle (${Platform.OS})`, () => {
     if (isIOS) {
       const image = host(p => typeof p.systemName === 'string');
       expect(image.props.systemName).toBe('star');
-      expect(modifier(image.props, 'foregroundStyle')?.color).toBe(colors.light.secondaryLabel);
+      expect(modifier(image.props, 'foregroundStyle')?.style.color).toBe(colors.light.secondaryLabel);
       const {props} = screen.getByTestId('star');
       expect(modifier(props, 'accessibilityLabel')?.label).toBe('Favourite');
       expect(modifier(props, 'accessibilityAddTraits')).toBeUndefined();
@@ -60,7 +60,7 @@ describe(`IconToggle (${Platform.OS})`, () => {
     if (isIOS) {
       const image = host(p => typeof p.systemName === 'string');
       expect(image.props.systemName).toBe('star.fill');
-      expect(modifier(image.props, 'foregroundStyle')?.color).toBe('#8959EA');
+      expect(modifier(image.props, 'foregroundStyle')?.style.color).toBe('#8959EA');
       expect(modifier(image.props, 'font')?.size).toBe(18);
       expect(modifier(screen.getByTestId('star').props, 'accessibilityAddTraits')?.traits).toEqual(['isSelected']);
     } else {

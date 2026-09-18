@@ -31,7 +31,7 @@ describe(`Menu (${Platform.OS})`, () => {
       expect(props.systemImage).toBeUndefined();
       expect(modifier(props, 'buttonStyle')).toEqual({$type: 'buttonStyle', style: 'borderedProminent'});
       expect(modifier(props, 'controlSize')).toEqual({$type: 'controlSize', size: 'regular'});
-      expect(modifier(props, 'tint')).toEqual({$type: 'tint', color: '#007AFF'});
+      expect(modifier(props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: '#007AFF'}});
       expect(modifier(props, 'disabled')).toBeUndefined();
     } else {
       expect(host(p => p.text === 'Export')).toBeTruthy();
@@ -47,7 +47,7 @@ describe(`Menu (${Platform.OS})`, () => {
       expect(modifier(props, 'buttonStyle')?.style).toBe('bordered');
       expect(modifier(props, 'controlSize')?.size).toBe('large');
       expect(modifier(props, 'buttonBorderShape')?.shape).toBe('roundedRectangle');
-      expect(modifier(props, 'tint')?.color).toBe('#123456');
+      expect(modifier(props, 'tint')?.tint.color).toBe('#123456');
     } else {
       expect(props.colors).toEqual({contentColor: '#123456'});
       expect(props.shape).toMatchObject({type: 'roundedCorner'});
@@ -73,7 +73,7 @@ describe(`Menu (${Platform.OS})`, () => {
     );
     const {props} = trigger('export');
     if (isIOS) {
-      expect(modifier(props, 'tint')?.color).toBe('#8959EA');
+      expect(modifier(props, 'tint')?.tint.color).toBe('#8959EA');
     } else {
       expect(props.colors).toEqual({containerColor: '#8959EA', contentColor: '#FFFFFF'});
     }
@@ -191,7 +191,7 @@ describe(`Menu (${Platform.OS})`, () => {
     await render(<Menu label="More" items={items} variant="text" tone="label" testID="more"/>);
     const {props} = trigger('more');
     if (isIOS) {
-      expect(modifier(props, 'tint')?.color).toBe('#000000');
+      expect(modifier(props, 'tint')?.tint.color).toBe('#000000');
     } else {
       expect(props.colors).toEqual({contentColor: '#000000'});
     }
@@ -201,7 +201,7 @@ describe(`Menu (${Platform.OS})`, () => {
     await render(<Menu label="More" items={items} tone="label" testID="more"/>);
     const {props} = trigger('more');
     if (isIOS) {
-      expect(modifier(props, 'tint')?.color).toBe('#007AFF');
+      expect(modifier(props, 'tint')?.tint.color).toBe('#007AFF');
     } else {
       expect(props.colors).toEqual({containerColor: '#007AFF', contentColor: '#FFFFFF'});
     }

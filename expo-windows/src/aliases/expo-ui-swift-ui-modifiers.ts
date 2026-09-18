@@ -360,3 +360,5 @@ export const contentTransition = factory('contentTransition');
 export const listStyle = factory('listStyle');
 export const luminanceToAlpha = factory('luminanceToAlpha');
 export const resizable = factory('resizable');
+export const navigationTitle = factory('navigationTitle');
+export const scrollClipDisabled = factory('scrollClipDisabled');

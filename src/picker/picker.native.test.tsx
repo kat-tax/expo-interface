@@ -110,7 +110,7 @@ describe(`Picker (${Platform.OS})`, () => {
     }
     await rerender(<Picker selectedValue="m" accentColor="#FF9500" testID="pk">{items}</Picker>);
     if (isIOS) {
-      expect(modifier(screen.getByTestId('pk').props, 'tint')).toEqual({$type: 'tint', color: '#FF9500'});
+      expect(modifier(screen.getByTestId('pk').props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: '#FF9500'}});
     } else {
       expect(host(p => p.text === 'Medium' && p.color != null).props.color).toBe('#FF9500');
       expect(host(p => p.tint != null && p.size === 16).props.tint).toBe('#FF9500');

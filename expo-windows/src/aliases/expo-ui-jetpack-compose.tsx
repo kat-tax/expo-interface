@@ -307,6 +307,36 @@ export function TimePickerDialog(props: Parameters<typeof DateTimePicker>[0]) {
   return <DateTimePicker {...props} displayedComponents="hourAndMinute"/>;
 }
 
+type DateRange = {start: Date | null; end: Date | null};
+type DateRangeProps = Common & {initialStartDate?: string | null; initialEndDate?: string | null; onDateRangeSelected?: (range: DateRange) => void; variant?: string; showVariantToggle?: boolean; color?: unknown; selectableDates?: {start?: Date; end?: Date}};
+
+/** Compose's date range picker (57.0.18): the kit's date picker twice, the start then the end, reporting the pair. */
+export function DateRangePicker({initialStartDate, initialEndDate, onDateRangeSelected, selectableDates, modifiers, testID}: DateRangeProps) {
+  const [range, setRange] = useState<DateRange>({start: initialStartDate ? new Date(initialStartDate) : null, end: initialEndDate ? new Date(initialEndDate) : null});
+  const pick = (key: keyof DateRange) => (date: Date) => {
+    const next = {...range, [key]: date};
+    setRange(next);
+    onDateRangeSelected?.(next);
+  };
+  return (
+    <View style={[{flexDirection: 'row', gap: 8}, styleOf(modifiers)]} testID={testID}>
+      <KitDateTimePicker value={range.start ?? undefined} onChange={pick('start')} mode="date" minimumDate={selectableDates?.start} maximumDate={range.end ?? selectableDates?.end} disabled={isDisabled(modifiers)} testID={testID ? `${testID}-start` : undefined}/>
+      <KitDateTimePicker value={range.end ?? undefined} onChange={pick('end')} mode="date" minimumDate={range.start ?? selectableDates?.start} maximumDate={selectableDates?.end} disabled={isDisabled(modifiers)} testID={testID ? `${testID}-end` : undefined}/>
+    </View>
+  );
+}
+
+/** The dialog form: the same pickers inline, since the kit's picker opens its own flyout; the dismissal has nothing to close. */
+export function DateRangePickerDialog({onDismissRequest: _dismiss, confirmButtonLabel: _confirm, dismissButtonLabel: _dismissLabel, ...props}: DateRangeProps & {onDismissRequest: () => void; confirmButtonLabel?: string; dismissButtonLabel?: string}) {
+  return <DateRangePicker {...props}/>;
+}
+
+/** Compose's vertical slider (57.0.18): the kit's slider, which lies flat; the direction is taken without effect. */
+function VerticalSliderBase({reverseDirection: _reverse, ...props}: Parameters<typeof SliderBase>[0] & {reverseDirection?: boolean}) {
+  return <SliderBase {...props}/>;
+}
+export const VerticalSlider = Object.assign(VerticalSliderBase, {Thumb, Track});
+
 type ProgressProps = Common & {progress?: number | null; color?: string; trackColor?: string; strokeWidth?: number; strokeCap?: string; gapSize?: number; drawStopIndicator?: unknown; amplitude?: number; wavelength?: number; waveSpeed?: number; stopSize?: number};
 function progress(variant: 'linear' | 'circular') {
   return function Progress({progress: value, color, trackColor, strokeWidth, testID}: ProgressProps) {

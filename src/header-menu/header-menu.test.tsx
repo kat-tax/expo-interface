@@ -73,7 +73,7 @@ describe(`HeaderMenu (${Platform.OS})`, () => {
       expect(modifier(props, 'buttonStyle')?.style).toBe('plain');
       // 17pt text, the size of a bar button's title.
       expect(modifier(props, 'controlSize')?.size).toBe('large');
-      expect(modifier(props, 'tint')?.color).toBe('#007AFF');
+      expect(modifier(props, 'tint')?.tint.color).toBe('#007AFF');
     } else {
       expect(props.colors).toEqual({contentColor: '#007AFF'});
       expect(props.contentPadding).toEqual({start: 16, top: 10, end: 24, bottom: 10});
@@ -101,7 +101,7 @@ describe(`HeaderMenu (${Platform.OS})`, () => {
     await render(<HeaderMenu label="New…" items={items} tone="label" disabled testID="new"/>);
     const {props} = trigger('new');
     if (isIOS) {
-      expect(modifier(props, 'tint')?.color).toBe('#000000');
+      expect(modifier(props, 'tint')?.tint.color).toBe('#000000');
       expect(modifier(props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
     } else {
       expect(props.colors).toEqual({contentColor: '#000000'});

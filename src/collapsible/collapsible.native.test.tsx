@@ -20,7 +20,7 @@ describe(`Collapsible (${Platform.OS})`, () => {
     );
     if (isIOS) {
       const label = host(p => p.text === 'Version 1.0.0', host(p => p.name === 'label'));
-      expect(modifier(label.props, 'foregroundStyle')).toMatchObject({color: '#000000'});
+      expect(modifier(label.props, 'foregroundStyle')).toMatchObject({style: {type: 'color', color: '#000000'}});
       expect(host(p => p.text === 'Built with expo-interface.')).toBeTruthy();
     } else {
       const label = host(p => p.text === 'Version 1.0.0', host(p => p.slotName === 'headlineContent'));

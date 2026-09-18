@@ -34,7 +34,7 @@ describe(`ListItem (${Platform.OS})`, () => {
     await render(<ListItem supporting="Connected" testID="row">Wi-Fi</ListItem>);
     const text = host(p => p.text === 'Connected');
     if (isIOS) {
-      expect(modifier(text.props, 'foregroundStyle')).toMatchObject({color: 'secondaryLabel'});
+      expect(modifier(text.props, 'foregroundStyle')).toMatchObject({style: {type: 'color', color: 'secondaryLabel'}});
     } else {
       expect(text.props.color).toBe(colors.light.secondaryLabel);
       expect(text.props.fontSize).toBe(14);
@@ -94,7 +94,7 @@ describe(`ListItem (${Platform.OS})`, () => {
       const button = host(p => p.label === 'Sign in');
       expect(modifier(button.props, 'buttonStyle')).toEqual({$type: 'buttonStyle', style: 'plain'});
       expect(modifier(button.props, 'controlSize')).toEqual({$type: 'controlSize', size: 'small'});
-      expect(modifier(button.props, 'tint')?.color).toBe(colors.light.tint);
+      expect(modifier(button.props, 'tint')?.tint.color).toBe(colors.light.tint);
       expect(JSON.stringify(accessories().at(-1))).toContain('"T"');
       await fireEvent.press(screen.container.queryAll(i => i.props.label === 'Sign in')[0]);
       expect(onSignIn).toHaveBeenCalledTimes(1);
@@ -135,7 +135,7 @@ describe(`ListItem (${Platform.OS})`, () => {
     );
     if (isIOS) {
       expect(modifier(host(p => p.label === 'Signing in…').props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
-      expect(modifier(host(p => p.label === 'Sign out').props, 'tint')?.color).toBe(colors.light.destructive);
+      expect(modifier(host(p => p.label === 'Sign out').props, 'tint')?.tint.color).toBe(colors.light.destructive);
       expect(host(p => p.label === 'Sign out').props.role).toBe('destructive');
     } else {
       const [busy, out] = nodes().filter(n => typeof n.props.onButtonPressed === 'function' || n.props.enabled === false);

@@ -53,7 +53,7 @@ describe(`Screen (${Platform.OS})`, () => {
     expect(hostView).toBeDefined();
     expect(hostView!.props).toMatchObject(hostAccentProps('#8959EA'));
     if (isIOS) {
-      expect(modifier(hostView!.props, 'tint')).toEqual({$type: 'tint', color: '#8959EA'});
+      expect(modifier(hostView!.props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: '#8959EA'}});
       expect(host(p => p.label === 'Wi-Fi')).toBeTruthy();
     } else {
       expect(hostView!.props.seedColor).toBe('#8959EA');

@@ -47,7 +47,7 @@ describe(`Sheet (${Platform.OS})`, () => {
       </Sheet>,
     );
     if (isIOS) {
-      expect(modifier(presentation().props, 'tint')).toEqual({$type: 'tint', color: ACCENT_SEED});
+      expect(modifier(presentation().props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: ACCENT_SEED}});
     } else {
       // Palette overlay is covered in sheet.android.test.tsx; the sheet itself takes no modifiers.
       expect(modal().props.modifiers).toBeUndefined();
@@ -70,7 +70,7 @@ describe(`Sheet (${Platform.OS})`, () => {
       'tint',
       'interactiveDismissDisabled',
     ]);
-    expect(modifier(presentation().props, 'tint')?.color).toBe('#8959EA');
+    expect(modifier(presentation().props, 'tint')?.tint.color).toBe('#8959EA');
   });
 
   it('hides the drag indicator on request', async () => {

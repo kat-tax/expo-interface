@@ -62,7 +62,7 @@ describe(`Gauge (${Platform.OS})`, () => {
       await render(<Gauge value={0.5} variant="circularCapacity" accentColor="#FF9500" testID="g"/>, options);
       expect(root('g').props.modifiers).toEqual([
         {$type: 'gaugeStyle', style: 'circularCapacity'},
-        {$type: 'tint', color: '#FF9500'},
+        {$type: 'tint', tint: {type: 'color', color: '#FF9500'}},
       ]);
     });
     return;

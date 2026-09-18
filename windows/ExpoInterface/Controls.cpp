@@ -87,7 +87,9 @@ struct ButtonView : winrt::implements<ButtonView, winrt::IInspectable>,
         m_row.Children().Append(MakeGlyph(*props->glyphAfter, glyphSize));
       }
     }
-    SetName(m_button, iconOnly ? std::optional<std::string>{props->label} : std::nullopt);
+    // The label as the accessible name in every case: UI Automation derives
+    // none from a panel of glyph and text, so Narrator read "button" alone.
+    SetName(m_button, std::optional<std::string>{props->label});
 
     // Style: the accent button for `filled` (the override brushes above fill
     // it), the standard one otherwise; `text` drops the chrome.
@@ -154,6 +156,9 @@ struct ButtonView : winrt::implements<ButtonView, winrt::IInspectable>,
 
     m_button.HorizontalAlignment(props->fillWidth.value_or(false) ? xaml::HorizontalAlignment::Stretch : xaml::HorizontalAlignment::Left);
     m_button.IsEnabled(!props->disabled.value_or(false));
+    // The content changed under the island: Yoga hears the new size now,
+    // not at a layout pass the island's unchanged size may never start.
+    Remeasure();
   }
 
   controls::Button m_button{nullptr};

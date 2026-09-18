@@ -628,4 +628,29 @@ describe('@expo/ui/jetpack-compose controls (windows)', () => {
     expect(ui.useMaterialColors().primary).toBe('#0f6cbd');
     expect(ui.HostPaletteContext).toBeDefined();
   });
+
+  it('picks a date range with two of the kit\'s pickers, inline for the dialog too, and lays the vertical slider flat', async () => {
+    const onDateRangeSelected = vi.fn();
+    await render(
+      <>
+        <ui.DateRangePicker initialStartDate="2026-06-01T00:00:00" onDateRangeSelected={onDateRangeSelected} selectableDates={{end: new Date(2026, 11, 31)}} testID="range"/>
+        <ui.DateRangePickerDialog initialEndDate="2026-06-30T00:00:00" onDismissRequest={() => {}} confirmButtonLabel="OK" testID="dialog"/>
+        <ui.DateRangePicker/>
+        <ui.VerticalSlider value={0.2} reverseDirection testID="vs"/>
+      </>,
+    );
+    expect(screen.getByTestId('range')).toHaveStyle({flexDirection: 'row'});
+    expect(screen.getByTestId('dialog')).toBeOnTheScreen();
+    expect(island(DATE, 0).props).toMatchObject({date: '2026-06-01', maxDate: '2026-12-31'});
+    expect(island(DATE, 1).props).toMatchObject({minDate: '2026-06-01', maxDate: '2026-12-31'});
+    expect(island(DATE, 3).props.date).toBe('2026-06-30');
+    await fireIsland(island(DATE, 1), 'dateChange', {date: '2026-06-10'});
+    expect(onDateRangeSelected).toHaveBeenLastCalledWith({start: expect.any(Date), end: expect.any(Date)});
+    expect(onDateRangeSelected.mock.calls[0][0].end.getDate()).toBe(10);
+    await fireIsland(island(DATE, 0), 'dateChange', {date: '2026-06-05'});
+    expect(onDateRangeSelected).toHaveBeenCalledTimes(2);
+    // The dialog and a bare picker report to no one.
+    await fireIsland(island(DATE, 4), 'dateChange', {date: '2026-06-11'});
+    expect(island(SLIDER, 0).props.value).toBe(0.2);
+  });
 });

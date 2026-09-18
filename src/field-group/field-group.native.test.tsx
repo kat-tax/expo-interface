@@ -52,7 +52,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
     if (isIOS) {
       const footer = host(p => p.name === 'footer');
       expect(host(p => String(p.text).startsWith('Optional.'), footer)).toBeTruthy();
-      expect(modifier(text.props, 'foregroundStyle')).toMatchObject({color: colors.light.secondaryLabel});
+      expect(modifier(text.props, 'foregroundStyle')).toMatchObject({style: {type: 'color', color: colors.light.secondaryLabel}});
       expect(modifier(text.props, 'font')).toMatchObject({size: 13});
     } else {
       expect(text.props.color).toBe(colors.light.secondaryLabel);
@@ -72,7 +72,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
     );
     const text = host(p => String(p.text).startsWith('The server'));
     if (isIOS) {
-      expect(modifier(text.props, 'foregroundStyle')).toMatchObject({color: colors.light.destructive});
+      expect(modifier(text.props, 'foregroundStyle')).toMatchObject({style: {type: 'color', color: colors.light.destructive}});
     } else {
       expect(text.props.color).toBe(colors.light.destructive);
     }
@@ -299,7 +299,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
       </FieldGroup>,
     );
     const {props} = isIOS ? nodes()[0] : byComposeTestID('group');
-    expect(modifier(props, 'background')).toEqual({$type: 'background', color: '#123456'});
+    expect(modifier(props, 'background')).toEqual(isIOS ? {$type: 'background', style: {type: 'color', color: '#123456'}} : {$type: 'background', color: '#123456'});
   });
 
   (isIOS ? it.skip : it)('renders a section with only a header and no rows', async () => {

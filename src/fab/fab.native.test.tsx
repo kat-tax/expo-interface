@@ -32,7 +32,7 @@ describe(`Fab (${Platform.OS})`, () => {
     const hostView = nodes().find(n => n.type === HOST)!;
     expect(hostView.props.matchContentsVertical ?? hostView.props.matchContents).toBeTruthy();
     if (isIOS) {
-      expect(modifier(hostView.props, 'tint')?.color).toBe('#8959EA');
+      expect(modifier(hostView.props, 'tint')?.tint.color).toBe('#8959EA');
     } else {
       expect(hostView.props.seedColor).toBe('#8959EA');
     }
@@ -50,7 +50,7 @@ describe(`Fab (${Platform.OS})`, () => {
       expect(modifier(stack.props, 'frame')).toEqual({$type: 'frame', width: FAB_SIZE.regular, height: FAB_SIZE.regular});
       // Material 3's rounded square, in Apple's continuous corners.
       expect(modifier(stack.props, 'background')).toMatchObject({
-        color: '#007AFF',
+        style: {type: 'color', color: '#007AFF'},
         shape: 'roundedRectangle',
         cornerRadius: FAB_RADIUS.regular,
         roundedCornerStyle: 'continuous',
@@ -60,7 +60,7 @@ describe(`Fab (${Platform.OS})`, () => {
       const image = host(p => p.systemName === 'plus');
       // The SwiftUI image's `size` lands as a `font` modifier.
       expect(modifier(image.props, 'font')).toMatchObject({size: FAB_ICON.regular});
-      expect(modifier(image.props, 'foregroundStyle')?.color).toBe('#FFFFFF');
+      expect(modifier(image.props, 'foregroundStyle')?.style.color).toBe('#FFFFFF');
       expect(nodes().some(n => n.props.text === 'New')).toBe(false);
       await fireEvent.press(screen.getByTestId('new'));
       expect(onPress).toHaveBeenCalledTimes(1);
@@ -131,7 +131,7 @@ describe(`Fab (${Platform.OS})`, () => {
       expect(modifier(stack.props, 'padding')).toEqual({$type: 'padding', horizontal: 20});
       expect(modifier(stack.props, 'background')).toMatchObject({shape: 'roundedRectangle', cornerRadius: FAB_RADIUS.extended});
       const text = host(p => p.text === 'New document');
-      expect(modifier(text.props, 'foregroundStyle')?.color).toBe('#FFFFFF');
+      expect(modifier(text.props, 'foregroundStyle')?.style.color).toBe('#FFFFFF');
       expect(modifier(text.props, 'font')).toMatchObject({weight: 'semibold'});
     } else {
       expect(fab('new').props.variant).toBe('extended');

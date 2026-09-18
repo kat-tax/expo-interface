@@ -57,7 +57,7 @@ describe(`Switch (${Platform.OS})`, () => {
     }
     await rerender(<Switch value onValueChange={vi.fn()} accentColor="#FF9500" testID="sw"/>);
     if (isIOS) {
-      expect(modifier(toggle('sw').props, 'tint')).toEqual({$type: 'tint', color: '#FF9500'});
+      expect(modifier(toggle('sw').props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: '#FF9500'}});
     } else {
       expect(toggle('sw').props.colors.checkedTrackColor).toBe('#FF9500');
     }

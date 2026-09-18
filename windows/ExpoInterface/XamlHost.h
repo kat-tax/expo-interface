@@ -162,6 +162,25 @@ struct XamlIsland {
     }
   }
 
+  /**
+   * Measures the content again, now, and reports what it wants: for a
+   * control whose content a prop replaced (a button's label), so Yoga
+   * hears the new size in the same turn rather than after XAML's next
+   * layout pass, which the island's unchanged size may never start.
+   */
+  void Remeasure() noexcept {
+    if (!m_panel || m_panel.Children().Size() == 0) return;
+    try {
+      auto content = m_panel.Children().GetAt(0);
+      content.InvalidateMeasure();
+      content.Measure({std::numeric_limits<float>::max(), std::numeric_limits<float>::max()});
+      auto desired = content.DesiredSize();
+      ReportDesiredSize({desired.Width, desired.Height});
+      m_panel.InvalidateMeasure();
+    } catch (...) {
+    }
+  }
+
   void CloseIsland() noexcept {
     if (m_island) {
       m_island.Close();

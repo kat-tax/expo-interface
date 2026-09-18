@@ -65,7 +65,7 @@ describe(`NativeHost (${Platform.OS})`, () => {
     expect(hostView.props.matchContentsVertical).toBe(true);
     expect(hostView.props.matchContentsHorizontal).toBeUndefined();
     if (Platform.OS === 'ios') {
-      expect(modifier(hostView.props, 'tint')?.color).toBe('#8959EA');
+      expect(modifier(hostView.props, 'tint')?.tint.color).toBe('#8959EA');
       expect(host(p => p.label === 'Wi-Fi')).toBeTruthy();
     } else {
       expect(hostView.props.seedColor).toBe('#8959EA');

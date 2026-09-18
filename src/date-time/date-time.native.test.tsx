@@ -109,7 +109,7 @@ describe(`DateTimePicker (${Platform.OS})`, () => {
     }
     await rerender(<DateTimePicker mode="date" value={JUNE_15} accentColor="#FF9500" testID="dt"/>);
     if (isIOS) {
-      expect(modifier(screen.getByTestId('dt').props, 'tint')).toEqual({$type: 'tint', color: '#FF9500'});
+      expect(modifier(screen.getByTestId('dt').props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: '#FF9500'}});
     } else {
       expect(pill().props.color).toBe('#FF9500');
     }

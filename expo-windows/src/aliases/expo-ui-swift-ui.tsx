@@ -212,6 +212,36 @@ export function ControlGroup({label, systemImage, children, modifiers, testID}: 
   );
 }
 
+/**
+ * SwiftUI's navigation stack (57.0.18): a plain container here, where an
+ * app's navigation is Expo Router's and the kit's stack draws it; the path
+ * is kept as given and never changes on its own.
+ */
+export function NavigationStack({children, modifiers, testID}: WithChildren & {path?: string[]; onPathChange?: (path: string[]) => void}) {
+  return <Frame modifiers={modifiers} testID={testID}>{children}</Frame>;
+}
+
+/** A link pushing a destination on SwiftUI's stack: its label, plainly, since there is no stack to push onto. */
+export function NavigationLink({children, modifiers, testID}: WithChildren & {value: string}) {
+  return <Frame row align="center" modifiers={modifiers} testID={testID}>{children}</Frame>;
+}
+
+/** A destination SwiftUI's stack pushes for a value: nothing to show until it is pushed, and nothing pushes here. */
+export function NavigationDestination(_props: WithChildren & {value: string}) {
+  return null;
+}
+
+function ToolbarContent({children}: WithChildren) {
+  return <Frame row gap={8} align="center">{children}</Frame>;
+}
+
+function ToolbarBase({children, modifiers, testID}: WithChildren) {
+  return <Frame modifiers={modifiers} testID={testID}>{children}</Frame>;
+}
+
+/** SwiftUI's toolbar (57.0.18): the view it belongs to with its `Content` laid out as a row, since there is no navigation bar to put it in. */
+export const Toolbar = Object.assign(ToolbarBase, {Content: ToolbarContent});
+
 export function LabeledContent({label, children, modifiers, testID}: WithChildren & {label?: ReactNode}) {
   return (
     <Frame row gap={8} align="center" modifiers={modifiers} testID={testID} style={{justifyContent: 'space-between'}}>

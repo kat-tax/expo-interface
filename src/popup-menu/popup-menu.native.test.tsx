@@ -81,7 +81,7 @@ describe(`PopupMenu (${Platform.OS})`, () => {
     expect(onPress).toHaveBeenCalledTimes(1);
     // A destructive entry is red and a disabled one dimmed.
     const text = host(p => p.text === 'Delete block');
-    expect(modifier(text.props, 'foregroundStyle')?.color).toBe(colors.light.destructive);
+    expect(modifier(text.props, 'foregroundStyle')?.style.color).toBe(colors.light.destructive);
     expect(nodes().some(n => modifier(n.props, 'opacity')?.value === 0.4)).toBe(true);
     // The active entry is ticked.
     expect(nodes().some(n => n.props.systemName === 'checkmark')).toBe(true);

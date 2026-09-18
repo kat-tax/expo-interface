@@ -144,7 +144,7 @@ describe(`TextField (${Platform.OS})`, () => {
     );
     if (isIOS) {
       expect(modifier(field('plain').props, 'tint')).toBeUndefined();
-      expect(modifier(field('tinted').props, 'tint')).toEqual({$type: 'tint', color: '#FF9500'});
+      expect(modifier(field('tinted').props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: '#FF9500'}});
     } else {
       expect(field('plain').props.colors.cursorColor).toBe('#007AFF');
       expect(field('tinted').props.colors.cursorColor).toBe('#FF9500');

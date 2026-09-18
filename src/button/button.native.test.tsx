@@ -69,7 +69,7 @@ describe(`Button (${Platform.OS})`, () => {
     );
     const {props} = button('go');
     if (isIOS) {
-      expect(modifier(props, 'tint')).toEqual({$type: 'tint', color: '#8959EA'});
+      expect(modifier(props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: '#8959EA'}});
     } else {
       expect(props.colors).toEqual({containerColor: '#8959EA', contentColor: '#FFFFFF'});
     }
@@ -80,7 +80,7 @@ describe(`Button (${Platform.OS})`, () => {
     const {props} = button('del');
     if (isIOS) {
       expect(props.role).toBe('destructive');
-      expect(modifier(props, 'tint')?.color).toBe('#FF3B30');
+      expect(modifier(props, 'tint')?.tint.color).toBe('#FF3B30');
       expect(modifier(props, 'buttonStyle')?.style).toBe('plain');
     } else {
       expect(props.colors).toEqual({contentColor: '#FF3B30'});
@@ -179,7 +179,7 @@ describe(`Button (${Platform.OS})`, () => {
       expect(modifier(stack.props, 'frame')).toBeUndefined();
       const symbols = nodes(stack).filter(n => typeof n.props.systemName === 'string');
       expect(symbols.map(n => n.props.systemName)).toEqual(['square.and.arrow.up', 'trash']);
-      expect(symbols.map(n => modifier(n.props, 'foregroundStyle')?.color)).toEqual(['#FF3B30', '#FF3B30']);
+      expect(symbols.map(n => modifier(n.props, 'foregroundStyle')?.style.color)).toEqual(['#FF3B30', '#FF3B30']);
       expect(host(p => p.text === 'Delete', stack)).toBeTruthy();
     } else {
       const drawables = nodes().filter(n => n.type.endsWith('IconView'));
@@ -221,7 +221,7 @@ describe(`Button (${Platform.OS})`, () => {
     await render(<Button label="Go" color="#FFCC00" testID="go"/>);
     const {props} = button('go');
     if (isIOS) {
-      expect(modifier(props, 'tint')).toEqual({$type: 'tint', color: '#FFCC00'});
+      expect(modifier(props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: '#FFCC00'}});
     } else {
       expect(props.colors).toEqual({containerColor: '#FFCC00', contentColor: '#000000'});
     }
@@ -231,7 +231,7 @@ describe(`Button (${Platform.OS})`, () => {
     await render(<Button label="Undo" variant="text" tone="label" testID="undo"/>);
     const {props} = button('undo');
     if (isIOS) {
-      expect(modifier(props, 'tint')).toEqual({$type: 'tint', color: '#000000'});
+      expect(modifier(props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: '#000000'}});
     } else {
       expect(props.colors).toEqual({contentColor: '#000000'});
     }
@@ -246,9 +246,9 @@ describe(`Button (${Platform.OS})`, () => {
       </>,
     );
     if (isIOS) {
-      expect(modifier(button('filled').props, 'tint')?.color).toBe('#007AFF');
-      expect(modifier(button('del').props, 'tint')?.color).toBe('#FF3B30');
-      expect(modifier(button('custom').props, 'tint')?.color).toBe('#FFCC00');
+      expect(modifier(button('filled').props, 'tint')?.tint.color).toBe('#007AFF');
+      expect(modifier(button('del').props, 'tint')?.tint.color).toBe('#FF3B30');
+      expect(modifier(button('custom').props, 'tint')?.tint.color).toBe('#FFCC00');
     } else {
       expect(button('filled').props.colors).toEqual({containerColor: '#007AFF', contentColor: '#FFFFFF'});
       expect(button('del').props.colors).toEqual({contentColor: '#FF3B30'});

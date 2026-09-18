@@ -15,7 +15,7 @@ describe(`Progress (${Platform.OS})`, () => {
     if (isIOS) {
       expect(props.value).toBe(0.5);
       expect(modifier(props, 'progressViewStyle')).toEqual({$type: 'progressViewStyle', style: 'linear'});
-      expect(modifier(props, 'tint')).toEqual({$type: 'tint', color: colors.light.tint});
+      expect(modifier(props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: colors.light.tint}});
     } else {
       expect(props.progress).toBe(0.5);
       expect(props.color).toBe(colors.light.tint);
@@ -59,7 +59,7 @@ describe(`Progress (${Platform.OS})`, () => {
     await render(<Progress value={0.2} color="#FF9500" trackColor="#FFE5B4" testID="bar"/>);
     const {props} = progress('bar');
     if (isIOS) {
-      expect(modifier(props, 'tint')).toEqual({$type: 'tint', color: '#FF9500'});
+      expect(modifier(props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: '#FF9500'}});
     } else {
       expect(props.color).toBe('#FF9500');
       expect(props.trackColor).toBe('#FFE5B4');
@@ -74,7 +74,7 @@ describe(`Progress (${Platform.OS})`, () => {
     );
     const {props} = progress('bar');
     if (isIOS) {
-      expect(modifier(props, 'tint')?.color).toBe('#8959EA');
+      expect(modifier(props, 'tint')?.tint.color).toBe('#8959EA');
     } else {
       expect(props.color).toBe('#8959EA');
     }

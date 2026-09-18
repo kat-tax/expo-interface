@@ -130,7 +130,7 @@ describe(`SegmentedControl (${Platform.OS})`, () => {
       <SegmentedControl selectedValue="day" accentColor="#FFCC00" testID="sg">{items}</SegmentedControl>,
     );
     if (isIOS) {
-      expect(modifier(screen.getByTestId('sg').props, 'tint')).toEqual({$type: 'tint', color: '#FFCC00'});
+      expect(modifier(screen.getByTestId('sg').props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: '#FFCC00'}});
     } else {
       expect(state('Day').fill).toBe('#FFCC00');
       expect(host(p => p.text === 'Day').props.color).toBe('#000000');

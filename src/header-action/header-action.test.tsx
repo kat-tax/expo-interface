@@ -72,7 +72,7 @@ describe(`HeaderAction (${Platform.OS})`, () => {
       expect(modifier(props, 'buttonStyle')?.style).toBe('plain');
       // 17pt text, the size of a bar button's title.
       expect(modifier(props, 'controlSize')?.size).toBe('large');
-      expect(modifier(props, 'tint')?.color).toBe('#007AFF');
+      expect(modifier(props, 'tint')?.tint.color).toBe('#007AFF');
     } else {
       expect(props.colors).toEqual({contentColor: '#007AFF'});
       // A 24dp icon, not the button size's 18.
@@ -113,7 +113,7 @@ describe(`HeaderAction (${Platform.OS})`, () => {
     await render(<HeaderAction label="Copy" onPress={onPress} tone="label" disabled testID="copy"/>);
     const {props} = trigger('copy');
     if (isIOS) {
-      expect(modifier(props, 'tint')?.color).toBe('#000000');
+      expect(modifier(props, 'tint')?.tint.color).toBe('#000000');
       expect(modifier(props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
     } else {
       expect(props.colors).toEqual({contentColor: '#000000'});

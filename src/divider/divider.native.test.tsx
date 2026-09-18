@@ -35,7 +35,7 @@ describe(`Divider (${Platform.OS})`, () => {
     await render(<Divider color="#FF9500" testID="rule"/>);
     const {props} = divider('rule');
     if (isIOS) {
-      expect(modifier(props, 'background')).toEqual({$type: 'background', color: '#FF9500'});
+      expect(modifier(props, 'background')).toEqual({$type: 'background', style: {type: 'color', color: '#FF9500'}});
     } else {
       expect(props.color).toBe('#FF9500');
     }

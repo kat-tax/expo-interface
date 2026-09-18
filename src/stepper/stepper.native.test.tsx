@@ -42,8 +42,8 @@ describe(`Stepper (${Platform.OS})`, () => {
       expect(props.label).toBe('Quantity');
       expect(modifier(props, 'labelsHidden')).toEqual({$type: 'labelsHidden'});
       expect(modifier(props, 'disabled')).toBeUndefined();
-      expect(modifier(host(p => p.text === 'Quantity').props, 'foregroundStyle')?.color).toBe('#000000');
-      expect(modifier(host(p => p.text === '3').props, 'foregroundStyle')?.color).toBe('#60646C');
+      expect(modifier(host(p => p.text === 'Quantity').props, 'foregroundStyle')?.style.color).toBe('#000000');
+      expect(modifier(host(p => p.text === '3').props, 'foregroundStyle')?.style.color).toBe('#60646C');
       expect(modifier(nodes()[0].props, 'frame')).toEqual({$type: 'frame', maxWidth: 100000});
     } else {
       const row = byComposeTestID('st');
@@ -101,7 +101,7 @@ describe(`Stepper (${Platform.OS})`, () => {
     await render(<Stepper label="Guests" value={2} onValueChange={vi.fn()} disabled testID="st"/>, options);
     if (isIOS) {
       expect(modifier(screen.getByTestId('st').props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
-      expect(modifier(host(p => p.text === 'Guests').props, 'foregroundStyle')?.color).toBe('#60646C');
+      expect(modifier(host(p => p.text === 'Guests').props, 'foregroundStyle')?.style.color).toBe('#60646C');
     } else {
       expect(iconButton('Decrement').props.enabled).toBe(false);
       expect(iconButton('Increment').props.enabled).toBe(false);
