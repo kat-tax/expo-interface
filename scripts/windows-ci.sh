@@ -120,8 +120,11 @@ step "MSBuild"
 if command -v msbuild >/dev/null 2>&1; then
   MSBUILD=msbuild
 else
-  MSBUILD="/c/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/MSBuild.exe"
+  # As the CLI finds it: Visual Studio's installer says where MSBuild is
+  # (a GitHub runner has the Enterprise edition, a desk the Community one).
+  MSBUILD="$(cygpath -u "$(node -p "require('./node_modules/expo-windows/cli/msbuild').findMsBuild()")")"
 fi
+echo "msbuild: $MSBUILD"
 # The target SDK is the one react-native-windows 0.84's New Architecture pins
 # the app to, passed globally so that a library project asking for the latest
 # SDK installed (react-native-svg's does) builds metadata the app can
