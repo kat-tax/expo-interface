@@ -381,7 +381,35 @@ export const native = {
   sensors: () => get<NativeSensors>('ExpoWindowsSensors'),
   notifications: () => get<NativeNotifications>('ExpoWindowsNotifications'),
   sqlite: () => get<NativeSQLite>('ExpoWindowsSQLite'),
+  print: () => get<NativePrint>('ExpoWindowsPrint'),
+  camera: () => get<NativeCamera>('ExpoWindowsCamera'),
 };
+
+export interface PrintJob {
+  html?: string;
+  uri?: string;
+  width?: number;
+  height?: number;
+  orientation?: string;
+  base64?: boolean;
+}
+
+export interface NativePrint extends TurboModule {
+  /** The page as a PDF in the cache: its URI, its pages, and its bytes in base64 when asked. */
+  printToFile(options: PrintJob): Promise<{uri: string; numberOfPages: number; base64?: string}>;
+  /** The page handed to the system's print dialog. */
+  print(options: PrintJob): Promise<null>;
+}
+
+export type CapabilityAccess = 'Allowed' | 'UserPromptRequired' | 'DeniedByUser' | 'DeniedBySystem' | 'NotDeclaredByApp';
+
+export interface NativeCamera extends TurboModule {
+  /** The machine's video capture devices. */
+  count(): Promise<number>;
+  /** The app's access to a capability (`webcam`, `microphone`) as the privacy settings say. */
+  access(capability: string): Promise<CapabilityAccess>;
+  requestAccess(capability: string): Promise<CapabilityAccess>;
+}
 
 /** A column's value as `ExpoWindowsSQLite` reads it: a blob comes as `{blob}` in base64. */
 export type SQLiteCell = null | number | string | {blob: string};

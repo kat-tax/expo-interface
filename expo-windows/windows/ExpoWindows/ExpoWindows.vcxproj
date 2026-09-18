@@ -109,6 +109,8 @@
     <ClInclude Include="Islands.h" />
     <ClInclude Include="Media.h" />
     <ClInclude Include="codegen\react\components\ExpoWindowsSpec\ExpoWindowsVideoView.g.h" />
+    <ClInclude Include="codegen\react\components\ExpoWindowsSpec\ExpoWindowsMapView.g.h" />
+    <ClInclude Include="codegen\react\components\ExpoWindowsSpec\ExpoWindowsCameraView.g.h" />
     <ClInclude Include="codegen\react\components\ExpoWindowsSpec\ExpoWindowsWebView.g.h" />
     <ClInclude Include="ReactPackageProvider.h">
       <DependentUpon>ReactPackageProvider.idl</DependentUpon>
@@ -119,6 +121,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Accessibility.cpp" />
+    <ClCompile Include="CameraView.cpp" />
     <ClCompile Include="Clipboard.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Crypto.cpp" />
@@ -133,10 +136,12 @@
     <ClCompile Include="Localization.cpp" />
     <ClCompile Include="Location.cpp" />
     <ClCompile Include="Media.cpp" />
+    <ClCompile Include="MapView.cpp" />
     <ClCompile Include="MediaLibrary.cpp" />
     <ClCompile Include="Network.cpp" />
     <ClCompile Include="Notifications.cpp" />
     <ClCompile Include="Power.cpp" />
+    <ClCompile Include="Print.cpp" />
     <ClCompile Include="SecureStore.cpp" />
     <ClCompile Include="Sensors.cpp" />
     <ClCompile Include="SQLite.cpp" />

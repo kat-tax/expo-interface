@@ -1,6 +1,5 @@
 import {uuidv4} from '../uuid';
 import {nativeModuleClass, UnavailabilityError} from './base';
-import {DENIED} from './permissions';
 import {registerModule} from './registry';
 
 /**
@@ -59,8 +58,6 @@ export function unavailableModule(spec: UnavailableSpec): object {
   return module;
 }
 
-const no = async (): Promise<false> => false;
-const denied = async () => DENIED;
 const nothing = (): void => {};
 
 const NOTIFICATIONS = 'Notifications';
@@ -75,22 +72,8 @@ const NOTIFICATIONS = 'Notifications';
 export const UNAVAILABLE: Record<string, UnavailableSpec> = {
   ExpoBrownfieldModule: {package: 'Brownfield', methods: ['popToNative', 'sendMessage', 'setNativeBackEnabled']},
   ExpoBrownfieldStateModule: {package: 'Brownfield', methods: ['deleteSharedState', 'getSharedState']},
-  ExpoCamera: {
-    package: 'Camera',
-    methods: ['dismissScanner', 'getAvailableVideoCodecsAsync', 'launchScanner', 'scanFromURLAsync'],
-    classes: ['Picture'],
-    constants: {isModernBarcodeScannerAvailable: false, toggleRecordingAsyncAvailable: false},
-    answers: {
-      isAvailableAsync: no,
-      getCameraPermissionsAsync: denied,
-      getMicrophonePermissionsAsync: denied,
-      requestCameraPermissionsAsync: denied,
-      requestMicrophonePermissionsAsync: denied,
-    },
-  },
   ExpoDomWebViewModule: {package: 'DomWebView', methods: ['evalJsForWebViewAsync']},
   ExpoGL: {package: 'GLView', methods: ['createCameraTextureAsync', 'createContextAsync', 'destroyContextAsync', 'destroyObjectAsync', 'takeSnapshotAsync']},
-  ExpoMaps: {package: 'Maps', answers: {getPermissionsAsync: denied, requestPermissionsAsync: denied}},
   ExpoBackgroundNotificationTasksModule: {package: NOTIFICATIONS, methods: ['registerTaskAsync', 'unregisterTaskAsync']},
   ExpoPushTokenManager: {package: NOTIFICATIONS, methods: ['getDevicePushTokenAsync', 'unregisterForNotificationsAsync']},
   // Read at import by the package's automatic registration: no registration is kept, and none is made.
@@ -98,7 +81,6 @@ export const UNAVAILABLE: Record<string, UnavailableSpec> = {
     package: NOTIFICATIONS,
     answers: {getInstallationIdAsync: async () => uuidv4(), getRegistrationInfoAsync: async () => null, setRegistrationInfoAsync: async () => {}},
   },
-  ExpoPrint: {package: 'Print', methods: ['print', 'printToFileAsync', 'selectPrinter'], constants: {Orientation: {portrait: 'portrait', landscape: 'landscape'}}},
 };
 
 /**

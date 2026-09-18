@@ -56,6 +56,8 @@ void ReactPackageProvider::CreatePackage(IReactPackageBuilder const &packageBuil
 #ifdef RNW_NEW_ARCH
   RegisterWebView(packageBuilder);
   RegisterVideoView(packageBuilder);
+  RegisterMapView(packageBuilder);
+  RegisterCameraView(packageBuilder);
 #endif
 }
 

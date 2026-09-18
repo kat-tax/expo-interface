@@ -14,6 +14,15 @@ HWND MainWindow() noexcept;
 /** The app's own folder in the user's local data: `%LOCALAPPDATA%\<the exe's name>`. Throws when the shell cannot say. */
 std::filesystem::path AppDataFolder();
 
+/** `%LOCALAPPDATA%\<the exe's name>\cache\<folder>`, created. */
+std::filesystem::path CachePath(wchar_t const *folder);
+
+/** A name no file has yet, from a GUID, with the extension given (`.jpg`). */
+std::wstring NewFileName(wchar_t const *extension);
+
+/** `file:///C:/…` for a path, with forward slashes and the characters a URI cannot carry percent-encoded. */
+std::string FileUri(std::filesystem::path const &path);
+
 std::wstring ToWide(std::string_view utf8) noexcept;
 std::string ToUtf8(std::wstring_view wide) noexcept;
 

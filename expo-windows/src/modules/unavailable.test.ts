@@ -76,12 +76,12 @@ describe('the unavailable table (windows)', () => {
     const expo = {...previous, modules: {}} as typeof globalThis.expo;
     globalThis.expo = expo;
     try {
-      const real = {getPermissionsAsync: () => 'real'};
-      registerModule('ExpoMaps', real);
+      const real = {popToNative: () => 'real'};
+      registerModule('ExpoBrownfieldModule', real);
       registerUnavailableModules();
       expect(registeredModules().sort()).toEqual(Object.keys(UNAVAILABLE).sort());
-      expect(expo.modules.ExpoMaps).toBe(real);
-      expect(() => (expo.modules.ExpoPrint as {print(): never}).print()).toThrow(/Print\.print/);
+      expect(expo.modules.ExpoBrownfieldModule).toBe(real);
+      expect(() => (expo.modules.ExpoGL as {createContextAsync(): never}).createContextAsync()).toThrow(/GLView\.createContextAsync/);
     } finally {
       globalThis.expo = previous;
     }

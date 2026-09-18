@@ -34,6 +34,37 @@ std::filesystem::path AppDataFolder() {
   return directory / std::filesystem::path(exe).stem();
 }
 
+std::filesystem::path CachePath(wchar_t const *folder) {
+  auto path = AppDataFolder() / L"cache" / folder;
+  std::filesystem::create_directories(path);
+  return path;
+}
+
+std::wstring NewFileName(wchar_t const *extension) {
+  GUID guid{};
+  CoCreateGuid(&guid);
+  wchar_t text[40]{};
+  StringFromGUID2(guid, text, 40);
+  std::wstring name(text + 1, text + 37);
+  return name + extension;
+}
+
+std::string FileUri(std::filesystem::path const &path) {
+  std::string out = "file:///";
+  for (unsigned char c : ToUtf8(path.wstring())) {
+    if (c == '\\') {
+      out += '/';
+    } else if (std::isalnum(c) || c == '/' || c == ':' || c == '-' || c == '_' || c == '.' || c == '~') {
+      out += static_cast<char>(c);
+    } else {
+      char escaped[4];
+      std::snprintf(escaped, sizeof(escaped), "%%%02X", c);
+      out += escaped;
+    }
+  }
+  return out;
+}
+
 HWND MainWindow() noexcept {
   WindowSearch search{GetCurrentProcessId(), nullptr};
   EnumWindows(FindMainWindow, reinterpret_cast<LPARAM>(&search));

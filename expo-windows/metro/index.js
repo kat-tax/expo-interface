@@ -68,6 +68,9 @@ const REPLACEMENTS = [
   [/[\\/]expo[\\/](src|build)[\\/]winter[\\/]fetch[\\/]fetch\.(ts|js)$/, path.join(__dirname, '..', 'src', 'winter-fetch.ts')],
   // expo-video's native view: the runtime's island, in place of the adapter of a view manager Windows has none of.
   [/[\\/]expo-video[\\/](src|build)[\\/]NativeVideoView\.(ts|js)$/, path.join(__dirname, '..', 'src', 'aliases', 'expo-video-view.tsx')],
+  // expo-camera's native view, and expo-maps' two: the runtime's islands, the same way.
+  [/[\\/]expo-camera[\\/](src|build)[\\/]ExpoCamera\.(ts|js)$/, path.join(__dirname, '..', 'src', 'aliases', 'expo-camera-view.tsx')],
+  [/[\\/]expo-maps[\\/](src|build)[\\/](google[\\/]GoogleMapsView|apple[\\/]AppleMapsView)\.(tsx|js)$/, path.join(__dirname, '..', 'src', 'aliases', 'expo-maps-view.tsx')],
 ];
 
 const TRANSFORMER = path.join(__dirname, 'transformer.js');

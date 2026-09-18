@@ -47,6 +47,7 @@
 #include <winrt/Windows.ApplicationModel.Activation.h>
 #include <winrt/Windows.ApplicationModel.Core.h>
 #include <winrt/Windows.ApplicationModel.DataTransfer.h>
+#include <winrt/Windows.Data.Json.h>
 #include <winrt/Windows.Foundation.Collections.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Globalization.NumberFormatting.h>
@@ -56,6 +57,7 @@
 #include <winrt/Windows.Devices.Enumeration.h>
 #include <winrt/Windows.Devices.Geolocation.h>
 #include <winrt/Windows.Devices.Sensors.h>
+#include <winrt/Windows.Media.Capture.Frames.h>
 #include <winrt/Windows.Media.Capture.h>
 #include <winrt/Windows.Media.Core.h>
 #include <winrt/Windows.Media.Devices.h>
@@ -69,6 +71,7 @@
 #include <winrt/Windows.Networking.h>
 #include <winrt/Windows.UI.ViewManagement.h>
 #include <winrt/Windows.UI.h>
+#include <winrt/Windows.Security.Authorization.AppCapabilityAccess.h>
 #include <winrt/Windows.Security.Credentials.UI.h>
 #include <winrt/Windows.Security.Cryptography.Core.h>
 #include <winrt/Windows.Security.Cryptography.h>
