@@ -1,6 +1,6 @@
 // @ts-check
 const path = require('node:path');
-const {INSTALL, isEntry, isPrelude, withAppConfig, withInstall} = require('./transformer');
+const {DOM_BASE_URL, INSTALL, isEntry, isPrelude, withAppConfig, withDomBase, withInstall} = require('./transformer');
 
 describe('transformer', () => {
   afterEach(() => {
@@ -50,6 +50,16 @@ describe('transformer', () => {
     expect(withAppConfig(src, 'src/app.ts', 'windows', value)).toBe(src);
     // Without a config in the environment the read stays as it is.
     expect(withAppConfig(src, 'node_modules/expo-windows/src/modules/constants.ts', 'windows', undefined)).toBe(src);
+  });
+
+  it("points Expo's DOM components at the island's virtual host, on Windows only", () => {
+    const src = "cachedBaseUrl = process.env.EXPO_BASE_URL ?? '';\n";
+    expect(withDomBase(src, 'node_modules/expo/src/dom/base.ts', 'windows')).toBe(`cachedBaseUrl = ${JSON.stringify(DOM_BASE_URL)} ?? '';\n`);
+    expect(withDomBase(src, '/app/node_modules/expo/build/dom/base.js', 'windows')).toContain('https://expo-dom.bundle');
+    expect(withDomBase(src, 'node_modules\\expo\\src\\dom\\base.ts', 'windows')).toContain('https://expo-dom.bundle');
+    expect(withDomBase(src, 'node_modules/expo/src/dom/base.ts', 'ios')).toBe(src);
+    expect(withDomBase(src, 'node_modules/expo/src/dom/webview-wrapper.tsx', 'windows')).toBe(src);
+    expect(withDomBase(src, 'src/dom/base.ts', 'windows')).toBe(src);
   });
 
   it('hands the source to the transformer it wraps, with the install first on Windows', async () => {

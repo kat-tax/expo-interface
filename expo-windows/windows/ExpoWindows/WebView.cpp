@@ -19,6 +19,9 @@ namespace {
 /** Where HTML without a base URL is served from: a host of the runtime's own, never resolved. */
 constexpr char const *DEFAULT_BASE_URL = "https://expo-windows.webview/";
 
+/** The virtual host the exported DOM pages are served at; the Metro transformer points `expo/dom` at it. */
+constexpr wchar_t const *DOM_HOST = L"expo-dom.bundle";
+
 /** A JavaScript string literal for the text: what a script embeds verbatim. */
 std::string JsString(std::string_view text) {
   std::string out = "\"";
@@ -156,6 +159,7 @@ struct WebViewView : winrt::implements<WebViewView, winrt::IInspectable>,
       return;
     }
     m_ready = true;
+    ServeBundle();
     Apply();
     for (auto const &script : m_queued) m_web.ExecuteScriptAsync(ToWide(script));
     m_queued.clear();
@@ -206,6 +210,24 @@ struct WebViewView : winrt::implements<WebViewView, winrt::IInspectable>,
       }
     } catch (winrt::hresult_error const &error) {
       if (auto emitter = EventEmitter()) emitter->onLoadingError({m_uri, "", static_cast<int32_t>(error.code().value), ::ExpoWindows::Message(error)});
+    }
+  }
+
+  /**
+   * Serves the DOM components' pages an export wrote beside the exe
+   * (`Bundle\www.bundle`) at the virtual host Expo's components are pointed
+   * at on Windows, so a page has an origin of its own; nothing to serve in
+   * development, where the pages are the dev server's.
+   */
+  void ServeBundle() noexcept {
+    try {
+      wchar_t exe[MAX_PATH]{};
+      GetModuleFileNameW(nullptr, exe, MAX_PATH);
+      auto folder = std::filesystem::path(exe).parent_path() / L"Bundle" / L"www.bundle";
+      std::error_code ignored;
+      if (!std::filesystem::is_directory(folder, ignored)) return;
+      m_web.CoreWebView2().SetVirtualHostNameToFolderMapping(DOM_HOST, folder.c_str(), CoreWebView2HostResourceAccessKind::Allow);
+    } catch (...) {
     }
   }
 

@@ -97,10 +97,35 @@ function withAppConfig(src, filename, platform, value = process.env[CONFIG_VARIA
   return src.split(`process.env.${CONFIG_VARIABLE}`).join(JSON.stringify(value));
 }
 
+/** Expo's DOM component base: where a `'use dom'` component's page is loaded from. */
+const DOM_BASE_READER = /(^|[\\/])expo[\\/](src|build)[\\/]dom[\\/]base\.[jt]s$/;
+/**
+ * The origin the WebView2 island serves the exported DOM pages from: a
+ * virtual host over `Bundle\www.bundle` beside the exe, so a page has a
+ * secure origin of its own (storage, workers, fetch) rather than `file:`.
+ */
+const DOM_BASE_URL = 'https://expo-dom.bundle';
+
+/**
+ * Points Expo's DOM components at the island's virtual host on Windows.
+ * In production Expo reads `process.env.EXPO_BASE_URL` for a platform that
+ * is not Android or iOS, which babel-preset-expo inlines as the web base
+ * URL (empty for a native export); the literal is written in before Babel
+ * sees it. In development the dev server's URL is used as on every
+ * platform, so this only matters to an exported bundle.
+ * @param {string} src
+ * @param {string} filename
+ * @param {string | null | undefined} platform
+ */
+function withDomBase(src, filename, platform) {
+  if (platform !== 'windows' || !DOM_BASE_READER.test(path.normalize(filename))) return src;
+  return src.split('process.env.EXPO_BASE_URL').join(JSON.stringify(DOM_BASE_URL));
+}
+
 /** @param {{src: string; filename: string; options: {platform?: string | null; projectRoot?: string}}} args */
 async function transform(args) {
   const installed = withInstall(args.src, args.filename, args.options.platform, process.env.EXPO_WINDOWS_ENTRY, args.options.projectRoot);
-  const src = withAppConfig(installed, args.filename, args.options.platform);
+  const src = withDomBase(withAppConfig(installed, args.filename, args.options.platform), args.filename, args.options.platform);
   return upstream().transform(src === args.src ? args : {...args, src});
 }
 
@@ -109,4 +134,4 @@ function getCacheKey() {
   return `${key}:expo-windows:${process.env.EXPO_WINDOWS_ENTRY ?? ''}:${process.env[CONFIG_VARIABLE] ?? ''}`;
 }
 
-module.exports = {transform, getCacheKey, withInstall, withAppConfig, isEntry, isPrelude, INSTALL};
+module.exports = {transform, getCacheKey, withInstall, withAppConfig, withDomBase, isEntry, isPrelude, INSTALL, DOM_BASE_URL};
