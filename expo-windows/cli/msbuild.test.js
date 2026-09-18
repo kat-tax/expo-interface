@@ -22,3 +22,35 @@ describe('withTargetSdk', () => {
     expect(withTargetSdk(['--msbuildprops=A=1,WindowsTargetPlatformVersion=10.0.26100.0'])).toEqual(['--msbuildprops=A=1,WindowsTargetPlatformVersion=10.0.26100.0']);
   });
 });
+
+
+describe('findMsBuild', () => {
+  const {findMsBuild} = require('./msbuild');
+
+  it('asks vswhere for the newest MSBuild and takes the first path it prints', () => {
+    const query = vi.fn(() => '\r\nC:\\VS\\MSBuild\\Current\\Bin\\MSBuild.exe\r\nC:\\Other\\MSBuild.exe\r\n');
+    expect(findMsBuild(query)).toBe('C:\\VS\\MSBuild\\Current\\Bin\\MSBuild.exe');
+    expect(query).toHaveBeenCalledWith(expect.stringMatching(/Microsoft Visual Studio.Installer.vswhere\.exe$/), ['-latest', '-products', '*', '-requires', 'Microsoft.Component.MSBuild', '-find', 'MSBuild\\**\\Bin\\MSBuild.exe']);
+  });
+
+  it('says what to install when vswhere finds none, and looks under the default program files without the variable', () => {
+    const programFiles = process.env['ProgramFiles(x86)'];
+    delete process.env['ProgramFiles(x86)'];
+    try {
+      const query = vi.fn(/** @type {(command: string, args: string[]) => string} */ (() => ''));
+      expect(() => findMsBuild(query)).toThrow(/install Visual Studio/);
+      expect(query.mock.calls[0]?.[0]).toMatch(/^C:\\Program Files \(x86\)\\/);
+    } finally {
+      if (programFiles !== undefined) process.env['ProgramFiles(x86)'] = programFiles;
+    }
+  });
+
+  it('runs vswhere itself by default and reads nothing from a failed run', () => {
+    const childProcess = require('node:child_process');
+    const spawn = vi.spyOn(childProcess, 'spawnSync').mockReturnValue(/** @type {never} */ ({status: 0, stdout: 'C:\\Found\\MSBuild.exe\n'}));
+    expect(findMsBuild()).toBe('C:\\Found\\MSBuild.exe');
+    expect(spawn).toHaveBeenCalledWith(expect.stringContaining('vswhere.exe'), expect.arrayContaining(['-find']), {encoding: 'utf8'});
+    spawn.mockReturnValue(/** @type {never} */ ({status: 1, stdout: 'ignored'}));
+    expect(() => findMsBuild()).toThrow(/MSBuild was not found/);
+  });
+});

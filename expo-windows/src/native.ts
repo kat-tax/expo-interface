@@ -247,6 +247,33 @@ export interface NativeImages extends TurboModule {
   capture(video: boolean): Promise<{uri: string} | null>;
 }
 
+/** What the image loader knows of an image it fetched: where it is now, and what the codec read of it. */
+export interface LoadedImage {
+  /** The cached file as a `file:` URI, or the source URI when nothing was written. */
+  uri: string;
+  width: number;
+  height: number;
+  isAnimated: boolean;
+  /** The media type the codec names; empty when none is known. */
+  mediaType: string;
+  cacheType: 'none' | 'disk';
+}
+
+export interface NativeImageLoader extends TurboModule {
+  /** Fetches every URL, into the disk cache when the policy keeps one; false as soon as one cannot be fetched. */
+  prefetch(urls: string[], cachePolicy: string, headers: Record<string, string> | null): Promise<boolean>;
+  clearDiskCache(): Promise<boolean>;
+  clearMemoryCache(): Promise<boolean>;
+  /** The cached file's path for a key, or null. */
+  getCachePath(cacheKey: string): Promise<string | null>;
+  /** Copies a local image into the disk cache under the key. */
+  writeToCache(uri: string, cacheKey: string): Promise<void>;
+  /** Fetches the image (into the disk cache for a URL) and reads its size. */
+  load(uri: string, headers: Record<string, string> | null, cacheKey: string): Promise<LoadedImage>;
+  /** A blurhash of the image with the components asked. */
+  generateBlurhash(uri: string, componentsX: number, componentsY: number): Promise<string>;
+}
+
 export type MediaKind = 'photo' | 'video' | 'audio' | 'unknown';
 
 export interface MediaAsset {
@@ -383,6 +410,7 @@ export const native = {
   sqlite: () => get<NativeSQLite>('ExpoWindowsSQLite'),
   print: () => get<NativePrint>('ExpoWindowsPrint'),
   camera: () => get<NativeCamera>('ExpoWindowsCamera'),
+  imageLoader: () => get<NativeImageLoader>('ExpoWindowsImageLoader'),
 };
 
 export interface PrintJob {

@@ -73,11 +73,12 @@ void RegisterIsland(const rn::IReactPackageBuilder &packageBuilder, TRegister re
   });
 }
 
-/** The runtime's islands: the web view and the video view. */
+/** The runtime's islands: the web view, the video view, the map, the camera and the image. */
 void RegisterWebView(const rn::IReactPackageBuilder &packageBuilder) noexcept;
 void RegisterVideoView(const rn::IReactPackageBuilder &packageBuilder) noexcept;
 void RegisterMapView(const rn::IReactPackageBuilder &packageBuilder) noexcept;
 void RegisterCameraView(const rn::IReactPackageBuilder &packageBuilder) noexcept;
+void RegisterImageView(const rn::IReactPackageBuilder &packageBuilder) noexcept;
 
 } // namespace winrt::ExpoWindows
 

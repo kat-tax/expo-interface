@@ -20,6 +20,7 @@ import {EASClient} from './eas-client';
 import {createFileSystemModule, createLegacyFileSystemModule} from './file-system';
 import {createFontLoaderModule} from './font-loader';
 import {ExpoHaptics} from './haptics';
+import {createImageModule} from './image';
 import {createImageManipulatorModule} from './image-manipulator';
 import {ExponentImagePicker} from './image-picker';
 import {ExpoKeepAwake} from './keep-awake';
@@ -105,6 +106,7 @@ export function registerModules(): void {
   registerModule('ExpoDocumentPicker', ExpoDocumentPicker);
   registerModule('ExponentImagePicker', ExponentImagePicker);
   registerModule('ExpoImageManipulator', createImageManipulatorModule());
+  registerModule('ExpoImage', createImageModule());
   registerModule('ExpoMediaLibrary', createMediaLibraryModule());
   registerModule('ExpoMediaLibraryNext', createMediaLibraryNextModule());
   registerModule('ExpoVideo', createVideoModule());

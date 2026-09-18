@@ -58,6 +58,7 @@ void ReactPackageProvider::CreatePackage(IReactPackageBuilder const &packageBuil
   RegisterVideoView(packageBuilder);
   RegisterMapView(packageBuilder);
   RegisterCameraView(packageBuilder);
+  RegisterImageView(packageBuilder);
 #endif
 }
 

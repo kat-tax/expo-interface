@@ -67,6 +67,8 @@
 #include <winrt/Windows.Media.SpeechSynthesis.h>
 #include <winrt/Windows.Media.h>
 #include <winrt/Microsoft.UI.Xaml.Media.h>
+#include <winrt/Microsoft.UI.Xaml.Media.Animation.h>
+#include <winrt/Microsoft.UI.Xaml.Media.Imaging.h>
 #include <winrt/Windows.Networking.Connectivity.h>
 #include <winrt/Windows.Networking.h>
 #include <winrt/Windows.UI.ViewManagement.h>
@@ -108,6 +110,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <regex>
 #include <set>
 #include <string>
 #include <string_view>

@@ -41,6 +41,7 @@ describe('packageOf', () => {
       runtime: '1.8',
     });
     expect(packageOf({slug: 'drop-files'}).displayName).toBe('DropFiles');
+    expect(packageOf({}).displayName).toBe('App');
     expect(packageOf({name: 'App', owner: 'contoso'}).publisher).toBe('CN=contoso');
     expect(packageOf({name: 'App', scheme: ['one', 'two', 3]}).schemes).toEqual(['one', 'two']);
     expect(packageOf({name: 'App'}).schemes).toEqual([]);
@@ -148,6 +149,26 @@ describe('the tools', () => {
     expect(() => sdkTool('mt', root)).toThrow(/Windows 11 SDK/);
     expect(() => sdkTool('makeappx', path.join(root, 'nowhere'))).toThrow(/makeappx/);
     fs.rmSync(root, {recursive: true, force: true});
+  });
+
+  it('orders SDK versions by every part', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'expo-windows-kits-'));
+    for (const version of ['10.0.22621.0', '10.0.22621.2', '10.0.22621.1']) {
+      fs.mkdirSync(path.join(root, 'bin', version, 'x64'), {recursive: true});
+      fs.writeFileSync(path.join(root, 'bin', version, 'x64', 'signtool.exe'), '');
+    }
+    expect(sdkTool('signtool', root)).toBe(path.join(root, 'bin', '10.0.22621.2', 'x64', 'signtool.exe'));
+    fs.rmSync(root, {recursive: true, force: true});
+  });
+
+  it('looks under the Windows Kits of the program files, or the default folder without the variable', () => {
+    const programFiles = process.env['ProgramFiles(x86)'];
+    delete process.env['ProgramFiles(x86)'];
+    try {
+      expect(() => sdkTool('nothing-of-that-name')).toThrow(/C:\\Program Files \(x86\)\\Windows Kits\\10\\bin/);
+    } finally {
+      if (programFiles !== undefined) process.env['ProgramFiles(x86)'] = programFiles;
+    }
   });
 
   it('writes the PowerShell for a self-signed certificate matching the publisher', () => {

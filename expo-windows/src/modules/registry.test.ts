@@ -28,6 +28,7 @@ const REAL_MODULES = [
   'ExpoDocumentPicker',
   'ExpoFontLoader',
   'ExpoHaptics',
+  'ExpoImage',
   'ExpoImageManipulator',
   'ExpoKeepAwake',
   'ExpoLinking',

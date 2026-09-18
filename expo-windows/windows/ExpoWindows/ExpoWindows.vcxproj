@@ -106,8 +106,10 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClInclude Include="Common.h" />
+    <ClInclude Include="ImageCache.h" />
     <ClInclude Include="Islands.h" />
     <ClInclude Include="Media.h" />
+    <ClInclude Include="codegen\react\components\ExpoWindowsSpec\ExpoWindowsImageView.g.h" />
     <ClInclude Include="codegen\react\components\ExpoWindowsSpec\ExpoWindowsVideoView.g.h" />
     <ClInclude Include="codegen\react\components\ExpoWindowsSpec\ExpoWindowsMapView.g.h" />
     <ClInclude Include="codegen\react\components\ExpoWindowsSpec\ExpoWindowsCameraView.g.h" />
@@ -128,7 +130,9 @@
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="Fonts.cpp" />
+    <ClCompile Include="ImageLoader.cpp" />
     <ClCompile Include="Images.cpp" />
+    <ClCompile Include="ImageView.cpp" />
     <ClCompile Include="Islands.cpp" />
     <ClCompile Include="Keyboard.cpp" />
     <ClCompile Include="Linking.cpp" />

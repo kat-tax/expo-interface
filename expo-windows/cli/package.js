@@ -131,9 +131,11 @@ function packageOf(config, options = {}) {
   };
 }
 
+const XML_ESCAPES = /** @type {Record<string, string>} */ ({'<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;'});
+
 /** @param {string} text */
 function escapeXml(text) {
-  return text.replace(/[<>&"']/g, char => ({'<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&apos;'})[char] ?? char);
+  return text.replace(/[<>&"']/g, char => XML_ESCAPES[char]);
 }
 
 /**
@@ -250,11 +252,11 @@ function sdkTool(name, root = path.join(process.env['ProgramFiles(x86)'] ?? 'C:\
 function compareVersions(a, b) {
   const as = a.split('.').map(Number);
   const bs = b.split('.').map(Number);
-  for (let index = 0; index < Math.max(as.length, bs.length); index++) {
-    const difference = (as[index] ?? 0) - (bs[index] ?? 0);
+  for (let index = 0; index < 3; index++) {
+    const difference = as[index] - bs[index];
     if (difference) return difference;
   }
-  return 0;
+  return as[3] - bs[3];
 }
 
 /**
