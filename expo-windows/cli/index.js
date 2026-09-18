@@ -5,21 +5,24 @@
  *
  *     expo-windows init [--overwrite] [--cli-version <version>]
  *     expo-windows run [--release] [--no-packager] [-- <run-windows args>]
- *     expo-windows bundle [--dev]
+ *     expo-windows bundle [--dev] [<the MSBuild bundle target's arguments>]
  *
  * `init` writes `windows/` with react-native-windows' `cpp-app` template
  * (through the React Native community CLI, fetched on demand since an Expo
  * app does not carry it) and patches the result to run as an Expo app: an
  * unpackaged build that bootstraps the Windows App Runtime, the entry
- * pointed at the `main` component `expo` registers. `run` starts
- * `expo start` and builds and launches the app with `run-windows`. `bundle`
- * writes the release JavaScript and assets into the project with
- * `expo export:embed`, which the release build's MSBuild bundle target
- * expects there.
+ * pointed at the `main` component `expo` registers, the Release build's
+ * bundle command pointed at `bundle`. `run` starts `expo start` and builds
+ * and launches the app with `run-windows`; with `--release` the app carries
+ * its bundle and needs no server. `bundle` writes the JavaScript and assets
+ * into the project with `expo export:embed` — by hand ahead of a build, or
+ * as the Release build's MSBuild bundle target, whose arguments it takes
+ * (see ./bundle.js); the target then compiles the bundle to Hermes bytecode.
  */
 const {spawn, spawnSync} = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
+const {exportArgs} = require('./bundle');
 const {withTargetSdk} = require('./msbuild');
 const {safeProjectName} = require('./patch');
 const {applyPatches, ensureScreensExclusion, findProject, keepMetroConfig} = require('./project');
@@ -93,9 +96,10 @@ function init(args) {
 function runApp(args) {
   // With the target SDK among the MSBuild properties: see ./msbuild.js.
   const passthrough = withTargetSdk(args.includes('--') ? args.slice(args.indexOf('--') + 1) : []);
-  const packager = !args.includes('--no-packager');
-  const metro = packager ? spawn(npx, ['expo', 'start'], {cwd: projectRoot, stdio: 'inherit', shell: process.platform === 'win32'}) : null;
+  // A Release build carries its bundle: no server.
   const release = args.includes('--release') ? ['--release'] : [];
+  const packager = !args.includes('--no-packager') && release.length === 0;
+  const metro = packager ? spawn(npx, ['expo', 'start'], {cwd: projectRoot, stdio: 'inherit', shell: process.platform === 'win32'}) : null;
   run(npx, ['--yes', `@react-native-community/cli@${flag(args, '--cli-version') ?? 'latest'}`, 'run-windows', '--no-packager', '--logging', ...release, ...passthrough]);
   if (metro) {
     console.log('The app is running against the Metro server above; stop it with Ctrl+C when you are done.');
@@ -112,19 +116,9 @@ function bundle(args) {
   }
   const output = path.join(project.dir, 'Bundle');
   fs.mkdirSync(output, {recursive: true});
-  run(npx, [
-    'expo',
-    'export:embed',
-    '--platform',
-    'windows',
-    '--dev',
-    args.includes('--dev') ? 'true' : 'false',
-    '--bundle-output',
-    path.join(output, 'index.windows.bundle'),
-    '--assets-dest',
-    output,
-  ]);
-  console.log(`bundle written to ${path.relative(projectRoot, output)}`);
+  const exported = exportArgs(projectRoot, args, {bundleOutput: path.join(output, 'index.windows.bundle'), assetsDest: output});
+  run(npx, ['expo', 'export:embed', ...exported]);
+  console.log(`bundle written to ${path.relative(projectRoot, /** @type {string} */ (flag(exported, '--bundle-output')))}`);
 }
 
 const [command, ...rest] = process.argv.slice(2);

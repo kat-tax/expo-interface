@@ -19,6 +19,7 @@
  * the public app config for `expo-constants`; and keeps Metro out of the
  * `windows/` build folder. Other platforms are untouched.
  */
+const fs = require('node:fs');
 const path = require('node:path');
 
 const WINDOWS = 'windows';
@@ -107,10 +108,29 @@ function windowsCore(projectRoot) {
  * @returns {(entryFilePath: string) => string[]}
  */
 function runBeforeMain(projectRoot, previous, core = windowsCore(projectRoot)) {
+  const installs = installPaths();
   return entryFilePath => {
-    const rest = (previous ? previous(entryFilePath) : []).filter(file => file !== core && file !== INSTALL_WINDOWS);
-    return [...(core ? [core] : []), INSTALL_WINDOWS, ...rest];
+    const rest = (previous ? previous(entryFilePath) : []).filter(file => file !== core && !installs.includes(file));
+    return [...(core ? [core] : []), ...installs, ...rest];
   };
+}
+
+/**
+ * The install's path as this package sits on disk, and as the file system
+ * really has it when those differ (a symlinked workspace, a substituted
+ * drive): the list only orders a path spelled as the graph keys the module,
+ * and Metro may key it by either. A precaution — the transformer imports the
+ * install from Expo's preludes as well, so the order holds when neither
+ * matches.
+ * @param {(file: string) => string} [realpath]
+ */
+function installPaths(realpath = file => fs.realpathSync.native(file)) {
+  try {
+    const real = realpath(INSTALL_WINDOWS);
+    return real === INSTALL_WINDOWS ? [INSTALL_WINDOWS] : [INSTALL_WINDOWS, real];
+  } catch {
+    return [INSTALL_WINDOWS];
+  }
 }
 
 /**
@@ -225,6 +245,13 @@ function withWindows(config, options = {}) {
     if (appConfig) process.env.EXPO_PUBLIC_WINDOWS_APP_CONFIG = appConfig;
   }
 
+  // Expo's export serializer keeps the serializer object it was handed when
+  // the config was made and reads the run-before-main list from that one,
+  // so the wrapped list goes onto it as well as onto the config returned;
+  // otherwise a Release bundle runs Expo's preludes without the install.
+  const runBefore = runBeforeMain(projectRoot, serializer.getModulesRunBeforeMainModule);
+  /** @type {{getModulesRunBeforeMainModule?: typeof runBefore}} */ (serializer).getModulesRunBeforeMainModule = runBefore;
+
   return {
     ...config,
     resolver: {
@@ -240,9 +267,9 @@ function withWindows(config, options = {}) {
     },
     serializer: {
       ...serializer,
-      getModulesRunBeforeMainModule: runBeforeMain(projectRoot, serializer.getModulesRunBeforeMainModule),
+      getModulesRunBeforeMainModule: runBefore,
     },
   };
 }
 
-module.exports = {withWindows, redirectReactNative, resolveWindows, readPublicAppConfig, mainFile, runBeforeMain, ALIASES, TRANSFORMER, INSTALL_WINDOWS};
+module.exports = {withWindows, redirectReactNative, resolveWindows, readPublicAppConfig, mainFile, runBeforeMain, installPaths, ALIASES, TRANSFORMER, INSTALL_WINDOWS};

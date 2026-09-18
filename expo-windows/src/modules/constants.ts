@@ -3,9 +3,11 @@ import {uuidv4} from '../uuid';
 
 /**
  * The app config `withWindows` embeds: it reads the project's public config
- * with `expo/config` and puts it in `process.env.EXPO_PUBLIC_WINDOWS_APP_CONFIG`,
- * which babel-preset-expo inlines into the bundle the way it inlines every
- * `EXPO_PUBLIC_` variable — so `Constants.expoConfig` is the same object here
+ * with `expo/config` and puts it in the `EXPO_PUBLIC_WINDOWS_APP_CONFIG`
+ * variable, and the runtime's transformer writes the value into this file
+ * (babel-preset-expo inlines `EXPO_PUBLIC_` variables into an app's own
+ * files only; the dev server would hand it over at run time, a Release
+ * build has no one to) — so `Constants.expoConfig` is the same object here
  * as the config plugin embeds in a native app.
  */
 export function readAppConfig(): Record<string, unknown> | null {

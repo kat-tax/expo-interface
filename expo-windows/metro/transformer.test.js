@@ -1,6 +1,6 @@
 // @ts-check
 const path = require('node:path');
-const {INSTALL, isEntry, withInstall} = require('./transformer');
+const {INSTALL, isEntry, isPrelude, withAppConfig, withInstall} = require('./transformer');
 
 describe('transformer', () => {
   afterEach(() => {
@@ -27,6 +27,31 @@ describe('transformer', () => {
     expect(withInstall(src, 'index.js', 'windows', path.resolve('/app/index.js'), '/app')).toBe(`import '${INSTALL}';\n${src}`);
   });
 
+  it("prepends the install to Expo's preludes too, which run before the entry and reach Expo Modules Core", () => {
+    const src = "import './runtime';\n";
+    expect(isPrelude('node_modules/expo/src/winter/index.ts')).toBe(true);
+    expect(isPrelude('/app/node_modules/expo/build/winter/index.js')).toBe(true);
+    expect(isPrelude('node_modules\\@expo\\metro-runtime\\src\\index.ts')).toBe(true);
+    expect(isPrelude('node_modules/expo/src/winter/fetch.ts')).toBe(false);
+    expect(isPrelude('node_modules/expo/src/index.ts')).toBe(false);
+    expect(withInstall(src, 'node_modules/expo/src/winter/index.ts', 'windows', undefined)).toBe(`import '${INSTALL}';\n${src}`);
+    expect(withInstall(src, 'node_modules/@expo/metro-runtime/src/index.ts', 'windows', undefined)).toBe(`import '${INSTALL}';\n${src}`);
+    expect(withInstall(src, 'node_modules/expo/src/winter/index.ts', 'android', undefined)).toBe(src);
+  });
+
+  it("writes the app config into the runtime's constants module for a Windows bundle, and nowhere else", () => {
+    const src = 'const json = process.env.EXPO_PUBLIC_WINDOWS_APP_CONFIG;\n';
+    const value = '{"name":"App","scheme":"app"}';
+    expect(withAppConfig(src, 'node_modules/expo-windows/src/modules/constants.ts', 'windows', value)).toBe(`const json = ${JSON.stringify(value)};\n`);
+    expect(withAppConfig(src, '/app/node_modules/expo-windows/src/modules/constants.ts', 'windows', value)).toBe(`const json = ${JSON.stringify(value)};\n`);
+    expect(withAppConfig(src, 'expo-windows\\src\\modules\\constants.ts', 'windows', value)).toBe(`const json = ${JSON.stringify(value)};\n`);
+    expect(withAppConfig(src, 'node_modules/expo-windows/src/modules/constants.ts', 'ios', value)).toBe(src);
+    expect(withAppConfig(src, 'node_modules/expo-windows/src/modules/constants.test.ts', 'windows', value)).toBe(src);
+    expect(withAppConfig(src, 'src/app.ts', 'windows', value)).toBe(src);
+    // Without a config in the environment the read stays as it is.
+    expect(withAppConfig(src, 'node_modules/expo-windows/src/modules/constants.ts', 'windows', undefined)).toBe(src);
+  });
+
   it('hands the source to the transformer it wraps, with the install first on Windows', async () => {
     const calls = /** @type {any[]} */ ([]);
     const fake = path.join(__dirname, '..', '..', 'node_modules', '.cache', 'expo-windows-fake-transformer.cjs');
@@ -43,7 +68,7 @@ describe('transformer', () => {
     calls.push(entry, passed);
     expect(entry.src).toBe(`import '${INSTALL}';\nmain();`);
     expect(passed).toBe(other);
-    expect(getCacheKey()).toBe(`fake:expo-windows:${path.normalize('/app/index.js')}`);
+    expect(getCacheKey()).toBe(`fake:expo-windows:${path.normalize('/app/index.js')}:`);
   });
 });
 
@@ -53,11 +78,11 @@ describe('transformer defaults', () => {
     delete process.env.EXPO_WINDOWS_ENTRY;
     delete require.cache[require.resolve('./transformer')];
     const fresh = require('./transformer');
-    expect(fresh.getCacheKey()).toMatch(/:expo-windows:$/);
+    expect(fresh.getCacheKey()).toMatch(/:expo-windows::$/);
     const bare = path.join(__dirname, '..', '..', 'node_modules', '.cache', 'expo-windows-bare-transformer.cjs');
     require('node:fs').writeFileSync(bare, 'module.exports = {transform: async args => args};');
     process.env.EXPO_WINDOWS_UPSTREAM_TRANSFORMER = bare;
     delete require.cache[require.resolve('./transformer')];
-    expect(require('./transformer').getCacheKey()).toBe(':expo-windows:');
+    expect(require('./transformer').getCacheKey()).toBe(':expo-windows::');
   });
 });

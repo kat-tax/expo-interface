@@ -76,7 +76,7 @@ jobs:
         with:
           name: windows-app-${{ matrix.line.cli }}-${{ matrix.line.preview && 'preview' || 'stable' }}
           path: |
-            ${{ runner.temp }}/winci/WinCi/windows/x64/Debug/*.exe
+            ${{ runner.temp }}/winci/WinCi/windows/x64/*/*.exe
             ${{ runner.temp }}/winci/WinCi/windows/*/Bundle
           if-no-files-found: ignore
           retention-days: 7

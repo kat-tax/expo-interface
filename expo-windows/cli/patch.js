@@ -40,15 +40,26 @@ function setProjectProperty(vcxproj, name, value) {
 }
 
 /**
+ * The bundle command react-native-windows' Release build runs: the runtime's
+ * own, which hands the target's arguments to Expo's exporter (see
+ * `./bundle.js`); the template's default is the React Native CLI's bundle
+ * command, which an Expo app does not carry and which starts from an
+ * `index.js` the app does not have.
+ */
+const BUNDLE_COMMAND = 'npx expo-windows bundle';
+
+/**
  * The project file, set to build an unpackaged app that bootstraps the
- * Windows App Runtime itself: the template leaves
+ * Windows App Runtime itself — the template leaves
  * `WindowsAppSdkAutoInitialize` off, which is right for a packaged app and
- * aborts an unpackaged one before its first line.
+ * aborts an unpackaged one before its first line — and to bundle through
+ * Expo's exporter in a Release build.
  * @param {string} vcxproj
  */
 function patchVcxproj(vcxproj) {
   let text = setProjectProperty(vcxproj, 'WindowsPackageType', 'None');
   text = setProjectProperty(text, 'WindowsAppSdkAutoInitialize', 'true');
+  text = setProjectProperty(text, 'BundleCliCommand', BUNDLE_COMMAND);
   return text;
 }
 

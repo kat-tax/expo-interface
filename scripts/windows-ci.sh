@@ -126,4 +126,18 @@ fi
   -p:RunAutolinkCheck=false -p:RestorePackagesConfig=true
 ls -la "windows/x64/Debug/$NAME.exe"
 
+step "MSBuild, Release"
+# A Release build carries the JavaScript: react-native-windows' bundle target
+# runs `expo-windows bundle` (init pointed it there), which hands the
+# target's arguments to `expo export:embed`, then compiles the bundle to
+# Hermes bytecode and copies the Bundle folder next to the exe.
+"$MSBUILD" "windows/$NAME.sln" -t:"$NAME" -restore -m -v:m -nologo \
+  -p:Configuration=Release -p:Platform=x64 -p:PlatformToolset="${TOOLSET:-v143}" \
+  -p:WindowsTargetPlatformVersion=10.0.22621.0 \
+  -p:RunAutolinkCheck=false -p:RestorePackagesConfig=true
+ls -la "windows/x64/Release/$NAME.exe"
+ls -la "windows/x64/Release/Bundle/index.windows.bundle"
+# Hermes bytecode opens with its magic number.
+[ "$(head -c 4 "windows/x64/Release/Bundle/index.windows.bundle" | od -A n -t x1 | tr -d ' ')" = "c61fbc03" ]
+
 step "Built"

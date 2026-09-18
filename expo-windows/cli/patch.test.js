@@ -33,7 +33,7 @@ describe('patchVcxproj', () => {
     const patched = patchVcxproj(VCXPROJ);
     expect(patched).toContain('<WindowsAppSdkAutoInitialize>true</WindowsAppSdkAutoInitialize>');
     expect(patched).not.toContain('<WindowsAppSdkAutoInitialize>false</WindowsAppSdkAutoInitialize>');
-    expect(patched).toContain('<PropertyGroup Label="Globals">\n    <WindowsPackageType>None</WindowsPackageType>');
+    expect(patched).toContain('<PropertyGroup Label="Globals">\n    <BundleCliCommand>npx expo-windows bundle</BundleCliCommand>\n    <WindowsPackageType>None</WindowsPackageType>');
     expect(patchVcxproj(patched)).toBe(patched);
   });
 

@@ -181,9 +181,14 @@ describe('runBeforeMain', () => {
     expect(INSTALL_WINDOWS.endsWith(path.join('src', 'install.windows.ts'))).toBe(true);
   });
 
-  it('is wired into the serializer', () => {
-    const config = withWindows(/** @type {any} */ ({serializer: {getModulesRunBeforeMainModule: () => ['/expo/winter']}}), {projectRoot: '/app', appConfig: false});
+  it("is wired into the serializer — the one returned and the one given, which Expo's export serializer holds on to", () => {
+    const given = /** @type {any} */ ({serializer: {getModulesRunBeforeMainModule: () => ['/expo/winter']}});
+    const config = withWindows(given, {projectRoot: '/app', appConfig: false});
     expect(config.serializer.getModulesRunBeforeMainModule('/app/index.js')).toEqual([INSTALL_WINDOWS, '/expo/winter']);
+    expect(given.serializer.getModulesRunBeforeMainModule('/app/index.js')).toEqual([INSTALL_WINDOWS, '/expo/winter']);
+    expect(given.serializer.getModulesRunBeforeMainModule).toBe(config.serializer.getModulesRunBeforeMainModule);
+    // Applied again, the list stays one install deep.
+    expect(withWindows(config, {projectRoot: '/app', appConfig: false}).serializer.getModulesRunBeforeMainModule('/app/index.js')).toEqual([INSTALL_WINDOWS, '/expo/winter']);
   });
 });
 
@@ -192,5 +197,18 @@ describe('runBeforeMain with react-native-windows', () => {
     const {INSTALL_WINDOWS, runBeforeMain} = require('./index');
     const list = runBeforeMain('/app', () => ['/rn/InitializeCore', '/rnw/InitializeCore', '/expo/winter'], '/rnw/InitializeCore')('/app/index.js');
     expect(list).toEqual(['/rnw/InitializeCore', INSTALL_WINDOWS, '/rn/InitializeCore', '/expo/winter']);
+  });
+
+  it("lists the install by its real path as well when the file system's differs, and once when it does not", () => {
+    const {INSTALL_WINDOWS, installPaths} = require('./index');
+    expect(installPaths(file => file)).toEqual([INSTALL_WINDOWS]);
+    expect(installPaths(() => '/real/expo-windows/src/install.windows.ts')).toEqual([INSTALL_WINDOWS, '/real/expo-windows/src/install.windows.ts']);
+    expect(
+      installPaths(() => {
+        throw new Error('gone');
+      }),
+    ).toEqual([INSTALL_WINDOWS]);
+    // On disk here the package is where it sits, so the default answers once.
+    expect(installPaths()).toEqual([INSTALL_WINDOWS]);
   });
 });

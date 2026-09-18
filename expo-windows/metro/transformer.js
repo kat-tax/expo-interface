@@ -15,6 +15,18 @@ const path = require('node:path');
 const INSTALL = 'expo-windows/src/install';
 const ENTRIES = [/(^|[\\/])node_modules[\\/]expo-router[\\/]entry\.js$/, /(^|[\\/])node_modules[\\/]expo[\\/]AppEntry\.js$/];
 
+/**
+ * The modules Expo runs before the entry (`expo/src/winter`,
+ * `@expo/metro-runtime`), which reach Expo Modules Core and so need the
+ * install before them as well. `withWindows` lists the install ahead of them
+ * in Metro's run-before-main order, but that list reaches a bundle only
+ * through the serializer that asks for it — Expo's export serializer held
+ * on to the one it was given before `withWindows` ran, once — and only for
+ * a path spelled as the graph keys it. Importing the install from these
+ * files holds whatever the list does.
+ */
+const PRELUDES = [/(^|[\\/])node_modules[\\/]expo[\\/](src|build)[\\/]winter[\\/]index\.[jt]s$/, /(^|[\\/])node_modules[\\/]@expo[\\/]metro-runtime[\\/](src|build)[\\/]index\.[jt]s$/];
+
 /** @typedef {{transform(args: any): Promise<any>; getCacheKey?(): string}} Upstream */
 
 /** @type {Upstream | null} */
@@ -43,7 +55,16 @@ function isEntry(filename, main, projectRoot = '') {
 }
 
 /**
- * The source with the install imported first, for a Windows entry; the source as it is otherwise.
+ * Whether `filename` is one of the modules Expo runs before the entry.
+ * @param {string} filename
+ */
+function isPrelude(filename) {
+  const normalized = path.normalize(filename);
+  return PRELUDES.some(pattern => pattern.test(normalized));
+}
+
+/**
+ * The source with the install imported first, for a Windows entry or one of Expo's preludes; the source as it is otherwise.
  * @param {string} src
  * @param {string} filename
  * @param {string | null | undefined} platform
@@ -51,18 +72,41 @@ function isEntry(filename, main, projectRoot = '') {
  * @param {string} [projectRoot]
  */
 function withInstall(src, filename, platform, main, projectRoot) {
-  return platform === 'windows' && isEntry(filename, main, projectRoot) ? `import '${INSTALL}';\n${src}` : src;
+  return platform === 'windows' && (isEntry(filename, main, projectRoot) || isPrelude(filename)) ? `import '${INSTALL}';\n${src}` : src;
+}
+
+/** The runtime module that reads the embedded app config. */
+const CONFIG_READER = /(^|[\\/])expo-windows[\\/]src[\\/]modules[\\/]constants\.ts$/;
+const CONFIG_VARIABLE = 'EXPO_PUBLIC_WINDOWS_APP_CONFIG';
+
+/**
+ * The source of the runtime's constants module with the app config written
+ * in for a Windows bundle. `withWindows` puts the config in the
+ * `EXPO_PUBLIC_WINDOWS_APP_CONFIG` variable; babel-preset-expo inlines
+ * `EXPO_PUBLIC_` variables into an app's own files in a production build and
+ * leaves files under `node_modules` alone (the dev server hands every such
+ * variable to the bundle at run time instead), so a Release build read
+ * nothing there. The transformer writes the value in itself, in every mode.
+ * @param {string} src
+ * @param {string} filename
+ * @param {string | null | undefined} platform
+ * @param {string | undefined} [value] the config JSON; the environment's by default
+ */
+function withAppConfig(src, filename, platform, value = process.env[CONFIG_VARIABLE]) {
+  if (platform !== 'windows' || value === undefined || !CONFIG_READER.test(path.normalize(filename))) return src;
+  return src.split(`process.env.${CONFIG_VARIABLE}`).join(JSON.stringify(value));
 }
 
 /** @param {{src: string; filename: string; options: {platform?: string | null; projectRoot?: string}}} args */
 async function transform(args) {
-  const src = withInstall(args.src, args.filename, args.options.platform, process.env.EXPO_WINDOWS_ENTRY, args.options.projectRoot);
+  const installed = withInstall(args.src, args.filename, args.options.platform, process.env.EXPO_WINDOWS_ENTRY, args.options.projectRoot);
+  const src = withAppConfig(installed, args.filename, args.options.platform);
   return upstream().transform(src === args.src ? args : {...args, src});
 }
 
 function getCacheKey() {
   const key = upstream().getCacheKey?.() ?? '';
-  return `${key}:expo-windows:${process.env.EXPO_WINDOWS_ENTRY ?? ''}`;
+  return `${key}:expo-windows:${process.env.EXPO_WINDOWS_ENTRY ?? ''}:${process.env[CONFIG_VARIABLE] ?? ''}`;
 }
 
-module.exports = {transform, getCacheKey, withInstall, isEntry, INSTALL};
+module.exports = {transform, getCacheKey, withInstall, withAppConfig, isEntry, isPrelude, INSTALL};

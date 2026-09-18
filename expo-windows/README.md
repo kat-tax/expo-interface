@@ -51,10 +51,22 @@ module.exports = withWindows(getDefaultConfig(__dirname));
 ```
 
 ```sh
-npx expo-windows init     # writes windows/ from the cpp-app template and patches it; keeps your metro.config.js
-npx expo-windows run      # expo start + run-windows
-npx expo-windows bundle   # the release JavaScript, for the release build
+npx expo-windows init            # writes windows/ from the cpp-app template and patches it; keeps your metro.config.js
+npx expo-windows run             # expo start + run-windows
+npx expo-windows run --release   # a Release build: the bundle inside, no server, no developer menu
+npx expo-windows bundle          # the JavaScript and assets into windows/<App>/Bundle by hand
 ```
+
+A Release build stands alone. react-native-windows' Release configuration
+runs a bundle command before compiling and then compiles the bundle to
+Hermes bytecode; the template's command is the React Native CLI's, from an
+`index.js` an Expo app does not have, so `init` points it at `expo-windows
+bundle`, which hands the target's arguments to `expo export:embed`. The
+bundle and its assets land in `windows/<App>/Bundle`, and the app loads
+them from the `Bundle` folder next to its exe. The app config
+(`Constants.expoConfig`) is written into the bundle by the runtime's
+transformer, so it is there without a server, and the runtime's install
+runs before Expo's own start-up modules whichever way the bundle is made.
 
 The machine needs what react-native-windows needs: Visual Studio with the
 C++ desktop workload and the Windows 11 SDK (`rnw-dependencies.ps1`), plus

@@ -82,7 +82,7 @@
     },
     "expo-windows": {
       "name": "expo-windows",
-      "version": "0.17.0",
+      "version": "0.18.0",
       "bin": {
         "expo-windows": "cli/index.js",
       },
