@@ -93,8 +93,19 @@ and `makeappx` from the Windows SDK, then `signtool`. The package depends on
 the Windows App Runtime framework package, and the exe is the same one an
 unpackaged install runs: its components load by name from beside it, the
 App Runtime's bootstrapper stands down under package identity, and so does
-the runtime's own protocol registration, which the manifest covers. What
-the package says beyond the config comes from `extra.windows`:
+the runtime's own protocol registration, which the manifest covers.
+
+The difference between the two roads is who brings the Windows App
+Runtime. A package declares it and Windows installs it with the app. A bare
+exe bootstraps against a runtime that has to be on the machine already, so
+a machine that has never built the app needs it installed: the MSIX
+packages come with the Windows App SDK the build restores
+(`microsoft.windowsappsdk.runtime/<version>/tools/MSIX/win10-x64`, added in
+that order: the framework, `Main`, `Singleton`, `DDLM`), or Microsoft's own
+runtime installer does it. The CI script does this before its smoke run,
+which is what proves the exe starts on a machine that only built it.
+
+What the package says beyond the config comes from `extra.windows`:
 
 ```json
 "extra": {"windows": {

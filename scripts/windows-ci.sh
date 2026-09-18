@@ -170,13 +170,57 @@ step "Package"
 node node_modules/expo-windows/cli/index.js package --no-build --self-signed
 ls -la windows/AppPackages/*/*.msix windows/AppPackages/*/*.cer
 
+step "The Windows App Runtime"
+# An unpackaged app bootstraps against the Windows App Runtime, which a
+# clean machine has not got: the MSIX packages come with the Windows App
+# SDK the build just restored, in the order its own installer uses. (A
+# packaged app declares the runtime as a dependency in its manifest and
+# Windows brings it in at install, so this is the unpackaged road only.)
+RUNTIME_MSIX=""
+for store in "${NUGET_PACKAGES:-}" "$HOME/.nuget/packages" "$(cygpath -u "${USERPROFILE:-$HOME}")/.nuget/packages"; do
+  [ -n "$store" ] || continue
+  candidate="$(ls -d "$store"/microsoft.windowsappsdk.runtime/*/tools/MSIX/win10-x64 2>/dev/null | sort | tail -1)"
+  [ -n "$candidate" ] && { RUNTIME_MSIX="$candidate"; break; }
+done
+if [ -n "$RUNTIME_MSIX" ]; then
+  echo "runtime packages: $RUNTIME_MSIX"
+  for package in Microsoft.WindowsAppRuntime.1.8 Microsoft.WindowsAppRuntime.Main.1.8 Microsoft.WindowsAppRuntime.Singleton.1.8 Microsoft.WindowsAppRuntime.DDLM.1.8; do
+    file="$RUNTIME_MSIX/$package.msix"
+    [ -f "$file" ] || continue
+    # Already installed (a developer's machine) is not a failure.
+    powershell -NoProfile -Command "try { Add-AppxPackage -Path '$(cygpath -w "$file")' -ErrorAction Stop; 'installed $package' } catch { 'skipped $package: ' + \$_.Exception.Message }"
+  done
+  powershell -NoProfile -Command "(Get-AppxPackage -Name 'Microsoft.WindowsAppRuntime.1.8' | Select-Object -First 1).PackageFullName"
+else
+  echo "no Windows App SDK runtime packages in the NuGet store; the app may find no runtime to bootstrap"
+fi
+
 step "Smoke"
 # The Release exe, launched with EXPO_WINDOWS_SMOKE naming a file: the app
 # writes whether its bundle loaded there and exits (init patched the entry
 # for it); the job waits for the file and fails unless it says loaded.
-rm -f smoke.txt
-EXPO_WINDOWS_SMOKE="$(cygpath -w "$PWD/smoke.txt")" "windows/x64/Release/$NAME.exe" &
-for i in $(seq 1 60); do [ -f smoke.txt ] && break; sleep 2; done
+rm -f smoke.txt smoke.log
+EXPO_WINDOWS_SMOKE="$(cygpath -w "$PWD/smoke.txt")" "windows/x64/Release/$NAME.exe" > smoke.log 2>&1 &
+smoke_pid=$!
+for i in $(seq 1 60); do
+  [ -f smoke.txt ] && break
+  kill -0 "$smoke_pid" 2>/dev/null || break
+  sleep 2
+done
+if [ ! -f smoke.txt ]; then
+  # Say what became of the app rather than that its marker is missing.
+  echo "the app left no marker: it never reported its bundle loaded"
+  if kill -0 "$smoke_pid" 2>/dev/null; then
+    echo "it is still running after 120 s; stopping it"
+    kill "$smoke_pid" 2>/dev/null || true
+  else
+    wait "$smoke_pid" && echo "it exited with code 0" || echo "it exited with code $?"
+  fi
+  [ -s smoke.log ] && { echo "-- its output"; cat smoke.log; }
+  echo "-- what Windows logged about it"
+  powershell -NoProfile -Command "Get-WinEvent -LogName Application -MaxEvents 40 -ErrorAction SilentlyContinue | Where-Object { \$_.Message -like '*$NAME*' -or \$_.Message -like '*WindowsAppRuntime*' } | Select-Object -First 3 | Format-List TimeCreated, ProviderName, Message" || true
+  exit 1
+fi
 cat smoke.txt; echo
 # The marker carries the numbers a regression has to beat: the milliseconds
 # from the process start to the bundle's load, and the working set then, in
