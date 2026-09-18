@@ -2,6 +2,8 @@
 
 #include "Common.h"
 
+#include <appmodel.h>
+
 namespace ExpoWindows {
 
 namespace {
@@ -69,6 +71,11 @@ HWND MainWindow() noexcept {
   WindowSearch search{GetCurrentProcessId(), nullptr};
   EnumWindows(FindMainWindow, reinterpret_cast<LPARAM>(&search));
   return search.found;
+}
+
+bool HasPackageIdentity() noexcept {
+  UINT32 length = 0;
+  return GetCurrentPackageFullName(&length, nullptr) != APPMODEL_ERROR_NO_PACKAGE;
 }
 
 std::wstring ToWide(std::string_view utf8) noexcept {

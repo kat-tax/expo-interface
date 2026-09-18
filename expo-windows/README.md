@@ -68,6 +68,43 @@ them from the `Bundle` folder next to its exe. The app config
 transformer, so it is there without a server, and the runtime's install
 runs before Expo's own start-up modules whichever way the bundle is made.
 
+```sh
+npx expo-windows package --self-signed          # windows/AppPackages/<Name>/<Name>_<version>_x64.msix, signed for sideloading
+npx expo-windows package --cert app.pfx --password ...   # signed with your certificate (its subject is the Publisher)
+npx expo-windows package --no-build              # the Release output as it is
+```
+
+`package` makes the app an MSIX without Visual Studio's packaging project:
+a Release build, its output copied into a layout without the build's own
+files, a manifest written from the Expo config (the name, `version` padded
+to four parts, `scheme` as a protocol, `icon` rendered to the tile sizes)
+and `makeappx` from the Windows SDK, then `signtool`. The package depends on
+the Windows App Runtime framework package, and the exe is the same one an
+unpackaged install runs: its components load by name from beside it, the
+App Runtime's bootstrapper stands down under package identity, and so does
+the runtime's own protocol registration, which the manifest covers. What
+the package says beyond the config comes from `extra.windows`:
+
+```json
+"extra": {"windows": {
+  "packageName": "Contoso.DropFiles",
+  "publisher": "CN=Contoso",
+  "publisherDisplayName": "Contoso",
+  "version": "1.2.3.0",
+  "capabilities": ["webcam", "microphone", "location"],
+  "language": "en-US",
+  "runtime": "1.8"
+}}
+```
+
+Windows installs a signed package whose certificate chains to a root the
+machine trusts. A self-signed one (`--self-signed` writes the `.pfx` and a
+`.cer` next to the package) is trusted by importing the `.cer` into the
+machine's Trusted People store, which takes an administrator; a user-level
+import is not enough. An unsigned package installs only with Developer Mode
+on (`Add-AppxPackage -AllowUnsigned`). For distribution, sign with a
+certificate from a public CA or through the Store, which signs itself.
+
 The machine needs what react-native-windows needs: Visual Studio with the
 C++ desktop workload and the Windows 11 SDK (`rnw-dependencies.ps1`), plus
 PowerShell 7 (`pwsh`) and a .NET SDK on the PATH — react-native-windows'

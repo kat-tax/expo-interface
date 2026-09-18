@@ -140,4 +140,12 @@ ls -la "windows/x64/Release/Bundle/index.windows.bundle"
 # Hermes bytecode opens with its magic number.
 [ "$(head -c 4 "windows/x64/Release/Bundle/index.windows.bundle" | od -A n -t x1 | tr -d ' ')" = "c61fbc03" ]
 
+step "Package"
+# The Release output as an MSIX, self-signed for the run: the layout without
+# the build's own files, the manifest from the app config, the tiles from the
+# icon, makeappx and signtool from the SDK. Installing it takes a trusted
+# certificate, so CI only asserts the package.
+node node_modules/expo-windows/cli/index.js package --no-build --self-signed
+ls -la windows/AppPackages/*/*.msix windows/AppPackages/*/*.cer
+
 step "Built"

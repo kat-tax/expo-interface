@@ -86,6 +86,11 @@ struct ExpoWindowsLinking {
   REACT_METHOD(RegisterProtocol, L"registerProtocol")
   void RegisterProtocol(std::string scheme, std::string displayName, ReactPromise<void> promise) noexcept {
     try {
+      // A packaged app's manifest declares its protocols; the registration is the unpackaged app's.
+      if (HasPackageIdentity()) {
+        promise.Resolve();
+        return;
+      }
       wchar_t exe[MAX_PATH]{};
       GetModuleFileNameW(nullptr, exe, MAX_PATH);
       ActivationRegistrationManager::RegisterForProtocolActivation(ToWide(scheme), L"", ToWide(displayName), exe);

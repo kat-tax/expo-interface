@@ -11,6 +11,9 @@ namespace ExpoWindows {
 /** The app's main window: the first visible, unowned top-level window of this process; null before it exists. */
 HWND MainWindow() noexcept;
 
+/** Whether the process runs with package identity (installed from an MSIX), where the manifest declares what an unpackaged app registers itself. */
+bool HasPackageIdentity() noexcept;
+
 /** The app's own folder in the user's local data: `%LOCALAPPDATA%\<the exe's name>`. Throws when the shell cannot say. */
 std::filesystem::path AppDataFolder();
 

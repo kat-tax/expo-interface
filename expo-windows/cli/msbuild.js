@@ -4,6 +4,8 @@
  * `run-windows`, through its `--msbuildprops` option.
  */
 
+const path = require('node:path');
+
 /**
  * The target SDK react-native-windows 0.84's New Architecture pins the app
  * to. Passed as a global property so that a library project asking for the
@@ -39,4 +41,31 @@ function withTargetSdk(args) {
   return next;
 }
 
-module.exports = {TARGET_SDK, withTargetSdk};
+/**
+ * MSBuild, as Visual Studio's installer locates it (`vswhere`), for the
+ * commands that build without `run-windows` — which, on the 0.84 line, asks
+ * for a Visual Studio newer than the one that builds the project.
+ * @param {(command: string, args: string[]) => string} [query] runs a program and returns its output; `vswhere` by default
+ * @returns {string} the path of MSBuild.exe
+ */
+function findMsBuild(query = runVswhere) {
+  const vswhere = path.join(process.env['ProgramFiles(x86)'] ?? 'C:\\Program Files (x86)', 'Microsoft Visual Studio', 'Installer', 'vswhere.exe');
+  const found = query(vswhere, ['-latest', '-products', '*', '-requires', 'Microsoft.Component.MSBuild', '-find', 'MSBuild\\**\\Bin\\MSBuild.exe'])
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .find(Boolean);
+  if (!found) throw new Error('MSBuild was not found: install Visual Studio with the C++ desktop workload');
+  return found;
+}
+
+/**
+ * @param {string} command
+ * @param {string[]} args
+ */
+function runVswhere(command, args) {
+  const {spawnSync} = require('node:child_process');
+  const result = spawnSync(command, args, {encoding: 'utf8'});
+  return result.status === 0 ? result.stdout : '';
+}
+
+module.exports = {TARGET_SDK, withTargetSdk, findMsBuild};

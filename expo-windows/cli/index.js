@@ -6,6 +6,7 @@
  *     expo-windows init [--overwrite] [--cli-version <version>]
  *     expo-windows run [--release] [--no-packager] [-- <run-windows args>]
  *     expo-windows bundle [--dev] [<the MSBuild bundle target's arguments>]
+ *     expo-windows package [--no-build] [--self-signed | --cert <pfx> [--password <text>]] [--publisher <CN=...>] [--toolset <v143>]
  *
  * `init` writes `windows/` with react-native-windows' `cpp-app` template
  * (through the React Native community CLI, fetched on demand since an Expo
@@ -23,7 +24,8 @@ const {spawn, spawnSync} = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const {exportArgs} = require('./bundle');
-const {withTargetSdk} = require('./msbuild');
+const {TARGET_SDK, findMsBuild, withTargetSdk} = require('./msbuild');
+const {copyLayout, manifestFor, packageOf, sdkTool, selfSignedScript, writeTiles} = require('./package');
 const {safeProjectName} = require('./patch');
 const {applyPatches, ensureScreensExclusion, findProject, keepMetroConfig} = require('./project');
 
@@ -121,6 +123,98 @@ function bundle(args) {
   console.log(`bundle written to ${path.relative(projectRoot, /** @type {string} */ (flag(exported, '--bundle-output')))}`);
 }
 
+/**
+ * Runs a program by its path, with its arguments handed over as they are (no shell: the SDK's tools live under "Program Files").
+ * @param {string} command
+ * @param {string[]} args
+ */
+function runExe(command, args) {
+  const result = spawnSync(command, args, {cwd: projectRoot, stdio: 'inherit'});
+  if (result.status !== 0) {
+    console.error(`${path.basename(command)} ${args.join(' ')} failed with ${result.status ?? result.signal}`);
+    process.exit(result.status ?? 1);
+  }
+}
+
+/** The app's Expo config, resolved (`app.json` or `app.config.js` with its plugins' additions). */
+function expoConfig() {
+  const {getConfig} = require('expo/config');
+  return getConfig(projectRoot, {skipSDKVersionRequirement: true}).exp;
+}
+
+/**
+ * The app as an MSIX under `windows/AppPackages/<name>/`: a Release build
+ * (unless `--no-build`), its output as a layout with the manifest and tiles
+ * from the Expo config, packed with the SDK's `makeappx`, signed with the
+ * certificate given or a self-signed one made for the publisher (whose
+ * `.cer` a machine imports into Trusted People before it installs the
+ * package), or left unsigned for Developer Mode's `Add-AppxPackage -AllowUnsigned`.
+ * @param {string[]} args
+ */
+async function packageApp(args) {
+  const project = findProject(projectRoot);
+  if (!project) {
+    console.error('No windows/ project: run `expo-windows init` first');
+    process.exit(1);
+  }
+  const config = expoConfig();
+  const pkg = packageOf(config, {publisher: flag(args, '--publisher'), runtime: flag(args, '--runtime')});
+  const platform = flag(args, '--platform') ?? 'x64';
+  const output = path.join(projectRoot, 'windows', platform, 'Release');
+  if (!args.includes('--no-build')) {
+    const toolset = flag(args, '--toolset');
+    runExe(findMsBuild(), [
+      path.join('windows', `${project.name}.sln`),
+      `-t:${project.name}`,
+      '-restore',
+      '-m',
+      '-v:m',
+      '-nologo',
+      '-p:Configuration=Release',
+      `-p:Platform=${platform}`,
+      ...(toolset ? [`-p:PlatformToolset=${toolset}`] : []),
+      `-p:${TARGET_SDK}`,
+      '-p:RunAutolinkCheck=false',
+      '-p:RestorePackagesConfig=true',
+    ]);
+  }
+  if (!fs.existsSync(path.join(output, `${project.name}.exe`))) {
+    console.error(`No Release build at ${path.relative(projectRoot, output)}: build one, or drop --no-build`);
+    process.exit(1);
+  }
+  const icon = typeof config.icon === 'string' ? path.resolve(projectRoot, config.icon) : null;
+  if (!icon || !fs.existsSync(icon)) {
+    console.error('The package needs an icon: set `expo.icon` to a PNG in app.json');
+    process.exit(1);
+  }
+  const packages = path.join(projectRoot, 'windows', 'AppPackages', pkg.name);
+  const layout = path.join(packages, 'layout');
+  copyLayout(output, layout);
+  await writeTiles(projectRoot, icon, path.join(layout, 'Images'));
+  fs.writeFileSync(path.join(layout, 'AppxManifest.xml'), manifestFor(pkg, `${project.name}.exe`));
+  const msix = path.join(packages, `${pkg.name}_${pkg.version}_${platform}.msix`);
+  fs.rmSync(msix, {force: true});
+  runExe(sdkTool('makeappx'), ['pack', '/d', layout, '/p', msix, '/o']);
+  const cert = flag(args, '--cert');
+  const notes = [`package ${path.relative(projectRoot, msix)} (${pkg.name} ${pkg.version}, publisher ${pkg.publisher})`];
+  if (cert) {
+    const password = flag(args, '--password');
+    runExe(sdkTool('signtool'), ['sign', '/fd', 'SHA256', '/f', cert, ...(password ? ['/p', password] : []), msix]);
+    notes.push(`signed with ${cert}`);
+  } else if (args.includes('--self-signed')) {
+    const pfx = path.join(packages, `${pkg.name}.pfx`);
+    const cer = path.join(packages, `${pkg.name}.cer`);
+    const password = 'expo-windows';
+    // The script as an encoded command: no shell in between to take its quotes.
+    runExe('powershell', ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(selfSignedScript(pkg.publisher, pfx, cer, password), 'utf16le').toString('base64')]);
+    runExe(sdkTool('signtool'), ['sign', '/fd', 'SHA256', '/f', pfx, '/p', password, msix]);
+    notes.push(`signed with a self-signed certificate for ${pkg.publisher}; to install here, import ${path.relative(projectRoot, cer)} into the machine's Trusted People store (as an administrator: Import-Certificate -FilePath <cer> -CertStoreLocation Cert:\\LocalMachine\\TrustedPeople), then Add-AppxPackage <msix>`);
+  } else {
+    notes.push('unsigned: install with Developer Mode on (Add-AppxPackage -AllowUnsigned <msix>), or sign it with --cert or --self-signed');
+  }
+  console.log(notes.join('\n'));
+}
+
 const [command, ...rest] = process.argv.slice(2);
 switch (command) {
   case 'init':
@@ -132,7 +226,13 @@ switch (command) {
   case 'bundle':
     bundle(rest);
     break;
+  case 'package':
+    packageApp(rest).catch(error => {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    });
+    break;
   default:
-    console.log('usage: expo-windows <init|run|bundle> [options]');
+    console.log('usage: expo-windows <init|run|bundle|package> [options]');
     process.exit(command ? 1 : 0);
 }

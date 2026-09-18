@@ -78,5 +78,7 @@ jobs:
           path: |
             ${{ runner.temp }}/winci/WinCi/windows/x64/*/*.exe
             ${{ runner.temp }}/winci/WinCi/windows/*/Bundle
+            ${{ runner.temp }}/winci/WinCi/windows/AppPackages/*/*.msix
+            ${{ runner.temp }}/winci/WinCi/windows/AppPackages/*/*.cer
           if-no-files-found: ignore
           retention-days: 7
