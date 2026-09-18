@@ -54,3 +54,36 @@ describe('findMsBuild', () => {
     expect(() => findMsBuild()).toThrow(/MSBuild was not found/);
   });
 });
+
+describe('installedTargetSdk', () => {
+  const {installedTargetSdk} = require('./msbuild');
+  const fs = require('node:fs');
+  const os = require('node:os');
+  const path = require('node:path');
+
+  /** @param {string[]} versions */
+  function kits(versions) {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'expo-windows-sdk-'));
+    for (const version of versions) fs.mkdirSync(path.join(root, 'Include', version), {recursive: true});
+    fs.mkdirSync(path.join(root, 'Include', 'notes'), {recursive: true});
+    return root;
+  }
+
+  it('takes the pinned SDK when it is installed, else the newest, else the pinned one for MSBuild to name', () => {
+    expect(installedTargetSdk(kits(['10.0.20348.0', '10.0.22621.0', '10.0.26100.0']))).toBe(TARGET_SDK);
+    expect(installedTargetSdk(kits(['10.0.20348.0', '10.0.26100.0', '10.0.22000.0']))).toBe('WindowsTargetPlatformVersion=10.0.26100.0');
+    expect(installedTargetSdk(kits([]))).toBe(TARGET_SDK);
+    expect(installedTargetSdk(path.join(os.tmpdir(), 'no-such-kits'))).toBe(TARGET_SDK);
+  });
+
+  it('is what run passes by default, from the program files', () => {
+    const programFiles = process.env['ProgramFiles(x86)'];
+    delete process.env['ProgramFiles(x86)'];
+    try {
+      expect(installedTargetSdk()).toMatch(/^WindowsTargetPlatformVersion=10\.0\.\d+\.0$/);
+      expect(withTargetSdk([], 'WindowsTargetPlatformVersion=10.0.26100.0')).toEqual(['--msbuildprops', 'WindowsTargetPlatformVersion=10.0.26100.0']);
+    } finally {
+      if (programFiles !== undefined) process.env['ProgramFiles(x86)'] = programFiles;
+    }
+  });
+});

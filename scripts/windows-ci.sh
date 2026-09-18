@@ -125,13 +125,26 @@ else
   MSBUILD="$(cygpath -u "$(node -p "require('./node_modules/expo-windows/cli/msbuild').findMsBuild()")")"
 fi
 echo "msbuild: $MSBUILD"
-# The target SDK is the one react-native-windows 0.84's New Architecture pins
-# the app to, passed globally so that a library project asking for the latest
-# SDK installed (react-native-svg's does) builds metadata the app can
-# reference; `expo-windows run` passes the same to run-windows.
+# The target SDK is passed globally so that every project agrees on one: a
+# library asking for the latest SDK installed (react-native-svg's does) then
+# builds metadata the app can reference. It is the one react-native-windows
+# 0.84 pins the app to when that is installed, else the newest there is (a
+# GitHub runner's Visual Studio 2026 image ships a newer one only);
+# WINDOWS_SDK names another. `expo-windows run` chooses the same way.
+KITS="/c/Program Files (x86)/Windows Kits/10/Include"
+SDK="${WINDOWS_SDK:-}"
+if [ -z "$SDK" ]; then
+  if [ -d "$KITS/10.0.22621.0" ]; then
+    SDK=10.0.22621.0
+  else
+    SDK="$(ls "$KITS" 2>/dev/null | grep -E '^10\.0\.[0-9]+\.0$' | sort -t. -k3,3n | tail -1)"
+  fi
+fi
+[ -n "$SDK" ] || { echo "no Windows SDK under $KITS"; exit 1; }
+echo "target SDK: $SDK"
 "$MSBUILD" "windows/$NAME.sln" -t:"$NAME" -restore -m -v:m -nologo \
   -p:Configuration=Debug -p:Platform=x64 -p:PlatformToolset="${TOOLSET:-v143}" \
-  -p:WindowsTargetPlatformVersion=10.0.22621.0 \
+  -p:WindowsTargetPlatformVersion="$SDK" \
   -p:RunAutolinkCheck=false -p:RestorePackagesConfig=true
 ls -la "windows/x64/Debug/$NAME.exe"
 
@@ -142,7 +155,7 @@ step "MSBuild, Release"
 # Hermes bytecode and copies the Bundle folder next to the exe.
 "$MSBUILD" "windows/$NAME.sln" -t:"$NAME" -restore -m -v:m -nologo \
   -p:Configuration=Release -p:Platform=x64 -p:PlatformToolset="${TOOLSET:-v143}" \
-  -p:WindowsTargetPlatformVersion=10.0.22621.0 \
+  -p:WindowsTargetPlatformVersion="$SDK" \
   -p:RunAutolinkCheck=false -p:RestorePackagesConfig=true
 ls -la "windows/x64/Release/$NAME.exe"
 ls -la "windows/x64/Release/Bundle/index.windows.bundle"

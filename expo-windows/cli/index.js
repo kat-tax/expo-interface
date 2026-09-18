@@ -24,7 +24,7 @@ const {spawn, spawnSync} = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const {exportArgs} = require('./bundle');
-const {TARGET_SDK, findMsBuild, withTargetSdk} = require('./msbuild');
+const {findMsBuild, installedTargetSdk, withTargetSdk} = require('./msbuild');
 const {appInstallerFor, copyLayout, manifestFor, packageOf, sdkTool, selfSignedScript, writeTiles} = require('./package');
 const {safeProjectName} = require('./patch');
 const {applyPatches, ensureScreensExclusion, findProject, keepMetroConfig} = require('./project');
@@ -173,7 +173,7 @@ async function packageApp(args) {
       '-p:Configuration=Release',
       `-p:Platform=${platform}`,
       ...(toolset ? [`-p:PlatformToolset=${toolset}`] : []),
-      `-p:${TARGET_SDK}`,
+      `-p:${installedTargetSdk()}`,
       '-p:RunAutolinkCheck=false',
       '-p:RestorePackagesConfig=true',
     ]);

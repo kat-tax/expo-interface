@@ -181,9 +181,11 @@ first; a project written by hand wants the same two lines. And
 `react-native-svg`'s project asks for the latest SDK installed where
 react-native-windows pins the app to 10.0.22621.0, so its metadata targets a
 newer SDK than the app and the app drops the reference; `expo-windows run`
-passes `WindowsTargetPlatformVersion=10.0.22621.0` to `run-windows` as an
-MSBuild property (joined to a `--msbuildprops` of your own), and a build by
-hand passes `-p:WindowsTargetPlatformVersion=10.0.22621.0`.
+and `package` pass one `WindowsTargetPlatformVersion` to every project as an
+MSBuild property (joined to a `--msbuildprops` of your own): 10.0.22621.0
+when that SDK is installed, else the newest one there is, which is what a
+Visual Studio 2026 image on a GitHub runner has. A build by hand passes
+`-p:WindowsTargetPlatformVersion=<version>` the same way.
 
 ## What an app gets
 
