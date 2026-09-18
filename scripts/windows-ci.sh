@@ -85,6 +85,10 @@ KIT="$(node -p "require('./node_modules/expo-interface/package.json').version")"
 RUNTIME="$(node -p "require('./node_modules/expo-windows/package.json').version")"
 npm pkg set "dependencies.expo-interface=$KIT" "dependencies.expo-windows=$RUNTIME"
 echo "kit $KIT, runtime $RUNTIME"
+# The bin links an install would have made: the Release build runs the
+# bundle through `npx expo-windows`, which looks for node_modules/.bin.
+npm rebuild expo-windows --no-audit --no-fund
+ls node_modules/.bin/expo-windows*
 
 step "expo-windows init"
 node node_modules/expo-windows/cli/index.js init --cli-version "$CLI_VERSION"
@@ -105,6 +109,8 @@ grep -q "ExpoWindows" "windows/$NAME/AutolinkedNativeModules.g.cpp"
 grep -q "ReactNativeAsyncStorage" "windows/$NAME/AutolinkedNativeModules.g.cpp"
 grep -q "RNSVG" "windows/$NAME/AutolinkedNativeModules.g.cpp"
 ! grep -q "NetInfo" "windows/$NAME/AutolinkedNativeModules.g.cpp"
+# Nor is its Paper-era project in the solution, where it would drag react-native-windows' own project into the build.
+! grep -q "RNCNetInfo" "windows/$NAME.sln"
 
 step "The Windows JavaScript bundle"
 node node_modules/expo-windows/cli/index.js bundle
@@ -156,6 +162,15 @@ rm -f smoke.txt
 EXPO_WINDOWS_SMOKE="$(cygpath -w "$PWD/smoke.txt")" "windows/x64/Release/$NAME.exe" &
 for i in $(seq 1 60); do [ -f smoke.txt ] && break; sleep 2; done
 cat smoke.txt; echo
-grep -q "^loaded$" smoke.txt
+# The marker carries the numbers a regression has to beat: the milliseconds
+# from the process start to the bundle's load, and the working set then, in
+# kilobytes. The budgets are generous for a shared runner; tighten them per
+# app with SMOKE_MAX_MS and SMOKE_MAX_KB.
+# (`read` answers 1 at an end of file without a newline, which the marker has none of.)
+read -r smoke_status smoke_ms smoke_kb < smoke.txt || true
+[ "$smoke_status" = loaded ]
+echo "cold start ${smoke_ms:-?} ms · working set ${smoke_kb:-?} KB (budgets ${SMOKE_MAX_MS:-30000} ms, ${SMOKE_MAX_KB:-1048576} KB)"
+[ "${smoke_ms:-0}" -le "${SMOKE_MAX_MS:-30000}" ]
+[ "${smoke_kb:-0}" -le "${SMOKE_MAX_KB:-1048576}" ]
 
 step "Built"

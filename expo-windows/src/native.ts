@@ -274,6 +274,16 @@ export interface NativeImageLoader extends TurboModule {
   generateBlurhash(uri: string, componentsX: number, componentsY: number): Promise<string>;
 }
 
+export interface NativeCrashes extends TurboModule {
+  /** Writes a report of an error now, synchronously; whether it was written. */
+  record(type: string, message: string, stack: string): boolean;
+  /** The newest report's JSON text, or null. */
+  getLastCrash(): Promise<string | null>;
+  clearCrashes(): Promise<void>;
+  /** Faults the process on purpose: an access violation on the UI thread. */
+  crash(): void;
+}
+
 export type MediaKind = 'photo' | 'video' | 'audio' | 'unknown';
 
 export interface MediaAsset {
@@ -411,6 +421,7 @@ export const native = {
   print: () => get<NativePrint>('ExpoWindowsPrint'),
   camera: () => get<NativeCamera>('ExpoWindowsCamera'),
   imageLoader: () => get<NativeImageLoader>('ExpoWindowsImageLoader'),
+  crashes: () => get<NativeCrashes>('ExpoWindowsCrashes'),
 };
 
 export interface PrintJob {

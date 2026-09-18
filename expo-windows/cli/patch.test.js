@@ -86,13 +86,29 @@ describe('patchSmoke', () => {
     const entry = '  auto host = app.ReactNativeHost();\n  auto settings{reactNativeWin32App.ReactNativeHost().InstanceSettings()};\n#if BUNDLE\n  settings.UseFastRefresh(false);\n#endif\n';
     const patched = patchSmoke(entry);
     const lines = patched.split('\n');
-    expect(lines[1]).toBe('  auto settings{reactNativeWin32App.ReactNativeHost().InstanceSettings()};');
-    expect(lines[2]).toBe('  // expo-windows: a smoke run (EXPO_WINDOWS_SMOKE names a file) writes whether the bundle loaded there and exits.');
+    expect(lines[0]).toBe('#include <psapi.h>');
+    expect(lines[1]).toBe('#include <cstdio>');
+    expect(lines[3]).toBe('  auto settings{reactNativeWin32App.ReactNativeHost().InstanceSettings()};');
+    expect(lines[4]).toBe('  // expo-windows: a smoke run (EXPO_WINDOWS_SMOKE names a file) writes whether the bundle loaded there,');
     expect(patched).toContain('    if (GetEnvironmentVariableW(L"EXPO_WINDOWS_SMOKE", smoke, MAX_PATH) > 0) {');
     expect(patched).toContain('settings.InstanceLoaded([smokeFile](auto const &, winrt::Microsoft::ReactNative::InstanceLoadedEventArgs const &args) {');
+    expect(patched).toContain('GetProcessMemoryInfo(GetCurrentProcess(), &memory, sizeof(memory));');
+    expect(patched).toContain('"%s %llu %llu", args.Failed() ? "failed" : "loaded",');
     expect(patched).toContain('ExitProcess(args.Failed() ? 1 : 0);');
     expect(patched.endsWith('#if BUNDLE\n  settings.UseFastRefresh(false);\n#endif\n')).toBe(true);
     expect(patchSmoke(patched)).toBe(patched);
+  });
+
+  it('puts the headers after the pch when there is one, at the top without, and adds none that are there already', () => {
+    const entry = '#include "pch.h"\n#include <cstdio>\n\nint main() {\n  auto settings{host.InstanceSettings()};\n}\n';
+    const patched = patchSmoke(entry);
+    expect(patched.startsWith('#include "pch.h"\n#include <psapi.h>\n#include <cstdio>\n\nint main() {')).toBe(true);
+    expect(patched.split('#include <cstdio>').length - 1).toBe(1);
+    const bare = patchSmoke('int main() {\n  auto settings{host.InstanceSettings()};\n}\n');
+    expect(bare.startsWith('#include <psapi.h>\n#include <cstdio>\nint main() {')).toBe(true);
+    const complete = patchSmoke('#include "pch.h"\n#include <psapi.h>\n#include <cstdio>\nint main() {\n  auto settings{host.InstanceSettings()};\n}\n');
+    expect(complete.split('#include <psapi.h>').length - 1).toBe(1);
+    expect(complete.split('#include <cstdio>').length - 1).toBe(1);
   });
 
   it('leaves an entry without the settings line alone', () => {

@@ -126,6 +126,7 @@
     <ClCompile Include="CameraView.cpp" />
     <ClCompile Include="Clipboard.cpp" />
     <ClCompile Include="Common.cpp" />
+    <ClCompile Include="Crashes.cpp" />
     <ClCompile Include="Crypto.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="FileSystem.cpp" />

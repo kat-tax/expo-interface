@@ -65,17 +65,31 @@ function patchVcxproj(vcxproj) {
 
 /** The lines the smoke patch adds after the instance settings, indented as that line is. */
 const SMOKE_LINES = [
-  '// expo-windows: a smoke run (EXPO_WINDOWS_SMOKE names a file) writes whether the bundle loaded there and exits.',
+  '// expo-windows: a smoke run (EXPO_WINDOWS_SMOKE names a file) writes whether the bundle loaded there,',
+  '// with the milliseconds since the process started and the working set in kilobytes, and exits.',
   '{',
   '  wchar_t smoke[MAX_PATH]{};',
   '  if (GetEnvironmentVariableW(L"EXPO_WINDOWS_SMOKE", smoke, MAX_PATH) > 0) {',
   '    std::wstring smokeFile{smoke};',
   '    settings.InstanceLoaded([smokeFile](auto const &, winrt::Microsoft::ReactNative::InstanceLoadedEventArgs const &args) {',
-  '      const char *text = args.Failed() ? "failed" : "loaded";',
+  '      FILETIME created{}, exited{}, kernel{}, user{}, now{};',
+  '      GetProcessTimes(GetCurrentProcess(), &created, &exited, &kernel, &user);',
+  '      GetSystemTimeAsFileTime(&now);',
+  '      ULARGE_INTEGER start{}, current{};',
+  '      start.LowPart = created.dwLowDateTime;',
+  '      start.HighPart = created.dwHighDateTime;',
+  '      current.LowPart = now.dwLowDateTime;',
+  '      current.HighPart = now.dwHighDateTime;',
+  '      PROCESS_MEMORY_COUNTERS memory{};',
+  '      memory.cb = sizeof(memory);',
+  '      GetProcessMemoryInfo(GetCurrentProcess(), &memory, sizeof(memory));',
+  '      char text[96]{};',
+  '      int length = std::snprintf(text, sizeof(text), "%s %llu %llu", args.Failed() ? "failed" : "loaded",',
+  '          static_cast<unsigned long long>((current.QuadPart - start.QuadPart) / 10000ULL), static_cast<unsigned long long>(memory.WorkingSetSize / 1024));',
   '      HANDLE handle = CreateFileW(smokeFile.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);',
   '      if (handle != INVALID_HANDLE_VALUE) {',
   '        DWORD written = 0;',
-  '        WriteFile(handle, text, 6, &written, nullptr);',
+  '        WriteFile(handle, text, static_cast<DWORD>(length > 0 ? length : 0), &written, nullptr);',
   '        CloseHandle(handle);',
   '      }',
   '      ExitProcess(args.Failed() ? 1 : 0);',
@@ -84,13 +98,18 @@ const SMOKE_LINES = [
   '}',
 ];
 
+/** What the smoke block needs beyond the template's headers: the process memory counters and snprintf. */
+const SMOKE_INCLUDES = ['#include <psapi.h>', '#include <cstdio>'];
+
 /**
  * The app's entry with a smoke run: launched with `EXPO_WINDOWS_SMOKE`
  * naming a file, the app writes whether its bundle loaded there
- * (react-native-windows' `InstanceLoaded` event) and exits — how CI proves
- * a Release build starts on a machine that never ran Metro. Added after
- * the template's instance-settings line; an entry without that line, or
- * with the patch already, is left as it is.
+ * (react-native-windows' `InstanceLoaded` event), with the milliseconds
+ * since the process started and its working set in kilobytes, and exits —
+ * how CI proves a Release build starts on a machine that never ran Metro,
+ * and has numbers to hold a regression to. Added after the template's
+ * instance-settings line, with the headers it needs after the pch; an
+ * entry without that line, or with the patch already, is left as it is.
  * @param {string} text
  */
 function patchSmoke(text) {
@@ -100,7 +119,14 @@ function patchSmoke(text) {
   const indent = settings[1];
   const at = settings.index + settings[0].length;
   const block = SMOKE_LINES.map(line => `${indent}${line}`).join('\n');
-  return `${text.slice(0, at)}\n${block}${text.slice(at)}`;
+  let patched = `${text.slice(0, at)}\n${block}${text.slice(at)}`;
+  const includes = SMOKE_INCLUDES.filter(include => !patched.includes(include));
+  if (includes.length) {
+    const pch = /^#include "pch\.h"[^\n]*\n/m.exec(patched);
+    const after = pch ? pch.index + pch[0].length : 0;
+    patched = `${patched.slice(0, after)}${includes.join('\n')}\n${patched.slice(after)}`;
+  }
+  return patched;
 }
 
 const EXPERIMENTAL_FEATURES_NOTE = `

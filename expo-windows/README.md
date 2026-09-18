@@ -71,6 +71,13 @@ runs before Expo's own start-up modules whichever way the bundle is made.
 `init` also gives the entry a smoke run: launched with `EXPO_WINDOWS_SMOKE`
 naming a file, the app writes `loaded` or `failed` there once its bundle
 has loaded and exits, which is how a CI job proves a Release build starts.
+The line carries two numbers after the word — the milliseconds from the
+process start to the bundle's load, and the working set then in
+kilobytes (`loaded 172 65748`: the example's Release build on the
+harness machine, a bundle loaded in a fifth of a second at 64 MB) — and
+the CI script holds them to budgets (`SMOKE_MAX_MS`, 30 s by default, and
+`SMOKE_MAX_KB`, 1 GB), so a regression in cold start or memory fails the
+build with a number.
 
 ```sh
 npx expo-windows package --self-signed          # windows/AppPackages/<Name>/<Name>_<version>_x64.msix, signed for sideloading
@@ -255,7 +262,17 @@ follows; and `showTouchKeyboardAsync()`, `hideTouchKeyboardAsync()` and
 the library raises as React Native's `keyboardDidShow` and `keyboardDidHide`
 with the rectangle it covers, so `Keyboard.addListener` works on Windows
 (the system shows it only while a text control has focus, and keeps one the
-user brought up from the taskbar).
+user brought up from the taskbar); and `getLastCrashAsync()` with
+`clearCrashesAsync()` for what the app left behind when it last died. A
+native unhandled exception writes a minidump and a JSON report under
+`crashes` in the app's local data (`%LOCALAPPDATA%\<app>\crashes`) before
+the process goes down as it would have; a fatal JavaScript error is
+recorded there by the runtime's global error handler, with its message
+and stack, before React Native's own handler runs. The report says which
+(`type`), when (`timestamp`), and what (`message`, with `stack` for a
+JavaScript error and `code` plus the `dump` path for a native fault),
+which is what an app sends to its own crash service at the next launch;
+the minidump opens in Visual Studio or WinDbg.
 
 What has no Windows implementation and is not listed — `@expo/ui`'s
 controls past its layout primitives, and any package whose module calls

@@ -1,6 +1,6 @@
 {
   "name": "expo-windows",
-  "version": "0.22.0",
+  "version": "0.23.0",
   "description": "Windows for Expo apps on react-native-windows: the Metro config for the platform, an Expo Modules Core over the JavaScript registry, the modules the Expo packages call with a C++ library behind them, and the app scaffold.",
   "license": "MIT",
   "author": "kat-tax",

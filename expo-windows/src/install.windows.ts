@@ -1,6 +1,7 @@
 import {installExpoGlobalPolyfill} from 'expo-modules-core/src/polyfill/dangerous-internal';
 import {installUuidFallback} from './uuid';
 import {registerModules} from './modules';
+import {installCrashHandler} from './modules/crashes';
 import {registerAppProtocol} from './modules/linking';
 
 /**
@@ -27,6 +28,8 @@ import {registerAppProtocol} from './modules/linking';
 installExpoGlobalPolyfill();
 installUuidFallback();
 registerModules();
+// A fatal JavaScript error leaves a report under the app's local data, for the next launch to read.
+installCrashHandler();
 // The app's scheme as a URI protocol for this user, when the runtime's library is in the app.
 registerAppProtocol().catch(linksOpenNewInstances);
 

@@ -1,6 +1,8 @@
 import type {HighContrastState, SystemColors, TitleBarInsets} from '../native';
+import type {CrashReport} from './crashes';
 import {DeviceEventEmitter} from 'react-native';
 import {native} from '../native';
+import {clearCrashes, getLastCrash} from './crashes';
 
 export type {HighContrastState, SystemColors, TitleBarInsets};
 
@@ -90,5 +92,12 @@ export const ExpoWindows = {
   /** Whether the touch keyboard is up, and the height it covers; away without the library. */
   async getTouchKeyboardAsync(): Promise<{visible: boolean; height: number}> {
     return (await native.keyboard()?.getState()) ?? {visible: false, height: 0};
+  },
+  /** What the app left behind the last time it died — a native fault's minidump and report, or a fatal JavaScript error's — or null. */
+  getLastCrashAsync(): Promise<CrashReport | null> {
+    return getLastCrash();
+  },
+  clearCrashesAsync(): Promise<void> {
+    return clearCrashes();
   },
 };
