@@ -63,6 +63,46 @@ function patchVcxproj(vcxproj) {
   return text;
 }
 
+/** The lines the smoke patch adds after the instance settings, indented as that line is. */
+const SMOKE_LINES = [
+  '// expo-windows: a smoke run (EXPO_WINDOWS_SMOKE names a file) writes whether the bundle loaded there and exits.',
+  '{',
+  '  wchar_t smoke[MAX_PATH]{};',
+  '  if (GetEnvironmentVariableW(L"EXPO_WINDOWS_SMOKE", smoke, MAX_PATH) > 0) {',
+  '    std::wstring smokeFile{smoke};',
+  '    settings.InstanceLoaded([smokeFile](auto const &, winrt::Microsoft::ReactNative::InstanceLoadedEventArgs const &args) {',
+  '      const char *text = args.Failed() ? "failed" : "loaded";',
+  '      HANDLE handle = CreateFileW(smokeFile.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);',
+  '      if (handle != INVALID_HANDLE_VALUE) {',
+  '        DWORD written = 0;',
+  '        WriteFile(handle, text, 6, &written, nullptr);',
+  '        CloseHandle(handle);',
+  '      }',
+  '      ExitProcess(args.Failed() ? 1 : 0);',
+  '    });',
+  '  }',
+  '}',
+];
+
+/**
+ * The app's entry with a smoke run: launched with `EXPO_WINDOWS_SMOKE`
+ * naming a file, the app writes whether its bundle loaded there
+ * (react-native-windows' `InstanceLoaded` event) and exits — how CI proves
+ * a Release build starts on a machine that never ran Metro. Added after
+ * the template's instance-settings line; an entry without that line, or
+ * with the patch already, is left as it is.
+ * @param {string} text
+ */
+function patchSmoke(text) {
+  if (text.includes('EXPO_WINDOWS_SMOKE')) return text;
+  const settings = /^([ \t]*)auto settings\{.*InstanceSettings\(\)\};[ \t]*$/m.exec(text);
+  if (!settings) return text;
+  const indent = settings[1];
+  const at = settings.index + settings[0].length;
+  const block = SMOKE_LINES.map(line => `${indent}${line}`).join('\n');
+  return `${text.slice(0, at)}\n${block}${text.slice(at)}`;
+}
+
 const EXPERIMENTAL_FEATURES_NOTE = `
     <!--
       expo-windows: library projects from react-native-windows' 0.7x line
@@ -169,4 +209,4 @@ function patchSingleInstance(appCpp) {
   return text;
 }
 
-module.exports = {safeProjectName, setProjectProperty, patchVcxproj, patchExperimentalFeatures, patchAppCpp, patchSingleInstance};
+module.exports = {safeProjectName, setProjectProperty, patchVcxproj, patchExperimentalFeatures, patchAppCpp, patchSingleInstance, patchSmoke};

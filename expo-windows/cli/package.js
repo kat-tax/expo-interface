@@ -279,4 +279,30 @@ function selfSignedScript(publisher, pfx, cer, password) {
   ].join('\n');
 }
 
-module.exports = {TILES, CAPABILITIES, RUNTIME_PUBLISHER, identityName, fourPartVersion, packageOf, manifestFor, isShipped, copyLayout, writeTiles, sdkTool, selfSignedScript};
+/**
+ * The App Installer file (`.appinstaller`) for a package served from a
+ * URL: Windows installs from it and, from then on, checks that URL for a
+ * newer package at launch and in the background — the update channel an
+ * MSIX has, where `expo-updates` has none on Windows. Both files are served
+ * from `baseUrl`; the package's name is what `package` wrote.
+ * @param {PackageIdentity} pkg
+ * @param {string} baseUrl where the two files will be served from, ending in a slash or not
+ * @param {string} msixName the package file's name
+ * @param {string} [platform]
+ */
+function appInstallerFor(pkg, baseUrl, msixName, platform = 'x64') {
+  const base = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+  const x = escapeXml;
+  return `<?xml version="1.0" encoding="utf-8"?>
+<AppInstaller xmlns="http://schemas.microsoft.com/appx/appinstaller/2018" Version="${pkg.version}" Uri="${x(base)}${x(pkg.name)}.appinstaller">
+  <MainPackage Name="${x(pkg.name)}" Publisher="${x(pkg.publisher)}" Version="${pkg.version}" ProcessorArchitecture="${x(platform)}" Uri="${x(base)}${x(msixName)}" />
+  <UpdateSettings>
+    <OnLaunch HoursBetweenUpdateChecks="0" ShowPrompt="false" UpdateBlocksActivation="false" />
+    <AutomaticBackgroundTask />
+    <ForceUpdateFromAnyVersion>true</ForceUpdateFromAnyVersion>
+  </UpdateSettings>
+</AppInstaller>
+`;
+}
+
+module.exports = {TILES, CAPABILITIES, RUNTIME_PUBLISHER, identityName, fourPartVersion, packageOf, manifestFor, appInstallerFor, isShipped, copyLayout, writeTiles, sdkTool, selfSignedScript};

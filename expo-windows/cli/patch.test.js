@@ -1,5 +1,5 @@
 // @ts-check
-const {patchAppCpp, patchExperimentalFeatures, patchSingleInstance, patchVcxproj, safeProjectName, setProjectProperty} = require('./patch');
+const {patchAppCpp, patchExperimentalFeatures, patchSingleInstance, patchSmoke, patchVcxproj, safeProjectName, setProjectProperty} = require('./patch');
 
 const FEATURES = `<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
@@ -78,6 +78,25 @@ describe('patchAppCpp', () => {
     expect(patchAppCpp(app)).toBe('  viewOptions.ComponentName(L"main");\n');
     expect(patchAppCpp(app, {componentName: 'other'})).toBe('  viewOptions.ComponentName(L"other");\n');
     expect(() => patchAppCpp('int main() {}')).toThrow(/ComponentName/);
+  });
+});
+
+describe('patchSmoke', () => {
+  it("adds the smoke run after the template's instance settings, indented as they are, once", () => {
+    const entry = '  auto host = app.ReactNativeHost();\n  auto settings{reactNativeWin32App.ReactNativeHost().InstanceSettings()};\n#if BUNDLE\n  settings.UseFastRefresh(false);\n#endif\n';
+    const patched = patchSmoke(entry);
+    const lines = patched.split('\n');
+    expect(lines[1]).toBe('  auto settings{reactNativeWin32App.ReactNativeHost().InstanceSettings()};');
+    expect(lines[2]).toBe('  // expo-windows: a smoke run (EXPO_WINDOWS_SMOKE names a file) writes whether the bundle loaded there and exits.');
+    expect(patched).toContain('    if (GetEnvironmentVariableW(L"EXPO_WINDOWS_SMOKE", smoke, MAX_PATH) > 0) {');
+    expect(patched).toContain('settings.InstanceLoaded([smokeFile](auto const &, winrt::Microsoft::ReactNative::InstanceLoadedEventArgs const &args) {');
+    expect(patched).toContain('ExitProcess(args.Failed() ? 1 : 0);');
+    expect(patched.endsWith('#if BUNDLE\n  settings.UseFastRefresh(false);\n#endif\n')).toBe(true);
+    expect(patchSmoke(patched)).toBe(patched);
+  });
+
+  it('leaves an entry without the settings line alone', () => {
+    expect(patchSmoke('int main() { return 0; }\n')).toBe('int main() { return 0; }\n');
   });
 });
 

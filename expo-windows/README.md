@@ -67,6 +67,9 @@ them from the `Bundle` folder next to its exe. The app config
 (`Constants.expoConfig`) is written into the bundle by the runtime's
 transformer, so it is there without a server, and the runtime's install
 runs before Expo's own start-up modules whichever way the bundle is made.
+`init` also gives the entry a smoke run: launched with `EXPO_WINDOWS_SMOKE`
+naming a file, the app writes `loaded` or `failed` there once its bundle
+has loaded and exits, which is how a CI job proves a Release build starts.
 
 ```sh
 npx expo-windows package --self-signed          # windows/AppPackages/<Name>/<Name>_<version>_x64.msix, signed for sideloading
@@ -104,6 +107,23 @@ machine's Trusted People store, which takes an administrator; a user-level
 import is not enough. An unsigned package installs only with Developer Mode
 on (`Add-AppxPackage -AllowUnsigned`). For distribution, sign with a
 certificate from a public CA or through the Store, which signs itself.
+
+```sh
+npx expo-windows package --cert app.pfx --password ... --appinstaller https://downloads.example.com/app
+```
+
+`--appinstaller <url>` writes `<Name>.appinstaller` next to the package.
+Serve both files from that URL: Windows installs from the `.appinstaller`
+(a link, or `Add-AppxPackage -AppInstallerFile`) and from then on checks
+the URL for a newer package at every launch and in the background, so a
+new build published there is the update. `expo-updates` stays off on
+Windows; the package is the update. The ways to sign, from least to most
+trusted: a self-signed certificate (sideloading on machines that import
+its `.cer`), a code-signing certificate from a public CA (`--cert`, or
+`signtool sign /fd SHA256 /a` with the certificate in the store), Azure
+Trusted Signing (its `signtool` dlib, on the `.msix` `package` wrote), or
+the Microsoft Store, which takes the unsigned `.msix` and signs it. A
+`winget` manifest can point at the `.msix` URL once it is signed.
 
 The machine needs what react-native-windows needs: Visual Studio with the
 C++ desktop workload and the Windows 11 SDK (`rnw-dependencies.ps1`), plus

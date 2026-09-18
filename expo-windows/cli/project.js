@@ -5,7 +5,7 @@
  */
 const fs = require('node:fs');
 const path = require('node:path');
-const {patchAppCpp, patchExperimentalFeatures, patchSingleInstance, patchVcxproj} = require('./patch');
+const {patchAppCpp, patchExperimentalFeatures, patchSingleInstance, patchSmoke, patchVcxproj} = require('./patch');
 
 /**
  * The generated project: the folder under `windows/` that holds a
@@ -44,7 +44,7 @@ function applyPatches(projectRoot) {
   const features = path.join(projectRoot, 'windows', 'ExperimentalFeatures.props');
   const files = [
     [project.vcxproj, patchVcxproj],
-    ...(project.appCpp ? [[project.appCpp, (/** @type {string} */ text) => patchSingleInstance(patchAppCpp(text))]] : []),
+    ...(project.appCpp ? [[project.appCpp, (/** @type {string} */ text) => patchSmoke(patchSingleInstance(patchAppCpp(text)))]] : []),
     ...(fs.existsSync(features) ? [[features, patchExperimentalFeatures]] : []),
   ];
   for (const [file, patch] of /** @type {[string, (text: string) => string][]} */ (files)) {

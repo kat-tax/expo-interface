@@ -6,7 +6,7 @@
  *     expo-windows init [--overwrite] [--cli-version <version>]
  *     expo-windows run [--release] [--no-packager] [-- <run-windows args>]
  *     expo-windows bundle [--dev] [<the MSBuild bundle target's arguments>]
- *     expo-windows package [--no-build] [--self-signed | --cert <pfx> [--password <text>]] [--publisher <CN=...>] [--toolset <v143>]
+ *     expo-windows package [--no-build] [--self-signed | --cert <pfx> [--password <text>]] [--publisher <CN=...>] [--toolset <v143>] [--appinstaller <url>]
  *
  * `init` writes `windows/` with react-native-windows' `cpp-app` template
  * (through the React Native community CLI, fetched on demand since an Expo
@@ -25,7 +25,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {exportArgs} = require('./bundle');
 const {TARGET_SDK, findMsBuild, withTargetSdk} = require('./msbuild');
-const {copyLayout, manifestFor, packageOf, sdkTool, selfSignedScript, writeTiles} = require('./package');
+const {appInstallerFor, copyLayout, manifestFor, packageOf, sdkTool, selfSignedScript, writeTiles} = require('./package');
 const {safeProjectName} = require('./patch');
 const {applyPatches, ensureScreensExclusion, findProject, keepMetroConfig} = require('./project');
 
@@ -211,6 +211,12 @@ async function packageApp(args) {
     notes.push(`signed with a self-signed certificate for ${pkg.publisher}; to install here, import ${path.relative(projectRoot, cer)} into the machine's Trusted People store (as an administrator: Import-Certificate -FilePath <cer> -CertStoreLocation Cert:\\LocalMachine\\TrustedPeople), then Add-AppxPackage <msix>`);
   } else {
     notes.push('unsigned: install with Developer Mode on (Add-AppxPackage -AllowUnsigned <msix>), or sign it with --cert or --self-signed');
+  }
+  const served = flag(args, '--appinstaller');
+  if (served) {
+    const installer = path.join(packages, `${pkg.name}.appinstaller`);
+    fs.writeFileSync(installer, appInstallerFor(pkg, served, path.basename(msix), platform));
+    notes.push(`${path.relative(projectRoot, installer)}: serve it and the package from ${served}; Windows installs from the .appinstaller and updates from there at launch and in the background`);
   }
   console.log(notes.join('\n'));
 }

@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const {CAPABILITIES, RUNTIME_PUBLISHER, TILES, copyLayout, fourPartVersion, identityName, isShipped, manifestFor, packageOf, sdkTool, selfSignedScript, writeTiles} = require('./package');
+const {CAPABILITIES, RUNTIME_PUBLISHER, TILES, appInstallerFor, copyLayout, fourPartVersion, identityName, isShipped, manifestFor, packageOf, sdkTool, selfSignedScript, writeTiles} = require('./package');
 
 describe('identityName and fourPartVersion', () => {
   it('makes a package identity name from an app name', () => {
@@ -122,6 +122,18 @@ describe('the layout', () => {
     expect(fs.readFileSync(path.join(root, 'Images', 'StoreLogo.png')).subarray(1, 4).toString()).toBe('PNG');
     fs.rmSync(root, {recursive: true, force: true});
   }, 60000);
+});
+
+describe('appInstallerFor', () => {
+  it('points App Installer at the package on its URL and asks for updates at launch and in the background', () => {
+    const pkg = packageOf({name: 'Drop Files', version: '1.2.3', extra: {windows: {publisher: 'CN=Contoso & Co'}}});
+    const xml = appInstallerFor(pkg, 'https://downloads.contoso.com/dropfiles', 'DropFiles_1.2.3.0_x64.msix');
+    expect(xml).toContain('<AppInstaller xmlns="http://schemas.microsoft.com/appx/appinstaller/2018" Version="1.2.3.0" Uri="https://downloads.contoso.com/dropfiles/DropFiles.appinstaller">');
+    expect(xml).toContain('<MainPackage Name="DropFiles" Publisher="CN=Contoso &amp; Co" Version="1.2.3.0" ProcessorArchitecture="x64" Uri="https://downloads.contoso.com/dropfiles/DropFiles_1.2.3.0_x64.msix" />');
+    expect(xml).toContain('<OnLaunch HoursBetweenUpdateChecks="0"');
+    expect(xml).toContain('<AutomaticBackgroundTask />');
+    expect(appInstallerFor(pkg, 'https://downloads.contoso.com/dropfiles/', 'a.msix', 'arm64')).toContain('ProcessorArchitecture="arm64" Uri="https://downloads.contoso.com/dropfiles/a.msix"');
+  });
 });
 
 describe('the tools', () => {

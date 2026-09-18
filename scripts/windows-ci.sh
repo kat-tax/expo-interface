@@ -148,4 +148,14 @@ step "Package"
 node node_modules/expo-windows/cli/index.js package --no-build --self-signed
 ls -la windows/AppPackages/*/*.msix windows/AppPackages/*/*.cer
 
+step "Smoke"
+# The Release exe, launched with EXPO_WINDOWS_SMOKE naming a file: the app
+# writes whether its bundle loaded there and exits (init patched the entry
+# for it); the job waits for the file and fails unless it says loaded.
+rm -f smoke.txt
+EXPO_WINDOWS_SMOKE="$(cygpath -w "$PWD/smoke.txt")" "windows/x64/Release/$NAME.exe" &
+for i in $(seq 1 60); do [ -f smoke.txt ] && break; sleep 2; done
+cat smoke.txt; echo
+grep -q "^loaded$" smoke.txt
+
 step "Built"
