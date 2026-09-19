@@ -1,7 +1,7 @@
 import './button.css';
 import type {CSSProperties} from 'react';
 import type {ButtonProps} from './types';
-import {Symbol as SymbolIcon} from '../symbol';
+import {Icon} from '../symbol';
 import {onAccent as contrastOf} from '../accent';
 import {useColor} from '../theme';
 import {SIZE_ICON} from './shared';
@@ -80,7 +80,7 @@ export function Button({
       data-testid={testID}
       aria-label={iconOnly ? label : undefined}>
       {prefixIcon ? (
-        <SymbolIcon
+        <Icon
           icon={prefixIcon}
           size={iconSize}
           tintColor={variant === 'filled' ? onAccent : accent}
@@ -88,7 +88,7 @@ export function Button({
       ) : null}
       {!iconOnly ? <span className="ui-button__label">{label}</span> : null}
       {suffixIcon && !iconOnly ? (
-        <SymbolIcon
+        <Icon
           icon={suffixIcon}
           size={iconSize}
           tintColor={variant === 'filled' ? onAccent : accent}

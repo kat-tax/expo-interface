@@ -6,7 +6,7 @@ import {useXamlProps} from '../windows';
 import {menuItemsProp, useMenuShortcuts} from '../menu/windows';
 import {StatePressable} from '../surface/pressable';
 import {pressFeedback} from '../surface/shared';
-import {Symbol as SymbolIcon} from '../symbol';
+import {Icon} from '../symbol';
 import {onAccent} from '../accent';
 import {fonts, fontWeights, useColor} from '../theme';
 import {FAB_EXTENDED_PADDING, FAB_GAP, FAB_ICON, FAB_RADIUS, FAB_SIZE} from './shared';
@@ -51,7 +51,7 @@ export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rou
           pressFeedback(state, 'accent'),
         ]}
         testID={testID}>
-        <SymbolIcon icon={icon} size={FAB_ICON[size]} tintColor={contrast}/>
+        <Icon icon={icon} size={FAB_ICON[size]} tintColor={contrast}/>
         {extended ? <Text style={[styles.label, {color: contrast}]}>{label}</Text> : null}
       </StatePressable>
       {items ? (

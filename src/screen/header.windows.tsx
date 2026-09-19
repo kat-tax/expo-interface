@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
-import {Symbol as SymbolIcon} from '../symbol';
+import {Icon} from '../symbol';
 import {icon} from '../icons';
 import {StatePressable} from '../surface/pressable';
 import {pressFeedback} from '../surface/shared';
@@ -64,7 +64,7 @@ export function ScreenHeader({title, titleNode, onBack, leading, trailing, dragR
             role="button"
             accessibilityLabel="Go back"
             style={state => [styles.back, pressFeedback(state, 'subtle')]}>
-            <SymbolIcon icon={BACK} size={16} tintColor={label}/>
+            <Icon icon={BACK} size={16} tintColor={label}/>
           </StatePressable>
         ) : null)}
         {titleNode ?? (

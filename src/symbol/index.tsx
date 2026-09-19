@@ -4,7 +4,7 @@ import type {IconToken} from '../icons';
 import {Asset} from 'expo-asset';
 import regular from 'expo-symbols/androidWeights/regular';
 
-export interface SymbolProps {
+export interface IconProps {
   /** Icon to draw. Its `fill` picks the solid form. */
   icon: IconToken;
   /**
@@ -61,10 +61,7 @@ registerSymbolFont();
  * The span is `aria-hidden`: the ligature is the icon's name in text, which
  * would otherwise land in the accessible name of every button it sits in.
  */
-// Declared under another name and exported as `Symbol`: a module-scope binding
-// called `Symbol` shadows the global one, and the React Compiler emits
-// `Symbol.for("react.memo_cache_sentinel")` into every component it compiles.
-function SymbolIcon({icon, size = 24, tintColor}: SymbolProps) {
+export function Icon({icon, size = 24, tintColor}: IconProps) {
   const {symbol, fill} = icon;
   // A bare string names an SF Symbol, which has no Material equivalent to
   // draw; `SymbolView` renders its fallback there and so does this.
@@ -80,5 +77,3 @@ function SymbolIcon({icon, size = 24, tintColor}: SymbolProps) {
     </span>
   );
 }
-
-export {SymbolIcon as Symbol};

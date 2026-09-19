@@ -1,15 +1,15 @@
 import {render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
-import {Symbol, registerSymbolFont} from '.';
+import {Icon, registerSymbolFont} from '.';
 
 /** The glyph the kit drew, or `null` when it drew nothing. */
 function glyph(container: HTMLElement) {
   return container.querySelector<HTMLElement>('.ui-symbol');
 }
 
-describe('Symbol (web)', () => {
+describe('Icon (web)', () => {
   it('writes the symbol name for the font to draw as a ligature', () => {
-    const {container} = render(<Symbol icon={icons.star}/>);
+    const {container} = render(<Icon icon={icons.star}/>);
     const span = glyph(container);
     expect(span).toHaveTextContent('star');
     expect(span?.style.fontSize).toBe('24px');
@@ -19,14 +19,14 @@ describe('Symbol (web)', () => {
   });
 
   it('asks the variable font for the solid form of a filled token', () => {
-    const {container} = render(<Symbol icon={icons.starFilled}/>);
+    const {container} = render(<Icon icon={icons.starFilled}/>);
     // The same glyph, drawn at `FILL 1` (see `symbol.css`).
     expect(glyph(container)).toHaveTextContent('star');
     expect(glyph(container)).toHaveClass('ui-symbol', 'ui-symbol--filled');
   });
 
   it('takes a size and a tint', () => {
-    const {container} = render(<Symbol icon={icons.star} size={16} tintColor="#8959EA"/>);
+    const {container} = render(<Icon icon={icons.star} size={16} tintColor="#8959EA"/>);
     const span = glyph(container);
     expect(span?.style.fontSize).toBe('16px');
     expect(span?.style.color).toBe('rgb(137, 89, 234)');
@@ -36,8 +36,8 @@ describe('Symbol (web)', () => {
     // A bare string is an SF Symbol, and a map need not carry a web name.
     const {container} = render(
       <>
-        <Symbol icon={{symbol: 'star'}}/>
-        <Symbol icon={{symbol: {ios: 'star'}}}/>
+        <Icon icon={{symbol: 'star'}}/>
+        <Icon icon={{symbol: {ios: 'star'}}}/>
       </>,
     );
     expect(glyph(container)).toBeNull();
@@ -46,7 +46,7 @@ describe('Symbol (web)', () => {
   it('stays out of the accessible name of the control around it', () => {
     render(
       <button type="button">
-        <Symbol icon={icons.star}/>
+        <Icon icon={icons.star}/>
         Favourite
       </button>,
     );

@@ -2,7 +2,7 @@ import './menu.css';
 import type {CSSProperties} from 'react';
 import type {MenuProps} from './types';
 import {useId, useRef} from 'react';
-import {Symbol as SymbolIcon} from '../symbol';
+import {Icon} from '../symbol';
 import {Button} from '../button';
 import {SIZE_ICON} from '../button/shared';
 import {MenuList, menuIdent} from './list';
@@ -28,7 +28,7 @@ export function Menu({label, icon, items, trigger = 'button', onOpenChange, test
           popoverTarget={ident}
           data-testid={testID}
           aria-label={button.hideLabel ? label : undefined}>
-          {icon ? <SymbolIcon icon={icon} size={button.iconSize ?? SIZE_ICON[button.size ?? 'medium']} tintColor="currentColor"/> : null}
+          {icon ? <Icon icon={icon} size={button.iconSize ?? SIZE_ICON[button.size ?? 'medium']} tintColor="currentColor"/> : null}
           {button.hideLabel ? null : <span className="ui-menu__label">{label}</span>}
         </button>
       ) : (

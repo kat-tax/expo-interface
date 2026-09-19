@@ -61,9 +61,10 @@ real renderer.
 `Symbol` above all. The React Compiler emits `Symbol.for("react.memo_cache_sentinel")`
 into every component it compiles, and an import or declaration called `Symbol`
 shadows the global, so the whole app dies at render with
-`Symbol.for is not a function`. The kit exports a component named `Symbol`; it
-is declared as `SymbolIcon` and exported under its public name, and anything
-importing it aliases it the same way.
+`Symbol.for is not a function`. The kit's icon component was called `Symbol`
+and did exactly that; it is `Icon` now. Nothing in the tests can see this —
+only a real renderer with the app's own Babel configuration puts that call
+into the module, which is what the harness is for.
 
 ## Platform files
 

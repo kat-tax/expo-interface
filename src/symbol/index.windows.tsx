@@ -1,4 +1,4 @@
-import type {SymbolProps} from './index';
+import type {IconProps} from './index';
 import {StyleSheet, Text} from 'react-native';
 import {glyphChar, windowsGlyph} from './segoe';
 
@@ -17,10 +17,7 @@ export const SYMBOL_FONT = 'Segoe Fluent Icons';
  * that would be read as nothing useful, and the control around it carries
  * the name.
  */
-// Declared under another name and exported as `Symbol`: a module-scope binding
-// called `Symbol` shadows the global one, and the React Compiler emits
-// `Symbol.for("react.memo_cache_sentinel")` into every component it compiles.
-function SymbolIcon({icon, size = 24, tintColor}: SymbolProps) {
+export function Icon({icon, size = 24, tintColor}: IconProps) {
   const glyph = windowsGlyph(icon);
   if (!glyph) return null;
   return (
@@ -43,6 +40,4 @@ const styles = StyleSheet.create({
 });
 
 export {windowsGlyph} from './segoe';
-export type {SymbolProps} from './index';
-
-export {SymbolIcon as Symbol};
+export type {IconProps} from './index';

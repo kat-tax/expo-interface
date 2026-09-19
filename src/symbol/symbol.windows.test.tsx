@@ -2,18 +2,18 @@ import {render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
 import {icon} from '../icons';
 import {glyphChar, SEGOE_GLYPHS, windowsGlyph} from './segoe';
-import {Symbol, SYMBOL_FONT} from './index.windows';
+import {Icon, SYMBOL_FONT} from './index.windows';
 
-describe('Symbol (windows)', () => {
+describe('Icon (windows)', () => {
   it('draws the Fluent twin of a Material name in Segoe Fluent Icons', async () => {
-    await render(<Symbol icon={icons.share} size={20} tintColor="#FF0000"/>);
+    await render(<Icon icon={icons.share} size={20} tintColor="#FF0000"/>);
     const glyph = screen.getByText('');
     expect(glyph).toHaveStyle({fontFamily: SYMBOL_FONT, fontSize: 20, lineHeight: 20, color: '#FF0000'});
     expect(glyph.props.accessible).toBe(false);
   });
 
   it('draws nothing for a token without a glyph', async () => {
-    await render(<Symbol icon={icon('questionmark')}/>);
+    await render(<Icon icon={icon('questionmark')}/>);
     expect(screen.toJSON()).toBeNull();
   });
 });
