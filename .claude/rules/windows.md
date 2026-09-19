@@ -60,6 +60,16 @@ A clean machine differs from this one in three ways, all handled in that script:
 MSBuild's path comes from `vswhere`, the Windows SDK is whichever is installed,
 and an unpackaged app needs the Windows App Runtime installed before it can start.
 
+To look at a running build rather than build one, the harness drives it:
+
+```sh
+bun run harness -p windows --target <path to the exe> open /detail screenshot detail.png tree
+```
+
+`tree` is the UI Automation tree Narrator reads, and it is how an island with no
+accessible name is found. Synthetic input goes to whatever is in front, so
+`tap` refuses while someone is using the machine unless `--force` says otherwise.
+
 ## Codegen
 
 Specs live in `src/windows/specs/` (the kit) and `expo-windows/src/windows/specs/`

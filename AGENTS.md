@@ -42,6 +42,19 @@ and `BRDA:…,0` rather than reading the text table.
   `npx --package`. Regenerate after any spec change and commit the headers:
   `bun run codegen:windows`.
 
+## Looking at what it drew
+
+```sh
+bun run harness doctor          # what this machine can drive
+bun run harness -p web --url http://localhost:8085 open / screenshot home.png tree
+```
+
+One command drives the kit on web, Windows, Android and iOS: open a route,
+press, type, screenshot, and read the accessibility tree a screen reader reads.
+See `scripts/harness/README.md`. Tests prove behaviour; the harness is how you
+see the thing itself, and it is the only way to catch what only appears in a
+real renderer.
+
 ## Platform files
 
 A component is one directory with `types.ts` and a file per platform

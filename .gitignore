@@ -57,3 +57,6 @@ __screenshots__/
 .claude/scheduled_tasks.lock
 .claude/agent-memory-local/
 .claude/worktrees/
+
+# harness screenshots
+.harness/
