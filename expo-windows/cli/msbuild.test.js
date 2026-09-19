@@ -39,7 +39,9 @@ describe('findMsBuild', () => {
     try {
       const query = vi.fn(/** @type {(command: string, args: string[]) => string} */ (() => ''));
       expect(() => findMsBuild(query)).toThrow(/install Visual Studio/);
-      expect(query.mock.calls[0]?.[0]).toMatch(/^C:\\Program Files \(x86\)\\/);
+      // These paths come from path.join, which writes `/` when the suite runs
+      // on Linux — and it does, in CI. Compare without caring which it used.
+      expect(query.mock.calls[0]?.[0]?.replace(/\\/g, '/')).toMatch(/^C:\/Program Files \(x86\)\//);
     } finally {
       if (programFiles !== undefined) process.env['ProgramFiles(x86)'] = programFiles;
     }

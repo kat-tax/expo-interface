@@ -165,7 +165,8 @@ describe('the tools', () => {
     const programFiles = process.env['ProgramFiles(x86)'];
     delete process.env['ProgramFiles(x86)'];
     try {
-      expect(() => sdkTool('nothing-of-that-name')).toThrow(/C:\\Program Files \(x86\)\\Windows Kits\\10\\bin/);
+      // path.join writes `/` on Linux, where this suite also runs.
+      expect(() => sdkTool('nothing-of-that-name')).toThrow(/C:.Program Files \(x86\).Windows Kits.10.bin/);
     } finally {
       if (programFiles !== undefined) process.env['ProgramFiles(x86)'] = programFiles;
     }

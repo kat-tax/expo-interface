@@ -151,3 +151,18 @@ how much of the picture may differ before the test fails.
 
 The tree is still the better assertion for behaviour. Use a screenshot for what
 a tree cannot see: spacing, colour, the thing actually being drawn.
+
+A baseline belongs to the machine that drew it: the same page renders
+differently under a different font stack, so one recorded on a desk cannot be
+asserted on a Linux runner. Recording is therefore deliberate and never a side
+effect of a run:
+
+```sh
+HARNESS_UPDATE_SCREENSHOTS=1 bun run test:device   # record
+bun run test:device                                # assert against what was recorded
+```
+
+Without a baseline the picture is kept as evidence and the test passes on its
+tree assertions, which is what CI does — none are committed, because none of
+them would match another machine. Commit one only when the machine that
+asserts it is the machine that drew it.

@@ -51,6 +51,9 @@ coverage/
 test-report/
 # vitest browser mode saves a screenshot next to a failing story
 __screenshots__/
+# …but a recorded device baseline is meant to be committed
+!device/__screenshots__/
+!device/__screenshots__/**
 
 # Claude Code: the shared configuration is committed, the personal parts are not
 .claude/settings.local.json
