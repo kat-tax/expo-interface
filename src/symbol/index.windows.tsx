@@ -17,7 +17,10 @@ export const SYMBOL_FONT = 'Segoe Fluent Icons';
  * that would be read as nothing useful, and the control around it carries
  * the name.
  */
-export function Symbol({icon, size = 24, tintColor}: SymbolProps) {
+// Declared under another name and exported as `Symbol`: a module-scope binding
+// called `Symbol` shadows the global one, and the React Compiler emits
+// `Symbol.for("react.memo_cache_sentinel")` into every component it compiles.
+function SymbolIcon({icon, size = 24, tintColor}: SymbolProps) {
   const glyph = windowsGlyph(icon);
   if (!glyph) return null;
   return (
@@ -41,3 +44,5 @@ const styles = StyleSheet.create({
 
 export {windowsGlyph} from './segoe';
 export type {SymbolProps} from './index';
+
+export {SymbolIcon as Symbol};

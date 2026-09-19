@@ -1,6 +1,6 @@
 import type {CollapsibleProps} from './types';
 import {StyleSheet, View} from 'react-native';
-import {Symbol} from '../symbol';
+import {Symbol as SymbolIcon} from '../symbol';
 import {icon} from '../icons';
 import {StatePressable} from '../surface/pressable';
 import {pressFeedback} from '../surface/shared';
@@ -31,7 +31,7 @@ export function Collapsible({label, expanded, defaultExpanded = false, onExpande
         onPress={() => setOpen(!open)}
         style={state => [styles.header, pressFeedback(state, 'subtle')]}>
         <Label color="label" style={styles.label}>{label}</Label>
-        <Symbol icon={open ? OPEN : CLOSED} size={12} tintColor={chevron}/>
+        <SymbolIcon icon={open ? OPEN : CLOSED} size={12} tintColor={chevron}/>
       </StatePressable>
       {open ? <View style={styles.content}>{children}</View> : null}
     </View>

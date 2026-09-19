@@ -55,6 +55,16 @@ See `scripts/harness/README.md`. Tests prove behaviour; the harness is how you
 see the thing itself, and it is the only way to catch what only appears in a
 real renderer.
 
+## Naming
+
+**Never give a module-scope binding a name the language already uses** —
+`Symbol` above all. The React Compiler emits `Symbol.for("react.memo_cache_sentinel")`
+into every component it compiles, and an import or declaration called `Symbol`
+shadows the global, so the whole app dies at render with
+`Symbol.for is not a function`. The kit exports a component named `Symbol`; it
+is declared as `SymbolIcon` and exported under its public name, and anything
+importing it aliases it the same way.
+
 ## Platform files
 
 A component is one directory with `types.ts` and a file per platform
