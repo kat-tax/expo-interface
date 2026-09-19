@@ -19,7 +19,9 @@ describe(`the example on ${device.platform}`, () => {
     const tree = await device.fullSnapshot();
     expect(tree).toHaveElement(by.label('Drops'));
     expect(tree).toHaveElement(by.text('HIS-201 Midterm Essay'));
-    await device.screenshot(`${device.platform}-drops`);
+    // The picture, against a committed baseline. The tree above is what this
+    // test is really about; the screenshot catches what a tree cannot see.
+    await expect(device).toMatchScreenshot('drops');
   });
 
   it('moves to settings when the tab is pressed, and back', async () => {
@@ -28,7 +30,7 @@ describe(`the example on ${device.platform}`, () => {
     // navigation having happened rather than a timer having elapsed.
     await element(by.label('Name')).waitFor();
     expect(await device.fullSnapshot()).toHaveElement(by.label('Email'));
-    await device.screenshot(`${device.platform}-settings`);
+    await expect(device).toMatchScreenshot('settings');
 
     await element(by.label('Drops')).press();
     await element(by.text('HIS-201')).waitFor();

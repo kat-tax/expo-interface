@@ -122,6 +122,22 @@ const runtimeProject = {
   },
 };
 
+/**
+ * The harness's own logic — the snapshot shape every platform answers in, the
+ * selector matching a test targets with, and the PNG comparison behind
+ * `toMatchScreenshot`. Pure Node, no device: the tests that need one live in
+ * the opt-in `device` project (`vitest.config.device.mts`).
+ */
+const harnessProject = {
+  test: {
+    name: 'harness',
+    environment: 'node',
+    globals: true,
+    clearMocks: true,
+    include: ['scripts/harness/**/*.test.ts'],
+  },
+};
+
 const runtimeNodeProject = {
   test: {
     name: 'expo-windows-node',
@@ -136,7 +152,7 @@ export default defineConfig({
   test: {
     // Web needs a different pipeline (react-native-web in jsdom with the
     // dependency optimizer pre-bundling the Expo packages) — see the file.
-    projects: [...projects, windowsProject, runtimeProject, runtimeNodeProject, './vitest.config.web.mts'],
+    projects: [...projects, windowsProject, runtimeProject, runtimeNodeProject, harnessProject, './vitest.config.web.mts'],
     // Terminal output plus the browsable report (`@vitest/ui`) in test-report/.
     reporters: ['default', 'html'],
     outputFile: {html: 'test-report/index.html'},

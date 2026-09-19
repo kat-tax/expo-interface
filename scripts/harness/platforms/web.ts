@@ -41,14 +41,21 @@ function shells(): string[] {
 
 /** Runs in the page: tags every interesting element with a ref and reads its role, name and box. */
 const COLLECT = `(() => {
-  const selector = '[role],button,a,input,select,textarea,h1,h2,h3,h4,dialog,[popover],[tabindex]';
+  // What can be acted on, plus the leaves that carry text — the same two kinds
+  // UI Automation reports on Windows, so a test finds a label on either. A
+  // container's text is its children's, so only leaves are taken; that keeps
+  // the tree small enough to read and to put in front of a model.
+  const selector = '[role],button,a,input,select,textarea,h1,h2,h3,h4,dialog,[popover],[tabindex],p,li,td,label,span,div';
   const ACTIONABLE = new Set(['button', 'link', 'a', 'menuitem', 'menuitemcheckbox', 'checkbox', 'switch', 'tab', 'textbox', 'input', 'select', 'textarea', 'slider', 'option', 'radio']);
   const depthOf = (node) => { let d = 0; for (let p = node.parentElement; p; p = p.parentElement) d++; return d; };
   let next = 0;
   const nodes = [];
+  const PLAIN = new Set(['P', 'LI', 'TD', 'LABEL', 'SPAN', 'DIV']);
   for (const element of document.querySelectorAll(selector)) {
     const box = element.getBoundingClientRect();
     const role = element.getAttribute('role') ?? element.tagName.toLowerCase();
+    // A plain container earns a place only when it is the leaf holding the text.
+    if (PLAIN.has(element.tagName) && !element.hasAttribute('role') && (element.childElementCount > 0 || !(element.textContent ?? '').trim())) continue;
     // The accessible name as a screen reader computes it: the label if there is
     // one, else the text that is not hidden from it.
     let name = element.getAttribute('aria-label') ?? '';
@@ -138,7 +145,17 @@ export function webDriver(options: DriverOptions): Driver {
 
   async function snapshot(snapshotOptions: SnapshotOptions = {}): Promise<Snapshot> {
     const current = await open();
-    const nodes = await current.evaluate<SnapshotNode[]>(COLLECT);
+    let nodes: SnapshotNode[];
+    try {
+      nodes = await current.evaluate<SnapshotNode[]>(COLLECT);
+    } catch (error) {
+      // A press on a link navigates, which throws away the context the script
+      // was going to run in. The page that replaced it is the one being asked
+      // about, so let it arrive and ask again.
+      if (!/context was destroyed|Execution context/i.test((error as Error).message)) throw error;
+      await new Promise(resolve => setTimeout(resolve, 500));
+      nodes = await current.evaluate<SnapshotNode[]>(COLLECT);
+    }
     return {
       platform: 'web',
       source: base,
@@ -146,15 +163,26 @@ export function webDriver(options: DriverOptions): Driver {
     };
   }
 
-  /** The element a target names: by its ref attribute, which the snapshot wrote. */
-  async function locate(what: Target): Promise<{locator: Locator; note: string}> {
+  /**
+   * Where a target is, resolved against a tree taken now.
+   *
+   * The snapshot tags elements with their ref, but React replaces nodes as it
+   * reconciles and the attribute goes with them, so a locator built from it
+   * waits for an element that no longer exists. The bounds are read at the same
+   * moment and are what every other platform presses by, so the harness reads
+   * the same everywhere.
+   */
+  async function pointFor(what: Target): Promise<{point: Point; note: string}> {
     const selector = asSelector(what);
-    if (isPoint(selector)) throw new Error('a point is not an element; press it with tap');
+    if (isPoint(selector)) return {point: selector, note: `${selector.x},${selector.y}`};
     const tree = await snapshot();
     const node = findNode(tree, selector);
     if (!node) throw new Error(`nothing matches ${describeTarget(what)} on the page (${tree.nodes.length} nodes)`);
-    const current = await open();
-    return {locator: current.locator(`[data-harness-ref="${node.ref.slice(1)}"]`), note: `${node.ref} ${node.role} ${JSON.stringify(node.name)}`};
+    if (!node.bounds || node.bounds.width === 0) throw new Error(`${node.ref} ${node.role} ${JSON.stringify(node.name)} is not on screen to press`);
+    return {
+      point: {x: Math.round(node.bounds.x + node.bounds.width / 2), y: Math.round(node.bounds.y + node.bounds.height / 2)},
+      note: `${node.ref} ${node.role} ${JSON.stringify(node.name)}`,
+    };
   }
 
   return {
@@ -176,15 +204,10 @@ export function webDriver(options: DriverOptions): Driver {
     snapshot,
 
     async press(what: Target): Promise<StepResult> {
-      const selector = asSelector(what);
-      if (isPoint(selector)) {
-        const current = await open();
-        await current.mouse.click(selector.x, selector.y);
-        return ok(`clicked ${selector.x},${selector.y}`);
-      }
       try {
-        const {locator, note} = await locate(what);
-        await locator.click({timeout: 10_000});
+        const {point, note} = await pointFor(what);
+        const current = await open();
+        await current.mouse.click(point.x, point.y);
         return ok(`pressed ${note}`);
       } catch (error) {
         return failed((error as Error).message.split('\n')[0] ?? 'press failed');
@@ -193,8 +216,10 @@ export function webDriver(options: DriverOptions): Driver {
 
     async fill(what: Target, text: string): Promise<StepResult> {
       try {
-        const {locator, note} = await locate(what);
-        await locator.fill(text);
+        const {point, note} = await pointFor(what);
+        const current = await open();
+        await current.mouse.click(point.x, point.y);
+        await current.keyboard.type(text);
         return ok(`filled ${note} with ${JSON.stringify(text)}`);
       } catch (error) {
         return failed((error as Error).message.split('\n')[0] ?? 'fill failed');

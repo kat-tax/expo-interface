@@ -42,6 +42,44 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  device:
+    # The example as a running app, driven through the harness and read back
+    # through its accessibility tree. This is the layer the component suite
+    # cannot reach: a whole app with its own Babel configuration and a real
+    # renderer. A completely broken web build once passed every component test,
+    # which is what this job exists to catch.
+    name: Drive the example (web)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - name: Install Chromium for the harness
+        run: bunx playwright install --with-deps chromium
+      - name: Serve the example
+        working-directory: example
+        run: |
+          CI=1 npx expo start --web --port 8085 > "$RUNNER_TEMP/web.log" 2>&1 &
+          for i in $(seq 1 60); do
+            [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 http://localhost:8085 || true)" = "200" ] && break
+            sleep 5
+          done
+          curl -sf --max-time 30 http://localhost:8085 > /dev/null
+      - name: Drive it
+        env:
+          HARNESS_PLATFORM: web
+          HARNESS_URL: http://localhost:8085
+        run: bun run test:device
+      - name: Upload what it saw
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: device-evidence
+          path: |
+            .harness
+            ${{ runner.temp }}/web.log
+          if-no-files-found: ignore
+          retention-days: 7
+
   bundle:
     # Metro bundles once per platform, which is the cheapest proof that every
     # `index.ios.tsx` / `index.android.tsx` / `index.web.tsx` and their

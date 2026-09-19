@@ -133,3 +133,21 @@ of a glyph and a text block names nothing by itself.
 
 `agent-device` is not a dependency of this repository. Install it when you want
 iOS or Android (`npm i -g agent-device`); `doctor` says so when it is missing.
+
+## Screenshots
+
+`toMatchScreenshot` compares the screen against a baseline committed under
+`device/__screenshots__/<platform>/`. The first local run writes the baseline
+and passes; in CI a missing baseline fails, so a run cannot go green by
+inventing its own expectations. A failure leaves the picture it took and a
+diff with the changed pixels in red over a faded copy, both under `.harness/`.
+
+The comparison is `scripts/harness/lib/png.ts` — a chunk walk, an inflate and
+the five scanline filters on Node's own zlib, rather than two dependencies for
+the same thing. It reads the 8-bit non-interlaced PNGs that Chromium, GDI+ and
+`adb` write, and says so plainly for anything else. `tolerance` absorbs the
+one-off channel drift that text rendering produces between runs; `maxRatio` is
+how much of the picture may differ before the test fails.
+
+The tree is still the better assertion for behaviour. Use a screenshot for what
+a tree cannot see: spacing, colour, the thing actually being drawn.
