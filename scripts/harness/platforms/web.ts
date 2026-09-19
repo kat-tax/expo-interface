@@ -2,19 +2,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 import {prepare} from '../lib/run.ts';
-import type {Availability, Driver, DriverOptions, StepResult} from '../lib/types.ts';
-import {ok} from '../lib/types.ts';
+import type {Snapshot, SnapshotNode, Target} from '../lib/snapshot.ts';
+import {asSelector, describeTarget, findNode, isPoint} from '../lib/snapshot.ts';
+import type {Availability, Driver, DriverOptions, SnapshotOptions, StepResult} from '../lib/types.ts';
+import {failed, ok} from '../lib/types.ts';
 
 const DEFAULT_URL = 'http://localhost:8081';
 
 /** Where a `playwright install` leaves the headless shell, when playwright cannot find it itself. */
 function shells(): string[] {
   const home = process.env.LOCALAPPDATA ?? process.env.HOME ?? '';
-  const roots = [
-    path.join(home, 'ms-playwright'),
-    path.join(home, 'Library', 'Caches', 'ms-playwright'),
-    path.join(home, '.cache', 'ms-playwright'),
-  ];
+  const roots = [path.join(home, 'ms-playwright'), path.join(home, 'Library', 'Caches', 'ms-playwright'), path.join(home, '.cache', 'ms-playwright')];
   const found: string[] = [];
   for (const root of roots) {
     let entries: string[] = [];
@@ -23,7 +21,6 @@ function shells(): string[] {
     } catch {
       continue;
     }
-    // Newest build first: the directory name ends in the build number.
     entries.sort((a, b) => Number(b.split('-').at(-1)) - Number(a.split('-').at(-1)));
     for (const entry of entries) {
       for (const relative of [
@@ -42,11 +39,50 @@ function shells(): string[] {
   return found;
 }
 
+/** Runs in the page: tags every interesting element with a ref and reads its role, name and box. */
+const COLLECT = `(() => {
+  const selector = '[role],button,a,input,select,textarea,h1,h2,h3,h4,dialog,[popover],[tabindex]';
+  const ACTIONABLE = new Set(['button', 'link', 'a', 'menuitem', 'menuitemcheckbox', 'checkbox', 'switch', 'tab', 'textbox', 'input', 'select', 'textarea', 'slider', 'option', 'radio']);
+  const depthOf = (node) => { let d = 0; for (let p = node.parentElement; p; p = p.parentElement) d++; return d; };
+  let next = 0;
+  const nodes = [];
+  for (const element of document.querySelectorAll(selector)) {
+    const box = element.getBoundingClientRect();
+    const role = element.getAttribute('role') ?? element.tagName.toLowerCase();
+    // The accessible name as a screen reader computes it: the label if there is
+    // one, else the text that is not hidden from it.
+    let name = element.getAttribute('aria-label') ?? '';
+    if (!name) {
+      const copy = element.cloneNode(true);
+      copy.querySelectorAll('[aria-hidden="true"]').forEach((hidden) => hidden.remove());
+      name = (copy.textContent ?? '').replace(/\\s+/g, ' ').trim().slice(0, 80);
+    }
+    next++;
+    const ref = 'e' + next;
+    element.setAttribute('data-harness-ref', ref);
+    nodes.push({
+      ref: '@' + ref,
+      role,
+      name,
+      depth: depthOf(element),
+      interactive: ACTIONABLE.has(role) || ACTIONABLE.has(element.tagName.toLowerCase()),
+      focused: document.activeElement === element,
+      enabled: !element.hasAttribute('disabled'),
+      offscreen: box.width === 0 || box.height === 0,
+      bounds: {x: Math.round(box.x), y: Math.round(box.y), width: Math.round(box.width), height: Math.round(box.height)},
+    });
+  }
+  return nodes;
+})()`;
+
 /**
  * The web harness: a real Chromium over the kit's web build, which is the DOM
  * the kit renders rather than a React Native emulation of it. One browser is
  * kept for the whole run, so a sequence of steps shares a page the way a person
  * using the app would.
+ *
+ * Snapshots carry the same refs as every other platform, and a press finds its
+ * element by that ref rather than by a coordinate.
  */
 export function webDriver(options: DriverOptions): Driver {
   const require = createRequire(path.join(options.root, 'package.json'));
@@ -54,14 +90,18 @@ export function webDriver(options: DriverOptions): Driver {
   let browser: {newPage(o?: unknown): Promise<Page>; close(): Promise<void>} | null = null;
   let page: Page | null = null;
 
+  interface Locator {
+    click(o?: unknown): Promise<void>;
+    fill(text: string): Promise<void>;
+    count(): Promise<number>;
+  }
   interface Page {
     goto(url: string, o?: unknown): Promise<unknown>;
     screenshot(o: {path: string; fullPage?: boolean}): Promise<unknown>;
     mouse: {click(x: number, y: number): Promise<void>};
     keyboard: {type(text: string): Promise<void>};
-    accessibility?: {snapshot(): Promise<unknown>};
-    evaluate<T>(fn: () => T): Promise<T>;
-    url(): string;
+    locator(selector: string): Locator;
+    evaluate<T>(fn: string): Promise<T>;
   }
 
   function playwright() {
@@ -92,9 +132,29 @@ export function webDriver(options: DriverOptions): Driver {
     return page;
   }
 
-  /** A path becomes a URL under the base; a URL is taken as it is. */
   function target(to: string): string {
     return /^[a-z]+:\/\//i.test(to) ? to : new URL(to.startsWith('/') ? to : `/${to}`, base).toString();
+  }
+
+  async function snapshot(snapshotOptions: SnapshotOptions = {}): Promise<Snapshot> {
+    const current = await open();
+    const nodes = await current.evaluate<SnapshotNode[]>(COLLECT);
+    return {
+      platform: 'web',
+      source: base,
+      nodes: snapshotOptions.interactive ? nodes.filter(node => node.interactive && !node.offscreen) : nodes,
+    };
+  }
+
+  /** The element a target names: by its ref attribute, which the snapshot wrote. */
+  async function locate(what: Target): Promise<{locator: Locator; note: string}> {
+    const selector = asSelector(what);
+    if (isPoint(selector)) throw new Error('a point is not an element; press it with tap');
+    const tree = await snapshot();
+    const node = findNode(tree, selector);
+    if (!node) throw new Error(`nothing matches ${describeTarget(what)} on the page (${tree.nodes.length} nodes)`);
+    const current = await open();
+    return {locator: current.locator(`[data-harness-ref="${node.ref.slice(1)}"]`), note: `${node.ref} ${node.role} ${JSON.stringify(node.name)}`};
   }
 
   return {
@@ -113,17 +173,32 @@ export function webDriver(options: DriverOptions): Driver {
       return ok(`opened ${url}`);
     },
 
-    async screenshot(file: string): Promise<StepResult> {
-      const current = await open();
-      const out = prepare(file);
-      await current.screenshot({path: out});
-      return ok(`saved ${path.relative(options.root, out)}`);
+    snapshot,
+
+    async press(what: Target): Promise<StepResult> {
+      const selector = asSelector(what);
+      if (isPoint(selector)) {
+        const current = await open();
+        await current.mouse.click(selector.x, selector.y);
+        return ok(`clicked ${selector.x},${selector.y}`);
+      }
+      try {
+        const {locator, note} = await locate(what);
+        await locator.click({timeout: 10_000});
+        return ok(`pressed ${note}`);
+      } catch (error) {
+        return failed((error as Error).message.split('\n')[0] ?? 'press failed');
+      }
     },
 
-    async tap(x: number, y: number): Promise<StepResult> {
-      const current = await open();
-      await current.mouse.click(x, y);
-      return ok(`clicked ${x},${y}`);
+    async fill(what: Target, text: string): Promise<StepResult> {
+      try {
+        const {locator, note} = await locate(what);
+        await locator.fill(text);
+        return ok(`filled ${note} with ${JSON.stringify(text)}`);
+      } catch (error) {
+        return failed((error as Error).message.split('\n')[0] ?? 'fill failed');
+      }
     },
 
     async type(text: string): Promise<StepResult> {
@@ -132,33 +207,11 @@ export function webDriver(options: DriverOptions): Driver {
       return ok(`typed ${text.length} characters`);
     },
 
-    async tree(): Promise<StepResult> {
+    async screenshot(file: string): Promise<StepResult> {
       const current = await open();
-      const snapshot = await current.accessibility?.snapshot();
-      if (snapshot) return ok('read the accessibility tree', JSON.stringify(snapshot, null, 1));
-      // Playwright dropped the snapshot API in some versions; the DOM's own
-      // roles and names are the same thing a screen reader reads.
-      const roles = await current.evaluate(() =>
-        [...document.querySelectorAll('[role],button,a,input,select,textarea,h1,h2,h3,dialog,[popover]')]
-          .map(node => {
-            const element = node as HTMLElement;
-            const role = element.getAttribute('role') ?? element.tagName.toLowerCase();
-            // The accessible name the way a screen reader computes it: the label
-            // if there is one, else the text that is not hidden from it — an icon
-            // marked aria-hidden is not part of the name, and counting it would
-            // report a name that nobody hears.
-            let name = element.getAttribute('aria-label') ?? '';
-            if (!name) {
-              const copy = element.cloneNode(true) as HTMLElement;
-              copy.querySelectorAll('[aria-hidden="true"]').forEach(hidden => hidden.remove());
-              name = copy.textContent?.replace(/\s+/g, ' ').trim().slice(0, 60) ?? '';
-            }
-            const interactive = ['button', 'link', 'a', 'menuitem', 'checkbox', 'switch', 'tab', 'textbox'].includes(role);
-            return `${role} ${JSON.stringify(name)}${interactive && !name ? '  <- no accessible name' : ''}`;
-          })
-          .join('\n'),
-      );
-      return ok('read the roles and names in the document', roles);
+      const out = prepare(file);
+      await current.screenshot({path: out});
+      return ok(`saved ${path.relative(options.root, out)}`);
     },
 
     async idleSeconds(): Promise<number | null> {

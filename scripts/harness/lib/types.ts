@@ -1,3 +1,5 @@
+import type {Snapshot, Target} from './snapshot.ts';
+
 /** The platforms the kit renders on, and that the harness can drive. */
 export type Platform = 'web' | 'windows' | 'android' | 'ios';
 
@@ -35,10 +37,18 @@ export function elsewhere(what: string, platform: Platform, note = ''): StepResu
   return {ok: true, skipped: true, message: `${what} is not something the ${platform} harness can do${note ? `: ${note}` : ''}`};
 }
 
+export interface SnapshotOptions {
+  /** Only what a person can act on, which is what a test usually wants. */
+  interactive?: boolean;
+}
+
 /**
- * One platform's driver. Every method answers rather than throws: a step that
- * a platform has no counterpart for is `skipped`, not a failure, so a script
- * written for four platforms runs on all of them and says what it could not do.
+ * One platform's driver, in the shape `agent-device` uses so a test reads the
+ * same whichever is underneath: take a snapshot, then act on what it named.
+ *
+ * Every method answers rather than throws: a step that a platform has no
+ * counterpart for is `skipped`, not a failure, so a script written for four
+ * platforms runs on all of them and says what it could not do.
  */
 export interface Driver {
   readonly platform: Platform;
@@ -46,14 +56,16 @@ export interface Driver {
   available(): Promise<Availability>;
   /** Opens a route: a deep link, a URL, or a path resolved against the app's base. */
   open(target: string): Promise<StepResult>;
-  /** Saves a PNG of what is on screen. */
-  screenshot(file: string): Promise<StepResult>;
-  /** A synthetic press at a point, in the window's own pixels from its top left. */
-  tap(x: number, y: number): Promise<StepResult>;
+  /** The accessibility tree, with a ref and bounds for every node. */
+  snapshot(options?: SnapshotOptions): Promise<Snapshot>;
+  /** A press on what a ref, a selector or a point names. */
+  press(target: Target): Promise<StepResult>;
+  /** Puts text into the field a target names: focus it, then type. */
+  fill(target: Target, text: string): Promise<StepResult>;
   /** Types into whatever has focus. */
   type(text: string): Promise<StepResult>;
-  /** The accessibility tree, as a screen reader would read it. */
-  tree(): Promise<StepResult>;
+  /** Saves a PNG of what is on screen. */
+  screenshot(file: string): Promise<StepResult>;
   /** Seconds since the user last touched this machine; null where the question has no meaning. */
   idleSeconds(): Promise<number | null>;
   /** Releases whatever the driver is holding (a browser, a connection). */
@@ -68,6 +80,6 @@ export interface DriverOptions {
   url?: string;
   /** The app's URI scheme, for deep links. */
   scheme?: string;
-  /** The window or process to drive, where a platform has more than one. */
+  /** The window, process, device or bundle id to drive, where a platform has more than one. */
   target?: string;
 }

@@ -84,7 +84,8 @@
     "test:ui": "vitest --ui",
     "codegen:windows": "npm exec --yes --package=@react-native-windows/codegen@0.84.0 --package=@react-native/codegen@0.84.1 -- react-native-windows-codegen --files src/windows/specs/*NativeComponent.ts --libraryName ExpoInterfaceSpec --namespace winrt::ExpoInterface::Codegen --outputDirectory windows/ExpoInterface/codegen --componentsWindows",
     "segoe:windows": "node scripts/segoe-glyphs.ts",
-    "harness": "node scripts/harness/index.ts"
+    "harness": "node scripts/harness/index.ts",
+    "test:device": "vitest run --config vitest.config.device.mts"
   },
   "peerDependencies": {
     "@expo/material-symbols": "*",

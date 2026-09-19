@@ -91,3 +91,45 @@ synthetic input needs.
 | ios | `bun run ios` into a simulator |
 
 Screenshots land in `.harness/`, which is not committed.
+
+## From Vitest
+
+The same drivers back a test API in the shape `mobile-test` uses, so a flow is
+a test rather than a shell invocation. The assertion is the accessibility tree,
+not the pixels: a tree is stable across machines and scale factors, it diffs
+legibly in review, and it is what a screen reader reads.
+
+```ts
+import {by, device, element} from '../vitest/device/index.ts';
+
+await device.open('/');
+await element(by.label('Settings')).press();
+await element(by.label('Name')).waitFor();
+expect(await device.fullSnapshot()).toHaveElement(by.label('Email'));
+expect(await device.snapshot({interactive: true})).toBeFullyLabelled();
+```
+
+Run them against whatever is up. They are opt-in and never part of
+`bun run test`, because they need a real app somewhere:
+
+```sh
+HARNESS_PLATFORM=web HARNESS_URL=http://localhost:8085 bun run test:device
+HARNESS_PLATFORM=windows HARNESS_TARGET=<path to the exe> bun run test:device
+HARNESS_PLATFORM=android bun run test:device
+```
+
+`toBeFullyLabelled` is the matcher that keeps earning its place: it fails with
+the ref and position of every control a screen reader would announce as its
+role alone. That is the defect we keep finding on Windows, where a button made
+of a glyph and a text block names nothing by itself.
+
+## Where each platform is driven from
+
+| Platform | Driven by | Why |
+| --- | --- | --- |
+| windows | this repository | `agent-device` has no Windows backend, and a react-native-windows app has no remote protocol |
+| web | headless Chromium here | already in the repository's dependencies; nothing to install |
+| ios, android | `agent-device` | it does those far better than a hand-rolled simctl or adb wrapper, and installs its own runners without touching the app |
+
+`agent-device` is not a dependency of this repository. Install it when you want
+iOS or Android (`npm i -g agent-device`); `doctor` says so when it is missing.
