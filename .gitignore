@@ -51,3 +51,9 @@ coverage/
 test-report/
 # vitest browser mode saves a screenshot next to a failing story
 __screenshots__/
+
+# Claude Code: the shared configuration is committed, the personal parts are not
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.claude/agent-memory-local/
+.claude/worktrees/
