@@ -314,12 +314,100 @@ unstyled. Highlight it:
 - **Windows** — `Run`s inside the `TextBlock`.
 - **iOS / Android** — nested `Text` runs.
 
-### 2.5 `Tabs` on Windows
+### 2.5 `TabView` — document tabs, which are not the tabs the kit has
 
-`src/tabs` maps to `NavigationView` (app areas) and `SelectorBar` (inline).
-There is a third Windows idiom it does not reach: **`TabView`** — closeable,
-reorderable, tear-off document tabs with an add button and a strip footer.
-That is what `TabStack` wants on a desktop.
+**Researched 2026-09-20, not built. This section replaces the one that called
+it "`Tabs` on Windows", which had the shape of the problem wrong.**
+
+Two different controls are called tabs, and mixing them is what made this look
+like a Windows gap in an existing component.
+
+| | document tabs | navigation tabs |
+| --- | --- | --- |
+| Examples | WinUI `TabView`, Chrome, VS Code | `UITabBar`, Material `NavigationBar` |
+| How many | unlimited, opened by the user | three to five, fixed by the app |
+| Close, add, reorder | yes | no |
+| What a tab is | an open document or page | a section of the app |
+| On a phone | a card switcher behind a count | a bar along the bottom |
+| On a tablet | a real strip, or a sidebar | a top bar or a sidebar |
+
+`src/tabs` is the right-hand column and is finished: `NavigationView` on
+Windows, the platform's own tab bar elsewhere. **`TabView` is the left-hand
+column, and it is a new component, not a change to that one.** The two share
+almost nothing but a name.
+
+#### What the platforms actually do
+
+The reference is WinUI's `TabView`: a row of titles, a close cross on each, an
+add button, a strip header and footer, reordering and tear-off.
+
+**Phones keep no strip.** Safari and Chrome on iOS and Android both hide open
+pages behind a numbered button that opens a grid of cards, each with its own
+close cross — not a row of tabs. iOS 26 Safari's default "Compact" toolbar
+goes further and merges the address field with the tab controls into a pill
+that shrinks as the page scrolls. The exception that proves the rule is
+Vivaldi, the only mainstream mobile browser with a real closable strip; even
+it shows the cross only on the active tab, to save width, and stacks two rows
+when tabs are grouped.
+
+**Tablets and foldables get the real thing.** Past roughly tablet width —
+600 dp on Android, iPad generally — Safari grows its "Separate Tab Bar" (a row
+of titled tabs with close buttons, the address field alongside), and Chrome on
+Android tablets grows a desktop-like strip that drops the close buttons as
+tabs get narrow. Firefox has had a tablet strip for years.
+
+**There is no first-party document-tab control on iOS or Android.** Both
+platforms' own `TabView` and `TabRow` are the navigation kind. A document
+strip is composed everywhere except Windows.
+
+#### The shape to build
+
+| | strip (wide) | switcher (narrow) |
+| --- | --- | --- |
+| Windows | **native** — WinUI 3 `TabView` | drawn grid |
+| iOS | drawn strip of SwiftUI buttons | drawn card grid |
+| Android | drawn strip of Compose buttons | drawn card grid |
+| Web | drawn strip, the APG tab pattern | drawn card grid |
+
+**One breakpoint, and the kit already has the machinery.** `src/tabs`'
+`resolvePane` picks a Windows pane from a measured width at WinUI's own 641
+and 1008 points, falling back to `useWindowDimensions` for the first frame
+because react-native-windows reports no dimension change when a window is
+resized. A `TabView` wants the same treatment with one threshold — **640
+points**, which is both WinUI's compact breakpoint and Android's medium window
+class — below which the strip becomes a count button and a grid, and above
+which it is a strip. Measured, not guessed: a navigation pane beside it
+changes the room a strip has without the window changing size at all.
+
+**The cards cannot be thumbnails.** Safari and Chrome draw a live preview of
+each page; the kit cannot, because snapshotting arbitrary React Native content
+needs a dependency it does not have. A card is a title, an icon and a close
+cross — which is what a switcher over an app's own documents, rather than over
+web pages, would want anyway.
+
+The keyboard is already solved on web: `useRovingFocus` from §6.3 is the
+strip's pattern, and the close cross inside each tab is the one place the
+roving contract needs care, since a tab holding a second focusable is a
+composite inside a composite.
+
+#### The one thing to settle before writing code
+
+Whether WinUI's `TabView` can be **the strip alone**. Its tab content would
+have to be React Native's, and a XAML island cannot hold React Native children
+— the limit that has now shaped four items in this document. So the island
+would have to be a `TabView` whose `TabViewItem`s carry no content, sized to
+its strip, with the selected page drawn underneath it by React Native. Whether
+the control tolerates that, or insists on a content area it will not give up,
+is not answerable by reading: it needs a spike that is allowed to come back
+negative. If it does, Windows draws its strip like the other three and the
+component is composed on all four — still worth building, and honest about it.
+
+Worth knowing for the web half: Chrome supports `display_override: ["tabbed"]`
+with a `tab_strip` manifest entry, which gives an *installed* web app a real
+browser-drawn tab strip. That is the browser's chrome rather than a control in
+the page, so it is not this component — but it is the better answer for an
+installed app that wants document tabs, and worth saying so rather than having
+someone rediscover it.
 
 ### 2.6 `Icon` on Windows
 
@@ -832,8 +920,12 @@ axe cannot press keys, so add the two layers that can.
     question that matters, because that control is what carries the state to a
     screen reader.
 
-    Still outstanding from this item: `TabView`, which is Windows only — and
-    §2.5 now says what it should actually be.
+    Still outstanding from this item: `TabView`. It is **not** Windows only,
+    which is what §2.5 used to imply — it is a new component (document tabs,
+    not the navigation tabs `src/tabs` already is), native on Windows and
+    composed on the other three, with a strip above a width and a card
+    switcher below it. §2.5 has the research, the breakpoint, and the one
+    question to settle first.
 15. ~~Caret-anchored `PopupMenu` (§4.2) — web-only, or commit to two native
     modules.~~ **Done, web only, deliberately.** `caretPoint(field, within)` in
     `src/caret`; the other three answer `null` and name the module each would
