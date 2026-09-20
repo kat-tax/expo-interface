@@ -76,8 +76,20 @@ const preview: Preview = {
       codePanel: true,
     },
     options: {
+      // The sidebar reads like `docs/components/`: the same five groups, each
+      // in the order that group's table lists them. Anything not named here (a
+      // new story whose entry has not been written yet) sorts after what is.
+      // Storybook reads this list statically, so it has to be written inline.
       storySort: {
-        order: ['Overview', 'Guides', ['Installation', 'Theming', 'Icons', 'Windows'], 'Layout', 'Navigation', 'Controls', 'Indicators', 'Overlays'],
+        order: [
+          'Overview',
+          'Guides', ['Installation', 'Theming', 'Icons', 'Windows'],
+          'Layout', ['Screen', 'ScreenHeader', 'Surface', 'Card', 'Toolbar', 'KeyboardBar', 'FieldGroup', 'ListItem', 'Collapsible', 'Divider', 'EmptyState'],
+          'Navigation', ['TabView', 'Pager', 'ShareLink'],
+          'Controls', ['Button', 'Fab', 'Chip', 'IconToggle', 'Switch', 'Checkbox', 'TextField', 'SearchField', 'Picker', 'SegmentedControl', 'Slider', 'Stepper', 'DateTimePicker', 'ColorPicker'],
+          'Indicators', ['Progress', 'Spinner', 'Gauge', 'Badge', 'Avatar', 'Typography'],
+          'Overlays', ['Menu', 'ContextMenu', 'PopupMenu', 'Popover', 'Tooltip', 'Alert', 'Sheet', 'Toast'],
+        ],
       },
     },
   },
