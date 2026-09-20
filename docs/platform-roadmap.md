@@ -1332,9 +1332,12 @@ harness run on web and on Windows before it counts as done.
 
 ## 8. Still open
 
-Everything the fifteen items above asked for is done or closed with a reason.
-What remains is this, and it is worth keeping in one place rather than leaving
-it scattered through the sections that finished around it.
+**Nothing is, in the sense this document was written to track.** All fifteen
+items are done or closed with a reason, both open questions are decided, and
+the leftovers inside finished items are finished too. What is below is a
+version to watch, an issue to file, and the one idea worth picking up next —
+kept in one place rather than scattered through the sections that ended around
+them.
 
 **Nothing is outstanding inside the fifteen items.** Item 7's accessibility
 tail was the last of it and is done as far as the platforms allow — §6.4 has
@@ -1369,3 +1372,11 @@ vocabulary rather than a kit prop.
   island's root visual exists. Filing it is what would reopen swipe actions on
   Windows (§1.6), materials behind React Native children (§3.2, item 11), and
   a `TabView` whose items hold their own pages (§2.5).
+
+**And one thing worth doing next, which is not an item here.** Widen
+`SEGOE_GLYPHS` toward covering every Material Symbols name `expo-symbols`
+types, rather than the 353 it curates today. It is the decision §2.6 came to,
+it is the only gap in this document that an ordinary day's work keeps hitting
+— a name with no mapping fails the suite the moment it appears anywhere in
+`src/` — and unlike everything else left here it needs no upstream change, no
+new spec and nobody's permission.
