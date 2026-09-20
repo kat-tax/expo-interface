@@ -2,16 +2,17 @@
 paths:
   - "**/*.test.ts"
   - "**/*.test.tsx"
-  - "vitest/**"
+  - "expo-vitest/**"
   - "vitest.config.mts"
-  - "vitest.config.web.mts"
 ---
 
 # Tests
 
-Vitest 4 with `vitest-expo`, no jest. Six projects in `vitest.config.mts` (the
-web one is referenced from `vitest.config.web.mts`), and **a file's name decides
-which platforms run it**:
+Vitest 4 with `vitest-expo`, no jest. The projects come from the `expo-vitest`
+workspace: `vitest.config.mts` calls `expoProjects()` for the kit's four, takes
+the runtime's two from `expo-windows/vitest.projects.mts`, and adds a Node
+project for `expo-vitest`'s own tests. **A file's name decides which platforms
+run it**:
 
 | Name | Runs in |
 | --- | --- |
@@ -21,9 +22,13 @@ which platforms run it**:
 | `src/**/*.native.test.tsx` | ios and android |
 | `expo-windows/src/**/*.test.{ts,tsx}` | the runtime project (RN engine) |
 | `expo-windows/{metro,cli}/**/*.test.{js,ts}` | the node project |
+| `expo-vitest/src/**/*.test.ts` | the test layer's own node project |
 
 Run one project with `node node_modules/vitest/vitest.mjs run --project <name>`,
-and a single file by appending its path.
+and a single file by appending its path. The runtime's suite also runs alone,
+with its own coverage gate: `bun run --cwd expo-windows test:coverage`.
+`bun run test:fixture` packs `expo-vitest` and runs its fixture against the
+installed copy; run it after changing anything under `expo-vitest/`.
 
 ## Rules
 
@@ -42,9 +47,12 @@ and a single file by appending its path.
 - `TurboModuleRegistry.get` returns an auto-mock for an unknown name, so a test
   that means "the library is absent" must `mockReturnValue(null)`.
 - `@expo/ui` views render as `ViewManagerAdapter_ExpoUI_<View>View` host nodes.
-  Helpers for finding them and reading modifiers live in `src/__tests__/native.ts`;
-  Windows island helpers (`island`, `fireIsland`) in `src/__tests__/windows.ts`.
-- On Windows, a guard in `vitest/setup.windows.ts` throws when a forbidden module
-  (`@expo/ui`'s controls, `expo-image`, `expo-symbols` and the rest) reaches a
-  Windows bundle. If a test needs one, the kit's Windows file is wrong, not the
-  guard.
+  Helpers for finding them and reading modifiers are `expo-vitest/native`;
+  Windows island helpers (`island`, `fireIsland`) are `expo-vitest/windows`; an
+  in-memory Expo Router app is `expo-vitest/router`.
+- On Windows, importing a module named in `NOT_ON_WINDOWS` (`vitest.config.mts`)
+  throws: `@expo/ui`'s controls, `expo-image`, `expo-symbols` and the rest. If a
+  test needs one, the kit's Windows file is wrong, not the guard.
+- `expo-vitest` runs from source here and is imported by path in config files.
+  Its imports carry the `.ts` extension, because Node runs the harness from
+  source and the build rewrites them.

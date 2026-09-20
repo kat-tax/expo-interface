@@ -6,12 +6,13 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
 
 A universal UI kit for Expo SDK 57. Every component renders the platform's own
 control: SwiftUI on iOS, Jetpack Compose on Android, the DOM on web, WinUI 3 on
-Windows. Four workspaces:
+Windows. Five workspaces:
 
 | Path | What |
 | --- | --- |
 | `src/` | the kit itself, published as `expo-interface` |
 | `expo-windows/` | the Windows platform runtime for Expo apps, published as `expo-windows` |
+| `expo-vitest/` | the per-platform Vitest projects, the test helpers and the harness, as the `expo-vitest` package |
 | `example/` | the dropfiles app the kit is dogfooded in |
 | `storybook/` | two Storybooks (web and on-device) over `src/**/*.stories.tsx` |
 
@@ -19,7 +20,7 @@ Windows. Four workspaces:
 
 ```sh
 bun run lint        # oxlint, zero warnings
-bun run typecheck   # tsc across all four workspaces
+bun run typecheck   # tsc across all five workspaces
 bun run test        # vitest, every platform project
 ```
 
@@ -51,7 +52,7 @@ bun run harness -p web --url http://localhost:8085 open / screenshot home.png tr
 
 One command drives the kit on web, Windows, Android and iOS: open a route,
 press, type, screenshot, and read the accessibility tree a screen reader reads.
-See `scripts/harness/README.md`. Tests prove behaviour; the harness is how you
+See `expo-vitest/HARNESS.md`. Tests prove behaviour; the harness is how you
 see the thing itself, and it is the only way to catch what only appears in a
 real renderer.
 

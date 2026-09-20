@@ -12,7 +12,7 @@
  *
  *   await device.open('/');
  *   await element(by.label('Settings')).press();
- *   await expect(device).toHaveElement(by.label('Name'));
+ *   expect(await device.fullSnapshot()).toHaveElement(by.label('Name'));
  */
 import path from 'node:path';
 import {driverFor} from '../harness/lib/drivers.ts';

@@ -499,10 +499,12 @@ what it does not.
 
 ## Verification
 
-- `bun run test` runs two Vitest projects for the runtime: `expo-windows`
-  (the JavaScript modules and aliases on the React Native engine, each SDK
-  package imported with the install in place) and `expo-windows-node` (the
-  Metro config and the CLI).
+- `bun run test` in `expo-windows/` runs the runtime's two Vitest projects:
+  `expo-windows` (the JavaScript modules and aliases on the React Native
+  engine, each SDK package imported with the install in place) and
+  `expo-windows-node` (the Metro config and the CLI, against the small Expo
+  project in `fixture/`). Coverage is 100% on lines, branches, functions and
+  statements.
 - `scripts/windows-ci.sh <workdir>` builds the example end to end on the line
   react-native-windows ships: a scratch Expo 57 app with React Native pinned
   to that line, this checkout's kit and runtime in its `node_modules`,
@@ -512,5 +514,5 @@ what it does not.
   route that imports them all. The Windows workflow runs it on every change
   and keeps the app and the bundle as artifacts. `RN_VERSION` and
   `RNW_VERSION` together build another line.
-- The kit's harness drives a built app: `bun run harness -p windows --target
-  <exe> open /route screenshot out.png tree`. See `scripts/harness/README.md`.
+- The `expo-vitest` harness drives a built app: `expo-harness -p windows
+  --target <exe> open /route screenshot out.png tree`.

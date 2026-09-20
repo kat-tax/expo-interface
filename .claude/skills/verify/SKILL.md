@@ -48,7 +48,7 @@ genuinely unreachable, delete it rather than test it.
 
 ## When the whole suite is slow
 
-The suite is a few thousand tests across six projects and takes a couple of
+The suite is a few thousand tests across seven projects and takes a couple of
 minutes. Run it in the background and keep working, rather than narrowing so far
 that a cross-platform regression slips through: the platform projects catch each
 other's mistakes, which is the point of running all of them.

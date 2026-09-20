@@ -177,7 +177,9 @@ bun run storybook:test     # every story as a Vitest browser test, with axe
 ### Tests
 
 Vitest runs the suite once per platform (`ios`, `android`, `windows`, `web`)
-plus the runtime's two projects. A file's name decides where it runs:
+plus the runtime's two projects. The projects, the test helpers and the
+harness are the [`expo-vitest`](expo-vitest/README.md) workspace. A file's name
+decides where it runs:
 
 | Pattern | Platforms |
 | --- | --- |
@@ -202,7 +204,7 @@ bun run harness -p web --url http://localhost:8085 open / screenshot home.png tr
 
 One command drives the kit on web, Windows, Android and iOS: open a route,
 press, type, screenshot, and read the accessibility tree a screen reader
-reads. See [scripts/harness/README.md](scripts/harness/README.md).
+reads. See [expo-vitest/HARNESS.md](expo-vitest/HARNESS.md).
 
 ### CI
 

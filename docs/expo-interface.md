@@ -1485,7 +1485,7 @@ The differences that change what a screen can do, in one place:
   test rather than the app.
 - Every story runs in headless Chromium through Vitest browser mode with axe
   at the error level.
-- The harness (`scripts/harness/README.md`) opens a route on web, Windows,
+- The harness (`expo-vitest/HARNESS.md`) opens a route on web, Windows,
   Android or iOS, presses, types, screenshots, and reads the accessibility
   tree a screen reader reads. It is the only way to see what a real renderer
   draws, and it has caught what tests and axe could not.
