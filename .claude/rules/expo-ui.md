@@ -2,7 +2,7 @@
 paths:
   - "**/*.ios.tsx"
   - "**/*.android.tsx"
-  - "**/*.native.tsx"
+  - "**/*.native.ts"
 ---
 
 # The native files
