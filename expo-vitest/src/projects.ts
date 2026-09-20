@@ -40,8 +40,14 @@ export function selfAliases(): Alias[] {
   return Object.entries(SUBPATHS).map(([subpath, source]) => ({find: new RegExp(`^expo-vitest/${subpath}$`), replacement: file(source)}));
 }
 
-/** Keeps this package in the Vite module graph, where its setup files' `vi.mock` is hoisted and its helpers share the tests' modules. */
-const SELF = /[\\/]expo-vitest[\\/]/;
+/**
+ * Keeps this package in the Vite module graph once it is installed, where its
+ * setup files' `vi.mock` is hoisted and its helpers share the tests' modules.
+ * Anchored on `node_modules`: a checkout of this package is a folder called
+ * `expo-vitest` too, and everything under that is not this package. From
+ * source nothing needs saying, since only `node_modules` is left out.
+ */
+export const SELF = /[\\/]node_modules[\\/]expo-vitest[\\/]/;
 
 /**
  * Packages that ship TypeScript sources as their entry points. Node's loader

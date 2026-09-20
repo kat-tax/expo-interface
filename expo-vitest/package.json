@@ -69,6 +69,7 @@
   "scripts": {
     "build": "node scripts/build.js",
     "typecheck": "tsc --noEmit",
+    "test:fixture": "node scripts/fixture.js",
     "prepack": "node scripts/build.js"
   },
   "peerDependencies": {

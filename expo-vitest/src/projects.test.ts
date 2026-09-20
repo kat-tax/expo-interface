@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {deviceConfig, expoProjects, file, isInstalled, nodeProject, selfAliases, SUBPATHS} from './projects.ts';
+import {deviceConfig, expoProjects, file, isInstalled, nodeProject, SELF, selfAliases, SUBPATHS} from './projects.ts';
 
 const PACKAGE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(PACKAGE, 'package.json'), 'utf8'));
@@ -33,6 +33,16 @@ describe('the subpaths', () => {
     // A subpath is matched whole: `device` is not `device/matchers`.
     expect(aliases.filter(alias => (alias.find as RegExp).test('expo-vitest/device/matchers'))).toHaveLength(1);
     expect(aliases.filter(alias => (alias.find as RegExp).test('expo-vitest/windows/more'))).toHaveLength(0);
+  });
+});
+
+describe('the module graph', () => {
+  it('keeps this package in it where it is installed, and not what a checkout of the same name installs', () => {
+    expect(SELF.test('C:/work/app/node_modules/expo-vitest/dist/native.js')).toBe(true);
+    expect(SELF.test('/work/app/node_modules/.pnpm/expo-vitest@1.0.0/node_modules/expo-vitest/dist/native.js')).toBe(true);
+    expect(SELF.test('C:\\work\\app\\node_modules\\expo-vitest\\dist\\native.js')).toBe(true);
+    expect(SELF.test('C:\\dev\\expo-vitest\\node_modules\\react-native\\index.js')).toBe(false);
+    expect(SELF.test('/dev/expo-vitest/src/native.ts')).toBe(false);
   });
 });
 
