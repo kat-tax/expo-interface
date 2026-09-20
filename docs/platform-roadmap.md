@@ -146,12 +146,78 @@ rather than the caller wrapping the row, so the two cannot nest on one gesture.
 
 ### 1.8 Pager
 
+**Built, and the matrix below was wrong in both directions.** What was
+written:
+
 | | control |
 | --- | --- |
 | Android | **native** — `HorizontalPager` / `Carousel` |
 | iOS | **native** — `TabView` in its page style |
 | Windows | **native** — WinUI `FlipView` + `PipsPager` |
 | Web | **composed** — scroll-snap (check CSS carousel primitives' status) |
+
+What it is:
+
+| | scroller | indicator |
+| --- | --- | --- |
+| iOS | **native** — `UIScrollView` paging | drawn — `UIPageControl` is not wrapped |
+| Android | **native** — a snapping `ReactScrollView` | drawn — Material's indicator is not exposed |
+| Windows | **native** — the composition scroller's snap points | **native** — WinUI 3 `PipsPager` |
+| Web | **native** — `scroll-snap-type: x mandatory` | drawn — as a tab list |
+
+Both corrections come from the same place. **`FlipView` cannot be the Windows
+answer**, for the reason that has now closed or shrunk four items: a XAML
+island holds XAML, and the pages here are React Native's. Nor can Compose's
+`HorizontalPager` or SwiftUI's `TabView` be the other two, because reaching
+them means `RNHostView` pages inside a container whose whole job is a drag —
+and the kit has already met that fight, in the Android colour picker, which
+only works with `sheetGesturesEnabled={false}`. A pager cannot turn its
+gestures off.
+
+What is left is better than what was planned, not worse. React Native's
+`pagingEnabled` **is** each platform's own paging — `UIScrollView.isPagingEnabled`,
+a snapping `ReactScrollView`, `PagingEnabled` on react-native-windows'
+composition scroller, and, through react-native-web, `scroll-snap-type: x
+mandatory` with `scroll-snap-align` on each page. Four native scrollers, no
+hosting boundary, and the only place a platform control still fits is the
+indicator — which fits precisely because it has **no children**.
+
+Three things this turned up that are worth keeping:
+
+- **React Native drops `pagingEnabled` on Windows.** `ScrollView` passes it
+  to the native view through a `Platform.select` with an `ios` branch, an
+  `android` branch and no default, so on Windows it arrives as `undefined` and
+  the scroller simply does not page. Nothing warns. `snapToInterval` is passed
+  straight through and reaches the same implementation. This is the second
+  instance of one shape — `Share` is stopped on Windows the same way (§1.7) —
+  and it is worth checking for before blaming the native side of anything.
+- **Report the page a scroller settles on, never the ones it passes.** Reading
+  the page from every scroll frame means an animated scroll to the third page
+  is interrupted at the second and stops there: the kit drives the scroller
+  and listens to it, so it hears its own animation. `onMomentumScrollEnd` and
+  `onScrollEndDrag` natively, `scrollend` on web.
+- **Off-screen pages are `inert` on web.** A carousel that leaves its hidden
+  pages in the tab order puts the focus ring somewhere nobody can see — and
+  it is also what makes `role="tabpanel"` honest, since exactly one panel is
+  live. Verified in a real browser: a button inside an off-screen page cannot
+  take focus. axe caught the other half of this on its own, because a
+  scrollable region with no focusable content needs `tabindex` of its own.
+
+Seen working on both platforms the bar asks for. On web: the arrow keys move
+the tab list, the track scrolls exactly one page width, and the `inert` flag
+moves with it. On Windows the UIA tree is the proof the control is real —
+`#PreviousPageButton` disabled on the first page, `#NextPageButton`,
+`#PipsPagerScrollViewer` and a `Button "Page 1"` for each pip are WinUI's own
+template, not anything the kit drew — and pressing the third pip reported
+`page 2` back to React and scrolled there.
+
+**And the thing the tests could not see.** The first Windows build drew the
+indicator with nothing above it: a page has a width and no height of its own,
+a horizontal scroller only stretches its pages to the height *it* has, and a
+pager sized by its content has none. Both the pager and its track now grow
+and shrink without `flex: 1`, whose basis of zero is the same collapse by
+another route. Every test passed throughout — a screenshot is the only thing
+that catches this.
 
 ### Deliberately not doing
 
@@ -688,10 +754,19 @@ axe cannot press keys, so add the two layers that can.
     is a graceful answer to an unexplained problem rather than evidence about
     it.
 
+    **The pager is done, and §1.8's matrix is corrected there.** It came out
+    the opposite of what was planned: the *scroller* is the platform's own on
+    all four, because React Native's `pagingEnabled` already is each of them,
+    while the native *controls* the plan named — `FlipView`, Compose's
+    `HorizontalPager`, SwiftUI's paged `TabView` — are all unreachable for the
+    same reason, which is that their pages would have to be React Native
+    content hosted inside a container built around a drag. The one platform
+    control that fits is the indicator, `PipsPager`, and it fits because it
+    has no children at all.
+
     Still outstanding from this item: `Chip` is **one** native platform
     (Compose's four chip kinds) and so fails this document's own two-platform
-    bar; `TabView` is Windows only; the pager is three native and the largest
-    of the four.
+    bar; `TabView` is Windows only.
 15. Caret-anchored `PopupMenu` (§4.2) — web-only, or commit to two native
     modules.
 

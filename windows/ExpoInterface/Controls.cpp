@@ -9,6 +9,7 @@
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceCheckBox.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceInfoBadge.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfacePersonPicture.g.h"
+#include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfacePipsPager.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceProgress.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceToggleButton.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceToggleSwitch.g.h"
@@ -489,6 +490,66 @@ struct InfoBadgeView : winrt::implements<InfoBadgeView, winrt::IInspectable>,
   controls::InfoBadge m_badge{nullptr};
 };
 
+// -- PipsPager ---------------------------------------------------------------
+
+struct PipsPagerView : winrt::implements<PipsPagerView, winrt::IInspectable>,
+                       Codegen::BaseExpoInterfacePipsPager<PipsPagerView>,
+                       XamlIsland<PipsPagerView> {
+  void InitializeIsland(const composition::ContentIslandComponentView &islandView) noexcept {
+    m_pips = controls::PipsPager{};
+    // The chevrons Fluent puts either side of the pips while a pointer is
+    // over them. A desktop has a pointer and no swipe, so this is the only
+    // affordance on Windows that says the pages can be stepped through; the
+    // touch platforms have the swipe instead and draw nothing.
+    m_pips.PreviousButtonVisibility(controls::PipsPagerButtonVisibility::VisibleOnPointerOver);
+    m_pips.NextButtonVisibility(controls::PipsPagerButtonVisibility::VisibleOnPointerOver);
+    m_pips.SelectedIndexChanged([weak = get_weak()](
+                                    const controls::PipsPager &sender,
+                                    const controls::PipsPagerSelectedIndexChangedEventArgs &) {
+      if (auto strong = weak.get()) {
+        // The control is told the page as well as reporting it, so echoing
+        // the index the kit has just set would be a loop.
+        if (strong->m_applying) return;
+        if (auto emitter = strong->EventEmitter()) {
+          Codegen::ExpoInterfacePipsPagerEventEmitter::OnSelectionChange event;
+          event.index = sender.SelectedPageIndex();
+          emitter->onSelectionChange(std::move(event));
+        }
+      }
+    });
+    Attach(islandView, m_pips);
+  }
+
+  void UpdateProps(
+      const rn::ComponentView &view,
+      const winrt::com_ptr<Codegen::ExpoInterfacePipsPagerProps> &newProps,
+      const winrt::com_ptr<Codegen::ExpoInterfacePipsPagerProps> &oldProps) noexcept override {
+    Codegen::BaseExpoInterfacePipsPager<PipsPagerView>::UpdateProps(view, newProps, oldProps);
+    auto props = Props();
+    if (!props) return;
+    m_applying = true;
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
+    m_pips.NumberOfPages(std::max(0, props->count));
+    // Setting the index past the end throws, and a page count that shrinks
+    // arrives in the same update as the index that fits it either way round.
+    const auto pages = m_pips.NumberOfPages();
+    if (pages > 0) {
+      m_pips.SelectedPageIndex(std::clamp(props->selectedIndex.value_or(0), 0, pages - 1));
+    }
+    SetIdentity(m_pips, props->label, props->ViewProps);
+    m_applying = false;
+    Remeasure();
+  }
+
+  void UpdateState(const rn::ComponentView &, const rn::IComponentState &newState) noexcept override {
+    KeepState(newState);
+  }
+
+ private:
+  controls::PipsPager m_pips{nullptr};
+  bool m_applying{false};
+};
+
 } // namespace
 
 void RegisterControls(rn::IReactPackageBuilder const &packageBuilder) noexcept {
@@ -499,6 +560,7 @@ void RegisterControls(rn::IReactPackageBuilder const &packageBuilder) noexcept {
   RegisterIsland<ProgressView>(packageBuilder, &Codegen::RegisterExpoInterfaceProgressNativeComponent<ProgressView>);
   RegisterIsland<PersonPictureView>(packageBuilder, &Codegen::RegisterExpoInterfacePersonPictureNativeComponent<PersonPictureView>);
   RegisterIsland<InfoBadgeView>(packageBuilder, &Codegen::RegisterExpoInterfaceInfoBadgeNativeComponent<InfoBadgeView>);
+  RegisterIsland<PipsPagerView>(packageBuilder, &Codegen::RegisterExpoInterfacePipsPagerNativeComponent<PipsPagerView>);
 }
 
 } // namespace winrt::ExpoInterface

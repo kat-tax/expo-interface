@@ -83,6 +83,8 @@ export {ListItem} from './list-item';
 export type {ListItemAction, ListItemProps} from './list-item/types';
 export {Menu} from './menu';
 export type {ContextMenuProps, MenuItem, MenuPoint, MenuProps, MenuTrigger} from './menu/types';
+export {Pager} from './pager';
+export type {PagerProps} from './pager/types';
 export {Picker} from './picker';
 export type {PickerItemProps, PickerOption, PickerProps, PickerValue} from './picker/types';
 export {Popover} from './popover';

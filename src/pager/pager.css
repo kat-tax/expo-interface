@@ -1,0 +1,88 @@
+/*
+ * The snap is the browser's: `scroll-snap-type: x mandatory` on the track and
+ * `scroll-snap-align: start` on each page is what paging is on the web, and
+ * it brings the platform's own momentum and overscroll with it. The kit only
+ * says how wide a page is, and here that is simply the track.
+ */
+/*
+ * The pager fills the room it is given, so a page can be `flex: 1` and mean
+ * it: a page has a width and no height of its own, and a track sized by its
+ * content leaves the indicator sitting under nothing.
+ */
+.ui-pager {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ui-pager__pages {
+  display: flex;
+  /*
+   * Not `flex: 1`, whose basis of zero would leave the track no height at all
+   * in a pager sized by its content; this fills a pager with a height of its
+   * own and takes the pages' otherwise.
+   */
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  /* A swipe on a trackpad should page, not walk the browser back a step. */
+  overscroll-behavior-x: contain;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.ui-pager__pages::-webkit-scrollbar {
+  display: none;
+}
+
+.ui-pager__page {
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.ui-pager__dots {
+  display: flex;
+  align-self: center;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.ui-pager__dot {
+  box-sizing: content-box;
+  width: 7px;
+  height: 7px;
+  padding: 8px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-tertiary-label);
+  background-clip: content-box;
+  cursor: pointer;
+  appearance: none;
+}
+
+.ui-pager__dot[aria-selected='true'] {
+  background: var(--color-tint);
+  background-clip: content-box;
+}
+
+.ui-pager__dot:focus-visible {
+  outline: 2px solid var(--color-tint);
+  outline-offset: -4px;
+  border-radius: 50%;
+}
+
+/*
+ * A page change is a scroll, so the reduced-motion switch is the one that
+ * turns it off — `scrollTo` with no behaviour of its own takes whatever the
+ * stylesheet says here.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .ui-pager__pages {
+    scroll-behavior: auto;
+  }
+}
