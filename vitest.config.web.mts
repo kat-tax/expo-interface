@@ -1,6 +1,7 @@
 import {configDefaults, defineConfig} from 'vitest/config';
 import {vitestExpo} from 'vitest-expo';
 import {EXPO_WEB_PACKAGES, metroCompat} from './vitest/metro-compat';
+import {TEST_TIMEOUT} from './vitest/timeout';
 
 export default defineConfig({
   plugins: [
@@ -20,6 +21,7 @@ export default defineConfig({
     name: 'web',
     globals: true,
     clearMocks: true,
+    testTimeout: TEST_TIMEOUT,
     include: ['src/**/*.test.{ts,tsx}'],
     exclude: [...configDefaults.exclude, '**/*.native.test.*', '**/*.ios.test.*', '**/*.android.test.*', '**/*.windows.test.*'],
     setupFiles: ['./vitest/setup.web.ts'],

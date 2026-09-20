@@ -3,6 +3,7 @@ import {existsSync} from 'node:fs';
 import path from 'node:path';
 import {configDefaults, defineConfig} from 'vitest/config';
 import {vitestExpoProjects} from 'vitest-expo';
+import {TEST_TIMEOUT} from './vitest/timeout';
 
 /**
  * The kit resolves a different implementation per platform (`index.ios.tsx`,
@@ -74,6 +75,7 @@ const projects = vitestExpoProjects({
       ...project.test,
       globals: true,
       clearMocks: true,
+      testTimeout: TEST_TIMEOUT,
       include: ['src/**/*.test.{ts,tsx}'],
       exclude: [...configDefaults.exclude, ...OTHER_PLATFORMS[platform]],
       setupFiles: ['./vitest/setup.native.ts'],
@@ -96,8 +98,12 @@ const windowsProject = {
     name: 'windows',
     globals: true,
     clearMocks: true,
+    testTimeout: TEST_TIMEOUT,
     include: ['src/**/*.windows.test.{ts,tsx}', 'src/**/*.test.ts'],
-    exclude: [...configDefaults.exclude],
+    // A platform's own `.ts` test is still a `*.test.ts`, so the shared
+    // pattern above would pull `foo.web.test.ts` in here and run it with no
+    // DOM. Every other platform names its exclusions; this one has to as well.
+    exclude: [...configDefaults.exclude, '**/*.web.test.*', '**/*.ios.test.*', '**/*.android.test.*', '**/*.native.test.*'],
     setupFiles: ['./vitest/setup.windows.ts'],
     server: {deps: {inline: TS_SOURCE_PACKAGES}},
   },
@@ -115,6 +121,7 @@ const runtimeProject = {
   test: {
     ...windowsProject.test,
     name: 'expo-windows',
+    testTimeout: TEST_TIMEOUT,
     include: ['expo-windows/src/**/*.test.{ts,tsx}'],
     // The platform without the kit's forbidden-module guard: the runtime's
     // tests import the Expo packages to prove they load on Windows.
@@ -131,6 +138,7 @@ const runtimeProject = {
 const harnessProject = {
   test: {
     name: 'harness',
+    testTimeout: TEST_TIMEOUT,
     environment: 'node',
     globals: true,
     clearMocks: true,
@@ -141,6 +149,7 @@ const harnessProject = {
 const runtimeNodeProject = {
   test: {
     name: 'expo-windows-node',
+    testTimeout: TEST_TIMEOUT,
     environment: 'node',
     globals: true,
     clearMocks: true,
