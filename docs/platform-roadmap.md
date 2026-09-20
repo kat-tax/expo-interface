@@ -5,7 +5,7 @@ order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
 **Progress.** Wave 1 is done, except that item 6 turned out not to be what it
-said — see below. Waves 2 and 3 are unstarted.
+said — see below. Wave 2 item 8 is done; 9–11 are unstarted, and so is wave 3.
 
 ## How to read the matrices
 
@@ -547,7 +547,13 @@ axe cannot press keys, so add the two layers that can.
 
 **Wave 2 — new islands, real work.**
 
-8. `Popover` → `TeachingTip`, plus `preferredEdge` and `trigger` (§2.2).
+8. ~~`Popover` → `TeachingTip`, plus `preferredEdge`~~ **— done.** `trigger`
+   on `ContextMenu` is still outstanding. One trap: a `TeachingTip` is a
+   control **in the tree**, not a flyout that opens its own window, and it is
+   confined to its `XamlRoot` by default — which here is an island a few points
+   across, so it was clipped away to nothing and rendered invisibly.
+   `ShouldConstrainToRootBounds(false)` puts it in a window of its own, which
+   is how the `Flyout` it replaced behaved.
 9. `Toolbar` → `CommandBar` (§2.1).
 10. Search field (§1.5) — and with it, the combobox question in §6.3.
 11. Materials on `Surface`, `Sheet` and `Popover` (§3.2).

@@ -6,7 +6,7 @@
 
 #include "XamlHost.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceContentDialog.g.h"
-#include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceFlyout.g.h"
+#include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceTeachingTip.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceInfoBar.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceMenuFlyout.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceNavigationView.g.h"
@@ -427,33 +427,55 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
   int32_t m_picked{-1};
 };
 
-// -- Flyout (popover) --------------------------------------------------------
+// -- TeachingTip (popover) ---------------------------------------------------
 
-struct FlyoutView : winrt::implements<FlyoutView, winrt::IInspectable>,
-                    Codegen::BaseExpoInterfaceFlyout<FlyoutView>,
-                    XamlIsland<FlyoutView> {
+/**
+ * The Windows popover. A `TeachingTip` rather than a `Flyout`: it is the
+ * control this component has always described, with a tail that points at its
+ * target and a title and subtitle of its own rather than text blocks built by
+ * hand. The tip lives in the island beside the anchor the kit lays over the
+ * rectangle, and points at it.
+ */
+struct TeachingTipView : winrt::implements<TeachingTipView, winrt::IInspectable>,
+                         Codegen::BaseExpoInterfaceTeachingTip<TeachingTipView>,
+                         XamlIsland<TeachingTipView> {
   void InitializeIsland(const composition::ContentIslandComponentView &islandView) noexcept {
     m_anchor = MakeAnchor();
-    m_flyout = controls::Flyout{};
-    m_flyout.Placement(controls::Primitives::FlyoutPlacementMode::Bottom);
-    m_flyout.Closed([weak = get_weak()](const winrt::IInspectable &, const winrt::IInspectable &) {
+    m_tip = controls::TeachingTip{};
+    m_tip.IsLightDismissEnabled(true);
+    // A TeachingTip is a control in the tree, not a flyout that opens its own
+    // window, and by default it is confined to the bounds of its XamlRoot —
+    // which here is an island sized to the rectangle being pointed at, a few
+    // points across. Confined to that it is clipped away to nothing. Letting
+    // it out of those bounds puts it in a window of its own, which is how the
+    // Flyout this replaced behaved and what a popover needs.
+    m_tip.ShouldConstrainToRootBounds(false);
+    // The tip points at the anchor, which the kit has laid over the rectangle
+    // the popover is about.
+    m_tip.Target(m_anchor);
+    m_tip.Closed([weak = get_weak()](const winrt::IInspectable &, const controls::TeachingTipClosedEventArgs &) {
       if (auto strong = weak.get()) {
         strong->m_open = false;
         if (auto emitter = strong->EventEmitter()) {
-          Codegen::ExpoInterfaceFlyoutEventEmitter::OnOpenChange event;
+          Codegen::ExpoInterfaceTeachingTipEventEmitter::OnOpenChange event;
           event.open = false;
           emitter->onOpenChange(std::move(event));
         }
       }
     });
-    Attach(islandView, m_anchor);
+    // A tip is a control in the tree, not something shown at a point, so the
+    // island holds both it and the anchor it points at.
+    m_root = controls::Grid{};
+    m_root.Children().Append(m_anchor);
+    m_root.Children().Append(m_tip);
+    Attach(islandView, m_root);
   }
 
   void UpdateProps(
       const rn::ComponentView &view,
-      const winrt::com_ptr<Codegen::ExpoInterfaceFlyoutProps> &newProps,
-      const winrt::com_ptr<Codegen::ExpoInterfaceFlyoutProps> &oldProps) noexcept override {
-    Codegen::BaseExpoInterfaceFlyout<FlyoutView>::UpdateProps(view, newProps, oldProps);
+      const winrt::com_ptr<Codegen::ExpoInterfaceTeachingTipProps> &newProps,
+      const winrt::com_ptr<Codegen::ExpoInterfaceTeachingTipProps> &oldProps) noexcept override {
+    Codegen::BaseExpoInterfaceTeachingTip<TeachingTipView>::UpdateProps(view, newProps, oldProps);
     auto props = Props();
     if (!props) return;
     ApplyLook(props->ViewProps, props->theme, props->accentColor);
@@ -461,7 +483,7 @@ struct FlyoutView : winrt::implements<FlyoutView, winrt::IInspectable>,
     if (props->open && !m_open) {
       Show();
     } else if (!props->open && m_open) {
-      m_flyout.Hide();
+      m_tip.IsOpen(false);
     }
   }
 
@@ -470,27 +492,26 @@ struct FlyoutView : winrt::implements<FlyoutView, winrt::IInspectable>,
   }
 
  private:
+  /** The side the tip prefers; it still moves when there is no room there. */
+  static controls::TeachingTipPlacementMode PlacementFrom(const std::string &edge) noexcept {
+    if (edge == "top") return controls::TeachingTipPlacementMode::Top;
+    if (edge == "bottom") return controls::TeachingTipPlacementMode::Bottom;
+    return controls::TeachingTipPlacementMode::Auto;
+  }
+
   void Build() noexcept {
     auto props = Props();
     if (!props) return;
     const bool dark = IsDark(Root());
+    // The title and the message are the tip's own properties, so they take
+    // Fluent's type ramp rather than a pair of text blocks guessing at it.
+    m_tip.Title(ToHString(props->title.value_or("")));
+    m_tip.Subtitle(ToHString(props->message.value_or("")));
+    m_tip.PreferredPlacement(PlacementFrom(props->preferredEdge.value_or("auto")));
+
     controls::StackPanel content;
     content.Width(props->width);
     content.Spacing(4);
-    if (props->title && !props->title->empty()) {
-      controls::TextBlock title;
-      title.Text(ToHString(*props->title));
-      title.FontWeight(winrt::Microsoft::UI::Text::FontWeights::SemiBold());
-      title.TextWrapping(xaml::TextWrapping::Wrap);
-      content.Children().Append(title);
-    }
-    if (props->message && !props->message->empty()) {
-      controls::TextBlock message;
-      message.Text(ToHString(*props->message));
-      message.TextWrapping(xaml::TextWrapping::Wrap);
-      message.Opacity(0.8);
-      content.Children().Append(message);
-    }
     auto actions = ParseArray(props->actions);
     if (actions.Size() > 0) {
       controls::StackPanel row;
@@ -507,18 +528,21 @@ struct FlyoutView : winrt::implements<FlyoutView, winrt::IInspectable>,
         button.Click([weak = get_weak(), current](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
           if (auto strong = weak.get()) {
             if (auto emitter = strong->EventEmitter()) {
-              Codegen::ExpoInterfaceFlyoutEventEmitter::OnAction event;
+              Codegen::ExpoInterfaceTeachingTipEventEmitter::OnAction event;
               event.index = current;
               emitter->onAction(std::move(event));
             }
-            strong->m_flyout.Hide();
+            strong->m_tip.IsOpen(false);
           }
         });
         row.Children().Append(button);
       }
       content.Children().Append(row);
     }
-    m_flyout.Content(content);
+    // The actions stay a row in the content rather than becoming the tip's own
+    // action and close buttons: a TeachingTip has exactly one of each, and a
+    // popover may carry any number.
+    m_tip.Content(content.Children().Size() > 0 ? content : nullptr);
   }
 
   void Show() noexcept {
@@ -531,16 +555,17 @@ struct FlyoutView : winrt::implements<FlyoutView, winrt::IInspectable>,
       return;
     }
     m_open = true;
-    m_flyout.ShowAt(m_anchor);
+    m_tip.IsOpen(true);
     if (auto emitter = EventEmitter()) {
-      Codegen::ExpoInterfaceFlyoutEventEmitter::OnOpenChange event;
+      Codegen::ExpoInterfaceTeachingTipEventEmitter::OnOpenChange event;
       event.open = true;
       emitter->onOpenChange(std::move(event));
     }
   }
 
+  controls::Grid m_root{nullptr};
   controls::Grid m_anchor{nullptr};
-  controls::Flyout m_flyout{nullptr};
+  controls::TeachingTip m_tip{nullptr};
   bool m_open{false};
 };
 
@@ -793,7 +818,7 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
 void RegisterOverlays(rn::IReactPackageBuilder const &packageBuilder) noexcept {
   RegisterIsland<MenuFlyoutView>(packageBuilder, &Codegen::RegisterExpoInterfaceMenuFlyoutNativeComponent<MenuFlyoutView>);
   RegisterIsland<ContentDialogView>(packageBuilder, &Codegen::RegisterExpoInterfaceContentDialogNativeComponent<ContentDialogView>);
-  RegisterIsland<FlyoutView>(packageBuilder, &Codegen::RegisterExpoInterfaceFlyoutNativeComponent<FlyoutView>);
+  RegisterIsland<TeachingTipView>(packageBuilder, &Codegen::RegisterExpoInterfaceTeachingTipNativeComponent<TeachingTipView>);
   RegisterIsland<InfoBarView>(packageBuilder, &Codegen::RegisterExpoInterfaceInfoBarNativeComponent<InfoBarView>);
   RegisterIsland<NavigationViewView>(packageBuilder, &Codegen::RegisterExpoInterfaceNavigationViewNativeComponent<NavigationViewView>);
 }

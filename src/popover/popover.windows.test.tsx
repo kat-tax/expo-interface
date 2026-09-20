@@ -1,16 +1,16 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import {Text} from 'react-native';
+import {StyleSheet, Text} from 'react-native';
 import {fireIsland, island, islands} from '../__tests__/windows';
 import {Popover} from '.';
 
-const FLYOUT = 'ExpoInterfaceFlyout';
+const TIP = 'ExpoInterfaceTeachingTip';
 const BUTTON = 'ExpoInterfaceButton';
 
 describe('Popover (windows)', () => {
   it('renders nothing but the bounds while there is no rectangle', async () => {
     await render(<Popover at={null} title="Hint" testID="pop"/>);
     expect(screen.getByTestId('pop-bounds')).toBeOnTheScreen();
-    expect(islands(FLYOUT)).toHaveLength(0);
+    expect(islands(TIP)).toHaveLength(0);
   });
 
   it('shows a Flyout island laid over the rectangle it points at', async () => {
@@ -24,7 +24,7 @@ describe('Popover (windows)', () => {
         testID="pop"
       />,
     );
-    const flyout = island(FLYOUT);
+    const flyout = island(TIP);
     expect(flyout.props).toMatchObject({open: true, title: 'Spelling', message: 'Did you mean colour?', width: 320, testID: 'pop'});
     expect(flyout.props.style).toEqual([expect.objectContaining({position: 'absolute'}), {left: 10, top: 20, width: 100, height: 30}]);
     expect(JSON.parse(flyout.props.actions)).toEqual([{label: 'Replace', role: 'default'}, {label: 'Ignore', role: 'destructive'}]);
@@ -32,24 +32,24 @@ describe('Popover (windows)', () => {
 
   it('gives a point a size to be placed against, and the default width', async () => {
     await render(<Popover at={{x: 5, y: 6}}/>);
-    expect(island(FLYOUT).props.style[1]).toEqual({left: 5, top: 6, width: 1, height: 1});
-    expect(JSON.parse(island(FLYOUT).props.actions)).toEqual([]);
-    expect(island(FLYOUT).props.width).toBe(280);
-    expect(island(FLYOUT).props.title).toBeUndefined();
+    expect(island(TIP).props.style[1]).toEqual({left: 5, top: 6, width: 1, height: 1});
+    expect(JSON.parse(island(TIP).props.actions)).toEqual([]);
+    expect(island(TIP).props.width).toBe(280);
+    expect(island(TIP).props.title).toBeUndefined();
   });
 
   it('takes an action then dismisses, and dismisses on a light dismiss', async () => {
     const onReplace = vi.fn();
     const onDismiss = vi.fn();
     await render(<Popover at={{x: 0, y: 0}} actions={[{label: 'Replace', onPress: onReplace}]} onDismiss={onDismiss}/>);
-    await fireIsland(island(FLYOUT), 'action', {index: 0});
+    await fireIsland(island(TIP), 'action', {index: 0});
     expect(onReplace).toHaveBeenCalledTimes(1);
     expect(onDismiss).toHaveBeenCalledTimes(1);
-    await fireIsland(island(FLYOUT), 'action', {index: 3});
+    await fireIsland(island(TIP), 'action', {index: 3});
     expect(onDismiss).toHaveBeenCalledTimes(2);
-    await fireIsland(island(FLYOUT), 'openChange', {open: true});
+    await fireIsland(island(TIP), 'openChange', {open: true});
     expect(onDismiss).toHaveBeenCalledTimes(2);
-    await fireIsland(island(FLYOUT), 'openChange', {open: false});
+    await fireIsland(island(TIP), 'openChange', {open: false});
     expect(onDismiss).toHaveBeenCalledTimes(3);
   });
 
@@ -68,7 +68,7 @@ describe('Popover (windows)', () => {
           <Text>Extra</Text>
         </Popover>,
       );
-      expect(islands(FLYOUT)).toHaveLength(0);
+      expect(islands(TIP)).toHaveLength(0);
       expect(screen.getByText('Note')).toBeOnTheScreen();
       expect(screen.getByText('A note on this block')).toBeOnTheScreen();
       expect(screen.getByText('Extra')).toBeOnTheScreen();
@@ -129,5 +129,31 @@ describe('Popover (windows)', () => {
       );
       expect(screen.queryByText('Extra')).toBeNull();
     });
+  });
+});
+
+describe('preferredEdge (windows)', () => {
+  it('hands the preference to the tip, which places the tail itself', async () => {
+    await render(<Popover at={{x: 10, y: 20}} title="Note" preferredEdge="top"/>);
+    expect(island(TIP).props.preferredEdge).toBe('top');
+    await render(<Popover at={{x: 10, y: 20}} title="Note"/>);
+    expect(island(TIP).props.preferredEdge).toBe('auto');
+  });
+
+  /** Where the drawn card ended up, once the parent and the card are measured. */
+  const cardTop = async (edge: 'auto' | 'top' | 'bottom', at: {x: number; y: number; height: number}) => {
+    await render(<Popover at={at} title="Note" preferredEdge={edge} testID="pop"><Text>Extra</Text></Popover>);
+    await fireEvent(screen.getByTestId('pop-bounds'), 'layout', {nativeEvent: {layout: {width: 400, height: 800}}});
+    await fireEvent(screen.getByTestId('pop'), 'layout', {nativeEvent: {layout: {height: 100}}});
+    return StyleSheet.flatten(screen.getByTestId('pop').props.style).top;
+  };
+
+  it('places the card the kit draws by the same rule, when there are children', async () => {
+    // A preference honoured, and one that cannot be.
+    expect(await cardTop('top', {x: 0, y: 300, height: 20})).toBe(192);
+    expect(await cardTop('top', {x: 0, y: 10, height: 20})).toBe(38);
+    expect(await cardTop('bottom', {x: 0, y: 300, height: 20})).toBe(328);
+    expect(await cardTop('bottom', {x: 0, y: 750, height: 20})).toBe(642);
+    expect(await cardTop('auto', {x: 0, y: 300, height: 20})).toBe(328);
   });
 });

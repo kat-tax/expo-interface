@@ -1,6 +1,6 @@
 
 /*
- * This file is auto-generated from ExpoInterfaceFlyoutNativeComponent spec file in flow / TypeScript.
+ * This file is auto-generated from ExpoInterfaceTeachingTipNativeComponent spec file in flow / TypeScript.
  */
 // clang-format off
 #pragma once
@@ -18,17 +18,18 @@
 
 namespace winrt::ExpoInterface::Codegen {
 
-REACT_STRUCT(ExpoInterfaceFlyoutProps)
-struct ExpoInterfaceFlyoutProps : winrt::implements<ExpoInterfaceFlyoutProps, winrt::Microsoft::ReactNative::IComponentProps> {
-  ExpoInterfaceFlyoutProps(winrt::Microsoft::ReactNative::ViewProps props, const winrt::Microsoft::ReactNative::IComponentProps& cloneFrom)
+REACT_STRUCT(ExpoInterfaceTeachingTipProps)
+struct ExpoInterfaceTeachingTipProps : winrt::implements<ExpoInterfaceTeachingTipProps, winrt::Microsoft::ReactNative::IComponentProps> {
+  ExpoInterfaceTeachingTipProps(winrt::Microsoft::ReactNative::ViewProps props, const winrt::Microsoft::ReactNative::IComponentProps& cloneFrom)
     : ViewProps(props)
   {
      if (cloneFrom) {
-       auto cloneFromProps = cloneFrom.as<ExpoInterfaceFlyoutProps>();
+       auto cloneFromProps = cloneFrom.as<ExpoInterfaceTeachingTipProps>();
        open = cloneFromProps->open;
        title = cloneFromProps->title;
        message = cloneFromProps->message;
        actions = cloneFromProps->actions;
+       preferredEdge = cloneFromProps->preferredEdge;
        width = cloneFromProps->width;
        accentColor = cloneFromProps->accentColor;
        theme = cloneFromProps->theme;
@@ -53,6 +54,9 @@ struct ExpoInterfaceFlyoutProps : winrt::implements<ExpoInterfaceFlyoutProps, wi
   REACT_FIELD(actions)
   std::string actions;
 
+  REACT_FIELD(preferredEdge)
+  std::optional<std::string> preferredEdge;
+
   REACT_FIELD(width)
   double width{280};
 
@@ -72,24 +76,24 @@ struct ExpoInterfaceFlyoutProps : winrt::implements<ExpoInterfaceFlyoutProps, wi
   const winrt::Microsoft::ReactNative::ViewProps ViewProps;
 };
 
-REACT_STRUCT(ExpoInterfaceFlyoutSpec_onOpenChange)
-struct ExpoInterfaceFlyoutSpec_onOpenChange {
+REACT_STRUCT(ExpoInterfaceTeachingTipSpec_onOpenChange)
+struct ExpoInterfaceTeachingTipSpec_onOpenChange {
   REACT_FIELD(open)
   bool open{};
 };
 
-REACT_STRUCT(ExpoInterfaceFlyoutSpec_onAction)
-struct ExpoInterfaceFlyoutSpec_onAction {
+REACT_STRUCT(ExpoInterfaceTeachingTipSpec_onAction)
+struct ExpoInterfaceTeachingTipSpec_onAction {
   REACT_FIELD(index)
   int32_t index{};
 };
 
-struct ExpoInterfaceFlyoutEventEmitter {
-  ExpoInterfaceFlyoutEventEmitter(const winrt::Microsoft::ReactNative::EventEmitter &eventEmitter)
+struct ExpoInterfaceTeachingTipEventEmitter {
+  ExpoInterfaceTeachingTipEventEmitter(const winrt::Microsoft::ReactNative::EventEmitter &eventEmitter)
       : m_eventEmitter(eventEmitter) {}
 
-  using OnAction = ExpoInterfaceFlyoutSpec_onAction;
-  using OnOpenChange = ExpoInterfaceFlyoutSpec_onOpenChange;
+  using OnAction = ExpoInterfaceTeachingTipSpec_onAction;
+  using OnOpenChange = ExpoInterfaceTeachingTipSpec_onOpenChange;
 
   void onAction(OnAction &&value) const {
     m_eventEmitter.DispatchEvent(L"action", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
@@ -108,12 +112,12 @@ struct ExpoInterfaceFlyoutEventEmitter {
 };
 
 template<typename TUserData>
-struct BaseExpoInterfaceFlyout {
+struct BaseExpoInterfaceTeachingTip {
 
   virtual void UpdateProps(
     const winrt::Microsoft::ReactNative::ComponentView &/*view*/,
-    const winrt::com_ptr<ExpoInterfaceFlyoutProps> &newProps,
-    const winrt::com_ptr<ExpoInterfaceFlyoutProps> &/*oldProps*/) noexcept {
+    const winrt::com_ptr<ExpoInterfaceTeachingTipProps> &newProps,
+    const winrt::com_ptr<ExpoInterfaceTeachingTipProps> &/*oldProps*/) noexcept {
     m_props = newProps;
   }
 
@@ -130,7 +134,7 @@ struct BaseExpoInterfaceFlyout {
     const winrt::Microsoft::ReactNative::IComponentState &/*newState*/) noexcept {
   }
 
-  virtual void UpdateEventEmitter(const std::shared_ptr<ExpoInterfaceFlyoutEventEmitter> &eventEmitter) noexcept {
+  virtual void UpdateEventEmitter(const std::shared_ptr<ExpoInterfaceTeachingTipEventEmitter> &eventEmitter) noexcept {
     m_eventEmitter = eventEmitter;
   }
 
@@ -166,32 +170,32 @@ struct BaseExpoInterfaceFlyout {
 
   
 
-  const std::shared_ptr<ExpoInterfaceFlyoutEventEmitter>& EventEmitter() const { return m_eventEmitter; }
-  const winrt::com_ptr<ExpoInterfaceFlyoutProps>& Props() const { return m_props; }
+  const std::shared_ptr<ExpoInterfaceTeachingTipEventEmitter>& EventEmitter() const { return m_eventEmitter; }
+  const winrt::com_ptr<ExpoInterfaceTeachingTipProps>& Props() const { return m_props; }
 
 private:
-  winrt::com_ptr<ExpoInterfaceFlyoutProps> m_props;
-  std::shared_ptr<ExpoInterfaceFlyoutEventEmitter> m_eventEmitter;
+  winrt::com_ptr<ExpoInterfaceTeachingTipProps> m_props;
+  std::shared_ptr<ExpoInterfaceTeachingTipEventEmitter> m_eventEmitter;
 };
 
 template <typename TUserData>
-void RegisterExpoInterfaceFlyoutNativeComponent(
+void RegisterExpoInterfaceTeachingTipNativeComponent(
     winrt::Microsoft::ReactNative::IReactPackageBuilder const &packageBuilder,
     std::function<void(const winrt::Microsoft::ReactNative::Composition::IReactCompositionViewComponentBuilder&)> builderCallback) noexcept {
   packageBuilder.as<winrt::Microsoft::ReactNative::IReactPackageBuilderFabric>().AddViewComponent(
-      L"ExpoInterfaceFlyout", [builderCallback](winrt::Microsoft::ReactNative::IReactViewComponentBuilder const &builder) noexcept {
+      L"ExpoInterfaceTeachingTip", [builderCallback](winrt::Microsoft::ReactNative::IReactViewComponentBuilder const &builder) noexcept {
         auto compBuilder = builder.as<winrt::Microsoft::ReactNative::Composition::IReactCompositionViewComponentBuilder>();
 
         builder.SetCreateProps([](winrt::Microsoft::ReactNative::ViewProps props,
                               const winrt::Microsoft::ReactNative::IComponentProps& cloneFrom) noexcept {
-            return winrt::make<ExpoInterfaceFlyoutProps>(props, cloneFrom); 
+            return winrt::make<ExpoInterfaceTeachingTipProps>(props, cloneFrom); 
         });
 
         builder.SetUpdatePropsHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                      const winrt::Microsoft::ReactNative::IComponentProps &newProps,
                                      const winrt::Microsoft::ReactNative::IComponentProps &oldProps) noexcept {
             auto userData = view.UserData().as<TUserData>();
-            userData->UpdateProps(view, newProps ? newProps.as<ExpoInterfaceFlyoutProps>() : nullptr, oldProps ? oldProps.as<ExpoInterfaceFlyoutProps>() : nullptr);
+            userData->UpdateProps(view, newProps ? newProps.as<ExpoInterfaceTeachingTipProps>() : nullptr, oldProps ? oldProps.as<ExpoInterfaceTeachingTipProps>() : nullptr);
         });
 
         compBuilder.SetUpdateLayoutMetricsHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
@@ -204,10 +208,10 @@ void RegisterExpoInterfaceFlyoutNativeComponent(
         builder.SetUpdateEventEmitterHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                      const winrt::Microsoft::ReactNative::EventEmitter &eventEmitter) noexcept {
           auto userData = view.UserData().as<TUserData>();
-          userData->UpdateEventEmitter(std::make_shared<ExpoInterfaceFlyoutEventEmitter>(eventEmitter));
+          userData->UpdateEventEmitter(std::make_shared<ExpoInterfaceTeachingTipEventEmitter>(eventEmitter));
         });
 
-        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::FinalizeUpdate != &BaseExpoInterfaceFlyout<TUserData>::FinalizeUpdate) {
+        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::FinalizeUpdate != &BaseExpoInterfaceTeachingTip<TUserData>::FinalizeUpdate) {
             builder.SetFinalizeUpdateHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                      winrt::Microsoft::ReactNative::ComponentViewUpdateMask mask) noexcept {
             auto userData = view.UserData().as<TUserData>();
@@ -215,7 +219,7 @@ void RegisterExpoInterfaceFlyoutNativeComponent(
           });
         } 
 
-        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::UpdateState != &BaseExpoInterfaceFlyout<TUserData>::UpdateState) {
+        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::UpdateState != &BaseExpoInterfaceTeachingTip<TUserData>::UpdateState) {
           builder.SetUpdateStateHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                      const winrt::Microsoft::ReactNative::IComponentState &newState) noexcept {
             auto userData = view.UserData().as<TUserData>();
@@ -223,7 +227,7 @@ void RegisterExpoInterfaceFlyoutNativeComponent(
           });
         }
 
-        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::MountChildComponentView != &BaseExpoInterfaceFlyout<TUserData>::MountChildComponentView) {
+        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::MountChildComponentView != &BaseExpoInterfaceTeachingTip<TUserData>::MountChildComponentView) {
           builder.SetMountChildComponentViewHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                       const winrt::Microsoft::ReactNative::MountChildComponentViewArgs &args) noexcept {
             auto userData = view.UserData().as<TUserData>();
@@ -231,7 +235,7 @@ void RegisterExpoInterfaceFlyoutNativeComponent(
           });
         }
 
-        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::UnmountChildComponentView != &BaseExpoInterfaceFlyout<TUserData>::UnmountChildComponentView) {
+        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::UnmountChildComponentView != &BaseExpoInterfaceTeachingTip<TUserData>::UnmountChildComponentView) {
           builder.SetUnmountChildComponentViewHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                       const winrt::Microsoft::ReactNative::UnmountChildComponentViewArgs &args) noexcept {
             auto userData = view.UserData().as<TUserData>();
@@ -239,7 +243,7 @@ void RegisterExpoInterfaceFlyoutNativeComponent(
           });
         }
 
-        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::CreateAutomationPeer != &BaseExpoInterfaceFlyout<TUserData>::CreateAutomationPeer) {
+        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::CreateAutomationPeer != &BaseExpoInterfaceTeachingTip<TUserData>::CreateAutomationPeer) {
             builder.SetCreateAutomationPeerHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                      const winrt::Microsoft::ReactNative::CreateAutomationPeerArgs& args) noexcept {
             auto userData = view.UserData().as<TUserData>();
@@ -249,13 +253,13 @@ void RegisterExpoInterfaceFlyoutNativeComponent(
 
         compBuilder.SetViewComponentViewInitializer([](const winrt::Microsoft::ReactNative::ComponentView &view) noexcept {
           auto userData = winrt::make_self<TUserData>();
-          if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::Initialize != &BaseExpoInterfaceFlyout<TUserData>::Initialize) {
+          if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::Initialize != &BaseExpoInterfaceTeachingTip<TUserData>::Initialize) {
             userData->Initialize(view);
           }
           view.UserData(*userData);
         });
 
-        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::CreateVisual != &BaseExpoInterfaceFlyout<TUserData>::CreateVisual) {
+        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::CreateVisual != &BaseExpoInterfaceTeachingTip<TUserData>::CreateVisual) {
           compBuilder.SetCreateVisualHandler([](const winrt::Microsoft::ReactNative::ComponentView &view) noexcept {
             auto userData = view.UserData().as<TUserData>();
             return userData->CreateVisual(view);

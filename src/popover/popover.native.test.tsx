@@ -1,6 +1,6 @@
 import {Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {PopoverRect} from './types';
+import {PopoverRect, type PopoverProps} from './types';
 import {Popover} from '.';
 
 const style = () => StyleSheet.flatten(screen.getByTestId('lint').props.style);
@@ -85,5 +85,34 @@ describe(`Popover (${Platform.OS})`, () => {
   it('takes a width of its own', async () => {
     await render(<Popover at={at} width={200} testID="lint"/>);
     expect(style().width).toBe(200);
+  });
+});
+
+describe('preferredEdge', () => {
+  /** Where the card ended up, once the parent and the card have been measured. */
+  const cardTop = async (props: Partial<PopoverProps>) => {
+    await render(<Popover at={{x: 0, y: 300, height: 20}} title="Note" {...props}/>);
+    const bounds = screen.getByTestId('note-bounds');
+    await fireEvent(bounds, 'layout', {nativeEvent: {layout: {width: 400, height: 800}}});
+    const card = screen.getByTestId('note');
+    await fireEvent(card, 'layout', {nativeEvent: {layout: {height: 100}}});
+    return StyleSheet.flatten(screen.getByTestId('note').props.style).top;
+  };
+
+  it('puts the card above when the top is asked for and there is room', async () => {
+    // Below would be 300 + 20 + 8 = 328; above is 300 - 100 - 8 = 192.
+    expect(await cardTop({testID: 'note', preferredEdge: 'top'})).toBe(192);
+  });
+
+  it('puts it below by default, and below when the bottom is asked for', async () => {
+    expect(await cardTop({testID: 'note'})).toBe(328);
+    expect(await cardTop({testID: 'note', preferredEdge: 'bottom'})).toBe(328);
+  });
+
+  it('ignores a preference it cannot honour, because a card off the screen is worse', async () => {
+    // Asked for the top with nothing above the rectangle: it goes below.
+    expect(await cardTop({testID: 'note', preferredEdge: 'top', at: {x: 0, y: 10, height: 20}})).toBe(38);
+    // Asked for the bottom with nothing below it: it goes above.
+    expect(await cardTop({testID: 'note', preferredEdge: 'bottom', at: {x: 0, y: 750, height: 20}})).toBe(642);
   });
 });

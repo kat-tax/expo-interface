@@ -40,6 +40,16 @@ export interface PopoverProps extends PropsWithChildren {
   /** Called after an action is taken. */
   onDismiss?: () => void;
   /**
+   * Which side of the rectangle the card prefers. It still moves when there
+   * is no room there, on every platform — this says what to try first.
+   *
+   * Only the two vertical edges: the drawn card places itself above or below,
+   * and offering a side it cannot reach would be a prop that silently does
+   * nothing on three platforms out of four.
+   * @default 'auto'
+   */
+  preferredEdge?: 'auto' | 'top' | 'bottom';
+  /**
    * Width of the card in points.
    * @default 280
    */

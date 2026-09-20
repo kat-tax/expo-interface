@@ -2,7 +2,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import type {PopoverProps} from './types';
 import {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import XamlFlyout from '../windows/specs/ExpoInterfaceFlyoutNativeComponent';
+import XamlTeachingTip from '../windows/specs/ExpoInterfaceTeachingTipNativeComponent';
 import {jsonProp, useXamlProps} from '../windows';
 import {Button} from '../button';
 import {Surface} from '../surface';
@@ -22,20 +22,21 @@ const GAP = 8;
  */
 export function Popover(props: PopoverProps) {
   if (props.children != null) return <DrawnPopover {...props}/>;
-  return <FlyoutPopover {...props}/>;
+  return <TipPopover {...props}/>;
 }
 
-function FlyoutPopover({at, title, message, actions = [], onDismiss, width = 280, testID}: PopoverProps) {
+function TipPopover({at, title, message, actions = [], onDismiss, width = 280, preferredEdge = 'auto', testID}: PopoverProps) {
   const xaml = useXamlProps();
   return (
     <View testID={testID ? `${testID}-bounds` : undefined} style={styles.bounds}>
       {at ? (
-        <XamlFlyout
+        <XamlTeachingTip
           open
           title={title}
           message={message}
           actions={jsonProp(actions.map(action => ({label: action.label, role: action.role ?? 'default'})))}
           width={width}
+          preferredEdge={preferredEdge}
           onAction={event => {
             actions[event.nativeEvent.index]?.onPress();
             onDismiss?.();
@@ -43,8 +44,8 @@ function FlyoutPopover({at, title, message, actions = [], onDismiss, width = 280
           onOpenChange={event => {
             if (!event.nativeEvent.open) onDismiss?.();
           }}
-          // The rectangle itself, at least a point on each side so the
-          // flyout has something to be placed against.
+          // The rectangle itself, at least a point on each side so the tip
+          // has something to point its tail at.
           style={[styles.target, {left: at.x, top: at.y, width: Math.max(1, at.width ?? 0), height: Math.max(1, at.height ?? 0)}]}
           testID={testID}
           {...xaml}
@@ -54,7 +55,7 @@ function FlyoutPopover({at, title, message, actions = [], onDismiss, width = 280
   );
 }
 
-function DrawnPopover({at, title, message, actions, onDismiss, width = 280, children, testID}: PopoverProps) {
+function DrawnPopover({at, title, message, actions, onDismiss, width = 280, preferredEdge = 'auto', children, testID}: PopoverProps) {
   const [bounds, setBounds] = useState({width: 0, height: 0});
   const [height, setHeight] = useState(0);
   const onBounds = (event: LayoutChangeEvent) => {
@@ -67,7 +68,12 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, chil
   };
 
   const below = at ? at.y + (at.height ?? 0) + GAP : 0;
-  const flip = !!at && bounds.height > 0 && below + height + GAP > bounds.height;
+  // Same rule as the drawn card everywhere else: the preference is what to
+  // try, not a promise, since a card off the screen is worse than one on the
+  // other side.
+  const noRoomBelow = !!at && bounds.height > 0 && below + height + GAP > bounds.height;
+  const roomAbove = !!at && at.y - height - GAP >= GAP;
+  const flip = preferredEdge === 'top' ? (roomAbove || noRoomBelow) : preferredEdge === 'bottom' ? noRoomBelow && roomAbove : noRoomBelow;
   const top = at ? (flip ? Math.max(GAP, at.y - height - GAP) : below) : 0;
   const rightMost = bounds.width > 0 ? Math.max(GAP, bounds.width - width - GAP) : Infinity;
   const left = at ? Math.max(GAP, Math.min(at.x, rightMost)) : 0;

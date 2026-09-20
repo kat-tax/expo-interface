@@ -18,7 +18,7 @@ const GAP = 8;
  * inside those bounds: below the rectangle, or above it when the bottom is
  * too close.
  */
-export function Popover({at, title, message, actions, onDismiss, width = 280, children, testID}: PopoverProps) {
+export function Popover({at, title, message, actions, onDismiss, width = 280, preferredEdge = 'auto', children, testID}: PopoverProps) {
   const [bounds, setBounds] = useState({width: 0, height: 0});
   const [height, setHeight] = useState(0);
   const onBounds = (event: LayoutChangeEvent) => {
@@ -31,8 +31,13 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, ch
   };
 
   const below = at ? at.y + (at.height ?? 0) + GAP : 0;
-  // Above the rectangle when the card would run past the bottom edge.
-  const flip = !!at && bounds.height > 0 && below + height + GAP > bounds.height;
+  // Above the rectangle when it was asked for, or when the card would run past
+  // the bottom edge. A preference is only that: asking for the top and having
+  // no room there still puts the card below, because a card off the screen is
+  // worse than one on the other side.
+  const noRoomBelow = !!at && bounds.height > 0 && below + height + GAP > bounds.height;
+  const roomAbove = !!at && at.y - height - GAP >= GAP;
+  const flip = preferredEdge === 'top' ? (roomAbove || noRoomBelow) : preferredEdge === 'bottom' ? noRoomBelow && roomAbove : noRoomBelow;
   const top = at ? (flip ? Math.max(GAP, at.y - height - GAP) : below) : 0;
   // Until the parent has been measured there is nothing to clamp against.
   const rightMost = bounds.width > 0 ? Math.max(GAP, bounds.width - width - GAP) : Infinity;
