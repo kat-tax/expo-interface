@@ -29,7 +29,7 @@ export interface PickerItemProps<T extends PickerValue = PickerValue> {
  * first option).
  */
 export interface PickerProps<T extends PickerValue = PickerValue> {
-  /** Style applied to the row container (web/android only). */
+  /** Style applied to the row container (web and Windows). */
   style?: StyleProp<ViewStyle>;
   /** Label rendered at the leading edge of the row, mirroring an iOS Form row. */
   label?: string;

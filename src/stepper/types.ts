@@ -24,12 +24,12 @@ export interface StepperProps {
   min?: number;
   /** Upper bound; the increment button disables at this value. */
   max?: number;
-  /** Formats the displayed value (web/android; iOS shows the raw number). */
+  /** Formats the displayed value. Not applied on Windows, where the `NumberBox` shows the number it edits. */
   formatValue?: (value: number) => string;
   /** Disables interaction. */
   disabled?: boolean;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
-  /** Style applied to the row container (web only). */
+  /** Style applied to the row container (web and Windows). */
   style?: StyleProp<ViewStyle>;
 }

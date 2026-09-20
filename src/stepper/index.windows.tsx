@@ -9,8 +9,8 @@ import {clampStep} from './shared';
  * Windows renders a WinUI 3 `NumberBox` with inline spin buttons in a XAML
  * island — Fluent's stepper, which also takes a typed value — at the
  * trailing edge of a row whose label the kit draws. The control keeps the
- * value inside `min`/`max` itself; `formatValue` is not applied, as on iOS,
- * since the box shows the number it edits.
+ * value inside `min`/`max` itself; `formatValue` is not applied, since the box
+ * shows the number it edits.
  */
 export function Stepper({label, value, onValueChange, step = 1, min, max, disabled, testID, style}: StepperProps) {
   const xaml = useXamlProps();

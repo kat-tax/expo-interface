@@ -7,9 +7,9 @@
  * a `SelectorBar` its own items), so this is only for the few places the kit
  * draws the set. Of the other three: React Native exposes no prop for it on
  * iOS, where VoiceOver derives the position from the accessibility container;
- * Android's `collectionItemInfo` has no React Native prop either (§6.4 of the
- * platform roadmap tracks that gap); and on web the kit writes real DOM, where
- * a `tablist` of `tab`s already carries the count.
+ * Android's `collectionItemInfo` has no React Native prop either; and on web
+ * the kit writes real DOM, where a `tablist` of `tab`s already carries the
+ * count.
  *
  * @see set.windows.ts, which returns the props react-native-windows answers
  * `UIA_PositionInSetPropertyId` and `UIA_SizeOfSetPropertyId` from.

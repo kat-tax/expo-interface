@@ -916,8 +916,9 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
  * WinUI's `TabView`, as the strip alone.
  *
  * The items carry no content: an island holds XAML and the pages here are
- * React Native's, which the kit draws under the island instead (roadmap §3.6
- * for what it took to be sure of that). A `TabViewItem` with nothing in it is
+ * React Native's, which the kit draws under the island instead (a portal
+ * connects inside an island but draws nothing on react-native-windows 0.84).
+ * A `TabViewItem` with nothing in it is
  * still the control's own tab — Narrator reads it as one, the close cross is
  * the control's, and the add button is where Fluent puts it.
  *

@@ -138,3 +138,20 @@ The swatches below are the concrete light and dark palettes from `colors`;
 `bound.contentMaxWidth` caps content at 800 points on wide screens, and
 `inset` carries the per-platform top bar and bottom tab heights that `Screen`
 pads for.
+
+## Windows
+
+Every XAML island takes the accent seed and the scheme as props, so a seeded
+app is branded in WinUI too. `theme.*` resolves to Fluent theme resources
+where one matches (`label` is `TextFillColorPrimary`, `background` is
+`SolidBackgroundFillColorBase`, `separator` is `ControlStrokeColorDefault`),
+which react-native-windows resolves per scheme and in high contrast. Tokens
+with no Fluent twin (`tint`, `destructive`, `switchOn`) keep the palette
+literal, and `useColor` answers the palette for all of them.
+
+With `expo-windows`, while the user has a high contrast theme on, `useColor`,
+`usePalette` and `useNavTheme` answer the theme's own colors and follow the
+user turning it on or off. `useHighContrast()` reads the setting for anything
+that draws outside the palette, and `highContrastPalette(colors)` is the
+mapping. Everywhere else the setting is off. The
+[Windows guide](?path=/docs/guides-windows--docs) has the rest.

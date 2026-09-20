@@ -12,6 +12,9 @@ Icon props take an `IconToken`: an `expo-symbols` name, or a
   vector drawables, which `@expo/material-symbols` provides.
 - **Web** writes the symbol's name in the Material Symbols web font, whose
   ligatures draw it as the glyph.
+- **Windows** draws Segoe Fluent Icons: the Fluent twin of the Material name
+  from `SEGOE_GLYPHS`, or the code point a token names with `windows: 'E72D'`.
+  See the [Windows guide](?path=/docs/guides-windows--docs#icons).
 
 ## Defining tokens
 
@@ -56,8 +59,8 @@ import * as icons from './icons';
 
 ## Filled icons
 
-`fill` asks for the solid form of the same symbol — the star a favourite gets,
-the heart a like — so a toggle names its icon once rather than twice:
+`fill` asks for the solid form of the same symbol (the star a favourite gets,
+the heart a like), so a toggle names its icon once rather than twice:
 
 ```ts
 export const star = icon(
@@ -83,7 +86,7 @@ Each platform draws it from what it has:
 - **Web** sets the `FILL 1` axis of the Material Symbols *variable* font.
   `expo-symbols` bundles a static instance cut at `FILL 0`, which has no axes
   at all, so an app that wants filled icons registers the variable family
-  itself — under `Material Symbols Outlined`, or under its own name in
+  itself, under `Material Symbols Outlined` or under its own name in
   `--ui-symbol-font`:
 
   ```css
@@ -96,10 +99,10 @@ Each platform draws it from what it has:
   ```
 
   Serve it from the app's own bundle rather than a CDN so an offline web build
-  still draws. Without the family a filled token quietly draws its outline —
+  still draws. Without the family a filled token quietly draws its outline,
   which is what this site does, since it ships only the static instance.
 - **Android** draws the token's `drawable`, so that drawable has to be the
-  filled vector — Jetpack Compose renders XML vectors, not font glyphs, and
+  filled vector. Jetpack Compose renders XML vectors, not font glyphs, and
   nothing at runtime can fill one. `@expo/material-symbols` ships only the
   outlined set; the filled vector comes from its CLI:
 

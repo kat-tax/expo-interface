@@ -14,9 +14,8 @@ import {BADGE_FONT_SIZE, badgeText} from './shared';
  * Compose layer exposes no modifier that sets a content description — only
  * `Icon` takes one as a prop, and `semantics` takes `contentType` and nothing
  * else — so there is nowhere to put a better name. The other three platforms
- * announce the label. This is one concrete instance of the thin Android
- * semantics noted in the roadmap's accessibility section; when a modifier for
- * it lands, this is the first place to use it.
+ * announce the label. When a modifier for it lands, this is the first place to
+ * use it.
  */
 export function Badge(props: BadgeProps) {
   const text = badgeText(props);

@@ -34,6 +34,6 @@ export interface SliderProps {
   accentColor?: string;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
-  /** Style applied to the row container (web only). */
+  /** Style applied to the row container (web and Windows). */
   style?: StyleProp<ViewStyle>;
 }

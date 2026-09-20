@@ -59,6 +59,6 @@ export interface GaugeProps {
   accentColor?: string;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
-  /** Style applied to the container (web only). */
+  /** Style applied to the container (web and Windows). */
   style?: StyleProp<ViewStyle>;
 }

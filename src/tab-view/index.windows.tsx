@@ -20,7 +20,8 @@ const STRIP_HEIGHT = 40;
  * The kit takes **the strip alone**: the `TabViewItem`s carry no content, the
  * island is sized to the header height, and the selected page is drawn
  * underneath by React Native. Content inside the item would have to be XAML,
- * and the pages here are not (roadmap §3.6).
+ * and the pages here are not: a React portal connects inside an island and is
+ * reported to UI Automation, but react-native-windows 0.84 draws nothing in it.
  *
  * What that costs is reordering: dragging a tab would move it in the control
  * while the kit's own array stayed as it was, and the next render would put it

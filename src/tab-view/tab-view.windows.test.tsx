@@ -34,7 +34,7 @@ describe('TabView (windows)', () => {
     });
     // The island is the strip and nothing else: the page under it is the
     // kit's own React Native, because content inside an island would have to
-    // be XAML (roadmap §3.6).
+    // be XAML.
     expect(screen.getByText('Page of B')).toBeOnTheScreen();
   });
 

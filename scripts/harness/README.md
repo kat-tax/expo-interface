@@ -42,7 +42,7 @@ node scripts/harness/index.ts -p android --scheme dropfiles \
 | `screenshot <file>` | a PNG, under `.harness/` unless the path says otherwise |
 | `tap <x> <y>` | a press, in the window's own pixels from its top left |
 | `type <text>` | into whatever has focus |
-| `tree` | the accessibility tree, as a screen reader reads it: names, roles, and what a platform adds past them — `(3 of 7)`, `h2`, `live:polite`, `help:"…"` |
+| `tree` | the accessibility tree, as a screen reader reads it: names, roles, and what a platform adds past them, such as `(3 of 7)`, `h2`, `live:polite` and `help:"…"` |
 | `raise` | bring the app to the front (desktop) |
 | `wait <ms>` | let something settle |
 | `idle` | how long the machine has been quiet |
@@ -71,10 +71,8 @@ in the app itself.
 
 **Synthetic input goes to whatever is in front.** If someone is using the
 machine, a press meant for the app lands in their window instead and nothing
-says so — a debugging session once went two hours on clicks that were landing
-in a browser. So `tap` and `type` check first how long the machine has been
-quiet and refuse if it has not been. Pass `--force` when you know the desk is
-free.
+says so. So `tap` and `type` check first how long the machine has been quiet
+and refuse if it has not been. Pass `--force` when you know the desk is free.
 
 **A screenshot does not raise the window**, because raising it would hide the
 flyout or share sheet that is usually the thing being looked at. Use the
@@ -118,10 +116,9 @@ HARNESS_PLATFORM=windows HARNESS_TARGET=<path to the exe> bun run test:device
 HARNESS_PLATFORM=android bun run test:device
 ```
 
-`toBeFullyLabelled` is the matcher that keeps earning its place: it fails with
-the ref and position of every control a screen reader would announce as its
-role alone. That is the defect we keep finding on Windows, where a button made
-of a glyph and a text block names nothing by itself.
+`toBeFullyLabelled` fails with the ref and position of every control a screen
+reader would announce as its role alone. On Windows a button made of a glyph
+and a text block names nothing by itself, which is what this matcher catches.
 
 ## Where each platform is driven from
 
@@ -142,7 +139,7 @@ and passes; in CI a missing baseline fails, so a run cannot go green by
 inventing its own expectations. A failure leaves the picture it took and a
 diff with the changed pixels in red over a faded copy, both under `.harness/`.
 
-The comparison is `scripts/harness/lib/png.ts` — a chunk walk, an inflate and
+The comparison is `scripts/harness/lib/png.ts`: a chunk walk, an inflate and
 the five scanline filters on Node's own zlib, rather than two dependencies for
 the same thing. It reads the 8-bit non-interlaced PNGs that Chromium, GDI+ and
 `adb` write, and says so plainly for anything else. `tolerance` absorbs the
@@ -154,7 +151,7 @@ a tree cannot see: spacing, colour, the thing actually being drawn.
 
 **On Windows a flyout is one of those things.** The tree walks the descendants
 of the app's main window, and a WinUI `MenuFlyout` opens in a *separate*
-top-level window — the kit gives it `ShouldConstrainToRootBounds(false)` so it
+top-level window: the kit gives it `ShouldConstrainToRootBounds(false)` so it
 is not clipped to the island it is anchored in. A menu plainly open on screen
 therefore leaves no trace in the tree at all. `Menu`, `ContextMenu`,
 `PopupMenu` and `HeaderMenu` are all verified with a screenshot on Windows,
@@ -171,6 +168,6 @@ bun run test:device                                # assert against what was rec
 ```
 
 Without a baseline the picture is kept as evidence and the test passes on its
-tree assertions, which is what CI does — none are committed, because none of
+tree assertions, which is what CI does. None are committed, because none of
 them would match another machine. Commit one only when the machine that
 asserts it is the machine that drew it.

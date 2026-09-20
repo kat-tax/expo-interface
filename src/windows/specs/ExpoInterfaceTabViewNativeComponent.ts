@@ -11,9 +11,9 @@ type CloseEvent = Readonly<{index: CodegenTypes.Int32}>;
  * React Native.
  *
  * The tabs carry no XAML content, because content inside an island would have
- * to be XAML and the pages here are React Native's (roadmap §3.6 ran the
- * experiment: a React portal connects inside an island and is even reported to
- * UI Automation, and draws nothing). A `TabViewItem` with no content is still
+ * to be XAML and the pages here are React Native's (a React portal connects
+ * inside an island and is even reported to UI Automation, and
+ * react-native-windows 0.84 draws nothing in it). A `TabViewItem` with no content is still
  * a real tab — it is selected, closed, dragged and read by Narrator as the
  * control's own — so the strip is the platform's even though the pages are
  * not.
