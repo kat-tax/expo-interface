@@ -11,6 +11,7 @@
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceInfoBar.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceMenuFlyout.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceNavigationView.g.h"
+#include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceTabView.g.h"
 
 namespace winrt::ExpoInterface {
 
@@ -909,6 +910,123 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
   bool m_applying{false};
 };
 
+// -- TabView (document tabs) -------------------------------------------------
+
+/**
+ * WinUI's `TabView`, as the strip alone.
+ *
+ * The items carry no content: an island holds XAML and the pages here are
+ * React Native's, which the kit draws under the island instead (roadmap §3.6
+ * for what it took to be sure of that). A `TabViewItem` with nothing in it is
+ * still the control's own tab — Narrator reads it as one, the close cross is
+ * the control's, and the add button is where Fluent puts it.
+ *
+ * Reordering is off. Dragging a tab would move it here while the kit's array
+ * stayed as it was, and the next render would put it back; a strip that
+ * quietly undoes a drag is worse than one that never offered it. It comes back
+ * with an `onReorder` to answer with.
+ */
+struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
+                     Codegen::BaseExpoInterfaceTabView<TabViewView>,
+                     XamlIsland<TabViewView> {
+  void InitializeIsland(const composition::ContentIslandComponentView &islandView) noexcept {
+    m_view = controls::TabView{};
+    m_view.TabWidthMode(controls::TabViewWidthMode::Equal);
+    m_view.CanReorderTabs(false);
+    m_view.CanDragTabs(false);
+    m_view.IsAddTabButtonVisible(false);
+    m_view.VerticalAlignment(xaml::VerticalAlignment::Top);
+    // The control's own fill is in-app acrylic, which has no backdrop in an
+    // island and paints solid white; the kit's background goes behind it.
+    OverrideBrushes(m_view, {L"TabViewBackground", L"TabViewItemHeaderBackground"}, Color{0, 0, 0, 0});
+    m_view.SelectionChanged([weak = get_weak()](const winrt::IInspectable &, const controls::SelectionChangedEventArgs &) {
+      if (auto strong = weak.get()) {
+        if (strong->m_applying) return;
+        const auto index = strong->m_view.SelectedIndex();
+        if (index < 0) return;
+        if (auto emitter = strong->EventEmitter()) {
+          Codegen::ExpoInterfaceTabViewEventEmitter::OnSelectionChange event;
+          event.index = index;
+          emitter->onSelectionChange(std::move(event));
+        }
+      }
+    });
+    // The kit owns the list, so the close is reported and nothing is removed
+    // here: the control would otherwise drop a tab the next render puts back.
+    m_view.TabCloseRequested([weak = get_weak()](
+                                 const controls::TabView &sender,
+                                 const controls::TabViewTabCloseRequestedEventArgs &args) {
+      if (auto strong = weak.get()) {
+        uint32_t index = 0;
+        if (!sender.TabItems().IndexOf(args.Tab(), index)) return;
+        if (auto emitter = strong->EventEmitter()) {
+          Codegen::ExpoInterfaceTabViewEventEmitter::OnTabClose event;
+          event.index = static_cast<int32_t>(index);
+          emitter->onTabClose(std::move(event));
+        }
+      }
+    });
+    m_view.AddTabButtonClick([weak = get_weak()](const controls::TabView &, const winrt::IInspectable &) {
+      if (auto strong = weak.get()) {
+        if (auto emitter = strong->EventEmitter()) {
+          emitter->onAddTab(Codegen::ExpoInterfaceTabViewEventEmitter::OnAddTab{});
+        }
+      }
+    });
+    Attach(islandView, m_view);
+  }
+
+  void UpdateProps(
+      const rn::ComponentView &view,
+      const winrt::com_ptr<Codegen::ExpoInterfaceTabViewProps> &newProps,
+      const winrt::com_ptr<Codegen::ExpoInterfaceTabViewProps> &oldProps) noexcept override {
+    Codegen::BaseExpoInterfaceTabView<TabViewView>::UpdateProps(view, newProps, oldProps);
+    auto props = Props();
+    if (!props) return;
+    m_applying = true;
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
+    // The island names its own control: the React view's `accessibilityLabel`
+    // never reaches the XAML one, and an unnamed tab control is what Narrator
+    // would read out.
+    SetName(m_view, props->label);
+    Root().as<controls::Panel>().Background(Brush(ColorOr(props->background, Color{0, 0, 0, 0})));
+    if (props->items != m_items) {
+      m_items = props->items;
+      m_view.TabItems().Clear();
+      for (auto value : ParseArray(m_items)) {
+        if (value.ValueType() != JsonValueType::Object) continue;
+        auto entry = value.GetObject();
+        controls::TabViewItem item;
+        item.Header(winrt::box_value(ToHString(JsonString(entry, L"title"))));
+        const auto glyph = JsonString(entry, L"glyph");
+        if (!glyph.empty()) {
+          controls::FontIconSource icon;
+          icon.FontFamily(media::FontFamily{L"Segoe Fluent Icons,Segoe MDL2 Assets"});
+          icon.Glyph(GlyphFromCodePoint(glyph));
+          icon.FontSize(16);
+          item.IconSource(icon);
+        }
+        item.IsClosable(entry.GetNamedBoolean(L"closable", false));
+        m_view.TabItems().Append(item);
+      }
+    }
+    const auto count = static_cast<int32_t>(m_view.TabItems().Size());
+    const auto selected = std::clamp(props->selectedIndex.value_or(0), 0, std::max(0, count - 1));
+    if (count > 0 && m_view.SelectedIndex() != selected) m_view.SelectedIndex(selected);
+    m_view.IsAddTabButtonVisible(props->addButton.value_or(false));
+    m_applying = false;
+  }
+
+  void UpdateState(const rn::ComponentView &, const rn::IComponentState &newState) noexcept override {
+    KeepState(newState);
+  }
+
+ private:
+  controls::TabView m_view{nullptr};
+  std::string m_items;
+  bool m_applying{false};
+};
+
 } // namespace
 
 void RegisterOverlays(rn::IReactPackageBuilder const &packageBuilder) noexcept {
@@ -918,6 +1036,7 @@ void RegisterOverlays(rn::IReactPackageBuilder const &packageBuilder) noexcept {
   RegisterIsland<CommandBarView>(packageBuilder, &Codegen::RegisterExpoInterfaceCommandBarNativeComponent<CommandBarView>);
   RegisterIsland<InfoBarView>(packageBuilder, &Codegen::RegisterExpoInterfaceInfoBarNativeComponent<InfoBarView>);
   RegisterIsland<NavigationViewView>(packageBuilder, &Codegen::RegisterExpoInterfaceNavigationViewNativeComponent<NavigationViewView>);
+  RegisterIsland<TabViewView>(packageBuilder, &Codegen::RegisterExpoInterfaceTabViewNativeComponent<TabViewView>);
 }
 
 } // namespace winrt::ExpoInterface

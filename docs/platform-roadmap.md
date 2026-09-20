@@ -4,14 +4,17 @@ What each platform can still do that the kit does not yet ask of it, and the
 order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
-**Progress.** Wave 1 is done, except that item 6 turned out not to be what it
-said — see below. **§3.6 is where the "an island cannot hold React Native
-children" limit was chased down.** It was the stated reason for shrinking four
-items; it is real, but it lives in react-native-windows rather than in XAML,
-and it was run rather than reasoned about. **Waves 1 and 2 are done.** Wave 3: item 12 done, item 13
-closed without building, item 15 done, and `ShareLink`, the pager and `Chip`
-done out of item 14. Only `TabView` is outstanding; §2.5 has been rewritten
-with what it should be.
+**Progress. All fifteen items are done or closed with a reason.** Wave 3 ended
+with item 12 done, item 13 closed without building, item 15 done, and
+`ShareLink`, the pager, `Chip` and `TabView` all done out of item 14 — except
+that item 6 turned out not to be what it said, which is in its own entry.
+**§8, "Still open", is the list to read now**: two leftovers inside finished
+items, two questions nobody has decided, and a version watch.
+
+**§3.6 is where the "an island cannot hold React Native children" limit was
+chased down.** It was the stated reason for shrinking four items; it is real,
+but it lives in react-native-windows rather than in XAML, and it was run
+rather than reasoned about.
 
 ## How to read the matrices
 
@@ -324,8 +327,9 @@ unstyled. Highlight it:
 
 ### 2.5 `TabView` — document tabs, which are not the tabs the kit has
 
-**Researched 2026-09-20, not built. This section replaces the one that called
-it "`Tabs` on Windows", which had the shape of the problem wrong.**
+**Researched and built 2026-09-20. This section replaced the one that called
+it "`Tabs` on Windows", which had the shape of the problem wrong; what the
+build then changed is at the end.**
 
 Two different controls are called tabs, and mixing them is what made this look
 like a Windows gap in an existing component.
@@ -373,9 +377,26 @@ strip is composed everywhere except Windows.
 | | strip (wide) | switcher (narrow) |
 | --- | --- | --- |
 | Windows | **native** — WinUI 3 `TabView` | drawn grid |
-| iOS | drawn strip of SwiftUI buttons | drawn card grid |
-| Android | drawn strip of Compose buttons | drawn card grid |
+| iOS | drawn strip | drawn card grid |
+| Android | drawn strip | drawn card grid |
 | Web | drawn strip, the APG tab pattern | drawn card grid |
+
+**One native platform, and this one was built anyway** — the opposite call to
+the one this document's own two-platform bar asks for, so it needs a reason.
+`Chip` failed that bar on a miscount: asking "does the platform have a control
+for a capsule that stays pressed" turned one into four. Asking the same
+question here does not. A document strip is genuinely a control only Windows
+ships, and the earlier draft of this table was wrong in the other direction —
+there is no "strip of SwiftUI buttons" or "of Compose buttons" to draw it with
+either, because a strip of tabs is not a row of buttons to a screen reader and
+`@expo/ui` exposes no tab primitive at all. It is React Native on both.
+
+What carries it instead is that **three of the four still get the shape their
+own platform teaches**: under 640 points nobody draws a strip, and the count
+button over a grid of cards is exactly what Safari and Chrome do on iOS and
+Android. So the bar it passes is not "two platforms have the control" but
+"every platform gets what its users already know", which is the thing the bar
+was a proxy for.
 
 **One breakpoint, and the kit already has the machinery.** `src/tabs`'
 `resolvePane` picks a Windows pane from a measured width at WinUI's own 641
@@ -398,20 +419,27 @@ strip's pattern, and the close cross inside each tab is the one place the
 roving contract needs care, since a tab holding a second focusable is a
 composite inside a composite.
 
-#### The one thing to settle before writing code
+#### The one thing that had to be settled first — and how it came out
 
 Whether WinUI's `TabView` can be **the strip alone**. Its tab content would
-have to be React Native's. **§3.6 already ran that experiment**, and it came
-back half-negative: a React portal connects inside a XAML island and is
+have to be React Native's. **§3.6 had already run that experiment**, and it
+came back half-negative: a React portal connects inside a XAML island and is
 accessible there, but its content does not draw, for reasons in
 react-native-windows rather than in XAML. So a `TabView` whose `TabViewItem`s
-hold portals is the right thing to want and not something to build on today.
+hold portals was the right thing to want and not something to build on.
 
-The fallback is therefore the plan: a
-`TabView` whose items carry no content, sized to its strip, with the selected
-page drawn underneath it by React Native — and if that fails too, Windows
-draws its strip like the other three and the component is composed on all
-four. Still worth building, and honest about it.
+**The fallback was taken, and it works.** `TabViewItem`s with no content at
+all, the island sized to `TabViewItemHeaderHeight`, and the selected page
+drawn underneath by React Native. An item with nothing in it is still the
+control's own tab — Narrator reads it as one, the close cross and the add
+button are Fluent's, and the strip is the platform's even though every page
+under it is not.
+
+One thing it costs: **reordering is off**. `CanReorderTabs` and `CanDragTabs`
+are both false, because a drag would move the tab in the control while the
+kit's own array stayed as it was and the next render put it back. A strip that
+silently undoes a drag is worse than one that never offered it; this comes
+back the day there is an `onReorder` to answer with.
 
 Worth knowing for the web half: Chrome supports `display_override: ["tabbed"]`
 with a `tab_strip` manifest entry, which gives an *installed* web app a real
@@ -419,6 +447,42 @@ browser-drawn tab strip. That is the browser's chrome rather than a control in
 the page, so it is not this component — but it is the better answer for an
 installed app that wants document tabs, and worth saying so rather than having
 someone rediscover it.
+
+#### What building it found, which the research had not
+
+**A tab strip cannot have a second announced control per tab, on web.** This
+section guessed the close cross would need "care" in the roving contract. It
+needs more than care: there is no arrangement that works.
+
+- A `<button>` **inside** `role="tab"` is never exposed at all — ARIA makes
+  the children of `tab` presentational — and axe fails it as
+  `nested-interactive`.
+- Moving it **beside** the tab, inside the `tablist`, fails the other way:
+  `tablist` does not allow a button among its children, and axe fails it as
+  `aria-required-children`.
+
+Both were tried, in that order, and both are real defects rather than
+pedantry. So on web the cross is a **pointer affordance** (`aria-hidden`, not
+focusable) and the keyboard closes with **Delete on the tab**, which each
+closable tab announces for itself through `aria-keyshortcuts`. iOS and Android
+have no such rule and keep a real button beside the tab that VoiceOver and
+TalkBack both reach; Windows gets the control's own cross. **Web is the
+strictest platform here**, which is the reverse of the usual direction in this
+document and worth knowing before designing the next composite.
+
+**An `aria-labelledby` target is read whole, `aria-hidden` children
+included.** The panel was named after the open tab, and the kit draws an icon
+as a Material Symbols *ligature* — the glyph's name as text — so the panel
+came out called `"descriptionREADME.md"`. Naming it after the tab's **title**
+rather than the tab fixes it. Nothing in the suite could see this: the unit
+tests asserted the relationship, axe passed, and only the harness's
+accessibility tree — the thing a screen reader would actually say — showed the
+name. It belongs beside §6.1's defect class.
+
+**Two things were wrong on screen and right in every test**, which is now
+three sessions running: the switcher's cards were 140 points wide, which left
+about six characters for a file name, so every card clipped `README.md` to
+`README` with no ellipsis to admit it.
 
 ### 2.6 `Icon` on Windows
 
@@ -563,9 +627,11 @@ these are open today.
   cover its children — it contains them — so an `AcrylicBrush` behind them
   becomes answerable, and the separate question of whether acrylic can sample
   RNW's composition content behind a different content root is still open.
-- **§2.5, `TabView`.** This is the spike that section asks for, and it now has
-  a much better prior: the `TabViewItem`s hold portals, and the strip is the
-  control's own.
+- **§2.5, `TabView`.** This is the spike that section asked for. It would have
+  let the `TabViewItem`s hold their own pages; since they cannot, the
+  component shipped with the fallback instead — items with no content, sized
+  to the strip, the page drawn underneath by React Native. That works, so this
+  one is an improvement waiting rather than a gap.
 - **§1.8, the pager.** `FlipView` becomes possible. It is *not* a regret —
   `pagingEnabled` is the platform's own scroller on all four and the shipped
   component has no hosting boundary at all, which is still the better trade —
@@ -645,7 +711,8 @@ matters is parented before the host can act.
 What that means for the items §3.6 re-opened: they are **not** re-opened
 today. `SwipeControl` still has nothing of its own to swipe, `Surface` still
 cannot carry an acrylic behind React Native children, and `TabView`'s
-`TabViewItem`s still cannot hold pages. The difference is that the reason is
+`TabViewItem`s still cannot hold pages (§2.5 shipped without needing them to:
+the strip alone is enough). The difference is that the reason is
 now specific, in files that can be pointed at, and it is a reason that an
 upstream change could remove — a public way to size a fragment island, or a
 `CreatePortal` that parents its content after the island's root visual exists.
@@ -801,6 +868,21 @@ keyboard contracts those roles promise.
 ArrowDown. `@storybook/addon-a11y` runs axe over every story with
 `parameters.a11y.test: 'error'` and is green while this ships. It is the same
 shape as the `Symbol` bug: the suite passes and the thing is broken.
+
+**A second member of the class, found building `TabView` (§2.5): a name that
+is valid, asserted, axe-clean and wrong.** Its tab panel was named after the
+open tab through `aria-labelledby` — the textbook relationship — and a
+referenced element is read **whole**, `aria-hidden` descendants included. The
+kit draws an icon as a Material Symbols *ligature*, which is the glyph's own
+name as text, so the panel came out called `"descriptionREADME.md"`. The unit
+test asserted the relationship and passed. axe passed. Only the harness's
+accessibility tree, which prints what a screen reader would actually say,
+showed it.
+
+So the rule that comes out of it: **an element referenced by `aria-labelledby`
+must be the text and nothing else** — a title span, never a container that
+also holds an icon. And the way this class gets caught is by reading the tree,
+not by asserting the attribute that produces it.
 
 ### 6.2 What the platform already gives, and must not be handed back
 
@@ -1108,12 +1190,27 @@ axe cannot press keys, so add the two layers that can.
     question that matters, because that control is what carries the state to a
     screen reader.
 
-    Still outstanding from this item: `TabView`. It is **not** Windows only,
-    which is what §2.5 used to imply — it is a new component (document tabs,
-    not the navigation tabs `src/tabs` already is), native on Windows and
-    composed on the other three, with a strip above a width and a card
-    switcher below it. §2.5 has the research, the breakpoint, and the one
-    question to settle first.
+    **`TabView` is done, and it is the one item built against this
+    document's own two-platform bar.** It is a new component — document tabs,
+    not the navigation tabs `src/tabs` already is — with a real WinUI 3
+    `TabView` for the strip on Windows and a drawn strip on the other three,
+    falling to a count button over a grid of cards under 640 points
+    everywhere. Only Windows has a control, and unlike `Chip` that is not a
+    miscount: iOS's `TabView` and Compose's `TabRow` are both the navigation
+    kind. What justifies it is in §2.5 — three of the four still get the shape
+    their own platform teaches, which is what the bar was a proxy for.
+
+    The Windows half is the strip **alone**: items with no content, sized to
+    the header height, with the page drawn under the island by React Native —
+    the fallback §3.6 left standing, and it works. Reordering is off until
+    there is an `onReorder` to answer a drag with.
+
+    The finding worth carrying out of it is about web rather than Windows: a
+    tab strip **cannot** have a second announced control per tab, because ARIA
+    makes a tab's children presentational and forbids a button among a
+    tablist's. The cross is a pointer affordance there and the keyboard closes
+    with Delete, said out loud by `aria-keyshortcuts`. The native platforms
+    have no such rule and keep the real button.
 15. ~~Caret-anchored `PopupMenu` (§4.2) — web-only, or commit to two native
     modules.~~ **Done, web only, deliberately.** `caretPoint(field, within)` in
     `src/caret`; the other three answer `null` and name the module each would
@@ -1125,3 +1222,44 @@ axe cannot press keys, so add the two layers that can.
 
 Each item is one directory, a file per platform, stories, tests to 100 %, and a
 harness run on web and on Windows before it counts as done.
+
+---
+
+## 8. Still open
+
+Everything the fifteen items above asked for is done or closed with a reason.
+What remains is this, and it is worth keeping in one place rather than leaving
+it scattered through the sections that finished around it.
+
+**Two leftovers inside items marked done.**
+
+- **`trigger: 'tap' | 'longPress' | 'doubleTap'` on `ContextMenu`** (§2.3,
+  item 8). Small, and the only part of that item never built.
+- **Item 7's accessibility tail**: iOS `accessibilityInputLabels`, and the
+  Windows automation properties past `AutomationId` and the heading role.
+  Android stays blocked upstream — `@expo/ui`'s Compose layer exposes no
+  modifier for a content description, and only `Icon` takes one as a prop.
+
+**Two questions nobody has decided.** Both were deliberately left rather than
+forgotten, and both want a session of their own.
+
+- **§2.6, `Icon` on Windows.** `SEGOE_GLYPHS` plus `FontIcon` limits the kit to
+  glyphs Segoe Fluent happens to have. `PathIcon`, `ImageIcon` and
+  `AnimatedIcon` all exist and none is used. (The gap shows up in practice: a
+  story using `sticky_note_2` fails the suite, because a generated map has to
+  cover every Material name in `src/`.)
+- **§4.4, a DOM `TextField`.** `Menu`, `ContextMenu` and `Tooltip` are real DOM
+  with their own CSS; `TextField` is still react-native-web's `TextInput`.
+  Moving it is consistent and helps §1.5, and it is a compatibility risk
+  against the whole RN `TextInput` prop surface.
+
+**One watch and one thing to file.**
+
+- **§5.1.** Windows App SDK 1.8 left servicing on 2026-09-09. The kit is on it
+  transitively through react-native-windows 0.84 and cannot move ahead of
+  them. Track their bump.
+- **The react-native-windows issue §3.6 identified**: a public way to size a
+  fragment island, or a `CreatePortal` that parents its content after the
+  island's root visual exists. Filing it is what would reopen swipe actions on
+  Windows (§1.6), materials behind React Native children (§3.2, item 11), and
+  a `TabView` whose items hold their own pages (§2.5).

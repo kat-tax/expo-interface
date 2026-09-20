@@ -1,0 +1,213 @@
+/*
+ * Document tabs. The open tab is the panel's own colour and the bar behind it
+ * is not, which is how every browser says which tab the content belongs to —
+ * the fill carries the state, and `aria-selected` says the same thing to
+ * anyone who cannot see it.
+ */
+.ui-tab-view {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ui-tab-view__bar {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  background: var(--color-background-element);
+}
+
+.ui-tab-view__strip {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ui-tab-view__strip::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+ * A tab is two controls in a shell, not one inside another: ARIA makes the
+ * children of `role="tab"` presentational, so the close cross has to be its
+ * sibling to exist at all for a screen reader. The shell carries the fill; the
+ * tab carries the role.
+ */
+.ui-tab-view__tab {
+  display: flex;
+  align-items: center;
+  flex: 0 1 auto;
+  max-width: 220px;
+  padding: 0 8px 0 12px;
+  color: var(--color-secondary-label);
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 20px;
+  user-select: none;
+}
+
+.ui-tab-view__tab[data-selected='true'] {
+  background: var(--color-background);
+  color: var(--color-label);
+}
+
+.ui-tab-view__tab-body,
+.ui-tab-view__card-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 1 auto;
+  min-width: 0;
+  color: inherit;
+  cursor: pointer;
+}
+
+.ui-tab-view__card-body {
+  align-items: flex-start;
+  flex: 1 1 auto;
+}
+
+.ui-tab-view__tab-body:focus-visible,
+.ui-tab-view__card-body:focus-visible,
+.ui-tab-view__switcher:focus-visible,
+.ui-tab-view__add:focus-visible,
+.ui-tab-view__cross:focus-visible {
+  outline: 2px solid var(--color-tint);
+  outline-offset: -2px;
+}
+
+.ui-tab-view__title {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 10px 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/*
+ * The cross keeps its room whether or not it is shown, so hovering a tab does
+ * not shuffle the ones beside it. It is always in the accessibility tree —
+ * only the paint is held back — because a control a screen reader is told
+ * about and a pointer cannot find is worse than one that is simply there.
+ */
+.ui-tab-view__cross {
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.ui-tab-view__tab[data-selected='true'] .ui-tab-view__cross,
+.ui-tab-view__tab:hover .ui-tab-view__cross,
+.ui-tab-view__cross:focus-visible,
+.ui-tab-view__card .ui-tab-view__cross {
+  opacity: 1;
+}
+
+.ui-tab-view__cross:hover {
+  background: var(--color-pill-background);
+}
+
+.ui-tab-view__add,
+.ui-tab-view__switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--color-label);
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.ui-tab-view__add {
+  padding: 0 12px;
+}
+
+.ui-tab-view__switcher {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 12px;
+  text-align: start;
+}
+
+/* A bare numeral reads as more title unless it is boxed as a count. */
+.ui-tab-view__count {
+  min-width: 22px;
+  padding: 0 4px;
+  border: 1px solid var(--color-secondary-label);
+  border-radius: 6px;
+  color: var(--color-secondary-label);
+  font-size: 12px;
+  line-height: 18px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-tab-view__cards {
+  display: grid;
+  /*
+   * Wide enough that an ordinary file name fits on one line beside its icon
+   * and its cross — at 140 there was room for about six characters, and every
+   * card broke mid-word. Two columns at phone width, which is the size this
+   * shape is for.
+   */
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  flex: 1 1 auto;
+  align-content: start;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.ui-tab-view__card {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--color-background-element);
+  color: var(--color-label);
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.ui-tab-view__card[data-selected='true'] {
+  border-color: var(--color-label);
+}
+
+.ui-tab-view__card-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  /*
+   * Two lines, then an ellipsis: a file name is worth more than one line of
+   * it. `anywhere` because a name has no spaces to break at — without it
+   * "README.md" is clipped to "README" on a narrow card, with no ellipsis to
+   * say so, which is a lie rather than a truncation.
+   */
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.ui-tab-view__panel {
+  flex: 1 1 auto;
+  min-width: 0;
+}
