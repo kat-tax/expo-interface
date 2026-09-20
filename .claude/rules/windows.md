@@ -1,11 +1,9 @@
 ---
 paths:
   - "windows/**"
-  - "expo-windows/**"
   - "**/*.windows.ts"
   - "**/*.windows.tsx"
   - "scripts/windows-ci.sh"
-  - "expo-windows/ci/**"
 ---
 
 # Windows
@@ -52,16 +50,16 @@ through `ReportDesiredSize`; the runtime's take the size the layout gives them.
 
 ## Building and verifying
 
-`expo-windows/ci/build.sh <workdir>` is the whole road: scratch app, `init`,
-autolink, bundle, Debug, Release, package, the Windows App Runtime, and a smoke
-launch that reports cold start and working set. It is what CI runs, and the
-fastest way to prove a change end to end. On its own it builds the runtime's
-probe (`expo-windows/ci/app`, plain React Native, no kit).
-`scripts/windows-ci.sh <workdir>` is the same road for the example: it hands the
-runtime's script the example's source, this checkout's kit to overlay, and the
-route that draws `@expo/ui` through the kit's aliases.
+`scripts/windows-ci.sh <workdir>` is the whole road for the example: scratch app,
+`init`, autolink, bundle, Debug, Release, package, the Windows App Runtime, and a
+smoke launch that reports cold start and working set. It is what CI runs, and
+the fastest way to prove a change end to end. The road itself is the runtime's,
+`ci/build.sh` in a checkout of `expo-windows` (`EXPO_WINDOWS_DIR`, beside this
+repository unless said): this script hands it the example's source, this
+checkout's kit to overlay, and the route that draws `@expo/ui` through the kit's
+aliases.
 
-`STOP_AFTER=bundle` stops either once the bundle is written: a few minutes, no
+`STOP_AFTER=bundle` stops it once the bundle is written: a few minutes, no
 MSBuild, no window. The react-native-windows CLI loads its commands through
 PowerShell 7 and a .NET SDK: without both on the PATH, `init` fails with
 `unknown command 'init-windows'`, which says nothing about either.
@@ -82,7 +80,6 @@ accessible name is found. Synthetic input goes to whatever is in front, so
 
 ## Codegen
 
-Specs live in `src/windows/specs/` (the kit) and `expo-windows/src/windows/specs/`
-(the runtime). Run `bun run codegen:windows` after any spec change and commit the
+Specs live in `src/windows/specs/`. Run `bun run codegen:windows` after any spec change and commit the
 generated headers. A `WithDefault<boolean, false>` prop generates
 `std::optional<bool>`; a `true` default generates a plain `bool`.

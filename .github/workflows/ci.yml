@@ -25,10 +25,6 @@ jobs:
         run: bun run lint
       - name: Test
         run: bun run test:coverage
-      - name: Test expo-vitest as an app installs it
-        # Packed, unpacked into a fixture's node_modules and run by name: the one
-        # place its source cannot speak for, since Node strips no types there.
-        run: bun run test:fixture
       - name: Upload test report (@vitest/ui HTML)
         if: always()
         uses: actions/upload-artifact@v7

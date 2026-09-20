@@ -22,4 +22,4 @@ example nor `expo-windows` may depend on react-native-windows. Instead
 `scripts/windows-ci.sh` builds this app's source in a scratch app on the
 react-native-windows line that ships (0.84), with `expo-windows` writing the
 Windows project, which is what the Windows workflow runs. See
-[the expo-windows document](../expo-windows/docs/expo-windows.md).
+[the expo-windows document](https://github.com/kat-tax/expo-windows/blob/master/docs/expo-windows.md).

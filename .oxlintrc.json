@@ -174,11 +174,7 @@
     {
       "files": [
         "**/*.test.ts",
-        "**/*.test.tsx",
-        "vitest/**/*.ts",
-        "vitest/**/*.tsx",
-        "expo-vitest/src/**/*.ts",
-        "expo-vitest/src/**/*.tsx"
+        "**/*.test.tsx"
       ],
       "env": {
         "vitest": true

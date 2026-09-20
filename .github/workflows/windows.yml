@@ -1,15 +1,12 @@
 name: Windows
 
-# Builds for Windows end to end on the line react-native-windows ships (0.84
-# while Expo 57's React Native 0.86 waits for a 0.86 line): a scratch app with
-# React Native pinned to it, `expo-windows init` writing the Windows project
-# the way `ios/` and `android/` are generated, autolinking, the Windows
-# JavaScript bundle, MSBuild with the v143 toolset, the package and a smoke
-# launch. See expo-windows/ci/build.sh.
+# Builds the example for Windows end to end on the line react-native-windows
+# ships (0.84 while Expo 57's React Native 0.86 waits for a 0.86 line). The road
+# is the runtime's, https://github.com/kat-tax/expo-windows: its build script over the example's
+# source, with this checkout's kit in its node_modules. See scripts/windows-ci.sh.
 #
-# Two apps go down that road. The runtime's probe is drawn with React Native's
-# own views and proves the runtime with no UI kit installed. The example is the
-# kit's app, with this checkout's kit in its node_modules (scripts/windows-ci.sh).
+# The runtime is checked out at `runtime-ref`, `master` unless a run is asked
+# for another: the branch a change to both was made on, or a released tag.
 
 on:
   push:
@@ -17,7 +14,6 @@ on:
     paths:
       - 'src/**'
       - 'windows/**'
-      - 'expo-windows/**'
       - 'example/**'
       - 'scripts/windows-ci/**'
       - 'scripts/windows-ci.sh'
@@ -26,12 +22,15 @@ on:
     paths:
       - 'src/**'
       - 'windows/**'
-      - 'expo-windows/**'
       - 'example/**'
       - 'scripts/windows-ci/**'
       - 'scripts/windows-ci.sh'
       - '.github/workflows/windows.yml'
   workflow_dispatch:
+    inputs:
+      runtime-ref:
+        description: The branch, tag or commit of expo-windows to build over
+        default: master
 
 concurrency:
   group: windows-${{ github.ref }}
@@ -42,23 +41,24 @@ permissions:
 
 jobs:
   build:
-    # The line react-native-windows ships, and its newest preview: each new
-    # release gets a smoke run here, which is how the version wall closes.
-    name: ${{ matrix.app.name }} (react-native-windows ${{ matrix.line.rnw }})
+    name: The example (react-native-windows ${{ matrix.line.rnw }})
     runs-on: windows-latest
     timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
-        app:
-          - {key: probe, name: "The runtime's probe", script: expo-windows/ci/build.sh}
-          - {key: example, name: The example, script: scripts/windows-ci.sh}
         line:
           - {rn: '', rnw: '0.84 (the template)', cli: '20.1.0', preview: false}
           - {rn: '0.85.3', rnw: '0.85.0-preview.1', cli: '20.2.0', preview: true}
     continue-on-error: ${{ matrix.line.preview }}
     steps:
       - uses: actions/checkout@v7
+      - name: Check the runtime out beside the kit
+        uses: actions/checkout@v7
+        with:
+          repository: kat-tax/expo-windows
+          ref: ${{ inputs.runtime-ref || 'master' }}
+          path: _runtime
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -67,12 +67,13 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~\AppData\Local\npm-cache
-          key: npm-windows-ci-${{ hashFiles('expo-windows/ci/app/package.json') }}
+          key: npm-windows-ci-${{ hashFiles('_runtime/ci/app/package.json') }}
           restore-keys: npm-windows-ci-
       - name: Build
         shell: bash
-        run: ${{ matrix.app.script }} "$RUNNER_TEMP/winci"
+        run: scripts/windows-ci.sh "$RUNNER_TEMP/winci"
         env:
+          EXPO_WINDOWS_DIR: ${{ github.workspace }}/_runtime
           RN_VERSION: ${{ matrix.line.rn }}
           RNW_VERSION: ${{ matrix.line.rn && matrix.line.rnw || '' }}
           CLI_VERSION: ${{ matrix.line.cli }}
@@ -80,7 +81,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: windows-${{ matrix.app.key }}-${{ matrix.line.cli }}-${{ matrix.line.preview && 'preview' || 'stable' }}
+          name: windows-app-${{ matrix.line.cli }}-${{ matrix.line.preview && 'preview' || 'stable' }}
           path: |
             ${{ runner.temp }}/winci/WinCi/windows/x64/*/*.exe
             ${{ runner.temp }}/winci/WinCi/windows/*/Bundle

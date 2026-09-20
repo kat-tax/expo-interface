@@ -1,7 +1,5 @@
-import path from 'node:path';
 import {defineConfig} from 'vitest/config';
-import {expoProjects, nodeProject} from './expo-vitest/src/index.ts';
-import {runtimeProjects} from './expo-windows/vitest.projects.mts';
+import {expoProjects} from 'expo-vitest';
 
 /**
  * The kit resolves a different implementation per platform (`index.ios.tsx`,
@@ -44,20 +42,9 @@ const NOT_ON_WINDOWS = [
   'react-native-keyboard-controller',
 ];
 
-/** The `expo-windows` runtime's projects, which its own config runs alone (`expo-windows/vitest.config.mts`). */
-const runtime = runtimeProjects(path.join(import.meta.dirname, 'expo-windows'));
-
-/**
- * The test layer's own logic: the file names each platform takes, the two
- * resolver plugins, and the harness's snapshot shape, selector matching and PNG
- * comparison. Pure Node, no device: the tests that need one live in the opt-in
- * `device` project (`vitest.config.device.mts`).
- */
-const vitest = nodeProject({name: 'expo-vitest', include: ['expo-vitest/src/**/*.test.ts']});
-
 export default defineConfig({
   test: {
-    projects: [...expoProjects({windows: {forbid: NOT_ON_WINDOWS}}), ...runtime, vitest],
+    projects: expoProjects({windows: {forbid: NOT_ON_WINDOWS}}),
     // Terminal output plus the browsable report (`@vitest/ui`) in test-report/.
     reporters: ['default', 'html'],
     outputFile: {html: 'test-report/index.html'},
@@ -66,18 +53,12 @@ export default defineConfig({
       reportsDirectory: 'coverage',
       reporter: ['text-summary', 'html', 'lcov'],
       thresholds: {lines: 100, functions: 100, branches: 100, statements: 100},
-      include: ['src/**/*.{ts,tsx}', 'expo-windows/src/**/*.{ts,tsx}', 'expo-windows/{metro,cli}/**/*.js'],
+      include: ['src/**/*.{ts,tsx}'],
       exclude: [
         'src/**/*.stories.tsx',
         'src/**/*.test.{ts,tsx}',
         'src/__stories__/**',
         'src/**/*.d.ts',
-        'expo-windows/**/*.test.{js,ts,tsx}',
-        'expo-windows/**/*.d.ts',
-        'expo-windows/cli/index.js',
-        // `src/**` above matches any `src` folder. The test layer's own tests run
-        // here, but its setup files and Node hooks are not something a unit test reaches.
-        'expo-vitest/**',
       ],
     },
   },

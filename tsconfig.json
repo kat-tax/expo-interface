@@ -7,11 +7,7 @@
       "node",
       "@testing-library/jest-dom/vitest",
       "expo-vitest/types"
-    ],
-    "allowImportingTsExtensions": true,
-    "paths": {
-      "expo-vitest/*": ["./expo-vitest/src/*"]
-    }
+    ]
   },
   "include": [
     "src/**/*.ts",

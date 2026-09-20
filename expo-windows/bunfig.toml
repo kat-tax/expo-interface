@@ -1,4 +1,0 @@
-[install]
-# The flat layout: the source in ./src resolves React Native and Expo from
-# this folder's node_modules, as it would from an app's.
-linker = "hoisted"

@@ -53,7 +53,9 @@
     "includesGeneratedCode": true,
     "windows": {
       "namespace": "winrt::ExpoInterface::Codegen",
-      "generators": ["componentsWindows"],
+      "generators": [
+        "componentsWindows"
+      ],
       "outputDirectory": "windows/ExpoInterface/codegen",
       "separateDataTypes": true
     }
@@ -63,12 +65,10 @@
   },
   "workspaces": [
     "example",
-    "storybook",
-    "expo-windows",
-    "expo-vitest"
+    "storybook"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit && bun run --cwd expo-vitest typecheck && bun run --cwd expo-windows typecheck && bun run --cwd example typecheck && bun run --cwd storybook typecheck",
+    "typecheck": "tsc --noEmit && bun run --cwd example typecheck && bun run --cwd storybook typecheck",
     "lint": "oxlint --max-warnings 0",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -86,9 +86,8 @@
     "test:ui": "vitest --ui",
     "codegen:windows": "npm exec --yes --package=@react-native-windows/codegen@0.84.0 --package=@react-native/codegen@0.84.1 -- react-native-windows-codegen --files \"src/windows/specs/*NativeComponent.ts\" --libraryName ExpoInterfaceSpec --namespace winrt::ExpoInterface::Codegen --outputDirectory windows/ExpoInterface/codegen --componentsWindows",
     "segoe:windows": "node scripts/segoe-glyphs.ts",
-    "harness": "node expo-vitest/src/harness/index.ts",
-    "test:device": "vitest run --config vitest.config.device.mts",
-    "test:fixture": "bun run --cwd expo-vitest test:fixture"
+    "harness": "expo-harness",
+    "test:device": "vitest run --config vitest.config.device.mts"
   },
   "peerDependencies": {
     "@expo/material-symbols": "*",
@@ -123,6 +122,7 @@
     "@types/react": "~19.2.2",
     "@vitest/coverage-v8": "^4.1.11",
     "@vitest/ui": "^4.1.11",
+    "expo-vitest": "^0.1.0",
     "jsdom": "^30.0.1",
     "oxlint": "^1.81.0",
     "test-renderer": "^1.2.0",

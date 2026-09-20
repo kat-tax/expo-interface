@@ -11,8 +11,8 @@
 
 [The expo-interface document](docs/expo-interface.md) describes every
 component, what each platform renders, and where the platforms differ.
-[The expo-windows document](expo-windows/docs/expo-windows.md) describes the Windows
-platform runtime that lives in this repository.
+[The expo-windows document](https://github.com/kat-tax/expo-windows/blob/master/docs/expo-windows.md)
+describes the Windows platform runtime the kit runs on there.
 
 ## Install
 
@@ -134,7 +134,7 @@ hosts the WinUI control in a XAML island, themed by Fluent and branded from
 the accent seed. What has no WinUI control is drawn with Fluent metrics in
 Segoe UI Variable, and icons are Segoe Fluent Icons.
 
-The platform itself comes from [expo-windows](expo-windows/README.md): the
+The platform itself comes from [expo-windows](https://github.com/kat-tax/expo-windows): the
 Metro config, the Expo SDK on Windows, and the CLI that writes, builds and
 packages the app. The kit's library is autolinked into that app, and the
 codegen headers for its specs ship with the package.
@@ -177,9 +177,8 @@ bun run storybook:test     # every story as a Vitest browser test, with axe
 ### Tests
 
 Vitest runs the suite once per platform (`ios`, `android`, `windows`, `web`)
-plus the runtime's two projects. The projects, the test helpers and the
-harness are the [`expo-vitest`](expo-vitest/README.md) workspace. A file's name
-decides where it runs:
+through [`expo-vitest`](https://github.com/kat-tax/expo-vitest), which makes the projects and has
+the test helpers and the harness. A file's name decides where it runs:
 
 | Pattern | Platforms |
 | --- | --- |
@@ -204,7 +203,7 @@ bun run harness -p web --url http://localhost:8085 open / screenshot home.png tr
 
 One command drives the kit on web, Windows, Android and iOS: open a route,
 press, type, screenshot, and read the accessibility tree a screen reader
-reads. See [expo-vitest/HARNESS.md](expo-vitest/HARNESS.md).
+reads. It is `expo-vitest`'s: see [its guide](https://github.com/kat-tax/expo-vitest/blob/master/HARNESS.md).
 
 ### CI
 
@@ -212,10 +211,10 @@ reads. See [expo-vitest/HARNESS.md](expo-vitest/HARNESS.md).
   tests with coverage, the device suite against the example on web, a Metro
   export of the example for ios, android and web, and a web Storybook build
   after its stories pass as browser tests.
-- **Windows** (`windows.yml`), on changes to the kit, the runtime or the
-  example: the runtime's probe app and the example, each built end to end on
-  the react-native-windows line the template ships, plus the newest preview,
-  allowed to fail. `scripts/windows-ci.sh` is the example's build.
+- **Windows** (`windows.yml`), on changes to the kit or the example: the
+  example built end to end over a checkout of `expo-windows`, on the
+  react-native-windows line the template ships, plus the newest preview,
+  allowed to fail. `scripts/windows-ci.sh` is that build.
 - **Storybook** (`storybook.yml`), on push to `master`: publishes the web
   Storybook to GitHub Pages.
 - **Release** (`release.yml`), on a `v*` tag matching `package.json`:

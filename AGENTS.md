@@ -6,21 +6,24 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before 
 
 A universal UI kit for Expo SDK 57. Every component renders the platform's own
 control: SwiftUI on iOS, Jetpack Compose on Android, the DOM on web, WinUI 3 on
-Windows. Five workspaces:
+Windows. What is here:
 
 | Path | What |
 | --- | --- |
 | `src/` | the kit itself, published as `expo-interface` |
-| `expo-windows/` | the Windows platform runtime for Expo apps, published as `expo-windows` |
-| `expo-vitest/` | the per-platform Vitest projects, the test helpers and the harness, as the `expo-vitest` package |
 | `example/` | the dropfiles app the kit is dogfooded in |
 | `storybook/` | two Storybooks (web and on-device) over `src/**/*.stories.tsx` |
+
+Two things the kit stands on are repositories of their own: `expo-windows`
+(https://github.com/kat-tax/expo-windows), the Windows platform runtime, and `expo-vitest`
+(https://github.com/kat-tax/expo-vitest), which makes the per-platform Vitest projects and has
+the test helpers and the harness.
 
 ## Before reporting anything done
 
 ```sh
 bun run lint        # oxlint, zero warnings
-bun run typecheck   # tsc across all five workspaces
+bun run typecheck   # tsc across the kit, the example and the Storybooks
 bun run test        # vitest, every platform project
 ```
 
@@ -52,7 +55,7 @@ bun run harness -p web --url http://localhost:8085 open / screenshot home.png tr
 
 One command drives the kit on web, Windows, Android and iOS: open a route,
 press, type, screenshot, and read the accessibility tree a screen reader reads.
-See `expo-vitest/HARNESS.md`. Tests prove behaviour; the harness is how you
+See https://github.com/kat-tax/expo-vitest/blob/master/HARNESS.md. Tests prove behaviour; the harness is how you
 see the thing itself, and it is the only way to catch what only appears in a
 real renderer.
 
@@ -84,9 +87,8 @@ A component is one directory with `types.ts` and a file per platform
 Expo SDK 57 pins React Native 0.86.3; react-native-windows' newest line is 0.84.
 Do not add `react-native-windows` to the example or declare it as a peer of
 `expo-windows`. The Windows platform is built and tested against the pinned 0.84
-line by `expo-windows/ci/build.sh`, which CI runs on every push: once for the
-runtime's own probe app, and once for the example through
-`scripts/windows-ci.sh`.
+line by the runtime's build script, which `scripts/windows-ci.sh` runs over the
+example on every push.
 
 ## Commits
 

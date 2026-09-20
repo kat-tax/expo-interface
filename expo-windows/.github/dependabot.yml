@@ -1,8 +1,0 @@
-version: 2
-updates:
-  # npm dependencies follow the Expo SDK, so only the workflow actions are kept
-  # current automatically.
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly

@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
-# Publishes one of the repository's packages, given its directory.
+# Publishes the package in a directory.
 #
-#     bash .github/publish.sh .              the kit
-#     bash .github/publish.sh expo-windows   the runtime
+#     bash .github/publish.sh .
 #
 # Two things it refuses to do, each because the alternative is worse than a
 # skipped step:
 #
-# A version already on the registry is left alone, so re-running a release, or
-# tagging when only one of the two packages moved, is not a failure.
+# A version already on the registry is left alone, so re-running a release is
+# not a failure.
 #
 # A package the registry has never seen is skipped with the reason. Publishing
 # here is npm trusted publishing (OIDC), and npm cannot do a package's *first*

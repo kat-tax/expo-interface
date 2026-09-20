@@ -23,7 +23,7 @@ Expo SDK 57 (React Native 0.86.3) and `@expo/ui` 57.0.18. The Windows files
 use react-native-windows' Fabric API and are built and tested in a
 react-native-windows 0.84 app with Expo 57's JavaScript, since no
 react-native-windows pairs with React Native 0.86 yet. See
-[expo-windows](../expo-windows/docs/expo-windows.md#versions).
+[expo-windows](https://github.com/kat-tax/expo-windows/blob/master/docs/expo-windows.md#versions).
 
 ## How the kit is built
 
@@ -131,7 +131,7 @@ optional peer for `KeyboardBar`.
    ```
 
 Windows needs `expo-windows` in the app as well. See its
-[document](../expo-windows/docs/expo-windows.md#setup).
+[document](https://github.com/kat-tax/expo-windows/blob/master/docs/expo-windows.md#setup).
 
 ## Hosts
 
@@ -1485,7 +1485,7 @@ The differences that change what a screen can do, in one place:
   test rather than the app.
 - Every story runs in headless Chromium through Vitest browser mode with axe
   at the error level.
-- The harness (`expo-vitest/HARNESS.md`) opens a route on web, Windows,
+- `expo-vitest`'s harness opens a route on web, Windows,
   Android or iOS, presses, types, screenshots, and reads the accessibility
   tree a screen reader reads. It is the only way to see what a real renderer
   draws, and it has caught what tests and axe could not.

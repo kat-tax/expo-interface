@@ -2,7 +2,7 @@ import type {StorybookConfig} from '@storybook/react-native-web-vite';
 import type {Plugin, PluginOption} from 'vite';
 import path from 'node:path';
 import remarkGfm from 'remark-gfm';
-import {EXPO_WEB_PACKAGES, metroCompat} from '../../expo-vitest/src/metro-compat.ts';
+import {EXPO_WEB_PACKAGES, metroCompat} from 'expo-vitest/metro-compat';
 import {MATERIAL_SYMBOLS_URL, materialSymbolsFont, reactNativeShim} from './vite-plugins.ts';
 
 /**
