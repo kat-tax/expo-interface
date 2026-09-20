@@ -1383,6 +1383,7 @@ kit measures its own layouts with `onLayout`, and an app should too.
 `@expo/ui` has no Windows implementation, and neither have the community
 controls it wraps. On `expo-windows` the kit answers for them, so a screen
 written against those packages draws WinUI controls without a change. The
+runtime finds the kit's answers from 0.25.0; up to 0.24.0 it carried its own. The
 files are in `src/windows/aliases/`, and the table beside them,
 `aliases.json`, names a file for each module. The kit's `package.json` points
 the runtime at the table:

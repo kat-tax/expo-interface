@@ -137,7 +137,9 @@ Segoe UI Variable, and icons are Segoe Fluent Icons.
 The platform itself comes from [expo-windows](https://github.com/kat-tax/expo-windows): the
 Metro config, the Expo SDK on Windows, and the CLI that writes, builds and
 packages the app. The kit's library is autolinked into that app, and the
-codegen headers for its specs ship with the package.
+codegen headers for its specs ship with the package. The kit also answers for
+`@expo/ui` and the community controls there, which needs `expo-windows` 0.25.0
+or later.
 
 Expo SDK 57 pins React Native 0.86, and react-native-windows' newest line is
 0.84. The kit and the runtime are built and tested against that line with
@@ -153,7 +155,7 @@ the package from `../src`.
 ```sh
 bun install        # bun >= 1.4
 bun run web        # or ios, android
-bun run typecheck  # package, expo-windows, example and storybook
+bun run typecheck  # package, example and storybook
 bun run lint       # oxlint
 bun run test       # vitest, every platform project
 bun run test:ui    # vitest watch mode with the browser UI
