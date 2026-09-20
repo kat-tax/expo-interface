@@ -122,6 +122,49 @@ const targets = {
     );
     write('.github/workflows/windows.yml', KIT_WINDOWS_WORKFLOW);
     console.log('  .github/workflows/windows.yml');
+
+    // What was written about the two while they lived here: links become the other repositories', and the
+    // paragraphs that described three things in one repository describe one.
+    const RUNTIME_DOC = `${ORG}/expo-windows/blob/master/docs/expo-windows.md`;
+    const HARNESS_DOC = `${ORG}/expo-vitest/blob/master/HARNESS.md`;
+    edit('README.md', [
+      [`[The expo-windows document](expo-windows/docs/expo-windows.md) describes the Windows\nplatform runtime that lives in this repository.`, `[The expo-windows document](${RUNTIME_DOC})\ndescribes the Windows platform runtime the kit runs on there.`],
+      [`[expo-windows](expo-windows/README.md)`, `[expo-windows](${ORG}/expo-windows)`],
+      [`plus the runtime's two projects. The projects, the test helpers and the\nharness are the [\`expo-vitest\`](expo-vitest/README.md) workspace. A file's name\ndecides where it runs:`, `through [\`expo-vitest\`](${ORG}/expo-vitest), which makes the projects and has\nthe test helpers and the harness. A file's name decides where it runs:`],
+      [`reads. See [expo-vitest/HARNESS.md](expo-vitest/HARNESS.md).`, `reads. It is \`expo-vitest\`'s: see [its guide](${HARNESS_DOC}).`],
+      [`- **Windows** (\`windows.yml\`), on changes to the kit, the runtime or the\n  example: the runtime's probe app and the example, each built end to end on\n  the react-native-windows line the template ships, plus the newest preview,\n  allowed to fail. \`scripts/windows-ci.sh\` is the example's build.`, `- **Windows** (\`windows.yml\`), on changes to the kit or the example: the\n  example built end to end over a checkout of \`expo-windows\`, on the\n  react-native-windows line the template ships, plus the newest preview,\n  allowed to fail. \`scripts/windows-ci.sh\` is that build.`],
+    ]);
+    edit('docs/expo-interface.md', [
+      [`](../expo-windows/docs/expo-windows.md#versions)`, `](${RUNTIME_DOC}#versions)`],
+      [`](../expo-windows/docs/expo-windows.md#setup)`, `](${RUNTIME_DOC}#setup)`],
+      [`- The harness (\`expo-vitest/HARNESS.md\`) opens a route`, `- \`expo-vitest\`'s harness opens a route`],
+    ]);
+    edit('example/README.md', [[`](../expo-windows/docs/expo-windows.md)`, `](${RUNTIME_DOC})`]]);
+    edit('storybook/docs/guides/windows.mdx', [[`${ORG}/expo-interface/blob/master/expo-windows/docs/expo-windows.md`, RUNTIME_DOC]]);
+    edit('scripts/windows-ci.sh', [[`# ships. The road is the runtime's (\`expo-windows/ci/build.sh\`: a scratch app`, `# ships. The road is the runtime's (\`ci/build.sh\` in expo-windows: a scratch app`]]);
+
+    edit('AGENTS.md', [
+      [`Windows. Five workspaces:`, `Windows. What is here:`],
+      [`| \`expo-windows/\` | the Windows platform runtime for Expo apps, published as \`expo-windows\` |\n| \`expo-vitest/\` | the per-platform Vitest projects, the test helpers and the harness, as the \`expo-vitest\` package |\n`, ``],
+      [`| \`storybook/\` | two Storybooks (web and on-device) over \`src/**/*.stories.tsx\` |\n`, `| \`storybook/\` | two Storybooks (web and on-device) over \`src/**/*.stories.tsx\` |\n\nTwo things the kit stands on are repositories of their own: \`expo-windows\`\n(${ORG}/expo-windows), the Windows platform runtime, and \`expo-vitest\`\n(${ORG}/expo-vitest), which makes the per-platform Vitest projects and has\nthe test helpers and the harness.\n`],
+      [`bun run typecheck   # tsc across all five workspaces`, `bun run typecheck   # tsc across the kit, the example and the Storybooks`],
+      [`See \`expo-vitest/HARNESS.md\`.`, `See ${HARNESS_DOC}.`],
+      [`line by \`expo-windows/ci/build.sh\`, which CI runs on every push: once for the\nruntime's own probe app, and once for the example through\n\`scripts/windows-ci.sh\`.`, `line by the runtime's build script, which \`scripts/windows-ci.sh\` runs over the\nexample on every push.`],
+    ]);
+    edit('.claude/rules/testing.md', [
+      [`  - "expo-vitest/**"\n`, ``],
+      [`Vitest 4 with \`vitest-expo\`, no jest. The projects come from the \`expo-vitest\`\nworkspace: \`vitest.config.mts\` calls \`expoProjects()\` for the kit's four, takes\nthe runtime's two from \`expo-windows/vitest.projects.mts\`, and adds a Node\nproject for \`expo-vitest\`'s own tests. **A file's name decides which platforms\nrun it**:`, `Vitest 4 with \`vitest-expo\`, no jest. The four projects come from the\n\`expo-vitest\` package: \`vitest.config.mts\` calls \`expoProjects()\`. **A file's\nname decides which platforms run it**:`],
+      [`| \`expo-windows/src/**/*.test.{ts,tsx}\` | the runtime project (RN engine) |\n| \`expo-windows/{metro,cli}/**/*.test.{js,ts}\` | the node project |\n| \`expo-vitest/src/**/*.test.ts\` | the test layer's own node project |\n`, ``],
+      [`and a single file by appending its path. The runtime's suite also runs alone,\nwith its own coverage gate: \`bun run --cwd expo-windows test:coverage\`.\n\`bun run test:fixture\` packs \`expo-vitest\` and runs its fixture against the\ninstalled copy; run it after changing anything under \`expo-vitest/\`.`, `and a single file by appending its path.`],
+      [`- \`expo-vitest\` runs from source here and is imported by path in config files.\n  Its imports carry the \`.ts\` extension, because Node runs the harness from\n  source and the build rewrites them.`, `- A fault in how a project is set up, rather than in a test, is \`expo-vitest\`'s:\n  ${ORG}/expo-vitest.`],
+    ]);
+    edit('.claude/rules/windows.md', [
+      [`  - "expo-windows/**"\n`, ``],
+      [`  - "expo-windows/ci/**"\n`, ``],
+      [`\`expo-windows/ci/build.sh <workdir>\` is the whole road: scratch app, \`init\`,\nautolink, bundle, Debug, Release, package, the Windows App Runtime, and a smoke\nlaunch that reports cold start and working set. It is what CI runs, and the\nfastest way to prove a change end to end. On its own it builds the runtime's\nprobe (\`expo-windows/ci/app\`, plain React Native, no kit).\n\`scripts/windows-ci.sh <workdir>\` is the same road for the example: it hands the\nruntime's script the example's source, this checkout's kit to overlay, and the\nroute that draws \`@expo/ui\` through the kit's aliases.`, `\`scripts/windows-ci.sh <workdir>\` is the whole road for the example: scratch app,\n\`init\`, autolink, bundle, Debug, Release, package, the Windows App Runtime, and a\nsmoke launch that reports cold start and working set. It is what CI runs, and\nthe fastest way to prove a change end to end. The road itself is the runtime's,\n\`ci/build.sh\` in a checkout of \`expo-windows\` (\`EXPO_WINDOWS_DIR\`, beside this\nrepository unless said): this script hands it the example's source, this\ncheckout's kit to overlay, and the route that draws \`@expo/ui\` through the kit's\naliases.`],
+      [`\`STOP_AFTER=bundle\` stops either once the bundle is written`, `\`STOP_AFTER=bundle\` stops it once the bundle is written`],
+      [`Specs live in \`src/windows/specs/\` (the kit) and \`expo-windows/src/windows/specs/\`\n(the runtime). Run`, `Specs live in \`src/windows/specs/\`. Run`],
+    ]);
   },
 };
 

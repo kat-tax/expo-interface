@@ -54,11 +54,13 @@ The kit last.
    EXPO_WINDOWS_DIR=../expo-windows STOP_AFTER=bundle scripts/windows-ci.sh <workdir>
    ```
 
-   That removes both folders and this one, and points the configs at the
-   published `expo-vitest`. What it leaves for a person is prose: the workspace
-   table and the testing and Windows rules in `AGENTS.md` and `.claude/rules/`,
-   the testing section of `README.md`, and the links to the runtime's document
-   and the harness's, which now live in the other two repositories.
+   That removes both folders and this one, points the configs, Storybook and
+   the lint config at the published `expo-vitest`, replaces the Windows workflow
+   with one that checks the runtime out beside the kit, and rewrites what was
+   written about the two while they lived here: the links in the README and the
+   documents, and the passages in `AGENTS.md` and `.claude/rules/`. Read the
+   diff before committing it. It is prose, and the script only knows the words
+   that were there when it was written.
 
 ## Rehearsing it
 
