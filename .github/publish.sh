@@ -43,4 +43,26 @@ if ! npm view "$name" version > /dev/null 2>&1; then
 fi
 
 echo "Publishing $name@$version"
-npm publish --provenance --access public
+# At npm's usual log level a trusted publisher it could not use is silence: the
+# exchange fails, npm falls back to wanting a login, and the error is ENEEDAUTH
+# with no word of why. The reason is logged two levels down, so the publish is
+# run there, shown as it would have been, and asked for the reason if it fails.
+log="$(mktemp)"
+status=0
+npm publish --provenance --access public --loglevel silly > "$log" 2>&1 || status=$?
+grep -v -E '^npm (verbose|silly|http|info|timing) ' "$log" || true
+if [ "$status" -ne 0 ]; then
+  echo
+  echo "What npm said about publishing as a trusted publisher:"
+  grep -E '^npm (verbose|silly) oidc' "$log" | sed 's/^/    /' ||
+    echo "    nothing, so it never tried: is id-token: write granted, and npm at 11.5 or later?"
+  echo
+  echo "npm matches a trusted publisher on four things, exactly, in the case they"
+  echo "have on GitHub: the organisation or user, the repository, the workflow's"
+  echo "file name, and the environment, which must be blank when the job names"
+  echo "none. It checks none of them when they are saved. This run was:"
+  echo
+  echo "    repository   ${GITHUB_REPOSITORY:-not on GitHub Actions}"
+  echo "    workflow     ${GITHUB_WORKFLOW_REF:-not on GitHub Actions}"
+  exit "$status"
+fi
