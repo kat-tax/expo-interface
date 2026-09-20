@@ -5,7 +5,9 @@ order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
 **Progress.** Wave 1 is done, except that item 6 turned out not to be what it
-said — see below. **Waves 1 and 2 are done.** Wave 3: item 12 done, item 13
+said — see below. **Read §3.6 before trusting any sentence in this document
+that says a XAML island cannot hold React Native children**: that limit has
+been the stated reason for shrinking four items, and it is wrong. **Waves 1 and 2 are done.** Wave 3: item 12 done, item 13
 closed without building, item 15 done, and `ShareLink`, the pager and `Chip`
 done out of item 14. Only `TabView` is outstanding; §2.5 has been rewritten
 with what it should be.
@@ -161,7 +163,10 @@ New island: `ExpoInterfaceAutoSuggestBox`.
 of `SwipeControl` existing. It does, and it cannot be used here: a
 `SwipeControl` swipes *XAML* content, and `src/list-item/index.windows.tsx`
 draws the row in React Native. The same structural limit as §3.2's materials —
-an island cannot hold React Native children.
+an island holds XAML and the row is not. **§3.6 has since found that limit to
+be wrong**: a portal can put React Native content inside an island, which
+would give `SwipeControl` something to swipe. Read, not run; the spike is
+there.
 
 So only iOS has a swipe, and the fallback matters more than the feature. It is
 not the trailing `action` this section first proposed, which would have
@@ -203,7 +208,9 @@ What it is:
 
 Both corrections come from the same place. **`FlipView` cannot be the Windows
 answer**, for the reason that has now closed or shrunk four items: a XAML
-island holds XAML, and the pages here are React Native's. Nor can Compose's
+island holds XAML, and the pages here are React Native's (though see §3.6:
+that is a limit of how the kit builds islands, not of islands). Nor can
+Compose's
 `HorizontalPager` or SwiftUI's `TabView` be the other two, because reaching
 them means `RNHostView` pages inside a container whose whole job is a drag —
 and the kit has already met that fight, in the Android colour picker, which
@@ -393,14 +400,18 @@ composite inside a composite.
 #### The one thing to settle before writing code
 
 Whether WinUI's `TabView` can be **the strip alone**. Its tab content would
-have to be React Native's, and a XAML island cannot hold React Native children
-— the limit that has now shaped four items in this document. So the island
-would have to be a `TabView` whose `TabViewItem`s carry no content, sized to
-its strip, with the selected page drawn underneath it by React Native. Whether
-the control tolerates that, or insists on a content area it will not give up,
-is not answerable by reading: it needs a spike that is allowed to come back
-negative. If it does, Windows draws its strip like the other three and the
-component is composed on all four — still worth building, and honest about it.
+have to be React Native's. **§3.6 changes the answer here.** The pieces to
+put React Native content inside a XAML island are all public in the versions
+the kit pins — a portal component view, `ReactNativeIsland::CreatePortal`, and
+a `ChildSiteLink` into the island's own `ContentIsland` — so the first thing
+to try is a `TabView` whose `TabViewItem`s hold portals, with the strip and
+its closes, adds and reorders all the control's own.
+
+If that spike comes back negative, the fallback is the same as before: a
+`TabView` whose items carry no content, sized to its strip, with the selected
+page drawn underneath it by React Native — and if that fails too, Windows
+draws its strip like the other three and the component is composed on all
+four. Still worth building, and honest about it.
 
 Worth knowing for the web half: Chrome supports `display_override: ["tabbed"]`
 with a `tab_strip` manifest entry, which gives an *installed* web app a real
@@ -465,6 +476,14 @@ with a native answer on both platforms and **zero uses of either today**:
 This is also what `expo-ios-popover`'s `background: plain | blur | liquid glass`
 prop points at — a capability we already have and have not spent.
 
+**Item 11 closed the Windows half of this on the grounds that an island would
+take the pointer input of whatever it covered. §3.6 undoes that reasoning**: a
+portal does not cover its children, it contains them, so a `Surface` could be
+a XAML element with an `AcrylicBrush` and the React Native content inside it.
+What remains open is the question item 11 actually could not answer — whether
+acrylic sampling works at all across a separate content root, or comes out
+black. Read, not run.
+
 ### 3.3 Elevation
 
 `ThemeShadow` on Windows for `Surface raised` and for flyouts. Android already
@@ -482,6 +501,93 @@ All exported, none used: `matchedGeometryEffect`, `geometryGroup` and
 `KeyboardAccelerator`, `XamlUICommand` and `StandardUICommand` put accelerators
 in XAML, where menu items render their own key tips — instead of the JS-level
 `useKeyboardShortcut`. `InputSystemCursor` gives islands hover cursors.
+
+---
+
+### 3.6 A XAML island *can* hold React Native children — the limit was wrong
+
+**Verified 2026-09-20 by reading the pinned SDK's metadata and
+react-native-windows' own source. Not yet run: see the spike at the end.**
+
+Four items in this document have been shrunk or closed with one sentence —
+*an island cannot hold React Native children* — and that sentence is false.
+Every piece needed to nest React Native content inside a XAML island is public
+in the versions the kit already pins, and react-native-windows uses most of
+them itself.
+
+| Piece | Where | Verified by |
+| --- | --- | --- |
+| React content as a `ContentIsland` | `ReactNativeIsland.CreatePortal(portal)` → `.Island` | RNW 0.84 `ReactNativeIsland.idl`; RNW's own `Modal` calls it |
+| A component that *is* a portal | `IReactCompositionViewComponentBuilder.SetPortalComponentViewInitializer` | the same builder interface the kit already calls `SetContentIslandComponentViewInitializer` on |
+| Layout for the portal's content | `IPortalStateData` — `LayoutConstraints` and `PointScaleFactor`, documented as "used to layout the content of the Portal" | RNW 0.84 `IReactCompositionViewComponentBuilder.idl` |
+| Nesting one island in another | `Microsoft.UI.Content.ChildSiteLink.Create(parentIsland, containerVisual)` then `.Connect(childIsland)` | present in the Windows App SDK 1.8 metadata; RNW uses it for the *opposite* direction in `ContentIslandComponentView` |
+| A XAML element to anchor it to | `ElementCompositionPreview.SetElementChildVisual(element, containerVisual)` | present in the 1.8 XAML metadata |
+| The parent island itself | `XamlIsland::m_island.ContentIsland()` | already held by the kit's own `XamlHost.h` |
+
+`ContentIsland` has carried a `Children` property — "the `ChildSiteLink`
+objects parented to this `ContentIsland`" — since the API arrived, and its own
+documentation describes islands as composing into a scene, "equivalent to
+child windows because they allow the scene to be subdivided". Nesting is the
+design, not a loophole. **None of this needs Windows App SDK 2.0**; it is all
+in the 1.8 the version wall pins.
+
+The shape, then, for any control that has to wrap React Native content:
+
+1. Register the component with `SetPortalComponentViewInitializer` instead of
+   `SetContentIslandComponentViewInitializer`.
+2. `ReactNativeIsland::CreatePortal(portal)`, and keep its `.Island()`.
+3. Build the XAML control as now, and put a `ContainerVisual` under whichever
+   element should hold the React content, with `SetElementChildVisual`.
+4. `ChildSiteLink::Create(m_island.ContentIsland(), container)` and
+   `.Connect(reactIsland)`, then keep `ActualSize` and
+   `LocalToParentTransformMatrix` in step with XAML's layout — which is what
+   `ContentIslandComponentView::ConnectInternal` does in the other direction,
+   and is the file to copy.
+5. Focus through `InputFocusNavigationHost::GetForSiteLink`, automation
+   through the child site link's provider — again as that file does.
+
+#### What this re-opens
+
+- **§1.6, swipe actions on Windows.** `SwipeControl` swipes XAML content; with
+  the row's React Native content inside it as a portal, it has something to
+  swipe. This was the item the limit closed most cleanly.
+- **§3.2, materials on `Surface` and `Popover`.** The objection was that an
+  island would take the pointer input of whatever it covers. A portal does not
+  cover its children — it contains them — so an `AcrylicBrush` behind them
+  becomes answerable, and the separate question of whether acrylic can sample
+  RNW's composition content behind a different content root is still open.
+- **§2.5, `TabView`.** This is the spike that section asks for, and it now has
+  a much better prior: the `TabViewItem`s hold portals, and the strip is the
+  control's own.
+- **§1.8, the pager.** `FlipView` becomes possible. It is *not* a regret —
+  `pagingEnabled` is the platform's own scroller on all four and the shipped
+  component has no hosting boundary at all, which is still the better trade —
+  but the matrix's reasoning should say "not needed" rather than "not
+  possible".
+
+§1.3, pull to refresh, stays closed: the limit was only one of its three
+reasons, and the other two — React Native already provides it, and the kit
+owns no scrollable — hold on their own.
+
+#### What is still unknown
+
+Everything above is **read, not run**. What a spike has to answer, in order:
+
+1. Does a portal island connected by a `ChildSiteLink` *inside* a XAML island
+   render at all? RNW demonstrates each half — `ChildSiteLink` for XAML inside
+   React Native, `CreatePortal` for React Native in a window of its own — and
+   nobody demonstrates this combination.
+2. Do input and hit-testing reach it, through two nested content roots?
+3. Does focus cross both boundaries in both directions, and does UI Automation
+   produce one tree rather than two?
+4. Do the two layout systems settle? XAML measures the host element, the
+   portal is told a `LayoutConstraints`, and the kit's `YogaXamlPanel` is
+   measuring the outer island at the same time. A loop here would show up as a
+   flicker rather than an error.
+
+Take the smallest possible case first — one portal inside a `Border` in an
+island, with a React `Text` in it — before anything with a scroller or a
+gesture in it.
 
 ---
 
@@ -855,6 +961,13 @@ axe cannot press keys, so add the two layers that can.
     **Free either way, and worth doing on its own:** `Popover` on Windows
     without children is already a `TeachingTip`, a real XAML control, so it
     could take an acrylic background with no API change at all.
+
+    **Reopened 2026-09-20 by §3.6.** The objection above — that an island
+    would take the pointer input of whatever it covers — turns out to rest on
+    a limit that is not real. React Native content can be nested inside a XAML
+    island as a portal, in which case the island contains the children rather
+    than covering them, and the `native` prop this item could not decide may
+    not be needed at all. The acrylic-sampling unknown stands.
 
 **Wave 3 — decide the shape before writing code.**
 
