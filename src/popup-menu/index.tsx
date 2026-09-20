@@ -63,6 +63,7 @@ export function PopupMenu({items, at, filter, onDismiss, testID}: PopupMenuProps
       <MenuList
         id={ident}
         items={filterItems(items, filter)}
+        match={filter}
         anchor={anchor}
         atPoint
         anchorRef={point}

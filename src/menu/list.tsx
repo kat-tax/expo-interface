@@ -1,6 +1,7 @@
 import type {CSSProperties, ToggleEvent} from 'react';
 import type {MenuItem} from './types';
 import {useRef} from 'react';
+import {useMatchHighlight} from '../a11y/highlight';
 import {useRovingFocus} from '../a11y/roving';
 import {Icon} from '../symbol';
 
@@ -36,6 +37,12 @@ interface MenuListProps {
   popoverRef?: React.RefObject<HTMLDivElement | null>;
   /** Called when the popover opens and closes (light dismiss, Escape, a pick). */
   onOpenChange?: (open: boolean) => void;
+  /**
+   * What the entries were filtered by, so the matched part of each label can
+   * be marked. The filtering itself has already happened by the time the list
+   * is handed these items.
+   */
+  match?: string;
 }
 
 /**
@@ -46,7 +53,7 @@ interface MenuListProps {
  * menu declaratively. Placement is CSS anchor positioning (see `menu.css`),
  * with a measured fallback for engines without it.
  */
-export function MenuList({id, items, anchor, atPoint, anchorRef, position, popoverRef, onOpenChange}: MenuListProps) {
+export function MenuList({id, items, anchor, atPoint, anchorRef, position, popoverRef, onOpenChange, match}: MenuListProps) {
   const localRef = useRef<HTMLDivElement>(null);
   const ref = popoverRef ?? localRef;
   const anchored = !!anchor && !position;
@@ -56,6 +63,8 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
   // the half it does not.
   const checked = items.findIndex(item => item.active);
   const roving = useRovingFocus(ref, {activeIndex: checked === -1 ? 0 : checked, typeahead: true});
+  // What the search matched, painted in place rather than wrapped in a tag.
+  useMatchHighlight(ref, match, '.ui-menu__label');
 
   const style: Record<string, string | number> = {};
   if (anchored && ANCHOR_SUPPORTED) style.positionAnchor = anchor;

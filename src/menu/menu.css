@@ -149,3 +149,18 @@
   width: 0;
   height: 0;
 }
+
+/*
+ * The part of a label a search matched, painted through the CSS Custom
+ * Highlight API rather than wrapped in a tag — so the label stays one text
+ * node, the accessible name is unchanged, and the accessibility tree the
+ * harness reads looks the same as it did before.
+ *
+ * Only a handful of properties apply to a highlight (color, background-color,
+ * text-decoration, text-shadow, -webkit-text-stroke). That is enough to mark a
+ * match and not enough to draw a chip, which is the right amount.
+ */
+::highlight(ui-match) {
+  background-color: color-mix(in srgb, var(--color-tint) 28%, transparent);
+  color: var(--color-label);
+}

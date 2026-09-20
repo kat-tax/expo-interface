@@ -4,7 +4,7 @@ What each platform can still do that the kit does not yet ask of it, and the
 order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
-**Progress.** Wave 1 items 1–4 are done. Everything else below is unstarted.
+**Progress.** Wave 1 items 1–5 are done. Everything else below is unstarted.
 
 ## How to read the matrices
 
@@ -506,7 +506,12 @@ axe cannot press keys, so add the two layers that can.
    native platforms have no kit icon component and use `SymbolView` — so a
    component drawn on all four needs its layout and its glyph in separate
    files.
-5. Match highlighting in `Menu` / `PopupMenu` (§2.4, §4.1).
+5. ~~Match highlighting in `Menu` / `PopupMenu` (§2.4, §4.1).~~ **Done, web
+   only** — and that is not a shortcut. The filter can only be marked where the
+   kit draws the menu itself. On Android and Windows the menu is the platform's
+   own flyout taking plain label strings, and on iOS the `Menu` is SwiftUI's;
+   there is nowhere to put a run. `PopupMenu` on iOS draws its own rows and
+   could take nested `Text`, which is the one place left if it is ever wanted.
 6. The one-liners: `DropdownMenu.shadowElevation`, iOS `Toolbar` (§2.1, §2.3).
 7. The cheap semantics of §6.4 alongside whichever component is already open.
 

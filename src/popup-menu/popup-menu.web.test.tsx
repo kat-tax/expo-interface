@@ -149,4 +149,25 @@ describe('PopupMenu (web)', () => {
     render(<PopupMenu items={items} at={{x: 0, y: 0}} filter="  LIST "/>);
     expect(screen.getAllByRole('menuitem', {hidden: true}).map(e => e.textContent)).toEqual(['Bullet list']);
   });
+
+  it('marks the matched part of each label through the Custom Highlight API', () => {
+    const set = vi.fn();
+    vi.stubGlobal('CSS', {...globalThis.CSS, highlights: {set, delete: vi.fn()}});
+    vi.stubGlobal('Highlight', class {
+      ranges: Range[];
+      constructor(...ranges: Range[]) {
+        this.ranges = ranges;
+      }
+    });
+    try {
+      render(<PopupMenu items={[{label: 'Export drops'}, {label: 'Export files'}]} at={{x: 10, y: 20}} filter="expo"/>);
+      const [, highlight] = set.mock.calls.at(-1)!;
+      expect((highlight as {ranges: Range[]}).ranges.map(range => range.toString())).toEqual(['Expo', 'Expo']);
+      // Nothing was wrapped in a tag: the label is still one text node, so the
+      // accessible name and the tree the harness reads are unchanged.
+      expect(screen.getByRole('menuitem', {name: 'Export drops', hidden: true}).querySelector('mark')).toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });
