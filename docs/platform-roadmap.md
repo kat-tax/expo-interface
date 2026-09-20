@@ -967,8 +967,84 @@ labels is thin — 5 hints, 4 values and 1 live region across 48 components.
 | --- | --- | --- |
 | iOS | label ×48, hint ×5, value ×4, addTraits ×4 | `accessibilityInputLabels` (Voice Control), `accessibilityElement`, `accessibilityHidden` on decoration |
 | Android | role ×12, contentDescription ×6, semantics ×1 | `stateDescription`, `liveRegion`, `heading`, `collectionInfo` |
-| Windows | Name only | AutomationId, HelpText, HeadingLevel, LandmarkType, LiveSetting, PositionInSet / SizeOfSet, IsDialog — §3.1 |
+| Windows | Name, AutomationId, HeadingLevel, HelpText, PositionInSet / SizeOfSet | what react-native-windows can answer is now done — see below |
 | Web | roles and labels are good | the keyboard patterns in §6.1 |
+
+#### What the Windows row cost, and where it stops (2026-09-20)
+
+**Most of it was already there and nobody could see it.** react-native-windows'
+composition automation provider answers ten UI Automation properties straight
+from React Native view props — `HelpText` from `accessibilityHint`,
+`PositionInSet` / `SizeOfSet` from `accessibilityPosInSet` /
+`accessibilitySetSize` (Windows-only props its own components forward and
+React Native does not type), `LiveSetting` from `accessibilityLiveRegion`,
+`ItemStatus` from `accessibilityState.busy`, plus `Level`, `HeadingLevel`,
+`AccessKey`, `ItemType` and `FullDescription`. None of this needs C++.
+
+**So the work was mostly making it visible.** The harness's UI Automation
+snapshot reported role, name and `AutomationId` and nothing else, which means
+a control that set none of these read identically in the tree to one that set
+them all. It now reports `help`, `inSet` ("3 of 7"), `heading`, `live`,
+`status` and `dialog`, printed only where they exist. This is the §6.1 defect
+class again: the property that is missing is invisible in a test, in axe, and
+in a screenshot — the tree is the one place it shows.
+
+Then two real gaps closed:
+
+- **The tabs the kit draws are numbered, and now named.** `TabView`'s drawn
+  strip and its switcher cards carry `inSet`, through `src/a11y/set.ts` —
+  empty on the other three by design, since a control numbers its own items,
+  iOS derives the position, Android has no React Native prop for
+  `collectionItemInfo`, and the kit's web files write a real `tablist` that
+  carries the count already. Reading the tree then caught a defect in the
+  component shipped an hour earlier: **the drawn cards had no accessible name
+  at all** — react-native-windows composes no name from the text inside a
+  view, so Narrator announced "1 of 3, tab" and stopped. They are labelled
+  explicitly now.
+- **`Tooltip` on Windows says nothing to Narrator, and cannot.** The obvious
+  fix was tried and measured: `accessibilityHint` on the wrapper is where
+  `HelpText` comes from, but the wrapper is not what takes the focus — the
+  control inside it is, and react-native-windows composes nothing from an
+  ancestor. So the hint went unsaid and the change was reverted with the
+  reason in the file. Putting it on the control is the only thing that works,
+  and `Tooltip` does not own its children; an app that needs the text
+  announced should set `accessibilityHint` on the control itself. iOS differs
+  only because SwiftUI merges a `Group`'s children into one element.
+
+**Where it stops, and why.** `IsDialog` and `LandmarkType` are **not
+reachable**: react-native-windows' provider has no case for either, so no
+React Native prop reaches them. They would need each island to set
+`AutomationProperties` in C++, or an upstream change — and most of the kit's
+Windows surface is a XAML island, which carries its own UI Automation anyway
+(a WinUI `TabView` numbers its tabs, an `InfoBar` is its own live region).
+That is also why so few of these properties have a home here: the kit draws
+very little on Windows, which is the point of it.
+
+**`accessibilityInputLabels` on iOS is not being taken.** It is alternative
+*spoken* names for Voice Control — "star" as well as "add to favourites" —
+and only an app's own vocabulary knows them. The kit would be adding a prop
+across dozens of components for something it cannot fill in itself. It belongs
+in an app.
+
+#### Two things about the harness, learned the hard way
+
+**`GetCurrentPropertyValue(property, true)` is a trap.** Asking UI Automation
+to ignore the default hands back `NotSupported`, which reaches PowerShell as a
+bare `System.__ComObject` that `-eq` will not match — so every property reads
+as set, on every node, and the tree fills with elements that say nothing. Ask
+for the default instead (the one-argument overload) and an unsupported
+property comes back as `''`, `0` or `$false`. A second trap sits behind it:
+react-native-windows returns **-1**, not 0, for an unset `PositionInSet`, so
+"unset" means "below one" rather than "zero".
+
+**The Windows tree cannot see a flyout.** The snapshot walks the descendants
+of `MainWindowHandle`, and a WinUI `MenuFlyout` — which the kit gives
+`ShouldConstrainToRootBounds(false)` so it is not clipped to a small island
+(§2.2) — is a *separate top-level window*. A menu that is plainly open on
+screen leaves no trace in the tree at all. Verify menus with a screenshot,
+which is how `ContextMenu trigger: 'tap'` was confirmed on Windows: the tree
+said nothing had happened and the picture showed the flyout open at the press
+point, "Delete" in the destructive red.
 
 ### 6.5 How it gets caught next time
 
@@ -1260,16 +1336,14 @@ Everything the fifteen items above asked for is done or closed with a reason.
 What remains is this, and it is worth keeping in one place rather than leaving
 it scattered through the sections that finished around it.
 
-**One leftover inside an item marked done.**
-
-- **Item 7's accessibility tail**: the Windows automation properties past
-  `AutomationId` and the heading role. Android stays blocked upstream —
-  `@expo/ui`'s Compose layer exposes no modifier for a content description,
-  and only `Icon` takes one as a prop. iOS's `accessibilityInputLabels` is
-  **not** being taken: it is alternative *spoken* names for Voice Control
-  ("star" as well as "add to favourites"), and only an app's own vocabulary
-  knows them, so the kit would be adding a prop across dozens of components
-  for something it cannot fill in itself. It belongs in an app, not here.
+**Nothing is outstanding inside the fifteen items.** Item 7's accessibility
+tail was the last of it and is done as far as the platforms allow — §6.4 has
+what was set, what the harness now shows, and the two properties
+react-native-windows cannot answer from JavaScript at all (`IsDialog`,
+`LandmarkType`). Two things stay closed with reasons rather than work: Android
+has no Compose modifier for a content description (`@expo/ui` exposes one only
+as a prop on `Icon`), and iOS's `accessibilityInputLabels` needs an app's own
+vocabulary rather than a kit prop.
 
 **Both open questions are now decided, and both came out "no".**
 

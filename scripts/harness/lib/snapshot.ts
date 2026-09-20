@@ -34,6 +34,28 @@ export interface SnapshotNode {
   focusable?: boolean;
   enabled?: boolean;
   offscreen?: boolean;
+  /**
+   * What a screen reader says past the name and the role. Every one of these
+   * is absent unless the platform reported it, so a control that sets none
+   * reads differently in the tree from one that sets them — which is the
+   * whole point: nothing else in this repository can see them, and a missing
+   * `live` or `inSet` is invisible in a test and obvious to a user.
+   *
+   * Windows fills all of them (UI Automation); the other platforms fill what
+   * their own trees carry.
+   */
+  /** The hint or description: `HelpText` on Windows, `aria-description` on web. */
+  help?: string | null;
+  /** `"2 of 5"` — how a position in a set is announced, rather than two numbers to pair up. */
+  inSet?: string | null;
+  /** Heading rank, 1–6. */
+  heading?: number | null;
+  /** A live region, and how urgent: `polite` or `assertive`. */
+  live?: string | null;
+  /** `ItemStatus` — "Busy" while something is loading. */
+  status?: string | null;
+  /** Whether the platform treats this as a dialog (modal semantics, and where the focus goes). */
+  dialog?: boolean | null;
   /** In the window's own pixels from its top left; absent when the platform did not say. */
   bounds?: Bounds | null;
 }
@@ -148,7 +170,18 @@ export function renderSnapshot(snapshot: Snapshot): string {
       // straight into `by.testID(…)`, which is the selector that keeps working
       // when the copy changes.
       const id = node.testId ? ` #${node.testId}` : '';
-      return `${indent}${node.ref} ${node.role} ${JSON.stringify(node.name)}${id}${state ? ` [${state}]` : ''}${missing}`;
+      // What a screen reader adds to the name, printed only where it exists:
+      // these are the properties a component either sets or silently does not,
+      // and a tree is where the difference shows.
+      const says = [
+        node.inSet,
+        node.heading && `h${node.heading}`,
+        node.live && `live:${node.live}`,
+        node.status && `status:${node.status}`,
+        node.dialog && 'dialog',
+        node.help && `help:${JSON.stringify(node.help)}`,
+      ].filter(Boolean).join(' ');
+      return `${indent}${node.ref} ${node.role} ${JSON.stringify(node.name)}${id}${state ? ` [${state}]` : ''}${says ? ` (${says})` : ''}${missing}`;
     })
     .join('\n');
 }

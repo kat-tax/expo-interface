@@ -6,6 +6,7 @@ import type {TabViewLayout, TabViewTab} from './types';
 import {useState} from 'react';
 import {Pressable, ScrollView, StyleSheet, View, useWindowDimensions} from 'react-native';
 import {Glyph} from './glyph';
+import {inSet} from '../a11y/set';
 import {Body, Caption} from '../typography';
 import {spacing, useColor} from '../theme';
 import {ADD_LABEL, closeLabel, resolveLayout, switcherLabel, tabIndex} from './shared';
@@ -79,16 +80,23 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testI
         accessibilityLabel={label}
         contentContainerStyle={styles.stripRow}
         testID={sub(testID, 'strip')}>
-        {tabs.map(tab => {
+        {tabs.map((tab, index) => {
           const on = tab.id === selected;
           return (
             <View key={tab.id} style={[styles.tab, on && {backgroundColor: open}]}>
               <Pressable
                 accessibilityRole="tab"
+                // Named explicitly rather than left to the text inside it:
+                // react-native-windows composes no name from a view's
+                // children, so on Windows the tab announced its position and
+                // nothing else — "1 of 3, tab". Only the automation tree
+                // showed it.
+                accessibilityLabel={tab.title}
                 accessibilityState={{selected: on}}
                 onPress={() => onSelect(tab.id)}
                 style={styles.tabBody}
-                testID={sub(testID, `tab-${tab.id}`)}>
+                testID={sub(testID, `tab-${tab.id}`)}
+                {...inSet(index + 1, tabs.length)}>
                 {tab.icon ? <Glyph icon={tab.icon} size={ICON} tintColor={on ? labelColor : secondary}/> : null}
                 <Body numberOfLines={1} color={on ? 'label' : 'secondaryLabel'} style={styles.title}>
                   {tab.title}
@@ -183,19 +191,21 @@ export function TabSwitcher({
           accessibilityLabel={label}
           contentContainerStyle={styles.grid}
           testID={sub(testID, 'cards')}>
-          {tabs.map(tab => {
+          {tabs.map((tab, index) => {
             const on = tab.id === selected;
             return (
               <View key={tab.id} style={[styles.card, {backgroundColor: card}, on && {borderColor: labelColor}]}>
                 <Pressable
                   accessibilityRole="tab"
+                  accessibilityLabel={tab.title}
                   accessibilityState={{selected: on}}
                   onPress={() => {
                     setOpen(false);
                     onSelect(tab.id);
                   }}
                   style={styles.cardBody}
-                  testID={sub(testID, `card-${tab.id}`)}>
+                  testID={sub(testID, `card-${tab.id}`)}
+                  {...inSet(index + 1, tabs.length)}>
                   {tab.icon ? <Glyph icon={tab.icon} size={ICON} tintColor={secondary}/> : null}
                   <Body numberOfLines={2}>{tab.title}</Body>
                 </Pressable>

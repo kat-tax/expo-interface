@@ -11,6 +11,10 @@ describe('Tooltip (windows)', () => {
     );
     const view = screen.getByTestId('hint');
     expect(view.props.tooltip).toBe('Share this document');
+    // Deliberately no `accessibilityHint`: it would be HelpText on a wrapper
+    // that never takes the focus, so Narrator would never reach it. See the
+    // component's own note.
+    expect(view.props.accessibilityHint).toBeUndefined();
     expect(screen.getByText('Share')).toBeOnTheScreen();
   });
 });

@@ -1,5 +1,5 @@
 import {Text} from 'react-native';
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {fireIsland, island, islands} from '../__tests__/windows';
 import {TabView, tabItems} from './index.windows';
 
@@ -103,6 +103,22 @@ describe('TabView (windows)', () => {
     expect(islands(XAML)).toHaveLength(0);
     expect(screen.getByLabelText('Notes, 3 tabs')).toBeOnTheScreen();
     expect(screen.getByText('Page of A')).toBeOnTheScreen();
+  });
+
+  it('numbers the drawn cards within their set, which only Windows can say', async () => {
+    await render(
+      <TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>,
+    );
+    await fireEvent.press(screen.getByTestId('t-switcher'));
+    // Narrator says "2 of 3"; nothing else in the suite or in axe can see it,
+    // and the harness tree prints it.
+    expect(screen.getByTestId('t-card-b').props).toMatchObject({
+      accessibilityPosInSet: 2,
+      accessibilitySetSize: 3,
+      // Named explicitly: react-native-windows composes no name from the text
+      // inside a view, so without this the tab announces its position alone.
+      accessibilityLabel: 'Sketch',
+    });
   });
 
   it('needs no testID to draw', async () => {

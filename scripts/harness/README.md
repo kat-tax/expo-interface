@@ -42,7 +42,7 @@ node scripts/harness/index.ts -p android --scheme dropfiles \
 | `screenshot <file>` | a PNG, under `.harness/` unless the path says otherwise |
 | `tap <x> <y>` | a press, in the window's own pixels from its top left |
 | `type <text>` | into whatever has focus |
-| `tree` | the accessibility tree, as a screen reader reads it |
+| `tree` | the accessibility tree, as a screen reader reads it: names, roles, and what a platform adds past them — `(3 of 7)`, `h2`, `live:polite`, `help:"…"` |
 | `raise` | bring the app to the front (desktop) |
 | `wait <ms>` | let something settle |
 | `idle` | how long the machine has been quiet |
@@ -151,6 +151,14 @@ how much of the picture may differ before the test fails.
 
 The tree is still the better assertion for behaviour. Use a screenshot for what
 a tree cannot see: spacing, colour, the thing actually being drawn.
+
+**On Windows a flyout is one of those things.** The tree walks the descendants
+of the app's main window, and a WinUI `MenuFlyout` opens in a *separate*
+top-level window — the kit gives it `ShouldConstrainToRootBounds(false)` so it
+is not clipped to the island it is anchored in. A menu plainly open on screen
+therefore leaves no trace in the tree at all. `Menu`, `ContextMenu`,
+`PopupMenu` and `HeaderMenu` are all verified with a screenshot on Windows,
+and a tree that says nothing happened is not evidence that nothing did.
 
 A baseline belongs to the machine that drew it: the same page renders
 differently under a different font stack, so one recorded on a desk cannot be
