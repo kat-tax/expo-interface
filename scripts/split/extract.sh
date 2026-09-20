@@ -32,7 +32,10 @@ git log --oneline "split/$PACKAGE" | tail -n +1 | wc -l | xargs echo "commits:"
 
 echo "==== The new repository"
 mkdir -p "$(dirname "$DESTINATION")"
-git clone -q --branch "split/$PACKAGE" --single-branch "$REPO" "$DESTINATION"
+# Without this repository's tags. They name the kit's releases, and in the new
+# repository `v0.1.0` would be a commit of the kit's that its history does not
+# hold, waiting to be pushed as the package's own first release.
+git clone -q --no-tags --branch "split/$PACKAGE" --single-branch "$REPO" "$DESTINATION"
 cd "$DESTINATION"
 git branch -m master
 git remote remove origin
