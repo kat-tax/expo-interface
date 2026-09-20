@@ -56,7 +56,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-      - uses: microsoft/setup-msbuild@v2
+      - uses: microsoft/setup-msbuild@v3
       - name: Cache the scratch app's npm store
         uses: actions/cache@v6
         with:
