@@ -115,8 +115,8 @@ describe('the layout', () => {
 
   it('renders the tiles from the icon', async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'expo-windows-tiles-'));
-    const icon = path.join(__dirname, '..', '..', 'example', 'assets', 'images', 'icon.png');
-    await writeTiles(path.join(__dirname, '..', '..'), icon, path.join(root, 'Images'));
+    const fixture = path.join(__dirname, '..', 'fixture');
+    await writeTiles(fixture, path.join(fixture, 'icon.png'), path.join(root, 'Images'));
     const written = fs.readdirSync(path.join(root, 'Images')).sort();
     expect(written).toEqual(TILES.map(tile => tile.name).sort());
     // A PNG, as the manifest names them.

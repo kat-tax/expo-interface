@@ -2,7 +2,9 @@
 const path = require('node:path');
 const {ALIASES, TRANSFORMER, mainFile, readPublicAppConfig, redirectReactNative, resolveWindows, withWindows} = require('./index');
 
-const REPO = path.resolve(__dirname, '..', '..');
+/** The runtime's own folder, and the smallest Expo project there is, for what reads a real one. */
+const PACKAGE = path.resolve(__dirname, '..');
+const FIXTURE = path.join(PACKAGE, 'fixture');
 /** Reading a project's app config through expo/config loads the config module: slow while the whole suite runs. */
 const CONFIG_TIMEOUT = 30_000;
 
@@ -53,12 +55,11 @@ describe('withWindows', () => {
   });
 
   it('embeds the project\'s public app config for expo-constants, unless told not to or already set', () => {
-    const example = path.join(REPO, 'example');
-    withWindows(/** @type {any} */ ({}), {projectRoot: example});
+    withWindows(/** @type {any} */ ({}), {projectRoot: FIXTURE});
     const embedded = JSON.parse(process.env.EXPO_PUBLIC_WINDOWS_APP_CONFIG ?? 'null');
-    expect(embedded).toMatchObject({slug: expect.any(String)});
+    expect(embedded).toMatchObject({slug: 'fixture'});
     process.env.EXPO_PUBLIC_WINDOWS_APP_CONFIG = '{"kept":true}';
-    withWindows(/** @type {any} */ ({}), {projectRoot: example});
+    withWindows(/** @type {any} */ ({}), {projectRoot: FIXTURE});
     expect(process.env.EXPO_PUBLIC_WINDOWS_APP_CONFIG).toBe('{"kept":true}');
     delete process.env.EXPO_PUBLIC_WINDOWS_APP_CONFIG;
     withWindows(/** @type {any} */ ({}), {projectRoot: '/nowhere', appConfig: false});
@@ -76,8 +77,8 @@ describe('withWindows', () => {
 });
 
 describe('readPublicAppConfig', () => {
-  it('reads the example\'s config and gives null where there is no project', () => {
-    expect(JSON.parse(readPublicAppConfig(path.join(REPO, 'example')) ?? 'null')).toMatchObject({slug: expect.any(String)});
+  it('reads a project\'s config and gives null where there is no project', () => {
+    expect(JSON.parse(readPublicAppConfig(FIXTURE) ?? 'null')).toMatchObject({slug: 'fixture', scheme: 'fixture'});
     expect(readPublicAppConfig('/nowhere/at/all')).toBeNull();
   }, CONFIG_TIMEOUT);
 });
@@ -145,17 +146,16 @@ describe('resolveWindows fallback', () => {
 
 describe('mainFile', () => {
   it("names the project's own entry, and nothing for Expo's entries or without a package", () => {
-    const example = path.join(REPO, 'example');
-    expect(mainFile(example)).toBeUndefined();
-    expect(mainFile(path.join(REPO, 'expo-windows'))).toBe(require.resolve(path.join(REPO, 'expo-windows', 'src', 'index.ts')));
+    expect(mainFile(FIXTURE)).toBeUndefined();
+    expect(mainFile(PACKAGE)).toBe(require.resolve(path.join(PACKAGE, 'src', 'index.ts')));
     expect(mainFile('/nowhere')).toBeUndefined();
     delete process.env.EXPO_WINDOWS_ENTRY;
-    withWindows(/** @type {any} */ ({}), {projectRoot: path.join(REPO, 'expo-windows'), appConfig: false});
-    expect(process.env.EXPO_WINDOWS_ENTRY).toBe(require.resolve(path.join(REPO, 'expo-windows', 'src', 'index.ts')));
+    withWindows(/** @type {any} */ ({}), {projectRoot: PACKAGE, appConfig: false});
+    expect(process.env.EXPO_WINDOWS_ENTRY).toBe(require.resolve(path.join(PACKAGE, 'src', 'index.ts')));
     delete process.env.EXPO_WINDOWS_ENTRY;
     // The transformer already installed leaves the upstream as it is.
     process.env.EXPO_WINDOWS_UPSTREAM_TRANSFORMER = '/kept';
-    withWindows(/** @type {any} */ ({transformer: {babelTransformerPath: TRANSFORMER}}), {projectRoot: example, appConfig: false});
+    withWindows(/** @type {any} */ ({transformer: {babelTransformerPath: TRANSFORMER}}), {projectRoot: FIXTURE, appConfig: false});
     expect(process.env.EXPO_WINDOWS_UPSTREAM_TRANSFORMER).toBe('/kept');
     delete process.env.EXPO_WINDOWS_UPSTREAM_TRANSFORMER;
   });
@@ -167,15 +167,15 @@ describe('runBeforeMain', () => {
   it('runs the install first, after react-native-windows core where it is installed, ahead of what Expo runs', () => {
     const core = (() => {
       try {
-        return require.resolve('react-native-windows/Libraries/Core/InitializeCore', {paths: [REPO]});
+        return require.resolve('react-native-windows/Libraries/Core/InitializeCore', {paths: [PACKAGE]});
       } catch {
         return undefined;
       }
     })();
     const lead = core ? [core, INSTALL_WINDOWS] : [INSTALL_WINDOWS];
-    const list = runBeforeMain(REPO, () => ['/rn/InitializeCore', '/expo/winter', INSTALL_WINDOWS])('/app/index.js');
+    const list = runBeforeMain(PACKAGE, () => ['/rn/InitializeCore', '/expo/winter', INSTALL_WINDOWS])('/app/index.js');
     expect(list).toEqual([...lead, '/rn/InitializeCore', '/expo/winter']);
-    expect(runBeforeMain(REPO, undefined)('/app/index.js')).toEqual(lead);
+    expect(runBeforeMain(PACKAGE, undefined)('/app/index.js')).toEqual(lead);
     // Nowhere to find react-native-windows: the install leads alone.
     expect(runBeforeMain('/nowhere', undefined)('/app/index.js')).toEqual([INSTALL_WINDOWS]);
     expect(INSTALL_WINDOWS.endsWith(path.join('src', 'install.windows.ts'))).toBe(true);

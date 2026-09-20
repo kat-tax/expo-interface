@@ -64,7 +64,7 @@ describe('transformer', () => {
 
   it('hands the source to the transformer it wraps, with the install first on Windows', async () => {
     const calls = /** @type {any[]} */ ([]);
-    const fake = path.join(__dirname, '..', '..', 'node_modules', '.cache', 'expo-windows-fake-transformer.cjs');
+    const fake = path.join(require('node:os').tmpdir(), 'expo-windows-fake-transformer.cjs');
     require('node:fs').mkdirSync(path.dirname(fake), {recursive: true});
     require('node:fs').writeFileSync(fake, 'module.exports = {transform: async args => args, getCacheKey: () => "fake"};');
     process.env.EXPO_WINDOWS_UPSTREAM_TRANSFORMER = fake;
@@ -89,7 +89,7 @@ describe('transformer defaults', () => {
     delete require.cache[require.resolve('./transformer')];
     const fresh = require('./transformer');
     expect(fresh.getCacheKey()).toMatch(/:expo-windows::$/);
-    const bare = path.join(__dirname, '..', '..', 'node_modules', '.cache', 'expo-windows-bare-transformer.cjs');
+    const bare = path.join(require('node:os').tmpdir(), 'expo-windows-bare-transformer.cjs');
     require('node:fs').writeFileSync(bare, 'module.exports = {transform: async args => args};');
     process.env.EXPO_WINDOWS_UPSTREAM_TRANSFORMER = bare;
     delete require.cache[require.resolve('./transformer')];

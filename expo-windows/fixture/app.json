@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "Fixture",
+    "slug": "fixture",
+    "version": "1.0.0",
+    "scheme": "fixture",
+    "icon": "./icon.png"
+  }
+}

@@ -1,5 +1,7 @@
+import path from 'node:path';
 import {defineConfig} from 'vitest/config';
 import {expoProjects, nodeProject} from './expo-vitest/src/index.ts';
+import {runtimeProjects} from './expo-windows/vitest.projects.mts';
 
 /**
  * The kit resolves a different implementation per platform (`index.ios.tsx`,
@@ -42,16 +44,8 @@ const NOT_ON_WINDOWS = [
   'react-native-keyboard-controller',
 ];
 
-/**
- * The `expo-windows` runtime's own JavaScript, the modules an Expo package
- * finds on Windows, runs on the Windows project's engine without the kit's
- * forbidden modules: its tests import the Expo packages to prove they load.
- * Its Metro config and CLI are Node code and run as a plain Node project.
- */
-const runtime = [
-  ...expoProjects({platforms: ['windows'], windows: {name: 'expo-windows', include: ['expo-windows/src/**/*.test.{ts,tsx}']}}),
-  nodeProject({name: 'expo-windows-node', include: ['expo-windows/{metro,cli}/**/*.test.{js,ts}']}),
-];
+/** The `expo-windows` runtime's projects, which its own config runs alone (`expo-windows/vitest.config.mts`). */
+const runtime = runtimeProjects(path.join(import.meta.dirname, 'expo-windows'));
 
 /**
  * The test layer's own logic: the file names each platform takes, the two

@@ -138,6 +138,9 @@ export function expoProjects(options: ExpoProjectsOptions = {}): TestProjectInli
   const folders = options.include ?? ['src'];
   const transformPackages = [...TYPESCRIPT_PACKAGES, ...(options.transformPackages ?? [])];
   const inline = [SELF, ...transformPackages.map(packagePattern)];
+  // The root is given twice, as Vite's and as Vitest's: the engine's plugins read
+  // the first, and where they disagree the engine resolves packages from one
+  // folder for code that lives in another.
   const common = {
     root,
     globals: true,
@@ -152,6 +155,7 @@ export function expoProjects(options: ExpoProjectsOptions = {}): TestProjectInli
       const [preset] = vitestExpoProjects({jestCompat: false, platforms: [platform], transformPackages});
       projects.push({
         ...preset,
+        root,
         resolve: {alias: selfAliases()},
         test: {
           ...preset.test,
@@ -169,6 +173,7 @@ export function expoProjects(options: ExpoProjectsOptions = {}): TestProjectInli
       const windows = options.windows ?? {};
       projects.push({
         ...preset,
+        root,
         plugins: [forbidModules(windows.forbid ?? []), windowsResolution(root, windows.resolveIn), ...preset.plugins],
         resolve: {alias: selfAliases()},
         test: {
@@ -187,6 +192,7 @@ export function expoProjects(options: ExpoProjectsOptions = {}): TestProjectInli
       const web = options.web ?? {};
       const optimize = [...EXPO_WEB_PACKAGES, 'expo-router/testing-library', 'expo-router/build/ui/index.js', ...(web.optimize ?? [])];
       projects.push({
+        root,
         plugins: [metroCompat(), vitestExpo({platform: 'web', jestCompat: false, transformPackages: transformPackages.filter(name => name !== '@expo/dom-webview')})],
         resolve: {
           alias: [

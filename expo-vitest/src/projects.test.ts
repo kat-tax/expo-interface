@@ -55,6 +55,8 @@ describe('expoProjects', () => {
     expect(windows.include).toEqual(['src/**/*.windows.test.{ts,tsx}', 'src/**/*.test.ts']);
     expect(windows.exclude).toEqual(expect.arrayContaining(['**/*.native.test.*', '**/*.web.test.*']));
     expect(web.exclude).toEqual(expect.arrayContaining(['**/*.native.test.*', '**/*.windows.test.*']));
+    // Vite's root as well as Vitest's: the engine's plugins read the first.
+    expect(projects.map(project => project.root)).toEqual([PACKAGE, PACKAGE, PACKAGE, PACKAGE]);
     for (const project of [ios, android, windows, web]) {
       expect(project).toMatchObject({globals: true, clearMocks: true, testTimeout: 15_000, root: PACKAGE});
       expect(project.setupFiles).toHaveLength(1);
