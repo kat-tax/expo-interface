@@ -3,14 +3,17 @@ import {StyleSheet, View} from 'react-native';
 import {SymbolView} from 'expo-symbols';
 import {
   Avatar,
+  Badge,
   Body,
   Button,
   Card,
   Checkbox,
+  Chip,
   Collapsible,
   ColorPicker,
   DateTimePicker,
   Divider,
+  EmptyState,
   Fab,
   FieldGroup,
   Footnote,
@@ -19,17 +22,22 @@ import {
   IconToggle,
   KeyboardBar,
   ListItem,
+  Pager,
   Picker,
+  Popover,
   NativeHost,
   Progress,
   Screen,
   ScreenHeader,
+  SearchField,
   SegmentedControl,
+  ShareLink,
   Slider,
   Spinner,
   Stepper,
   Surface,
   Switch,
+  TabView,
   TextField,
   Title,
   Title3,
@@ -298,6 +306,121 @@ function TypographyPreview() {
   );
 }
 
+function BadgePreview() {
+  return (
+    <>
+      <Row>
+        <Body>Inbox</Body>
+        <Badge count={3} label="3 unread"/>
+      </Row>
+      <Row>
+        <Body>Updates</Body>
+        <Badge dot label="New updates"/>
+      </Row>
+      <Row>
+        <Body>Notifications</Body>
+        <Badge count={120} label="120 notifications"/>
+      </Row>
+    </>
+  );
+}
+
+function ChipPreview() {
+  return (
+    <Row>
+      <Chip label="Photos" selected onPress={noop}/>
+      <Chip label="Videos" selected={false} onPress={noop}/>
+      <Chip label="Recent" icon={icons.star} onPress={noop}/>
+    </Row>
+  );
+}
+
+function EmptyStatePreview() {
+  return (
+    <EmptyState
+      title="No drops yet"
+      description="Files dropped here show up for everyone with the link."
+      icon={icons.add}
+      action={<Button label="Add a file" variant="outlined" size="small" onPress={noop}/>}
+    />
+  );
+}
+
+function SearchFieldPreview() {
+  return <SearchField value="Holi" onChangeText={noop} placeholder="Search drops" suggestions={['Holiday photos', 'Holiday video']}/>;
+}
+
+/** Three pages in a snapping row, with the indicator that says which one is on screen. */
+function PagerPreview() {
+  return (
+    <Pager page={1} onPageChange={noop} label="Holiday photos">
+      {['Beach', 'Harbour', 'Old town'].map(title => (
+        <Surface key={title} border="all" padding={12} style={styles.page}>
+          <Headline color="label">{title}</Headline>
+          <Footnote color="secondaryLabel">Swipe for the next one</Footnote>
+        </Surface>
+      ))}
+    </Pager>
+  );
+}
+
+/** The strip alone: the card is narrower than the breakpoint, so the layout is forced. */
+function TabViewPreview() {
+  return (
+    <TabView
+      layout="strip"
+      tabs={[
+        {id: 'readme', title: 'README.md', icon: icons.info},
+        {id: 'notes', title: 'Notes', pinned: true},
+      ]}
+      selected="readme"
+      onSelect={noop}
+      onClose={noop}
+      onAdd={noop}
+      label="Documents">
+      <View style={styles.tabPage}>
+        <Body color="secondaryLabel">The open document, under the strip.</Body>
+      </View>
+    </TabView>
+  );
+}
+
+/** A card pointing at a word on a canvas. */
+function PopoverPreview() {
+  return (
+    <View style={styles.popoverStage}>
+      <Body>The quick brown fox jumps over the lazy dog</Body>
+      <Popover
+        at={{x: 60, y: 0, width: 40, height: 20}}
+        title="Spelling"
+        message="Did you mean “jumps”?"
+        actions={[{label: 'Replace', onPress: noop}, {label: 'Ignore', onPress: noop}]}
+        width={220}
+      />
+    </View>
+  );
+}
+
+/** The menu at a point over a canvas the kit did not draw. */
+function PopupMenuPreview() {
+  return (
+    <div style={styles.contextMenu}>
+      <View style={styles.canvas}>
+        <Footnote color="tertiaryLabel">A canvas the kit did not draw</Footnote>
+      </View>
+      <div style={styles.contextMenuList}>
+        <MenuItems
+          items={[
+            {label: 'Heading', icon: icons.info},
+            {label: 'Bullet list'},
+            {label: 'Delete block', icon: icons.trash, destructive: true, separator: true},
+          ]}
+        />
+      </div>
+    </div>
+  );
+}
+
 export const layout: CardEntry[] = [
   {name: 'Screen', href: docs('layout-screen'), stage: 'device', preview: <ScreenPreview/>},
   {name: 'ScreenHeader', href: docs('layout-screenheader'), preview: <ScreenHeaderPreview/>},
@@ -386,11 +509,13 @@ export const components: CardEntry[] = [
       </Row>
     ),
   },
+  {name: 'Badge', href: docs('components-badge'), preview: <BadgePreview/>},
   {
     name: 'Card',
     href: docs('components-card'),
     preview: <CardPreview/>,
   },
+  {name: 'Chip', href: docs('components-chip'), stage: 'center', preview: <ChipPreview/>},
   {
     name: 'Divider',
     href: docs('components-divider'),
@@ -404,6 +529,7 @@ export const components: CardEntry[] = [
       </>
     ),
   },
+  {name: 'EmptyState', href: docs('components-emptystate'), stage: 'center', preview: <EmptyStatePreview/>},
   {name: 'Fab', href: docs('components-fab'), stage: 'center', preview: <FabPreview/>},
   {name: 'FieldGroup', href: docs('components-fieldgroup'), preview: <FieldGroupPreview/>},
   {
@@ -432,6 +558,7 @@ export const components: CardEntry[] = [
   },
   {name: 'ListItem', href: docs('components-listitem'), preview: <ListItemPreview/>},
   {name: 'Menu', href: docs('components-menu'), stage: 'center', preview: <MenuPreview/>},
+  {name: 'Pager', href: docs('components-pager'), preview: <PagerPreview/>},
   {
     name: 'Picker',
     href: docs('components-picker'),
@@ -449,6 +576,8 @@ export const components: CardEntry[] = [
       </>
     ),
   },
+  {name: 'Popover', href: docs('components-popover'), preview: <PopoverPreview/>},
+  {name: 'PopupMenu', href: docs('components-popupmenu'), preview: <PopupMenuPreview/>},
   {
     name: 'Progress',
     href: docs('components-progress'),
@@ -462,6 +591,7 @@ export const components: CardEntry[] = [
       </>
     ),
   },
+  {name: 'SearchField', href: docs('components-searchfield'), preview: <SearchFieldPreview/>},
   {
     name: 'SegmentedControl',
     href: docs('components-segmentedcontrol'),
@@ -473,6 +603,7 @@ export const components: CardEntry[] = [
       </SegmentedControl>
     ),
   },
+  {name: 'ShareLink', href: docs('components-sharelink'), stage: 'center', preview: <ShareLink label="Share drop" icon={icons.share} url="https://drop.example/holiday" title="Holiday photos"/>},
   {name: 'Sheet', href: docs('components-sheet'), stage: 'device', backdrop: true, preview: <SheetPreview/>},
   {
     name: 'Spinner',
@@ -510,6 +641,7 @@ export const components: CardEntry[] = [
       </>
     ),
   },
+  {name: 'TabView', href: docs('components-tabview'), preview: <TabViewPreview/>},
   {
     name: 'TextField',
     href: docs('components-textfield'),
@@ -530,6 +662,10 @@ const styles = {
     row: {flexDirection: 'row', alignItems: 'center', gap: 8},
     article: {gap: 8},
     sheetContent: {gap: 12, padding: 20},
+    page: {height: 96, justifyContent: 'center'},
+    tabPage: {padding: 12, minHeight: 72},
+    popoverStage: {height: 150},
+    canvas: {height: 88, alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderWidth: 1, borderColor: 'var(--color-separator)'},
   }),
   // DOM-only styles; the previews mix kit components with plain elements.
   inPlace: {position: 'relative', display: 'block'} as const,

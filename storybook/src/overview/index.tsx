@@ -93,7 +93,7 @@ export function Overview() {
           <Li><Strong>iOS</Strong>: SwiftUI controls, tinted from the accent seed</Li>
           <Li><Strong>Android</Strong>: Jetpack Compose (Material 3) controls with a palette generated from the seed</Li>
           <Li><Strong>Web</Strong>: real DOM elements styled with CSS custom properties; overlays use the Popover API, CSS anchor positioning and <Code>&lt;dialog&gt;</Code></Li>
-          <Li><Strong>Windows</Strong>: WinUI 3 (XAML) controls hosted in XAML islands through react-native-windows, themed by Fluent and branded from the seed — see the <A href="?path=/docs/guides-windows--docs">Windows guide</A></Li>
+          <Li><Strong>Windows</Strong>: WinUI 3 (XAML) controls hosted in XAML islands through react-native-windows, themed by Fluent and branded from the seed. See the <A href="?path=/docs/guides-windows--docs">Windows guide</A></Li>
         </Ul>
 
         <H2 id="available-components">Available components</H2>
@@ -117,6 +117,7 @@ export function Overview() {
           <Li><Strong>Stack</Strong>: the native stack of <Code>expo-router</Code> on iOS, Android and web, and a stack of the kit&apos;s own on Windows, where there is no native one</Li>
           <Li><Strong>TabStack</Strong>: preconfigured <Code>expo-router</Code> stack for the root screen of a tab</Li>
           <Li><Strong>ConstrainedStackHeader</Strong>: stack header that matches the content max-width on web</Li>
+          <Li><Strong>HeaderMenu</Strong>, <Strong>HeaderAction</Strong>, <Strong>HeaderActions</Strong>: a menu, a press and a row of them for a stack header&apos;s trailing slot, at the platform&apos;s header size and in one host</Li>
           <Li><Strong>ExternalLink</Strong>: link that opens in an in-app browser on iOS and Android, a new tab on web and the default browser on Windows</Li>
         </Ul>
       </Page>
