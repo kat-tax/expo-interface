@@ -12,7 +12,7 @@ import {Screen} from '.';
 
 vi.mock('expo-system-ui');
 
-// The shared `vi.mock('expo', ...)` in vitest/setup.native.ts supplies the
+// The shared `vi.mock('expo', ...)` in expo-vitest's native setup supplies the
 // `ExpoUI` native module pieces the Host asks for on mount (`getMaterialColors`
 // for the Compose palette, `ObservableState`); nothing extra is needed here.
 

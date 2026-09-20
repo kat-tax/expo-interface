@@ -5,8 +5,13 @@
     "types": [
       "vitest-expo/types",
       "node",
-      "@testing-library/jest-dom/vitest"
-    ]
+      "@testing-library/jest-dom/vitest",
+      "expo-vitest/types"
+    ],
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "expo-vitest/*": ["./expo-vitest/src/*"]
+    }
   },
   "include": [
     "src/**/*.ts",

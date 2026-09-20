@@ -37,7 +37,6 @@
   ],
   "files": [
     "src",
-    "!src/matchers.d.ts",
     "!src/__stories__",
     "!src/__tests__",
     "!src/**/*.stories.tsx",
@@ -66,10 +65,11 @@
   "workspaces": [
     "example",
     "storybook",
-    "expo-windows"
+    "expo-windows",
+    "expo-vitest"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit && bun run --cwd expo-windows typecheck && bun run --cwd example typecheck && bun run --cwd storybook typecheck",
+    "typecheck": "tsc --noEmit && bun run --cwd expo-vitest typecheck && bun run --cwd expo-windows typecheck && bun run --cwd example typecheck && bun run --cwd storybook typecheck",
     "lint": "oxlint --max-warnings 0",
     "test": "vitest run",
     "test:watch": "vitest",

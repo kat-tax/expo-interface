@@ -177,6 +177,8 @@
         "**/*.test.tsx",
         "vitest/**/*.ts",
         "vitest/**/*.tsx",
+        "expo-vitest/src/**/*.ts",
+        "expo-vitest/src/**/*.tsx",
         "src/__tests__/**/*.ts",
         "src/__tests__/**/*.tsx"
       ],

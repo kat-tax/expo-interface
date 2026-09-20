@@ -1,4 +1,4 @@
-// Matchers are registered by vitest/setup.web.ts; imported for the types.
+// Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
 import {render, screen} from '@testing-library/react';
 import {Button} from '.';

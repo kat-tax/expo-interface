@@ -1,15 +1,11 @@
-import type {Plugin} from 'vite';
-import {existsSync} from 'node:fs';
-import path from 'node:path';
-import {configDefaults, defineConfig} from 'vitest/config';
-import {vitestExpoProjects} from 'vitest-expo';
-import {TEST_TIMEOUT} from './vitest/timeout';
+import {defineConfig} from 'vitest/config';
+import {expoProjects, nodeProject} from './expo-vitest/src/index.ts';
 
 /**
  * The kit resolves a different implementation per platform (`index.ios.tsx`,
  * `index.android.tsx`, `index.windows.tsx`, `index.web.tsx` / `index.tsx`),
- * so the suite runs once per platform as four Vitest projects (`vitest-expo`,
- * Metro-style resolution). Test files pick their platforms by name:
+ * so the suite runs once per platform as four Vitest projects. `expo-vitest`
+ * makes them, and a test file picks its platforms by name:
  *
  * - `*.test.ts`             every platform, including Windows
  * - `*.test.tsx`            iOS, Android and web
@@ -18,148 +14,59 @@ import {TEST_TIMEOUT} from './vitest/timeout';
  * - `*.android.test.tsx`    Android only
  * - `*.web.test.tsx`        web only
  * - `*.windows.test.tsx`    Windows only
- *
- * Windows runs on the iOS engine (vitest-native has no Windows one) with the
- * platform told it is Windows and `.windows.*` files resolved first — see
- * `vitest/setup.windows.ts`.
  */
-const OTHER_PLATFORMS = {
-  ios: ['**/*.web.test.*', '**/*.android.test.*', '**/*.windows.test.*'],
-  android: ['**/*.web.test.*', '**/*.ios.test.*', '**/*.windows.test.*'],
-};
-
-const SOURCE = path.resolve(import.meta.dirname, 'src');
-const RUNTIME_SOURCE = path.resolve(import.meta.dirname, 'expo-windows', 'src');
 
 /**
- * Resolves a relative import from the kit's source (or the runtime's) to its
- * Windows platform file when there is one — `../button` to `button/index.windows.tsx`, the
- * way Metro does for the `windows` platform — ahead of the iOS order
- * vitest-native gives Vite (which the Node side keeps for React Native's own
- * files: they have no Windows variants outside react-native-windows).
+ * The modules with no Windows implementation, which must never load there:
+ * `@expo/ui` (nothing of it exists on Windows) and the Expo packages whose
+ * module calls `requireNativeModule` at import and throws without the native
+ * side. Importing one kills an app before its first render. What is not here
+ * is what a Windows app does have: `expo-router` (the navigation UI) and the
+ * modules the `expo-windows` runtime provides, `expo-constants` and
+ * `expo-linking`, which Expo Router itself loads. `src/index.windows.test.ts`
+ * imports the whole barrel under this rule.
  */
-const windowsResolution: Plugin = {
-  name: 'expo-interface:windows-resolution',
-  enforce: 'pre',
-  resolveId(source, importer) {
-    if (!importer || !source.startsWith('.')) return null;
-    const from = path.resolve(importer);
-    if (!from.startsWith(SOURCE) && !from.startsWith(RUNTIME_SOURCE)) return null;
-    if (/\.[cm]?[jt]sx?$/.test(source)) return null;
-    const base = path.resolve(path.dirname(importer), source);
-    for (const extension of ['.tsx', '.ts']) {
-      for (const candidate of [`${base}.windows${extension}`, path.join(base, `index.windows${extension}`)]) {
-        if (existsSync(candidate)) return candidate;
-      }
-    }
-    return null;
-  },
-};
-
-// `expo-modules-core`, `@expo/ui` and `@expo/dom-webview` ship TypeScript
-// sources as their entry points. Node's loader cannot type-strip inside
-// node_modules, so keep them in the Vite module graph (inline) where they are
-// transformed like app code.
-const TS_SOURCE_PACKAGES = [/[\\/]expo-modules-core[\\/]/, /[\\/]@expo[\\/]ui[\\/]/, /[\\/]@expo[\\/]dom-webview[\\/]/];
-const TRANSFORM_PACKAGES = ['expo-modules-core', '@expo/ui', '@expo/dom-webview'];
-
-const projects = vitestExpoProjects({
-  jestCompat: false,
-  platforms: ['ios', 'android'],
-  transformPackages: TRANSFORM_PACKAGES,
-}).map(project => {
-  const platform = project.test.name as 'ios' | 'android';
-  return {
-    ...project,
-    test: {
-      ...project.test,
-      globals: true,
-      clearMocks: true,
-      testTimeout: TEST_TIMEOUT,
-      include: ['src/**/*.test.{ts,tsx}'],
-      exclude: [...configDefaults.exclude, ...OTHER_PLATFORMS[platform]],
-      setupFiles: ['./vitest/setup.native.ts'],
-      server: {deps: {inline: TS_SOURCE_PACKAGES}},
-    },
-  };
-});
-
-const [iosProject] = vitestExpoProjects({
-  jestCompat: false,
-  platforms: ['ios'],
-  transformPackages: TRANSFORM_PACKAGES,
-});
-
-const windowsProject = {
-  ...iosProject,
-  plugins: [windowsResolution, ...iosProject.plugins],
-  test: {
-    ...iosProject.test,
-    name: 'windows',
-    globals: true,
-    clearMocks: true,
-    testTimeout: TEST_TIMEOUT,
-    include: ['src/**/*.windows.test.{ts,tsx}', 'src/**/*.test.ts'],
-    // A platform's own `.ts` test is still a `*.test.ts`, so the shared
-    // pattern above would pull `foo.web.test.ts` in here and run it with no
-    // DOM. Every other platform names its exclusions; this one has to as well.
-    exclude: [...configDefaults.exclude, '**/*.web.test.*', '**/*.ios.test.*', '**/*.android.test.*', '**/*.native.test.*'],
-    setupFiles: ['./vitest/setup.windows.ts'],
-    server: {deps: {inline: TS_SOURCE_PACKAGES}},
-  },
-};
+const NOT_ON_WINDOWS = [
+  '@expo/ui',
+  '@expo/ui/swift-ui',
+  '@expo/ui/swift-ui/modifiers',
+  '@expo/ui/jetpack-compose',
+  '@expo/ui/jetpack-compose/modifiers',
+  'expo-asset',
+  'expo-image',
+  'expo-status-bar',
+  'expo-symbols',
+  'expo-symbols/androidWeights/regular',
+  'expo-system-ui',
+  'expo-web-browser',
+  'react-native-keyboard-controller',
+];
 
 /**
- * The `expo-windows` runtime's own JavaScript — the modules an Expo package
- * finds on Windows — tested on the same engine as the kit's Windows files;
- * its Metro config and CLI are Node code and run as a plain Node project.
+ * The `expo-windows` runtime's own JavaScript, the modules an Expo package
+ * finds on Windows, runs on the Windows project's engine without the kit's
+ * forbidden modules: its tests import the Expo packages to prove they load.
+ * Its Metro config and CLI are Node code and run as a plain Node project.
  */
-const runtimeProject = {
-  ...windowsProject,
-  test: {
-    ...windowsProject.test,
-    name: 'expo-windows',
-    testTimeout: TEST_TIMEOUT,
-    include: ['expo-windows/src/**/*.test.{ts,tsx}'],
-    // The platform without the kit's forbidden-module guard: the runtime's
-    // tests import the Expo packages to prove they load on Windows.
-    setupFiles: ['./vitest/platform.windows.ts'],
-  },
-};
+const runtime = [
+  ...expoProjects({platforms: ['windows'], windows: {name: 'expo-windows', include: ['expo-windows/src/**/*.test.{ts,tsx}']}}),
+  nodeProject({name: 'expo-windows-node', include: ['expo-windows/{metro,cli}/**/*.test.{js,ts}']}),
+];
 
 /**
- * The harness's own logic — the snapshot shape every platform answers in, the
+ * The harness's own logic: the snapshot shape every platform answers in, the
  * selector matching a test targets with, and the PNG comparison behind
  * `toMatchScreenshot`. Pure Node, no device: the tests that need one live in
  * the opt-in `device` project (`vitest.config.device.mts`).
  */
-const harnessProject = {
-  test: {
-    name: 'harness',
-    testTimeout: TEST_TIMEOUT,
-    environment: 'node',
-    globals: true,
-    clearMocks: true,
-    include: ['scripts/harness/**/*.test.ts'],
-  },
-};
+const harness = nodeProject({name: 'harness', include: ['scripts/harness/**/*.test.ts']});
 
-const runtimeNodeProject = {
-  test: {
-    name: 'expo-windows-node',
-    testTimeout: TEST_TIMEOUT,
-    environment: 'node',
-    globals: true,
-    clearMocks: true,
-    include: ['expo-windows/{metro,cli}/**/*.test.{js,ts}'],
-  },
-};
+/** The test projects' own logic: the file names each platform takes, the two resolver plugins. */
+const vitest = nodeProject({name: 'expo-vitest', include: ['expo-vitest/src/**/*.test.ts']});
 
 export default defineConfig({
   test: {
-    // Web needs a different pipeline (react-native-web in jsdom with the
-    // dependency optimizer pre-bundling the Expo packages) — see the file.
-    projects: [...projects, windowsProject, runtimeProject, runtimeNodeProject, harnessProject, './vitest.config.web.mts'],
+    projects: [...expoProjects({windows: {forbid: NOT_ON_WINDOWS}}), ...runtime, harness, vitest],
     // Terminal output plus the browsable report (`@vitest/ui`) in test-report/.
     reporters: ['default', 'html'],
     outputFile: {html: 'test-report/index.html'},
@@ -178,6 +85,9 @@ export default defineConfig({
         'expo-windows/**/*.test.{js,ts,tsx}',
         'expo-windows/**/*.d.ts',
         'expo-windows/cli/index.js',
+        // `src/**` above matches any `src` folder. The test layer's own tests run
+        // here, but its setup files and Node hooks are not something a unit test reaches.
+        'expo-vitest/**',
       ],
     },
   },

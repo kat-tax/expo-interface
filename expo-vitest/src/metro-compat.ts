@@ -5,13 +5,13 @@ import type {Plugin} from 'vite';
 const NODE_MODULES = /[\\/]node_modules[\\/]/;
 const METRO_EXTENSIONS = ['.web.js', '.js', '.web.ts', '.ts', '.web.tsx', '.tsx', '.json'];
 const WEB_TWIN_EXTENSIONS = ['.web.ts', '.web.tsx', '.web.js', '.web.jsx', '.web.mjs', '.web.cjs'];
-const EMPTY_AMBIENT = '\0expo-interface:empty-ambient';
+const EMPTY_AMBIENT = '\0expo-vitest:empty-ambient';
 
 /**
  * Expo packages that only load on web once the dependency optimizer has
- * pre-bundled them (with `metroCompat` as a rolldown plugin). Shared by the
- * Vitest web project and the web Storybook, which both run the kit through
- * Vite + react-native-web instead of Metro.
+ * pre-bundled them (with `metroCompat` as a rolldown plugin). Exported for
+ * anything else that runs Expo code through Vite and react-native-web instead
+ * of Metro, a web Storybook for one.
  */
 export const EXPO_WEB_PACKAGES = [
   'expo',
@@ -44,7 +44,7 @@ export const EXPO_WEB_PACKAGES = [
  */
 export function metroCompat(): Plugin {
   return {
-    name: 'expo-interface:metro-compat',
+    name: 'expo-vitest:metro-compat',
     enforce: 'pre',
     async resolveId(source, importer) {
       if (/ts-declarations[\\/]global$/.test(source)) return EMPTY_AMBIENT;

@@ -4,7 +4,7 @@ import {useMaterialColors} from '@expo/ui/jetpack-compose';
 import {AccentProvider, ACCENT_SEED} from '../accent';
 import {Sheet} from '.';
 
-// The shared `ExpoUI` mock in vitest/setup.native.ts returns a full baseline
+// The shared `ExpoUI` mock in expo-vitest's native setup returns a full baseline
 // palette; override it to echo just the seed (and scheme) back so the exact
 // palette assertions below can tell the seeded overlay from the sheet Host.
 vi.mock('../../node_modules/@expo/ui/src/jetpack-compose/ExpoUIModule', () => ({

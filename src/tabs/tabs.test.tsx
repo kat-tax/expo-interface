@@ -43,7 +43,7 @@ describe(`Tabs (${Platform.OS})`, () => {
     const appName = String(Constants.expoConfig?.name);
 
     // `expo-router/ui` reaches the web project through the alias in
-    // vitest.config.web.mts: its ESM stub over a CJS module yields no named
+    // expo-vitest's web project: its ESM stub over a CJS module yields no named
     // exports once pre-bundled, so the CJS entry is loaded directly.
     describe('web tab bar', () => {
       it('renders a floating bar link per route around the active screen', async () => {
