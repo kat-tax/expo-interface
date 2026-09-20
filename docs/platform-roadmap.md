@@ -304,8 +304,21 @@ worth taking — see §5.4):
 - **`preferredEdge`** — maps to SwiftUI's `arrowEdge`, WinUI's
   `PreferredPlacement`, and `position-area` on web. Today the drawn card flips
   vertically only.
-- **`trigger: 'tap' | 'longPress' | 'doubleTap'`** on `ContextMenu`, which
-  currently hardcodes right-click plus a 500 ms touch long-press.
+- ~~**`trigger: 'tap' | 'longPress' | 'doubleTap'`** on `ContextMenu`, which
+  currently hardcodes right-click plus a 500 ms touch long-press.~~ **Done, as
+  `'tap' | 'longPress'`.** `doubleTap` is not there, and the reason is the
+  useful part: `@expo/ui` exposes only `onClick` and `onLongClick` from
+  Compose's `combinedClickable` (Compose itself has `onDoubleClick`, the
+  binding does not), and iOS has no answer at all — `onTapGesture` takes no
+  count there and a `contextMenu` cannot be opened programmatically. Web has a
+  real `dblclick` and Windows could be timed by hand, so it would be two
+  platforms with the gesture, one that would need the kit to invent it, and
+  one that could not have it. `tap`, by contrast, is a **control** on all
+  four: iOS swaps `contextMenu` for a SwiftUI `Menu`, Android moves the menu
+  onto `combinedClickable`'s own `onClick`, and web and Windows already own
+  the press. The right click and the Menu key keep working in either mode —
+  they are what the platform and its screen readers reach for, and a prop that
+  took them away would cost more than it gives.
 
 ### 2.3 `Menu` and `HeaderMenu`
 
@@ -788,13 +801,26 @@ placement is `popover` plus anchor positioning with try-fallbacks, which
 `src/menu/menu.css` already ships, alongside feature-detected `interestfor` in
 `src/tooltip`.
 
-### 4.4 An open question: a DOM `TextField`
+### 4.4 A DOM `TextField` — decided 2026-09-20, and the answer is no
 
 `src/text-field/index.tsx` is react-native-web's `TextInput`, while `Menu`,
-`ContextMenu` and `Tooltip` are real DOM with their own CSS. Moving it would be
-consistent and would help §1.5, but it is a behaviour-compatibility risk
-against the whole RN `TextInput` prop surface. Decide it on purpose, in its own
-session, or leave it.
+`ContextMenu` and `Tooltip` are real DOM with their own CSS. This section used
+to ask whether to move it, and the honest answer turned out to be that the
+question mistook a pattern for a principle.
+
+**Those three are real DOM because they are *floating* UI**, where the
+platform gives something React Native cannot: the top layer, light dismiss,
+anchor positioning, the Interest Invoker API. That is the prize, and it is what
+made each rewrite worth its risk. **A text input has no equivalent prize.**
+react-native-web already renders a real `<input>`; moving it would re-implement
+the RN `TextInput` prop surface the kit's own components lean on, put every
+consumer's usage on a compatibility footing, and buy tidiness.
+
+So it stays as it is, and "the kit's web files are real DOM" is not a rule the
+kit holds — the rule is **"use the platform where the platform is better"**,
+which for floating UI means the DOM and for a text field means leaving a
+working input alone. Reopen it only if something concrete needs what
+react-native-web's input cannot do.
 
 ---
 
@@ -1032,8 +1058,11 @@ axe cannot press keys, so add the two layers that can.
 
 **Wave 2 — new islands, real work.**
 
-8. ~~`Popover` → `TeachingTip`, plus `preferredEdge`~~ **— done.** `trigger`
-   on `ContextMenu` is still outstanding. One trap: a `TeachingTip` is a
+8. ~~`Popover` → `TeachingTip`, plus `preferredEdge`, and `trigger` on
+   `ContextMenu`~~ **— done.** `trigger` came out `'tap' | 'longPress'`
+   rather than the three values planned; §2.2 has why, and the short version
+   is that `doubleTap` would have been a gesture the kit timed on two
+   platforms and could not have at all on a third. One trap: a `TeachingTip` is a
    control **in the tree**, not a flyout that opens its own window, and it is
    confined to its `XamlRoot` by default — which here is an island a few points
    across, so it was clipped away to nothing and rendered invisibly.
@@ -1231,27 +1260,30 @@ Everything the fifteen items above asked for is done or closed with a reason.
 What remains is this, and it is worth keeping in one place rather than leaving
 it scattered through the sections that finished around it.
 
-**Two leftovers inside items marked done.**
+**One leftover inside an item marked done.**
 
-- **`trigger: 'tap' | 'longPress' | 'doubleTap'` on `ContextMenu`** (§2.3,
-  item 8). Small, and the only part of that item never built.
-- **Item 7's accessibility tail**: iOS `accessibilityInputLabels`, and the
-  Windows automation properties past `AutomationId` and the heading role.
-  Android stays blocked upstream — `@expo/ui`'s Compose layer exposes no
-  modifier for a content description, and only `Icon` takes one as a prop.
+- **Item 7's accessibility tail**: the Windows automation properties past
+  `AutomationId` and the heading role. Android stays blocked upstream —
+  `@expo/ui`'s Compose layer exposes no modifier for a content description,
+  and only `Icon` takes one as a prop. iOS's `accessibilityInputLabels` is
+  **not** being taken: it is alternative *spoken* names for Voice Control
+  ("star" as well as "add to favourites"), and only an app's own vocabulary
+  knows them, so the kit would be adding a prop across dozens of components
+  for something it cannot fill in itself. It belongs in an app, not here.
 
-**Two questions nobody has decided.** Both were deliberately left rather than
-forgotten, and both want a session of their own.
+**Both open questions are now decided, and both came out "no".**
 
-- **§2.6, `Icon` on Windows.** `SEGOE_GLYPHS` plus `FontIcon` limits the kit to
-  glyphs Segoe Fluent happens to have. `PathIcon`, `ImageIcon` and
-  `AnimatedIcon` all exist and none is used. (The gap shows up in practice: a
-  story using `sticky_note_2` fails the suite, because a generated map has to
-  cover every Material name in `src/`.)
-- **§4.4, a DOM `TextField`.** `Menu`, `ContextMenu` and `Tooltip` are real DOM
-  with their own CSS; `TextField` is still react-native-web's `TextInput`.
-  Moving it is consistent and helps §1.5, and it is a compatibility risk
-  against the whole RN `TextInput` prop surface.
+- **§2.6, `Icon` on Windows — not taking `PathIcon` / `ImageIcon`.** The gap is
+  real: `SEGOE_GLYPHS` plus `FontIcon` limits the kit to glyphs Segoe Fluent
+  happens to have, and it bites in practice, because a generated map has to
+  cover every Material name in `src/` — a story using `sticky_note_2` fails
+  the suite. But the fix is **to widen the mapping toward full coverage**,
+  which is cheap per name and needs no new spec, no C++ and no second drawing
+  path. Decided 2026-09-20.
+- **§4.4, the DOM `TextField` — leaving it.** See that section: nothing is
+  broken, and the three components that *are* real DOM are all floating UI,
+  where the platform gives something React Native cannot. A text input has no
+  equivalent prize.
 
 **One watch and one thing to file.**
 

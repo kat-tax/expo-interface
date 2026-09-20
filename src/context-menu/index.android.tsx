@@ -6,16 +6,19 @@ import {combinedClickable, matchParentSize, offset, size, testID as testIDModifi
 import {MenuItems} from '../menu/index.android';
 
 /**
- * Android wraps `children` in a `Box` with `combinedClickable`, so a
- * long-press expands a Material 3 `DropdownMenu` while a tap goes to
- * `onPress`. `children` must be Compose content.
+ * Android wraps `children` in a `Box` with `combinedClickable`, which is the
+ * one modifier that carries both gestures: a long-press expands a Material 3
+ * `DropdownMenu` while a tap goes to `onPress`. `trigger: 'tap'` moves the
+ * menu onto `onClick` instead, which is the same modifier reading the same
+ * gesture — nothing here is timed by the kit. `children` must be Compose
+ * content.
  *
  * The dropdown is anchored to an invisible box laid over the content: the
  * size of the content for a long-press (the menu opens below it, as a
  * Compose menu does), or a zero-size box offset to the `at` point, which is
  * how the menu opens where a canvas says it was asked for.
  */
-export function ContextMenu({items, children, onPress, disabled, at, onDismiss, onOpenChange, testID}: ContextMenuProps) {
+export function ContextMenu({items, children, onPress, disabled, at, onDismiss, onOpenChange, trigger = 'longPress', testID}: ContextMenuProps) {
   const [expanded, setExpanded] = useState(false);
   const [point, setPoint] = useState(at ?? null);
   // A new `at` (including one given at mount) opens the menu there; derived
@@ -42,11 +45,17 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
     onOpenChange?.(expanded);
   }, [expanded, onOpenChange]);
 
+  const reveal = () => {
+    setPoint(null);
+    setExpanded(true);
+  };
+  const clicks = trigger === 'tap'
+    // The tap is the menu, so `onPress` has no gesture left and the long-press
+    // is left to the platform's own text selection and drag handling.
+    ? {onClick: reveal}
+    : {onClick: onPress, onLongClick: reveal};
   const modifiers = [
-    ...(disabled ? [] : [combinedClickable({onClick: onPress, onLongClick: () => {
-      setPoint(null);
-      setExpanded(true);
-    }})]),
+    ...(disabled ? [] : [combinedClickable(clicks)]),
     ...(testID ? [testIDModifier(testID)] : []),
   ];
 

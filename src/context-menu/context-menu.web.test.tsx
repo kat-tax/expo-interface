@@ -149,6 +149,60 @@ describe('ContextMenu (web)', () => {
     }
   });
 
+  describe('trigger', () => {
+    it('opens on a click when asked, at the pointer, instead of calling onPress', () => {
+      const onPress = vi.fn();
+      render(
+        <ContextMenu items={items} trigger="tap" onPress={onPress} testID="row">
+          <span>Item</span>
+        </ContextMenu>,
+      );
+      fireEvent.click(screen.getByTestId('row'), {clientX: 12, clientY: 34});
+      expect(showPopover).toHaveBeenCalledTimes(1);
+      const menu = screen.getByRole('menu', {hidden: true});
+      expect(menu.style.left).toBe('12px');
+      expect(menu.style.top).toBe('34px');
+      // The click is the menu, so there is no gesture left for `onPress`.
+      expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('keeps the right click, which is what the platform and its screen readers reach for', () => {
+      render(
+        <ContextMenu items={items} trigger="tap" testID="row">
+          <span>Item</span>
+        </ContextMenu>,
+      );
+      expect(fireEvent.contextMenu(screen.getByTestId('row'), {clientX: 40, clientY: 60})).toBe(false);
+      expect(showPopover).toHaveBeenCalledTimes(1);
+    });
+
+    it('drops the touch long-press, so one intent does not open the menu twice', () => {
+      vi.useFakeTimers();
+      try {
+        render(
+          <ContextMenu items={items} trigger="tap" testID="row">
+            <span>Item</span>
+          </ContextMenu>,
+        );
+        fireEvent(screen.getByTestId('row'), pointerEvent('pointerdown', 'touch', {clientX: 10, clientY: 20}));
+        act(() => vi.advanceTimersByTime(1000));
+        expect(showPopover).not.toHaveBeenCalled();
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('opens nothing on a click while disabled', () => {
+      render(
+        <ContextMenu items={items} trigger="tap" disabled testID="row">
+          <span>Item</span>
+        </ContextMenu>,
+      );
+      fireEvent.click(screen.getByTestId('row'));
+      expect(showPopover).not.toHaveBeenCalled();
+    });
+  });
+
   it('passes a plain click to onPress', () => {
     const onPress = vi.fn();
     render(

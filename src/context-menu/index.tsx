@@ -14,8 +14,15 @@ const LONG_PRESS_MS = 500;
  * so it doesn't affect the layout of `children`; `at` is measured against
  * the content's first element (its own coordinates), falling back to the
  * viewport when the content has no box of its own.
+ *
+ * **`contextmenu` opens the menu whichever `trigger` says**, because a right
+ * click is what a pointer user and every assistive technology on this
+ * platform already reach for, and the Menu key raises the same event.
+ * `trigger: 'tap'` adds the click on top of it and takes the touch
+ * long-press away — on a touch screen the tap is now the gesture, and
+ * leaving the long-press would open the menu twice for one intent.
  */
-export function ContextMenu({items, children, onPress, disabled, at, onDismiss, onOpenChange, testID}: ContextMenuProps) {
+export function ContextMenu({items, children, onPress, disabled, at, onDismiss, onOpenChange, trigger = 'longPress', testID}: ContextMenuProps) {
   const ident = menuIdent(useId());
   const popover = useRef<HTMLDivElement>(null);
   const wrapper = useRef<HTMLDivElement>(null);
@@ -33,9 +40,17 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
     open(event.clientX, event.clientY);
   };
   const onPointerDown = (event: PointerEvent) => {
-    if (disabled || event.pointerType !== 'touch') return;
+    if (disabled || trigger === 'tap' || event.pointerType !== 'touch') return;
     const {clientX: x, clientY: y} = event;
     timer.current = setTimeout(() => open(x, y), LONG_PRESS_MS);
+  };
+  const onClick = (event: MouseEvent) => {
+    if (disabled) return;
+    if (trigger !== 'tap') {
+      onPress?.();
+      return;
+    }
+    open(event.clientX, event.clientY);
   };
   const cancelPress = () => {
     if (timer.current) clearTimeout(timer.current);
@@ -64,7 +79,7 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
       onPointerUp={cancelPress}
       onPointerCancel={cancelPress}
       onPointerMove={cancelPress}
-      onClick={disabled ? undefined : onPress}
+      onClick={onClick}
       data-testid={testID}>
       {children}
       <MenuList

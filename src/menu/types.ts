@@ -90,6 +90,30 @@ export interface MenuPoint {
 }
 
 /**
+ * Which gesture opens a `ContextMenu`.
+ *
+ * `longPress` is the default and the platform's own context gesture: a
+ * SwiftUI `contextMenu` that lifts the content into a preview, Compose's
+ * `onLongClick`, a touch long-press on web and Windows.
+ *
+ * `tap` is a real control on all four rather than a gesture the kit times —
+ * iOS swaps `contextMenu` for a SwiftUI `Menu`, which opens on tap and is
+ * the same control the kit's own `Menu` uses. It suits content whose only
+ * purpose is its menu: an overflow grip, a block's handle.
+ *
+ * **There is deliberately no `doubleTap`**, which an earlier plan named.
+ * `@expo/ui` exposes only `onClick` and `onLongClick` from Compose's
+ * `combinedClickable` (Compose itself has `onDoubleClick`; the binding does
+ * not), and on iOS there is no answer at all — `onTapGesture` takes no count
+ * there and a `contextMenu` cannot be opened programmatically. Web has a real
+ * `dblclick` and Windows could be timed by hand, so it would be two platforms
+ * with the gesture and two without, one of them unable to have it. A trigger
+ * that silently does something else on iOS is worse than a trigger the kit
+ * does not offer.
+ */
+export type ContextMenuTrigger = 'tap' | 'longPress';
+
+/**
  * Cross-platform context menu attached to arbitrary content.
  *
  * Opens on long-press (iOS `contextMenu`, Android `DropdownMenu` anchored by
@@ -101,8 +125,20 @@ export interface ContextMenuProps {
   items: MenuItem[];
   /** Content that triggers the menu. */
   children: ReactNode;
-  /** Called on a plain tap of the content (Android/web; iOS taps pass through). */
+  /**
+   * Called on a plain tap of the content (Android/web; iOS taps pass
+   * through). Ignored when `trigger` is `tap`, where the tap opens the menu
+   * and there is no second gesture left for it.
+   */
   onPress?: () => void;
+  /**
+   * Which gesture opens the menu. The platform's own secondary gesture —
+   * right-click on web and Windows, and the Menu key there — keeps working
+   * whichever this is: taking away what the platform already teaches would
+   * cost more than the prop gives.
+   * @default 'longPress'
+   */
+  trigger?: ContextMenuTrigger;
   /** Disables the menu. */
   disabled?: boolean;
   /**

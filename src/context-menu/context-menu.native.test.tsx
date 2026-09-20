@@ -215,4 +215,67 @@ describe(`ContextMenu (${Platform.OS})`, () => {
     expect(screen.getByTestId('row')).toBeTruthy();
     expect(entries()).toHaveLength(3);
   });
+
+  describe('trigger', () => {
+    /** Fires one of Compose's two clicks through the modifier that carries both. */
+    const click = (event: 'click' | 'longClick') =>
+      act(async () => {
+        modifier(byComposeTestID('row').props, 'combinedClickable')?.eventListener({event});
+      });
+
+    it('opens on a tap with the control that does that, not a gesture the kit times', async () => {
+      const onPress = vi.fn();
+      await render(
+        <ContextMenu items={items} trigger="tap" onPress={onPress} testID="row">
+          <Text>Holiday photos</Text>
+        </ContextMenu>,
+      );
+      if (isIOS) {
+        // SwiftUI's `Menu` replaces `contextMenu`: a real tap-opened menu
+        // rather than a long-press one with a timer in front of it.
+        expect(nodes()[0].type).toBe('ViewManagerAdapter_ExpoUI_MenuView');
+        // No primary action, deliberately: with one, the tap would be the
+        // action and the menu would go back to the long-press.
+        expect(nodes()[0].props.hasPrimaryAction).toBe(false);
+        expect(host(p => p.text === 'Holiday photos')).toBeTruthy();
+      } else {
+        await click('click');
+        expect(dropdown().props.expanded).toBe(true);
+        // The tap is the menu, so `onPress` has no gesture left.
+        expect(onPress).not.toHaveBeenCalled();
+      }
+    });
+
+    it('leaves the long-press alone once the tap is the trigger', async () => {
+      await render(
+        <ContextMenu items={items} trigger="tap" testID="row">
+          <Text>Item</Text>
+        </ContextMenu>,
+      );
+      if (isIOS) {
+        // There is no `contextMenu` in the tree at all to long-press.
+        expect(nodes().some(n => n.props.name === 'trigger')).toBe(false);
+      } else {
+        await click('longClick');
+        expect(dropdown().props.expanded).toBe(false);
+      }
+    });
+
+    it('is the long-press by default, which is each platform’s own context gesture', async () => {
+      const onPress = vi.fn();
+      await render(
+        <ContextMenu items={items} onPress={onPress} testID="row">
+          <Text>Item</Text>
+        </ContextMenu>,
+      );
+      if (isIOS) {
+        expect(nodes()[0].type).toBe('ViewManagerAdapter_ExpoUI_ContextMenu');
+      } else {
+        await click('longClick');
+        expect(dropdown().props.expanded).toBe(true);
+        await click('click');
+        expect(onPress).toHaveBeenCalledTimes(1);
+      }
+    });
+  });
 });

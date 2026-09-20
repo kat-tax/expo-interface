@@ -112,4 +112,48 @@ describe('ContextMenu keyboard (windows)', () => {
     await fireEvent(screen.getByTestId('target'), 'keyDown', {nativeEvent: {key: 'ContextMenu', shiftKey: false}});
     expect(island(FLYOUT).props.open).toBe(false);
   });
+
+  describe('trigger', () => {
+    it('opens on the press when asked, at the press, instead of calling onPress', async () => {
+      const onPress = vi.fn();
+      await render(
+        <ContextMenu items={items()} trigger="tap" onPress={onPress} testID="target">
+          <Text>Document</Text>
+        </ContextMenu>,
+      );
+      await fireEvent(screen.getByTestId('target'), 'press', {nativeEvent: {locationX: 9, locationY: 11}});
+      expect(island(FLYOUT).props).toMatchObject({open: true, x: 9, y: 11});
+      // The press is the menu, so there is no gesture left for `onPress`.
+      expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('drops the long press, so one intent does not open the menu twice', async () => {
+      await render(
+        <ContextMenu items={items()} trigger="tap" testID="target">
+          <Text>Document</Text>
+        </ContextMenu>,
+      );
+      await fireEvent(screen.getByTestId('target'), 'longPress', {nativeEvent: {locationX: 7, locationY: 8}});
+      expect(island(FLYOUT).props.open).toBe(false);
+    });
+
+    it('keeps the right click and the Menu key, which Windows and Narrator both reach for', async () => {
+      const {rerender} = await render(
+        <ContextMenu items={items()} trigger="tap" testID="target">
+          <Text>Document</Text>
+        </ContextMenu>,
+      );
+      await fireEvent(screen.getByTestId('target'), 'pointerDown', {nativeEvent: {button: 2, offsetX: 40, offsetY: 12}});
+      expect(island(FLYOUT).props).toMatchObject({open: true, x: 40, y: 12});
+
+      await rerender(
+        <ContextMenu items={items()} trigger="tap" testID="target">
+          <Text>Document</Text>
+        </ContextMenu>,
+      );
+      await fireEvent(screen.getByTestId('target'), 'layout', {nativeEvent: {layout: {width: 120, height: 40}}});
+      await fireEvent(screen.getByTestId('target'), 'keyDown', {nativeEvent: {key: 'ContextMenu', shiftKey: false}});
+      expect(island(FLYOUT).props).toMatchObject({open: true, x: 60, y: 20});
+    });
+  });
 });

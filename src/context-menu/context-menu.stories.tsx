@@ -90,3 +90,20 @@ export const OnButton: Story = {
 export const DropRows: Story = {
   render: args => <DropList onPress={args.onPress}/>,
 };
+
+/**
+ * `trigger: 'tap'` for content whose only purpose is its menu — an overflow
+ * grip, a block's handle. Every platform swaps in the control that opens on a
+ * tap rather than timing a gesture: a SwiftUI `Menu` on iOS, Compose's
+ * `onClick`, a click on web, a press on Windows. The right click and the Menu
+ * key keep working on web and Windows, because taking away what the platform
+ * already teaches would cost more than the prop gives.
+ */
+export const TapToOpen: Story = {
+  args: {trigger: 'tap'},
+  render: args => (
+    <ContextMenu {...args}>
+      <Button label="Options" variant="outlined" prefixIcon={icons.settings}/>
+    </ContextMenu>
+  ),
+};
