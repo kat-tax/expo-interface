@@ -18,7 +18,9 @@ export interface ToastProps {
   onDismiss?: () => void;
   /**
    * How long the message stays, in milliseconds. Android rounds it to the
-   * platform's short (4s) or long (10s) duration.
+   * platform's short (4s) or long (10s) duration. Zero or less keeps it up
+   * until its action is taken or it is dismissed, which is what Material calls
+   * an indefinite snackbar.
    * @default 4000
    */
   duration?: number;

@@ -1228,10 +1228,13 @@ The sheet's content counts as hosted: controls inside it render bare.
 A brief message over the screen. Props: `message`, `visible`, `action`
 (`label`, `onPress`), `onDismiss`, `duration` (4000 ms), `testID`.
 
+A duration of zero or less keeps the toast up until its action is taken or it
+is dismissed, which is what Material calls an indefinite snackbar.
+
 | Platform | Renders |
 | --- | --- |
 | iOS, Web | A drawn capsule, the one Apple's apps draw, timed by the kit |
-| Android | Material 3 `Snackbar`, which owns its timing, animation and queue and rounds the duration to the platform's short or long |
+| Android | Material 3 `Snackbar`, which owns its timing, animation and queue and rounds the duration to the platform's short, long or indefinite |
 | Windows | WinUI `InfoBar` over the bottom of the screen, with a close button, timed by the kit |
 
 The drawn toast is a polite live region.

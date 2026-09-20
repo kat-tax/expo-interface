@@ -14,7 +14,7 @@ import {TOAST_DURATION} from './types';
 export function Toast({message, visible, action, onDismiss, duration = TOAST_DURATION, testID}: ToastProps) {
   const xaml = useXamlProps();
   useEffect(() => {
-    if (!visible || !onDismiss) return;
+    if (!visible || !onDismiss || duration <= 0) return;
     const timer = setTimeout(onDismiss, duration);
     return () => clearTimeout(timer);
   }, [visible, message, duration, onDismiss]);

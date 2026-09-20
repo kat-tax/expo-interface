@@ -84,4 +84,13 @@ describe('Toast (android)', () => {
     });
     expect(onDismiss).not.toHaveBeenCalled();
   });
+
+  it('asks Compose for an indefinite snackbar when the duration is zero or less', async () => {
+    await render(<Toast message="Offline" visible duration={0} onDismiss={vi.fn()}/>);
+    expect(showSnackbar).toHaveBeenCalledWith({
+      message: 'Offline',
+      actionLabel: undefined,
+      duration: 'indefinite',
+    });
+  });
 });

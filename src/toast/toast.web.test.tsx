@@ -29,4 +29,17 @@ describe('Toast (web)', () => {
       vi.useRealTimers();
     }
   });
+
+  it('stays up when the duration is zero or less, until something puts it away', () => {
+    const onDismiss = vi.fn();
+    vi.useFakeTimers();
+    try {
+      render(<Toast message="Offline" visible duration={0} onDismiss={onDismiss}/>);
+      act(() => vi.advanceTimersByTime(60000));
+      expect(onDismiss).not.toHaveBeenCalled();
+      expect(screen.getByRole('status')).toHaveTextContent('Offline');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

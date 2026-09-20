@@ -55,4 +55,17 @@ describe('Toast (ios)', () => {
       vi.useRealTimers();
     }
   });
+
+  it('stays up when the duration is zero or less, until something puts it away', async () => {
+    const onDismiss = vi.fn();
+    vi.useFakeTimers();
+    try {
+      await render(<Toast message="Offline" visible duration={0} onDismiss={onDismiss}/>);
+      await act(async () => {vi.advanceTimersByTime(60000);});
+      expect(onDismiss).not.toHaveBeenCalled();
+      expect(screen.getByText('Offline')).toBeOnTheScreen();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

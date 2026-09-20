@@ -54,4 +54,14 @@ describe('Toast (windows)', () => {
     });
     expect(islands(BAR)).toHaveLength(1);
   });
+
+  it('stays up when the duration is zero or less, until something puts it away', async () => {
+    const onDismiss = vi.fn();
+    await render(<Toast message="Offline" visible duration={0} onDismiss={onDismiss}/>);
+    await act(async () => {
+      vi.advanceTimersByTime(60000);
+    });
+    expect(onDismiss).not.toHaveBeenCalled();
+    expect(islands(BAR)).toHaveLength(1);
+  });
 });

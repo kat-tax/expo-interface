@@ -8,6 +8,17 @@ import {NativeHost} from '../host';
 import {TOAST_DURATION} from './types';
 
 /**
+ * The milliseconds a caller asks for, as one of the three lengths Compose
+ * takes. Zero or less is Material's own indefinite snackbar, which stays
+ * until its action is taken or it is dismissed; the kit spells that as a
+ * duration because its own API is milliseconds on every platform.
+ */
+function snackbarLength(duration: number): 'short' | 'long' | 'indefinite' {
+  if (duration <= 0) return 'indefinite';
+  return duration > TOAST_DURATION ? 'long' : 'short';
+}
+
+/**
  * Android shows the Material 3 `Snackbar`, asked for imperatively through
  * the host's ref while `visible`; Compose owns its timing, its animation and
  * its queue, and resolves the call when the message goes away. The host is a
@@ -28,7 +39,7 @@ export function Toast({message, visible, action, onDismiss, duration = TOAST_DUR
     host.current?.showSnackbar({
       message,
       actionLabel: action?.label,
-      duration: duration > TOAST_DURATION ? 'long' : 'short',
+      duration: snackbarLength(duration),
     }).then(result => {
       if (cancelled) return;
       if (result === 'actionPerformed') latest.current.action?.onPress();
