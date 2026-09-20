@@ -4,7 +4,7 @@ What each platform can still do that the kit does not yet ask of it, and the
 order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
-**Progress.** Wave 1 items 1 and 2 are done. Everything else below is
+**Progress.** Wave 1 items 1, 2 and 3 are done. Everything else below is
 unstarted.
 
 ## How to read the matrices
@@ -39,11 +39,12 @@ Everything below is subject to `AGENTS.md`, and to these in particular:
 
 ### 1.1 Badge
 
-The strongest candidate in this document: every platform has a real control.
+Two platforms have a real control. iOS was expected to be a third and is not —
+see the correction below.
 
 | | control |
 | --- | --- |
-| iOS | **native** — `badge` / `badgeProminence` modifiers |
+| iOS | **composed** — drawn. `badge` only paints inside `List`, `TabView` or a toolbar |
 | Android | **native** — Compose `Badge` / `BadgedBox` |
 | Windows | **native** — WinUI `InfoBadge` (dot, numeric and icon forms) |
 | Web | **composed** — a span with `aria-label` |
@@ -493,7 +494,13 @@ axe cannot press keys, so add the two layers that can.
    proves nothing; and `toBeFullyLabelled` needs the real accessible-name
    algorithm, because a checkbox is an empty `<input>` that takes its name from
    the `<label>` around it.
-3. `Badge` (§1.1).
+3. ~~`Badge` (§1.1).~~ **Done, `4bfda38`.** iOS is drawn after all: SwiftUI's
+   `badge` modifier only paints inside a `List`, a `TabView` or a toolbar, and
+   elsewhere it is accepted and renders nothing. Windows shows the cap where
+   the others show `99+`, because `InfoBadge` holds a number and nothing else.
+   `bun run codegen:windows` was **silently deleting every generated header** —
+   the glob reached the tool unexpanded, it matched nothing, and it deleted
+   rather than failed. Fixed by quoting the pattern.
 4. Empty state (§1.2).
 5. Match highlighting in `Menu` / `PopupMenu` (§2.4, §4.1).
 6. The one-liners: `DropdownMenu.shadowElevation`, iOS `Toolbar` (§2.1, §2.3).
