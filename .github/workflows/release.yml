@@ -1,9 +1,17 @@
 name: Release
 
-# Publishes to npm when a `v*` tag is pushed. The tag must match the version
-# in package.json. Publishes via npm trusted publishing (OIDC) — this repo
-# and workflow are registered as a trusted publisher on npmjs.com, so no
-# token secret is involved and provenance is attested automatically.
+# Publishes both packages when a `v*` tag is pushed.
+#
+# The tag names the kit's version and must match the root `package.json`. The
+# runtime carries its own version, because it ships on its own schedule, and is
+# published at whatever `expo-windows/package.json` says. Either package is
+# skipped when the registry already has that version, so a tag that only moves
+# one of them publishes only that one (see .github/publish.sh).
+#
+# Publishing is npm trusted publishing (OIDC): this repository and this workflow
+# are registered as trusted publishers on npmjs.com, so no token secret is
+# involved and provenance is attested automatically. A package's first publish
+# cannot happen here; publish.sh says what to do about that.
 
 on:
   push:
@@ -21,7 +29,7 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Update npm (trusted publishing needs >= 11.5)
         run: npm install -g npm@latest
-      - name: Check tag matches package version
+      - name: Check the tag matches the kit's version
         run: |
           version="$(node -p "require('./package.json').version")"
           if [ "v$version" != "${GITHUB_REF_NAME}" ]; then
@@ -34,8 +42,10 @@ jobs:
         run: bun run lint
       - name: Test
         run: bun run test
-      - name: Publish
-        run: npm publish --provenance --access public
+      - name: Publish expo-interface
+        run: bash .github/publish.sh .
+      - name: Publish expo-windows
+        run: bash .github/publish.sh expo-windows
       - name: GitHub release
         run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
         env:
