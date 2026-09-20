@@ -374,30 +374,132 @@ range picker. `VerticalSlider` (57.0.16) would give `Slider` an orientation.
 
 ---
 
-## 6. Order
+## 6. Accessibility
+
+### 6.1 The defect class nothing is catching
+
+The kit declares ARIA composite roles on web and does not implement the
+keyboard contracts those roles promise.
+
+- `src/menu/list.tsx` renders `role="menu"` with `role="menuitem"` children
+  inside a `popover="auto"`. The ARIA menu pattern wants **one** tab stop,
+  arrow keys, Home/End and typeahead. Today every item is its own tab stop and
+  the arrow keys do nothing. Opening does focus the first item, which is right.
+- `src/segmented/index.tsx` renders `role="radiogroup"` with `role="radio"`
+  buttons. The radio-group pattern wants roving tabindex and arrow keys.
+  Neither is there.
+- `src/tabs/index.web.tsx` uses `role="button"` and no tab pattern at all.
+  Decide it rather than patch it: it is a router tab bar, so `<nav>` with links
+  is the more honest markup — and then there is no pattern left to implement.
+
+**axe cannot see any of this.** It checks static semantics; it does not press
+ArrowDown. `@storybook/addon-a11y` runs axe over every story with
+`parameters.a11y.test: 'error'` and is green while this ships. It is the same
+shape as the `Symbol` bug: the suite passes and the thing is broken.
+
+### 6.2 What the platform already gives, and must not be handed back
+
+| Behaviour | Where it comes from today |
+| --- | --- |
+| Focus trap, Escape, inert background | `<dialog>` + `showModal()` in `src/alert` |
+| Full keyboard, and the native picker on mobile | `<select>` in `src/picker` |
+| Arrow / Home / End / PageUp | `<input type="range">` in `src/slider` |
+| Top layer, light dismiss, `aria-expanded` | `popover="auto"` in `src/menu` |
+| Placement and flipping | CSS anchor positioning, `position-try-fallbacks` |
+| Hover and focus hint, with the system delay | `interestfor`, feature-detected, in `src/tooltip` |
+| Press, Enter/Space, disabled | real `<button>` throughout |
+
+That table is why the library question mostly answers itself.
+
+### 6.3 Decision: a hook, not a library
+
+**Base UI 1.8.0** depends on `@floating-ui/react-dom`. Adopting it means
+replacing CSS anchor positioning with JavaScript positioning.
+
+**React Aria** (`react-aria-components` 1.21.1 → `react-aria` 3.52 +
+`react-stately` 3.50 + `@internationalized/date`, `/number`, `/string`) pulls
+`aria-hidden` to do by hand what `<dialog>` does natively.
+
+Both are good libraries for a kit that starts from `<div>`. This one starts
+from the platform, on four platforms, and on three of them the native control
+already supplies every behaviour in §6.2. Four more reasons:
+
+1. The gap is **one pattern on two components**, not forty components.
+2. Both are React-DOM-only, and `index.tsx` here is frequently shared with
+   native — only five components have an `index.web.tsx`, so adoption would
+   force that split first.
+3. Coverage is 100 % on all four metrics. Every branch in the adapter would
+   need a test, and jsdom exercises focus and positioning poorly.
+4. `expo-interface` is published. Every consumer would pay the bundle.
+
+**Build `useRovingFocus` in `src/a11y/`:** one tab stop, arrow keys along an
+axis, Home/End, typeahead, wrap or clamp, skipping disabled items. Apply it to
+`Menu` / `ContextMenu` / `PopupMenu` and to `SegmentedControl`. That is the
+entire web gap.
+
+> **Revisit this decision when — and only when — the kit grows a pattern the
+> hook does not cover:** combobox or autocomplete, a real menubar, tree, or
+> grid. Note that §1.5's search field **is** a combobox, one of the hardest
+> patterns in the APG. Prefer `<datalist>` or `<select>` there. If neither
+> fits, that one component is the honest case for a dependency — and it can
+> take one without the rest of the kit taking it.
+
+### 6.4 The other three platforms
+
+Labels are done: 48 `accessibilityLabel`s on iOS, `contentDescription` and
+`role` on Android, `AutomationProperties::SetName` on Windows. Everything past
+labels is thin — 5 hints, 4 values and 1 live region across 48 components.
+
+| | Today | Worth adding |
+| --- | --- | --- |
+| iOS | label ×48, hint ×5, value ×4, addTraits ×4 | `accessibilityInputLabels` (Voice Control), `accessibilityElement`, `accessibilityHidden` on decoration |
+| Android | role ×12, contentDescription ×6, semantics ×1 | `stateDescription`, `liveRegion`, `heading`, `collectionInfo` |
+| Windows | Name only | AutomationId, HelpText, HeadingLevel, LandmarkType, LiveSetting, PositionInSet / SizeOfSet, IsDialog — §3.1 |
+| Web | roles and labels are good | the keyboard patterns in §6.1 |
+
+### 6.5 How it gets caught next time
+
+axe cannot press keys, so add the two layers that can.
+
+1. **Unit.** `userEvent.keyboard('{ArrowDown}')` in the web tests, asserting
+   `document.activeElement`. Cheap, immediate, and it covers the hook itself.
+2. **Device.** A `toSupportArrowNavigation` matcher in
+   `vitest/device/matchers.ts`, beside `toBeFullyLabelled`: press an arrow, take
+   a fresh snapshot, assert the focused node moved. `SnapshotNode` already
+   carries `focused` on every platform, and this is the only layer that sees a
+   real renderer.
+3. Keep `toBeFullyLabelled`. It has caught three real defects so far.
+
+---
+
+## 7. Order
 
 **Wave 1 — self-contained, native nearly everywhere, no new dependencies.**
 
 1. `AutomationId` from `testID`, and `by.testID()` in the harness (§3.1). Do
    this first; it makes everything after it easier to test.
-2. `Badge` (§1.1).
-3. Empty state (§1.2).
-4. Match highlighting in `Menu` / `PopupMenu` (§2.4, §4.1).
-5. The one-liners: `DropdownMenu.shadowElevation`, iOS `Toolbar` (§2.1, §2.3).
+2. `useRovingFocus`, applied to `Menu` and `SegmentedControl`; settle `Tabs`'
+   markup; add the keyboard test layer (§6.1, §6.3, §6.5). Same workstream as
+   item 1 — make the tree true, then assert it.
+3. `Badge` (§1.1).
+4. Empty state (§1.2).
+5. Match highlighting in `Menu` / `PopupMenu` (§2.4, §4.1).
+6. The one-liners: `DropdownMenu.shadowElevation`, iOS `Toolbar` (§2.1, §2.3).
+7. The cheap semantics of §6.4 alongside whichever component is already open.
 
 **Wave 2 — new islands, real work.**
 
-6. `Popover` → `TeachingTip`, plus `preferredEdge` and `trigger` (§2.2).
-7. `Toolbar` → `CommandBar` (§2.1).
-8. Search field (§1.5).
-9. Materials on `Surface`, `Sheet` and `Popover` (§3.2).
+8. `Popover` → `TeachingTip`, plus `preferredEdge` and `trigger` (§2.2).
+9. `Toolbar` → `CommandBar` (§2.1).
+10. Search field (§1.5) — and with it, the combobox question in §6.3.
+11. Materials on `Surface`, `Sheet` and `Popover` (§3.2).
 
 **Wave 3 — decide the shape before writing code.**
 
-10. Swipe actions (§1.6) — asymmetric platform support.
-11. Pull to refresh (§1.3) — the island-versus-scroller conflict.
-12. `TabView` (§2.5), `Chip` (§1.4), `ShareLink` (§1.7), pager (§1.8).
-13. Caret-anchored `PopupMenu` (§4.2) — web-only, or commit to two native
+12. Swipe actions (§1.6) — asymmetric platform support.
+13. Pull to refresh (§1.3) — the island-versus-scroller conflict.
+14. `TabView` (§2.5), `Chip` (§1.4), `ShareLink` (§1.7), pager (§1.8).
+15. Caret-anchored `PopupMenu` (§4.2) — web-only, or commit to two native
     modules.
 
 Each item is one directory, a file per platform, stories, tests to 100 %, and a
