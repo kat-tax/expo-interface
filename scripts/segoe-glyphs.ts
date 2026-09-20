@@ -8,10 +8,20 @@
  * of every glyph's name and code point (MIT). A Material name whose tokens
  * are a Segoe name's tokens is that glyph (`zoom_in` is `ZoomIn`), a
  * singular/plural pair counts when it is the only candidate (`movie` is
- * `Movies`), and `CURATED` names the twins the names alone do not find
- * (`arrow_back` is `Back`) or find wrongly (`pin` is the PIN pad, not the
- * pushpin). A glyph with a `Fill`, `Solid` or `Filled` form gets it as the
- * solid entry, which a `fill` token draws.
+ * `Movies`), a name that is another name plus one of Material's variant
+ * suffixes takes its glyph (`sticky_note_2` is a sticky note), and `CURATED`
+ * names the twins the names alone do not find (`arrow_back` is `Back`) or
+ * find wrongly (`pin` is the PIN pad, not the pushpin). A glyph with a
+ * `Fill`, `Solid` or `Filled` form gets it as the solid entry, which a `fill`
+ * token draws.
+ *
+ * **The two catalogues are not the same size and never will be.** Material
+ * Symbols has about four thousand names; Segoe Fluent Icons has fifteen
+ * hundred glyphs, a good many of them battery levels and wifi bars. So the
+ * table cannot cover every Material name, and the thing to optimise is not a
+ * percentage but the cost of a miss: `--report` and the Windows test both
+ * print the glyphs worth choosing from, so curating a new name is a line in
+ * `CURATED` rather than an investigation.
  *
  *     node scripts/segoe-glyphs.ts            write the table
  *     node scripts/segoe-glyphs.ts --check    exit 1 when the table is stale
@@ -35,7 +45,7 @@ export interface SegoeIcon {
   tags: string[];
 }
 
-export type Via = 'curated' | 'name' | 'plural';
+export type Via = 'curated' | 'name' | 'plural' | 'variant';
 
 export interface Match {
   outline: string;
@@ -89,6 +99,18 @@ export const CURATED: Record<string, string | [string, string]> = {
   unfold_more: 'ScrollUpDown',
   west: 'Back',
   widgets: 'Widget',
+
+  // — added 2026-09-20 from the `--report` tag hits
+  browse: 'ExploreContent',
+  dropdown: 'ChevronDown',
+  expand: 'FullScreen',
+  /** A compass, which is what Material draws and what the map glyphs carry. */
+  explore: 'MapCompassTop',
+  maximize: 'ChromeMaximize',
+  minimize: 'ChromeMinimize',
+  overview: 'TaskViewExpanded',
+  shortcut: 'OpenInNewWindow',
+  window: 'GenericApp',
 
   // Actions and states
   block: 'Blocked',
@@ -145,6 +167,26 @@ export const CURATED: Record<string, string | [string, string]> = {
   vpn_key: 'Permissions',
   wb_sunny: 'Brightness',
 
+  // — added 2026-09-20
+  approval: 'DocumentApproval',
+  assessment: 'Diagnostic',
+  automation: 'Robot',
+  details: 'Info',
+  encrypted: 'ShieldLock',
+  exclamation: 'Warning',
+  loop: 'RepeatAll',
+  monitoring: 'ViewDashboard',
+  /** The key, not `PasswordKeyShow`, which is a key being revealed. */
+  password: 'Permissions',
+  passkey: 'FIDOPasskey',
+  privacy: 'Shield',
+  problem: 'StatusErrorFull',
+  /** Material draws a clock turning back, which is Segoe's history glyph. */
+  restore: 'History',
+  support: 'Help',
+  target: 'Bullseye',
+  update: 'UpdateRestore',
+
   // Editing and text
   attach_file: 'Attach',
   attachment: 'Attach',
@@ -170,6 +212,19 @@ export const CURATED: Record<string, string | [string, string]> = {
   straighten: 'Ruler',
   text_fields: 'Font',
 
+  // — added 2026-09-20
+  abc: 'Characters',
+  glyphs: 'Characters',
+  lowercase: 'DownShiftKey',
+  numbers: 'Keyboard12Key',
+  pattern: 'Tiles',
+  straight: 'Ruler',
+  stylus: 'PenWorkspace',
+  text_to_speech: 'NarratorApp',
+  /** The only translate glyph the family has, sparkle and all. */
+  translate: 'TranslateSparkle',
+  uppercase: 'UpShiftKey',
+
   // Files and documents
   article: 'Document',
   assignment: 'ClipboardList',
@@ -194,6 +249,19 @@ export const CURATED: Record<string, string | [string, string]> = {
   picture_as_pdf: 'PDF',
   video_file: 'Video',
 
+  // — added 2026-09-20
+  barcode: 'BarcodeScanner',
+  book: 'Dictionary',
+  box: 'Package',
+  compress: 'ZipFolder',
+  note: 'QuickNote',
+  output: 'Export',
+  scanner: 'Scan',
+  schema: 'Relationship',
+  screenshot: 'ClippingTool',
+  sticky_note: 'QuickNote',
+  storage: 'HardDrive',
+
   // Communication
   call: 'Phone',
   call_end: 'HangUp',
@@ -212,6 +280,16 @@ export const CURATED: Record<string, string | [string, string]> = {
   sms: 'Message',
   textsms: 'Message',
 
+  // — added 2026-09-20
+  announcement: 'Megaphone',
+  bubble: 'Message',
+  cable: 'Ethernet',
+  cast: 'MiracastLogoSmall',
+  conversation: 'ChatBubbles',
+  lan: 'Ethernet',
+  nfc: 'NFCBadge',
+  voicemail: 'Memo',
+
   // People
   account_circle: 'Contact',
   badge: 'IDBadge',
@@ -222,6 +300,13 @@ export const CURATED: Record<string, string | [string, string]> = {
   person_add: 'AddFriend',
   person_remove: 'UserRemove',
   support_agent: 'Headset',
+
+  // — added 2026-09-20
+  face: 'Emoji',
+  gesture: 'Touch',
+  hearing: 'Ear',
+  house: 'Home',
+  step: 'Walk',
 
   // Media
   album: 'MusicAlbum',
@@ -237,6 +322,11 @@ export const CURATED: Record<string, string | [string, string]> = {
   videocam: 'Video',
   volume_off: 'Mute',
   volume_up: 'Volume',
+
+  // — added 2026-09-20
+  gamepad: 'Game',
+  joystick: 'Game',
+  panorama: 'Video360',
 
   // Places, time and things
   account_balance: 'Bank',
@@ -286,6 +376,29 @@ export const CURATED: Record<string, string | [string, string]> = {
   trending_up: 'StockUp',
   tv: 'TVMonitor',
   web: 'Website',
+
+  // — added 2026-09-20
+  architecture: 'CityNext',
+  brush: 'Personalize',
+  business: 'Work',
+  computer: 'ThisPC',
+  emergency: 'PoliceCar',
+  energy: 'LightningBolt',
+  experiment: 'Beaker',
+  finance: 'Bank',
+  hardware: 'Devices',
+  laptop: 'DeviceLaptopNoPic',
+  monitor: 'DeviceMonitorNoPic',
+  nature: 'Leaf',
+  payment: 'PaymentCard',
+  restaurant: 'Cafe',
+  road: 'Street',
+  storm: 'LightningBolt',
+  sweep: 'Broom',
+  traffic: 'TrafficLight',
+  transportation: 'Bus',
+  travel: 'Airplane',
+  water: 'Drop',
 };
 
 /**
@@ -309,6 +422,32 @@ function singular(key: string): string {
 }
 
 const SOLID_SUFFIXES = ['Fill', 'Solid', 'Filled'];
+
+/**
+ * Material's own variant suffixes. A name that is another name plus one of
+ * these is a second *drawing* of the same thing — `sticky_note_2` is a sticky
+ * note, `delete_outline` is a wastebasket, `arrow_right_alt` is an arrow — and
+ * Segoe Fluent Icons has one glyph per concept rather than a family per
+ * concept. So a variant takes its base's glyph, and nobody has to curate the
+ * same idea twice.
+ *
+ * `_fill` and `_filled` ask for the solid form, which is the one difference
+ * that changes which code point comes out; the rest take the outline.
+ *
+ * Deliberately not here: `_off` (a crossed-out icon is a different statement,
+ * and Segoe usually has its own) and `_up`/`_down`/`_left`/`_right`, which are
+ * directions rather than drawings of one thing.
+ */
+const VARIANT_SUFFIXES = ['_2', '_3', '_alt', '_outline', '_outlined', '_rounded', '_sharp', '_new', '_filled', '_fill'];
+
+/** The suffix `material` ends with, and the name it is a variant of. */
+function variantOf(material: string): {base: string; solid: boolean} | undefined {
+  for (const suffix of VARIANT_SUFFIXES) {
+    if (!material.endsWith(suffix) || material.length === suffix.length) continue;
+    return {base: material.slice(0, -suffix.length), solid: suffix === '_fill' || suffix === '_filled'};
+  }
+  return undefined;
+}
 
 export function readCatalogue(): SegoeIcon[] {
   return (JSON.parse(readFileSync(CATALOGUE, 'utf8')) as {icons: SegoeIcon[]}).icons;
@@ -364,6 +503,24 @@ export function match(materialNames: string[], catalogue: SegoeIcon[]): Map<stri
       matches.set(material, {outline: plural[0].code, fill: solidOf(plural[0].name), via: 'plural'});
     }
   }
+  // After the rest, so a variant can take from a base that any of them found.
+  // One pass rather than a fixpoint: a variant of a variant is not a thing
+  // Material does, and chaining would let one loose match spread.
+  for (const material of materialNames) {
+    if (matches.has(material) || EXCLUDED.has(material)) continue;
+    const variant = variantOf(material);
+    const base = variant && matches.get(variant.base);
+    if (!variant || !base) continue;
+    // A `_filled` name *is* the solid glyph, so it carries no second form:
+    // a fill identical to the outline would be noise in the table and a
+    // pointless branch in the drawing.
+    const solid = variant.solid && base.fill !== undefined;
+    matches.set(material, {
+      outline: solid ? base.fill! : base.outline,
+      fill: solid ? undefined : base.fill,
+      via: 'variant',
+    });
+  }
   for (const material of Object.keys(CURATED)) {
     if (!materialNames.includes(material)) throw new Error(`${material} is not a Material Symbols name`);
   }
@@ -386,7 +543,7 @@ export function generate(): {table: Record<string, Glyph>; matches: Map<string, 
 
 function render(matches: Map<string, Match>, catalogue: SegoeIcon[]): string {
   const nameOf = new Map(catalogue.map(icon => [icon.code, icon.name]));
-  const counts = {name: 0, plural: 0, curated: 0};
+  const counts = {name: 0, plural: 0, curated: 0, variant: 0};
   for (const {via} of matches.values()) counts[via] += 1;
   const rows = [...matches]
     .sort(([a], [b]) => (a < b ? -1 : 1))
@@ -401,7 +558,8 @@ function render(matches: Map<string, Match>, catalogue: SegoeIcon[]): string {
     "// expo-symbols types and the Segoe Fluent Icons catalogue — do not edit;",
     '// `bun run segoe:windows` regenerates it. Each line ends with the Segoe',
     '// name of the glyph, and of its solid form where the family has one.',
-    `// ${matches.size} names: ${counts.name} matched by name, ${counts.plural} by singular and plural, ${counts.curated} curated.`,
+    `// ${matches.size} names: ${counts.name} matched by name, ${counts.plural} by singular and`,
+    `// plural, ${counts.variant} as a variant of another name, ${counts.curated} curated.`,
     'export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {',
     ...rows,
     '};',
@@ -409,19 +567,51 @@ function render(matches: Map<string, Match>, catalogue: SegoeIcon[]): string {
   ].join('\n');
 }
 
-function report(unmatched: string[], catalogue: SegoeIcon[]): void {
-  const byTag = new Map<string, SegoeIcon[]>();
-  for (const icon of catalogue) {
-    for (const tag of icon.tags) byTag.set(tag, [...(byTag.get(tag) ?? []), icon]);
+/**
+ * The glyphs worth looking at for a Material name that has none: the ones the
+ * catalogue tags with it, and the ones whose own name starts with it.
+ *
+ * Neither is safe to apply automatically — the catalogue tags `power` with
+ * every battery level it has, and `brush` names `BrushSize`, a size picker.
+ * They are good enough to *choose* from, which is what `CURATED` is for, and
+ * printing them is the difference between curating a name in a minute and
+ * going looking for one.
+ */
+export function candidatesFor(material: string, catalogue: SegoeIcon[]): SegoeIcon[] {
+  // A variant asks about the thing it is a variant of: nothing is tagged
+  // `sticky note 2`, and `sticky_note` finds QuickNote at once. Curating the
+  // base is also the better fix, since it brings every variant with it.
+  const variant = variantOf(material);
+  if (variant) {
+    const base = candidatesFor(variant.base, catalogue);
+    if (base.length > 0) return base;
   }
+  const words = material.split('_').filter(Boolean);
+  const found = new Map<string, SegoeIcon>();
+  for (const icon of catalogue) {
+    const tagged = icon.tags.includes(material.replace(/_/g, ' '));
+    const starts = segoeKey(icon.name).split('_').slice(0, words.length).join('_') === words.join('_');
+    if (tagged || starts) found.set(icon.code, icon);
+  }
+  // Shortest name first: the plain glyph before the qualified ones.
+  return [...found.values()].sort((a, b) => a.name.length - b.name.length);
+}
+
+/** `Beaker=F196 Flask=F1A0`, the shape a report line and a test failure share. */
+export function describeCandidates(material: string, catalogue: SegoeIcon[]): string {
+  const candidates = candidatesFor(material, catalogue);
+  if (candidates.length === 0) return `${material}: no glyph is tagged or named for it`;
+  return `${material}: ${candidates.map(icon => `${icon.name}=${icon.code}`).join(' ')}`;
+}
+
+function report(unmatched: string[], catalogue: SegoeIcon[]): void {
   let hits = 0;
   for (const material of unmatched) {
-    const candidates = byTag.get(material.replace(/_/g, ' ')) ?? [];
-    if (candidates.length === 0) continue;
+    if (candidatesFor(material, catalogue).length === 0) continue;
     hits += 1;
-    console.log(`${material}: ${candidates.map(icon => `${icon.name}=${icon.code}`).join(' ')}`);
+    console.log(describeCandidates(material, catalogue));
   }
-  console.log(`${unmatched.length} Material names without a glyph, ${hits} with a tag hit above`);
+  console.log(`${unmatched.length} Material names without a glyph, ${hits} with a candidate above`);
 }
 
 function main(args: string[]): void {

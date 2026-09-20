@@ -2,50 +2,73 @@
 // expo-symbols types and the Segoe Fluent Icons catalogue — do not edit;
 // `bun run segoe:windows` regenerates it. Each line ends with the Segoe
 // name of the glyph, and of its solid form where the family has one.
-// 353 names: 123 matched by name, 9 by singular and plural, 221 curated.
+// 502 names: 123 matched by name, 9 by singular and
+// plural, 66 as a variant of another name, 304 curated.
 export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
+  abc: ['E8C1'], // Characters
   accessibility: ['E776'], // EaseOfAccess
   accessibility_new: ['E776'], // EaseOfAccess
   account_balance: ['E825'], // Bank
   account_circle: ['E77B', 'EA8C'], // Contact, ContactSolid
   add: ['E710'], // Add
+  add_2: ['E710'], // Add
   admin_panel_settings: ['E7EF'], // Admin
   airplanemode_active: ['E709', 'EB4C'], // Airplane, AirplaneSolid
   album: ['E93C'], // MusicAlbum
   align_center: ['E8E3'], // AlignCenter
+  announcement: ['E789'], // Megaphone
+  approval: ['F28B'], // DocumentApproval
   apps: ['E71D'], // AllApps
+  architecture: ['EC06'], // CityNext
   area_chart: ['E9D2'], // AreaChart
   arrow_back: ['E72B'], // Back
+  arrow_back_2: ['E72B'], // Back
   arrow_back_ios: ['E76B'], // ChevronLeft
   arrow_back_ios_new: ['E76B'], // ChevronLeft
   arrow_downward: ['E74B'], // Down
+  arrow_downward_alt: ['E74B'], // Down
   arrow_drop_down: ['F08E'], // CaretSolidDown
   arrow_drop_up: ['F090'], // CaretSolidUp
   arrow_forward: ['E72A'], // Forward
   arrow_forward_ios: ['E76C'], // ChevronRight
   arrow_left: ['F08D'], // CaretSolidLeft
+  arrow_left_alt: ['F08D'], // CaretSolidLeft
   arrow_right: ['F08F'], // CaretSolidRight
+  arrow_right_alt: ['F08F'], // CaretSolidRight
   arrow_upward: ['E74A'], // Up
+  arrow_upward_alt: ['E74A'], // Up
   article: ['E8A5'], // Document
   aspect_ratio: ['E799'], // AspectRatio
+  assessment: ['E9D9'], // Diagnostic
   assignment: ['F0E3'], // ClipboardList
   asterisk: ['EA38'], // Asterisk
   attach_file: ['E723'], // Attach
   attachment: ['E723'], // Attach
   audio_file: ['E8D6'], // Audio
+  automation: ['E99A'], // Robot
   backspace: ['E750'], // BackSpaceQWERTY
   badge: ['F427'], // IDBadge
+  barcode: ['EC5A'], // BarcodeScanner
   barcode_scanner: ['EC5A'], // BarcodeScanner
   battery_saver: ['F432'], // BatterySaver
   battery_unknown: ['E996'], // BatteryUnknown
   block: ['E733'], // Blocked
   bluetooth: ['E702'], // Bluetooth
   bolt: ['E945'], // LightningBolt
+  book: ['E82D'], // Dictionary
+  book_2: ['E82D'], // Dictionary
+  book_3: ['E82D'], // Dictionary
   bookmark: ['E8A4'], // Bookmarks
   bookmarks: ['E8A4'], // Bookmarks
+  box: ['E7B8'], // Package
+  browse: ['ECCD'], // ExploreContent
+  brush: ['E771'], // Personalize
+  bubble: ['E8BD'], // Message
   bug_report: ['EBE8'], // Bug
   build: ['E90F'], // Repair
+  business: ['E821', 'EB4E'], // Work, WorkSolid
   business_center: ['E821', 'EB4E'], // Work, WorkSolid
+  cable: ['E839'], // Ethernet
   calculate: ['E8EF'], // Calculator
   calendar_month: ['E787', 'EA89'], // Calendar, CalendarSolid
   calendar_today: ['E787', 'EA89'], // Calendar, CalendarSolid
@@ -54,12 +77,15 @@ export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
   camera: ['E722'], // Camera
   camera_alt: ['E722'], // Camera
   cancel: ['E711'], // Cancel
+  cast: ['EC15'], // MiracastLogoSmall
   chat: ['E8BD'], // Message
   chat_bubble: ['E8BD'], // Message
+  chat_bubble_outline: ['E8BD'], // Message
   check: ['E73E'], // CheckMark
   check_box: ['E73A'], // CheckboxComposite
   check_box_outline_blank: ['E739', 'E73B'], // Checkbox, CheckboxFill
   check_circle: ['E930', 'EC61'], // Completed, CompletedSolid
+  check_circle_outline: ['E930', 'EC61'], // Completed, CompletedSolid
   checklist: ['E9D5'], // CheckList
   chess: ['F5B5'], // Chess
   chevron_left: ['E76B'], // ChevronLeft
@@ -78,6 +104,8 @@ export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
   colors: ['E790', 'F354'], // Color, ColorSolid
   comment: ['E90A'], // Comment
   communication: ['E95A'], // Communications
+  compress: ['F012'], // ZipFolder
+  computer: ['EC4E'], // ThisPC
   construction: ['E822', 'EA8D'], // Construction, ConstructionSolid
   contact_page: ['E779'], // ContactInfo
   contacts: ['E77B', 'EA8C'], // Contact, ContactSolid
@@ -85,6 +113,7 @@ export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
   content_cut: ['E8C6'], // Cut
   content_paste: ['E77F'], // Paste
   contrast: ['E7A1'], // Contrast
+  conversation: ['E8F2'], // ChatBubbles
   copy_all: ['E8C8'], // Copy
   create: ['E70F'], // Edit
   create_new_folder: ['E8F4'], // NewFolder
@@ -92,38 +121,59 @@ export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
   crop: ['E7A8'], // Crop
   dark_mode: ['E708'], // QuietHours
   dashboard: ['F246'], // ViewDashboard
+  dashboard_2: ['F246'], // ViewDashboard
   date_range: ['E8C0'], // CalendarWeek
   delete: ['E74D'], // Delete
   delete_forever: ['E74D'], // Delete
+  delete_outline: ['E74D'], // Delete
   description: ['E8A5'], // Document
+  details: ['E946', 'F167'], // Info, InfoSolid
   devices: ['E772'], // Devices
   dialpad: ['E75F'], // Dialpad
   dictionary: ['E82D'], // Dictionary
   directions: ['E8F0'], // Directions
+  directions_alt: ['E8F0'], // Directions
   directions_car: ['E804'], // Car
+  directions_car_filled: ['E804'], // Car
   dock: ['E952'], // Dock
   done: ['E73E'], // CheckMark
+  done_outline: ['E73E'], // CheckMark
   download: ['E896'], // Download
+  download_2: ['E896'], // Download
   draft: ['E7C3', 'E729'], // Page, PageSolid
   drafts: ['E8C3'], // Read
   drag_handle: ['E76F'], // GripperBarHorizontal
   drag_indicator: ['E784'], // GripperBarVertical
   draw: ['EC87', 'EC88'], // Draw, DrawSolid
   drive_file_move: ['E8DE'], // MoveToFolder
+  drive_file_move_outline: ['E8DE'], // MoveToFolder
+  dropdown: ['E70D'], // ChevronDown
   earbuds: ['F4C0'], // Earbud
+  earbuds_2: ['F4C0'], // Earbud
   east: ['E72A'], // Forward
   eco: ['E8BE'], // Leaf
   edit: ['E70F'], // Edit
   eject: ['F847'], // Eject
   email: ['E715', 'E8A8'], // Mail, MailFill
+  emergency: ['EC81'], // PoliceCar
   emoji_emotions: ['E899'], // Emoji
+  encrypted: ['F5B4'], // ShieldLock
+  energy: ['E945'], // LightningBolt
   equalizer: ['E9E9'], // Equalizer
   error: ['E783', 'EA39'], // Error, ErrorBadge
+  error_outline: ['E783', 'EA39'], // Error, ErrorBadge
   event: ['E787', 'EA89'], // Calendar, CalendarSolid
+  exclamation: ['E7BA', 'F736'], // Warning, WarningSolid
+  expand: ['E740'], // FullScreen
   expand_less: ['E70E'], // ChevronUp
   expand_more: ['E70D'], // ChevronDown
+  experiment: ['F196'], // Beaker
+  explore: ['E812'], // MapCompassTop
   extension: ['EA86'], // Puzzle
   eye_tracking: ['EAD6'], // EyeTracking
+  face: ['E899'], // Emoji
+  face_2: ['E899'], // Emoji
+  face_3: ['E899'], // Emoji
   fast_forward: ['EB9D'], // FastForward
   fast_rewind: ['EB9E'], // Rewind
   favorite: ['EB51', 'EB52'], // Heart, HeartFill
@@ -132,12 +182,17 @@ export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
   file_download: ['E896'], // Download
   file_upload: ['E898'], // Upload
   filter: ['E71C'], // Filter
+  filter_2: ['E71C'], // Filter
+  filter_3: ['E71C'], // Filter
   filter_alt: ['E71C'], // Filter
   filter_list: ['E71C'], // Filter
+  filter_list_alt: ['E71C'], // Filter
+  finance: ['E825'], // Bank
   find_in_page: ['E721'], // Search
   fingerprint: ['E928'], // Fingerprint
   fit_page: ['E9A6'], // FitPage
   flag: ['E7C1'], // Flag
+  flag_2: ['E7C1'], // Flag
   flash_on: ['E945'], // LightningBolt
   flight: ['E709', 'EB4C'], // Airplane, AirplaneSolid
   folder: ['E8B7', 'E8D5'], // Folder, FolderFill
@@ -158,34 +213,51 @@ export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
   forward_to_inbox: ['E89C'], // MailForward
   fullscreen: ['E740'], // FullScreen
   fullscreen_exit: ['E73F'], // BackToWindow
+  gamepad: ['E7FC'], // Game
   games: ['E7FC'], // Game
+  gesture: ['E815'], // Touch
   gif: ['F4A9'], // GIF
+  gif_2: ['F4A9'], // GIF
   globe: ['E774'], // Globe
+  glyphs: ['E8C1'], // Characters
   grade: ['E734', 'E735'], // FavoriteStar, FavoriteStarFill
   grid_view: ['F0E2'], // GridView
   group: ['E902'], // Group
   groups: ['E716'], // People
+  groups_2: ['E716'], // People
+  groups_3: ['E716'], // People
   handyman: ['E90F'], // Repair
   hard_drive: ['EDA2'], // HardDrive
+  hard_drive_2: ['EDA2'], // HardDrive
+  hardware: ['E772'], // Devices
   headphones: ['E7F6'], // Headphone
   headset: ['E95B'], // Headset
   health_and_safety: ['E95E'], // Health
+  hearing: ['F270'], // Ear
   hearing_aid: ['F27F'], // HearingAid
   heart_broken: ['EA92'], // HeartBroken
   help: ['E897'], // Help
+  help_outline: ['E897'], // Help
   hide: ['ED1A'], // Hide
   highlight: ['E7E6', 'E891'], // Highlight, HighlightFill
+  highlight_alt: ['E7E6', 'E891'], // Highlight, HighlightFill
   history: ['E81C'], // History
+  history_2: ['E81C'], // History
   home: ['E80F', 'EA8A'], // Home, HomeSolid
+  home_filled: ['EA8A'], // HomeSolid
+  house: ['E80F', 'EA8A'], // Home, HomeSolid
   image: ['EB9F'], // Photo2
   indeterminate_check_box: ['E73C'], // CheckboxIndeterminate
   info: ['E946', 'F167'], // Info, InfoSolid
+  info_outline: ['E946', 'F167'], // Info, InfoSolid
   input: ['E961'], // Input
   insert_drive_file: ['E7C3', 'E729'], // Page, PageSolid
   inventory: ['F0E3'], // ClipboardList
   inventory_2: ['E7B8'], // Package
+  joystick: ['E7FC'], // Game
   key: ['E8D7'], // Permissions
   keyboard: ['E765'], // KeyboardClassic
+  keyboard_alt: ['E765'], // KeyboardClassic
   keyboard_arrow_down: ['E70D'], // ChevronDown
   keyboard_arrow_left: ['E76B'], // ChevronLeft
   keyboard_arrow_right: ['E76C'], // ChevronRight
@@ -193,28 +265,42 @@ export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
   keyboard_full: ['EC31'], // KeyboardFull
   keyboard_return: ['E751'], // ReturnKey
   label: ['E8EC'], // Tag
+  lan: ['E839'], // Ethernet
   language: ['E774'], // Globe
+  laptop: ['E7F8'], // DeviceLaptopNoPic
   launch: ['E8A7'], // OpenInNewWindow
   light: ['E793'], // Light
   light_mode: ['E706'], // Brightness
   lightbulb: ['EA80'], // Lightbulb
+  lightbulb_2: ['EA80'], // Lightbulb
+  lightbulb_outline: ['EA80'], // Lightbulb
   link: ['E71B'], // Link
   list: ['E8FD'], // BulletedList
+  list_alt: ['E8FD'], // BulletedList
   lists: ['EA37'], // List
   local_cafe: ['EC32'], // Cafe
   local_offer: ['E8EC'], // Tag
   location_on: ['E707'], // MapPin
   lock: ['E72E'], // Lock
   lock_open: ['E785'], // Unlock
+  lock_outline: ['E72E'], // Lock
   logout: ['F3B1'], // SignOut
+  loop: ['E8EE'], // RepeatAll
+  lowercase: ['E84A'], // DownShiftKey
   mail: ['E715', 'E8A8'], // Mail, MailFill
+  mail_outline: ['E715', 'E8A8'], // Mail, MailFill
   mark_email_read: ['E8C3'], // Read
+  maximize: ['E922'], // ChromeMaximize
   memory: ['EEA1'], // CPU
+  memory_alt: ['EEA1'], // CPU
   menu: ['E700'], // GlobalNavButton
   menu_open: ['E8A0'], // OpenPane
   message: ['E8BD'], // Message
   mic: ['E720'], // Microphone
   mic_off: ['EC54'], // MicOff
+  minimize: ['E921'], // ChromeMinimize
+  monitor: ['E7FB'], // DeviceMonitorNoPic
+  monitoring: ['F246'], // ViewDashboard
   mood: ['E899'], // Emoji
   more: ['E712'], // More
   more_horiz: ['E712'], // More
@@ -224,24 +310,44 @@ export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
   movie: ['E8B2'], // Movies
   music_note: ['EC4F'], // MusicNote
   my_location: ['E81D'], // Location
+  nature: ['E8BE'], // Leaf
   new_window: ['E78B'], // NewWindow
+  nfc: ['F39B'], // NFCBadge
   north: ['E74A'], // Up
   not_interested: ['E733'], // Blocked
+  note: ['E70B'], // QuickNote
   note_add: ['E70B'], // QuickNote
+  note_alt: ['E70B'], // QuickNote
   notifications: ['EA8F'], // Ringer
   notifications_active: ['EA8F'], // Ringer
   notifications_off: ['E7ED'], // RingerSilent
+  numbers: ['F261'], // Keyboard12Key
   open_in_new: ['E8A7'], // OpenInNewWindow
   open_with: ['E7AC'], // OpenWith
+  output: ['EDE1'], // Export
+  overview: ['EB91'], // TaskViewExpanded
   package: ['E7B8'], // Package
+  package_2: ['E7B8'], // Package
   pages: ['E7C3', 'E729'], // Page, PageSolid
   palette: ['E790', 'F354'], // Color, ColorSolid
+  panorama: ['F131'], // Video360
+  passkey: ['EE7E'], // FIDOPasskey
+  password: ['E8D7'], // Permissions
+  password_2: ['E8D7'], // Permissions
+  pattern: ['ECA5'], // Tiles
   pause: ['E769'], // Pause
+  payment: ['E8C7'], // PaymentCard
   payment_card: ['E8C7'], // PaymentCard
   payments: ['E8C7'], // PaymentCard
   people: ['E716'], // People
+  people_alt: ['E716'], // People
+  people_outline: ['E716'], // People
   person: ['E77B', 'EA8C'], // Contact, ContactSolid
+  person_2: ['E77B', 'EA8C'], // Contact, ContactSolid
+  person_3: ['E77B', 'EA8C'], // Contact, ContactSolid
   person_add: ['E8FA'], // AddFriend
+  person_add_alt: ['E8FA'], // AddFriend
+  person_outline: ['E77B', 'EA8C'], // Contact, ContactSolid
   person_remove: ['F69B'], // UserRemove
   phone: ['E717'], // Phone
   photo: ['E91B'], // Photo
@@ -249,12 +355,16 @@ export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
   photo_library: ['EB9F'], // Photo2
   picture_as_pdf: ['EA90'], // PDF
   pie_chart: ['EB05'], // PieSingle
+  pie_chart_outline: ['EB05'], // PieSingle
+  pie_chart_outlined: ['EB05'], // PieSingle
   pin: ['EF3E'], // PINPad
   place: ['E707'], // MapPin
   play_arrow: ['E768', 'F5B0'], // Play, PlaySolid
   power_settings_new: ['E7E8'], // PowerButton
   preview: ['E8FF'], // Preview
   print: ['E749'], // Print
+  privacy: ['EA18'], // Shield
+  problem: ['EB90'], // StatusErrorFull
   public: ['E774'], // Globe
   push_pin: ['E840', 'E842'], // Pinned, PinnedFill
   qr_code: ['ED14'], // QRCode
@@ -272,14 +382,22 @@ export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
   replay: ['EF3B'], // Replay
   reply: ['E97A'], // Reply
   reply_all: ['E8C2'], // MailReplyAll
+  restaurant: ['EC32'], // Cafe
+  restore: ['E81C'], // History
+  road: ['E913'], // Street
   robot: ['E99A'], // Robot
+  robot_2: ['E99A'], // Robot
   router: ['EB77'], // GatewayRouter
   save: ['E74E'], // Save
+  save_alt: ['E74E'], // Save
   save_as: ['E792'], // SaveAs
   scan: ['E8FE'], // Scan
+  scanner: ['E8FE'], // Scan
   schedule: ['E917'], // Clock
+  schema: ['F003'], // Relationship
   school: ['E7BE'], // Education
   science: ['F196'], // Beaker
+  screenshot: ['F406'], // ClippingTool
   sd_card: ['E7F1'], // SDCard
   search: ['E721'], // Search
   security: ['EA18'], // Shield
@@ -292,8 +410,10 @@ export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
   shield: ['EA18'], // Shield
   shield_lock: ['F5B4'], // ShieldLock
   shop: ['E719'], // Shop
+  shop_2: ['E719'], // Shop
   shopping_bag: ['E719'], // Shop
   shopping_cart: ['E7BF'], // ShoppingCart
+  shortcut: ['E8A7'], // OpenInNewWindow
   shuffle: ['E8B1'], // Shuffle
   skip_next: ['E893'], // Next
   skip_previous: ['E892'], // Previous
@@ -307,37 +427,62 @@ export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
   speaker: ['E7F5'], // Speakers
   speed: ['EC4A'], // SpeedHigh
   star: ['E734', 'E735'], // FavoriteStar, FavoriteStarFill
+  star_outline: ['E734', 'E735'], // FavoriteStar, FavoriteStarFill
+  step: ['E805', 'E726'], // Walk, WalkSolid
+  sticky_note: ['E70B'], // QuickNote
+  sticky_note_2: ['E70B'], // QuickNote
   stop: ['E71A', 'EE95'], // Stop, StopSolid
+  storage: ['EDA2'], // HardDrive
+  storm: ['E945'], // LightningBolt
+  straight: ['ED5E'], // Ruler
   straighten: ['ED5E'], // Ruler
+  stylus: ['EDC6'], // PenWorkspace
   subtitles: ['ED1E'], // Subtitles
+  support: ['E897'], // Help
   support_agent: ['E95B'], // Headset
+  sweep: ['EA99'], // Broom
   swipe: ['E927'], // Swipe
   switch: ['F19F'], // ToggleRight
   sync: ['E895'], // Sync
+  sync_alt: ['E895'], // Sync
   sync_problem: ['EA6A'], // SyncError
   tablet: ['E70A'], // Tablet
   tag: ['E8EC'], // Tag
+  target: ['F272'], // Bullseye
   task: ['F7EC'], // Task
   task_alt: ['E930', 'EC61'], // Completed, CompletedSolid
   terminal: ['E756'], // CommandPrompt
   text_fields: ['E8D2'], // Font
+  text_fields_alt: ['E8D2'], // Font
+  text_to_speech: ['F83B'], // NarratorApp
   textsms: ['E8BD'], // Message
   thumb_down: ['E8E0', 'F3C0'], // Dislike, DislikeSolid
+  thumb_down_alt: ['E8E0', 'F3C0'], // Dislike, DislikeSolid
   thumb_up: ['E8E1', 'F3BF'], // Like, LikeSolid
+  thumb_up_alt: ['E8E1', 'F3BF'], // Like, LikeSolid
   thumbs_up_down: ['E8DF'], // LikeDislike
   timer: ['E916'], // Stopwatch
+  timer_2: ['E916'], // Stopwatch
+  timer_3: ['E916'], // Stopwatch
   today: ['E8D1'], // GotoToday
   toggle_off: ['F19E'], // ToggleLeft
   toggle_on: ['F19F'], // ToggleRight
   touch_app: ['E815'], // Touch
+  traffic: ['EF31'], // TrafficLight
   train: ['E7C0', 'EB4D'], // Train, TrainSolid
+  translate: ['F1D4'], // TranslateSparkle
+  transportation: ['E806', 'EB47'], // Bus, BusSolid
+  travel: ['E709', 'EB4C'], // Airplane, AirplaneSolid
   trending_down: ['EB11'], // StockDown
   trending_up: ['EB0F'], // StockUp
   tune: ['E9E9'], // Equalizer
   tv: ['E7F4'], // TVMonitor
   undo: ['E7A7'], // Undo
   unfold_more: ['EC8F'], // ScrollUpDown
+  update: ['E777'], // UpdateRestore
   upload: ['E898'], // Upload
+  upload_2: ['E898'], // Upload
+  uppercase: ['E84B'], // UpShiftKey
   usb: ['E88E'], // USB
   video_chat: ['E8AA'], // VideoChat
   video_file: ['E714', 'EA0C'], // Video, VideoSolid
@@ -345,16 +490,21 @@ export const SEGOE_GLYPHS: Record<string, [outline: string, fill?: string]> = {
   view_list: ['EA37'], // List
   visibility: ['E7B3'], // RedEye
   visibility_off: ['ED1A'], // Hide
+  voicemail: ['E77C'], // Memo
+  voicemail_2: ['E77C'], // Memo
   volume_off: ['E74F'], // Mute
   volume_up: ['E767'], // Volume
   vpn_key: ['E8D7'], // Permissions
   warning: ['E7BA', 'F736'], // Warning, WarningSolid
+  water: ['EB42'], // Drop
   wb_sunny: ['E706'], // Brightness
   web: ['EB41'], // Website
   west: ['E72B'], // Back
   widgets: ['F034'], // Widget
   wifi: ['E701'], // Wifi
+  window: ['EB3B'], // GenericApp
   work: ['E821', 'EB4E'], // Work, WorkSolid
+  work_outline: ['E821', 'EB4E'], // Work, WorkSolid
   zoom_in: ['E8A3'], // ZoomIn
   zoom_out: ['E71F'], // ZoomOut
 };
