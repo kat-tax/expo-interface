@@ -13,6 +13,7 @@ Windows. What is here:
 | `src/` | the kit itself, published as `expo-interface` |
 | `example/` | the dropfiles app the kit is dogfooded in |
 | `storybook/` | two Storybooks (web and on-device) over `src/**/*.stories.tsx` |
+| `docs/` | the documentation, one page per topic; the README is the front page that onboards and links into it, and a change to a component changes its entry in `docs/components/` |
 
 Two things the kit stands on are repositories of their own: `expo-windows`
 (https://github.com/kat-tax/expo-windows), the Windows platform runtime, and `expo-vitest`
@@ -55,7 +56,7 @@ bun run harness -p web --url http://localhost:8085 open / screenshot home.png tr
 
 One command drives the kit on web, Windows, Android and iOS: open a route,
 press, type, screenshot, and read the accessibility tree a screen reader reads.
-See https://github.com/kat-tax/expo-vitest/blob/master/HARNESS.md. Tests prove behaviour; the harness is how you
+See https://github.com/kat-tax/expo-vitest/blob/master/docs/harness.md. Tests prove behaviour; the harness is how you
 see the thing itself, and it is the only way to catch what only appears in a
 real renderer.
 
