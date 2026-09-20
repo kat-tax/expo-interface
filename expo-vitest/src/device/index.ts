@@ -3,28 +3,28 @@
  * an `element(by.…)` and matchers, with all the matching and waiting in
  * TypeScript rather than in a DSL.
  *
- * Underneath is the repository's harness, so one test runs on Windows (driven
+ * Underneath is this package's harness, so one test runs on Windows (driven
  * here, because `agent-device` has no Windows backend), on iOS and Android
  * (driven by `agent-device`) and on web (a headless Chromium). The app under
  * test needs no SDK and no rebuild.
  *
- *   import {by, device, element} from '../vitest/device';
+ *   import {by, device, element} from 'expo-vitest/device';
  *
  *   await device.open('/');
  *   await element(by.label('Settings')).press();
  *   await expect(device).toHaveElement(by.label('Name'));
  */
 import path from 'node:path';
-import {fileURLToPath} from 'node:url';
-import {driverFor} from '../../scripts/harness/lib/drivers.ts';
-import type {Selector, Snapshot, SnapshotNode} from '../../scripts/harness/lib/snapshot.ts';
-import {by, describeTarget, findNode} from '../../scripts/harness/lib/snapshot.ts';
-import type {Driver, Platform} from '../../scripts/harness/lib/types.ts';
+import {driverFor} from '../harness/lib/drivers.ts';
+import type {Selector, Snapshot, SnapshotNode} from '../harness/lib/snapshot.ts';
+import {by, describeTarget, findNode} from '../harness/lib/snapshot.ts';
+import type {Driver, Platform} from '../harness/lib/types.ts';
 
 export {by};
 export type {Selector, Snapshot, SnapshotNode};
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+/** The project under test: where the tests are run from, unless `HARNESS_ROOT` names it. */
+const ROOT = path.resolve(process.env.HARNESS_ROOT ?? process.cwd());
 
 /** How the device under test is named, from the environment the runner was given. */
 export interface DeviceConfig {

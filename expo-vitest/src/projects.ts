@@ -1,5 +1,5 @@
 import type {Alias} from 'vite';
-import type {TestProjectInlineConfiguration} from 'vitest/config';
+import type {TestProjectInlineConfiguration, ViteUserConfig} from 'vitest/config';
 import {existsSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -21,6 +21,8 @@ export const SUBPATHS: Record<string, string> = {
   native: 'native.ts',
   windows: 'windows.ts',
   router: 'router.tsx',
+  device: 'device/index.ts',
+  'device/matchers': 'device/matchers.ts',
   'metro-compat': 'metro-compat.ts',
 };
 
@@ -236,3 +238,34 @@ export function nodeProject(options: {name: string; include: string[]; root?: st
   };
 }
 
+
+/**
+ * The config for device tests: the ones that drive a real build of the app
+ * and read what it actually rendered (`expo-vitest/device`). Its own config
+ * rather than a project, since it needs an app running somewhere and is run
+ * on purpose:
+ *
+ *     export default defineConfig(deviceConfig());
+ *
+ *     HARNESS_PLATFORM=web HARNESS_URL=http://localhost:8081 vitest run --config vitest.config.device.mts
+ */
+export function deviceConfig(options: {include?: string[]; timeout?: number} = {}): ViteUserConfig {
+  const timeout = options.timeout ?? 120_000;
+  return {
+    resolve: {alias: selfAliases()},
+    test: {
+      name: 'device',
+      globals: true,
+      environment: 'node',
+      include: options.include ?? ['device/**/*.test.ts'],
+      setupFiles: [file('device/matchers.ts')],
+      // A real app, a real renderer: slower than a component test by a lot.
+      testTimeout: timeout,
+      hookTimeout: timeout,
+      // One app, one driver: two files must not press the same window at once.
+      fileParallelism: false,
+      pool: 'forks',
+      maxWorkers: 1,
+    },
+  };
+}

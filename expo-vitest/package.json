@@ -39,6 +39,14 @@
       "types": "./dist/router.d.ts",
       "default": "./dist/router.js"
     },
+    "./device": {
+      "types": "./dist/device/index.d.ts",
+      "default": "./dist/device/index.js"
+    },
+    "./device/matchers": {
+      "types": "./dist/device/matchers.d.ts",
+      "default": "./dist/device/matchers.js"
+    },
     "./metro-compat": {
       "types": "./dist/metro-compat.d.ts",
       "default": "./dist/metro-compat.js"
@@ -48,10 +56,14 @@
     },
     "./package.json": "./package.json"
   },
+  "bin": {
+    "expo-harness": "./dist/harness/index.js"
+  },
   "files": [
     "dist",
     "types.d.ts",
     "README.md",
+    "HARNESS.md",
     "LICENSE"
   ],
   "scripts": {

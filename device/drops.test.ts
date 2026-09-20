@@ -7,7 +7,7 @@
  *   HARNESS_PLATFORM=windows HARNESS_TARGET=…/Dropfiles.exe bun run test:device
  */
 import {afterAll, describe, expect, it} from 'vitest';
-import {by, device, element} from '../vitest/device/index.ts';
+import {by, device, element} from 'expo-vitest/device';
 
 /** The first drop in the example's demo data, whose editor holds a segmented control. */
 const DEMO_DROP = '_XEUUry_Bfczz5diaP6v';

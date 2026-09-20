@@ -113,7 +113,7 @@ export function windowsDriver(options: DriverOptions): Driver {
 
     async available(): Promise<Availability> {
       if (process.platform !== 'win32') return {ready: false, reason: 'this is not a Windows machine'};
-      if (!processName) return {ready: false, reason: 'no app to drive: build one (scripts/windows-ci.sh) and pass --target <exe or process name>'};
+      if (!processName) return {ready: false, reason: 'no app to drive: build one (`expo-windows run`) and pass --target <exe or process name>'};
       if (!running()) {
         const where = exe ? path.relative(options.root, exe) : processName;
         return {ready: false, found: where, reason: `${processName} is not running${exe ? `; start ${where}` : ''}`};

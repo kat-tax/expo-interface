@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {expoProjects, file, isInstalled, nodeProject, selfAliases, SUBPATHS} from './projects.ts';
+import {deviceConfig, expoProjects, file, isInstalled, nodeProject, selfAliases, SUBPATHS} from './projects.ts';
 
 const PACKAGE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(PACKAGE, 'package.json'), 'utf8'));
@@ -30,7 +30,8 @@ describe('the subpaths', () => {
     expect(aliases).toHaveLength(Object.keys(SUBPATHS).length);
     const router = aliases.find(alias => (alias.find as RegExp).test('expo-vitest/router'));
     expect(router?.replacement).toBe(path.join(PACKAGE, 'src', 'router.tsx'));
-    // A subpath is matched whole.
+    // A subpath is matched whole: `device` is not `device/matchers`.
+    expect(aliases.filter(alias => (alias.find as RegExp).test('expo-vitest/device/matchers'))).toHaveLength(1);
     expect(aliases.filter(alias => (alias.find as RegExp).test('expo-vitest/windows/more'))).toHaveLength(0);
   });
 });
@@ -88,7 +89,7 @@ describe('expoProjects', () => {
   });
 });
 
-describe('nodeProject', () => {
+describe('nodeProject and deviceConfig', () => {
   it('is a Node project of the name and files given', () => {
     expect(testOf(nodeProject({name: 'cli', include: ['cli/**/*.test.js'], root: PACKAGE, timeout: 5}))).toEqual({
       name: 'cli',
@@ -100,5 +101,12 @@ describe('nodeProject', () => {
       include: ['cli/**/*.test.js'],
     });
     expect(testOf(nodeProject({name: 'cli', include: []}))).toMatchObject({root: process.cwd(), testTimeout: 15_000});
+  });
+
+  it('runs device tests one at a time, with the matchers registered', () => {
+    const device = testOf(deviceConfig());
+    expect(device).toMatchObject({name: 'device', include: ['device/**/*.test.ts'], fileParallelism: false, maxWorkers: 1, testTimeout: 120_000, hookTimeout: 120_000});
+    expect(device.setupFiles).toEqual([path.join(PACKAGE, 'src', 'device', 'matchers.ts')]);
+    expect(testOf(deviceConfig({include: ['e2e/**/*.test.ts'], timeout: 10}))).toMatchObject({include: ['e2e/**/*.test.ts'], testTimeout: 10});
   });
 });

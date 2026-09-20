@@ -38,7 +38,7 @@ export interface SnapshotNode {
    * What a screen reader says past the name and the role. Every one of these
    * is absent unless the platform reported it, so a control that sets none
    * reads differently in the tree from one that sets them — which is the
-   * whole point: nothing else in this repository can see them, and a missing
+   * whole point: nothing else in a test run can see them, and a missing
    * `live` or `inSet` is invisible in a test and obvious to a user.
    *
    * Windows fills all of them (UI Automation); the other platforms fill what

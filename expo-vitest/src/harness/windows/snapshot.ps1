@@ -39,7 +39,7 @@ $actionable = @('Button', 'Edit', 'CheckBox', 'ComboBox', 'Slider', 'Tab', 'TabI
                 'ListItem', 'Hyperlink', 'MenuItem', 'RadioButton', 'Spinner', 'Thumb', 'SplitButton')
 
 # The properties Narrator reads past the name and the role, and which nothing
-# else in this repository can see: a control that sets none of them looks
+# else in a test run can see: a control that sets none of them looks
 # identical in the tree to one that sets them all. `LiveSetting` has no named
 # field in the managed client, so it is looked up by its UIA id (30135).
 $liveSetting = try { [System.Windows.Automation.AutomationProperty]::LookupById(30135) } catch { $null }

@@ -1,17 +1,17 @@
 # The harness
 
-Run the kit on a platform, drive it, and look at what it drew. One command,
+Run an app on a platform, drive it, and look at what it drew. One command,
 four platforms, the same steps everywhere.
 
 ```sh
-node scripts/harness/index.ts doctor
+expo-harness doctor
 ```
 
 ```
 what this machine can drive:
 
   yes  web      Chromium at chrome-headless-shell-win64
-  no   windows  no app to drive: build one (scripts/windows-ci.sh) and pass --target <exe or process name>
+  no   windows  no app to drive: build one (`expo-windows run`) and pass --target <exe or process name>
   yes  android  1 device: 2B221FDH3S0HDK
   no   ios      the iOS simulator only runs on macOS
 ```
@@ -23,16 +23,16 @@ disconnected commands.
 
 ```sh
 # the example on web, from the dev server
-node scripts/harness/index.ts -p web --url http://localhost:8085 \
+expo-harness -p web --url http://localhost:8085 \
   open / wait 3000 screenshot home.png tree
 
 # a Windows build, deep-linked to a route
-node scripts/harness/index.ts -p windows \
+expo-harness -p windows \
   --target example/windows/x64/Release/DropFiles.exe \
   open /detail wait 1000 screenshot detail.png tree
 
 # a device
-node scripts/harness/index.ts -p android --scheme dropfiles \
+expo-harness -p android --scheme dropfiles \
   open /settings screenshot settings.png
 ```
 
@@ -84,7 +84,7 @@ synthetic input needs.
 | Platform | How |
 | --- | --- |
 | web | `bun run web`, or `cd example && npx expo start --web --port 8085` |
-| windows | `scripts/windows-ci.sh <workdir>` builds and packages one; point `--target` at the exe it leaves |
+| windows | `expo-windows run` builds one; point `--target` at the exe it leaves, or at a running process by name |
 | android | `bun run android` onto a device or emulator |
 | ios | `bun run ios` into a simulator |
 
@@ -98,7 +98,7 @@ not the pixels: a tree is stable across machines and scale factors, it diffs
 legibly in review, and it is what a screen reader reads.
 
 ```ts
-import {by, device, element} from '../vitest/device/index.ts';
+import {by, device, element} from 'expo-vitest/device';
 
 await device.open('/');
 await element(by.label('Settings')).press();
@@ -139,7 +139,7 @@ and passes; in CI a missing baseline fails, so a run cannot go green by
 inventing its own expectations. A failure leaves the picture it took and a
 diff with the changed pixels in red over a faded copy, both under `.harness/`.
 
-The comparison is `scripts/harness/lib/png.ts`: a chunk walk, an inflate and
+The comparison is `src/harness/lib/png.ts`: a chunk walk, an inflate and
 the five scanline filters on Node's own zlib, rather than two dependencies for
 the same thing. It reads the 8-bit non-interlaced PNGs that Chromium, GDI+ and
 `adb` write, and says so plainly for anything else. `tolerance` absorbs the

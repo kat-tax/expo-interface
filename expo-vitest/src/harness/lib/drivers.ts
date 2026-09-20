@@ -6,7 +6,7 @@ import type {Driver, DriverOptions, Platform} from './types.ts';
 /**
  * The driver for a platform.
  *
- * Windows is driven by this repository, because `agent-device` has no backend
+ * Windows is driven here, because `agent-device` has no backend
  * for it; web by a headless Chromium that needs nothing installed beyond this
  * repository; iOS and Android by `agent-device`, which does those far better
  * than a hand-rolled adb or simctl wrapper ever would.

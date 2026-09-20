@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 import {prepare} from '../lib/run.ts';
-import type {Snapshot, SnapshotNode, Target} from '../lib/snapshot.ts';
+import type {Point, Snapshot, SnapshotNode, Target} from '../lib/snapshot.ts';
 import {asSelector, describeTarget, findNode, isPoint} from '../lib/snapshot.ts';
 import type {Availability, Driver, DriverOptions, SnapshotOptions, StepResult} from '../lib/types.ts';
 import {failed, ok} from '../lib/types.ts';
@@ -80,7 +80,7 @@ const COLLECT = `(() => {
     next++;
     const ref = 'e' + next;
     element.setAttribute('data-harness-ref', ref);
-    // react-native-web writes testID as data-testid, and the kit's own DOM
+    // react-native-web writes testID as data-testid, and an app's own DOM
     // components write it directly, so both arrive here the same way.
     const testId = element.getAttribute('data-testid');
     nodes.push({
@@ -100,8 +100,8 @@ const COLLECT = `(() => {
 })()`;
 
 /**
- * The web harness: a real Chromium over the kit's web build, which is the DOM
- * the kit renders rather than a React Native emulation of it. One browser is
+ * The web harness: a real Chromium over the app's web build, which is the DOM
+ * it renders rather than a React Native emulation of it. One browser is
  * kept for the whole run, so a sequence of steps shares a page the way a person
  * using the app would.
  *
@@ -139,7 +139,7 @@ export function webDriver(options: DriverOptions): Driver {
   async function open(): Promise<Page> {
     if (page) return page;
     const driver = playwright();
-    if (!driver) throw new Error('playwright-core is not installed in this repository');
+    if (!driver) throw new Error('playwright-core is not installed in this project');
     let launched: typeof browser = null;
     const reasons: string[] = [];
     for (const executablePath of [undefined, ...shells()]) {
@@ -206,7 +206,7 @@ export function webDriver(options: DriverOptions): Driver {
     platform: 'web',
 
     async available(): Promise<Availability> {
-      if (!playwright()) return {ready: false, reason: 'playwright-core is not installed; run an install in this repository'};
+      if (!playwright()) return {ready: false, reason: 'playwright-core is not installed; add it to this project'};
       const shell = shells()[0];
       return {ready: true, found: shell ? `Chromium at ${path.basename(path.dirname(shell))}` : 'Chromium through playwright'};
     },

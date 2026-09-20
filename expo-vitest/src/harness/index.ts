@@ -1,37 +1,40 @@
+#!/usr/bin/env node
 /**
- * The harness: run the kit on a platform, drive it, and look at what it drew.
+ * The harness: run an app on a platform, drive it, and look at what it drew.
  *
- *   node scripts/harness/index.ts doctor
- *   node scripts/harness/index.ts -p web --url http://localhost:8085 open / tree
- *   node scripts/harness/index.ts -p windows --target <exe> press 'label="New"' screenshot after.png
+ *   expo-harness doctor
+ *   expo-harness -p web --url http://localhost:8085 open / tree
+ *   expo-harness -p windows --target <exe> press 'label="New"' screenshot after.png
  *
  * Steps run in order in one session, so a sequence is a flow rather than four
  * disconnected commands. Targets are `agent-device`'s: a ref from a snapshot
  * (`@e7`), a selector (`label="New"`, `role=button`), or a bare label.
  *
- * Windows is driven by this repository (there is no `agent-device` backend for
- * it); iOS and Android are driven by `agent-device`; web by a headless Chromium
- * that needs no install beyond this repository's own.
+ * Windows is driven here (there is no `agent-device` backend for it); iOS and
+ * Android are driven by `agent-device`; web by a headless Chromium through
+ * `playwright-core`.
+ *
+ * Everything is relative to the project the command is run in, or to
+ * `HARNESS_ROOT` when that is set.
  */
 import path from 'node:path';
 import fs from 'node:fs';
-import {fileURLToPath} from 'node:url';
 import {driverFor} from './lib/drivers.ts';
 import {raiseWindows} from './platforms/windows.ts';
 import {renderSnapshot} from './lib/snapshot.ts';
 import type {Driver, Platform, StepResult} from './lib/types.ts';
 import {PLATFORMS, elsewhere, failed, ok} from './lib/types.ts';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const ROOT = path.resolve(process.env.HARNESS_ROOT ?? process.cwd());
 const OUT = '.harness';
 
 /** How long the machine must have been quiet before the harness presses anything. */
 const QUIET_SECONDS = 180;
 
-const USAGE = `the harness — run the kit on a platform and look at what it drew
+const USAGE = `the harness — run an app on a platform and look at what it drew
 
-  node scripts/harness/index.ts doctor
-  node scripts/harness/index.ts -p <platform> [options] <step>...
+  expo-harness doctor
+  expo-harness -p <platform> [options] <step>...
 
 platforms   ${PLATFORMS.join(', ')}
 

@@ -9,13 +9,13 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import {fileURLToPath} from 'node:url';
 import {expect} from 'vitest';
-import {comparePng} from '../../scripts/harness/lib/png.ts';
-import type {Selector, Snapshot, SnapshotNode} from '../../scripts/harness/lib/snapshot.ts';
-import {describeTarget, findNode} from '../../scripts/harness/lib/snapshot.ts';
+import {comparePng} from '../harness/lib/png.ts';
+import type {Selector, Snapshot, SnapshotNode} from '../harness/lib/snapshot.ts';
+import {describeTarget, findNode} from '../harness/lib/snapshot.ts';
 
-const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+/** The project under test: where the tests are run from, unless `HARNESS_ROOT` names it. */
+const ROOT = path.resolve(process.env.HARNESS_ROOT ?? process.cwd());
 
 /** What a screenshot is compared against, kept per platform because they do not look alike. */
 export function baselineFor(platform: string, name: string): string {
@@ -171,8 +171,11 @@ expect.extend({
   },
 });
 
-declare module 'vitest' {
-  interface Matchers<T = unknown> {
+// Vitest 4 re-exports `Matchers` from `@vitest/expect`, and an augmentation of
+// the re-exporting module does not merge: the interface is extended at its
+// origin, with the type parameter it is declared with there.
+declare module '@vitest/expect' {
+  interface Matchers<T = any> {
     toHaveElement(selector: Selector): T;
     toBeFullyLabelled(): T;
     toSupportArrowNavigation(key?: string): Promise<T>;

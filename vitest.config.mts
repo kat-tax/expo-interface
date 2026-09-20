@@ -54,19 +54,16 @@ const runtime = [
 ];
 
 /**
- * The harness's own logic: the snapshot shape every platform answers in, the
- * selector matching a test targets with, and the PNG comparison behind
- * `toMatchScreenshot`. Pure Node, no device: the tests that need one live in
- * the opt-in `device` project (`vitest.config.device.mts`).
+ * The test layer's own logic: the file names each platform takes, the two
+ * resolver plugins, and the harness's snapshot shape, selector matching and PNG
+ * comparison. Pure Node, no device: the tests that need one live in the opt-in
+ * `device` project (`vitest.config.device.mts`).
  */
-const harness = nodeProject({name: 'harness', include: ['scripts/harness/**/*.test.ts']});
-
-/** The test projects' own logic: the file names each platform takes, the two resolver plugins. */
 const vitest = nodeProject({name: 'expo-vitest', include: ['expo-vitest/src/**/*.test.ts']});
 
 export default defineConfig({
   test: {
-    projects: [...expoProjects({windows: {forbid: NOT_ON_WINDOWS}}), ...runtime, harness, vitest],
+    projects: [...expoProjects({windows: {forbid: NOT_ON_WINDOWS}}), ...runtime, vitest],
     // Terminal output plus the browsable report (`@vitest/ui`) in test-report/.
     reporters: ['default', 'html'],
     outputFile: {html: 'test-report/index.html'},

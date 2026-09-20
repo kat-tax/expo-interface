@@ -1,6 +1,6 @@
 import type {Snapshot, Target} from './snapshot.ts';
 
-/** The platforms the kit renders on, and that the harness can drive. */
+/** The platforms the harness can drive. */
 export type Platform = 'web' | 'windows' | 'android' | 'ios';
 
 export const PLATFORMS: Platform[] = ['web', 'windows', 'android', 'ios'];
@@ -32,7 +32,7 @@ export function failed(message: string): StepResult {
   return {ok: false, message};
 }
 
-/** For what this platform cannot do, said the way the kit says it: honestly, and not as an error. */
+/** For what this platform cannot do, said honestly, and not as an error. */
 export function elsewhere(what: string, platform: Platform, note = ''): StepResult {
   return {ok: true, skipped: true, message: `${what} is not something the ${platform} harness can do${note ? `: ${note}` : ''}`};
 }
