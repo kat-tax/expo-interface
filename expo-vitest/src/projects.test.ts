@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {deviceConfig, expoProjects, file, isInstalled, nodeProject, SELF, selfAliases, SUBPATHS} from './projects.ts';
+import {deviceConfig, expoProjects, file, installedIn, isInstalled, nodeProject, SELF, selfAliases, SUBPATHS} from './projects.ts';
 
 const PACKAGE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(PACKAGE, 'package.json'), 'utf8'));
@@ -52,6 +52,9 @@ describe('isInstalled', () => {
   it('finds a package up through the folders, and not one that is nowhere', () => {
     expect(isInstalled(path.join(PACKAGE, 'src'), 'vitest')).toBe(true);
     expect(isInstalled(PACKAGE, 'expo-vitest-no-such-package')).toBe(false);
+    const holder = installedIn(path.join(PACKAGE, 'src'), 'vitest') as string;
+    expect(fs.existsSync(path.join(holder, 'node_modules', 'vitest', 'package.json'))).toBe(true);
+    expect(installedIn(PACKAGE, 'expo-vitest-no-such-package')).toBeNull();
   });
 });
 
@@ -98,6 +101,12 @@ describe('expoProjects', () => {
     expect(ios.root).toBe(process.cwd());
   });
 
+  it('lets web read the project itself where the engine is nowhere to be found', () => {
+    const nowhere = path.parse(PACKAGE).root;
+    const [web] = expoProjects({root: nowhere, platforms: ['web']});
+    expect((web.server as {fs: {allow: string[]}}).fs.allow).toContain(nowhere);
+  });
+
   it('pre-bundles for web only what is installed, with what it was given besides', () => {
     const [web] = expoProjects({root: PACKAGE, platforms: ['web'], web: {optimize: ['vitest', 'expo-vitest-no-such-package'], alias: [{find: 'a', replacement: 'b'}]}});
     const include: string[] = testOf(web).deps.optimizer.client.include;
@@ -105,6 +114,9 @@ describe('expoProjects', () => {
     expect(include).not.toContain('expo-vitest-no-such-package');
     expect(include).toContain('@expo/ui');
     expect((web.resolve as unknown as {alias: {find: unknown}[]}).alias.map(alias => alias.find)).toContain('a');
+    // The folder the engine is installed in can be read, wherever a hoisted install put it.
+    const allow = (web.server as {fs: {allow: string[]}}).fs.allow;
+    expect(allow).toContain(installedIn(PACKAGE, 'vitest-expo'));
   });
 });
 

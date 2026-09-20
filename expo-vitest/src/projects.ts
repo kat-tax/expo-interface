@@ -1,4 +1,5 @@
 import type {Alias} from 'vite';
+import {searchForWorkspaceRoot} from 'vite';
 import type {TestProjectInlineConfiguration, ViteUserConfig} from 'vitest/config';
 import {existsSync} from 'node:fs';
 import path from 'node:path';
@@ -65,15 +66,24 @@ function escape(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-/** Whether a package is installed where the project would find it: up through the `node_modules` folders. */
-export function isInstalled(root: string, name: string): boolean {
+/**
+ * The folder whose `node_modules` holds a package, as the project would find
+ * it: up through the folders, which is where a hoisted install puts it.
+ * `null` when it is not installed.
+ */
+export function installedIn(root: string, name: string): string | null {
   let folder = path.resolve(root);
   for (;;) {
-    if (existsSync(path.join(folder, 'node_modules', name, 'package.json'))) return true;
+    if (existsSync(path.join(folder, 'node_modules', name, 'package.json'))) return folder;
     const parent = path.dirname(folder);
-    if (parent === folder) return false;
+    if (parent === folder) return null;
     folder = parent;
   }
+}
+
+/** Whether a package is installed where the project would find it. */
+export function isInstalled(root: string, name: string): boolean {
+  return installedIn(root, name) !== null;
 }
 
 export interface ExpoProjectsOptions {
@@ -199,6 +209,12 @@ export function expoProjects(options: ExpoProjectsOptions = {}): TestProjectInli
       const optimize = [...EXPO_WEB_PACKAGES, 'expo-router/testing-library', 'expo-router/build/ui/index.js', ...(web.optimize ?? [])];
       projects.push({
         root,
+        // Vite serves files under its workspace root only, which it looks for
+        // upward as a manifest with `workspaces`, and otherwise takes to be the
+        // project. An install hoisted above a project that is in no workspace is
+        // then out of reach, and the first file refused is this engine's own
+        // setup. So the folder the engine is installed in is allowed by name.
+        server: {fs: {allow: [searchForWorkspaceRoot(root), installedIn(root, 'vitest-expo') ?? root]}},
         plugins: [metroCompat(), vitestExpo({platform: 'web', jestCompat: false, transformPackages: transformPackages.filter(name => name !== '@expo/dom-webview')})],
         resolve: {
           alias: [
