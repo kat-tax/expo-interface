@@ -592,6 +592,46 @@ axe cannot press keys, so add the two layers that can.
     vaul in a portal and forwards only the props it names, so the blur radius
     has to arrive as a custom property on the root.
 
+    **Open question, raised 2026-09-19 and not decided: a `native` prop.**
+    Could `Surface` (and `Popover`, and `Sheet`) take a `native` flag that
+    makes the component a native view able to carry a material, on the
+    condition that only native children go inside it? The vocabulary already
+    exists — `Screen` has exactly this prop, documented as "whether to expect
+    an @expo/ui or normal RN component children" — and the analysis came out
+    like this:
+
+    - **iOS: yes, cleanly.** `background(style, shape)` takes a material *and*
+      a shape, so `Surface`'s radius comes along:
+      `background({type: 'material', material: 'thin'}, shapes.roundedRectangle({cornerRadius: 12}))`.
+      `NativeHostContext` already tracks whether the tree is inside a host, so
+      a native `Surface` under a native `Screen` would reuse the ambient one
+      rather than nesting a second.
+    - **Web: yes, and the prop is inert there.** `backdrop-filter` applies to
+      the kit's own element whatever the children are.
+    - **Windows: the constraint solves the objection above, and replaces it
+      with an unknown.** If `native` means the children are themselves islands
+      plus inert React Native text, a background island underneath has no
+      React Native pressable to steal input from. What is *not* known is
+      whether a XAML `AcrylicBrush` inside a separate `ContentIsland` can
+      sample RNW's composition content behind it — in-app acrylic samples the
+      app's own content, and an island is a different content root, so it may
+      sample nothing and come out black. Not answerable by reading; it needs a
+      spike that is allowed to come back negative.
+    - **Android: no.** `@expo/ui`'s Compose layer exposes no backdrop blur at
+      all. `Modifier.blur` blurs a view's own content rather than what is
+      behind it, and Android's real backdrop API
+      (`Window.setBackgroundBlurRadius`) is window-level and not surfaced.
+
+    So the prop would be native on iOS and web, possibly Windows, never
+    Android. The cost against that: `Surface` is the kit's most-used
+    primitive — `Toolbar`, `ListItem`, `FieldGroup`, `EmptyState` and
+    `Popover` all sit on it — and a mode where children must be native is a
+    real API split to buy a visual effect.
+
+    **Free either way, and worth doing on its own:** `Popover` on Windows
+    without children is already a `TeachingTip`, a real XAML control, so it
+    could take an acrylic background with no API change at all.
+
 **Wave 3 — decide the shape before writing code.**
 
 12. Swipe actions (§1.6) — asymmetric platform support.
