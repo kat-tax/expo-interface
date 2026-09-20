@@ -4,8 +4,7 @@ What each platform can still do that the kit does not yet ask of it, and the
 order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
-**Progress.** Wave 1 items 1, 2 and 3 are done. Everything else below is
-unstarted.
+**Progress.** Wave 1 items 1–4 are done. Everything else below is unstarted.
 
 ## How to read the matrices
 
@@ -501,7 +500,12 @@ axe cannot press keys, so add the two layers that can.
    `bun run codegen:windows` was **silently deleting every generated header** —
    the glob reached the tool unexpanded, it matched nothing, and it deleted
    rather than failed. Fixed by quoting the pattern.
-4. Empty state (§1.2).
+4. ~~Empty state (§1.2).~~ **Done.** iOS 17+ gets `ContentUnavailableView`;
+   older iOS, Android and web draw it with `SymbolView`, and Windows with a
+   Segoe glyph. Worth knowing: **the kit's `Icon` is web and Windows only** —
+   native platforms have no kit icon component and use `SymbolView` — so a
+   component drawn on all four needs its layout and its glyph in separate
+   files.
 5. Match highlighting in `Menu` / `PopupMenu` (§2.4, §4.1).
 6. The one-liners: `DropdownMenu.shadowElevation`, iOS `Toolbar` (§2.1, §2.3).
 7. The cheap semantics of §6.4 alongside whichever component is already open.

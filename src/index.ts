@@ -63,6 +63,8 @@ export {DateTimePicker} from './date-time';
 export type {DateTimeMode, DateTimePickerProps} from './date-time/types';
 export {Divider} from './divider';
 export type {DividerProps} from './divider/types';
+export {EmptyState} from './empty-state';
+export type {EmptyStateProps} from './empty-state/types';
 export {Fab} from './fab';
 export type {FabProps, FabSize} from './fab/types';
 export {FieldGroup} from './field-group';
