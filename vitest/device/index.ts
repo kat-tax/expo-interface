@@ -92,6 +92,21 @@ class Device {
     if (!result.ok) throw new Error(result.message);
   }
 
+  /**
+   * A named key where the focus is: `ArrowDown`, `Home`, `Enter`.
+   *
+   * Answers `'skipped'` on a backend that cannot send one, so a test written
+   * for four platforms still runs on all of them and says what it could not do
+   * rather than failing for the wrong reason.
+   */
+  async key(name: string): Promise<'pressed' | 'skipped'> {
+    const driver = await this.ready();
+    if (!driver.key) return 'skipped';
+    const result = await driver.key(name);
+    if (!result.ok) throw new Error(result.message);
+    return result.skipped ? 'skipped' : 'pressed';
+  }
+
   /** Waits until a selector is in the tree, or says what was there instead. */
   async waitFor(selector: Selector, {timeout = 10_000, interval = 400} = {}): Promise<SnapshotNode> {
     const deadline = Date.now() + timeout;

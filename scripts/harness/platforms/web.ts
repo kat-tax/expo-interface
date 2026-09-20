@@ -56,14 +56,27 @@ const COLLECT = `(() => {
     const role = element.getAttribute('role') ?? element.tagName.toLowerCase();
     // A plain container earns a place only when it is the leaf holding the text.
     if (PLAIN.has(element.tagName) && !element.hasAttribute('role') && (element.childElementCount > 0 || !(element.textContent ?? '').trim())) continue;
-    // The accessible name as a screen reader computes it: the label if there is
-    // one, else the text that is not hidden from it.
+    // The accessible name, in the order a screen reader works it out. The last
+    // two steps are not optional niceties: a checkbox is an empty <input> with
+    // no text of its own, and it takes its name from the <label> wrapped round
+    // it — reading textContent alone reports it as nameless and fails an
+    // accessibility assertion that is actually being met.
     let name = element.getAttribute('aria-label') ?? '';
+    if (!name) {
+      const labelledBy = element.getAttribute('aria-labelledby');
+      if (labelledBy) {
+        name = labelledBy.split(/\\s+/).map((id) => document.getElementById(id)?.textContent ?? '').join(' ').trim();
+      }
+    }
+    if (!name && element.labels && element.labels.length > 0) {
+      name = [...element.labels].map((each) => each.textContent ?? '').join(' ').replace(/\\s+/g, ' ').trim();
+    }
     if (!name) {
       const copy = element.cloneNode(true);
       copy.querySelectorAll('[aria-hidden="true"]').forEach((hidden) => hidden.remove());
-      name = (copy.textContent ?? '').replace(/\\s+/g, ' ').trim().slice(0, 80);
+      name = (copy.textContent ?? '').replace(/\\s+/g, ' ').trim();
     }
+    name = name.slice(0, 80);
     next++;
     const ref = 'e' + next;
     element.setAttribute('data-harness-ref', ref);
@@ -110,7 +123,7 @@ export function webDriver(options: DriverOptions): Driver {
     goto(url: string, o?: unknown): Promise<unknown>;
     screenshot(o: {path: string; fullPage?: boolean}): Promise<unknown>;
     mouse: {click(x: number, y: number): Promise<void>};
-    keyboard: {type(text: string): Promise<void>};
+    keyboard: {type(text: string): Promise<void>; press(key: string): Promise<void>};
     locator(selector: string): Locator;
     evaluate<T>(fn: string): Promise<T>;
   }
@@ -234,6 +247,12 @@ export function webDriver(options: DriverOptions): Driver {
       const current = await open();
       await current.keyboard.type(text);
       return ok(`typed ${text.length} characters`);
+    },
+
+    async key(name: string): Promise<StepResult> {
+      const current = await open();
+      await current.keyboard.press(name);
+      return ok(`pressed ${name}`);
     },
 
     async screenshot(file: string): Promise<StepResult> {

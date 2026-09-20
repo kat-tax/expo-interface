@@ -2,7 +2,9 @@ import './segmented.css';
 import type {CSSProperties} from 'react';
 import type {PickerValue} from '../picker/types';
 import type {SegmentedControlProps} from './types';
+import {useRef} from 'react';
 import {StyleSheet, type TextStyle} from 'react-native';
+import {useRovingFocus} from '../a11y/roving';
 import {Label} from '../typography';
 import {onAccent} from '../accent';
 import {flatten} from '../theme';
@@ -30,6 +32,19 @@ function SegmentedControlComponent<T extends PickerValue>({
 }: SegmentedControlProps<T>) {
   const items = extractItems<T>(children);
   const [current, setValue] = useSelectedValue(selectedValue, onValueChange, items[0]?.value);
+  const group = useRef<HTMLDivElement>(null);
+  // `role="radiogroup"` promises the radio pattern: the group is one tab stop,
+  // on the checked segment, and the arrows move *and* select — selection
+  // follows focus, which is what makes a segmented control usable without a
+  // pointer. Laid out in a row, so Left and Right rather than Up and Down.
+  const selected = Math.max(0, items.findIndex(item => item.value === current));
+  const roving = useRovingFocus(group, {
+    orientation: 'horizontal',
+    activeIndex: selected,
+    // The index is the position of a segment in this same list — the hook
+    // counts the elements `itemProps` marked — so there is always one there.
+    onMove: index => setValue(items[index]!.value),
+  });
   const m = metrics(size, shape);
   const vars = {
     '--ui-segmented-height': `${m.height}px`,
@@ -49,8 +64,8 @@ function SegmentedControlComponent<T extends PickerValue>({
       style={vars}
       data-testid={testID}>
       {label != null ? <Label color="label" style={{flexShrink: 1}}>{label}</Label> : null}
-      <div className="ui-segmented__group" role="radiogroup" aria-label={label}>
-        {items.map(item => (
+      <div ref={group} className="ui-segmented__group" role="radiogroup" aria-label={label} onKeyDown={roving.onKeyDown}>
+        {items.map((item, index) => (
           <button
             key={String(item.value)}
             type="button"
@@ -58,6 +73,7 @@ function SegmentedControlComponent<T extends PickerValue>({
             className="ui-segmented__item"
             aria-checked={item.value === current}
             disabled={disabled}
+            {...roving.itemProps(index)}
             onClick={() => setValue(item.value)}>
             {item.label}
           </button>

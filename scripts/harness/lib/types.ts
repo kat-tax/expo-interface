@@ -64,6 +64,15 @@ export interface Driver {
   fill(target: Target, text: string): Promise<StepResult>;
   /** Types into whatever has focus. */
   type(text: string): Promise<StepResult>;
+  /**
+   * A named key pressed where the focus is — `ArrowDown`, `Home`, `Enter` —
+   * so a test can check the keyboard contract behind a composite role rather
+   * than only the roles themselves.
+   *
+   * Optional: a backend that cannot send one leaves it off, and the step is
+   * skipped rather than failed.
+   */
+  key?(name: string): Promise<StepResult>;
   /** Saves a PNG of what is on screen. */
   screenshot(file: string): Promise<StepResult>;
   /** Seconds since the user last touched this machine; null where the question has no meaning. */

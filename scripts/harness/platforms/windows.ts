@@ -14,6 +14,24 @@ const SCRIPTS = path.join(HERE, '..', 'windows');
 /** Where a built app tends to be, when nobody said. */
 const GUESSES = ['example/windows/x64/Release', 'example/windows/x64/Debug', 'windows/x64/Release', 'windows/x64/Debug'];
 
+/**
+ * DOM key names, which is what a test writes, in the spelling `SendKeys` takes.
+ * Only the keys a composite role's pattern uses: anything else is refused by
+ * name rather than passed through, because `SendKeys` reads a bare letter as
+ * text and `{` as the start of a token of its own.
+ */
+const SEND_KEYS: Record<string, string> = {
+  ArrowDown: '{DOWN}',
+  ArrowUp: '{UP}',
+  ArrowLeft: '{LEFT}',
+  ArrowRight: '{RIGHT}',
+  Home: '{HOME}',
+  End: '{END}',
+  Tab: '{TAB}',
+  Enter: '{ENTER}',
+  Escape: '{ESC}',
+};
+
 function findExe(root: string): string | null {
   for (const guess of GUESSES) {
     const directory = path.join(root, guess);
@@ -140,6 +158,13 @@ export function windowsDriver(options: DriverOptions): Driver {
     async type(text: string): Promise<StepResult> {
       const result = powershell(script('input.ps1'), ['-Keys', text]);
       return result.ok ? ok(`typed ${JSON.stringify(text)}`) : failed(`typing failed: ${firstLine(result.stderr) || firstLine(result.stdout)}`);
+    },
+
+    async key(name: string): Promise<StepResult> {
+      const keys = SEND_KEYS[name];
+      if (!keys) return failed(`${name} is not a key the Windows harness knows how to send`);
+      const result = powershell(script('input.ps1'), ['-Keys', keys]);
+      return result.ok ? ok(`pressed ${name}`) : failed(`${name} failed: ${firstLine(result.stderr) || firstLine(result.stdout)}`);
     },
 
     async screenshot(file: string): Promise<StepResult> {

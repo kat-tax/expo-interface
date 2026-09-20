@@ -1,6 +1,7 @@
 import type {CSSProperties, ToggleEvent} from 'react';
 import type {MenuItem} from './types';
 import {useRef} from 'react';
+import {useRovingFocus} from '../a11y/roving';
 import {Icon} from '../symbol';
 
 const ICON_SIZE = 16;
@@ -49,6 +50,12 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
   const localRef = useRef<HTMLDivElement>(null);
   const ref = popoverRef ?? localRef;
   const anchored = !!anchor && !position;
+  // `role="menu"` promises the menu keyboard pattern: one tab stop on the
+  // checked item (or the first), the arrows moving within, and typing jumping
+  // to a label. The browser gives the top layer and the light dismiss; this is
+  // the half it does not.
+  const checked = items.findIndex(item => item.active);
+  const roving = useRovingFocus(ref, {activeIndex: checked === -1 ? 0 : checked, typeahead: true});
 
   const style: Record<string, string | number> = {};
   if (anchored && ANCHOR_SUPPORTED) style.positionAnchor = anchor;
@@ -92,7 +99,8 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
         anchored && ANCHOR_SUPPORTED && atPoint && 'ui-menu__list--point',
       ].filter(Boolean).join(' ')}
       style={style as CSSProperties}
-      onToggle={onToggle}>
+      onToggle={onToggle}
+      onKeyDown={roving.onKeyDown}>
       {items.map((item, index) => (
         <div key={index}>
           {item.separator && index > 0 ? <div className="ui-menu__separator" role="separator"/> : null}
@@ -108,6 +116,7 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
             disabled={item.disabled}
             popoverTarget={id}
             popoverTargetAction="hide"
+            {...roving.itemProps(index)}
             onClick={item.onPress}>
             {item.swatch ? (
               <span className="ui-menu__swatch" style={{background: item.swatch}} aria-hidden="true"/>

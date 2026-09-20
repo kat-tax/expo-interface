@@ -96,7 +96,13 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
     )
     : title == null && logo;
   return (
-    <View {...props} testID="tab-bar" style={[styles.list, !shown && styles.hidden]}>
+    // A landmark, not a `tablist`. These move between routes rather than
+    // between panels in a page, so the honest markup is navigation — and a
+    // navigation's links are each their own tab stop, which means there is no
+    // arrow-key pattern owed here (see `src/a11y/roving.ts` for the ones that
+    // are). Named, because a page can hold more than one landmark and "banner"
+    // alone tells a screen-reader user nothing.
+    <View {...props} role="navigation" aria-label="Main" testID="tab-bar" style={[styles.list, !shown && styles.hidden]}>
       <View testID="tab-bar-row" style={styles.inner}>
         <View style={styles.logo}>
           {header?.onBack ? <BackButton onPress={header.onBack}/> : mark}
@@ -141,7 +147,10 @@ function BackButton({onPress}: {onPress: () => void}) {
 
 export function TabLink({children, isFocused, icon, badge, ...props}: TabTriggerSlotProps & {icon: TabRoute['icon']; badge?: TabRoute['badge']}) {
   return (
-    <Pressable {...props} style={({pressed}) => pressed && styles.pressed}>
+    // The tab standing for the route being shown is the current page, which is
+    // what a screen reader announces to say where you are. Nothing else in the
+    // bar said so before: every tab read identically.
+    <Pressable {...props} aria-current={isFocused ? 'page' : undefined} style={({pressed}) => pressed && styles.pressed}>
       <View style={styles.link}>
         <SymbolView name={icon} size={18} tintColor={isFocused ? theme.label : theme.secondaryLabel}/>
         <Label color={isFocused ? 'label' : 'secondaryLabel'}>{children}</Label>

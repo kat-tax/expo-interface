@@ -241,3 +241,50 @@ describe('Menu (web)', () => {
     }
   });
 });
+describe('the menu keyboard pattern', () => {
+  /** What `role="menu"` promises anyone without a pointer. */
+  const press = (key: string) => fireEvent.keyDown(screen.getByRole('menu', {hidden: true}), {key});
+  const menuItems = () => screen.getAllByRole('menuitem', {hidden: true});
+
+  it('is one stop in the tab order, on the checked entry when there is one', () => {
+    render(<Menu label="More" items={[{label: 'Share'}, {label: 'Rename', active: true}, {label: 'Delete'}]}/>);
+    expect(menuItems().map(item => item.tabIndex)).toEqual([-1, 0, -1]);
+  });
+
+  it('walks with the arrows, wraps at the ends, and reaches both with Home and End', () => {
+    render(<Menu label="More" items={items}/>);
+    const entries = menuItems();
+    entries[0]!.focus();
+    press('ArrowDown');
+    expect(document.activeElement).toBe(entries[1]);
+    press('ArrowUp');
+    expect(document.activeElement).toBe(entries[0]);
+    press('ArrowUp');
+    expect(document.activeElement).toBe(entries.at(-1));
+    press('Home');
+    expect(document.activeElement).toBe(entries[0]);
+    press('End');
+    expect(document.activeElement).toBe(entries.at(-1));
+  });
+
+  it('jumps to an entry by typing its first letter, reading past the icon', () => {
+    render(<Menu label="More" items={items}/>);
+    const entries = menuItems();
+    entries[0]!.focus();
+    vi.useFakeTimers();
+    try {
+      // "Delete" carries a trash glyph, drawn as the ligature `delete`. It is
+      // aria-hidden, so it is not what `d` should be matching — and "Rename",
+      // which has no icon, must still be reachable by `r`.
+      press('d');
+      expect(document.activeElement).toHaveTextContent('Delete');
+      // Long enough that this is a new word rather than "dr", which matches
+      // nothing and would rightly move nowhere.
+      vi.advanceTimersByTime(700);
+      press('r');
+      expect(document.activeElement).toHaveTextContent('Rename');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

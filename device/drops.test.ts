@@ -9,6 +9,9 @@
 import {afterAll, describe, expect, it} from 'vitest';
 import {by, device, element} from '../vitest/device/index.ts';
 
+/** The first drop in the example's demo data, whose editor holds a segmented control. */
+const DEMO_DROP = '_XEUUry_Bfczz5diaP6v';
+
 afterAll(async () => {
   await device.close();
 });
@@ -52,7 +55,23 @@ describe(`the example on ${device.platform}`, () => {
     expect(byId?.name).toBe('Name');
   });
 
+  it('moves within the segmented control with the arrow keys', async () => {
+    // The keyboard half of `role="radiogroup"`. Nothing in vitest can catch a
+    // missing arrow-key pattern the way this does, because nothing else runs
+    // the real renderer — and axe, which does run over every story, reads the
+    // roles without ever pressing a key.
+    // The drop editor is the screen with a segmented control on it.
+    await device.open(`/${DEMO_DROP}/edit`);
+    await element(by.label('Layout')).waitFor();
+    await element(by.label('List')).press();
+    await expect(device).toSupportArrowNavigation('ArrowRight');
+  });
+
   it('announces every control it offers', async () => {
+    // Says where it is rather than inheriting whatever screen the test before
+    // it left behind.
+    await device.open('/');
+    await element(by.text('HIS-201')).waitFor();
     // What a screen reader would read. An interactive element with no name is
     // announced as its role alone — "button" — which is the defect this keeps
     // finding on Windows, where a glyph and a label in a panel name nothing.

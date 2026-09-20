@@ -69,6 +69,60 @@ expect.extend({
   },
 });
 
+/** Something whose focus can be moved with a key — the device, in practice. */
+interface Navigable {
+  platform: string;
+  snapshot(options?: {interactive?: boolean}): Promise<Snapshot>;
+  key(name: string): Promise<'pressed' | 'skipped'>;
+}
+
+/**
+ * How a node reads when comparing two snapshots. Refs are numbered per
+ * snapshot, so they cannot say whether the focus moved; what a node *is* can.
+ */
+export function identify(node: SnapshotNode): string {
+  return `${node.role} ${node.testId ?? node.name}`;
+}
+
+expect.extend({
+  /**
+   * Pressing the key moves the focus.
+   *
+   * This is the half of a composite ARIA role that axe cannot check. It reads
+   * the roles and never presses anything, so a `role="menu"` or
+   * `role="radiogroup"` with no arrow keys behind it passes every static check
+   * while being unusable without a pointer — which is exactly what this kit
+   * shipped until `src/a11y/roving.ts`. Only a real renderer can answer it.
+   */
+  async toSupportArrowNavigation(received: Navigable, key = 'ArrowDown') {
+    const before = await received.snapshot({interactive: false});
+    const from = before.nodes.find(node => node.focused);
+    if (!from) {
+      return {
+        pass: false,
+        message: () =>
+          `nothing has focus, so ${key} has nowhere to move from — press or focus an element first. ` +
+          `The tree has ${before.nodes.length} nodes.`,
+      };
+    }
+    if ((await received.key(key)) === 'skipped') {
+      return {pass: true, message: () => `the ${received.platform} harness cannot send ${key}, so this was not checked`};
+    }
+    const after = await received.snapshot({interactive: false});
+    const to = after.nodes.find(node => node.focused);
+    const pass = !!to && identify(to) !== identify(from);
+    return {
+      pass,
+      message: () =>
+        pass
+          ? `expected ${key} to leave the focus on ${identify(from)}, but it moved to ${identify(to!)}`
+          : to
+            ? `${key} left the focus on ${identify(from)}. A composite role promises the arrow keys move within it; this one does not keep that promise.`
+            : `${key} lost the focus entirely — nothing in the tree is focused after it, which is worse than not moving.`,
+    };
+  },
+});
+
 expect.extend({
   /**
    * The screen against a committed baseline, pixel by pixel.
@@ -121,6 +175,7 @@ declare module 'vitest' {
   interface Matchers<T = unknown> {
     toHaveElement(selector: Selector): T;
     toBeFullyLabelled(): T;
+    toSupportArrowNavigation(key?: string): Promise<T>;
     toMatchScreenshot(name: string, options?: {maxRatio?: number}): Promise<T>;
   }
 }

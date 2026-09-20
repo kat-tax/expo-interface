@@ -145,3 +145,39 @@ describe('SegmentedControl (web)', () => {
     expect(screen.getByTestId('styled')).toHaveStyle({opacity: 0.5});
   });
 });
+
+describe('the radio group keyboard pattern', () => {
+  /** What `role="radiogroup"` promises anyone without a pointer. */
+  const press = (key: string) => fireEvent.keyDown(screen.getByRole('radiogroup'), {key});
+
+  it('is one stop in the tab order, on the segment that is checked', () => {
+    render(<SegmentedControl selectedValue="week">{items}</SegmentedControl>);
+    const radios = screen.getAllByRole('radio');
+    expect(radios.map(radio => radio.tabIndex)).toEqual([-1, 0, -1]);
+  });
+
+  it('moves along the row and selects as it goes, because selection follows focus', () => {
+    const onValueChange = vi.fn();
+    render(<SegmentedControl selectedValue="day" onValueChange={onValueChange}>{items}</SegmentedControl>);
+    const radios = screen.getAllByRole('radio');
+    radios[0]!.focus();
+    press('ArrowRight');
+    expect(document.activeElement).toBe(radios[1]);
+    expect(onValueChange).toHaveBeenCalledWith('week');
+    press('ArrowLeft');
+    expect(document.activeElement).toBe(radios[0]);
+    expect(onValueChange).toHaveBeenLastCalledWith('day');
+  });
+
+  it('comes round at the ends, and reaches both with Home and End', () => {
+    render(<SegmentedControl>{items}</SegmentedControl>);
+    const radios = screen.getAllByRole('radio');
+    radios[0]!.focus();
+    press('ArrowLeft');
+    expect(document.activeElement).toBe(radios.at(-1));
+    press('Home');
+    expect(document.activeElement).toBe(radios[0]);
+    press('End');
+    expect(document.activeElement).toBe(radios.at(-1));
+  });
+});
