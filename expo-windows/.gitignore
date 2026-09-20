@@ -1,0 +1,25 @@
+node_modules/
+coverage/
+test-report/
+*.tsbuildinfo
+*.tgz
+
+# Expo
+.expo/
+dist/
+
+# what a Windows build leaves in the library's folder
+windows/**/x64/
+windows/**/ARM64/
+windows/**/Win32/
+windows/**/obj/
+windows/**/Generated Files/
+windows/packages/
+*.binlog
+
+.DS_Store
+npm-debug.*
+.env*.local
+
+# Claude Code: the shared configuration is committed, the personal parts are not
+.claude/settings.local.json

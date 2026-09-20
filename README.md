@@ -11,7 +11,7 @@
 
 [The expo-interface document](docs/expo-interface.md) describes every
 component, what each platform renders, and where the platforms differ.
-[The expo-windows document](docs/expo-windows.md) describes the Windows
+[The expo-windows document](expo-windows/docs/expo-windows.md) describes the Windows
 platform runtime that lives in this repository.
 
 ## Install

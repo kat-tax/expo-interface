@@ -4,7 +4,7 @@ Windows for Expo apps, on react-native-windows. Expo's own tooling has no
 `windows` platform: `expo prebuild` writes no `windows/` folder, `expo run`
 has no Windows target, and the Expo packages find no native module there.
 This package is the runtime that fills those in. It draws no UI; the controls
-are [expo-interface](../README.md)'s job.
+are [expo-interface](https://github.com/kat-tax/expo-interface)'s job.
 
 | Piece | What it does |
 | --- | --- |
@@ -13,7 +13,7 @@ are [expo-interface](../README.md)'s job.
 | The native library | `windows/ExpoWindows`, a C++/WinRT library autolinked into the app, with the modules and views that need the platform. |
 | The CLI | `expo-windows init`, `run`, `bundle` and `package`: the app project written, built, bundled and shipped as an MSIX. |
 
-[The expo-windows document](../docs/expo-windows.md) is the full reference:
+[The expo-windows document](docs/expo-windows.md) is the full reference:
 how each piece works, what every Expo package does on Windows, release builds,
 packaging and signing, the window API, and the limits.
 
@@ -70,5 +70,5 @@ The runtime's own `ExpoWindows` module sets the window's title, extends the
 content into the title bar, reads high contrast, drives the touch keyboard
 and reports crashes.
 
-[The document](../docs/expo-windows.md#what-each-package-gets) has the
+[The document](docs/expo-windows.md#what-each-package-gets) has the
 package-by-package table.

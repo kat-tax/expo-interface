@@ -23,7 +23,7 @@ Expo SDK 57 (React Native 0.86.3) and `@expo/ui` 57.0.18. The Windows files
 use react-native-windows' Fabric API and are built and tested in a
 react-native-windows 0.84 app with Expo 57's JavaScript, since no
 react-native-windows pairs with React Native 0.86 yet. See
-[expo-windows](expo-windows.md#versions).
+[expo-windows](../expo-windows/docs/expo-windows.md#versions).
 
 ## How the kit is built
 
@@ -131,7 +131,7 @@ optional peer for `KeyboardBar`.
    ```
 
 Windows needs `expo-windows` in the app as well. See its
-[document](expo-windows.md#setup).
+[document](../expo-windows/docs/expo-windows.md#setup).
 
 ## Hosts
 

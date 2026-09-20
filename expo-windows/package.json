@@ -44,8 +44,10 @@
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "lint": "oxlint --max-warnings 0",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "codegen:windows": "npm exec --yes --package=@react-native-windows/codegen@0.84.0 --package=@react-native/codegen@0.84.1 -- react-native-windows-codegen --files \"src/windows/specs/*NativeComponent.ts\" --libraryName ExpoWindowsSpec --namespace winrt::ExpoWindows::Codegen --outputDirectory windows/ExpoWindows/codegen --componentsWindows"
   },
   "peerDependencies": {
     "expo": "^57.0.0",
@@ -54,10 +56,17 @@
     "react-native": "*"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.7",
     "@expo/dom-webview": "~57.0.1",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/netinfo": "^12.0.1",
+    "@react-native/babel-preset": "0.86.3",
     "@shopify/flash-list": "^2.3.2",
+    "@testing-library/react-native": "^14.0.1",
+    "@types/node": "^26.4.0",
+    "@types/react": "~19.2.2",
+    "@vitest/coverage-v8": "^4.1.11",
+    "expo": "~57.0.18",
     "expo-age-range": "~57.0.5",
     "expo-app-metrics": "~57.0.15",
     "expo-apple-authentication": "~57.0.1",
@@ -107,6 +116,7 @@
     "expo-maps": "~57.0.2",
     "expo-media-library": "~57.0.4",
     "expo-mesh-gradient": "~57.0.1",
+    "expo-modules-core": "~57.0.14",
     "expo-navigation-bar": "~57.0.2",
     "expo-network": "~57.0.1",
     "expo-notifications": "~57.0.15",
@@ -133,6 +143,16 @@
     "expo-video-thumbnails": "~57.0.1",
     "expo-web-browser": "~57.0.2",
     "expo-widgets": "~57.0.13",
-    "react-native-svg": "^15.15.5"
-  }
+    "oxlint": "^1.81.0",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-svg": "^15.15.5",
+    "test-renderer": "^1.2.0",
+    "typescript": "~6.0.3",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11",
+    "vitest-expo": "^57.1.0",
+    "vitest-native": "^0.13.0"
+  },
+  "packageManager": "bun@1.4.0"
 }

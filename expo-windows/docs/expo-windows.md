@@ -7,7 +7,7 @@ Expo's own tooling has no `windows` platform: `expo prebuild` writes no
 `windows/` folder, `expo run` has no Windows target, and the Expo packages
 find no native module when they load. The runtime fills those gaps with four
 pieces. None of them draws UI; the controls are
-[expo-interface](expo-interface.md)'s job.
+[expo-interface](https://github.com/kat-tax/expo-interface)'s job.
 
 | Piece | What it does |
 | --- | --- |
