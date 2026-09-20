@@ -10,15 +10,13 @@ import type {ButtonProps} from '../button/types';
  * - **Web** — react-native-web's `Share`, which is `navigator.share`.
  * - **Windows** — the kit's own module over `DataTransferManager`, because
  *   React Native's `Share` only dispatches on `ios` and `android`.
- *   **Unverified.** The module builds and is registered, and the button
- *   presses, but no sheet appeared in an unpackaged Release build and nothing
- *   was logged. The cause was not determined; package identity is the first
- *   thing to rule out, since it is what stops other Windows APIs in the same
- *   harness. `onShare` reports `false` when the sheet cannot open, so an app
- *   can say so rather than appear to have shared nothing.
+ *   Seen working in an unpackaged Release build: the system sheet opens over
+ *   the window with the link, its QR code and the share targets. Package
+ *   identity, which stops several other Windows APIs, is not needed for this
+ *   one. `onShare` reports `false` when the sheet cannot open, so an app can
+ *   say so rather than appear to have shared nothing.
  *
- * Native on iOS, Android and web, through three different doors, and a fourth
- * on Windows that has not been seen working.
+ * Native on all four, through four different doors.
  */
 export interface ShareLinkProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape' | 'tone' | 'color' | 'disabled' | 'hideLabel'> {
   /** The button's text, and the name a screen reader gives it. */

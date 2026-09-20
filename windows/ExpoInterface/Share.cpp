@@ -85,12 +85,12 @@ void ShareText(std::wstring title, std::wstring message, std::wstring url, React
  * This is the kit's only native module; everything else it wants from Windows
  * is a view.
  *
- * **Not yet seen working.** Pressed in an unpackaged Release build the sheet
- * did not appear and nothing was logged. Every failure here resolves `false`
- * rather than rejecting, so the app hears that no sheet opened — but that is a
- * graceful answer to a problem still unexplained, not evidence of one. Package
- * identity is the first thing to rule out: it is what stops other Windows APIs
- * in this same harness, which runs the app unpackaged.
+ * Seen working in an unpackaged Release build, over the app's own window: the
+ * sheet opens with the link, its QR code and the share targets, and the window
+ * goes modal behind it. Package identity is not needed, though it is what
+ * stops several other Windows APIs in the same harness. Every failure here
+ * resolves `false` rather than rejecting, so an app hears that no sheet opened
+ * instead of catching.
  */
 REACT_MODULE(ExpoInterfaceShare)
 struct ExpoInterfaceShare {

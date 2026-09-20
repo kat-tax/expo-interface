@@ -5,9 +5,9 @@ order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
 **Progress.** Wave 1 is done, except that item 6 turned out not to be what it
-said — see below. **Waves 1 and 2 are done.** Wave 3: item 12 done, item 13 closed without
-building, `ShareLink` done out of item 14 (Windows unverified); the rest of 14
-and item 15 outstanding.
+said — see below. **Waves 1 and 2 are done.** Wave 3: item 12 done, item 13
+closed without building, `ShareLink` and the pager done out of item 14; `Chip`
+and `TabView` from 14, and item 15, outstanding.
 
 ## How to read the matrices
 
@@ -746,13 +746,17 @@ axe cannot press keys, so add the two layers that can.
     `DataTransferManager`) because React Native's `Share` **only dispatches on
     `ios` and `android`** — on any other platform its JavaScript does nothing.
 
-    **The Windows path has not been seen working.** It builds, it registers,
-    the button presses — and no sheet appeared in an unpackaged Release build,
-    with nothing logged. The cause was not determined. Rule out package
-    identity first: it is what stops other Windows APIs in this same harness.
-    Every failure resolves `false` so an app hears that no sheet opened, which
-    is a graceful answer to an unexplained problem rather than evidence about
-    it.
+    **The Windows path is now seen working, and the reason it appeared not to
+    be is worth more than the fix.** The sheet opens over the app's own window
+    in an unpackaged Release build, with the link, its QR code and the share
+    targets, and the window goes modal behind it — package identity, the first
+    suspect, is not needed. What was wrong was the *harness*: the Windows apps
+    hold a **copy** of `expo-interface` in their `node_modules`, `src/` and
+    `windows/` alike, and the solution compiles that copy's C++ rather than the
+    repository's. A copy two days old has neither the new JavaScript nor the
+    new island, so a component comes out `undefined` and a module is simply
+    absent — and nothing says so. Sync both directories before believing
+    anything a Windows run appears to show.
 
     **The pager is done, and §1.8's matrix is corrected there.** It came out
     the opposite of what was planned: the *scroller* is the platform's own on
