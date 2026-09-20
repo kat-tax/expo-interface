@@ -1,0 +1,4 @@
+[install]
+# The flat layout: the fixture resolves React Native and Expo from this
+# folder's node_modules by climbing to it, as an app's own files would.
+linker = "hoisted"

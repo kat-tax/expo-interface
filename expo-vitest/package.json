@@ -69,6 +69,9 @@
   "scripts": {
     "build": "node scripts/build.js",
     "typecheck": "tsc --noEmit",
+    "lint": "oxlint --max-warnings 0",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:fixture": "node scripts/fixture.js",
     "prepack": "node scripts/build.js"
   },
@@ -104,5 +107,35 @@
     "playwright-core": {
       "optional": true
     }
-  }
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@react-native/babel-preset": "0.86.3",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/react-native": "^14.0.1",
+    "@types/node": "^26.4.0",
+    "@types/react": "~19.2.2",
+    "@vitest/coverage-v8": "^4.1.11",
+    "expo": "~57.0.18",
+    "expo-constants": "~57.0.16",
+    "expo-linking": "~57.0.8",
+    "expo-router": "~57.0.17",
+    "jsdom": "^30.0.1",
+    "oxlint": "^1.81.0",
+    "playwright-core": "^1.62.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-web": "~0.21.0",
+    "test-renderer": "^1.2.0",
+    "typescript": "~6.0.3",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11",
+    "vitest-expo": "^57.1.0",
+    "vitest-native": "^0.13.0"
+  },
+  "packageManager": "bun@1.4.0"
 }

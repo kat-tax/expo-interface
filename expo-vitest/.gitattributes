@@ -1,0 +1,4 @@
+# Force all files to be LF
+* text=auto eol=lf
+# Exclude windows files
+*.bat text eol=crlf

@@ -27,8 +27,8 @@ export const SUBPATHS: Record<string, string> = {
 };
 
 /** A file of this package, as it is on disk here: source in the repository, compiled once installed. */
-export function file(source: string): string {
-  return path.join(HERE, BUILT ? source.replace(/\.tsx?$/, '.js') : source);
+export function file(source: string, built = BUILT): string {
+  return path.join(HERE, built ? source.replace(/\.tsx?$/, '.js') : source);
 }
 
 /**

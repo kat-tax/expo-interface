@@ -26,6 +26,8 @@ describe('the subpaths', () => {
 
   it('alias each to its file here, source while this is source', () => {
     expect(file('windows.ts')).toBe(path.join(PACKAGE, 'src', 'windows.ts'));
+    // Compiled, the file beside this one is JavaScript, whatever it was.
+    expect(file('router.tsx', true)).toBe(path.join(PACKAGE, 'src', 'router.js'));
     const aliases = selfAliases();
     expect(aliases).toHaveLength(Object.keys(SUBPATHS).length);
     const router = aliases.find(alias => (alias.find as RegExp).test('expo-vitest/router'));
@@ -89,6 +91,11 @@ describe('expoProjects', () => {
 
     const [ios] = expoProjects({root: PACKAGE, platforms: ['ios'], include: ['src', 'app']});
     expect(testOf(ios).include).toEqual(['src/**/*.test.{ts,tsx}', 'app/**/*.test.{ts,tsx}']);
+  });
+
+  it('is rooted where Vitest runs unless told otherwise', () => {
+    const [ios] = expoProjects({platforms: ['ios']});
+    expect(ios.root).toBe(process.cwd());
   });
 
   it('pre-bundles for web only what is installed, with what it was given besides', () => {
