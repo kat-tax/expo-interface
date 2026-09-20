@@ -1,6 +1,6 @@
 ---
 name: verify
-description: Run the repository's full check loop: lint, typecheck across the kit, the example and the Storybooks, and the four Vitest platform projects with 100% coverage enforced. Use before reporting any work done, and to find what a failing coverage run is missing.
+description: "Run the repository's full check loop: lint, typecheck across the kit, the example and the Storybooks, and the four Vitest platform projects with 100% coverage enforced. Use before reporting any work done, and to find what a failing coverage run is missing."
 allowed-tools: [Bash(bun run *), Bash(node node_modules/*), Read, Grep]
 ---
 
