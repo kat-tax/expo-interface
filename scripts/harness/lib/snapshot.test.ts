@@ -8,7 +8,7 @@ const tree: Snapshot = {
     {ref: '@e1', role: 'TabItem', name: 'Drops', depth: 1, interactive: true, bounds: {x: 10, y: 20, width: 80, height: 40}},
     {ref: '@e2', role: 'TabItem', name: 'Settings', depth: 1, interactive: true, bounds: {x: 100, y: 20, width: 80, height: 40}},
     {ref: '@e3', role: 'Button', name: '', depth: 2, interactive: true, bounds: null},
-    {ref: '@e4', role: 'Button', name: 'New drop', depth: 2, interactive: true, focused: true, bounds: {x: 0, y: 0, width: 50, height: 50}},
+    {ref: '@e4', role: 'Button', name: 'New drop', testId: 'new-drop', depth: 2, interactive: true, focused: true, bounds: {x: 0, y: 0, width: 50, height: 50}},
     {ref: '@e5', role: 'Text', name: 'HIS-201 Midterm Essay', depth: 3, interactive: false, enabled: false, offscreen: true},
   ],
 };
@@ -42,6 +42,16 @@ describe('targets', () => {
     expect(by.label('Drops')).toEqual({label: 'Drops'});
     expect(by.role('Button')).toEqual({role: 'Button'});
     expect(by.text('Essay')).toEqual({contains: 'Essay'});
+    expect(by.testID('new-drop')).toEqual({testId: 'new-drop'});
+  });
+
+  it('takes every spelling of testID a command line might use', () => {
+    // The prop is `testID`, the DOM attribute `data-testid`, the field
+    // `testId`; a person types whichever they last saw.
+    expect(parseTarget('testID=new-drop')).toEqual({testId: 'new-drop'});
+    expect(parseTarget('testId="new-drop"')).toEqual({testId: 'new-drop'});
+    expect(parseTarget('testid=new-drop')).toEqual({testId: 'new-drop'});
+    expect(describeTarget(by.testID('new-drop'))).toBe('testId="new-drop"');
   });
 });
 
@@ -49,6 +59,14 @@ describe('findNode', () => {
   it('finds by ref, exactly', () => {
     expect(findNode(tree, {ref: '@e2'})?.name).toBe('Settings');
     expect(findNode(tree, {ref: '@e9'})).toBeUndefined();
+  });
+
+  it('finds by testID, exactly, and without reading the copy', () => {
+    expect(findNode(tree, {testId: 'new-drop'})?.ref).toBe('@e4');
+    // Exact on purpose: a testID is written by the same hand as the test, so
+    // a near miss is a mistake rather than something to be helpful about.
+    expect(findNode(tree, {testId: 'new'})).toBeUndefined();
+    expect(findNode(tree, {testId: 'nothing-here'})).toBeUndefined();
   });
 
   it('prefers a whole name over one that merely contains it', () => {
@@ -84,7 +102,13 @@ describe('renderSnapshot', () => {
     const text = renderSnapshot(tree);
     expect(text).toContain('  @e1 TabItem "Drops"');
     expect(text).toContain('@e3 Button ""  <- no accessible name');
-    expect(text).toContain('@e4 Button "New drop" [focused]');
     expect(text).toContain('[disabled,offscreen]');
+  });
+
+  it('prints the testID so it can be copied into a selector, and nothing when there is none', () => {
+    const text = renderSnapshot(tree);
+    expect(text).toContain('@e4 Button "New drop" #new-drop [focused]');
+    expect(text).toContain('@e1 TabItem "Drops"');
+    expect(text).not.toContain('@e1 TabItem "Drops" #');
   });
 });

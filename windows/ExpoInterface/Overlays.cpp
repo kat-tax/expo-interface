@@ -70,7 +70,7 @@ struct MenuFlyoutView : winrt::implements<MenuFlyoutView, winrt::IInspectable>,
     Codegen::BaseExpoInterfaceMenuFlyout<MenuFlyoutView>::UpdateProps(view, newProps, oldProps);
     auto props = Props();
     if (!props) return;
-    ApplyLook(Root(), props->theme, props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
     if (props->items != m_items) {
       m_items = props->items;
       Build(ParseArray(m_items));
@@ -193,7 +193,7 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
     Codegen::BaseExpoInterfaceContentDialog<ContentDialogView>::UpdateProps(view, newProps, oldProps);
     auto props = Props();
     if (!props) return;
-    ApplyLook(Root(), props->theme, props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
     if (props->open && !m_popup) {
       Show();
     } else if (!props->open && m_popup) {
@@ -456,7 +456,7 @@ struct FlyoutView : winrt::implements<FlyoutView, winrt::IInspectable>,
     Codegen::BaseExpoInterfaceFlyout<FlyoutView>::UpdateProps(view, newProps, oldProps);
     auto props = Props();
     if (!props) return;
-    ApplyLook(Root(), props->theme, props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
     Build();
     if (props->open && !m_open) {
       Show();
@@ -578,7 +578,7 @@ struct InfoBarView : winrt::implements<InfoBarView, winrt::IInspectable>,
     Codegen::BaseExpoInterfaceInfoBar<InfoBarView>::UpdateProps(view, newProps, oldProps);
     auto props = Props();
     if (!props) return;
-    ApplyLook(Root(), props->theme, props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
     m_bar.Message(ToHString(props->message));
     m_bar.IsClosable(props->closable.value_or(true));
     const auto severity = props->severity.value_or("informational");
@@ -686,7 +686,7 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
     auto props = Props();
     if (!props) return;
     m_applying = true;
-    ApplyLook(Root(), props->theme, props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
     // The island's root is white where the control is transparent, and the pane is: the kit's background goes behind it.
     Root().as<controls::Panel>().Background(Brush(ColorOr(props->background, Color{0, 0, 0, 0})));
     if (props->items != m_items) {

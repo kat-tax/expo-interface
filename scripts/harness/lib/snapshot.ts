@@ -19,6 +19,13 @@ export interface SnapshotNode {
   role: string;
   /** The accessible name — what a screen reader says. */
   name: string;
+  /**
+   * The identifier the component was given in the source: React Native's
+   * `testID`, which reaches `data-testid` on web and `AutomationProperties.
+   * AutomationId` on Windows. Unlike the name it is not user-visible, so it
+   * survives relabelling and localisation — prefer it in a test.
+   */
+  testId?: string;
   /** Depth in the tree, for rendering it as text. */
   depth: number;
   /** Whether a person can act on it. */
@@ -43,6 +50,8 @@ export type Target = string | Selector | Point;
 
 export interface Selector {
   ref?: string;
+  /** The component's own `testID`. Exact, and not the text a person reads. */
+  testId?: string;
   label?: string;
   role?: string;
   /** Match the label loosely: `New` finds `New drop`. */
@@ -57,6 +66,12 @@ export interface Point {
 /** The selector helpers a test writes with, the way Detox and Playwright spell them. */
 export const by = {
   ref: (ref: string): Selector => ({ref}),
+  /**
+   * The `testID` the component was given. The steadiest way to name a thing:
+   * a label is copy and changes, a ref is only good for one snapshot, and a
+   * role finds every button on the screen.
+   */
+  testID: (testId: string): Selector => ({testId}),
   label: (label: string): Selector => ({label}),
   role: (role: string): Selector => ({role}),
   text: (contains: string): Selector => ({contains}),
@@ -67,14 +82,15 @@ export function isPoint(target: Target): target is Point {
 }
 
 /**
- * A target written as a string: `@e3` is a ref, `label="Save"` and
- * `role=button` are selectors (the spelling `agent-device` takes), and anything
- * else is a label.
+ * A target written as a string: `@e3` is a ref, `label="Save"`,
+ * `role=button` and `testID=new-drop` are selectors (the spelling
+ * `agent-device` takes), and anything else is a label.
  */
 export function parseTarget(target: string): Selector {
   if (target.startsWith('@')) return {ref: target};
-  const match = /^(ref|label|role|contains)\s*=\s*"?([^"]*)"?$/.exec(target.trim());
-  if (match) return {[match[1] as keyof Selector]: match[2]} as Selector;
+  const match = /^(ref|label|role|contains|test[Ii][Dd])\s*=\s*"?([^"]*)"?$/.exec(target.trim());
+  // Any spelling of testID from a command line lands on the one field name.
+  if (match) return {[match[1]!.startsWith('test') ? 'testId' : (match[1] as keyof Selector)]: match[2]} as Selector;
   return {label: target};
 }
 
@@ -92,13 +108,14 @@ export function describeTarget(target: Target): string {
 }
 
 /**
- * The node a selector names. A ref is exact; a label matches the whole name
- * first and then loosely, so `by.label('New')` finds `New` before `New drop`
- * and still finds `New drop` when that is all there is.
+ * The node a selector names. A ref and a `testID` are exact; a label matches
+ * the whole name first and then loosely, so `by.label('New')` finds `New`
+ * before `New drop` and still finds `New drop` when that is all there is.
  */
 export function findNode(snapshot: Snapshot, selector: Selector): SnapshotNode | undefined {
   const {nodes} = snapshot;
   if (selector.ref) return nodes.find(node => node.ref === selector.ref);
+  if (selector.testId) return nodes.find(node => node.testId === selector.testId);
   const candidates = selector.role ? nodes.filter(node => node.role.toLowerCase() === selector.role?.toLowerCase()) : nodes;
   if (selector.label) {
     return (
@@ -127,7 +144,11 @@ export function renderSnapshot(snapshot: Snapshot): string {
       const indent = '  '.repeat(Math.min(node.depth, 12));
       const state = [node.focused && 'focused', node.enabled === false && 'disabled', node.offscreen && 'offscreen'].filter(Boolean).join(',');
       const missing = node.interactive && !node.name ? '  <- no accessible name' : '';
-      return `${indent}${node.ref} ${node.role} ${JSON.stringify(node.name)}${state ? ` [${state}]` : ''}${missing}`;
+      // The testID is printed so a person reading the tree can copy it
+      // straight into `by.testID(…)`, which is the selector that keeps working
+      // when the copy changes.
+      const id = node.testId ? ` #${node.testId}` : '';
+      return `${indent}${node.ref} ${node.role} ${JSON.stringify(node.name)}${id}${state ? ` [${state}]` : ''}${missing}`;
     })
     .join('\n');
 }

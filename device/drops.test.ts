@@ -36,6 +36,22 @@ describe(`the example on ${device.platform}`, () => {
     await element(by.text('HIS-201')).waitFor();
   });
 
+  it('finds a control by the testID it was given, not by its copy', async () => {
+    // A label is the app's wording: it gets rewritten, and it gets translated.
+    // A testID is what the source called the thing, so this assertion survives
+    // both. It reaches the tree as `data-testid` on web and as
+    // `AutomationProperties.AutomationId` on Windows.
+    await element(by.label('Settings')).press();
+    await element(by.testID('profile-name')).waitFor();
+    const tree = await device.fullSnapshot();
+    expect(tree).toHaveElement(by.testID('profile-email'));
+    expect(tree).toHaveElement(by.testID('delete-account'));
+    // The same node, found both ways: the id is an addition to the tree, not a
+    // replacement for the name a screen reader reads.
+    const byId = tree.nodes.find(node => node.testId === 'profile-name');
+    expect(byId?.name).toBe('Name');
+  });
+
   it('announces every control it offers', async () => {
     // What a screen reader would read. An interactive element with no name is
     // announced as its role alone — "button" — which is the defect this keeps

@@ -11,11 +11,13 @@ export function ProfileSettings() {
     <FieldGroup>
       <FieldGroup.Section title="User">
         <TextField
+          testID="profile-name"
           value={name}
           placeholder="Name"
           onChangeText={setName}
         />
         <TextField
+          testID="profile-email"
           value={email}
           placeholder="Email"
           keyboardType="email"
@@ -51,6 +53,7 @@ export function ProfileSettings() {
             {label: 'Delete', role: 'destructive', onPress: () => {}},
           ]}>
           <Button
+            testID="delete-account"
             label="Delete account"
             variant="text"
             role="destructive"

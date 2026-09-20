@@ -82,6 +82,30 @@ void ApplyLook(
     const std::optional<std::string> &accent) noexcept;
 /** Sets the automation name; nothing for an absent label. */
 void SetName(const xaml::UIElement &element, const std::optional<std::string> &label) noexcept;
+/**
+ * Sets the automation id from React Native's `testID`, which every view prop
+ * set carries; nothing for an empty one.
+ *
+ * The name is what a screen reader says, so it is the app's copy and changes
+ * with it. The id is what the source called the thing, so a test — and the
+ * kit's own harness — can name a control without depending on its wording or
+ * its language.
+ */
+void SetAutomationId(const xaml::UIElement &element, const winrt::hstring &testId) noexcept;
+/**
+ * Both automation properties at once, on the element that represents the
+ * component: the name a screen reader says and the id a test names it by.
+ *
+ * Which element that is only the component knows. A button's island holds the
+ * button itself, but a text field's holds a `Grid` with either a `TextBox` or
+ * a `PasswordBox` built inside it, and UI Automation reports the inner control
+ * while skipping the panel — so an id left on the panel is invisible to a
+ * test. Setting both here keeps them on the same element by construction.
+ */
+void SetIdentity(
+    const xaml::UIElement &element,
+    const std::optional<std::string> &label,
+    const rn::ViewProps &viewProps) noexcept;
 
 // -- JSON --------------------------------------------------------------------
 
@@ -140,6 +164,38 @@ struct XamlIsland {
   /** The panel the control sits in: where the theme and accent are applied. */
   xaml::FrameworkElement Root() const noexcept {
     return m_panel;
+  }
+
+  /**
+   * The control the island hosts — the element UI Automation reports, and so
+   * the one an automation id belongs on. The panel around it is not a control
+   * and never appears in the tree a test walks.
+   */
+  xaml::UIElement Content() const noexcept {
+    if (!m_panel || m_panel.Children().Size() == 0) return nullptr;
+    return m_panel.Children().GetAt(0);
+  }
+
+  /**
+   * The scheme, the accent and the automation identity, each applied where it
+   * belongs: the look on the panel, so it cascades to everything the control
+   * draws, and the id on the control itself.
+   *
+   * This member hides the free `ApplyLook` for anything deriving from the
+   * mixin, which is deliberate — a component that called the old one would no
+   * longer compile rather than quietly ship without an automation id.
+   */
+  void ApplyLook(
+      const rn::ViewProps &viewProps,
+      const std::optional<std::string> &theme,
+      const std::optional<std::string> &accent) noexcept {
+    winrt::ExpoInterface::ApplyLook(Root(), theme, accent);
+    // Only when the island's content is the control itself. A component that
+    // hosts a panel names its own inner control through `SetIdentity`, and an
+    // id left on the panel would sit on an element no test can see.
+    if (auto content = Content(); content && content.try_as<controls::Control>()) {
+      SetAutomationId(content, viewProps.TestId());
+    }
   }
 
   void ReportDesiredSize(Size size) noexcept {

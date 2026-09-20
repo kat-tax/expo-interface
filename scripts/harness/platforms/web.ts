@@ -67,10 +67,14 @@ const COLLECT = `(() => {
     next++;
     const ref = 'e' + next;
     element.setAttribute('data-harness-ref', ref);
+    // react-native-web writes testID as data-testid, and the kit's own DOM
+    // components write it directly, so both arrive here the same way.
+    const testId = element.getAttribute('data-testid');
     nodes.push({
       ref: '@' + ref,
       role,
       name,
+      ...(testId ? {testId} : null),
       depth: depthOf(element),
       interactive: ACTIONABLE.has(role) || ACTIONABLE.has(element.tagName.toLowerCase()),
       focused: document.activeElement === element,

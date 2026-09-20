@@ -11,7 +11,7 @@ export default function HomeScreen() {
     <Screen
       native
       // The screen floats the button over the list: bottom trailing, above the safe-area inset.
-      fab={<Fab label="New drop" icon={icons.upload} onPress={() => router.push(`/${first.id}` as Href)}/>}>
+      fab={<Fab testID="new-drop" label="New drop" icon={icons.upload} onPress={() => router.push(`/${first.id}` as Href)}/>}>
       <DropList
         items={demoDropData}
         // SDK 56 typed-routes mis-generates dynamic routes, so cast the

@@ -32,6 +32,10 @@ export function toSnapshotNode(node: AgentNode, index: number): SnapshotNode {
     ref,
     role: node.role ?? node.type ?? '',
     name: node.label ?? node.value ?? node.identifier ?? '',
+    // `identifier` is the accessibility identifier, which is where React
+    // Native's testID lands on both iOS and Android. It stays the last resort
+    // for a name above, for a node that has nothing else to be called.
+    ...(node.identifier ? {testId: node.identifier} : null),
     depth: node.depth ?? 0,
     interactive: node.hittable ?? false,
     focused: node.focused,
@@ -62,6 +66,7 @@ export function toAgentTarget(what: Target): string {
   const selector = asSelector(what);
   if (isPoint(selector)) return `${selector.x} ${selector.y}`;
   if (selector.ref) return selector.ref;
+  if (selector.testId) return `identifier="${selector.testId}"`;
   if (selector.label) return `label="${selector.label}"`;
   if (selector.role) return `role="${selector.role}"`;
   if (selector.contains) return `label="${selector.contains}"`;

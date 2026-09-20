@@ -131,7 +131,7 @@ struct SliderView : winrt::implements<SliderView, winrt::IInspectable>,
     auto props = Props();
     if (!props) return;
     m_applying = true;
-    ApplyLook(Root(), props->theme, props->color ? props->color : props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->color ? props->color : props->accentColor);
     const double min = props->min.value_or(0.0);
     const double max = props->max > min ? props->max : min + 1;
     const double step = props->step.value_or(0.0);
@@ -141,7 +141,7 @@ struct SliderView : winrt::implements<SliderView, winrt::IInspectable>,
     m_slider.StepFrequency(step > 0 ? step : (max - min) / 1000);
     m_slider.Value(std::min(max, std::max(min, props->value)));
     m_slider.IsEnabled(!props->disabled.value_or(false));
-    SetName(m_slider, props->label);
+    SetIdentity(m_slider, props->label, props->ViewProps);
     m_applying = false;
   }
 
@@ -184,7 +184,7 @@ struct NumberBoxView : winrt::implements<NumberBoxView, winrt::IInspectable>,
     auto props = Props();
     if (!props) return;
     m_applying = true;
-    ApplyLook(Root(), props->theme, props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
     const double infinity = std::numeric_limits<double>::infinity();
     m_box.Minimum(props->hasMin.value_or(false) ? props->min.value_or(0.0) : -infinity);
     m_box.Maximum(props->hasMax.value_or(false) ? props->max.value_or(0.0) : infinity);
@@ -192,7 +192,7 @@ struct NumberBoxView : winrt::implements<NumberBoxView, winrt::IInspectable>,
     m_box.LargeChange((props->step > 0 ? props->step : 1) * 10);
     if (m_box.Value() != props->value) m_box.Value(props->value);
     m_box.IsEnabled(!props->disabled.value_or(false));
-    SetName(m_box, props->label);
+    SetIdentity(m_box, props->label, props->ViewProps);
     m_applying = false;
   }
 
@@ -234,7 +234,7 @@ struct ComboBoxView : winrt::implements<ComboBoxView, winrt::IInspectable>,
     auto props = Props();
     if (!props) return;
     m_applying = true;
-    ApplyLook(Root(), props->theme, props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
     if (props->options != m_options) {
       m_options = props->options;
       m_box.Items().Clear();
@@ -246,7 +246,7 @@ struct ComboBoxView : winrt::implements<ComboBoxView, winrt::IInspectable>,
     if (m_box.SelectedIndex() != index) m_box.SelectedIndex(index < static_cast<int32_t>(m_box.Items().Size()) ? index : -1);
     m_box.PlaceholderText(ToHString(props->placeholder.value_or("")));
     m_box.IsEnabled(!props->disabled.value_or(false));
-    SetName(m_box, props->label);
+    SetIdentity(m_box, props->label, props->ViewProps);
     m_applying = false;
   }
 
@@ -297,7 +297,7 @@ struct SelectorBarView : winrt::implements<SelectorBarView, winrt::IInspectable>
     auto props = Props();
     if (!props) return;
     m_applying = true;
-    ApplyLook(Root(), props->theme, props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
     if (props->options != m_options) {
       m_options = props->options;
       m_fitted = 0;
@@ -314,7 +314,7 @@ struct SelectorBarView : winrt::implements<SelectorBarView, winrt::IInspectable>
       m_bar.SelectedItem(m_bar.Items().GetAt(index));
     }
     m_bar.IsEnabled(!props->disabled.value_or(false));
-    SetName(m_bar, props->label);
+    SetIdentity(m_bar, props->label, props->ViewProps);
     m_applying = false;
   }
 
@@ -385,7 +385,7 @@ struct DatePickerView : winrt::implements<DatePickerView, winrt::IInspectable>,
     auto props = Props();
     if (!props) return;
     m_applying = true;
-    ApplyLook(Root(), props->theme, props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
     if (auto min = DateFromString(props->minDate.value_or(""))) m_picker.MinDate(*min);
     else if (auto floor = DateFromString("1900-01-01")) m_picker.MinDate(*floor);
     if (auto max = DateFromString(props->maxDate.value_or(""))) m_picker.MaxDate(*max);
@@ -398,7 +398,7 @@ struct DatePickerView : winrt::implements<DatePickerView, winrt::IInspectable>,
     }
     m_picker.PlaceholderText(ToHString(props->placeholder.value_or("")));
     m_picker.IsEnabled(!props->disabled.value_or(false));
-    SetName(m_picker, props->label);
+    SetIdentity(m_picker, props->label, props->ViewProps);
     m_applying = false;
   }
 
@@ -442,13 +442,13 @@ struct TimePickerView : winrt::implements<TimePickerView, winrt::IInspectable>,
     auto props = Props();
     if (!props) return;
     m_applying = true;
-    ApplyLook(Root(), props->theme, props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
     if (auto time = TimeFromString(props->time)) {
       auto current = m_picker.SelectedTime();
       if (!current || current.Value() != *time) m_picker.SelectedTime(*time);
     }
     m_picker.IsEnabled(!props->disabled.value_or(false));
-    SetName(m_picker, props->label);
+    SetIdentity(m_picker, props->label, props->ViewProps);
     m_applying = false;
   }
 
@@ -479,7 +479,7 @@ struct TextBoxView : winrt::implements<TextBoxView, winrt::IInspectable>,
     auto props = Props();
     if (!props) return;
     m_applying = true;
-    ApplyLook(Root(), props->theme, props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
     const bool password = props->password.value_or(false);
     if (password != m_password || (!m_text && !m_secret)) {
       Build(password);
@@ -495,7 +495,7 @@ struct TextBoxView : winrt::implements<TextBoxView, winrt::IInspectable>,
       m_text.IsSpellCheckEnabled(props->spellCheck.value_or(true));
       m_text.InputScope(ScopeFor(props->inputScope.value_or("default")));
       m_text.IsEnabled(!props->disabled.value_or(false));
-      SetName(m_text, props->label ? props->label : props->placeholder);
+      SetIdentity(m_text, props->label ? props->label : props->placeholder, props->ViewProps);
       Chrome(m_text, props->borderless.value_or(false));
     }
     if (m_secret) {
@@ -503,7 +503,7 @@ struct TextBoxView : winrt::implements<TextBoxView, winrt::IInspectable>,
       m_secret.PlaceholderText(ToHString(props->placeholder.value_or("")));
       m_secret.MaxLength(props->maxLength.value_or(0));
       m_secret.IsEnabled(!props->disabled.value_or(false));
-      SetName(m_secret, props->label ? props->label : props->placeholder);
+      SetIdentity(m_secret, props->label ? props->label : props->placeholder, props->ViewProps);
       Chrome(m_secret, props->borderless.value_or(false));
     }
     if (props->autoFocus.value_or(false) && !m_focused) {
@@ -658,7 +658,7 @@ struct ColorPickerView : winrt::implements<ColorPickerView, winrt::IInspectable>
     auto props = Props();
     if (!props) return;
     m_applying = true;
-    ApplyLook(Root(), props->theme, props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
     m_picker.IsAlphaEnabled(props->alpha.value_or(true));
     Color color;
     if (TryParseColor(props->value, color)) {
@@ -666,7 +666,7 @@ struct ColorPickerView : winrt::implements<ColorPickerView, winrt::IInspectable>
       m_swatch.Fill(Brush(color));
     }
     m_well.IsEnabled(!props->disabled.value_or(false));
-    SetName(m_well, props->label);
+    SetIdentity(m_well, props->label, props->ViewProps);
     m_applying = false;
   }
 

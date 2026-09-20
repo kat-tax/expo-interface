@@ -237,6 +237,21 @@ void SetName(const xaml::UIElement &element, const std::optional<std::string> &l
   xaml::Automation::AutomationProperties::SetName(element, ToHString(*label));
 }
 
+void SetAutomationId(const xaml::UIElement &element, const winrt::hstring &testId) noexcept {
+  // An empty id is worse than none: it would put a blank identifier on every
+  // control in the tree, which a test could match by accident.
+  if (testId.empty()) return;
+  xaml::Automation::AutomationProperties::SetAutomationId(element, testId);
+}
+
+void SetIdentity(
+    const xaml::UIElement &element,
+    const std::optional<std::string> &label,
+    const rn::ViewProps &viewProps) noexcept {
+  SetName(element, label);
+  SetAutomationId(element, viewProps.TestId());
+}
+
 // -- JSON --------------------------------------------------------------------
 
 winrt::Windows::Data::Json::JsonArray ParseArray(const std::string &json) noexcept {

@@ -46,8 +46,12 @@ function Walk($element, $depth) {
     $name = $current.Name
     $interactive = $actionable -contains $role
     $offscreen = $current.IsOffscreen
-    # A node earns a place if it is actionable or says something.
-    $keep = if ($script:onlyInteractive) { $interactive } else { $interactive -or $name }
+    # The kit sets this from React Native's testID. It is not the text a person
+    # reads, so it survives relabelling and localisation.
+    $testId = $current.AutomationId
+    # A node earns a place if it is actionable, says something, or was
+    # deliberately marked with a testID.
+    $keep = if ($script:onlyInteractive) { $interactive } else { $interactive -or $name -or $testId }
     if ($keep) {
       $box = $current.BoundingRectangle
       $script:next++
@@ -55,6 +59,9 @@ function Walk($element, $depth) {
         ref         = "@e$($script:next)"
         role        = $role
         name        = $name
+        # Empty rather than absent would put a dead field on every node of
+        # every tree, and these trees are read by people and by models.
+        testId      = if ($testId) { $testId } else { $null }
         depth       = $depth
         interactive = [bool]$interactive
         focused     = [bool]$current.HasKeyboardFocus

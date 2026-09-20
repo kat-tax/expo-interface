@@ -67,7 +67,7 @@ struct ButtonView : winrt::implements<ButtonView, winrt::IInspectable>,
     // The accent the button is branded with: an explicit color, the critical
     // color for the destructive role, or the kit's seed.
     auto accent = props->color ? props->color : props->accentColor;
-    ApplyLook(Root(), props->theme, accent);
+    ApplyLook(props->ViewProps, props->theme, accent);
     const bool dark = IsDark(Root());
     Color accentColor = ColorOr(accent, SystemAccent());
     if (destructive && !props->color) accentColor = Critical(dark);
@@ -89,7 +89,7 @@ struct ButtonView : winrt::implements<ButtonView, winrt::IInspectable>,
     }
     // The label as the accessible name in every case: UI Automation derives
     // none from a panel of glyph and text, so Narrator read "button" alone.
-    SetName(m_button, std::optional<std::string>{props->label});
+    SetIdentity(m_button, std::optional<std::string>{props->label}, props->ViewProps);
 
     // Style: the accent button for `filled` (the override brushes above fill
     // it), the standard one otherwise; `text` drops the chrome.
@@ -198,7 +198,7 @@ struct ToggleSwitchView : winrt::implements<ToggleSwitchView, winrt::IInspectabl
     auto props = Props();
     if (!props) return;
     m_applying = true;
-    ApplyLook(Root(), props->theme, props->color ? props->color : props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->color ? props->color : props->accentColor);
     m_toggle.IsOn(props->value);
     m_toggle.IsEnabled(!props->disabled.value_or(false));
     m_applying = false;
@@ -247,10 +247,10 @@ struct CheckBoxView : winrt::implements<CheckBoxView, winrt::IInspectable>,
     auto props = Props();
     if (!props) return;
     m_applying = true;
-    ApplyLook(Root(), props->theme, props->color ? props->color : props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->color ? props->color : props->accentColor);
     m_box.IsChecked(props->value);
     m_box.IsEnabled(!props->disabled.value_or(false));
-    SetName(m_box, props->label);
+    SetIdentity(m_box, props->label, props->ViewProps);
     m_applying = false;
   }
 
@@ -303,10 +303,10 @@ struct ToggleButtonView : winrt::implements<ToggleButtonView, winrt::IInspectabl
     auto props = Props();
     if (!props) return;
     m_applying = true;
-    ApplyLook(Root(), props->theme, props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
     m_button.IsChecked(props->value);
     m_button.IsEnabled(!props->disabled.value_or(false));
-    SetName(m_button, std::optional<std::string>{props->label});
+    SetIdentity(m_button, std::optional<std::string>{props->label}, props->ViewProps);
     Paint(props->value);
     m_applying = false;
   }
@@ -352,7 +352,7 @@ struct ProgressView : winrt::implements<ProgressView, winrt::IInspectable>,
     Codegen::BaseExpoInterfaceProgress<ProgressView>::UpdateProps(view, newProps, oldProps);
     auto props = Props();
     if (!props) return;
-    ApplyLook(Root(), props->theme, props->color ? props->color : props->accentColor);
+    ApplyLook(props->ViewProps, props->theme, props->color ? props->color : props->accentColor);
     const bool circular = props->variant == "circular";
     // Defaulted numbers come through codegen as plain values, not optionals.
     const double value = props->value;
@@ -396,7 +396,7 @@ struct ProgressView : winrt::implements<ProgressView, winrt::IInspectable>,
       if (hasFill) m_bar.Foreground(Brush(fill)); else m_bar.ClearValue(controls::Control::ForegroundProperty());
       if (hasTrack) m_bar.Background(Brush(track)); else m_bar.ClearValue(controls::Control::BackgroundProperty());
     }
-    SetName(m_root, props->label);
+    SetIdentity(m_root, props->label, props->ViewProps);
   }
 
   void UpdateState(const rn::ComponentView &, const rn::IComponentState &newState) noexcept override {
@@ -427,7 +427,7 @@ struct PersonPictureView : winrt::implements<PersonPictureView, winrt::IInspecta
     Codegen::BaseExpoInterfacePersonPicture<PersonPictureView>::UpdateProps(view, newProps, oldProps);
     auto props = Props();
     if (!props) return;
-    ApplyLook(Root(), props->theme, std::nullopt);
+    ApplyLook(props->ViewProps, props->theme, std::nullopt);
     const double size = props->size;
     m_picture.Width(size);
     m_picture.Height(size);
@@ -438,7 +438,7 @@ struct PersonPictureView : winrt::implements<PersonPictureView, winrt::IInspecta
       OverrideBrushes(m_picture, {L"PersonPictureEllipseFillThemeBrush", L"PersonPictureEllipseBadgeFillThemeBrush"}, fill);
       OverrideBrushes(m_picture, {L"PersonPictureForegroundThemeBrush"}, IsLight(fill) ? Color{255, 0, 0, 0} : Color{255, 255, 255, 255});
     }
-    SetName(m_picture, std::optional<std::string>{props->displayName});
+    SetIdentity(m_picture, std::optional<std::string>{props->displayName}, props->ViewProps);
   }
 
   void UpdateState(const rn::ComponentView &, const rn::IComponentState &newState) noexcept override {

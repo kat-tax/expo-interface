@@ -3,7 +3,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawn} from 'node:child_process';
 import {firstLine, powershell, prepare, run} from '../lib/run.ts';
-import type {Point, Snapshot, Target} from '../lib/snapshot.ts';
+import type {Point, Snapshot, SnapshotNode, Target} from '../lib/snapshot.ts';
 import {asSelector, centreOf, describeTarget, findNode, isPoint} from '../lib/snapshot.ts';
 import type {Availability, Driver, DriverOptions, SnapshotOptions, StepResult} from '../lib/types.ts';
 import {failed, ok} from '../lib/types.ts';
@@ -62,8 +62,11 @@ export function windowsDriver(options: DriverOptions): Driver {
   async function snapshot(snapshotOptions: SnapshotOptions = {}): Promise<Snapshot> {
     const result = powershell(script('snapshot.ps1'), ['-Process', processName, ...(snapshotOptions.interactive ? ['-Interactive'] : [])]);
     if (!result.ok) throw new Error(`could not read the tree of ${processName}: ${firstLine(result.stderr) || firstLine(result.stdout)}`);
-    const parsed = JSON.parse(result.stdout) as {process: string; nodes: Snapshot['nodes']};
-    return {platform: 'windows', source: parsed.process, nodes: parsed.nodes ?? []};
+    const parsed = JSON.parse(result.stdout) as {process: string; nodes: (SnapshotNode & {testId?: string | null})[]};
+    // PowerShell writes a null for a control with no AutomationId; the node
+    // shape says a testId is a string or is not there at all.
+    const nodes = (parsed.nodes ?? []).map(({testId, ...node}) => (testId ? {...node, testId} : node));
+    return {platform: 'windows', source: parsed.process, nodes};
   }
 
   /** The point a target names, resolved against a fresh tree. */
