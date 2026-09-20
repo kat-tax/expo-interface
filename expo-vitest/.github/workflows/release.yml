@@ -48,7 +48,11 @@ jobs:
         run: bun run test:fixture
       - name: Publish
         run: bash .github/publish.sh .
+      - name: Pack what was published
+        # Attached to the release, so the exact tarball can be had without the
+        # registry: `prepack` builds it, as it does for a publish.
+        run: npm pack --loglevel error
       - name: GitHub release
-        run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag expo-vitest-*.tgz
         env:
           GH_TOKEN: ${{ github.token }}
