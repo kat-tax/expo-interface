@@ -14,26 +14,21 @@
   },
   "permissions": {
     "allow": [
-      "Bash(cargo test *)",
-      "Bash(npx tsc --noEmit *)",
-      "Bash(cargo check *)",
-      "Bash(npx vitest run *)",
-      "PowerShell(Get-Process *)",
-      "Bash(node node_modules/typescript/bin/tsc --noEmit *)",
-      "Bash(cargo clippy *)",
+      "Bash(bun run lint)",
+      "Bash(bun run typecheck)",
+      "Bash(bun run test)",
+      "Bash(bun run test:coverage)",
       "Bash(node node_modules/oxlint/bin/oxlint *)",
-      "mcp__claude-in-chrome__tabs_context_mcp",
-      "Bash(npx oxlint *)",
-      "Bash(spacetime logs *)",
-      "Bash(npm run typecheck)",
+      "Bash(node node_modules/typescript/bin/tsc --noEmit *)",
       "Bash(node node_modules/vitest/vitest.mjs run *)",
-      "PowerShell(Get-Content *)",
-      "mcp__claude-in-chrome__read_console_messages",
-      "Bash(cargo fmt --check)",
-      "PowerShell(Get-ChildItem *)",
       "PowerShell(Get-CimInstance *)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Get-Content *)",
+      "PowerShell(Get-Process *)",
+      "mcp__claude-in-chrome__find",
       "mcp__claude-in-chrome__get_page_text",
-      "mcp__claude-in-chrome__find"
+      "mcp__claude-in-chrome__read_console_messages",
+      "mcp__claude-in-chrome__tabs_context_mcp"
     ]
   }
 }

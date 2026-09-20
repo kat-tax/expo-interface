@@ -28,7 +28,7 @@ style.
 
 ## Android
 
-Compose views must be **direct children** of the `@expo/ui` `Host` — a React
+Compose views must be **direct children** of the `@expo/ui` `Host`. A React
 Native `View` in between breaks them. This is why the Storybook has no
 backgrounds addon, and why stories must not wrap Compose controls in views.
 

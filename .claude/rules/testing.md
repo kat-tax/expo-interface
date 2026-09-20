@@ -30,7 +30,7 @@ and a single file by appending its path.
   `await fireEvent(...)`. An un-awaited `fireEvent` leaks a pending `act` into
   the next test, whose render then resolves before its effects. Web DOM tests use
   `@testing-library/react`, which is synchronous.
-- `vi.*` only. No `vi.isolateModules` — use `vi.resetModules` and a dynamic
+- `vi.*` only. No `vi.isolateModules`: use `vi.resetModules` and a dynamic
   import. `vi.runOnlyPendingTimersAsync()` fires every pending timer regardless
   of when it is due; use `vi.advanceTimersByTimeAsync(ms)`.
 - Take `unmount` from `render()`'s result; `screen.unmount()` leaves host refs
