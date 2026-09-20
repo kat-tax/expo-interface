@@ -213,8 +213,9 @@ reads. See [expo-vitest/HARNESS.md](expo-vitest/HARNESS.md).
   export of the example for ios, android and web, and a web Storybook build
   after its stories pass as browser tests.
 - **Windows** (`windows.yml`), on changes to the kit, the runtime or the
-  example: `scripts/windows-ci.sh` end to end on the react-native-windows
-  line the template ships, plus the newest preview, allowed to fail.
+  example: the runtime's probe app and the example, each built end to end on
+  the react-native-windows line the template ships, plus the newest preview,
+  allowed to fail. `scripts/windows-ci.sh` is the example's build.
 - **Storybook** (`storybook.yml`), on push to `master`: publishes the web
   Storybook to GitHub Pages.
 - **Release** (`release.yml`), on a `v*` tag matching `package.json`:

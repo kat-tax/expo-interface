@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {fetch as fetchNetwork} from '@react-native-community/netinfo';
 import {FlashList} from '@shopify/flash-list';
 import Svg, {Circle, Rect, Text as SvgText} from 'react-native-svg';
-import {Body, Screen, Title} from 'expo-interface';
+import {Body, Screen, Title} from '../probe';
 
 const ROWS = ['FlashList row one', 'FlashList row two', 'FlashList row three'];
 

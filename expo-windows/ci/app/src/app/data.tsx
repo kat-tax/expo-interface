@@ -6,7 +6,7 @@
  * them on screen.
  */
 import {useEffect, useState} from 'react';
-import {Body, Screen, Title} from 'expo-interface';
+import {Body, Screen, Title} from '../probe';
 import * as SQLite from 'expo-sqlite';
 import Storage from 'expo-sqlite/kv-store';
 

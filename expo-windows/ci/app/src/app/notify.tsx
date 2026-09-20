@@ -6,7 +6,7 @@
  * screen.
  */
 import {useEffect, useState} from 'react';
-import {Body, Button, Screen, Title} from 'expo-interface';
+import {Body, Button, Screen, Title} from '../probe';
 import * as Notifications from 'expo-notifications';
 
 Notifications.setNotificationHandler({

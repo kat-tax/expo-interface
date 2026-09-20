@@ -29,8 +29,7 @@ Native, so the Expo SDK decides which react-native-windows an app can use.
 
 The runtime targets Expo SDK 57. Its native library is built and tested in a
 react-native-windows 0.84 app with Expo 57's JavaScript on React Native
-pinned to that line, which is what `scripts/windows-ci.sh` builds on every
-change. The CI workflow also builds the newest react-native-windows preview
+pinned to that line, which is what `ci/build.sh` builds on every change. The CI workflow also builds the newest react-native-windows preview
 and is allowed to fail there, so each new line is tried as it appears. An app
 on Expo 57 with its own React Native 0.86 follows the matching
 react-native-windows release without changes to the runtime.
@@ -267,7 +266,7 @@ with no error.
 `EXPO_WINDOWS_SMOKE` naming a file, the app writes one line there once its
 bundle has loaded and exits: `loaded <ms> <kb>` or `failed`. The two numbers
 are the milliseconds from process start to the bundle's load and the working
-set in kilobytes. `scripts/windows-ci.sh` holds them to budgets
+set in kilobytes. `ci/build.sh` holds them to budgets
 (`SMOKE_MAX_MS`, 30 seconds by default, and `SMOKE_MAX_KB`, 1 GB), so a
 regression in cold start or memory fails the build with a number.
 
@@ -505,14 +504,24 @@ what it does not.
   `expo-windows-node` (the Metro config and the CLI, against the small Expo
   project in `fixture/`). Coverage is 100% on lines, branches, functions and
   statements.
-- `scripts/windows-ci.sh <workdir>` builds the example end to end on the line
+- `ci/build.sh <workdir>` builds an app end to end on the line
   react-native-windows ships: a scratch Expo 57 app with React Native pinned
-  to that line, this checkout's kit and runtime in its `node_modules`,
+  to that line, this checkout's runtime in its `node_modules`,
   `expo-windows init`, autolinking, the bundle, Debug and Release builds, the
   package, the Windows App Runtime, and a smoke launch that reports cold start
-  and working set. The scratch app carries every SDK 57 package and a probe
-  route that imports them all. The Windows workflow runs it on every change
-  and keeps the app and the bundle as artifacts. `RN_VERSION` and
-  `RNW_VERSION` together build another line.
+  and working set. The Windows workflow runs it on every change and keeps the
+  app and the bundle as artifacts. `RN_VERSION` and `RNW_VERSION` together
+  build another line, and `STOP_AFTER=bundle` stops once the JavaScript bundle
+  is written, which takes minutes and opens no window.
+- The app it builds is the probe in `ci/app`: every SDK 57 package in its
+  manifest, a route that imports them all, and a route for each part of the
+  runtime. It is drawn with React Native's own views and shows a route through
+  Expo Router's `Slot`, so it proves the runtime with no UI kit installed.
+- A library built on the runtime builds its own app over the same road.
+  `APP_SOURCE` names an app's folder, `OVERLAY` the packages to copy from a
+  checkout into `node_modules`, `EXTRA_DEPENDENCIES` what the app needs
+  besides, `EXTRA_SOURCE` more routes, and `EXPECT_LINKED` the libraries
+  autolinking must have registered. `expo-interface` builds its example this
+  way.
 - The `expo-vitest` harness drives a built app: `expo-harness -p windows
   --target <exe> open /route screenshot out.png tree`.

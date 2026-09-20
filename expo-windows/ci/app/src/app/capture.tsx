@@ -6,7 +6,7 @@
  */
 import {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {Body, Button, Screen, Title} from 'expo-interface';
+import {Body, Button, Screen, Title} from '../probe';
 import {CameraView, useCameraPermissions} from 'expo-camera';
 import {GoogleMaps} from 'expo-maps';
 import * as Print from 'expo-print';

@@ -5,7 +5,7 @@
  * app and the harness carry to prove them on screen.
  */
 import {useEffect, useState} from 'react';
-import {Body, Button, Screen, Title} from 'expo-interface';
+import {Body, Button, Screen, Title} from '../probe';
 import * as Battery from 'expo-battery';
 import * as KeepAwake from 'expo-keep-awake';
 import * as LocalAuthentication from 'expo-local-authentication';

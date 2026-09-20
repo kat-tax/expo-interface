@@ -6,7 +6,7 @@
 import {useRef, useState} from 'react';
 import {View} from 'react-native';
 import {WebView} from 'react-native-webview';
-import {Body, Screen, Title} from 'expo-interface';
+import {Body, Screen, Title} from '../probe';
 import Hello from '../dom/hello';
 
 const PAGE = `<!doctype html>

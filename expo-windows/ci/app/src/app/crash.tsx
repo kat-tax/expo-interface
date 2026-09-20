@@ -9,7 +9,7 @@ import {useEffect, useState} from 'react';
 import {TurboModuleRegistry} from 'react-native';
 import {requireNativeModule} from 'expo-modules-core';
 import {useLocalSearchParams} from 'expo-router';
-import {Body, Screen, Title} from 'expo-interface';
+import {Body, Screen, Title} from '../probe';
 
 type CrashReport = {type: string; timestamp: string; message: string; stack?: string; dump?: string};
 const ExpoWindows = requireNativeModule<{getLastCrashAsync(): Promise<CrashReport | null>}>('ExpoWindows');

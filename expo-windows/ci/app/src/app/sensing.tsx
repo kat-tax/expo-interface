@@ -5,7 +5,7 @@
  * has few sensors; the honest answer is the point.
  */
 import {useEffect, useState} from 'react';
-import {Body, Screen, Title} from 'expo-interface';
+import {Body, Screen, Title} from '../probe';
 import * as Location from 'expo-location';
 import {Accelerometer, Barometer, DeviceMotion, Gyroscope, LightSensor, Magnetometer, MagnetometerUncalibrated, Pedometer} from 'expo-sensors';
 

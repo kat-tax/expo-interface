@@ -94,7 +94,7 @@ function keepMetroConfig(projectRoot) {
 const SCREENS_EXCLUSION = `// react-native-screens and @react-native-community/netinfo ship Windows
 // projects from the Paper days that do not build in a New Architecture app,
 // and Windows does not use them: Expo Router's screens are plain views and
-// expo-interface's Stack draws its own header, and expo-windows answers
+// a UI kit draws the stack's header itself, and expo-windows answers
 // netinfo's API from its own network library. Keep both out of
 // react-native-windows' autolinking.
 module.exports = {

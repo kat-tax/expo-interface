@@ -7,7 +7,7 @@
  */
 import {useEffect, useState} from 'react';
 import {View} from 'react-native';
-import {Body, Screen, Title} from 'expo-interface';
+import {Body, Screen, Title} from '../probe';
 import {Image, useImage} from 'expo-image';
 
 const PHOTO = 'https://picsum.photos/id/1015/600/400';

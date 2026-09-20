@@ -5,7 +5,7 @@
  * platform has works, one it lacks says so, and nothing throws at import.
  */
 import {useEffect, useState} from 'react';
-import {Body, Screen, Title} from 'expo-interface';
+import {Body, Screen, Title} from '../probe';
 import * as Application from 'expo-application';
 import * as Battery from 'expo-battery';
 import {Blob} from 'expo-blob';

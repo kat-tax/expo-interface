@@ -6,7 +6,7 @@
 import {useEffect, useState} from 'react';
 import {Image, View} from 'react-native';
 import {useEvent} from 'expo';
-import {Body, Screen, Title} from 'expo-interface';
+import {Body, Screen, Title} from '../probe';
 import {useAudioPlayer, useAudioPlayerStatus} from 'expo-audio';
 import * as Speech from 'expo-speech';
 import {useVideoPlayer, VideoView} from 'expo-video';

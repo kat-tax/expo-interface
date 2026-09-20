@@ -5,6 +5,7 @@ paths:
   - "**/*.windows.ts"
   - "**/*.windows.tsx"
   - "scripts/windows-ci.sh"
+  - "expo-windows/ci/**"
 ---
 
 # Windows
@@ -51,10 +52,19 @@ through `ReportDesiredSize`; the runtime's take the size the layout gives them.
 
 ## Building and verifying
 
-`scripts/windows-ci.sh <workdir>` is the whole road: scratch app, `init`,
+`expo-windows/ci/build.sh <workdir>` is the whole road: scratch app, `init`,
 autolink, bundle, Debug, Release, package, the Windows App Runtime, and a smoke
 launch that reports cold start and working set. It is what CI runs, and the
-fastest way to prove a change end to end.
+fastest way to prove a change end to end. On its own it builds the runtime's
+probe (`expo-windows/ci/app`, plain React Native, no kit).
+`scripts/windows-ci.sh <workdir>` is the same road for the example: it hands the
+runtime's script the example's source, this checkout's kit to overlay, and the
+route that draws `@expo/ui` through the kit's aliases.
+
+`STOP_AFTER=bundle` stops either once the bundle is written: a few minutes, no
+MSBuild, no window. The react-native-windows CLI loads its commands through
+PowerShell 7 and a .NET SDK: without both on the PATH, `init` fails with
+`unknown command 'init-windows'`, which says nothing about either.
 
 A clean machine differs from this one in three ways, all handled in that script:
 MSBuild's path comes from `vswhere`, the Windows SDK is whichever is installed,

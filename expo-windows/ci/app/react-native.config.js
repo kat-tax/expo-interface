@@ -1,6 +1,6 @@
 // react-native-screens ships a Paper-era Windows project (RNScreens62/63/65
 // solutions) that does not build against a New Architecture app, and Windows
-// does not use its native views: the kit's Stack draws the header itself and
+// does not use its native views: a UI kit draws the stack's header itself and
 // Expo Router's screens are plain views. Keep it out of autolinking. So is
 // netinfo's project (it imports the UWP library props and drags
 // react-native-windows' own project into the build, which then fails on

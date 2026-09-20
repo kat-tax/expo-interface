@@ -84,7 +84,9 @@ A component is one directory with `types.ts` and a file per platform
 Expo SDK 57 pins React Native 0.86.3; react-native-windows' newest line is 0.84.
 Do not add `react-native-windows` to the example or declare it as a peer of
 `expo-windows`. The Windows platform is built and tested against the pinned 0.84
-line in `scripts/windows-ci.sh`, which CI runs on every push.
+line by `expo-windows/ci/build.sh`, which CI runs on every push: once for the
+runtime's own probe app, and once for the example through
+`scripts/windows-ci.sh`.
 
 ## Commits
 

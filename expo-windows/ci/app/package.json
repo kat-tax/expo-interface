@@ -1,12 +1,10 @@
 {
-  "name": "dropfiles-windows",
+  "name": "expo-windows-probe",
   "version": "0.0.1",
   "private": true,
   "dependencies": {
     "@expo/dom-webview": "~57.0.1",
-    "@expo/material-symbols": "^0.1.1",
     "@expo/metro-runtime": "~57.0.14",
-    "@expo/ui": "~57.0.14",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/netinfo": "^12.0.1",
     "@react-native/new-app-screen": "0.84.1",
@@ -89,8 +87,6 @@
     "expo-video-thumbnails": "~57.0.1",
     "expo-web-browser": "~57.0.2",
     "expo-widgets": "~57.0.13",
-    "nanoid": "^3.3.18",
-    "qrcode-generator": "^2.0.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.84.1",
