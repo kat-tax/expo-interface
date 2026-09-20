@@ -7,6 +7,7 @@
 #include "XamlHost.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceButton.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceCheckBox.g.h"
+#include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceChip.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceInfoBadge.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfacePersonPicture.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfacePipsPager.g.h"
@@ -20,6 +21,9 @@ namespace {
 
 // (Not `TRANSPARENT`: that name is a wingdi.h macro.)
 const Color kTransparent{0, 0, 0, 0};
+
+/** A chip's leading glyph, sized against its 14pt label. */
+const double kChipGlyph = 16;
 
 // -- Button ------------------------------------------------------------------
 
@@ -550,6 +554,79 @@ struct PipsPagerView : winrt::implements<PipsPagerView, winrt::IInspectable>,
   bool m_applying{false};
 };
 
+// -- Chip --------------------------------------------------------------------
+
+struct ChipView : winrt::implements<ChipView, winrt::IInspectable>,
+                  Codegen::BaseExpoInterfaceChip<ChipView>,
+                  XamlIsland<ChipView> {
+  void InitializeIsland(const composition::ContentIslandComponentView &islandView) noexcept {
+    m_button = controls::Primitives::ToggleButton{};
+    m_row = controls::StackPanel{};
+    m_row.Orientation(controls::Orientation::Horizontal);
+    m_row.Spacing(6);
+    m_row.VerticalAlignment(xaml::VerticalAlignment::Center);
+    m_button.Content(m_row);
+    // A capsule with room for a word in it. Fluent's own toggle padding is
+    // sized for a glyph, which leaves the text touching the radius.
+    m_button.Padding({12, 4, 12, 4});
+    m_button.CornerRadius(xaml::CornerRadius{999, 999, 999, 999});
+    m_button.MinWidth(0);
+    m_button.MinHeight(0);
+    // Unlike the icon toggle's island, the control keeps its own checked
+    // fill: that fill is what says a chip is on, and WinUI already draws it
+    // the way every other Fluent control does.
+    auto report = [weak = get_weak()](const winrt::IInspectable &sender, const xaml::RoutedEventArgs &) {
+      if (auto strong = weak.get()) {
+        if (strong->m_applying) return;
+        auto checked = sender.as<controls::Primitives::ToggleButton>().IsChecked();
+        if (auto emitter = strong->EventEmitter()) {
+          Codegen::ExpoInterfaceChipEventEmitter::OnValueChange args;
+          args.value = checked && checked.Value();
+          emitter->onValueChange(std::move(args));
+        }
+      }
+    };
+    m_button.Checked(report);
+    m_button.Unchecked(report);
+    Attach(islandView, m_button);
+  }
+
+  void UpdateProps(
+      const rn::ComponentView &view,
+      const winrt::com_ptr<Codegen::ExpoInterfaceChipProps> &newProps,
+      const winrt::com_ptr<Codegen::ExpoInterfaceChipProps> &oldProps) noexcept override {
+    Codegen::BaseExpoInterfaceChip<ChipView>::UpdateProps(view, newProps, oldProps);
+    auto props = Props();
+    if (!props) return;
+    m_applying = true;
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
+    m_row.Children().Clear();
+    if (props->glyph && !props->glyph->empty()) {
+      m_row.Children().Append(MakeGlyph(*props->glyph, kChipGlyph));
+    }
+    controls::TextBlock text;
+    text.Text(ToHString(props->label));
+    text.VerticalAlignment(xaml::VerticalAlignment::Center);
+    m_row.Children().Append(text);
+    m_button.IsChecked(props->value);
+    m_button.IsEnabled(!props->disabled.value_or(false));
+    // The name from the label, because UI Automation derives none from a
+    // panel holding a glyph and a text block — the same trap the button hit.
+    SetIdentity(m_button, std::optional<std::string>{props->label}, props->ViewProps);
+    m_applying = false;
+    Remeasure();
+  }
+
+  void UpdateState(const rn::ComponentView &, const rn::IComponentState &newState) noexcept override {
+    KeepState(newState);
+  }
+
+ private:
+  controls::Primitives::ToggleButton m_button{nullptr};
+  controls::StackPanel m_row{nullptr};
+  bool m_applying{false};
+};
+
 } // namespace
 
 void RegisterControls(rn::IReactPackageBuilder const &packageBuilder) noexcept {
@@ -561,6 +638,7 @@ void RegisterControls(rn::IReactPackageBuilder const &packageBuilder) noexcept {
   RegisterIsland<PersonPictureView>(packageBuilder, &Codegen::RegisterExpoInterfacePersonPictureNativeComponent<PersonPictureView>);
   RegisterIsland<InfoBadgeView>(packageBuilder, &Codegen::RegisterExpoInterfaceInfoBadgeNativeComponent<InfoBadgeView>);
   RegisterIsland<PipsPagerView>(packageBuilder, &Codegen::RegisterExpoInterfacePipsPagerNativeComponent<PipsPagerView>);
+  RegisterIsland<ChipView>(packageBuilder, &Codegen::RegisterExpoInterfaceChipNativeComponent<ChipView>);
 }
 
 } // namespace winrt::ExpoInterface

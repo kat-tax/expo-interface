@@ -1,0 +1,39 @@
+/*
+ * A capsule that is either a button or a button with a state. The fill says
+ * which, and `aria-pressed` says it to anyone who cannot see the fill.
+ */
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--color-separator);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-label);
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.ui-chip--on {
+  border-color: transparent;
+  background: var(--color-tint);
+  color: var(--color-on-tint);
+}
+
+.ui-chip:focus-visible {
+  outline: 2px solid var(--color-tint);
+  outline-offset: 2px;
+}
+
+.ui-chip:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.ui-chip__label {
+  white-space: nowrap;
+}

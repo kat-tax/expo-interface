@@ -6,9 +6,9 @@ order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 
 **Progress.** Wave 1 is done, except that item 6 turned out not to be what it
 said — see below. **Waves 1 and 2 are done.** Wave 3: item 12 done, item 13
-closed without building, `ShareLink` and the pager done out of item 14, item 15
-done. Only `Chip` and `TabView` from item 14 are outstanding, and both fail
-this document's own two-platform bar — see §1.4 and §2.5.
+closed without building, item 15 done, and `ShareLink`, the pager and `Chip`
+done out of item 14. Only `TabView` is outstanding; §2.5 has been rewritten
+with what it should be.
 
 ## How to read the matrices
 
@@ -87,6 +87,9 @@ web, and the native modifiers on iOS and Android.
 
 ### 1.4 Chip
 
+**Built, and it clears the bar this document set — the earlier reading of the
+matrix was too strict.** What was written:
+
 | | control |
 | --- | --- |
 | Android | **native** — Compose `Chip` (assist, filter, input, suggestion) |
@@ -94,7 +97,39 @@ web, and the native modifiers on iOS and Android.
 | Windows | **composed** — `Surface` pill |
 | Web | **composed** — DOM |
 
-The Community Toolkit's `TokenView` would be the Windows answer, but see §5.3.
+What it is:
+
+| | control |
+| --- | --- |
+| Android | **native** — `FilterChip`, `AssistChip`, `SuggestionChip` |
+| iOS | **native** — SwiftUI `Toggle` in button style, or a capsule `Button` |
+| Windows | **native** — WinUI 3 `ToggleButton` with a pill radius, or a pill `Button` |
+| Web | **native** — `<button aria-pressed>`, the APG's toggle button |
+
+The correction turns on asking what a chip *is* rather than what it is called.
+Only Android has a control named "chip". But a chip is a capsule that is
+pressed and may stay pressed, and every platform has that — the question is
+only whether the kit reaches for the one that keeps the state or the one that
+does not. That is not a styling choice: **a `Toggle` tells VoiceOver it is on,
+a `ToggleButton` gives UI Automation the toggle pattern, and `aria-pressed`
+gives a screen reader "pressed"**. A button that merely changes colour leaves
+a blind reader unable to tell a chosen filter from an unchosen one, which is
+the defect class §6.1 exists to catch. So the kit splits on `selected`: given
+at all, the chip is the platform's toggle; left out, it is the platform's
+button.
+
+Windows needed an island of its own (`ExpoInterfaceChip`) rather than reusing
+the icon toggle's, because the two want opposite things from the same control:
+the icon toggle replaces WinUI's checked fill with two colours, and a chip
+wants that fill, since it is what says a chip is on.
+
+`Surface` was never going to be the Windows answer, and neither is the
+Community Toolkit's `TokenView` (§5.3).
+
+**Material's input chip — the one with a remove cross — is deliberately not
+here.** It is the only chip kind no other platform has any control for, and
+drawing it on the other three would be the kit drawing a chip rather than
+using one.
 
 ### 1.5 Search field
 
@@ -790,9 +825,15 @@ axe cannot press keys, so add the two layers that can.
     control that fits is the indicator, `PipsPager`, and it fits because it
     has no children at all.
 
-    Still outstanding from this item: `Chip` is **one** native platform
-    (Compose's four chip kinds) and so fails this document's own two-platform
-    bar; `TabView` is Windows only.
+    **`Chip` is done, and it did not fail the bar after all** — §1.4 has the
+    corrected matrix. Counting native platforms by whether a control is
+    *called* a chip gives one; counting by whether the platform has a control
+    for a capsule that stays pressed gives four, and the second is the
+    question that matters, because that control is what carries the state to a
+    screen reader.
+
+    Still outstanding from this item: `TabView`, which is Windows only — and
+    §2.5 now says what it should actually be.
 15. ~~Caret-anchored `PopupMenu` (§4.2) — web-only, or commit to two native
     modules.~~ **Done, web only, deliberately.** `caretPoint(field, within)` in
     `src/caret`; the other three answer `null` and name the module each would

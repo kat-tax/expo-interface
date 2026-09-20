@@ -54,6 +54,8 @@ export {Card} from './card';
 export type {CardProps} from './card/types';
 export {Checkbox} from './checkbox';
 export type {CheckboxProps} from './checkbox/types';
+export {Chip} from './chip';
+export type {ChipProps} from './chip/types';
 export {Collapsible} from './collapsible';
 export type {CollapsibleProps} from './collapsible/types';
 export {ColorPicker} from './color-picker';
