@@ -4,7 +4,8 @@ What each platform can still do that the kit does not yet ask of it, and the
 order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
-**Progress.** Wave 1 items 1–5 are done. Everything else below is unstarted.
+**Progress.** Wave 1 is done, except that item 6 turned out not to be what it
+said — see below. Waves 2 and 3 are unstarted.
 
 ## How to read the matrices
 
@@ -512,8 +513,37 @@ axe cannot press keys, so add the two layers that can.
    own flyout taking plain label strings, and on iOS the `Menu` is SwiftUI's;
    there is nowhere to put a run. `PopupMenu` on iOS draws its own rows and
    could take nested `Text`, which is the one place left if it is ever wanted.
-6. The one-liners: `DropdownMenu.shadowElevation`, iOS `Toolbar` (§2.1, §2.3).
-7. The cheap semantics of §6.4 alongside whichever component is already open.
+6. ~~The one-liners: `DropdownMenu.shadowElevation`, iOS `Toolbar`.~~
+   **Reclassified — neither is a one-liner, and one should not be done at all.**
+
+   `shadowElevation` has no purpose here. The Android menu uses Material 3's
+   own `MenuDefaults.ShadowElevation`, which is the correct native behaviour;
+   setting it to anything else would make Android *less* like its platform, not
+   more. Do it only if a design calls for it.
+
+   The iOS `Toolbar` is wave-2 work, not a missing file. `@expo/ui`'s
+   `Toolbar` **wraps the view it belongs to** and fills that view's toolbar —
+   its own example puts it inside a `NavigationStack`. The kit's `Toolbar` is
+   a free-standing bar along a canvas with `placement: 'top' | 'bottom'`,
+   holding arbitrary kit controls. Adopting SwiftUI's would mean the screen
+   sitting in a SwiftUI `NavigationStack` (ours is expo-router's native stack),
+   items becoming SwiftUI views rather than kit children, and `placement`
+   becoming SwiftUI's enum. That is the same trade-off §2.1 already records for
+   `CommandBar` on Windows, and it belongs beside it in wave 2. Note that the
+   *controls* in the bar are already native — only the bar itself is drawn,
+   which is right for a bar SwiftUI has no concept of.
+7. ~~The cheap semantics of §6.4.~~ **Done in part: headings.** Every title on
+   web was a bare `<span>`, so a page had **no headings at all** and nothing
+   for a screen reader to navigate by; the title variants now carry
+   `role="heading"` with a level on web and `accessibilityRole="header"` on
+   the other three, with `level` to override and `level={false}` for a number
+   set large. The role goes on the same element rather than swapping in an
+   `<h1>`, which would bring a UA margin and a block box with it.
+
+   Still open from §6.4: iOS `accessibilityInputLabels`, and the Windows
+   automation properties beyond `AutomationId` and the heading role. Android
+   remains blocked — `@expo/ui`'s Compose layer exposes no modifier for a
+   content description, only `Icon` takes one as a prop.
 
 **Wave 2 — new islands, real work.**
 

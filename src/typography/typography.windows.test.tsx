@@ -43,3 +43,21 @@ describe('Typography (windows)', () => {
     }
   });
 });
+
+describe('headings', () => {
+  it('marks a title as a header, which is how Narrator navigates a screen', async () => {
+    await render(
+      <>
+        <LargeTitle testID="h1">Drops</LargeTitle>
+        <Body testID="body">A paragraph.</Body>
+      </>,
+    );
+    expect(screen.getByTestId('h1').props.accessibilityRole).toBe('header');
+    expect(screen.getByTestId('body').props.accessibilityRole).toBeUndefined();
+  });
+
+  it('takes no for an answer, for a number set large', async () => {
+    await render(<LargeTitle level={false} testID="stat">42</LargeTitle>);
+    expect(screen.getByTestId('stat').props.accessibilityRole).toBeUndefined();
+  });
+});

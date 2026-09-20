@@ -2,6 +2,7 @@ import type {TypographyProps} from './types';
 import type {TextProps} from 'react-native';
 import {createElement} from 'react';
 import {useColor, variants, fonts, fontWeights} from '../theme';
+import {headingLevel} from './types';
 
 const Text = (props: TextProps) => createElement('RCTText', props);
 
@@ -13,13 +14,18 @@ export function Typography({
   align,
   style,
   numberOfLines,
+  level,
   testID,
 }: TypographyProps) {
   const v = variants[variant];
   const c = useColor(color);
+  // A heading is something VoiceOver and TalkBack can jump between; without
+  // the role every title was just more text on the screen.
+  const heading = headingLevel(variant, level);
   return (
     <Text
       numberOfLines={numberOfLines}
+      accessibilityRole={heading ? 'header' : undefined}
       testID={testID}
       style={[
         {

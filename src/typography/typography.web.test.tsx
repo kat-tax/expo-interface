@@ -102,3 +102,39 @@ describe('Typography (web)', () => {
     expect(css().flexShrink).toBe('1');
   });
 });
+
+describe('headings', () => {
+  it('makes a title something a screen reader can navigate to', () => {
+    render(
+      <>
+        <LargeTitle testID="h1">Drops</LargeTitle>
+        <Title testID="h2">Recent</Title>
+        <Title2 testID="h3">Today</Title2>
+        <Title3 testID="h4">Morning</Title3>
+        <Headline testID="h5">Notes</Headline>
+      </>,
+    );
+    // The role goes on the same span, so nothing about the layout moves.
+    expect(screen.getAllByRole('heading').map(node => node.getAttribute('aria-level')))
+      .toEqual(['1', '2', '3', '4', '5']);
+    expect(screen.getByTestId('h1').tagName).toBe('SPAN');
+  });
+
+  it('leaves body text alone, which is most of what a page is', () => {
+    render(<Body testID="body">A paragraph.</Body>);
+    expect(screen.queryByRole('heading')).toBeNull();
+    expect(screen.getByTestId('body')).not.toHaveAttribute('aria-level');
+  });
+
+  it('takes a level of its own, and takes no for an answer', () => {
+    render(
+      <>
+        <Title2 level={1} testID="promoted">Drops</Title2>
+        <LargeTitle level={false} testID="stat">42</LargeTitle>
+      </>,
+    );
+    expect(screen.getByTestId('promoted')).toHaveAttribute('aria-level', '1');
+    // A number set large is not a heading, however big it is.
+    expect(screen.getByTestId('stat')).not.toHaveAttribute('role', 'heading');
+  });
+});

@@ -1,6 +1,7 @@
 import type {TypographyProps} from './types';
 import {Text} from 'react-native';
 import {useColor, variants, fonts, fontWeights} from '../theme';
+import {headingLevel} from './types';
 
 /**
  * Windows draws text with React Native's `Text` in the Fluent type ramp
@@ -16,13 +17,18 @@ export function Typography({
   align,
   style,
   numberOfLines,
+  level,
   testID,
 }: TypographyProps) {
   const v = variants[variant];
   const c = useColor(color);
+  // Narrator navigates by heading, and without the role every title in the
+  // app was just more text.
+  const heading = headingLevel(variant, level);
   return (
     <Text
       numberOfLines={numberOfLines}
+      accessibilityRole={heading ? 'header' : undefined}
       testID={testID}
       style={[
         {

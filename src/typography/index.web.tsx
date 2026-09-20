@@ -1,6 +1,7 @@
 import type {TypographyProps} from './types';
 import {StyleSheet} from 'react-native';
 import {variants, fonts, fontWeights, useColor, flatten, clamp} from '../theme';
+import {headingLevel} from './types';
 
 export function Typography({
   children,
@@ -9,15 +10,22 @@ export function Typography({
   weight,
   align,
   numberOfLines,
+  level,
   style,
   testID,
 }: TypographyProps) {
   const flat = StyleSheet.flatten(style);
   const vars = variants[variant];
   const c = useColor(color);
+  // Every title used to be a bare <span>, so a page had no headings at all and
+  // nothing to navigate by. The role goes on the same element rather than
+  // swapping in an <h1>, which would bring a UA margin and a block box with it.
+  const heading = headingLevel(variant, level);
   return (
     <span
       data-testid={testID}
+      role={heading ? 'heading' : undefined}
+      aria-level={heading}
       style={{
         textAlign: align,
         letterSpacing: vars.letterSpacing,
