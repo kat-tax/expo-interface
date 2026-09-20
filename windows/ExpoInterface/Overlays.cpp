@@ -6,6 +6,7 @@
 
 #include "XamlHost.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceContentDialog.g.h"
+#include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceCommandBar.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceTeachingTip.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceInfoBar.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceMenuFlyout.g.h"
@@ -427,6 +428,101 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
   int32_t m_picked{-1};
 };
 
+// -- CommandBar (toolbar) ----------------------------------------------------
+
+/**
+ * The Windows toolbar. A `CommandBar` builds its own buttons from the
+ * commands it is given, works out which of them fit the width it has, and
+ * moves the rest into an overflow menu it draws itself — none of which it can
+ * do for a bar handed React children, which is why the commands cross as data.
+ */
+struct CommandBarView : winrt::implements<CommandBarView, winrt::IInspectable>,
+                        Codegen::BaseExpoInterfaceCommandBar<CommandBarView>,
+                        XamlIsland<CommandBarView> {
+  void InitializeIsland(const composition::ContentIslandComponentView &islandView) noexcept {
+    m_bar = controls::CommandBar{};
+    // The bar fills the island, which the kit has sized to the row it sits in.
+    m_bar.HorizontalAlignment(xaml::HorizontalAlignment::Stretch);
+    m_bar.DefaultLabelPosition(controls::CommandBarDefaultLabelPosition::Bottom);
+    Attach(islandView, m_bar);
+  }
+
+  void UpdateProps(
+      const rn::ComponentView &view,
+      const winrt::com_ptr<Codegen::ExpoInterfaceCommandBarProps> &newProps,
+      const winrt::com_ptr<Codegen::ExpoInterfaceCommandBarProps> &oldProps) noexcept override {
+    Codegen::BaseExpoInterfaceCommandBar<CommandBarView>::UpdateProps(view, newProps, oldProps);
+    auto props = Props();
+    if (!props) return;
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
+    m_bar.DefaultLabelPosition(LabelPositionFrom(props->labels.value_or("bottom")));
+    Build();
+    Remeasure();
+  }
+
+  void UpdateState(const rn::ComponentView &, const rn::IComponentState &newState) noexcept override {
+    KeepState(newState);
+  }
+
+ private:
+  static controls::CommandBarDefaultLabelPosition LabelPositionFrom(const std::string &labels) noexcept {
+    if (labels == "right") return controls::CommandBarDefaultLabelPosition::Right;
+    if (labels == "collapsed") return controls::CommandBarDefaultLabelPosition::Collapsed;
+    return controls::CommandBarDefaultLabelPosition::Bottom;
+  }
+
+  void Build() noexcept {
+    auto props = Props();
+    if (!props) return;
+    const bool dark = IsDark(Root());
+    m_bar.PrimaryCommands().Clear();
+    m_bar.SecondaryCommands().Clear();
+    auto commands = ParseArray(props->commands);
+    int32_t index = 0;
+    for (auto value : commands) {
+      const int32_t current = index++;
+      if (value.ValueType() != JsonValueType::Object) continue;
+      auto entry = value.GetObject();
+      const bool secondary = JsonBool(entry, L"secondary");
+      if (JsonBool(entry, L"separator")) {
+        controls::AppBarSeparator separator;
+        if (secondary) {
+          m_bar.SecondaryCommands().Append(separator);
+        } else {
+          m_bar.PrimaryCommands().Append(separator);
+        }
+      }
+      controls::AppBarButton button;
+      button.Label(ToHString(JsonString(entry, L"label")));
+      const auto glyph = JsonString(entry, L"glyph");
+      if (!glyph.empty()) button.Icon(MakeGlyph(glyph, 16));
+      button.IsEnabled(!JsonBool(entry, L"disabled"));
+      if (JsonString(entry, L"role") == "destructive") {
+        button.Foreground(Brush(Critical(dark)));
+      }
+      // The label is the accessible name: an icon-only command in a collapsed
+      // bar names nothing otherwise.
+      SetName(button, std::optional<std::string>{JsonString(entry, L"label")});
+      button.Click([weak = get_weak(), current](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
+        if (auto strong = weak.get()) {
+          if (auto emitter = strong->EventEmitter()) {
+            Codegen::ExpoInterfaceCommandBarEventEmitter::OnPress event;
+            event.index = current;
+            emitter->onPress(std::move(event));
+          }
+        }
+      });
+      if (secondary) {
+        m_bar.SecondaryCommands().Append(button);
+      } else {
+        m_bar.PrimaryCommands().Append(button);
+      }
+    }
+  }
+
+  controls::CommandBar m_bar{nullptr};
+};
+
 // -- TeachingTip (popover) ---------------------------------------------------
 
 /**
@@ -819,6 +915,7 @@ void RegisterOverlays(rn::IReactPackageBuilder const &packageBuilder) noexcept {
   RegisterIsland<MenuFlyoutView>(packageBuilder, &Codegen::RegisterExpoInterfaceMenuFlyoutNativeComponent<MenuFlyoutView>);
   RegisterIsland<ContentDialogView>(packageBuilder, &Codegen::RegisterExpoInterfaceContentDialogNativeComponent<ContentDialogView>);
   RegisterIsland<TeachingTipView>(packageBuilder, &Codegen::RegisterExpoInterfaceTeachingTipNativeComponent<TeachingTipView>);
+  RegisterIsland<CommandBarView>(packageBuilder, &Codegen::RegisterExpoInterfaceCommandBarNativeComponent<CommandBarView>);
   RegisterIsland<InfoBarView>(packageBuilder, &Codegen::RegisterExpoInterfaceInfoBarNativeComponent<InfoBarView>);
   RegisterIsland<NavigationViewView>(packageBuilder, &Codegen::RegisterExpoInterfaceNavigationViewNativeComponent<NavigationViewView>);
 }

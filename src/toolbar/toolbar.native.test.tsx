@@ -106,3 +106,54 @@ describe(`Toolbar (${Platform.OS})`, () => {
     expect(screen.getByText('3 peers')).toBeOnTheScreen();
   });
 });
+
+describe('commands', () => {
+  const isIOS = Platform.OS === 'ios';
+  const labelOf = (node: {props: Record<string, unknown>}) =>
+    (isIOS ? node.props.label : node.props.text) as string | undefined;
+  /**
+   * Whether a command is drawn on the bar itself.
+   *
+   * The overflow menu's entries are in the tree too — SwiftUI's `Menu` and
+   * Compose's `DropdownMenu` both render their items as buttons whether the
+   * menu is open or not — so a label found anywhere is not enough. What is
+   * inside the menu is subtracted.
+   */
+  const onBar = (label: string) => {
+    const menu = nodes().find(node => node.type.includes('Menu'));
+    const overflow = new Set(menu ? nodes(menu).map(labelOf).filter(Boolean) : []);
+    return nodes().some(node => labelOf(node) === label) && !overflow.has(label);
+  };
+
+  it('draws what belongs on the bar, and hides the rest behind one menu', async () => {
+    const onPress = vi.fn();
+    await render(
+      <Toolbar
+        commands={[{label: 'Undo', onPress}, {label: 'Redo'}, {label: 'Export', secondary: true}]}
+        testID="bar"
+      />,
+    );
+    expect(onBar('Undo')).toBe(true);
+    expect(onBar('Redo')).toBe(true);
+    // The secondary command is not on the bar at all: it is in the overflow
+    // menu's items, which the platform's own menu draws when it opens.
+    expect(nodes().some(node => node.type.includes('Menu'))).toBe(true);
+  });
+
+  it('shows no overflow when nothing asked to be hidden', async () => {
+    await render(<Toolbar commands={[{label: 'Undo'}]}/>);
+    expect(onBar('Undo')).toBe(true);
+    expect(nodes().some(node => node.type.includes('Menu'))).toBe(false);
+  });
+
+  it('draws nothing on the bar when every command asked to be hidden', async () => {
+    await render(<Toolbar commands={[{label: 'Export', secondary: true}]} testID="bar"/>);
+    expect(onBar('Export')).toBe(false);
+    expect(nodes().some(node => node.type.includes('Menu'))).toBe(true);
+  });
+
+  it('still takes the two slots when it was given no commands', async () => {
+    await render(<Toolbar leading={<Button label="Bold" variant="text"/>} testID="bar"/>);
+    expect(onBar('Bold')).toBe(true);
+  });
+});

@@ -5,7 +5,7 @@ order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
 **Progress.** Wave 1 is done, except that item 6 turned out not to be what it
-said — see below. Wave 2 item 8 is done; 9–11 are unstarted, and so is wave 3.
+said — see below. Wave 2 items 8 and 9 are done; 10 and 11 are unstarted, and so is wave 3.
 
 ## How to read the matrices
 
@@ -554,7 +554,14 @@ axe cannot press keys, so add the two layers that can.
    across, so it was clipped away to nothing and rendered invisibly.
    `ShouldConstrainToRootBounds(false)` puts it in a window of its own, which
    is how the `Flyout` it replaced behaved.
-9. `Toolbar` → `CommandBar` (§2.1).
+9. ~~`Toolbar` → `CommandBar` (§2.1).~~ **Done.** The mechanism is a
+   `commands` prop that describes the bar as data, which is what a platform's
+   own bar needs — `CommandBar` builds its own buttons, decides which fit, and
+   draws the overflow itself. It replaces `leading`/`trailing`, and a `field`
+   sends the bar back to the drawn path. One fidelity trap: a `CommandBar`
+   only shows labels placed *underneath* once the bar is **open**, so
+   `DefaultLabelPosition::Bottom` on a closed bar is a row of unlabelled
+   glyphs; `Right` is the setting that labels a closed bar.
 10. Search field (§1.5) — and with it, the combobox question in §6.3.
 11. Materials on `Surface`, `Sheet` and `Popover` (§3.2).
 
