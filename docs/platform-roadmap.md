@@ -5,7 +5,8 @@ order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
 **Progress.** Wave 1 is done, except that item 6 turned out not to be what it
-said — see below. **Waves 1 and 2 are done.** Wave 3 item 12 is done; 13–15 are unstarted.
+said — see below. **Waves 1 and 2 are done.** Wave 3: item 12 done, item 13 closed without
+building (see below), 14–15 outstanding.
 
 ## How to read the matrices
 
@@ -646,7 +647,28 @@ axe cannot press keys, so add the two layers that can.
 **Wave 3 — decide the shape before writing code.**
 
 12. Swipe actions (§1.6) — asymmetric platform support.
-13. Pull to refresh (§1.3) — the island-versus-scroller conflict.
+13. ~~Pull to refresh (§1.3).~~ **Closed without building, for three reasons
+    that each hold on their own.**
+
+    **React Native already provides it**, natively, on the platforms that have
+    one: `RefreshControl` is `UIRefreshControl` on iOS and
+    `SwipeRefreshLayout` on Android. A kit wrapper would add nothing and hide
+    the real API behind a worse one.
+
+    **The two platforms without it cannot be given it.** `RefreshControl.windows.js`
+    has a `Platform.OS === 'windows'` branch, but nothing in
+    `Microsoft.ReactNative` implements the view it renders — only the codegen
+    descriptors exist — so it is a JavaScript path with no native side. (Not
+    proven by running it; proven by the absence of an implementation, which is
+    worth re-checking before trusting.) A WinUI `RefreshContainer` cannot
+    stand in, because it refreshes *XAML* content and the scroller here is
+    React Native's — the same limit as §1.6 and §3.2. On web,
+    react-native-web's `RefreshControl` is inert and the DOM has no
+    pull-to-refresh primitive at all.
+
+    **And the kit owns no scrollable for it to live on.** Lists are
+    deliberately React Native's here (see "Deliberately not doing"), so there
+    is no component of the kit's for the prop to belong to.
 14. `TabView` (§2.5), `Chip` (§1.4), `ShareLink` (§1.7), pager (§1.8).
 15. Caret-anchored `PopupMenu` (§4.2) — web-only, or commit to two native
     modules.
