@@ -107,11 +107,15 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
         <View style={styles.logo}>
           {header?.onBack ? <BackButton onPress={header.onBack}/> : mark}
           {title != null ? (
-            <Headline color="label" numberOfLines={1} style={styles.title}>
+            // The pushed screen's title is the page's heading, so it is the
+            // one h1 on it.
+            <Headline color="label" level={1} numberOfLines={1} style={styles.title}>
               {title}
             </Headline>
           ) : isPreset && !isIconOnly ? (
-            <Headline color="label">
+            // The app's name is not a heading: it names the whole site, and it
+            // sits inside the navigation landmark rather than over any content.
+            <Headline color="label" level={false}>
               {app.expoConfig?.name}
             </Headline>
           ) : null}
