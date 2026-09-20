@@ -5,7 +5,7 @@ order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
 **Progress.** Wave 1 is done, except that item 6 turned out not to be what it
-said — see below. Wave 2 items 8 and 9 are done; 10 and 11 are unstarted, and so is wave 3.
+said — see below. Wave 2 items 8, 9 and 10 are done; 11 is unstarted, and so is wave 3.
 
 ## How to read the matrices
 
@@ -562,7 +562,16 @@ axe cannot press keys, so add the two layers that can.
    only shows labels placed *underneath* once the bar is **open**, so
    `DefaultLabelPosition::Bottom` on a closed bar is a row of unlabelled
    glyphs; `Right` is the setting that labels a closed bar.
-10. Search field (§1.5) — and with it, the combobox question in §6.3.
+10. ~~Search field (§1.5) — and with it, the combobox question in §6.3.~~
+    **Done.** The combobox question was decided by using the browser's: web is
+    `<input type="search">` with a `<datalist>`, so the APG's hardest keyboard
+    pattern is the platform's problem, and §6.3's no-dependency decision
+    stands. Windows is a real `AutoSuggestBox`. **Android is composed, not
+    native** — Compose's `SearchBar` and `DockedSearchBar` take an
+    `onQueryChange` and no `query`, so a controlled field cannot be built on
+    them, and a `value` that silently does nothing on one platform is the
+    failure this kit exists to avoid. So §1.5's matrix is one native platform,
+    not two.
 11. Materials on `Surface`, `Sheet` and `Popover` (§3.2).
 
 **Wave 3 — decide the shape before writing code.**

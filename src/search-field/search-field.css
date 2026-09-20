@@ -1,0 +1,39 @@
+/*
+ * The field is the browser's own search input, so most of what a search box
+ * does — the clear button, the suggestion list and the keyboard that reaches
+ * it — is drawn by the engine. What is left is the box's own chrome, in the
+ * kit's tokens.
+ */
+.ui-search {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.ui-search__input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-separator);
+  border-radius: 8px;
+  background: var(--color-background-element);
+  color: var(--color-label);
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.ui-search__input::placeholder {
+  color: var(--color-tertiary-label);
+}
+
+.ui-search__input:focus-visible {
+  border-color: var(--color-tint);
+  outline: 2px solid var(--color-tint);
+  outline-offset: -1px;
+}
+
+.ui-search__input:disabled {
+  opacity: 0.4;
+}

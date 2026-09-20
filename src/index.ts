@@ -91,6 +91,8 @@ export {PopupMenu} from './popup-menu';
 export type {PopupMenuProps} from './popup-menu/types';
 export {Progress} from './progress';
 export type {ProgressProps, ProgressVariant} from './progress/types';
+export {SearchField} from './search-field';
+export type {SearchFieldProps} from './search-field/types';
 export {SegmentedControl} from './segmented';
 export type {SegmentedControlProps, SegmentedControlShape, SegmentedControlSize} from './segmented/types';
 export {Slider} from './slider';
