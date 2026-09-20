@@ -1,4 +1,4 @@
-import type {BottomSheetProps} from '@expo/ui';
+import type {SheetProps} from './types';
 
 import {HostPaletteContext, useMaterialColors} from '@expo/ui/jetpack-compose';
 import {BottomSheet} from '@expo/ui';
@@ -13,7 +13,7 @@ import {NativeHostContext} from '../host';
  * same palette as the seeded `Screen` Host. Controls that also take explicit
  * accent colors (switch track, dialog tint, cursor) read `useColor('tint')`.
  */
-export function Sheet({children, ...props}: BottomSheetProps) {
+export function Sheet({children, ...props}: SheetProps) {
   const seed = useAccentSeed();
   const palette = useMaterialColors({seedColor: seed});
   return (

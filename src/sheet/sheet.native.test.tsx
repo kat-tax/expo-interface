@@ -119,3 +119,30 @@ describe(`Sheet (${Platform.OS})`, () => {
     }
   });
 });
+
+describe('material', () => {
+  const isIOS = Platform.OS === 'ios';
+
+  (isIOS ? it : it.skip)('asks SwiftUI for the real material, not a translucent fill', async () => {
+    await render(<Sheet isPresented onDismiss={() => {}} material="regular"><Text>Body</Text></Sheet>);
+    const sheet = host(props => Array.isArray(props.modifiers));
+    expect(modifier(sheet.props, 'presentationBackground')).toEqual({
+      $type: 'presentationBackground',
+      style: {type: 'material', material: 'regular'},
+    });
+  });
+
+  (isIOS ? it : it.skip)('asks for nothing at all for the opaque sheet, which is the default', async () => {
+    await render(<Sheet isPresented onDismiss={() => {}}><Text>Body</Text></Sheet>);
+    expect(modifier(host(props => Array.isArray(props.modifiers)).props, 'presentationBackground')).toBeUndefined();
+    await render(<Sheet isPresented onDismiss={() => {}} material="none"><Text>Body</Text></Sheet>);
+    expect(modifier(host(props => Array.isArray(props.modifiers)).props, 'presentationBackground')).toBeUndefined();
+  });
+
+  (isIOS ? it.skip : it)('leaves the Android sheet opaque, because Compose has no material for it', async () => {
+    await render(<Sheet isPresented onDismiss={() => {}} material="thick"><Text>Body</Text></Sheet>);
+    // ModalBottomSheet takes a containerColor and nothing else; the prop is
+    // documented as absent here rather than quietly doing nothing.
+    expect(nodes().every(node => node.props.presentationBackground === undefined)).toBe(true);
+  });
+});

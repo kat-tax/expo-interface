@@ -1,4 +1,4 @@
-import type {BottomSheetProps} from '@expo/ui';
+import type {SheetProps} from './types';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import {NativeHostContext} from '../host/context';
 import {Layer} from '../windows/layer';
@@ -16,7 +16,7 @@ import {spacing} from '../theme';
  * window under the kit's `Stack` (a layer host) and the nearest ancestor
  * elsewhere.
  */
-export function Sheet({children, isPresented, onDismiss}: BottomSheetProps) {
+export function Sheet({children, isPresented, onDismiss}: SheetProps) {
   if (!isPresented) return null;
   return (
     <Layer>

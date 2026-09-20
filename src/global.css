@@ -15,3 +15,15 @@
 body {
   background-color: var(--color-background);
 }
+
+/*
+ * The sheet's material. `backdrop-filter` is the web's own — the same idea as
+ * a SwiftUI material, said the platform's way — and the radius arrives as a
+ * custom property because `@expo/ui`'s sheet renders vaul into a portal and
+ * forwards only the props it names, so the kit has no element of its own here
+ * to style. With no material asked for the property is absent, the fallback is
+ * zero, and the rule does nothing.
+ */
+[data-vaul-drawer][data-vaul-drawer-direction="bottom"] {
+  backdrop-filter: blur(var(--ui-sheet-blur, 0px));
+}

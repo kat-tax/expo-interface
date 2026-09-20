@@ -5,7 +5,7 @@ order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
 **Progress.** Wave 1 is done, except that item 6 turned out not to be what it
-said — see below. Wave 2 items 8, 9 and 10 are done; 11 is unstarted, and so is wave 3.
+said — see below. **Wave 2 is done.** Wave 3 is unstarted.
 
 ## How to read the matrices
 
@@ -572,7 +572,25 @@ axe cannot press keys, so add the two layers that can.
     them, and a `value` that silently does nothing on one platform is the
     failure this kit exists to avoid. So §1.5's matrix is one native platform,
     not two.
-11. Materials on `Surface`, `Sheet` and `Popover` (§3.2).
+11. ~~Materials on `Surface`, `Sheet` and `Popover` (§3.2).~~ **Done for
+    `Sheet`; `Surface` and `Popover` are not doable and should not be tried
+    again without a dependency.**
+
+    `Sheet` gained `material`: SwiftUI's real material through
+    `presentationBackground` on iOS, `backdrop-filter` on web. Android stays
+    opaque — Compose's `ModalBottomSheet` takes a `containerColor` and
+    nothing else — and so does Windows, where the sheet is drawn in a React
+    Native layer because its content is React Native's.
+
+    §3.2 was too optimistic about the other two, and the reason is structural
+    rather than a missing API: **`Surface` and `Popover` are React Native
+    views on every platform**, and neither SwiftUI's `background` modifier
+    nor a WinUI `AcrylicBrush` can reach one. Giving them a material needs
+    either `expo-blur` or an island per surface, and an island would take the
+    pointer input of whatever it covers (see `.claude/rules/windows.md`). The
+    same limit bit `Sheet` on web from the other side: `@expo/ui` renders
+    vaul in a portal and forwards only the props it names, so the blur radius
+    has to arrive as a custom property on the root.
 
 **Wave 3 — decide the shape before writing code.**
 

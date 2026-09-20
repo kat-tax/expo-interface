@@ -92,3 +92,18 @@ export const AccentCascade: Story = {
   parameters: {accent: '#8959EA'},
   args: {children: <FormContent/>},
 };
+
+/**
+ * A material lets what is behind the sheet show through it: SwiftUI's own on
+ * iOS, `backdrop-filter` on web. Android and Windows stay opaque — Compose's
+ * `ModalBottomSheet` takes a container colour and nothing else, and the
+ * Windows sheet is drawn in a React Native layer because its content is React
+ * Native's, so there is no XAML surface to put an acrylic brush on.
+ */
+export const Material: Story = {
+  args: {material: 'regular'},
+};
+
+export const ThinMaterial: Story = {
+  args: {material: 'thin'},
+};

@@ -1,3 +1,4 @@
+import {afterEach} from 'vitest';
 import {fireEvent, render, screen} from '@testing-library/react';
 import {Sheet} from '.';
 
@@ -59,5 +60,37 @@ describe('Sheet (web)', () => {
     );
     fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
     expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('material (web)', () => {
+  afterEach(() => {
+    document.documentElement.style.removeProperty('--ui-sheet-blur');
+  });
+
+  it('blurs what is behind it, and thins its own fill so the blur shows', async () => {
+    render(<Sheet isPresented onDismiss={() => {}} material="regular"><span>Body</span></Sheet>);
+    // `backdrop-filter` reaches vaul's portal through a custom property on the
+    // root, because @expo/ui's sheet forwards only the props it names.
+    expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('20px');
+  });
+
+  it('asks for a thicker blur for a thicker material', async () => {
+    render(<Sheet isPresented onDismiss={() => {}} material="thick"><span>Body</span></Sheet>);
+    expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('40px');
+  });
+
+  it('sets nothing at all for the opaque sheet, which is the default', async () => {
+    render(<Sheet isPresented onDismiss={() => {}}><span>Body</span></Sheet>);
+    expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('');
+    render(<Sheet isPresented onDismiss={() => {}} material="none"><span>Body</span></Sheet>);
+    expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('');
+  });
+
+  it('gives the property back when the sheet goes', async () => {
+    const {unmount} = render(<Sheet isPresented onDismiss={() => {}} material="thin"><span>Body</span></Sheet>);
+    expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('8px');
+    unmount();
+    expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('');
   });
 });
