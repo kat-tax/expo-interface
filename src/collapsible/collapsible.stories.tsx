@@ -52,7 +52,7 @@ function Faq({onExpandedChange}: Pick<CollapsibleProps, 'onExpandedChange'>) {
 }
 
 const meta = {
-  title: 'Components/Collapsible',
+  title: 'Layout/Collapsible',
   component: Collapsible,
   parameters: {docs: {description: {component: 'Row that expands and collapses its content. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {

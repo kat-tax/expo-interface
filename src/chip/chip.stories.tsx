@@ -7,7 +7,7 @@ import * as icons from '../__stories__/icons';
 import {Chip} from '.';
 
 const meta = {
-  title: 'Components/Chip',
+  title: 'Controls/Chip',
   component: Chip,
   parameters: {
     docs: {

@@ -5,7 +5,7 @@ import {Footnote} from '../typography';
 import {Popover} from '.';
 
 const meta = {
-  title: 'Components/Popover',
+  title: 'Overlays/Popover',
   component: Popover,
   parameters: {native: false, docs: {description: {component: 'A card pointing at something on a canvas: a spelling suggestion, a note on a block. Kept inside its parent, flipping above the rectangle when there is no room below.'}}},
   args: {

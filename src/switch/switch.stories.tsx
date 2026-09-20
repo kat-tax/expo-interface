@@ -37,7 +37,7 @@ function Form({onValueChange}: Pick<SwitchProps, 'onValueChange'>) {
 }
 
 const meta = {
-  title: 'Components/Switch',
+  title: 'Controls/Switch',
   component: Switch,
   parameters: {docs: {description: {component: 'On/off toggle with a leading label. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {

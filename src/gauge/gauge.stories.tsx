@@ -15,7 +15,7 @@ function AllStyles(args: GaugeProps) {
 }
 
 const meta = {
-  title: 'Components/Gauge',
+  title: 'Indicators/Gauge',
   component: Gauge,
   parameters: {docs: {description: {component: 'Shows a value within a range in one of the SwiftUI gauge styles: capacity bars, a marker bar, or open and closed rings. SwiftUI on iOS; Android and web redraw the same geometry.'}}},
   args: {

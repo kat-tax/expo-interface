@@ -3,7 +3,7 @@ import * as icons from '../__stories__/icons';
 import {ShareLink} from '.';
 
 const meta = {
-  title: 'Components/ShareLink',
+  title: 'Navigation/ShareLink',
   component: ShareLink,
   parameters: {
     docs: {

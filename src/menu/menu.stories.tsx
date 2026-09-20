@@ -7,7 +7,7 @@ import {Button} from '../button';
 import {Menu} from '.';
 
 const meta = {
-  title: 'Components/Menu',
+  title: 'Overlays/Menu',
   component: Menu,
   parameters: {docs: {description: {component: 'Dropdown menu of actions opened from a button. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {

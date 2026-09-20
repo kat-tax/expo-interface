@@ -3,7 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import {Badge} from '.';
 
 const meta = {
-  title: 'Components/Badge',
+  title: 'Indicators/Badge',
   component: Badge,
   parameters: {
     docs: {

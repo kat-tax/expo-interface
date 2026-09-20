@@ -31,7 +31,7 @@ const items = [
 ];
 
 const meta = {
-  title: 'Components/PopupMenu',
+  title: 'Overlays/PopupMenu',
   component: PopupMenu,
   // The menu lays a host of its own over the content.
   parameters: {native: false, docs: {description: {component: 'The platform\'s menu opened at a point over content the kit did not draw — a right click on a canvas, the caret in an editor. A SwiftUI popover on iOS, a Compose `DropdownMenu` on Android, the `popover` element on web.'}}},

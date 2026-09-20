@@ -2,7 +2,7 @@ import type {Meta, StoryObj} from '@storybook/react-native';
 import {Spinner} from '.';
 
 const meta = {
-  title: 'Components/Spinner',
+  title: 'Indicators/Spinner',
   component: Spinner,
   parameters: {docs: {description: {component: 'The platform\'s activity indicator while something is on its way — an indeterminate `Progress` ring, in a host of its own when it sits in a React Native layout.'}}},
   args: {

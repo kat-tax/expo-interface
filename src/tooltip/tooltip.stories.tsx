@@ -5,7 +5,7 @@ import {Footnote} from '../typography';
 import {Tooltip} from '.';
 
 const meta = {
-  title: 'Components/Tooltip',
+  title: 'Overlays/Tooltip',
   component: Tooltip,
   parameters: {docs: {description: {component: 'Short hint shown on hover, focus or long-press; an accessibility hint on iOS. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {

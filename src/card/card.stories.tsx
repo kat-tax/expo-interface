@@ -9,7 +9,7 @@ import * as icons from '../__stories__/icons';
 import {Card} from '.';
 
 const meta = {
-  title: 'Components/Card',
+  title: 'Layout/Card',
   component: Card,
   parameters: {native: false, docs: {description: {component: 'A pressable `Surface` with header, body, footer and overlay slots: a document in a list, a space on a dashboard. Actions go in `overlay`, outside the card\'s own press target.'}}},
   args: {

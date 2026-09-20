@@ -4,7 +4,7 @@ import {fillWidth} from '../fill';
 import {Divider} from '.';
 
 const meta = {
-  title: 'Components/Divider',
+  title: 'Layout/Divider',
   component: Divider,
   parameters: {docs: {description: {component: 'Horizontal or vertical hairline separator. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {

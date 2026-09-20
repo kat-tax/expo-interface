@@ -6,7 +6,7 @@ import * as icons from '../__stories__/icons';
 import {Button} from '.';
 
 const meta = {
-  title: 'Components/Button',
+  title: 'Controls/Button',
   component: Button,
   parameters: {docs: {description: {component: 'Filled, outlined or text button with optional icons, sizes, shapes and a destructive role. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {

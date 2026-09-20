@@ -4,7 +4,7 @@ import * as icons from '../__stories__/icons';
 import {EmptyState} from '.';
 
 const meta = {
-  title: 'Components/EmptyState',
+  title: 'Layout/EmptyState',
   component: EmptyState,
   parameters: {
     docs: {

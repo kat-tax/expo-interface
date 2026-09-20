@@ -23,7 +23,7 @@ function Page({title, body}: {title: string; body: string}) {
 }
 
 const meta = {
-  title: 'Components/Pager',
+  title: 'Navigation/Pager',
   component: Pager,
   parameters: {
     docs: {

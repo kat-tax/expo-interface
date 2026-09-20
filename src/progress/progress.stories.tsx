@@ -4,7 +4,7 @@ import {fillWidth} from '../fill';
 import {Progress} from '.';
 
 const meta = {
-  title: 'Components/Progress',
+  title: 'Indicators/Progress',
   component: Progress,
   parameters: {docs: {description: {component: 'Linear bar or circular ring, determinate or indeterminate. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {

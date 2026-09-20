@@ -37,7 +37,7 @@ function Form({onValueChange}: Pick<ColorPickerProps, 'onValueChange'>) {
 }
 
 const meta = {
-  title: 'Components/ColorPicker',
+  title: 'Controls/ColorPicker',
   component: ColorPicker,
   parameters: {docs: {description: {component: 'Row with a rainbow-ringed color well that opens the system color picker with Grid, Spectrum and Sliders tabs. SwiftUI on iOS; Android and web redraw the row and the picker sheet.'}}},
   args: {

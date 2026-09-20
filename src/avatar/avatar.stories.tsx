@@ -3,7 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import {Avatar} from '.';
 
 const meta = {
-  title: 'Components/Avatar',
+  title: 'Indicators/Avatar',
   component: Avatar,
   // A picture in a React Native row, like `Surface`.
   parameters: {native: false, docs: {description: {component: 'A person as a colored circle with their initials: the peers on a document, the members of a space. The circle is hashed from the name unless a color is given.'}}},

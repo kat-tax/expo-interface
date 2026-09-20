@@ -77,7 +77,7 @@ const preview: Preview = {
     },
     options: {
       storySort: {
-        order: ['Overview', 'Guides', ['Installation', 'Theming', 'Icons'], 'Layout', 'Components'],
+        order: ['Overview', 'Guides', ['Installation', 'Theming', 'Icons', 'Windows'], 'Layout', 'Navigation', 'Controls', 'Indicators', 'Overlays'],
       },
     },
   },

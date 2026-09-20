@@ -29,7 +29,7 @@ function Page({tab}: {tab: TabViewTab | undefined}) {
 }
 
 const meta = {
-  title: 'Components/TabView',
+  title: 'Navigation/TabView',
   component: TabView,
   parameters: {
     docs: {

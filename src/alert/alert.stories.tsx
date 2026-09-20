@@ -61,7 +61,7 @@ function DeleteAccount({onDismiss}: Pick<AlertProps, 'onDismiss'>) {
 }
 
 const meta = {
-  title: 'Components/Alert',
+  title: 'Overlays/Alert',
   component: Alert,
   parameters: {docs: {description: {component: 'Modal dialog or action sheet with a title, message and actions. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {

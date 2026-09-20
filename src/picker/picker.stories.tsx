@@ -58,7 +58,7 @@ const items = [
 ];
 
 const meta = {
-  title: 'Components/Picker',
+  title: 'Controls/Picker',
   component: Picker,
   parameters: {docs: {description: {component: 'Dropdown that selects one option from a list. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {

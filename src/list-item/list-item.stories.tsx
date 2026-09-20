@@ -17,7 +17,7 @@ function Glyph({icon, size = 20}: {icon: IconToken; size?: number}) {
 }
 
 const meta = {
-  title: 'Components/ListItem',
+  title: 'Layout/ListItem',
   component: ListItem,
   parameters: {docs: {description: {component: 'Tappable row with leading, trailing and supporting text slots. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {

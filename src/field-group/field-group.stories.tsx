@@ -43,7 +43,7 @@ function Settings({onPress, ...props}: FieldGroupProps & {onPress: () => void}) 
 }
 
 const meta = {
-  title: 'Components/FieldGroup',
+  title: 'Layout/FieldGroup',
   component: FieldGroup,
   parameters: {docs: {description: {component: 'Scrollable settings form made of titled sections of rows. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {

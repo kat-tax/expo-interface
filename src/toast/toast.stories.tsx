@@ -7,7 +7,7 @@ import {NativeHost} from '../host';
 import {Toast} from '.';
 
 const meta = {
-  title: 'Components/Toast',
+  title: 'Overlays/Toast',
   component: Toast,
   parameters: {native: false, docs: {description: {component: 'A brief message over the screen. Android shows the Material 3 `Snackbar`; iOS and web have no such control, so the kit draws the capsule Apple\'s own apps draw, announced as a live region.'}}},
   args: {

@@ -7,7 +7,7 @@ import * as icons from '../__stories__/icons';
 import {Fab} from '.';
 
 const meta = {
-  title: 'Components/Fab',
+  title: 'Controls/Fab',
   component: Fab,
   // The button floats in its own accent-seeded host; keep the decorator's out.
   parameters: {docs: {description: {component: 'Floating action button: the screen\'s primary action, placed by `Screen`\'s `fab` slot. Material 3 on Android, drawn in SwiftUI on iOS, a DOM button on web; with `items` it opens the kit\'s menu.'}}, native: false},

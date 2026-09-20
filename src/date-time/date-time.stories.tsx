@@ -43,7 +43,7 @@ function Form({onChange}: Pick<DateTimePickerProps, 'onChange'>) {
 }
 
 const meta = {
-  title: 'Components/DateTimePicker',
+  title: 'Controls/DateTimePicker',
   component: DateTimePicker,
   parameters: {docs: {description: {component: 'Picks a date, a time or both, with optional bounds. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {

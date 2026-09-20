@@ -424,7 +424,6 @@ function PopupMenuPreview() {
 export const layout: CardEntry[] = [
   {name: 'Screen', href: docs('layout-screen'), stage: 'device', preview: <ScreenPreview/>},
   {name: 'ScreenHeader', href: docs('layout-screenheader'), preview: <ScreenHeaderPreview/>},
-  {name: 'KeyboardBar', href: docs('layout-keyboardbar'), stage: 'device', preview: <KeyboardBarPreview/>},
   {
     name: 'Surface',
     href: docs('layout-surface'),
@@ -440,36 +439,18 @@ export const layout: CardEntry[] = [
       </>
     ),
   },
+  {
+    name: 'Card',
+    href: docs('layout-card'),
+    preview: <CardPreview/>,
+  },
   {name: 'Toolbar', href: docs('layout-toolbar'), preview: <ToolbarPreview/>},
-];
-
-export const components: CardEntry[] = [
-  {name: 'Alert', href: docs('components-alert'), stage: 'center', backdrop: true, preview: <AlertPreview/>},
-  {
-    name: 'Button',
-    href: docs('components-button'),
-    stage: 'center',
-    preview: (
-      <>
-        <Button label="Save" onPress={noop}/>
-        <Button label="Cancel" variant="outlined" onPress={noop}/>
-        <Button label="Learn more" variant="text" onPress={noop}/>
-      </>
-    ),
-  },
-  {
-    name: 'Checkbox',
-    href: docs('components-checkbox'),
-    preview: (
-      <>
-        <Checkbox label="Accept terms" value onValueChange={noop}/>
-        <Checkbox label="Subscribe to newsletter" value={false} onValueChange={noop}/>
-      </>
-    ),
-  },
+  {name: 'KeyboardBar', href: docs('layout-keyboardbar'), stage: 'device', preview: <KeyboardBarPreview/>},
+  {name: 'FieldGroup', href: docs('layout-fieldgroup'), preview: <FieldGroupPreview/>},
+  {name: 'ListItem', href: docs('layout-listitem'), preview: <ListItemPreview/>},
   {
     name: 'Collapsible',
-    href: docs('components-collapsible'),
+    href: docs('layout-collapsible'),
     preview: (
       <Collapsible label="Version 1.0.0" defaultExpanded>
         <Footnote color="secondaryLabel">Built with expo-interface on @expo/ui.</Footnote>
@@ -477,48 +458,8 @@ export const components: CardEntry[] = [
     ),
   },
   {
-    name: 'ColorPicker',
-    href: docs('components-colorpicker'),
-    preview: (
-      <>
-        <ColorPicker label="Accent" value="#FF6347" onValueChange={noop}/>
-        <ColorPicker label="Background" value="#5AC8FA80" onValueChange={noop}/>
-      </>
-    ),
-  },
-  {name: 'ContextMenu', href: docs('components-contextmenu'), preview: <ContextMenuPreview/>},
-  {
-    name: 'DateTimePicker',
-    href: docs('components-datetimepicker'),
-    preview: (
-      <>
-        <DateTimePicker label="Starts" value={JUNE_15} onChange={noop}/>
-        <DateTimePicker label="Reminder" mode="time" value={JUNE_15} onChange={noop}/>
-      </>
-    ),
-  },
-  {
-    name: 'Avatar',
-    href: docs('components-avatar'),
-    stage: 'center',
-    preview: (
-      <Row>
-        {['Ada Lovelace', 'Grace Hopper', 'Alan Turing'].map(name => (
-          <Avatar key={name} name={name}/>
-        ))}
-      </Row>
-    ),
-  },
-  {name: 'Badge', href: docs('components-badge'), preview: <BadgePreview/>},
-  {
-    name: 'Card',
-    href: docs('components-card'),
-    preview: <CardPreview/>,
-  },
-  {name: 'Chip', href: docs('components-chip'), stage: 'center', preview: <ChipPreview/>},
-  {
     name: 'Divider',
-    href: docs('components-divider'),
+    href: docs('layout-divider'),
     preview: (
       <>
         <Body>Wi-Fi</Body>
@@ -529,25 +470,33 @@ export const components: CardEntry[] = [
       </>
     ),
   },
-  {name: 'EmptyState', href: docs('components-emptystate'), stage: 'center', preview: <EmptyStatePreview/>},
-  {name: 'Fab', href: docs('components-fab'), stage: 'center', preview: <FabPreview/>},
-  {name: 'FieldGroup', href: docs('components-fieldgroup'), preview: <FieldGroupPreview/>},
+  {name: 'EmptyState', href: docs('layout-emptystate'), stage: 'center', preview: <EmptyStatePreview/>},
+];
+
+export const navigation: CardEntry[] = [
+  {name: 'TabView', href: docs('navigation-tabview'), preview: <TabViewPreview/>},
+  {name: 'Pager', href: docs('navigation-pager'), preview: <PagerPreview/>},
+  {name: 'ShareLink', href: docs('navigation-sharelink'), stage: 'center', preview: <ShareLink label="Share drop" icon={icons.share} url="https://drop.example/holiday" title="Holiday photos"/>},
+];
+
+export const controls: CardEntry[] = [
   {
-    name: 'Gauge',
-    href: docs('components-gauge'),
+    name: 'Button',
+    href: docs('controls-button'),
+    stage: 'center',
     preview: (
       <>
-        <Gauge label="Speed" value={211} max={260} currentValueLabel="211" minimumValueLabel="0" maximumValueLabel="260"/>
-        <Row>
-          <Gauge variant="circular" value={211} max={260} currentValueLabel="211" minimumValueLabel="0" maximumValueLabel="260"/>
-          <Gauge variant="circularCapacity" value={0.72} currentValueLabel="72%"/>
-        </Row>
+        <Button label="Save" onPress={noop}/>
+        <Button label="Cancel" variant="outlined" onPress={noop}/>
+        <Button label="Learn more" variant="text" onPress={noop}/>
       </>
     ),
   },
+  {name: 'Fab', href: docs('controls-fab'), stage: 'center', preview: <FabPreview/>},
+  {name: 'Chip', href: docs('controls-chip'), stage: 'center', preview: <ChipPreview/>},
   {
     name: 'IconToggle',
-    href: docs('components-icontoggle'),
+    href: docs('controls-icontoggle'),
     stage: 'center',
     preview: (
       <Row>
@@ -556,12 +505,40 @@ export const components: CardEntry[] = [
       </Row>
     ),
   },
-  {name: 'ListItem', href: docs('components-listitem'), preview: <ListItemPreview/>},
-  {name: 'Menu', href: docs('components-menu'), stage: 'center', preview: <MenuPreview/>},
-  {name: 'Pager', href: docs('components-pager'), preview: <PagerPreview/>},
+  {
+    name: 'Switch',
+    href: docs('controls-switch'),
+    preview: (
+      <>
+        <Switch label="Wi-Fi" value onValueChange={noop}/>
+        <Switch label="Bluetooth" value={false} onValueChange={noop}/>
+      </>
+    ),
+  },
+  {
+    name: 'Checkbox',
+    href: docs('controls-checkbox'),
+    preview: (
+      <>
+        <Checkbox label="Accept terms" value onValueChange={noop}/>
+        <Checkbox label="Subscribe to newsletter" value={false} onValueChange={noop}/>
+      </>
+    ),
+  },
+  {
+    name: 'TextField',
+    href: docs('controls-textfield'),
+    preview: (
+      <>
+        <TextField placeholder="Name" value="Ada Lovelace" onChangeText={noop}/>
+        <TextField placeholder="Email" value="" keyboardType="email" onChangeText={noop}/>
+      </>
+    ),
+  },
+  {name: 'SearchField', href: docs('controls-searchfield'), preview: <SearchFieldPreview/>},
   {
     name: 'Picker',
-    href: docs('components-picker'),
+    href: docs('controls-picker'),
     preview: (
       <>
         <Picker label="Language" selectedValue="en" onValueChange={noop}>
@@ -576,11 +553,63 @@ export const components: CardEntry[] = [
       </>
     ),
   },
-  {name: 'Popover', href: docs('components-popover'), preview: <PopoverPreview/>},
-  {name: 'PopupMenu', href: docs('components-popupmenu'), preview: <PopupMenuPreview/>},
+  {
+    name: 'SegmentedControl',
+    href: docs('controls-segmentedcontrol'),
+    preview: (
+      <SegmentedControl label="Range" selectedValue="week" onValueChange={noop}>
+        <SegmentedControl.Item label="Day" value="day"/>
+        <SegmentedControl.Item label="Week" value="week"/>
+        <SegmentedControl.Item label="Month" value="month"/>
+      </SegmentedControl>
+    ),
+  },
+  {
+    name: 'Slider',
+    href: docs('controls-slider'),
+    preview: (
+      <>
+        <Slider label="Brightness" value={0.7} onValueChange={noop}/>
+        <Slider label="Volume" value={40} min={0} max={100} step={5} onValueChange={noop}/>
+      </>
+    ),
+  },
+  {
+    name: 'Stepper',
+    href: docs('controls-stepper'),
+    preview: (
+      <>
+        <Stepper label="Adults" value={2} min={1} max={8} onValueChange={noop}/>
+        <Stepper label="Rooms" value={1} min={1} max={4} onValueChange={noop}/>
+      </>
+    ),
+  },
+  {
+    name: 'DateTimePicker',
+    href: docs('controls-datetimepicker'),
+    preview: (
+      <>
+        <DateTimePicker label="Starts" value={JUNE_15} onChange={noop}/>
+        <DateTimePicker label="Reminder" mode="time" value={JUNE_15} onChange={noop}/>
+      </>
+    ),
+  },
+  {
+    name: 'ColorPicker',
+    href: docs('controls-colorpicker'),
+    preview: (
+      <>
+        <ColorPicker label="Accent" value="#FF6347" onValueChange={noop}/>
+        <ColorPicker label="Background" value="#5AC8FA80" onValueChange={noop}/>
+      </>
+    ),
+  },
+];
+
+export const indicators: CardEntry[] = [
   {
     name: 'Progress',
-    href: docs('components-progress'),
+    href: docs('indicators-progress'),
     preview: (
       <>
         <Progress value={0.6}/>
@@ -591,70 +620,50 @@ export const components: CardEntry[] = [
       </>
     ),
   },
-  {name: 'SearchField', href: docs('components-searchfield'), preview: <SearchFieldPreview/>},
-  {
-    name: 'SegmentedControl',
-    href: docs('components-segmentedcontrol'),
-    preview: (
-      <SegmentedControl label="Range" selectedValue="week" onValueChange={noop}>
-        <SegmentedControl.Item label="Day" value="day"/>
-        <SegmentedControl.Item label="Week" value="week"/>
-        <SegmentedControl.Item label="Month" value="month"/>
-      </SegmentedControl>
-    ),
-  },
-  {name: 'ShareLink', href: docs('components-sharelink'), stage: 'center', preview: <ShareLink label="Share drop" icon={icons.share} url="https://drop.example/holiday" title="Holiday photos"/>},
-  {name: 'Sheet', href: docs('components-sheet'), stage: 'device', backdrop: true, preview: <SheetPreview/>},
   {
     name: 'Spinner',
-    href: docs('components-spinner'),
+    href: docs('indicators-spinner'),
     stage: 'center',
     preview: <Spinner size={40}/>,
   },
   {
-    name: 'Slider',
-    href: docs('components-slider'),
+    name: 'Gauge',
+    href: docs('indicators-gauge'),
     preview: (
       <>
-        <Slider label="Brightness" value={0.7} onValueChange={noop}/>
-        <Slider label="Volume" value={40} min={0} max={100} step={5} onValueChange={noop}/>
+        <Gauge label="Speed" value={211} max={260} currentValueLabel="211" minimumValueLabel="0" maximumValueLabel="260"/>
+        <Row>
+          <Gauge variant="circular" value={211} max={260} currentValueLabel="211" minimumValueLabel="0" maximumValueLabel="260"/>
+          <Gauge variant="circularCapacity" value={0.72} currentValueLabel="72%"/>
+        </Row>
       </>
     ),
   },
+  {name: 'Badge', href: docs('indicators-badge'), preview: <BadgePreview/>},
   {
-    name: 'Stepper',
-    href: docs('components-stepper'),
+    name: 'Avatar',
+    href: docs('indicators-avatar'),
+    stage: 'center',
     preview: (
-      <>
-        <Stepper label="Adults" value={2} min={1} max={8} onValueChange={noop}/>
-        <Stepper label="Rooms" value={1} min={1} max={4} onValueChange={noop}/>
-      </>
+      <Row>
+        {['Ada Lovelace', 'Grace Hopper', 'Alan Turing'].map(name => (
+          <Avatar key={name} name={name}/>
+        ))}
+      </Row>
     ),
   },
-  {
-    name: 'Switch',
-    href: docs('components-switch'),
-    preview: (
-      <>
-        <Switch label="Wi-Fi" value onValueChange={noop}/>
-        <Switch label="Bluetooth" value={false} onValueChange={noop}/>
-      </>
-    ),
-  },
-  {name: 'TabView', href: docs('components-tabview'), preview: <TabViewPreview/>},
-  {
-    name: 'TextField',
-    href: docs('components-textfield'),
-    preview: (
-      <>
-        <TextField placeholder="Name" value="Ada Lovelace" onChangeText={noop}/>
-        <TextField placeholder="Email" value="" keyboardType="email" onChangeText={noop}/>
-      </>
-    ),
-  },
-  {name: 'Toast', href: docs('components-toast'), stage: 'center', preview: <ToastPreview/>},
-  {name: 'Tooltip', href: docs('components-tooltip'), stage: 'center', preview: <TooltipPreview/>},
-  {name: 'Typography', href: docs('components-typography'), preview: <TypographyPreview/>},
+  {name: 'Typography', href: docs('indicators-typography'), preview: <TypographyPreview/>},
+];
+
+export const overlays: CardEntry[] = [
+  {name: 'Menu', href: docs('overlays-menu'), stage: 'center', preview: <MenuPreview/>},
+  {name: 'ContextMenu', href: docs('overlays-contextmenu'), preview: <ContextMenuPreview/>},
+  {name: 'PopupMenu', href: docs('overlays-popupmenu'), preview: <PopupMenuPreview/>},
+  {name: 'Popover', href: docs('overlays-popover'), preview: <PopoverPreview/>},
+  {name: 'Tooltip', href: docs('overlays-tooltip'), stage: 'center', preview: <TooltipPreview/>},
+  {name: 'Alert', href: docs('overlays-alert'), stage: 'center', backdrop: true, preview: <AlertPreview/>},
+  {name: 'Sheet', href: docs('overlays-sheet'), stage: 'device', backdrop: true, preview: <SheetPreview/>},
+  {name: 'Toast', href: docs('overlays-toast'), stage: 'center', preview: <ToastPreview/>},
 ];
 
 const styles = {

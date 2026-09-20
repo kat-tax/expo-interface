@@ -35,7 +35,7 @@ function DropList({onPress}: Pick<ContextMenuProps, 'onPress'>) {
 }
 
 const meta = {
-  title: 'Components/ContextMenu',
+  title: 'Overlays/ContextMenu',
   component: ContextMenu,
   parameters: {docs: {description: {component: 'Menu of actions opened by long-pressing (or right-clicking) its content. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {

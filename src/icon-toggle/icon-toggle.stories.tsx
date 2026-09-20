@@ -5,7 +5,7 @@ import * as icons from '../__stories__/icons';
 import {IconToggle} from '.';
 
 const meta = {
-  title: 'Components/IconToggle',
+  title: 'Controls/IconToggle',
   component: IconToggle,
   parameters: {docs: {description: {component: 'A round icon button with two states — the star on a document, a tool that stays down while it is on. Material 3\'s `IconToggleButton` on Android, a SwiftUI button carrying the selected trait on iOS, an `aria-pressed` button on web.'}}},
   args: {

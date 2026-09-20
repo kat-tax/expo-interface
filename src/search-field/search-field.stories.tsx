@@ -5,7 +5,7 @@ import {SearchField} from '.';
 const DROPS = ['HIS-201 Midterm Essay', 'Demo Reel', 'Project X Assets', 'Summer Mixtape'];
 
 const meta = {
-  title: 'Components/SearchField',
+  title: 'Controls/SearchField',
   component: SearchField,
   parameters: {
     docs: {

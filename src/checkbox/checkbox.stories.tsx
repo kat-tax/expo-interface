@@ -37,7 +37,7 @@ function Form({onValueChange}: Pick<CheckboxProps, 'onValueChange'>) {
 }
 
 const meta = {
-  title: 'Components/Checkbox',
+  title: 'Controls/Checkbox',
   component: Checkbox,
   parameters: {docs: {description: {component: 'Checked/unchecked box with a leading label. Renders the platform control: SwiftUI on iOS, Jetpack Compose on Android and a DOM element on web.'}}},
   args: {
