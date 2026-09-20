@@ -1,5 +1,5 @@
 import {render} from '@testing-library/react-native';
-import {island} from '../__tests__/windows';
+import {island} from 'expo-vitest/windows';
 import {Progress} from '.';
 import {Spinner} from '../spinner';
 

@@ -5,8 +5,8 @@ import {screen} from '@testing-library/react-native';
 import Constants from 'expo-constants';
 import {router} from 'expo-router';
 import {colors} from '../theme';
-import {nodes} from '../__tests__/native';
-import {renderApp} from '../__tests__/router';
+import {nodes} from 'expo-vitest/native';
+import {renderApp} from 'expo-vitest/router';
 
 const routes: TabRoute[] = [
   {href: '/', name: 'index', label: 'Home', icon: {ios: 'house', android: 'home', web: 'home'}},

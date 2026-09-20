@@ -1,5 +1,5 @@
 import {render, screen} from '@testing-library/react-native';
-import {fireIsland, island, islands} from '../__tests__/windows';
+import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {inputScopeFor} from './index.windows';
 import {TextField} from '.';
 

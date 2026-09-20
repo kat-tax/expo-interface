@@ -1,5 +1,5 @@
 import {act, render, waitFor} from '@testing-library/react-native';
-import {byComposeTestID, nodes} from '../__tests__/native';
+import {byComposeTestID, nodes} from 'expo-vitest/native';
 import {Toast} from '.';
 
 const {showSnackbar} = vi.hoisted(() => ({showSnackbar: vi.fn()}));

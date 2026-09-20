@@ -1,5 +1,5 @@
 import {render} from '@testing-library/react-native';
-import {fireIsland, island} from '../__tests__/windows';
+import {fireIsland, island} from 'expo-vitest/windows';
 import {PopupMenu} from '.';
 
 const FLYOUT = 'ExpoInterfaceMenuFlyout';

@@ -2,7 +2,7 @@ import {Platform} from 'react-native';
 import {render as renderDom, screen as dom} from '@testing-library/react';
 import {render, screen} from '@testing-library/react-native';
 import {NativeHost} from '../host';
-import {byComposeTestID, nodes} from '../__tests__/native';
+import {byComposeTestID, nodes} from 'expo-vitest/native';
 import {Spinner} from '.';
 
 const HOST = 'ViewManagerAdapter_ExpoUI_HostView';

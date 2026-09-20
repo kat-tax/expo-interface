@@ -27,6 +27,18 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./native": {
+      "types": "./dist/native.d.ts",
+      "default": "./dist/native.js"
+    },
+    "./windows": {
+      "types": "./dist/windows.d.ts",
+      "default": "./dist/windows.js"
+    },
+    "./router": {
+      "types": "./dist/router.d.ts",
+      "default": "./dist/router.js"
+    },
     "./metro-compat": {
       "types": "./dist/metro-compat.d.ts",
       "default": "./dist/metro-compat.js"

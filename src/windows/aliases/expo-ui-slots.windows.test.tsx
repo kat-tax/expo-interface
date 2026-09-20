@@ -1,7 +1,7 @@
 import {createRef} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {Share, Text, View} from 'react-native';
-import {fireIsland, island} from '../../__tests__/windows';
+import {fireIsland, island} from 'expo-vitest/windows';
 import {Checkbox as CommunityCheckbox, PagerView, Picker as CommunityPicker} from './community-controls';
 import {MenuView, menuItemsOf} from './community-sheet-menu';
 import * as universal from './expo-ui';

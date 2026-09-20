@@ -1,7 +1,7 @@
 import {Platform, StyleSheet} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {colors} from '../theme';
-import {byComposeTestID, host, nodes} from '../__tests__/native';
+import {byComposeTestID, host, nodes} from 'expo-vitest/native';
 import {Badge} from '.';
 
 const isIOS = Platform.OS === 'ios';

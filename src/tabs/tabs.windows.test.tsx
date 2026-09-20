@@ -3,8 +3,8 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {act, fireEvent, screen} from '@testing-library/react-native';
 import {Dimensions, StyleSheet, Text} from 'react-native';
 import {router} from 'expo-router';
-import {fireIsland, island, islands} from '../__tests__/windows';
-import {renderApp} from '../__tests__/router';
+import {fireIsland, island, islands} from 'expo-vitest/windows';
+import {renderApp} from 'expo-vitest/router';
 import {PANE_BREAKPOINT, PANE_WIDTH, resolvePane, tabItems, Tabs} from './index.windows';
 
 const NAV = 'ExpoInterfaceNavigationView';

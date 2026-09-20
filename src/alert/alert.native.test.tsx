@@ -1,11 +1,11 @@
 import type {AlertAction} from './types';
-import type {HostNode} from '../__tests__/native';
+import type {HostNode} from 'expo-vitest/native';
 import {Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import {Button} from '../button';
 import {NativeHost} from '../host';
-import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {Alert} from '.';
 
 

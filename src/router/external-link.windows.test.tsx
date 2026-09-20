@@ -1,6 +1,6 @@
 import {Linking} from 'react-native';
 import {fireEvent, screen} from '@testing-library/react-native';
-import {renderApp} from '../__tests__/router';
+import {renderApp} from 'expo-vitest/router';
 import {ExternalLink} from './external-link';
 
 const app = {

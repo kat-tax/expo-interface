@@ -3,7 +3,7 @@ import {render as renderDom, screen as dom} from '@testing-library/react';
 import {render} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import {Switch} from '../switch';
-import {host, modifier, nodes} from '../__tests__/native';
+import {host, modifier, nodes} from 'expo-vitest/native';
 import {NativeHost} from '.';
 
 const HOST = 'ViewManagerAdapter_ExpoUI_HostView';

@@ -1,5 +1,5 @@
 import {act, render} from '@testing-library/react-native';
-import {fireIsland, island, islands} from '../__tests__/windows';
+import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {Toast} from '.';
 
 const BAR = 'ExpoInterfaceInfoBar';

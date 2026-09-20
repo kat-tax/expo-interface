@@ -1,4 +1,4 @@
-import type {HostNode} from '../__tests__/native';
+import type {HostNode} from 'expo-vitest/native';
 import type {PropsWithChildren} from 'react';
 import {Platform} from 'react-native';
 import {act, render, screen} from '@testing-library/react-native';
@@ -6,7 +6,7 @@ import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose'
 import {setColorScheme} from 'vitest-native/helpers';
 import {AccentProvider} from '../accent';
 import {colors} from '../theme';
-import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {gauge, markerOffset, track} from './shared';
 import {Gauge} from '.';
 

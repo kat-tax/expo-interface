@@ -3,7 +3,7 @@ import {Platform} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose';
 import {AccentProvider} from '../accent';
-import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {Switch} from '.';
 
 const isIOS = Platform.OS === 'ios';

@@ -1,5 +1,5 @@
 import {render, screen} from '@testing-library/react-native';
-import {fireIsland, island} from '../__tests__/windows';
+import {fireIsland, island} from 'expo-vitest/windows';
 import {Checkbox} from '.';
 
 const BOX = 'ExpoInterfaceCheckBox';

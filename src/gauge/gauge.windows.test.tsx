@@ -1,5 +1,5 @@
 import {render, screen} from '@testing-library/react-native';
-import {island, islands} from '../__tests__/windows';
+import {island, islands} from 'expo-vitest/windows';
 import {gauge} from './shared';
 import {Gauge} from '.';
 

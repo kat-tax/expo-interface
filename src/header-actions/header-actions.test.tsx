@@ -3,7 +3,7 @@ import {Platform} from 'react-native';
 import {fireEvent as fireDom, render as renderDom, screen as dom} from '@testing-library/react';
 import {render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
-import {byComposeTestID, nodes} from '../__tests__/native';
+import {byComposeTestID, nodes} from 'expo-vitest/native';
 import {HeaderAction} from '../header-action';
 import {HeaderMenu} from '../header-menu';
 import {HeaderActions} from '.';

@@ -2,7 +2,7 @@ import {Platform} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import {colors} from '../theme';
-import {byComposeTestID, host, modifier, nodes, type HostNode} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes, type HostNode} from 'expo-vitest/native';
 import {SegmentedControl} from '.';
 
 const isIOS = Platform.OS === 'ios';

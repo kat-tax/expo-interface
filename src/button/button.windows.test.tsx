@@ -2,7 +2,7 @@ import {Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import * as icons from '../__stories__/icons';
-import {host} from '../__tests__/native';
+import {host} from 'expo-vitest/native';
 import {Button} from '.';
 
 const button = (testID: string) => host(p => p.testID === testID);

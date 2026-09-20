@@ -1,6 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {Text} from 'react-native';
-import {fireIsland, island} from '../__tests__/windows';
+import {fireIsland, island} from 'expo-vitest/windows';
 import {ContextMenu} from '.';
 
 const FLYOUT = 'ExpoInterfaceMenuFlyout';

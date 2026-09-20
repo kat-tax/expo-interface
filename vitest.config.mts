@@ -80,7 +80,6 @@ export default defineConfig({
         'src/**/*.stories.tsx',
         'src/**/*.test.{ts,tsx}',
         'src/__stories__/**',
-        'src/__tests__/**',
         'src/**/*.d.ts',
         'expo-windows/**/*.test.{js,ts,tsx}',
         'expo-windows/**/*.d.ts',

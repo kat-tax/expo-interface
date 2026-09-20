@@ -1,10 +1,10 @@
 import type {MenuItem} from '../menu/types';
-import type {HostNode} from '../__tests__/native';
+import type {HostNode} from 'expo-vitest/native';
 import {Platform} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import * as icons from '../__stories__/icons';
-import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {FAB_ICON, FAB_RADIUS, FAB_SIZE} from './shared';
 import {Fab} from '.';
 

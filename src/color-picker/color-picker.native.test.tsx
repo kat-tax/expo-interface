@@ -1,11 +1,11 @@
 import type {PropsWithChildren} from 'react';
 import type {ColorPickerSheetProps} from './sheet';
-import type {HostNode} from '../__tests__/native';
+import type {HostNode} from 'expo-vitest/native';
 import {Platform, processColor} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose';
 import {colors} from '../theme';
-import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {ColorPicker} from '.';
 
 /**

@@ -5,7 +5,7 @@ import {setBackgroundColorAsync} from 'expo-system-ui';
 import {AccentProvider} from '../accent';
 import {colors, inset, spacing} from '../theme';
 import {Switch} from '../switch';
-import {host, modifier, nodes} from '../__tests__/native';
+import {host, modifier, nodes} from 'expo-vitest/native';
 import {hostAccentProps} from './host-accent';
 import {StackHeaderContext} from '../stack-header/context';
 import {Screen} from '.';

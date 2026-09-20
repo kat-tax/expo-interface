@@ -18,6 +18,9 @@ const BUILT = !fileURLToPath(import.meta.url).endsWith('.ts');
 
 /** The package's subpaths, by the source file each is. `package.json`'s `exports` say the same; a test keeps them in step. */
 export const SUBPATHS: Record<string, string> = {
+  native: 'native.ts',
+  windows: 'windows.ts',
+  router: 'router.tsx',
   'metro-compat': 'metro-compat.ts',
 };
 

@@ -1,4 +1,4 @@
-import {fireIsland, island, islands} from '../__tests__/windows';
+import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {windowsGlyph} from '../symbol/segoe';
 import * as icons from '../__stories__/icons';
 import {render, screen} from '@testing-library/react-native';

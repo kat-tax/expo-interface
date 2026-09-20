@@ -2,7 +2,7 @@ import {Platform, StyleSheet, Text} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {bound, colors} from '../theme';
-import {nodes} from '../__tests__/native';
+import {nodes} from 'expo-vitest/native';
 import {ScreenHeader} from './header';
 
 const metrics = {

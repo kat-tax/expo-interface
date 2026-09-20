@@ -1,7 +1,7 @@
 import {createRef} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {Text, View} from 'react-native';
-import {fireIsland, island} from '../../__tests__/windows';
+import {fireIsland, island} from 'expo-vitest/windows';
 import {buildEvent, Checkbox, DateTimePicker, DateTimePickerAndroid, MaskedView, PagerView, type PagerViewRef, Picker, pickerItems, SegmentedControl, Slider} from './community-controls';
 import {BottomSheet, BottomSheetBackdrop, BottomSheetFlatList, BottomSheetFooter, BottomSheetHandle, type BottomSheetMethods, BottomSheetModal, BottomSheetModalProvider, BottomSheetScrollView, BottomSheetSectionList, BottomSheetTextInput, BottomSheetView, MenuComponent, menuItemsOf, MenuView, useBottomSheet, useBottomSheetModal} from './community-sheet-menu';
 import BottomSheetDefault from './community-bottom-sheet';

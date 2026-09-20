@@ -1,7 +1,7 @@
 import {Platform, Text} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {AccentProvider, ACCENT_SEED} from '../accent';
-import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {Sheet} from '.';
 
 const isIOS = Platform.OS === 'ios';

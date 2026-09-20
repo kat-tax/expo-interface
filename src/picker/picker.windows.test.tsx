@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
-import {fireIsland, island} from '../__tests__/windows';
+import {fireIsland, island} from 'expo-vitest/windows';
 import {Picker} from '.';
 
 const COMBO = 'ExpoInterfaceComboBox';

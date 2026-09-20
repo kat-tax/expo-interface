@@ -1,7 +1,7 @@
 import type {MenuItem} from './types';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
-import {fireIsland, island} from '../__tests__/windows';
+import {fireIsland, island} from 'expo-vitest/windows';
 import {Menu} from '.';
 
 const FLYOUT = 'ExpoInterfaceMenuFlyout';

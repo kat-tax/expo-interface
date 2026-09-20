@@ -1,5 +1,5 @@
 import {render} from '@testing-library/react-native';
-import {island} from '../__tests__/windows';
+import {island} from 'expo-vitest/windows';
 import {colorOf} from './shared';
 import {Avatar} from '.';
 

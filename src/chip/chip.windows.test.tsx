@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
-import {fireIsland, island} from '../__tests__/windows';
+import {fireIsland, island} from 'expo-vitest/windows';
 import * as icons from '../__stories__/icons';
 import {Chip} from '.';
 

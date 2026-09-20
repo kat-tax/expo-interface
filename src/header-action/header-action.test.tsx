@@ -3,7 +3,7 @@ import {fireEvent as fireDom, render as renderDom, screen as dom} from '@testing
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
 import {InBarContext} from '../tabs/context';
-import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {HeaderAction} from '.';
 
 /** The screen's focus, as the navigator would report it. */

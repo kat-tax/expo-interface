@@ -2,16 +2,17 @@ import type {TestInstance} from 'test-renderer';
 import {fireEvent, screen} from '@testing-library/react-native';
 
 /**
- * The kit's XAML islands render as host views named after their native
- * components (`ExpoInterfaceButton`, `ExpoInterfaceToggleSwitch`, ...) whose
- * props are the payload handed to `windows/ExpoInterface`. These helpers find
- * them and fire the events the C++ side would.
+ * A Windows native component hosts a WinUI control in a XAML island, and in
+ * the Windows project it renders as a host view named after the component
+ * (`ExpoInterfaceButton`, `ExpoWindowsWebView`, ...) whose props are the
+ * payload handed to the C++ side. These helpers find those views and fire the
+ * events the C++ side would.
  */
 
 /**
  * The rendered tree's container: above the root, so a root island is found
- * too. The harness's renderer walks a tree with `queryAll` rather than
- * react-test-renderer's `findAll`.
+ * too. React Native Testing Library's renderer walks a tree with `queryAll`
+ * rather than react-test-renderer's `findAll`.
  */
 function container(): {queryAll(predicate: (node: TestInstance) => boolean): TestInstance[]} {
   return (screen as unknown as {container: ReturnType<typeof container>}).container;
@@ -31,8 +32,8 @@ export function islands(name: string): TestInstance[] {
 }
 
 /**
- * Fires a native event on an island, as the C++ side dispatches it. The
- * harness's `fireEvent` flushes React in an async act: always awaited, or
+ * Fires a native event on an island, as the C++ side dispatches it. Testing
+ * Library's `fireEvent` flushes React in an async act: always awaited, or
  * the update lands in the next test.
  */
 export async function fireIsland(instance: TestInstance, event: string, payload: object = {}): Promise<void> {

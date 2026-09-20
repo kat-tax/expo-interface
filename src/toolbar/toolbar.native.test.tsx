@@ -4,7 +4,7 @@ import {Button} from '../button';
 import {Divider} from '../divider';
 import {TextField} from '../text-field';
 import {colors} from '../theme';
-import {nodes} from '../__tests__/native';
+import {nodes} from 'expo-vitest/native';
 import {Toolbar} from '.';
 
 const HOST = 'ViewManagerAdapter_ExpoUI_HostView';

@@ -38,7 +38,6 @@
   "files": [
     "src",
     "!src/__stories__",
-    "!src/__tests__",
     "!src/**/*.stories.tsx",
     "!src/**/*.test.ts",
     "!src/**/*.test.tsx",

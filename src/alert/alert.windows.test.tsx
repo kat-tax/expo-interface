@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 import {Text} from 'react-native';
-import {fireIsland, island} from '../__tests__/windows';
+import {fireIsland, island} from 'expo-vitest/windows';
 import {Alert} from '.';
 
 const DIALOG = 'ExpoInterfaceContentDialog';

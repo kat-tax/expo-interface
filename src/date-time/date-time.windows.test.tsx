@@ -1,5 +1,5 @@
 import {render, screen} from '@testing-library/react-native';
-import {fireIsland, island, islands} from '../__tests__/windows';
+import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {DateTimePicker, parseDateString, parseTimeString, toDateString, toTimeString} from './index.windows';
 
 const DATE = 'ExpoInterfaceDatePicker';

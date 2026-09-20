@@ -25,13 +25,13 @@ describe('the subpaths', () => {
   });
 
   it('alias each to its file here, source while this is source', () => {
-    expect(file('metro-compat.ts')).toBe(path.join(PACKAGE, 'src', 'metro-compat.ts'));
+    expect(file('windows.ts')).toBe(path.join(PACKAGE, 'src', 'windows.ts'));
     const aliases = selfAliases();
     expect(aliases).toHaveLength(Object.keys(SUBPATHS).length);
-    const compat = aliases.find(alias => (alias.find as RegExp).test('expo-vitest/metro-compat'));
-    expect(compat?.replacement).toBe(path.join(PACKAGE, 'src', 'metro-compat.ts'));
+    const router = aliases.find(alias => (alias.find as RegExp).test('expo-vitest/router'));
+    expect(router?.replacement).toBe(path.join(PACKAGE, 'src', 'router.tsx'));
     // A subpath is matched whole.
-    expect(aliases.filter(alias => (alias.find as RegExp).test('expo-vitest/metro-compat/more'))).toHaveLength(0);
+    expect(aliases.filter(alias => (alias.find as RegExp).test('expo-vitest/windows/more'))).toHaveLength(0);
   });
 });
 

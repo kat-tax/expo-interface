@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native';
 import {render} from '@testing-library/react-native';
-import {island} from '../__tests__/windows';
+import {island} from 'expo-vitest/windows';
 import {Badge} from '.';
 
 const BADGE = 'ExpoInterfaceInfoBadge';

@@ -1,7 +1,7 @@
 import {Platform} from 'react-native';
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 import {useNativeState} from '@expo/ui';
-import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {useSyncedState} from './shared';
 import {TextField} from '.';
 

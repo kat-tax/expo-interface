@@ -1,6 +1,6 @@
 import {Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {fireIsland, island, islands} from '../__tests__/windows';
+import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {TabView, tabItems} from './index.windows';
 
 const XAML = 'ExpoInterfaceTabView';

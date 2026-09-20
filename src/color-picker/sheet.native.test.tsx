@@ -1,7 +1,7 @@
 import {Platform} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {setColorScheme} from 'vitest-native/helpers';
-import {nodes} from '../__tests__/native';
+import {nodes} from 'expo-vitest/native';
 import {ColorPickerSheet} from './sheet';
 
 const layout = (element: ReturnType<typeof screen.getByLabelText>, width: number, height = 36) =>

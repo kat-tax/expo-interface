@@ -1,6 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
-import {island, islands} from '../__tests__/windows';
+import {island, islands} from 'expo-vitest/windows';
 import {HeaderAction} from '../header-action';
 import {HeaderMenu} from '../header-menu';
 import {HeaderActions} from '.';

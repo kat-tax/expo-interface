@@ -1,6 +1,6 @@
 import {createRef} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {fireIsland, island} from '../../__tests__/windows';
+import {fireIsland, island} from 'expo-vitest/windows';
 import * as ui from './expo-ui-jetpack-compose';
 import {clickable, paddingAll} from './expo-ui-jetpack-compose-modifiers';
 import {disabled} from './expo-ui-swift-ui-modifiers';

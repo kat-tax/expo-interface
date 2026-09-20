@@ -1,6 +1,6 @@
 import {Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {ShareLink} from '.';
 
 const isIOS = Platform.OS === 'ios';

@@ -3,6 +3,9 @@
  *
  * - `expoProjects()` makes one Vitest project for iOS, Android, web and
  *   Windows, and a test file's name decides which of them run it.
+ * - `expo-vitest/native`, `expo-vitest/windows` and `expo-vitest/router` are
+ *   helpers for the tests: the payload `@expo/ui` hands SwiftUI and Compose, a
+ *   Windows native component's props and events, an in-memory Expo Router app.
  */
 export type {ExpoProjectsOptions, Platform} from './projects.ts';
 export {expoProjects, nodeProject} from './projects.ts';

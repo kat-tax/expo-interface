@@ -1,6 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {StyleSheet, Text} from 'react-native';
-import {fireIsland, island, islands} from '../__tests__/windows';
+import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {Popover} from '.';
 
 const TIP = 'ExpoInterfaceTeachingTip';

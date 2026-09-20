@@ -1,6 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {PlatformColor, Text} from 'react-native';
-import {island, islands} from '../__tests__/windows';
+import {island, islands} from 'expo-vitest/windows';
 import {ListItem} from '.';
 
 const BUTTON = 'ExpoInterfaceButton';

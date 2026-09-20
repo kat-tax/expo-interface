@@ -2,7 +2,7 @@ import {Platform} from 'react-native';
 import {fireEvent as fireDOM, screen as dom} from '@testing-library/react';
 import {fireEvent, screen} from '@testing-library/react-native';
 import {openBrowserAsync, WebBrowserPresentationStyle} from 'expo-web-browser';
-import {renderApp} from '../__tests__/router';
+import {renderApp} from 'expo-vitest/router';
 import {ExternalLink} from './external-link';
 
 vi.mock('expo-web-browser');

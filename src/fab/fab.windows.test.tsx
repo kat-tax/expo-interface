@@ -1,6 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
-import {fireIsland, island, islands} from '../__tests__/windows';
+import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {Fab} from '.';
 
 const FLYOUT = 'ExpoInterfaceMenuFlyout';

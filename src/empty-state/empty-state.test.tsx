@@ -3,7 +3,7 @@ import {render as renderDom, screen as dom} from '@testing-library/react';
 import {render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
 import {iosSymbol} from '../button/shared';
-import {host} from '../__tests__/native';
+import {host} from 'expo-vitest/native';
 import {EmptyState} from '.';
 
 const isIOS = Platform.OS === 'ios';

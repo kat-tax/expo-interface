@@ -1,7 +1,7 @@
 import {Platform, Text} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {colors} from '../theme';
-import {byComposeTestID, host, modifier, nodes} from '../__tests__/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {ListItem} from '.';
 
 const isIOS = Platform.OS === 'ios';

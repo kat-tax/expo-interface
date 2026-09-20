@@ -1,7 +1,7 @@
 import {createRef} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {Linking, Share} from 'react-native';
-import {fireIsland, island} from '../../__tests__/windows';
+import {fireIsland, island} from 'expo-vitest/windows';
 import {bold, buttonStyle, disabled, font, foregroundColor, frame, gaugeStyle, lineLimit, onTapGesture, pickerStyle, progressViewStyle, tag, toggleStyle} from './expo-ui-swift-ui-modifiers';
 import * as ui from './expo-ui-swift-ui';
 import {forgetWarnings} from './ui-kit';

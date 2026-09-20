@@ -1,5 +1,5 @@
 import {render, screen} from '@testing-library/react-native';
-import {modifier, nodes} from '../__tests__/native';
+import {modifier, nodes} from 'expo-vitest/native';
 import * as icons from '../__stories__/icons';
 import {Chip} from '.';
 
