@@ -7,6 +7,7 @@
 #include "XamlHost.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceButton.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceCheckBox.g.h"
+#include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceInfoBadge.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfacePersonPicture.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceProgress.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceToggleButton.g.h"
@@ -449,6 +450,45 @@ struct PersonPictureView : winrt::implements<PersonPictureView, winrt::IInspecta
   controls::PersonPicture m_picture{nullptr};
 };
 
+// -- InfoBadge ---------------------------------------------------------------
+
+struct InfoBadgeView : winrt::implements<InfoBadgeView, winrt::IInspectable>,
+                       Codegen::BaseExpoInterfaceInfoBadge<InfoBadgeView>,
+                       XamlIsland<InfoBadgeView> {
+  void InitializeIsland(const composition::ContentIslandComponentView &islandView) noexcept {
+    m_badge = controls::InfoBadge{};
+    Attach(islandView, m_badge);
+  }
+
+  void UpdateProps(
+      const rn::ComponentView &view,
+      const winrt::com_ptr<Codegen::ExpoInterfaceInfoBadgeProps> &newProps,
+      const winrt::com_ptr<Codegen::ExpoInterfaceInfoBadgeProps> &oldProps) noexcept override {
+    Codegen::BaseExpoInterfaceInfoBadge<InfoBadgeView>::UpdateProps(view, newProps, oldProps);
+    auto props = Props();
+    if (!props) return;
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
+    // `InfoBadge` shows a number when it has one and its dot form when it does
+    // not, and a negative value is how it is told there is none.
+    m_badge.Value(props->value);
+
+    const auto fill = ColorOr(props->color, Critical(IsDark(m_badge)));
+    m_badge.Background(Brush(fill));
+    m_badge.Foreground(Brush(ColorOr(props->textColor, IsLight(fill) ? Color{255, 0, 0, 0} : Color{255, 255, 255, 255})));
+    // The label rather than the number: "3" announced on its own says nothing,
+    // and it is also where an overflowing count keeps its real wording.
+    SetIdentity(m_badge, props->label, props->ViewProps);
+    Remeasure();
+  }
+
+  void UpdateState(const rn::ComponentView &, const rn::IComponentState &newState) noexcept override {
+    KeepState(newState);
+  }
+
+ private:
+  controls::InfoBadge m_badge{nullptr};
+};
+
 } // namespace
 
 void RegisterControls(rn::IReactPackageBuilder const &packageBuilder) noexcept {
@@ -458,6 +498,7 @@ void RegisterControls(rn::IReactPackageBuilder const &packageBuilder) noexcept {
   RegisterIsland<ToggleButtonView>(packageBuilder, &Codegen::RegisterExpoInterfaceToggleButtonNativeComponent<ToggleButtonView>);
   RegisterIsland<ProgressView>(packageBuilder, &Codegen::RegisterExpoInterfaceProgressNativeComponent<ProgressView>);
   RegisterIsland<PersonPictureView>(packageBuilder, &Codegen::RegisterExpoInterfacePersonPictureNativeComponent<PersonPictureView>);
+  RegisterIsland<InfoBadgeView>(packageBuilder, &Codegen::RegisterExpoInterfaceInfoBadgeNativeComponent<InfoBadgeView>);
 }
 
 } // namespace winrt::ExpoInterface

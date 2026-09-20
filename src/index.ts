@@ -46,6 +46,8 @@ export {Alert} from './alert';
 export type {AlertAction, AlertActionRole, AlertProps} from './alert/types';
 export {Avatar} from './avatar';
 export type {AvatarProps} from './avatar/types';
+export {Badge} from './badge';
+export type {BadgeProps} from './badge/types';
 export {Button} from './button';
 export type {ButtonProps, ButtonRole, ButtonShape, ButtonSize, ButtonTone, ButtonVariant} from './button/types';
 export {Card} from './card';

@@ -2,7 +2,7 @@ import type {Drop} from './types';
 
 import {Text} from '@expo/ui';
 import {SymbolView} from 'expo-symbols';
-import {ContextMenu, ListItem, useColor} from 'expo-interface';
+import {Badge, ContextMenu, ListItem, useColor} from 'expo-interface';
 import * as icon from '@/icons';
 
 import {DropIcon} from './icon';
@@ -28,7 +28,14 @@ export function DropItem({drop, onPress, onShare, onDelete}: DropItemProps) {
       <ListItem
         leading={<DropIcon size={32}/>}
         supporting={`${count} · ${drop.size}`}
-        trailing={<SymbolView name={icon.chevronRight.symbol} size={14} tintColor={chevron}/>}>
+        trailing={(
+          <>
+            {/* The platform's own badge: an InfoBadge on Windows, the Material
+                3 Badge on Android, drawn on iOS and a span on web. */}
+            <Badge count={drop.files.length} testID={`files-${drop.id}`}/>
+            <SymbolView name={icon.chevronRight.symbol} size={14} tintColor={chevron}/>
+          </>
+        )}>
         <Text textStyle={{color: label}}>{drop.name}</Text>
       </ListItem>
     </ContextMenu>

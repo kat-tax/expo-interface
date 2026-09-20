@@ -4,9 +4,8 @@ What each platform can still do that the kit does not yet ask of it, and the
 order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
-**Progress.** Wave 1 item 1 is done (`a0de301`): `AutomationId` from `testID`
-on Windows, `by.testID()` in the harness, verified on web and by reading the
-Windows UI Automation tree. Everything else below is unstarted.
+**Progress.** Wave 1 items 1 and 2 are done. Everything else below is
+unstarted.
 
 ## How to read the matrices
 
@@ -485,9 +484,15 @@ axe cannot press keys, so add the two layers that can.
    NuGet package rather than the `hermesc` in `node_modules`, because the
    bytecode versions differ and a mismatch loads as an empty window with no
    error anywhere.
-2. `useRovingFocus`, applied to `Menu` and `SegmentedControl`; settle `Tabs`'
-   markup; add the keyboard test layer (§6.1, §6.3, §6.5). Same workstream as
-   item 1 — make the tree true, then assert it.
+2. ~~`useRovingFocus`, applied to `Menu` and `SegmentedControl`; settle `Tabs`'
+   markup; add the keyboard test layer (§6.1, §6.3, §6.5).~~ **Done, `e52c02b`.**
+   `Driver.key` is optional and skipped where a backend cannot send one;
+   `toSupportArrowNavigation` compares what is focused by what it *is*, since
+   refs are numbered per snapshot. Two traps: a device test can pass against a
+   **cached Metro bundle**, so falsify it after `expo start --clear` or it
+   proves nothing; and `toBeFullyLabelled` needs the real accessible-name
+   algorithm, because a checkbox is an empty `<input>` that takes its name from
+   the `<label>` around it.
 3. `Badge` (§1.1).
 4. Empty state (§1.2).
 5. Match highlighting in `Menu` / `PopupMenu` (§2.4, §4.1).
