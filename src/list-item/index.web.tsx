@@ -1,6 +1,24 @@
 import './list-item.css';
 import type {ListItemProps} from './types';
+import {WithRowMenu} from './shared';
 import {Button} from '../button';
+
+
+/**
+ * The row, plus the platform's context menu when it has actions of its own.
+ *
+ * The menu takes the tap as well, because it owns the gesture on this
+ * platform; the row inside it is not separately pressable, which would give
+ * the same press two owners.
+ */
+export function ListItem({swipeActions, ...props}: ListItemProps) {
+  const menued = !!swipeActions && swipeActions.length > 0;
+  return (
+    <WithRowMenu actions={swipeActions} onPress={props.onPress}>
+      <ListItemRow {...props} onPress={menued ? undefined : props.onPress}/>
+    </WithRowMenu>
+  );
+}
 
 /**
  * Web draws the row itself rather than through the universal `@expo/ui`
@@ -10,7 +28,7 @@ import {Button} from '../button';
  * than inside it, since nested buttons are not valid HTML and a click on the
  * action would also press the row.
  */
-export function ListItem({children, leading, trailing, action, supporting, inset = true, onPress, testID}: ListItemProps) {
+function ListItemRow({children, leading, trailing, action, supporting, inset = true, onPress, testID}: ListItemProps) {
   const rowClass = inset ? 'ui-list-item' : 'ui-list-item ui-list-item--flush';
   const content = (
     <>

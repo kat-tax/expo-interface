@@ -76,3 +76,19 @@ describe('ListItem (windows)', () => {
     expect(onSignOut).toHaveBeenCalledTimes(1);
   });
 });
+
+describe('row actions (windows)', () => {
+  const actions = [{label: 'Share', onPress: vi.fn()}, {label: 'Delete', role: 'destructive' as const, onPress: vi.fn()}];
+
+  it('puts them in a real MenuFlyout, because SwipeControl needs XAML content to swipe', async () => {
+    await render(<ListItem swipeActions={actions} testID="row">Essay</ListItem>);
+    // The row is drawn in React Native here, so there is nothing for WinUI's
+    // SwipeControl to hold; the platform's context menu is the answer instead.
+    expect(islands('ExpoInterfaceMenuFlyout').length).toBeGreaterThan(0);
+  });
+
+  it('leaves the row alone when it has no actions of its own', async () => {
+    await render(<ListItem testID="plain">Essay</ListItem>);
+    expect(islands('ExpoInterfaceMenuFlyout')).toHaveLength(0);
+  });
+});

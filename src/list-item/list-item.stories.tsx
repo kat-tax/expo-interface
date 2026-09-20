@@ -116,3 +116,18 @@ export const List: Story = {
     </Column>
   ),
 };
+
+/**
+ * A row's own actions, reached by whichever gesture the platform uses for
+ * them: a swipe from the trailing edge on iOS, and the context menu — a long
+ * press or a right click — everywhere else, because nowhere else has a swipe
+ * to reveal them with.
+ */
+export const RowActions: Story = {
+  args: {
+    swipeActions: [
+      {label: 'Share', onPress: () => {}},
+      {label: 'Delete', role: 'destructive', onPress: () => {}},
+    ],
+  },
+};

@@ -1,3 +1,4 @@
+import type {IconToken} from '../icons';
 import type {ReactNode} from 'react';
 
 /**
@@ -5,6 +6,20 @@ import type {ReactNode} from 'react';
  * clear cache): a Compose `TextButton`, a borderless SwiftUI `Button`, a DOM
  * button. The row itself stays inert unless it also has an `onPress`.
  */
+/**
+ * One of a row's own actions. Shaped to suit both ends of the split: a
+ * SwiftUI button behind a swipe, and an entry in the platform's context menu.
+ */
+export interface ListItemSwipeAction {
+  label: string;
+  onPress: () => void;
+  /** Shown beside the label in the menu, and on the swipe button on iOS. */
+  icon?: IconToken;
+  /** `destructive` draws it in the danger color, and lets a full swipe run it. */
+  role?: 'default' | 'destructive';
+  disabled?: boolean;
+}
+
 export interface ListItemAction {
   /** The action's text. */
   label: string;
@@ -41,6 +56,23 @@ export interface ListItemProps {
   trailing?: ReactNode;
   /** A text action rendered natively at the trailing edge, after `trailing`. */
   action?: ListItemAction;
+  /**
+   * The row's own actions — delete, share, archive — reached by whichever
+   * gesture the platform uses for them.
+   *
+   * iOS reveals them on a swipe from the trailing edge, which is the system's
+   * own `swipeActions`. **Nowhere else has a swipe to reveal them with**:
+   * Compose has no equivalent in `@expo/ui`, and WinUI's `SwipeControl`
+   * needs XAML content to swipe while this row is drawn in React Native. So
+   * on Android, Windows and web the same actions are the row's context menu —
+   * a long press, or a right click — which is each platform's own affordance
+   * for "there is more to do with this row" and is native on all three.
+   *
+   * The actions are therefore always reachable, and always through something
+   * the platform already teaches people. Do not wrap the row in a
+   * `ContextMenu` as well: it would nest two of them off the same gesture.
+   */
+  swipeActions?: ListItemSwipeAction[];
   /** Secondary content below the headline; strings get subtle styling. */
   supporting?: string | ReactNode;
   /**

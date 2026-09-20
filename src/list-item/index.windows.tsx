@@ -1,10 +1,28 @@
 import type {ListItemProps} from './types';
+import {WithRowMenu} from './shared';
 import {StyleSheet, View} from 'react-native';
 import {Button} from '../button';
 import {StatePressable} from '../surface/pressable';
 import {pressFeedback} from '../surface/shared';
 import {Footnote, Label} from '../typography';
 import {spacing} from '../theme';
+
+
+/**
+ * The row, plus the platform's context menu when it has actions of its own.
+ *
+ * The menu takes the tap as well, because it owns the gesture on this
+ * platform; the row inside it is not separately pressable, which would give
+ * the same press two owners.
+ */
+export function ListItem({swipeActions, ...props}: ListItemProps) {
+  const menued = !!swipeActions && swipeActions.length > 0;
+  return (
+    <WithRowMenu actions={swipeActions} onPress={props.onPress}>
+      <ListItemRow {...props} onPress={menued ? undefined : props.onPress}/>
+    </WithRowMenu>
+  );
+}
 
 /**
  * Windows draws the row itself, as web does: a leading slot, the headline
@@ -16,7 +34,7 @@ import {spacing} from '../theme';
  * settings card's: 48 points tall at least, 16 of padding at the ends,
  * which a `FieldGroup.Section` supplies instead.
  */
-export function ListItem({children, leading, trailing, action, supporting, inset = true, onPress, testID}: ListItemProps) {
+function ListItemRow({children, leading, trailing, action, supporting, inset = true, onPress, testID}: ListItemProps) {
   const filled = action?.variant === 'filled';
   const headline = typeof children === 'string' || typeof children === 'number' ? String(children) : undefined;
   const content = (

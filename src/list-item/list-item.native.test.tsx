@@ -172,3 +172,36 @@ describe(`ListItem (${Platform.OS})`, () => {
     expect(JSON.stringify(slot('headlineContent')[0])).toContain('"Rich"');
   });
 });
+
+describe('row actions', () => {
+  const isIOS = Platform.OS === 'ios';
+  const actions = [
+    {label: 'Share', onPress: vi.fn()},
+    {label: 'Delete', role: 'destructive' as const, onPress: vi.fn()},
+  ];
+
+  (isIOS ? it : it.skip)('reveals them on a swipe, which is the gesture iOS teaches', async () => {
+    await render(<ListItem swipeActions={actions} testID="row">Essay</ListItem>);
+    // The system's own swipeActions, not a drawn imitation of them.
+    const group = host(props => props.name === 'actions');
+    expect(group.props.extraProps).toEqual({edge: 'trailing', allowsFullSwipe: true});
+    expect(nodes().map(node => node.props.label).filter(Boolean)).toEqual(expect.arrayContaining(['Share', 'Delete']));
+  });
+
+  (isIOS ? it : it.skip)('only lets a full swipe run something destructive', async () => {
+    await render(<ListItem swipeActions={[{label: 'Share', onPress: vi.fn()}]} testID="row">Essay</ListItem>);
+    expect(host(props => props.name === 'actions').props.extraProps.allowsFullSwipe).toBe(false);
+  });
+
+  (isIOS ? it.skip : it)('puts them in the row\'s own context menu, because Compose has no swipe', async () => {
+    await render(<ListItem swipeActions={actions} onPress={() => {}} testID="row">Essay</ListItem>);
+    // A real DropdownMenu, opened by a long press — the platform's own
+    // affordance for "there is more to do with this row".
+    expect(nodes().some(node => node.type.includes('Menu'))).toBe(true);
+  });
+
+  it('leaves the row alone when it has no actions of its own', async () => {
+    await render(<ListItem testID="plain">Essay</ListItem>);
+    expect(nodes().some(node => node.props.name === 'actions')).toBe(false);
+  });
+});

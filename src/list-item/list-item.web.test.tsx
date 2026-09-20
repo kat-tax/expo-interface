@@ -120,3 +120,18 @@ describe('ListItem (web)', () => {
     expect(screen.getByTestId('row').querySelector('.ui-list-item__supporting')).toHaveTextContent('42');
   });
 });
+
+describe('row actions (web)', () => {
+  const actions = [{label: 'Share', onPress: vi.fn()}, {label: 'Delete', role: 'destructive' as const, onPress: vi.fn()}];
+
+  it('puts them in the row\'s own popover menu, opened by a right click', () => {
+    render(<ListItem swipeActions={actions} testID="row">Essay</ListItem>);
+    const menu = screen.getByRole('menu', {hidden: true});
+    expect([...menu.querySelectorAll('[role="menuitem"]')].map(item => item.textContent)).toEqual(['Share', 'Delete']);
+  });
+
+  it('leaves the row alone when it has no actions of its own', () => {
+    render(<ListItem testID="plain">Essay</ListItem>);
+    expect(screen.queryByRole('menu', {hidden: true})).toBeNull();
+  });
+});

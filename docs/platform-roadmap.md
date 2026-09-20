@@ -5,7 +5,7 @@ order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
 **Progress.** Wave 1 is done, except that item 6 turned out not to be what it
-said — see below. **Wave 2 is done.** Wave 3 is unstarted.
+said — see below. **Waves 1 and 2 are done.** Wave 3 item 12 is done; 13–15 are unstarted.
 
 ## How to read the matrices
 
@@ -115,12 +115,23 @@ New island: `ExpoInterfaceAutoSuggestBox`.
 | | control |
 | --- | --- |
 | iOS | **native** — `SwipeActions` (`leading`/`trailing`, `allowsFullSwipe`) |
-| Windows | **native** — WinUI `SwipeControl` |
+| Windows | ~~native — WinUI `SwipeControl`~~ **not reachable** — see below |
 | Android | **none** — `@expo/ui` ships no Compose equivalent |
-| Web | **composed** — pointer drag |
+| Web | **none** — no swipe to reveal them with |
 
-Asymmetric. `ListItem` already takes an `action`, so the honest shape is: swipe
-where the platform swipes, and fall back to that trailing action elsewhere.
+**Corrected after building it.** Windows was listed as native on the strength
+of `SwipeControl` existing. It does, and it cannot be used here: a
+`SwipeControl` swipes *XAML* content, and `src/list-item/index.windows.tsx`
+draws the row in React Native. The same structural limit as §3.2's materials —
+an island cannot hold React Native children.
+
+So only iOS has a swipe, and the fallback matters more than the feature. It is
+not the trailing `action` this section first proposed, which would have
+dropped every action after the first: it is **the row's own context menu**,
+which is a real `DropdownMenu` on Android, a real `MenuFlyout` on Windows and
+a real `popover` on web. The actions stay reachable on every platform, always
+through something that platform already teaches. `ListItem` owns that menu
+rather than the caller wrapping the row, so the two cannot nest on one gesture.
 
 ### 1.7 `ShareLink`
 

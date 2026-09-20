@@ -1,5 +1,6 @@
 import type {ReactNode} from 'react';
 import type {ListItemProps} from './types';
+import {WithRowMenu} from './shared';
 import {Button, Column, ListItem as ComposeListItem, Row, Shape, Text, TextButton} from '@expo/ui/jetpack-compose';
 import {clickable, fillMaxWidth, testID as testIDModifier, weight, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
 import {androidContentPadding} from '../button/shared';
@@ -7,6 +8,23 @@ import {useColor} from '../theme';
 
 /** The `rounded` button shape, as the kit's own `Button` draws it. */
 const ROUNDED = Shape.RoundedCorner({cornerRadii: {topStart: 12, topEnd: 12, bottomStart: 12, bottomEnd: 12}});
+
+
+/**
+ * The row, plus the platform's context menu when it has actions of its own.
+ *
+ * The menu takes the tap as well, because it owns the gesture on this
+ * platform; the row inside it is not separately pressable, which would give
+ * the same press two owners.
+ */
+export function ListItem({swipeActions, ...props}: ListItemProps) {
+  const menued = !!swipeActions && swipeActions.length > 0;
+  return (
+    <WithRowMenu actions={swipeActions} onPress={props.onPress}>
+      <ListItemRow {...props} onPress={menued ? undefined : props.onPress}/>
+    </WithRowMenu>
+  );
+}
 
 /**
  * Android uses the Material 3 Compose `ListItem` directly so the container
@@ -21,7 +39,7 @@ const ROUNDED = Shape.RoundedCorner({cornerRadii: {topStart: 12, topEnd: 12, bot
  * minimum height and centers the row within it, so padding would not fill
  * that height but add to it, standing the row taller than its siblings.
  */
-export function ListItem({children, leading, trailing, action, supporting, inset = true, onPress, testID}: ListItemProps) {
+function ListItemRow({children, leading, trailing, action, supporting, inset = true, onPress, testID}: ListItemProps) {
   const label = useColor('label');
   const subtle = useColor('secondaryLabel');
   const tint = useColor('tint');
