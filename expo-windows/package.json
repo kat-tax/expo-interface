@@ -30,6 +30,7 @@
     "!src/**/*.test.ts",
     "!src/**/*.test.tsx",
     "metro",
+    "!metro/**/*.test.js",
     "cli",
     "!cli/**/*.test.js",
     "windows",
