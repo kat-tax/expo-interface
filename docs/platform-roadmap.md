@@ -6,7 +6,8 @@ order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 
 **Progress.** Wave 1 is done, except that item 6 turned out not to be what it
 said — see below. **Waves 1 and 2 are done.** Wave 3: item 12 done, item 13 closed without
-building (see below), 14–15 outstanding.
+building, `ShareLink` done out of item 14 (Windows unverified); the rest of 14
+and item 15 outstanding.
 
 ## How to read the matrices
 
@@ -669,7 +670,28 @@ axe cannot press keys, so add the two layers that can.
     **And the kit owns no scrollable for it to live on.** Lists are
     deliberately React Native's here (see "Deliberately not doing"), so there
     is no component of the kit's for the prop to belong to.
-14. `TabView` (§2.5), `Chip` (§1.4), `ShareLink` (§1.7), pager (§1.8).
+14. `TabView` (§2.5), ~~`ShareLink` (§1.7)~~, `Chip` (§1.4), pager (§1.8).
+
+    **`ShareLink` is done, with one honest hole.** iOS is SwiftUI's own
+    `ShareLink`, Android is React Native's `Share` (an `ACTION_SEND` intent)
+    and web is the same API through react-native-web's `navigator.share` — all
+    three native, none needing a new dependency. Windows needed the kit's
+    *first native module* (`windows/ExpoInterface/Share.cpp`, over
+    `DataTransferManager`) because React Native's `Share` **only dispatches on
+    `ios` and `android`** — on any other platform its JavaScript does nothing.
+
+    **The Windows path has not been seen working.** It builds, it registers,
+    the button presses — and no sheet appeared in an unpackaged Release build,
+    with nothing logged. The cause was not determined. Rule out package
+    identity first: it is what stops other Windows APIs in this same harness.
+    Every failure resolves `false` so an app hears that no sheet opened, which
+    is a graceful answer to an unexplained problem rather than evidence about
+    it.
+
+    Still outstanding from this item: `Chip` is **one** native platform
+    (Compose's four chip kinds) and so fails this document's own two-platform
+    bar; `TabView` is Windows only; the pager is three native and the largest
+    of the four.
 15. Caret-anchored `PopupMenu` (§4.2) — web-only, or commit to two native
     modules.
 

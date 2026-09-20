@@ -18,8 +18,9 @@ namespace winrt::ExpoInterface::implementation
 {
 
 /**
- * Registers the kit's XAML-hosted controls with React Native. There are no
- * native modules: everything the kit needs from Windows is a view.
+ * Registers the kit's XAML-hosted controls with React Native, and the one
+ * native module it has: the share sheet, which React Native's own `Share`
+ * does not reach on this platform.
  */
 void ReactPackageProvider::CreatePackage(IReactPackageBuilder const &packageBuilder) noexcept
 {

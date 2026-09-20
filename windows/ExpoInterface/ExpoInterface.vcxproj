@@ -130,6 +130,7 @@
     <ClCompile Include="Controls.cpp" />
     <ClCompile Include="Inputs.cpp" />
     <ClCompile Include="AutoSuggest.cpp" />
+    <ClCompile Include="Share.cpp" />
     <ClCompile Include="Overlays.cpp" />
     <ClCompile Include="XamlHost.cpp" />
     <ClCompile Include="YogaXamlPanel.cpp">

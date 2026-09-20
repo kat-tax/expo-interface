@@ -62,6 +62,9 @@
     <ClCompile Include="Inputs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Share.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="AutoSuggest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
