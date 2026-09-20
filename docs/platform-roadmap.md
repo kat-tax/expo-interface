@@ -4,7 +4,9 @@ What each platform can still do that the kit does not yet ask of it, and the
 order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 / `@expo/ui` 57.0.18 / react-native-windows 0.84 / Windows App SDK 1.8.
 
-This is a plan for a later session. Nothing here is started.
+**Progress.** Wave 1 item 1 is done (`a0de301`): `AutomationId` from `testID`
+on Windows, `by.testID()` in the harness, verified on web and by reading the
+Windows UI Automation tree. Everything else below is unstarted.
 
 ## How to read the matrices
 
@@ -476,8 +478,13 @@ axe cannot press keys, so add the two layers that can.
 
 **Wave 1 — self-contained, native nearly everywhere, no new dependencies.**
 
-1. `AutomationId` from `testID`, and `by.testID()` in the harness (§3.1). Do
-   this first; it makes everything after it easier to test.
+1. ~~`AutomationId` from `testID`, and `by.testID()` in the harness (§3.1).~~
+   **Done, `a0de301`.** Two things it turned up: WinUI control templates carry
+   `AutomationId`s of their own, so an id in the tree is not necessarily one
+   the kit set; and a Release bundle must be compiled by the Hermes in RNW's
+   NuGet package rather than the `hermesc` in `node_modules`, because the
+   bytecode versions differ and a mismatch loads as an empty window with no
+   error anywhere.
 2. `useRovingFocus`, applied to `Menu` and `SegmentedControl`; settle `Tabs`'
    markup; add the keyboard test layer (§6.1, §6.3, §6.5). Same workstream as
    item 1 — make the tree true, then assert it.
