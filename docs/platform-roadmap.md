@@ -6,8 +6,9 @@ order to do it in. Written 2026-09-19 against Expo SDK 57 / React Native 0.86.3
 
 **Progress.** Wave 1 is done, except that item 6 turned out not to be what it
 said — see below. **Waves 1 and 2 are done.** Wave 3: item 12 done, item 13
-closed without building, `ShareLink` and the pager done out of item 14; `Chip`
-and `TabView` from 14, and item 15, outstanding.
+closed without building, `ShareLink` and the pager done out of item 14, item 15
+done. Only `Chip` and `TabView` from item 14 are outstanding, and both fail
+this document's own two-platform bar — see §1.4 and §2.5.
 
 ## How to read the matrices
 
@@ -376,17 +377,38 @@ for pills.
 `rich-input` needs OpaqueRange for, and it means this does nothing for
 `TextField`. Use it for §2.4 and for §1.5's web listbox.
 
-### 4.2 Caret-anchored `PopupMenu` — finish the design
+### 4.2 Caret-anchored `PopupMenu` — done, web only, and it says so
 
-`PopupMenuProps` already documents "the caret in an editor" and "a menu typed
-into (a slash command)", and already takes `at: MenuPoint | null` and `filter`.
-Nothing in the repository can produce that caret point.
+`PopupMenuProps` documented "the caret in an editor" and "a menu typed into (a
+slash command)" and took `at: MenuPoint | null` and `filter`, and nothing in
+the repository could produce that caret point. `src/caret` closes it.
 
-A `useCaretPoint()` hook would close it, on web via the hidden mirror-div
-measurement `rich-input` falls back to. React Native exposes no caret rectangle,
-so iOS would need `UITextInput.caretRect(for:)` and Android
-`Layout.getPrimaryHorizontal` behind a module. **Scope it web-only and say so**,
-or decide deliberately to write the two native modules.
+**A function, not a hook.** The plan guessed `useCaretPoint()`; there is
+nothing to remember between calls, so `caretPoint(field, within)` is the whole
+API — call it when the caret moves.
+
+The measurement is the hidden mirror-div `rich-input` falls back to and
+`textarea-caret-position` established: the field's text is laid out a second
+time in a `<div>` wearing its typography and content width, with a `<span>` at
+the caret, and the span reports where it landed. The browsers have never
+offered better for a form control, for the same reason §4.1 records — the text
+inside one is not in the document.
+
+**Scoped to web, and the other three say why.** `src/caret/index.ts` answers
+`null` and names what each platform would need: `UITextInput.caretRect(for:)`,
+`Layout.getPrimaryHorizontal` with `getLineTop`, and
+`ITextRangeProvider::GetBoundingRectangles`. Three native modules to place one
+menu, against a kit with one native module in total. A caller that gets `null`
+anchors the menu somewhere it can — under the field — which is what the
+`SlashCommand` story does.
+
+Verified in a real browser rather than in jsdom, which lays nothing out: with
+two lines of text and a `/h` typed at the end of the second, the menu opens at
+the caret, and the x agrees to the pixel with an independent measurement (the
+prefix laid out in a span wearing the field's font, plus its border and
+padding). The y is right to a pixel or two only when `line-height` is
+`normal`, because that is the one case where the line height is an estimate
+rather than a length — which the code says.
 
 ### 4.3 Not taking
 
@@ -771,8 +793,14 @@ axe cannot press keys, so add the two layers that can.
     Still outstanding from this item: `Chip` is **one** native platform
     (Compose's four chip kinds) and so fails this document's own two-platform
     bar; `TabView` is Windows only.
-15. Caret-anchored `PopupMenu` (§4.2) — web-only, or commit to two native
-    modules.
+15. ~~Caret-anchored `PopupMenu` (§4.2) — web-only, or commit to two native
+    modules.~~ **Done, web only, deliberately.** `caretPoint(field, within)` in
+    `src/caret`; the other three answer `null` and name the module each would
+    need. It is a function rather than the hook the plan guessed, because
+    there is nothing to remember between calls. The `SlashCommand` story is
+    the whole thread of this document in one frame: `/h` typed into a field
+    opens the menu at the caret, filtered by what follows the slash, with the
+    match highlighted by the Custom Highlight API from §4.1.
 
 Each item is one directory, a file per platform, stories, tests to 100 %, and a
 harness run on web and on Windows before it counts as done.

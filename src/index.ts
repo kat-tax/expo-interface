@@ -83,6 +83,8 @@ export {ListItem} from './list-item';
 export type {ListItemAction, ListItemProps} from './list-item/types';
 export {Menu} from './menu';
 export type {ContextMenuProps, MenuItem, MenuPoint, MenuProps, MenuTrigger} from './menu/types';
+export {caretPoint} from './caret';
+export type {CaretField, CaretPoint} from './caret/types';
 export {Pager} from './pager';
 export type {PagerProps} from './pager/types';
 export {Picker} from './picker';
