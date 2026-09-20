@@ -66,16 +66,16 @@ real renderer.
 `Symbol` above all. The React Compiler emits `Symbol.for("react.memo_cache_sentinel")`
 into every component it compiles, and an import or declaration called `Symbol`
 shadows the global, so the whole app dies at render with
-`Symbol.for is not a function`. The kit's icon component was called `Symbol`
-and did exactly that; it is `Icon` now. Nothing in the tests can see this —
-only a real renderer with the app's own Babel configuration puts that call
-into the module, which is what the harness is for.
+`Symbol.for is not a function`. That is why the kit's icon component is `Icon`.
+Nothing in the tests can see this: only a real renderer with the app's own
+Babel configuration puts that call into the module, which is what the harness
+is for.
 
 ## Platform files
 
 A component is one directory with `types.ts` and a file per platform
 (`index.tsx`, `index.ios.tsx`, `index.android.tsx`, `index.web.tsx`,
-`index.windows.tsx`). Two rules that cost a debugging round trip each:
+`index.windows.tsx`). Two rules:
 
 - **Metro tries every source extension before every platform.** A platform file
   must not use a later extension than its siblings: with `library.native.ts`
@@ -90,6 +90,15 @@ Do not add `react-native-windows` to the example or declare it as a peer of
 `expo-windows`. The Windows platform is built and tested against the pinned 0.84
 line by the runtime's build script, which `scripts/windows-ci.sh` runs over the
 example on every push.
+
+## Writing the docs
+
+The README and `docs/` describe the kit as it is. No history: not what an
+earlier version did, what something used to be called, how a bug was found, or
+which version a feature arrived in. A reader has never seen a previous version.
+A reason stays when it explains the design ("Compose has no stepper, so two
+icon buttons"); a story about getting there goes in the commit message.
+Plain sentences, no em dashes.
 
 ## Commits
 

@@ -12,7 +12,7 @@ platform gets what it can carry:
 | Web | Real elements with their native semantics, ARIA roles where the kit composes (`menu`, `radiogroup`, `tablist`, `dialog`, `tooltip`, `status`, `meter`, `heading` with a level, `navigation`), and the keyboard patterns those roles promise |
 | Windows | The islands carry WinUI's own UI Automation. For what the kit draws: the name, `AutomationId` from `testID`, the heading role, `HelpText` from `accessibilityHint`, and the position in a set through `inSet` on the tab view's drawn tabs. `IsDialog` and `LandmarkType` cannot be set from JavaScript on react-native-windows. |
 
-Three rules the kit follows, learned from what a screen reader said:
+Three rules the kit follows:
 
 - An element referenced by `aria-labelledby` is read whole, `aria-hidden`
   descendants included, so the reference points at a title span and never at

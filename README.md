@@ -126,9 +126,8 @@ tabs, icons and troubleshooting.
 ### Windows
 
 Add the platform with
-[expo-windows](https://github.com/kat-tax/expo-windows#quick-start), 0.25.0 or
-later. The kit needs no setup of its own there. See
-[Windows](docs/platforms/windows.md).
+[expo-windows](https://github.com/kat-tax/expo-windows#quick-start). The kit
+needs no setup of its own there. See [Windows](docs/platforms/windows.md).
 
 ## Components
 
@@ -177,9 +176,9 @@ props, what each platform renders, and where the platforms differ.
 ## Versions
 
 Expo SDK 57, React Native 0.86.3 and `@expo/ui` 57.0.18. On Windows the kit
-runs on [expo-windows](https://github.com/kat-tax/expo-windows) 0.25.0 or
-later. React Native 0.86 has no react-native-windows release yet, so the
-Windows side is built and tested on the 0.84 line.
+runs on [expo-windows](https://github.com/kat-tax/expo-windows). React Native
+0.86 has no react-native-windows release yet, so the Windows side is built and
+tested on the 0.84 line.
 [expo-windows' versions page](https://github.com/kat-tax/expo-windows/blob/master/docs/versions.md)
 says what that means for an app today.
 

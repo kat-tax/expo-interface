@@ -202,7 +202,6 @@ The kit draws WinUI 3 controls on Windows in an app built with
 [its quick start](https://github.com/kat-tax/expo-windows#quick-start) to add
 the platform. The kit needs no setup of its own there: its native library is
 autolinked, and it answers for `@expo/ui` through aliases the runtime finds.
-Use `expo-windows` 0.25.0 or later.
 
 [Windows](platforms/windows.md) covers the title bar, keyboard shortcuts and
 what is different at a desk.

@@ -33,7 +33,7 @@ the per-platform Vitest projects and has the test helpers and the harness.
   `expo-system-ui` is imported by a Windows file. A test imports the whole
   package with those modules forbidden.
 
-Two rules about platform files cost a debugging round trip each:
+Two rules about platform files:
 
 - **Metro tries every source extension before every platform.** A platform
   file must not use a later extension than its siblings: with
