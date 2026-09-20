@@ -1,6 +1,6 @@
 import type {FunctionComponent, ReactElement, ReactNode} from 'react';
 import type {ViewStyle} from 'react-native';
-import type {IconToken} from 'expo-interface';
+import type {IconToken} from '../..';
 import {Children, isValidElement} from 'react';
 
 /** The character a glyph is drawn with: the table keeps code points as hex, a literal character stays itself. */
@@ -61,7 +61,7 @@ export function elsewhere<P extends object = Record<string, unknown>>(name: stri
   function NotOnWindows(): null {
     if (__DEV__ && !warned.has(name)) {
       warned.add(name);
-      console.warn(`[expo-windows] ${name} is ${platforms}; it renders nothing on Windows.`);
+      console.warn(`[expo-interface] ${name} is ${platforms}; it renders nothing on Windows.`);
     }
     return null;
   }

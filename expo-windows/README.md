@@ -61,8 +61,9 @@ the network, localization, Windows Hello, the secure store, cryptography,
 files and the shell's pickers, images and the media library, video, audio
 and speech, printing, the camera, maps, sensors and location, local
 notifications, SQLite over the system's own, web views and DOM components
-over WebView2, and `@expo/ui` with the community controls as the kit's
-WinUI islands. What the platform has no counterpart for answers with the
+over WebView2. `@expo/ui` and the community controls are drawn by a UI kit
+that contributes them, as `expo-interface` does with its WinUI islands. What
+the platform has no counterpart for answers with the
 package's own unavailability error rather than failing at import.
 
 The runtime's own `ExpoWindows` module sets the window's title, extends the

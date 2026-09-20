@@ -22,7 +22,7 @@ import {
   Stepper as KitStepper,
   Switch as KitSwitch,
   TextField as KitTextField,
-} from 'expo-interface';
+} from '../..';
 import {glyphFor, useNativeState} from './expo-ui';
 import {assign, charOf, elementsOf, elsewhere, iconOf, isDisabled, modifier, onTapOf, slotOf, styleOf, tagOf, textOf, valueOf, without} from './ui-kit';
 

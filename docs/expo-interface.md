@@ -1378,6 +1378,36 @@ rectangle are converted by the window's scale. `useWindowDimensions` reports
 the window's physical size at a scale of 1 and never updates on a resize; the
 kit measures its own layouts with `onLayout`, and an app should too.
 
+### Standing in for `@expo/ui`
+
+`@expo/ui` has no Windows implementation, and neither have the community
+controls it wraps. On `expo-windows` the kit answers for them, so a screen
+written against those packages draws WinUI controls without a change. The
+files are in `src/windows/aliases/`, and the table beside them,
+`aliases.json`, names a file for each module. The kit's `package.json` points
+the runtime at the table:
+
+```json
+"expo-windows": {"aliases": "./src/windows/aliases/aliases.json"}
+```
+
+`withWindows` reads that field from the app's dependencies, so an app that
+depends on the kit needs no setup of its own. Only a `windows` bundle is
+affected.
+
+| Module | On Windows |
+| --- | --- |
+| `@expo/ui` | The universal entry over the kit: `Button`, `Switch`, `Slider`, `Checkbox`, `Picker` (segmented by `appearance`), `TextInput`, `BottomSheet`, `Collapsible`, `FieldGroup`, `ListItem`, `Icon` as a Segoe glyph, `useNativeState`. The layout primitives (`Host`, `Column`, `Row`, `Spacer`, `Text`, `List`, `ScrollView`, `RNHostView`) are plain views laid out as they ask. |
+| `@expo/ui/swift-ui`, `@expo/ui/jetpack-compose` | Every export of both subpaths and of their `modifiers`. The controls are the kit's WinUI islands; the stacks, rows, columns and boxes are flex views; the layout modifiers (`frame`, `padding`, `size`, `fillMax*`, `cornerRadius`, `opacity`, `hidden`, `offset`, `zIndex`, `background`, `border`, `weight`) become styles and `onTapGesture` and `clickable` a press. SwiftUI's `NavigationStack`, `NavigationLink`, `NavigationDestination` and `Toolbar` are plain containers, since navigation is Expo Router's. Other modifiers are kept without effect. What a desktop has no counterpart for (charts, widgets, swipe actions) renders nothing and says so once in development. |
+| `@expo/ui/community/*` and the packages they wrap | The kit's `Slider`, `Picker`, `DateTimePicker`, `SegmentedControl`, `Sheet` and `ContextMenu` under each package's props and default export. The pager is a paging scroll view with the ref and page events; the masked view shows its content whole. The packages' own Windows ports are for the old architecture. |
+| `expo-checkbox` | The kit's `Checkbox` under the package's props. |
+
+The wrapped packages are `@react-native-community/slider`,
+`@react-native-picker/picker`, `@react-native-community/datetimepicker`,
+`@react-native-segmented-control/segmented-control`,
+`react-native-pager-view`, `@react-native-masked-view/masked-view`,
+`@gorhom/bottom-sheet` and `@react-native-menu/menu`.
+
 ## Accessibility
 
 Every control has an accessible name on every platform. Past the name, each

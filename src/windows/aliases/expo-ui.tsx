@@ -15,7 +15,7 @@ import {
   Slider as KitSlider,
   Switch as KitSwitch,
   TextField as KitTextField,
-} from 'expo-interface';
+} from '../..';
 import {charOf, elementsOf, observable, type ObservableState, slotOf, textOf, without} from './ui-kit';
 
 /**

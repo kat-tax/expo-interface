@@ -12,15 +12,17 @@
  * what react-native-windows' own `react-native start` does and `expo start`
  * does not; resolves the packages that have no Windows implementation to the
  * runtime's own files (`expo-image`, `expo-glass-effect`, `expo-symbols`,
- * `@expo/ui`, and the web views `@expo/dom-webview` and `react-native-webview`);
+ * `expo-blur`, and the web views `@expo/dom-webview` and `react-native-webview`);
  * replaces `expo`'s `fetch`, a native module elsewhere, with React Native's;
  * runs `expo-windows/src/install` before everything else in the bundle,
  * which installs Expo Modules Core's global and the Windows modules; embeds
  * the public app config for `expo-constants`; and keeps Metro out of the
  * `windows/` build folder. Other platforms are untouched.
  *
- * A package can stand in for others on Windows as well. It names a table in
- * its own `package.json`, and an app that depends on it needs no setup:
+ * A package can stand in for others on Windows as well, which is how a UI
+ * kit answers for `@expo/ui` and the community controls: those are drawn
+ * with controls, and the runtime has none. It names a table in its own
+ * `package.json`, and an app that depends on it needs no setup:
  *
  *     "expo-windows": {"aliases": "./windows-aliases.json"}
  *
@@ -37,31 +39,8 @@ const ALIASES = {
   'expo-image': path.join(__dirname, '..', 'src', 'aliases', 'expo-image.tsx'),
   'expo-glass-effect': path.join(__dirname, '..', 'src', 'aliases', 'expo-glass-effect.tsx'),
   'expo-symbols': path.join(__dirname, '..', 'src', 'aliases', 'expo-symbols.tsx'),
-  '@expo/ui': path.join(__dirname, '..', 'src', 'aliases', 'expo-ui.tsx'),
-  '@expo/ui/swift-ui': path.join(__dirname, '..', 'src', 'aliases', 'expo-ui-swift-ui.tsx'),
-  '@expo/ui/swift-ui/modifiers': path.join(__dirname, '..', 'src', 'aliases', 'expo-ui-swift-ui-modifiers.ts'),
-  '@expo/ui/jetpack-compose': path.join(__dirname, '..', 'src', 'aliases', 'expo-ui-jetpack-compose.tsx'),
-  '@expo/ui/jetpack-compose/modifiers': path.join(__dirname, '..', 'src', 'aliases', 'expo-ui-jetpack-compose-modifiers.ts'),
-  // The community controls, whose Windows ports are for the old architecture: the kit's, under each package's props.
-  '@expo/ui/community/slider': path.join(__dirname, '..', 'src', 'aliases', 'community-slider.tsx'),
-  '@expo/ui/community/picker': path.join(__dirname, '..', 'src', 'aliases', 'community-picker.tsx'),
-  '@expo/ui/community/datetime-picker': path.join(__dirname, '..', 'src', 'aliases', 'community-datetime-picker.tsx'),
-  '@expo/ui/community/segmented-control': path.join(__dirname, '..', 'src', 'aliases', 'community-segmented-control.tsx'),
-  '@expo/ui/community/pager-view': path.join(__dirname, '..', 'src', 'aliases', 'community-pager-view.tsx'),
-  '@expo/ui/community/masked-view': path.join(__dirname, '..', 'src', 'aliases', 'community-masked-view.tsx'),
-  '@expo/ui/community/bottom-sheet': path.join(__dirname, '..', 'src', 'aliases', 'community-bottom-sheet.tsx'),
-  '@expo/ui/community/menu': path.join(__dirname, '..', 'src', 'aliases', 'community-menu.tsx'),
-  '@react-native-community/slider': path.join(__dirname, '..', 'src', 'aliases', 'community-slider.tsx'),
-  '@react-native-picker/picker': path.join(__dirname, '..', 'src', 'aliases', 'community-picker.tsx'),
-  '@react-native-community/datetimepicker': path.join(__dirname, '..', 'src', 'aliases', 'community-datetime-picker.tsx'),
-  '@react-native-segmented-control/segmented-control': path.join(__dirname, '..', 'src', 'aliases', 'community-segmented-control.tsx'),
-  'react-native-pager-view': path.join(__dirname, '..', 'src', 'aliases', 'community-pager-view.tsx'),
-  '@react-native-masked-view/masked-view': path.join(__dirname, '..', 'src', 'aliases', 'community-masked-view.tsx'),
-  '@gorhom/bottom-sheet': path.join(__dirname, '..', 'src', 'aliases', 'community-bottom-sheet.tsx'),
   // Its Windows project is from the Paper days; the runtime's network library answers instead.
   '@react-native-community/netinfo': path.join(__dirname, '..', 'src', 'aliases', 'netinfo.ts'),
-  '@react-native-menu/menu': path.join(__dirname, '..', 'src', 'aliases', 'community-menu.tsx'),
-  'expo-checkbox': path.join(__dirname, '..', 'src', 'aliases', 'expo-checkbox.tsx'),
   'expo-blur': path.join(__dirname, '..', 'src', 'aliases', 'expo-effects.tsx'),
   'expo-mesh-gradient': path.join(__dirname, '..', 'src', 'aliases', 'expo-effects.tsx'),
   '@expo/dom-webview': path.join(__dirname, '..', 'src', 'aliases', 'expo-dom-webview.tsx'),

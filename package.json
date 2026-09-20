@@ -60,6 +60,9 @@
       "separateDataTypes": true
     }
   },
+  "expo-windows": {
+    "aliases": "./src/windows/aliases/aliases.json"
+  },
   "workspaces": [
     "example",
     "storybook",

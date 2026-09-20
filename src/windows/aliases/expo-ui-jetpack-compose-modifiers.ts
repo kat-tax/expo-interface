@@ -5,7 +5,7 @@ import type {Modifier} from './ui-kit';
  * package exports, building the `{$type, ...params}` record it would. The
  * layout ones (`padding`, `paddingAll`, `size`, `width`, `height`,
  * `fillMax*`, `background`, `border`, `alpha`, `offset`, `zIndex`, `weight`,
- * `clip`) and `clickable` take effect on the runtime's views; the rest are
+ * `clip`) and `clickable` take effect on the views drawn here; the rest are
  * Compose's and are kept without effect.
  */
 

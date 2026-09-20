@@ -4,9 +4,6 @@
     "strict": true,
     "allowJs": true,
     "checkJs": true,
-    "paths": {
-      "expo-interface": ["../src/index.ts"]
-    },
     "types": [
       "vitest-expo/types",
       "node"

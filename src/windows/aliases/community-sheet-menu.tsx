@@ -2,7 +2,7 @@ import type {ComponentType, ReactNode, Ref} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {useImperativeHandle, useRef, useState} from 'react';
 import {FlatList, ScrollView, SectionList, TextInput, View} from 'react-native';
-import {ContextMenu as KitContextMenu, type MenuItem, Sheet as KitSheet} from 'expo-interface';
+import {ContextMenu as KitContextMenu, type MenuItem, Sheet as KitSheet} from '../..';
 
 /**
  * `@expo/ui/community/bottom-sheet` (and `@gorhom/bottom-sheet`) and

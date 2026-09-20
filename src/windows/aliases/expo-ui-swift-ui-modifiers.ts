@@ -6,7 +6,7 @@ import type {Modifier} from './ui-kit';
  * so a view written with them mounts. The layout ones (`frame`, `padding`,
  * `cornerRadius`, `opacity`, `hidden`, `disabled`, `offset`, `zIndex`,
  * `border`, `background`) and the gestures (`onTapGesture`) take effect on
- * the runtime's views; the rest are SwiftUI's and are kept without effect.
+ * the views drawn here; the rest are SwiftUI's and are kept without effect.
  */
 
 /** The parameter names of the modifiers that take their arguments in order rather than as one object. */
@@ -167,7 +167,7 @@ export function createModifierWithEventListener(type: string, eventListener: (ar
   return {$type: type, ...parameters, eventListener};
 }
 
-/** The listeners a view's modifiers carry, by the event each answers — the runtime's views read the tap gesture themselves. */
+/** The listeners a view's modifiers carry, by the event each answers — the views here read the tap gesture themselves. */
 export function createViewModifierEventListener(modifiers: unknown): Record<string, never> {
   void modifiers;
   return {};

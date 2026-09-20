@@ -8,7 +8,7 @@ import {
   Picker as KitPicker,
   SegmentedControl as KitSegmentedControl,
   Slider as KitSlider,
-} from 'expo-interface';
+} from '../..';
 import {elementsOf} from './ui-kit';
 
 /**

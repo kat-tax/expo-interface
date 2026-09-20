@@ -152,11 +152,20 @@ Other platforms are untouched.
   `expo start` does not.
 - Packages with no Windows implementation resolve to the runtime's own files.
   The table is in `expo-windows/metro/index.js`: `expo-image`,
-  `expo-glass-effect`, `expo-symbols`, `@expo/ui` and its `swift-ui`,
-  `jetpack-compose` and `community/*` subpaths, the community packages those
-  subpaths wrap, `@react-native-community/netinfo`, `@react-native-menu/menu`,
-  `expo-checkbox`, `expo-blur`, `expo-mesh-gradient`, `@expo/dom-webview` and
+  `expo-glass-effect`, `expo-symbols`, `@react-native-community/netinfo`,
+  `expo-blur`, `expo-mesh-gradient`, `@expo/dom-webview` and
   `react-native-webview`.
+- A dependency of the app can contribute aliases of its own. It names a JSON
+  table in its `package.json`, a module name to a file beside the table, and
+  `withWindows` finds it by reading the app's dependencies, the way
+  autolinking finds a native project. The runtime's own table wins over a
+  contributed entry, and `withWindows(config, {aliases})` wins over both. A
+  table that is named and cannot be read fails the config with the package's
+  name.
+
+  ```json
+  "expo-windows": {"aliases": "./windows-aliases.json"}
+  ```
 - Four files inside packages are replaced: `expo`'s `fetch`, a native module
   elsewhere, is React Native's fetch on Windows; `expo-video`'s,
   `expo-camera`'s and `expo-maps`' native views are the runtime's islands.
@@ -453,9 +462,7 @@ what it does not.
 
 | Package | On Windows |
 | --- | --- |
-| `@expo/ui` | The universal entry over the kit: `Button`, `Switch`, `Slider`, `Checkbox`, `Picker` (segmented by `appearance`), `TextInput`, `BottomSheet`, `Collapsible`, `FieldGroup`, `ListItem`, `Icon` as a Segoe glyph, `useNativeState`. The layout primitives (`Host`, `Column`, `Row`, `Spacer`, `Text`, `List`, `ScrollView`, `RNHostView`) are plain views laid out as they ask. |
-| `@expo/ui/swift-ui`, `@expo/ui/jetpack-compose` | Every export of both subpaths and of their `modifiers`. The controls are the kit's WinUI islands; the stacks, rows, columns and boxes are flex views; the layout modifiers (`frame`, `padding`, `size`, `fillMax*`, `cornerRadius`, `opacity`, `hidden`, `offset`, `zIndex`, `background`, `border`, `weight`) become styles and `onTapGesture` and `clickable` a press. SwiftUI's `NavigationStack`, `NavigationLink`, `NavigationDestination` and `Toolbar` are plain containers, since navigation is Expo Router's. Other modifiers are kept without effect. What a desktop has no counterpart for (charts, widgets, swipe actions) renders nothing and says so once in development. |
-| `@expo/ui/community/*` and the packages they wrap | The kit's `Slider`, `Picker`, `DateTimePicker`, `SegmentedControl`, `Sheet`, `ContextMenu` and `Checkbox` under each package's props and default export. The pager is a paging scroll view with the ref and page events; the masked view shows its content whole. The packages' own Windows ports are for the old architecture. |
+| `@expo/ui`, its subpaths and the community controls | Drawn with controls, and the runtime has none. A UI kit answers for them through the aliases it contributes; `expo-interface` does, for every export. Without one they resolve to the packages themselves, which have no Windows implementation. |
 | `expo-blur`, `expo-mesh-gradient` | Stand-ins that compose: `BlurView` is a tinted translucent surface at the intensity asked, `MeshGradientView` draws its colours as bands. |
 | `expo-glass-effect`, `expo-symbols` | Stand-ins: a plain view, and nothing. |
 | `@expo/dom-webview` | Expo's DOM components (`'use dom'`) render in a WinUI `WebView2` island. The page gets `window.ReactNativeWebView` before its own script, so marshalled props, native actions and `useDOMImperativeHandle` work as on iOS and Android. In development the page is Metro's; in a Release build each component's page is exported into `Bundle\www.bundle` and served at a virtual host (`https://expo-dom.bundle`), so it has a secure origin rather than a `file:` one. |

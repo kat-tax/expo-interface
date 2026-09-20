@@ -47,19 +47,12 @@
   },
   "peerDependencies": {
     "expo": "^57.0.0",
-    "expo-interface": "*",
     "expo-modules-core": "*",
     "react": "*",
     "react-native": "*"
   },
-  "peerDependenciesMeta": {
-    "expo-interface": {
-      "optional": true
-    }
-  },
   "devDependencies": {
     "@expo/dom-webview": "~57.0.1",
-    "@expo/ui": "~57.0.18",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/netinfo": "^12.0.1",
     "@shopify/flash-list": "^2.3.2",

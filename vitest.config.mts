@@ -116,8 +116,6 @@ const windowsProject = {
  */
 const runtimeProject = {
   ...windowsProject,
-  // The runtime's aliases put the kit's components under other packages' names.
-  resolve: {alias: {'expo-interface': path.join(SOURCE, 'index.ts')}},
   test: {
     ...windowsProject.test,
     name: 'expo-windows',

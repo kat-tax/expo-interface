@@ -1,7 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {Text} from 'react-native';
-import {SEGOE_GLYPHS} from 'expo-interface';
-import {fireIsland, island} from '../../../src/__tests__/windows';
+import {SEGOE_GLYPHS} from '../..';
+import {fireIsland, island} from '../../__tests__/windows';
 import {BottomSheet, Button, Checkbox, Collapsible, FieldGroup, getFieldItemPosition, glyphFor, Icon, ListItem, Picker, Slider, Switch, TextInput, useNativeState} from './expo-ui';
 
 const BUTTON = 'ExpoInterfaceButton';

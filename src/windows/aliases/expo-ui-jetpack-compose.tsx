@@ -21,7 +21,7 @@ import {
   TextField as KitTextField,
   Toast as KitToast,
   Tooltip as KitTooltip,
-} from 'expo-interface';
+} from '../..';
 import {useNativeState} from './expo-ui';
 import {assign, elementsOf, iconOf, isDisabled, onTapOf, slotOf, styleOf, textOf, valueOf, without} from './ui-kit';
 
