@@ -12,9 +12,10 @@
  * The palette is the Material 3 baseline (light) with the seed as `primary`.
  * A test file can still `vi.mock('expo', ...)` itself to override this.
  */
-vi.mock('expo', async importOriginal => {
-  const expo = await importOriginal<typeof import('expo')>();
-
+// No `async` here, on purpose. Were this file ever compiled by React Native's
+// Babel preset (see `NOT_REACT_NATIVE` in `../projects.ts`), `async` would
+// become a helper required above a `vi.mock` that Vitest hoists above it.
+vi.mock('expo', importOriginal => importOriginal<typeof import('expo')>().then(expo => {
   class ObservableState<T> {
     private current: T;
     constructor({value}: {value: T}) {
@@ -55,4 +56,4 @@ vi.mock('expo', async importOriginal => {
     requireNativeModule: (name: string) =>
       name === 'ExpoUI' ? ExpoUI : expo.requireNativeModule(name),
   };
-});
+}));

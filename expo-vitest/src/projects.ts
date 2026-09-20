@@ -1,7 +1,7 @@
 import type {Alias} from 'vite';
 import {searchForWorkspaceRoot} from 'vite';
 import type {TestProjectInlineConfiguration, ViteUserConfig} from 'vitest/config';
-import {existsSync} from 'node:fs';
+import {existsSync, realpathSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {configDefaults} from 'vitest/config';
@@ -51,6 +51,16 @@ export function selfAliases(): Alias[] {
 export const SELF = /[\\/]node_modules[\\/]expo-vitest[\\/]/;
 
 /**
+ * This package is not React Native's to compile. The engine takes any
+ * dependency called `expo-*` for one that ships untranspiled source, and runs
+ * it through React Native's Babel preset. That makes CommonJS of a setup file,
+ * with Babel's helpers required at its top, and Vitest then hoists the file's
+ * `vi.mock` above those requires: the mock's factory reads a helper that is not
+ * there yet. What is published here is plain JavaScript and needs none of it.
+ */
+const NOT_REACT_NATIVE = {transform: {exclude: ['expo-vitest']}};
+
+/**
  * Packages that ship TypeScript sources as their entry points. Node's loader
  * cannot strip types inside `node_modules`, so they stay in the Vite module
  * graph, where they are transformed like app code.
@@ -79,6 +89,22 @@ export function installedIn(root: string, name: string): string | null {
     if (parent === folder) return null;
     folder = parent;
   }
+}
+
+/**
+ * The folders a package's files are served from: the one whose `node_modules`
+ * holds it, and the one its real path is under where that is a link (pnpm's
+ * store, bun's isolated installs), since Vite serves a file by its real path.
+ * The project itself where the package is nowhere.
+ */
+export function installFolders(root: string, name: string): string[] {
+  const holder = installedIn(root, name);
+  if (!holder) return [path.resolve(root)];
+  const real = realpathSync(path.join(holder, 'node_modules', name));
+  // Up to the first `node_modules` of the real path: `<store>/node_modules/.pnpm/…` is under `<store>`.
+  const at = real.split(path.sep).indexOf('node_modules');
+  const realHolder = real.split(path.sep).slice(0, at).join(path.sep);
+  return realHolder === holder ? [holder] : [holder, realHolder];
 }
 
 /** Whether a package is installed where the project would find it. */
@@ -168,7 +194,7 @@ export function expoProjects(options: ExpoProjectsOptions = {}): TestProjectInli
 
   for (const platform of platforms) {
     if (platform === 'ios' || platform === 'android') {
-      const [preset] = vitestExpoProjects({jestCompat: false, platforms: [platform], transformPackages});
+      const [preset] = vitestExpoProjects({jestCompat: false, platforms: [platform], transformPackages, reactNative: NOT_REACT_NATIVE});
       projects.push({
         ...preset,
         root,
@@ -185,7 +211,7 @@ export function expoProjects(options: ExpoProjectsOptions = {}): TestProjectInli
     }
 
     if (platform === 'windows') {
-      const [preset] = vitestExpoProjects({jestCompat: false, platforms: ['ios'], transformPackages});
+      const [preset] = vitestExpoProjects({jestCompat: false, platforms: ['ios'], transformPackages, reactNative: NOT_REACT_NATIVE});
       const windows = options.windows ?? {};
       projects.push({
         ...preset,
@@ -213,8 +239,9 @@ export function expoProjects(options: ExpoProjectsOptions = {}): TestProjectInli
         // upward as a manifest with `workspaces`, and otherwise takes to be the
         // project. An install hoisted above a project that is in no workspace is
         // then out of reach, and the first file refused is this engine's own
-        // setup. So the folder the engine is installed in is allowed by name.
-        server: {fs: {allow: [searchForWorkspaceRoot(root), installedIn(root, 'vitest-expo') ?? root]}},
+        // setup. So the folder the engine is installed in is allowed by name, and
+        // the one its files really are in, where a package manager links them.
+        server: {fs: {allow: [searchForWorkspaceRoot(root), ...installFolders(root, 'vitest-expo')]}},
         plugins: [metroCompat(), vitestExpo({platform: 'web', jestCompat: false, transformPackages: transformPackages.filter(name => name !== '@expo/dom-webview')})],
         resolve: {
           alias: [

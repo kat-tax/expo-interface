@@ -1,0 +1,3 @@
+[install]
+# The flat layout, as most apps have it.
+linker = "hoisted"

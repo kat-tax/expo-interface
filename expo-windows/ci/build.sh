@@ -163,7 +163,12 @@ grep -q "RNSVG" "windows/$NAME/AutolinkedNativeModules.g.cpp"
 ! grep -q "RNCNetInfo" "windows/$NAME.sln"
 
 step "The Windows JavaScript bundle"
-node node_modules/expo-windows/cli/index.js bundle
+# Without Metro's cache. It is kept in the system's temporary folder and shared
+# by every project on the machine, and Expo writes a DOM component's absolute
+# path into the entry it generates for it: a second scratch app in another
+# folder is handed the first one's entry and fails to resolve it. A clean
+# runner never meets this. A desk that builds twice does.
+node node_modules/expo-windows/cli/index.js bundle --reset-cache
 ls -la "windows/$NAME/Bundle/index.windows.bundle"
 
 if [ "$STOP_AFTER" = bundle ]; then

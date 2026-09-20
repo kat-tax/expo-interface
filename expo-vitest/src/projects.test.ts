@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {deviceConfig, expoProjects, file, installedIn, isInstalled, nodeProject, SELF, selfAliases, SUBPATHS} from './projects.ts';
+import os from 'node:os';
+import {deviceConfig, expoProjects, file, installedIn, installFolders, isInstalled, nodeProject, SELF, selfAliases, SUBPATHS} from './projects.ts';
 
 const PACKAGE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(PACKAGE, 'package.json'), 'utf8'));
@@ -55,6 +56,28 @@ describe('isInstalled', () => {
     const holder = installedIn(path.join(PACKAGE, 'src'), 'vitest') as string;
     expect(fs.existsSync(path.join(holder, 'node_modules', 'vitest', 'package.json'))).toBe(true);
     expect(installedIn(PACKAGE, 'expo-vitest-no-such-package')).toBeNull();
+  });
+
+  it('names where a package is served from: where it is found, and where a link to it really leads', () => {
+    const holder = installedIn(PACKAGE, 'vitest') as string;
+    expect(installFolders(PACKAGE, 'vitest')).toEqual([holder]);
+    expect(installFolders(PACKAGE, 'expo-vitest-no-such-package')).toEqual([PACKAGE]);
+
+    // An app whose package manager links packages in from a store elsewhere.
+    const temporary = fs.realpathSync(os.tmpdir());
+    const store = fs.mkdtempSync(path.join(temporary, 'expo-vitest-store-'));
+    const app = fs.mkdtempSync(path.join(temporary, 'expo-vitest-app-'));
+    try {
+      const stored = path.join(store, 'node_modules', '.store', 'linked@1.0.0', 'node_modules', 'linked');
+      fs.mkdirSync(stored, {recursive: true});
+      fs.writeFileSync(path.join(stored, 'package.json'), '{}');
+      fs.mkdirSync(path.join(app, 'node_modules'));
+      fs.symlinkSync(stored, path.join(app, 'node_modules', 'linked'), 'junction');
+      expect(installFolders(app, 'linked')).toEqual([app, store]);
+    } finally {
+      fs.rmSync(app, {recursive: true, force: true});
+      fs.rmSync(store, {recursive: true, force: true});
+    }
   });
 });
 
@@ -116,7 +139,7 @@ describe('expoProjects', () => {
     expect((web.resolve as unknown as {alias: {find: unknown}[]}).alias.map(alias => alias.find)).toContain('a');
     // The folder the engine is installed in can be read, wherever a hoisted install put it.
     const allow = (web.server as {fs: {allow: string[]}}).fs.allow;
-    expect(allow).toContain(installedIn(PACKAGE, 'vitest-expo'));
+    expect(allow).toEqual(expect.arrayContaining(installFolders(PACKAGE, 'vitest-expo')));
   });
 });
 
