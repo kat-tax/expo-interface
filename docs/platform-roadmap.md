@@ -1352,11 +1352,12 @@ vocabulary rather than a kit prop.
 
 - **§2.6, `Icon` on Windows — not taking `PathIcon` / `ImageIcon`.** The gap is
   real: `SEGOE_GLYPHS` plus `FontIcon` limits the kit to glyphs Segoe Fluent
-  happens to have, and it bites in practice, because a generated map has to
-  cover every Material name in `src/` — a story using `sticky_note_2` fails
-  the suite. But the fix is **to widen the mapping toward full coverage**,
-  which is cheap per name and needs no new spec, no C++ and no second drawing
-  path. Decided 2026-09-20.
+  happens to have, and it bit in practice, because the generated map has to
+  cover every Material name in `src/` — a story using `sticky_note_2` failed
+  the suite. The fix taken was **to widen the mapping**, which is cheap per
+  name and needs no new spec, no C++ and no second drawing path. Decided and
+  done 2026-09-20: 353 names to 502, and the **shape of the problem changed**
+  — see below.
 - **§4.4, the DOM `TextField` — leaving it.** See that section: nothing is
   broken, and the three components that *are* real DOM are all floating UI,
   where the platform gives something React Native cannot. A text input has no
@@ -1373,10 +1374,28 @@ vocabulary rather than a kit prop.
   Windows (§1.6), materials behind React Native children (§3.2, item 11), and
   a `TabView` whose items hold their own pages (§2.5).
 
-**And one thing worth doing next, which is not an item here.** Widen
-`SEGOE_GLYPHS` toward covering every Material Symbols name `expo-symbols`
-types, rather than the 353 it curates today. It is the decision §2.6 came to,
-it is the only gap in this document that an ordinary day's work keeps hitting
-— a name with no mapping fails the suite the moment it appears anywhere in
-`src/` — and unlike everything else left here it needs no upstream change, no
-new spec and nobody's permission.
+**The Segoe mapping, done 2026-09-20 — and what "full coverage" turned out to
+mean.** The table went from 353 Material names to 502: 66 from one mechanical
+rule (a name that is another name plus one of Material's variant suffixes —
+`_2`, `_alt`, `_outline`, `_filled` and the rest — is a second drawing of the
+same idea, and Segoe has one glyph per idea), and 83 curated by hand from the
+candidates `--report` prints.
+
+**100 % is not reachable, and aiming at it was the wrong target.** Material
+Symbols has about 4,000 names; Segoe Fluent Icons has 1,533 glyphs, a good
+many of them battery levels and wifi bars. There is no mapping that covers
+every name, so the thing to optimise is **the cost of a miss**, not a
+percentage. That is now the other half of the change: the Windows test used to
+fail with `expected ['sticky_note_2'] to deeply equal []` — true and useless —
+and now prints what to add, where, and which glyphs to choose from, sharing
+one candidate search with `--report`. A variant asks about the name it is a
+variant of, because nothing is tagged "sticky note 2" and curating the base
+brings every variant along. Adding a name is a minute's work with the answer
+in front of you.
+
+**One honest limit on all of this:** a mapping can be checked for existing —
+every curated name is validated against both catalogues when the table is
+generated, so a typo fails there rather than on a screen — but whether
+`Personalize` is a good drawing of `brush` is a judgement only an eye can
+make. The 83 new entries were chosen from names and tags, not from looking at
+them.
