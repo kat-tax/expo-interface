@@ -96,12 +96,13 @@ const Stage = styled.div<{layout: StageLayout}>(({layout}) => ({
 }));
 
 /**
- * Previews are laid out at one reference size (a third of the Expo
- * screenshots, which is the card width at the docs page's full width) and
- * scaled to the card, so a narrow column shrinks the whole picture instead of
- * wrapping its text, like an image would.
+ * Previews are laid out at one reference size and scaled to the card, so a
+ * narrow column shrinks the whole picture instead of wrapping its text, like
+ * an image would. That size is a phone's width: a control, a row and a line
+ * of type are then drawn at the metrics they have in a real app and scaled
+ * down to the card, rather than crammed into the card's own width.
  */
-const CANVAS = {width: 306, height: 306 * (631 / 918)};
+const CANVAS = {width: 375, height: 375 * (631 / 918)};
 
 const Canvas = styled.div({
   position: 'absolute',

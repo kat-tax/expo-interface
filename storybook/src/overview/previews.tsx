@@ -398,7 +398,8 @@ function TabViewPreview() {
 function PopoverPreview() {
   return (
     <View style={styles.popoverStage}>
-      <Body>The quick brown fox jumps over the lazy dog</Body>
+      {/* One line, so the card below it covers nothing. */}
+      <Body>The quick brown fox jumps</Body>
       <Popover
         at={{x: 60, y: 0, width: 40, height: 20}}
         title="Spelling"
@@ -427,6 +428,24 @@ function PopupMenuPreview() {
         />
       </div>
     </div>
+  );
+}
+
+/** The three gauge styles: the bar, and the two circular ones side by side. */
+function GaugePreview() {
+  return (
+    <>
+      <Gauge label="Speed" value={211} max={260} currentValueLabel="211" minimumValueLabel="0" maximumValueLabel="260"/>
+      <Row>
+        {/* A circular gauge fills the width it is given, so each takes half the row. */}
+        <View style={styles.half}>
+          <Gauge variant="circular" value={211} max={260} currentValueLabel="211" minimumValueLabel="0" maximumValueLabel="260"/>
+        </View>
+        <View style={styles.half}>
+          <Gauge variant="circularCapacity" value={0.72} currentValueLabel="72%"/>
+        </View>
+      </Row>
+    </>
   );
 }
 
@@ -501,7 +520,12 @@ function TabStackPreview() {
       <RouterApp
         url="/drops"
         routes={{
-          _layout: () => <Tabs routes={[{...NAV_ROUTES[0], href: '/drops', name: 'drops'}, NAV_ROUTES[1]]}/>,
+          _layout: () => (
+            <Tabs
+              routes={[{...NAV_ROUTES[0], href: '/drops', name: 'drops'}, NAV_ROUTES[1]]}
+              webLogo={<Headline color="label" level={false}>Drops</Headline>}
+            />
+          ),
           'drops/_layout': () => (
             <TabStack
               title="Drops"
@@ -790,15 +814,7 @@ export const indicators: CardEntry[] = [
   {
     name: 'Gauge',
     href: docs('indicators-gauge'),
-    preview: (
-      <>
-        <Gauge label="Speed" value={211} max={260} currentValueLabel="211" minimumValueLabel="0" maximumValueLabel="260"/>
-        <Row>
-          <Gauge variant="circular" value={211} max={260} currentValueLabel="211" minimumValueLabel="0" maximumValueLabel="260"/>
-          <Gauge variant="circularCapacity" value={0.72} currentValueLabel="72%"/>
-        </Row>
-      </>
-    ),
+    preview: <GaugePreview/>,
   },
   {name: 'Badge', href: docs('indicators-badge'), preview: <BadgePreview/>},
   {
@@ -835,6 +851,7 @@ const styles = {
     page: {height: 96, justifyContent: 'center'},
     tabPage: {padding: 12, minHeight: 72},
     navScreen: {flex: 1, gap: 4, padding: 12},
+    half: {flex: 1, alignItems: 'center'},
     popoverStage: {height: 150},
     canvas: {height: 88, alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderWidth: 1, borderColor: 'var(--color-separator)'},
   }),
