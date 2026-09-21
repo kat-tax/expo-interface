@@ -12,11 +12,19 @@ export interface FrameParameters {
   native?: boolean;
   /** Accent seed passed to `AccentProvider`; omit for the default. */
   accent?: string;
+  /**
+   * Height the frame takes where it is not filling the view, which is how a
+   * docs page renders a story. Content that is `flex: 1` all the way down (a
+   * navigator, a screen) has no height of its own there and collapses to
+   * nothing, so a story that mounts one says how much room it wants.
+   */
+  height?: number;
 }
 
 export const frameParameters = {
   native: true,
   accent: undefined,
+  height: undefined,
 } satisfies FrameParameters;
 
 /**
@@ -25,11 +33,11 @@ export const frameParameters = {
  * Compose controls can render. Stories built from plain React Native views
  * (typography, headers, QR codes) opt out with `parameters: {native: false}`.
  */
-export function Frame({native, fill = true, children}: PropsWithChildren<{native: boolean; fill?: boolean}>) {
+export function Frame({native, fill = true, height, children}: PropsWithChildren<{native: boolean; fill?: boolean; height?: number}>) {
   const seed = useAccentSeed();
   const backgroundColor = useColor('background');
   return (
-    <View style={[styles.frame, fill && styles.fill, {backgroundColor}]}>
+    <View style={[styles.frame, fill && styles.fill, !fill && height ? {height} : null, {backgroundColor}]}>
       {native ? <Host style={styles.host} {...hostAccentProps(seed)}>{children}</Host> : children}
     </View>
   );

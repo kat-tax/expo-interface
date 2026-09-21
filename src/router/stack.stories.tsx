@@ -12,13 +12,13 @@ const app = {
     </Stack>
   ),
   index: () => (
-    <Page title="Drops" body="Everything you have shared, newest first.">
+    <Page header title="Drops" body="Everything you have shared, newest first.">
       <Link href="/detail">
         <Body color="tint">Holiday photos</Body>
       </Link>
     </Page>
   ),
-  detail: () => <Page title="Holiday photos" body="12 files, shared until Friday."/>,
+  detail: () => <Page header title="Holiday photos" body="12 files, shared until Friday."/>,
 };
 
 const meta = {
@@ -28,6 +28,8 @@ const meta = {
     docs: {description: {component: 'The platform’s stack navigator: Expo Router’s native stack on iOS, Android and web, and a stack of the kit’s own on Windows. These stories mount a two screen app in a router of their own.'}},
     // A navigator holds plain React Native screens, not @expo/ui content.
     native: false,
+    // The app fills what it is given, so a docs page has to give it a size.
+    height: 360,
   },
   render: () => <RouterApp routes={app}/>,
 } satisfies Meta<typeof Stack>;

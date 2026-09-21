@@ -490,7 +490,7 @@ function StackPreview() {
 function TabsPreview() {
   return (
     <Device>
-      <RouterApp routes={{_layout: () => <Tabs routes={NAV_ROUTES} webLogo="text-only"/>, index: drops, starred}}/>
+      <RouterApp routes={{_layout: () => <Tabs routes={NAV_ROUTES} webLogo={<Headline color="label" level={false}>Drops</Headline>}/>, index: drops, starred}}/>
     </Device>
   );
 }

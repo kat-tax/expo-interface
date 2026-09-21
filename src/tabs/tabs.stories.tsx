@@ -2,6 +2,7 @@ import type {Meta, StoryObj} from '@storybook/react-native';
 import type {TabRoute} from './types';
 import {fn} from 'storybook/test';
 import {Button} from '../button';
+import {Headline} from '../typography';
 import * as icons from '../__stories__/icons';
 import {Page, RouterApp} from '../__stories__/router';
 import {Tabs} from '.';
@@ -25,8 +26,16 @@ const meta = {
     docs: {description: {component: 'The app’s sections: native tabs on iOS and Android, a floating top bar with a logo on web, a WinUI `NavigationView` on Windows. One `routes` list feeds all four, and a route carries its badge and its Windows placement with it.'}},
     // A navigator holds plain React Native screens, not @expo/ui content.
     native: false,
+    // The app fills what it is given, so a docs page has to give it a size.
+    height: 360,
   },
-  args: {routes},
+  args: {
+    routes,
+    // The `icon-and-text` preset draws the app's icon and the name in its
+    // Expo config; a Storybook built by Vite has no config to read, so the
+    // slot takes a node of its own here.
+    webLogo: <Headline color="label" level={false}>Drops</Headline>,
+  },
   render: args => <RouterApp routes={{...screens, _layout: () => <Tabs {...args}/>}}/>,
 } satisfies Meta<typeof Tabs>;
 

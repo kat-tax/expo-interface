@@ -2,6 +2,7 @@ import type {ComponentType, PropsWithChildren, ReactNode} from 'react';
 import {ExpoRoot} from 'expo-router';
 import {Platform, StyleSheet, View} from 'react-native';
 import {Body, Title} from '../typography';
+import {Screen} from '../screen';
 import {ConstrainedStackHeader} from '../stack-header';
 import {Stack} from '../router/stack';
 
@@ -54,21 +55,28 @@ export function headerApp(title: string, body: string, headerRight: () => ReactN
         <Stack.Screen name="index" options={{title}}/>
       </Stack>
     ),
-    index: () => <Page title={title} body={body}/>,
+    index: () => <Page header title={title} body={body}/>,
   };
 }
 
-/** A screen of the demo app the router stories mount: a heading and a line about it. */
-export function Page({title, body, children}: PropsWithChildren<{title: string; body?: string}>) {
+/**
+ * A screen of the demo app the router stories mount. It is a `Screen`, which
+ * is what a route renders, so it leaves the room the bar or the header above
+ * it takes; `header` is for a screen under a stack header, which has taken
+ * the top inset already.
+ */
+export function Page({title, body, header, children}: PropsWithChildren<{title: string; body?: string; header?: boolean}>) {
   return (
-    <View style={styles.page}>
-      <Title>{title}</Title>
-      {body ? <Body color="secondaryLabel">{body}</Body> : null}
-      {children}
-    </View>
+    <Screen gutter header={header}>
+      <View style={styles.page}>
+        <Title>{title}</Title>
+        {body ? <Body color="secondaryLabel">{body}</Body> : null}
+        {children}
+      </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  page: {flex: 1, gap: 8, padding: 16},
+  page: {gap: 8, paddingVertical: 16},
 });

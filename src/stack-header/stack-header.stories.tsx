@@ -38,6 +38,8 @@ const meta = {
     docs: {description: {component: 'The web stack header, matched to the content’s width so a screen and its header line up. It is web only: on the other platforms the native stack draws its own bar and this renders nothing.'}},
     // A navigator holds plain React Native screens, not @expo/ui content.
     native: false,
+    // The app fills what it is given, so a docs page has to give it a size.
+    height: 360,
   },
   render: () => <RouterApp routes={app}/>,
 } satisfies Meta<typeof ConstrainedStackHeader>;

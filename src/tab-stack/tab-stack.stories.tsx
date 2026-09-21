@@ -37,6 +37,8 @@ const meta = {
     docs: {description: {component: 'The stack inside a tab, with the platform’s header over it: the native bar on iOS and Android, `ConstrainedStackHeader` on web, and under a web tab bar that takes headers, the bar itself.'}},
     // A navigator holds plain React Native screens, not @expo/ui content.
     native: false,
+    // The app fills what it is given, so a docs page has to give it a size.
+    height: 360,
   },
   args: {
     title: 'Drops',
