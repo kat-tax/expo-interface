@@ -85,7 +85,7 @@ const preview: Preview = {
           'Overview',
           'Guides', ['Installation', 'Theming', 'Icons', 'Windows'],
           'Layout', ['Screen', 'ScreenHeader', 'Surface', 'Card', 'Toolbar', 'KeyboardBar', 'FieldGroup', 'ListItem', 'Collapsible', 'Divider', 'EmptyState'],
-          'Navigation', ['TabView', 'Pager', 'ShareLink'],
+          'Navigation', ['Stack', 'Tabs', 'TabStack', 'ConstrainedStackHeader', 'TabView', 'Pager', 'HeaderMenu', 'HeaderAction', 'HeaderActions', 'ExternalLink', 'ShareLink'],
           'Controls', ['Button', 'Fab', 'Chip', 'IconToggle', 'Switch', 'Checkbox', 'TextField', 'SearchField', 'Picker', 'SegmentedControl', 'Slider', 'Stepper', 'DateTimePicker', 'ColorPicker'],
           'Indicators', ['Progress', 'Spinner', 'Gauge', 'Badge', 'Avatar', 'Typography'],
           'Overlays', ['Menu', 'ContextMenu', 'PopupMenu', 'Popover', 'Tooltip', 'Alert', 'Sheet', 'Toast'],

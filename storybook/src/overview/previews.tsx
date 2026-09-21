@@ -1,4 +1,4 @@
-import type {PropsWithChildren} from 'react';
+import type {PropsWithChildren, ReactNode} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {SymbolView} from 'expo-symbols';
 import {
@@ -11,13 +11,18 @@ import {
   Chip,
   Collapsible,
   ColorPicker,
+  ConstrainedStackHeader,
   DateTimePicker,
   Divider,
+  ExternalLink,
   EmptyState,
   Fab,
   FieldGroup,
   Footnote,
   Gauge,
+  HeaderAction,
+  HeaderActions,
+  HeaderMenu,
   Headline,
   IconToggle,
   KeyboardBar,
@@ -34,10 +39,13 @@ import {
   ShareLink,
   Slider,
   Spinner,
+  Stack,
   Stepper,
   Surface,
   Switch,
+  TabStack,
   TabView,
+  Tabs,
   TextField,
   Title,
   Title3,
@@ -45,8 +53,9 @@ import {
   Toolbar,
   useColor,
 } from 'expo-interface';
-import type {IconToken} from 'expo-interface';
+import type {IconToken, TabRoute} from 'expo-interface';
 import * as icons from '../../../src/__stories__/icons';
+import {RouterApp} from '../../../src/__stories__/router';
 import type {CardEntry} from './cards';
 // The overlay previews below reuse the real overlays' classes without
 // rendering the components, so their stylesheets have to be imported here:
@@ -421,6 +430,150 @@ function PopupMenuPreview() {
   );
 }
 
+// Navigation
+
+const NAV_ROUTES: TabRoute[] = [
+  {href: '/', name: 'index', label: 'Drops', icon: {ios: 'arrow.down.square', android: 'download', web: 'download'}},
+  {href: '/starred', name: 'starred', label: 'Starred', icon: {ios: 'star', android: 'star', web: 'star'}, badge: 2},
+];
+
+/**
+ * A screen of the small app the navigation previews mount. `Screen` is what a
+ * route renders, and it takes the room the bar or the header above it needs
+ * from the navigator, so the text below is not under them.
+ */
+function NavScreen({title, body, header}: {title: string; body: string; header?: boolean}) {
+  return (
+    <Screen gutter header={header}>
+      <View style={styles.navScreen}>
+        <Headline color="label">{title}</Headline>
+        <Footnote color="secondaryLabel">{body}</Footnote>
+      </View>
+    </Screen>
+  );
+}
+
+const drops = () => <NavScreen title="Shared until Friday" body="Anyone with the link can open it."/>;
+const starred = () => <NavScreen title="Two drops" body="The ones you keep coming back to."/>;
+/** The same screen under a stack header, which takes the top inset itself. */
+const stacked = () => <NavScreen header title="Shared until Friday" body="Anyone with the link can open it."/>;
+
+/** One screen under the kit's web stack header, with `right` in its trailing slot. */
+function headerApp(title: string, right: ReactNode) {
+  return {
+    _layout: () => (
+      <Stack screenOptions={{headerShown: true, header: ConstrainedStackHeader, headerRight: () => right}}>
+        <Stack.Screen name="index" options={{title}}/>
+      </Stack>
+    ),
+    index: stacked,
+  };
+}
+
+function StackPreview() {
+  return (
+    <Device>
+      <RouterApp
+        routes={{
+          _layout: () => (
+            <Stack>
+              <Stack.Screen name="index" options={{title: 'Holiday photos'}}/>
+            </Stack>
+          ),
+          index: stacked,
+        }}
+      />
+    </Device>
+  );
+}
+
+function TabsPreview() {
+  return (
+    <Device>
+      <RouterApp routes={{_layout: () => <Tabs routes={NAV_ROUTES} webLogo="text-only"/>, index: drops, starred}}/>
+    </Device>
+  );
+}
+
+function TabStackPreview() {
+  return (
+    <Device>
+      <RouterApp
+        url="/drops"
+        routes={{
+          _layout: () => <Tabs routes={[{...NAV_ROUTES[0], href: '/drops', name: 'drops'}, NAV_ROUTES[1]]}/>,
+          'drops/_layout': () => (
+            <TabStack
+              title="Drops"
+              headerRight={() => <HeaderAction label="New" icon={icons.add} hideLabel onPress={noop}/>}
+            />
+          ),
+          'drops/index': drops,
+          starred,
+        }}
+      />
+    </Device>
+  );
+}
+
+function StackHeaderPreview() {
+  return (
+    <Device>
+      <RouterApp routes={headerApp('Holiday photos', <HeaderAction label="Share" icon={icons.share} hideLabel onPress={noop}/>)}/>
+    </Device>
+  );
+}
+
+function HeaderMenuPreview() {
+  return (
+    <Device>
+      <RouterApp routes={headerApp('Holiday photos', <HeaderMenu label="Export" icon={icons.share} hideLabel items={[{label: 'PDF'}, {label: 'Markdown'}]}/>)}/>
+    </Device>
+  );
+}
+
+function HeaderActionPreview() {
+  return (
+    <Device>
+      <RouterApp routes={headerApp('Holiday photos', <HeaderAction label="Done" onPress={noop}/>)}/>
+    </Device>
+  );
+}
+
+function HeaderActionsPreview() {
+  return (
+    <Device>
+      <RouterApp
+        routes={headerApp(
+          'Photos',
+          <HeaderActions>
+            <HeaderAction label="Star" icon={icons.star} hideLabel onPress={noop}/>
+            <HeaderAction label="Share" icon={icons.share} hideLabel onPress={noop}/>
+            <HeaderMenu label="Export" icon={icons.add} hideLabel items={[{label: 'PDF'}, {label: 'Markdown'}]}/>
+          </HeaderActions>,
+        )}
+      />
+    </Device>
+  );
+}
+
+function ExternalLinkPreview() {
+  return (
+    <RouterApp
+      routes={{
+        index: () => (
+          <View style={styles.article}>
+            <Headline color="label">About</Headline>
+            <ExternalLink href="https://docs.expo.dev">
+              <Body color="tint">Expo documentation</Body>
+            </ExternalLink>
+          </View>
+        ),
+      }}
+    />
+  );
+}
+
 export const layout: CardEntry[] = [
   {name: 'Screen', href: docs('layout-screen'), stage: 'device', preview: <ScreenPreview/>},
   {name: 'ScreenHeader', href: docs('layout-screenheader'), preview: <ScreenHeaderPreview/>},
@@ -474,8 +627,16 @@ export const layout: CardEntry[] = [
 ];
 
 export const navigation: CardEntry[] = [
+  {name: 'Stack', href: docs('navigation-stack'), stage: 'device', preview: <StackPreview/>},
+  {name: 'Tabs', href: docs('navigation-tabs'), stage: 'device', preview: <TabsPreview/>},
+  {name: 'TabStack', href: docs('navigation-tabstack'), stage: 'device', preview: <TabStackPreview/>},
+  {name: 'ConstrainedStackHeader', href: docs('navigation-constrainedstackheader'), stage: 'device', preview: <StackHeaderPreview/>},
   {name: 'TabView', href: docs('navigation-tabview'), preview: <TabViewPreview/>},
   {name: 'Pager', href: docs('navigation-pager'), preview: <PagerPreview/>},
+  {name: 'HeaderMenu', href: docs('navigation-headermenu'), stage: 'device', preview: <HeaderMenuPreview/>},
+  {name: 'HeaderAction', href: docs('navigation-headeraction'), stage: 'device', preview: <HeaderActionPreview/>},
+  {name: 'HeaderActions', href: docs('navigation-headeractions'), stage: 'device', preview: <HeaderActionsPreview/>},
+  {name: 'ExternalLink', href: docs('navigation-externallink'), stage: 'center', preview: <ExternalLinkPreview/>},
   {name: 'ShareLink', href: docs('navigation-sharelink'), stage: 'center', preview: <ShareLink label="Share drop" icon={icons.share} url="https://drop.example/holiday" title="Holiday photos"/>},
 ];
 
@@ -673,6 +834,7 @@ const styles = {
     sheetContent: {gap: 12, padding: 20},
     page: {height: 96, justifyContent: 'center'},
     tabPage: {padding: 12, minHeight: 72},
+    navScreen: {flex: 1, gap: 4, padding: 12},
     popoverStage: {height: 150},
     canvas: {height: 88, alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderWidth: 1, borderColor: 'var(--color-separator)'},
   }),

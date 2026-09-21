@@ -106,20 +106,12 @@ export function Overview() {
         <H3 id="layout">Layout</H3>
         <CardGrid entries={layout}/>
         <H3 id="navigation">Navigation</H3>
-        <CardGrid entries={navigation}/>
         <P>
-          The rest of the navigation exports need an <Code>expo-router</Code> navigator around
-          them, so they have no story here; see the{' '}
-          <A href={EXAMPLE} target="_blank" rel="noopener noreferrer">example app</A>.
+          The navigators need a router around them, so each card below mounts one of its own,
+          with a couple of routes in place of an <Code>app/</Code> directory. A whole app is in
+          the <A href={EXAMPLE} target="_blank" rel="noopener noreferrer">example</A>.
         </P>
-        <Ul>
-          <Li><Strong>Stack</Strong>: the native stack of <Code>expo-router</Code> on iOS, Android and web, and a stack of the kit&apos;s own on Windows, where there is no native one</Li>
-          <Li><Strong>Tabs</Strong>: tab bar for <Code>expo-router</Code>: native tabs on iOS and Android, a floating top bar with a logo on web, a WinUI <Code>NavigationView</Code> on Windows</Li>
-          <Li><Strong>TabStack</Strong>: preconfigured <Code>expo-router</Code> stack for the root screen of a tab</Li>
-          <Li><Strong>ConstrainedStackHeader</Strong>: stack header that matches the content max-width on web</Li>
-          <Li><Strong>HeaderMenu</Strong>, <Strong>HeaderAction</Strong>, <Strong>HeaderActions</Strong>: a menu, a press and a row of them for a stack header&apos;s trailing slot, at the platform&apos;s header size and in one host</Li>
-          <Li><Strong>ExternalLink</Strong>: link that opens in an in-app browser on iOS and Android, a new tab on web and the default browser on Windows</Li>
-        </Ul>
+        <CardGrid entries={navigation}/>
         <H3 id="controls">Controls</H3>
         <CardGrid entries={controls}/>
         <H3 id="indicators">Indicators</H3>
