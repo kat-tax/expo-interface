@@ -8,11 +8,9 @@ const meta = {
   title: 'Navigation/HeaderMenu',
   component: HeaderMenu,
   parameters: {
-    docs: {description: {component: 'A `Menu` for a stack header’s trailing slot, at the platform’s header size and in a host of its own. The stories put it in a real header, which is what it reads its focus and its metrics from.'}},
+    docs: {story: {inline: false, height: '380px'}, description: {component: 'A `Menu` for a stack header’s trailing slot, at the platform’s header size and in a host of its own. The stories put it in a real header, which is what it reads its focus and its metrics from.'}},
     // The control mounts the host it needs; the screens around it are plain.
     native: false,
-    // The app fills what it is given, so a docs page has to give it a size.
-    height: 360,
   },
   args: {
     label: 'Export',

@@ -25,11 +25,9 @@ const meta = {
   title: 'Navigation/Stack',
   component: Stack,
   parameters: {
-    docs: {description: {component: 'The platform’s stack navigator: Expo Router’s native stack on iOS, Android and web, and a stack of the kit’s own on Windows. These stories mount a two screen app in a router of their own.'}},
+    docs: {story: {inline: false, height: '380px'}, description: {component: 'The platform’s stack navigator: Expo Router’s native stack on iOS, Android and web, and a stack of the kit’s own on Windows. These stories mount a two screen app in a router of their own.'}},
     // A navigator holds plain React Native screens, not @expo/ui content.
     native: false,
-    // The app fills what it is given, so a docs page has to give it a size.
-    height: 360,
   },
   render: () => <RouterApp routes={app}/>,
 } satisfies Meta<typeof Stack>;

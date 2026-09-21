@@ -7,11 +7,9 @@ const meta = {
   title: 'Navigation/ExternalLink',
   component: ExternalLink,
   parameters: {
-    docs: {description: {component: 'A link to a URL outside the app: an in-app browser on iOS and Android, a new tab on web, the default browser on Windows. It is an Expo Router `Link`, so it needs the router around it.'}},
+    docs: {story: {inline: false, height: '380px'}, description: {component: 'A link to a URL outside the app: an in-app browser on iOS and Android, a new tab on web, the default browser on Windows. It is an Expo Router `Link`, so it needs the router around it.'}},
     // A link is plain React Native text, not @expo/ui content.
     native: false,
-    // The app fills what it is given, so a docs page has to give it a size.
-    height: 360,
   },
   args: {href: 'https://docs.expo.dev'},
   render: args => (

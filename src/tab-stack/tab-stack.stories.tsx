@@ -2,7 +2,7 @@ import type {Meta, StoryObj} from '@storybook/react-native';
 import type {TabRoute} from '../tabs/types';
 import type {TabStackProps} from '.';
 import {Link} from 'expo-router';
-import {Body} from '../typography';
+import {Body, Headline} from '../typography';
 import {HeaderMenu} from '../header-menu';
 import {Tabs} from '../tabs';
 import * as icons from '../__stories__/icons';
@@ -15,7 +15,7 @@ const routes: TabRoute[] = [
 ];
 
 const screens = {
-  _layout: () => <Tabs routes={routes}/>,
+  _layout: () => <Tabs routes={routes} webLogo={<Headline color="label" level={false}>Drops</Headline>}/>,
   'drops/index': () => (
     <Page title="Drops" body="The tab’s root screen, under the header this stack gives it.">
       <Link href="/drops/detail">
@@ -34,11 +34,9 @@ const meta = {
   title: 'Navigation/TabStack',
   component: TabStack,
   parameters: {
-    docs: {description: {component: 'The stack inside a tab, with the platform’s header over it: the native bar on iOS and Android, `ConstrainedStackHeader` on web, and under a web tab bar that takes headers, the bar itself.'}},
+    docs: {story: {inline: false, height: '380px'}, description: {component: 'The stack inside a tab, with the platform’s header over it: the native bar on iOS and Android, `ConstrainedStackHeader` on web, and under a web tab bar that takes headers, the bar itself.'}},
     // A navigator holds plain React Native screens, not @expo/ui content.
     native: false,
-    // The app fills what it is given, so a docs page has to give it a size.
-    height: 360,
   },
   args: {
     title: 'Drops',

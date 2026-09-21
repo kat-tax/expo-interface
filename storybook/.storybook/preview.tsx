@@ -16,7 +16,7 @@ const preview: Preview = {
     (Story, {parameters, globals, viewMode}) => (
       <SafeAreaProvider>
         <AccentProvider seed={normalizeAccent(globals.accent ?? parameters.accent)}>
-          <Frame native={parameters.native !== false} fill={viewMode === 'story'} height={parameters.height}>
+          <Frame native={parameters.native !== false} fill={viewMode === 'story'}>
             <Story/>
           </Frame>
         </AccentProvider>

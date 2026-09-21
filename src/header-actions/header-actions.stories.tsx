@@ -12,11 +12,9 @@ const meta = {
   title: 'Navigation/HeaderActions',
   component: HeaderActions,
   parameters: {
-    docs: {description: {component: 'More than one control in a stack header’s trailing slot, which takes a single node: a row spaced the way each platform spaces its own header actions, and the one host all of them share.'}},
+    docs: {story: {inline: false, height: '380px'}, description: {component: 'More than one control in a stack header’s trailing slot, which takes a single node: a row spaced the way each platform spaces its own header actions, and the one host all of them share.'}},
     // The row mounts the host its controls need; the screens around it are plain.
     native: false,
-    // The app fills what it is given, so a docs page has to give it a size.
-    height: 360,
   },
   render: args => (
     <RouterApp

@@ -1,7 +1,8 @@
 import type {ComponentType, PropsWithChildren, ReactNode} from 'react';
-import {ExpoRoot} from 'expo-router';
+import {ExpoRoot, ThemeProvider} from 'expo-router';
 import {Platform, StyleSheet, View} from 'react-native';
 import {Body, Title} from '../typography';
+import {useNavTheme} from '../theme';
 import {Screen} from '../screen';
 import {ConstrainedStackHeader} from '../stack-header';
 import {Stack} from '../router/stack';
@@ -29,13 +30,28 @@ function inMemoryContext(routes: Routes) {
 }
 
 /**
+ * The navigation theme, which an app applies in its root layout. Without it
+ * React Navigation paints its own default, so a header stays white in the
+ * dark scheme. `ExpoRoot` renders this inside its container, which is where
+ * the theme has to sit.
+ */
+function NavTheme({children}: PropsWithChildren) {
+  return <ThemeProvider value={useNavTheme()}>{children}</ThemeProvider>;
+}
+
+/**
  * The navigators are the exports an app cannot hold without a router around
  * them, so a story builds one: these routes instead of an `app/` directory,
  * and `location` in place of the browser's URL, which keeps a story from
  * navigating the page the Storybook itself is on.
+ *
+ * One of these per page. expo-router keeps the router in a module-level
+ * store, so two mounted at once share it and a navigation in either one loses
+ * the other's layout; a docs page therefore gives each story an iframe
+ * (`docs.story.inline: false`).
  */
 export function RouterApp({routes, url = '/'}: RouterAppProps) {
-  return <ExpoRoot context={inMemoryContext(routes)} location={url}/>;
+  return <ExpoRoot context={inMemoryContext(routes)} location={url} wrapper={NavTheme}/>;
 }
 
 /**
