@@ -20,6 +20,7 @@ export function DropItem({drop, onPress, onShare, onDelete}: DropItemProps) {
   const count = `${drop.files.length} ${drop.files.length === 1 ? 'file' : 'files'}`;
   return (
     <ContextMenu
+      label={drop.name}
       onPress={onPress}
       items={[
         {label: 'Share', icon: icon.share, onPress: onShare},

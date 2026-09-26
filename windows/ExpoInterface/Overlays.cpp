@@ -790,6 +790,24 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
         }
       }
     });
+    // Every press on an item, the selected one included: a press on the current section
+    // returns to its root, as the Settings app does, which SelectionChanged cannot say.
+    m_view.ItemInvoked([weak = get_weak()](const controls::NavigationView &, const controls::NavigationViewItemInvokedEventArgs &args) {
+      if (auto strong = weak.get()) {
+        int32_t index = -1;
+        if (args.IsSettingsInvoked()) {
+          index = strong->m_settingsIndex;
+        } else if (auto item = args.InvokedItemContainer().try_as<controls::NavigationViewItem>()) {
+          index = winrt::unbox_value_or<int32_t>(item.Tag(), -1);
+        }
+        if (index < 0) return;
+        if (auto emitter = strong->EventEmitter()) {
+          Codegen::ExpoInterfaceNavigationViewEventEmitter::OnItemInvoked event;
+          event.index = index;
+          emitter->onItemInvoked(std::move(event));
+        }
+      }
+    });
     // The control's own back button: the press is the kit's to act on, as WinUI leaves the
     // back stack to the app (a compact pane open as a flyout closes on it instead, by WinUI).
     m_view.BackRequested([weak = get_weak()](const controls::NavigationView &, const controls::NavigationViewBackRequestedEventArgs &) {

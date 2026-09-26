@@ -3,15 +3,16 @@ import {createContext, useCallback, useContext, useEffect, useId, useMemo, useSt
 import Constants from 'expo-constants';
 import {requireOptionalNativeModule} from 'expo-modules-core';
 import {Navigator, StackRouter} from 'expo-router';
-import {Animated, StyleSheet, View} from 'react-native';
-import type {Entrance} from '../windows/entrance';
+import {Animated, StyleSheet, View, useWindowDimensions} from 'react-native';
+import type {ShellCards} from '../tabs/shell';
+import type {Leaving, Size, StackAnimation} from '../windows/motion';
 import {ScreenHeader} from '../screen/header';
 import {StackHeaderContext} from '../stack-header/context';
 import {BackStoreContext, ShellCardsContext, ShellHostContext} from '../tabs/shell';
 import {useColor} from '../theme';
-import {useEntrance} from '../windows/entrance';
 import {LayerHost} from '../windows/layer';
 import {ModalLayer} from '../windows/modal-layer';
+import {useScreenMotion} from '../windows/motion';
 
 /** How a screen is presented: as a card in the stack, or over it. */
 export type WindowsStackPresentation =
@@ -42,12 +43,18 @@ export interface WindowsStackOptions {
    */
   presentation?: WindowsStackPresentation;
   /**
-   * How the screen arrives: WinUI's entrance — a card slides up a little and
-   * fades in, a modal settles from a little larger — a `fade` alone, or
-   * `none`.
+   * How the screen comes and goes, in the native stack's words. On Windows
+   * `default` is WinUI's drill in: the screen settles from a little small
+   * over the one it covers, which grows past the eye and fades, and the
+   * reverse on the way back. `slide_from_right`, `slide_from_left`,
+   * `ios_from_right`, `ios_from_left` and `simple_push` slide both screens
+   * across as one sheet, `slide_from_bottom` slides the screen up over the
+   * other, `fade_from_bottom` is WinUI's page refresh, a short rise and
+   * fade, `fade` and `flip` fade, and `none` is at once. A modal settles
+   * from a little larger, or fades, or is at once.
    * @default 'default'
    */
-  animation?: Entrance;
+  animation?: StackAnimation;
 }
 
 type NavigatorProps = ComponentProps<typeof Navigator>;
@@ -214,36 +221,60 @@ function StackBody() {
   const bodyOptions = optionsOf(bodyIndex);
   const host = useMemo(() => (hosts: boolean) => register(body.key, hosts), [register, body.key]);
   const base = state.routes[baseIndex];
-  const cards = useMemo<ShellCardsValue | null>(() => framed ? {
-    card: <ShellCard key={base.key} route={base} options={baseOptions} render={descriptors[base.key].render}/>,
-    goBack,
-    popAll: () => navigation.dispatch({type: 'POP', payload: {count: state.index - frameIndex}}),
-  } : null, [framed, base, baseOptions, descriptors, goBack, navigation, state.index, frameIndex]);
 
-  // Under a pane that draws the back button, a stack that can pop hands its way back to it.
+  // Under a pane that draws the back button, a stack that can pop hands its ways back to it.
   const store = useContext(BackStoreContext);
   const id = useId();
   const canGoBack = state.index > 0 && baseOptions.headerBackVisible !== false;
+  const popToTop = useCallback(() => navigation.dispatch({type: 'POP_TO_TOP'}), [navigation]);
   useEffect(() => {
-    store?.set(id, canGoBack ? goBack : null);
-  }, [store, id, canGoBack, goBack]);
+    store?.set(id, canGoBack ? {goBack, popToTop} : null);
+  }, [store, id, canGoBack, goBack, popToTop]);
   useEffect(() => () => store?.set(id, null), [store, id]);
 
-  const entrance = useEntrance(body.key, 'card', bodyOptions.animation);
-  // Painted, so that a card arriving — translucent, a little below — shows the scheme behind it, not the window's own white.
+  // The room the screens move across: the stack's own once measured, the window's until then.
+  const window = useWindowDimensions();
+  const [measured, setMeasured] = useState<Size | null>(null);
+  const room = measured ?? window;
+
+  // A card over the frame, handed down with its motion, and the card it replaced on its way out.
+  const cardElement = framed ? <ShellCard route={base} options={baseOptions} render={descriptors[base.key].render}/> : null;
+  const cardMotion = useScreenMotion(framed ? {key: base.key, index: baseIndex, animation: baseOptions.animation, element: cardElement} : null, room, true);
+  // Asked by the tabs while a card is drawn, so there is a frame under the focus.
+  const popAll = useCallback(() => navigation.dispatch({type: 'POP', payload: {count: state.index - frameIndex}}), [navigation, state.index, frameIndex]);
+  const cards: ShellCards | null = framed || cardMotion.leaving
+    ? {
+        card: framed ? <Animated.View key={base.key} style={[styles.slot, cardMotion.arriving]}>{cardElement}</Animated.View> : null,
+        leaving: cardMotion.leaving ? departing(cardMotion.leaving) : null,
+        leavingOnTop: cardMotion.leaving?.onTop ?? false,
+        returning: !framed && cardMotion.leaving ? cardMotion.leaving.transition : null,
+        goBack,
+        popAll,
+      }
+    : null;
+
+  // The body: its header row and its screen as one page, which moves as one.
+  const bodyElement = (
+    <>
+      {bodyOptions.headerShown !== false ? (
+        <ScreenHeader {...headerOf(bodyOptions, body.name, bodyIndex > 0 ? goBack : undefined, store === null)} dragRegion={depth === 1}/>
+      ) : null}
+      <ShellCardsContext.Provider value={cards}>
+        <ShellHostContext.Provider value={host}>{descriptors[body.key].render()}</ShellHostContext.Provider>
+      </ShellCardsContext.Provider>
+    </>
+  );
+  const bodyMotion = useScreenMotion({key: body.key, index: bodyIndex, animation: bodyOptions.animation, element: bodyElement}, room);
+  const leaving = bodyMotion.leaving;
+  // Painted, so that a page arriving translucent shows the scheme behind it, not the window's own white.
   const background = useColor('background');
 
   return (
     <LayerHost onBack={state.index > 0 ? goBack : undefined} takesFocus={depth === 1} testID="windows-stack">
-      <View style={[styles.root, {backgroundColor: background}]}>
-        {bodyOptions.headerShown !== false ? (
-          <ScreenHeader {...headerOf(bodyOptions, body.name, bodyIndex > 0 ? goBack : undefined, store === null)} dragRegion={depth === 1}/>
-        ) : null}
-        <Animated.View style={[styles.slot, entrance]}>
-          <ShellCardsContext.Provider value={cards}>
-            <ShellHostContext.Provider value={host}>{descriptors[body.key].render()}</ShellHostContext.Provider>
-          </ShellCardsContext.Provider>
-        </Animated.View>
+      <View style={[styles.root, {backgroundColor: background}]} onLayout={event => setMeasured({width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height})} testID="stack-room">
+        {leaving && !leaving.onTop ? departing(leaving) : null}
+        <Animated.View key={body.key} style={[styles.slot, bodyMotion.arriving]}>{bodyElement}</Animated.View>
+        {leaving?.onTop ? departing(leaving) : null}
       </View>
       {modals.map((route, index) => {
         const options = descriptors[route.key].options as WindowsStackOptions;
@@ -260,7 +291,17 @@ function StackBody() {
   );
 }
 
-type ShellCardsValue = NonNullable<React.ContextType<typeof ShellCardsContext>>;
+/**
+ * A screen on its way out: over or under what arrives, taking no presses,
+ * keyed as it was drawn so that it keeps its state while it goes.
+ */
+function departing(leaving: Leaving) {
+  return (
+    <Animated.View key={leaving.key} pointerEvents="none" style={[StyleSheet.absoluteFill, leaving.style]} testID="leaving">
+      {leaving.element}
+    </Animated.View>
+  );
+}
 
 interface ShellCardProps {
   route: {key: string; name: string};
@@ -271,20 +312,18 @@ interface ShellCardProps {
 /**
  * A card drawn in the tabs' content rather than in the stack's own body:
  * its header row without a back button, since the pane's is the way back,
- * and its screen, arriving with the entrance. The card is no frame of its
- * own: tabs inside it are told of no stack, so they neither take the frame
- * from the tabs it is drawn in nor see the cards under it.
+ * and its screen. The card is no frame of its own: tabs inside it are told
+ * of no stack, so they neither take the frame from the tabs it is drawn in
+ * nor see the cards under it.
  */
 function ShellCard({route, options, render}: ShellCardProps) {
-  // A new component for each card pushed, so its mount is the arrival.
-  const entrance = useEntrance(route.key, 'card', options.animation, true);
   return (
-    <Animated.View style={[styles.slot, entrance]} testID={`card-${route.name}`}>
+    <View style={styles.slot} testID={`card-${route.name}`}>
       {options.headerShown !== false ? <ScreenHeader {...headerOf(options, route.name, undefined, false)}/> : null}
       <ShellCardsContext.Provider value={null}>
         <ShellHostContext.Provider value={null}>{render()}</ShellHostContext.Provider>
       </ShellCardsContext.Provider>
-    </Animated.View>
+    </View>
   );
 }
 

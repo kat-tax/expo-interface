@@ -132,6 +132,13 @@ export interface ContextMenuProps {
    */
   onPress?: () => void;
   /**
+   * The name a press on the content is announced by, on a platform that
+   * cannot read it off the content: Windows, where the pressable wrapping
+   * the content is what a screen reader lands on. iOS and Android name the
+   * content itself.
+   */
+  label?: string;
+  /**
    * Which gesture opens the menu. The platform's own secondary gesture —
    * right-click on web and Windows, and the Menu key there — keeps working
    * whichever this is: taking away what the platform already teaches would

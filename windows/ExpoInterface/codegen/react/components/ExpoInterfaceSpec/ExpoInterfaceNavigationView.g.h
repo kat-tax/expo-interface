@@ -34,6 +34,7 @@ struct ExpoInterfaceNavigationViewProps : winrt::implements<ExpoInterfaceNavigat
        theme = cloneFromProps->theme;
        backButton = cloneFromProps->backButton;
        onSelectionChange = cloneFromProps->onSelectionChange;
+       onItemInvoked = cloneFromProps->onItemInvoked;
        onPaneOpenChange = cloneFromProps->onPaneOpenChange;
        onBackRequested = cloneFromProps->onBackRequested;  
      }
@@ -71,6 +72,9 @@ struct ExpoInterfaceNavigationViewProps : winrt::implements<ExpoInterfaceNavigat
   REACT_FIELD(onSelectionChange)
   bool onSelectionChange{false};
 
+  REACT_FIELD(onItemInvoked)
+  bool onItemInvoked{false};
+
   REACT_FIELD(onPaneOpenChange)
   bool onPaneOpenChange{false};
 
@@ -90,6 +94,12 @@ struct ExpoInterfaceNavigationViewSpec_onPaneOpenChange {
   bool open{};
 };
 
+REACT_STRUCT(ExpoInterfaceNavigationViewSpec_onItemInvoked)
+struct ExpoInterfaceNavigationViewSpec_onItemInvoked {
+  REACT_FIELD(index)
+  int32_t index{};
+};
+
 REACT_STRUCT(ExpoInterfaceNavigationViewSpec_onSelectionChange)
 struct ExpoInterfaceNavigationViewSpec_onSelectionChange {
   REACT_FIELD(index)
@@ -101,11 +111,18 @@ struct ExpoInterfaceNavigationViewEventEmitter {
       : m_eventEmitter(eventEmitter) {}
 
   using OnSelectionChange = ExpoInterfaceNavigationViewSpec_onSelectionChange;
+  using OnItemInvoked = ExpoInterfaceNavigationViewSpec_onItemInvoked;
   using OnPaneOpenChange = ExpoInterfaceNavigationViewSpec_onPaneOpenChange;
   using OnBackRequested = ExpoInterfaceNavigationViewSpec_onBackRequested;
 
   void onSelectionChange(OnSelectionChange &&value) const {
     m_eventEmitter.DispatchEvent(L"selectionChange", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
+      winrt::Microsoft::ReactNative::WriteValue(writer, value);
+    });
+  }
+
+  void onItemInvoked(OnItemInvoked &&value) const {
+    m_eventEmitter.DispatchEvent(L"itemInvoked", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
       winrt::Microsoft::ReactNative::WriteValue(writer, value);
     });
   }

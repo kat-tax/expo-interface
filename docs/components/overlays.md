@@ -43,9 +43,14 @@ Differences:
 
 A menu of actions opened by long-pressing or right-clicking its content, or
 at a point the content reports. Props: `items`, `children` (must be `@expo/ui`
-content on iOS and Android), `onPress` (the content's own press), `trigger`
-(`longPress`, the default, or `tap`), `disabled`, `at` (a point relative to
-the content's top left, or `null`), `onDismiss`, `onOpenChange`, `testID`.
+content on iOS and Android), `onPress` (the content's own press), `label`
+(the name that press is announced by on Windows, where the pressable around
+the content is what a screen reader lands on; iOS and Android name the
+content itself), `trigger` (`longPress`, the default, or `tap`), `disabled`,
+`at` (a point relative to the content's top left, or `null`), `onDismiss`,
+`onOpenChange`, `testID`. Without a press of its own the Windows wrapper is
+nothing to a screen reader or the Tab key: the content's controls are what
+they land on.
 
 | Platform | Renders |
 | --- | --- |

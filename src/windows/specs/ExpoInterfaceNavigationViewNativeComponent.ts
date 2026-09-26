@@ -47,6 +47,8 @@ export interface NativeProps extends ViewProps {
    */
   backButton?: CodegenTypes.WithDefault<'hidden' | 'disabled' | 'enabled', 'hidden'>;
   onSelectionChange?: CodegenTypes.DirectEventHandler<SelectionEvent>;
+  /** An item was pressed (`ItemInvoked`), the selected one included, which `onSelectionChange` never reports. */
+  onItemInvoked?: CodegenTypes.DirectEventHandler<SelectionEvent>;
   /** The pane wants to be open or closed: its toggle button was pressed, or a mode change flipped it. */
   onPaneOpenChange?: CodegenTypes.DirectEventHandler<PaneOpenEvent>;
   /** The back button was pressed (`BackRequested`). */

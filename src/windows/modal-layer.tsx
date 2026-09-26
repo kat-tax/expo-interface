@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
-import type {Entrance} from './entrance';
-import {useEffect, useId, useRef} from 'react';
+import type {StackAnimation} from './motion';
+import {useEffect, useRef} from 'react';
 import {Animated, Pressable, StyleSheet, View} from 'react-native';
 import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
 import {useEntrance} from './entrance';
@@ -29,8 +29,8 @@ export interface ModalLayerProps {
    * sizing itself.
    */
   tall?: boolean;
-  /** How the card arrives: settling from a little larger as a dialog does, a fade, or at once. */
-  animation?: Entrance;
+  /** How the card arrives: settling from a little larger as a dialog does, or as `fade` or `none` say; the other stack animations are the dialog's. */
+  animation?: StackAnimation;
   testID?: string;
 }
 
@@ -50,7 +50,7 @@ export function ModalLayer({children, onDismiss, transparent = false, tall = fal
   const separator = useColor('separator');
   const hosted = useLayerDismiss(onDismiss);
   const root = useRef<View>(null);
-  const entrance = useEntrance(useId(), 'dialog', animation);
+  const entrance = useEntrance(animation);
   useEffect(() => {
     try {
       // The view is mounted by the time the effect runs.

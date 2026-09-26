@@ -6,8 +6,8 @@ describe('the pane\'s back store', () => {
     const listener = vi.fn();
     store.subscribe(listener);
     expect(store.get()).toBeNull();
-    const outer = () => {};
-    const inner = () => {};
+    const outer = {goBack() {}, popToTop() {}};
+    const inner = {goBack() {}, popToTop() {}};
     store.set('outer', outer);
     expect(store.get()).toBe(outer);
     store.set('inner', inner);
@@ -21,9 +21,9 @@ describe('the pane\'s back store', () => {
 
   it('puts a stack that publishes again in front, whatever order it first published in', () => {
     const store = createBackStore();
-    const outer = () => {};
-    const inner = () => {};
-    const outerAgain = () => {};
+    const outer = {goBack() {}, popToTop() {}};
+    const inner = {goBack() {}, popToTop() {}};
+    const outerAgain = {goBack() {}, popToTop() {}};
     store.set('outer', outer);
     store.set('inner', inner);
     store.set('outer', outerAgain);
@@ -39,7 +39,7 @@ describe('the pane\'s back store', () => {
     // Taking away a way back that was never published changes nothing.
     store.set('none', null);
     expect(listener).not.toHaveBeenCalled();
-    const goBack = () => {};
+    const goBack = {goBack() {}, popToTop() {}};
     store.set('one', goBack);
     store.set('one', goBack);
     expect(listener).toHaveBeenCalledTimes(1);

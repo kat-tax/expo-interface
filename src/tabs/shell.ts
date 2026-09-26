@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import type {Transition} from '../windows/motion';
 import {createContext} from 'react';
 
 /**
@@ -10,8 +11,14 @@ import {createContext} from 'react';
  * hands down.
  */
 export interface ShellCards {
-  /** The card in front, with its header row, ready to draw in the tabs' content. */
-  card: ReactNode;
+  /** The card in front, with its header row and its motion, ready to draw in the tabs' content; none once the last card is on its way out. */
+  card: ReactNode | null;
+  /** A card on its way out, drawn over or under the content until its motion ends. */
+  leaving: ReactNode | null;
+  /** The card leaving is over the content (it recedes on the way back) rather than under a card that came over it. */
+  leavingOnTop: boolean;
+  /** The motion the tabs' own content returns with once the last card leaves, or none while a card is drawn. */
+  returning: Transition | null;
   /** Pops what is in front: the pane's back button. */
   goBack(): void;
   /** Pops every card over the tabs: a selection in the pane leaves the drilled-in screens. */
@@ -28,18 +35,25 @@ export const ShellCardsContext = createContext<ShellCards | null>(null);
  */
 export const ShellHostContext = createContext<((hosts: boolean) => void) | null>(null);
 
+/** A stack's ways back, for the pane: one step, or all the way to its root. */
+export interface WayBack {
+  goBack(): void;
+  popToTop(): void;
+}
+
 /**
  * Where the pane's back button goes: the innermost stack under the tabs
- * that can pop publishes its way back here, and takes it away when it is at
- * its root. A store outside React state, so a push in a tab re-renders the
- * bar alone. The bar draws no back button of the kit's own while a stack has
- * the pane's, which is why a stack reads whether the store is there.
+ * that can pop publishes its ways back here, and takes them away when it is
+ * at its root. A store outside React state, so a push in a tab re-renders
+ * the bar alone. The bar draws no back button of the kit's own while a
+ * stack has the pane's, which is why a stack reads whether the store is
+ * there.
  */
 export interface BackStore {
-  /** Publishes a stack's way back, or takes it away (`null`). */
-  set(id: string, goBack: (() => void) | null): void;
-  /** The way back of the stack in front: the last to publish. */
-  get(): (() => void) | null;
+  /** Publishes a stack's ways back, or takes them away (`null`). */
+  set(id: string, wayBack: WayBack | null): void;
+  /** The ways back of the stack in front: the last to publish. */
+  get(): WayBack | null;
   subscribe(listener: () => void): () => void;
 }
 
@@ -48,26 +62,26 @@ export const BackStoreContext = createContext<BackStore | null>(null);
 /**
  * Builds the store for one `Tabs`. Of two stacks that can pop, one inside
  * the other, the inner one published later and is the one in front; when it
- * reaches its root the outer one's way back is current again.
+ * reaches its root the outer one's ways back are current again.
  */
 export function createBackStore(): BackStore {
-  const entries = new Map<string, {order: number; goBack: () => void}>();
+  const entries = new Map<string, {order: number; wayBack: WayBack}>();
   let order = 0;
-  let current: (() => void) | null = null;
+  let current: WayBack | null = null;
   const listeners = new Set<() => void>();
   const refresh = () => {
-    let front: {order: number; goBack: () => void} | null = null;
+    let front: {order: number; wayBack: WayBack} | null = null;
     for (const entry of entries.values()) {
       if (!front || entry.order > front.order) front = entry;
     }
-    const next = front?.goBack ?? null;
+    const next = front?.wayBack ?? null;
     if (next === current) return;
     current = next;
     for (const listener of listeners) listener();
   };
   return {
-    set(id, goBack) {
-      if (goBack) entries.set(id, {order: order++, goBack});
+    set(id, wayBack) {
+      if (wayBack) entries.set(id, {order: order++, wayBack});
       else entries.delete(id);
       refresh();
     },

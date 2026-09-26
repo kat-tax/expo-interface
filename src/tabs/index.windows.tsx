@@ -1,11 +1,13 @@
 import type {LayoutChangeEvent} from 'react-native';
+import type {Direction, Size, Transition} from '../windows/motion';
 import type {TabBarProps, TabRoute, WindowsPane} from './types';
 import {useContext, useEffect, useState, useSyncExternalStore} from 'react';
 import {Navigator, TabRouter} from 'expo-router';
-import {StyleSheet, View, useWindowDimensions} from 'react-native';
+import {Animated, StyleSheet, View, useWindowDimensions} from 'react-native';
 import XamlNavigationView from '../windows/specs/ExpoInterfaceNavigationViewNativeComponent';
 import {jsonProp, useXamlProps} from '../windows';
 import {useWindowChromeState} from '../windows/chrome';
+import {useArrival} from '../windows/motion';
 import {windowsGlyph} from '../symbol/segoe';
 import {useColor} from '../theme';
 import {BackStoreContext, ShellCardsContext, ShellHostContext, createBackStore} from './shell';
@@ -92,16 +94,16 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
   // The width the tabs are given: the window's until the first layout, then
   // their own — react-native-windows reports no dimension change when the
   // window is resized, but the layout follows it.
-  const {width: windowWidth} = useWindowDimensions();
-  const [measured, setMeasured] = useState<number | null>(null);
-  const resolved = resolvePane(pane, measured ?? windowWidth);
+  const {width: windowWidth, height: windowHeight} = useWindowDimensions();
+  const [measured, setMeasured] = useState<Size | null>(null);
+  const resolved = resolvePane(pane, measured?.width ?? windowWidth);
   const side = resolved !== 'top';
   // The pane's own open state holds while the pane it was made in stays resolved.
   const [toggle, setToggle] = useState<Toggle | null>(null);
   const open = toggle?.pane === resolved ? toggle.open : resolved === 'left';
   const current = state.routes[state.index]?.name;
   const selectedIndex = Math.max(0, routes.findIndex(route => route.name === current));
-  const onLayout = (event: LayoutChangeEvent) => setMeasured(event.nativeEvent.layout.width);
+  const onLayout = (event: LayoutChangeEvent) => setMeasured({width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height});
   // The stack above, if the tabs are in one: told that the bar is here while
   // it is drawn, so a push keeps the tabs as the frame and hands the card down.
   const host = useContext(ShellHostContext);
@@ -111,10 +113,32 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
     host(true);
     return () => host(false);
   }, [host, hidden]);
-  // The way back a stack inside a tab has published, if it can pop.
+  // The ways back a stack inside a tab has published, if it can pop.
   const [store] = useState(createBackStore);
   const inner = useSyncExternalStore(store.subscribe, store.get, store.get);
-  const canGoBack = shell !== null || inner !== null;
+  const covered = shell?.card != null;
+  const canGoBack = covered || inner !== null;
+  // What the content arrives with: on a selection, along the bar in the order
+  // of the items in the top mode, WinUI's page refresh in a side pane; back
+  // from a card, the reverse of the motion the card leaves with. A card
+  // arriving has a motion of its own.
+  const room = measured ?? {width: windowWidth, height: windowHeight};
+  const slotKey = covered ? 'covered' : `tab:${current}`;
+  const [lastSlot, setLastSlot] = useState({key: slotKey, index: selectedIndex});
+  let transition: Transition = 'none';
+  let direction: Direction = 'forward';
+  if (lastSlot.key !== slotKey) {
+    if (lastSlot.key === 'covered') {
+      // No card on its way out means the card left at once: the content is there at once too.
+      transition = shell?.returning ?? 'none';
+      direction = 'backward';
+    } else if (!covered) {
+      transition = side ? 'refresh' : 'slide_right';
+      direction = selectedIndex >= lastSlot.index ? 'forward' : 'backward';
+    }
+    setLastSlot({key: slotKey, index: selectedIndex});
+  }
+  const arriving = useArrival(slotKey, transition, direction, room);
   return (
     <View style={[styles.root, side && styles.row]} onLayout={onLayout} testID="tabs">
       {!hidden ? (
@@ -127,10 +151,16 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
           onSelectionChange={event => {
             const route = routes[event.nativeEvent.index];
             if (!route) return;
-            shell?.popAll();
+            if (covered) shell?.popAll();
             if (route.name !== current) navigation.navigate(route.name);
           }}
-          onBackRequested={() => (shell ? shell.goBack() : inner?.())}
+          onItemInvoked={event => {
+            // The section already selected: back to its root, as the Settings app goes.
+            if (event.nativeEvent.index !== selectedIndex) return;
+            if (covered) shell?.popAll();
+            inner?.popToTop();
+          }}
+          onBackRequested={() => (covered ? shell?.goBack() : inner?.goBack())}
           onPaneOpenChange={event => setToggle({pane: resolved, open: event.nativeEvent.open})}
           style={
             side
@@ -143,7 +173,13 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
       ) : null}
       <View style={styles.slot}>
         <BackStoreContext.Provider value={hidden ? null : store}>
-          {shell ? shell.card : <Navigator.Slot/>}
+          {shell?.leaving && !shell.leavingOnTop ? shell.leaving : null}
+          {shell?.card ?? (
+            <Animated.View key={slotKey} style={[styles.slot, arriving]}>
+              <Navigator.Slot/>
+            </Animated.View>
+          )}
+          {shell?.leavingOnTop ? shell.leaving : null}
         </BackStoreContext.Provider>
       </View>
     </View>

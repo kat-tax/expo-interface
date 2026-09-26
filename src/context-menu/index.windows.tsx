@@ -23,7 +23,7 @@ const SECONDARY_BUTTON = 2;
  * onto the press and drops the long-press, so a touch screen has one gesture
  * for it rather than two.
  */
-export function ContextMenu({items, children, onPress, disabled, at, onDismiss, onOpenChange, trigger = 'longPress', testID}: ContextMenuProps) {
+export function ContextMenu({items, children, onPress, label, disabled, at, onDismiss, onOpenChange, trigger = 'longPress', testID}: ContextMenuProps) {
   const xaml = useXamlProps();
   useMenuShortcuts(items);
   const [point, setPoint] = useState<{x: number; y: number} | null>(null);
@@ -62,9 +62,18 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
   });
 
   const tap = trigger === 'tap';
+  // The wrapper is a button when the press is its own, named by `label`;
+  // otherwise it is nothing to a screen reader or the Tab key, and the
+  // content's own controls are what they land on. The Menu key still
+  // reaches it from them, since keys bubble up from the focused view.
+  const pressable = !disabled && (tap || onPress !== undefined);
   return (
     <Pressable
       disabled={disabled}
+      role={pressable ? 'button' : undefined}
+      accessibilityLabel={pressable ? label : undefined}
+      accessible={pressable}
+      focusable={pressable}
       onPress={tap
         ? event => open(event.nativeEvent.locationX, event.nativeEvent.locationY)
         : onPress}

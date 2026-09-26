@@ -157,3 +157,24 @@ describe('ContextMenu keyboard (windows)', () => {
     });
   });
 });
+
+describe('ContextMenu accessibility (windows)', () => {
+  const rows = [{label: 'Share', onPress: () => {}}];
+
+  it('is a button named by its label when the press is its own, for a tap trigger too', async () => {
+    await render(<ContextMenu items={rows} label="A drop" onPress={() => {}}><Text>Row</Text></ContextMenu>);
+    const button = screen.getByRole('button', {name: 'A drop'});
+    expect(button.props.focusable).toBe(true);
+    await render(<ContextMenu items={rows} label="Tapped" trigger="tap"><Text>Row</Text></ContextMenu>);
+    expect(screen.getByRole('button', {name: 'Tapped'})).toBeOnTheScreen();
+  });
+
+  it('is nothing to a screen reader or the Tab key when the content has the presses, or while disabled', async () => {
+    await render(<ContextMenu items={rows} testID="menu"><Text>Row</Text></ContextMenu>);
+    expect(screen.queryByRole('button')).toBeNull();
+    expect(screen.getByTestId('menu').props.accessible).toBe(false);
+    expect(screen.getByTestId('menu').props.focusable).toBe(false);
+    await render(<ContextMenu items={rows} label="A drop" onPress={() => {}} disabled testID="off"><Text>Row</Text></ContextMenu>);
+    expect(screen.getByTestId('off').props.accessible).toBe(false);
+  });
+});

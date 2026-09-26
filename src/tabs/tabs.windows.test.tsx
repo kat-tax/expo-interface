@@ -1,7 +1,7 @@
 import type {TabRoute} from './types';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {act, fireEvent, screen} from '@testing-library/react-native';
-import {Dimensions, StyleSheet, Text} from 'react-native';
+import {Animated, Dimensions, StyleSheet, Text} from 'react-native';
 import {router} from 'expo-router';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {renderApp} from 'expo-vitest/router';
@@ -38,6 +38,11 @@ async function layout(width: number) {
 function widthOf(node: {props: {style?: StyleProp<ViewStyle>}}): number | undefined {
   return StyleSheet.flatten(node.props.style)?.width as number | undefined;
 }
+
+/** Every motion over at once, so a screen leaving is gone when the navigation is; the motion tests hold or count the timings instead. */
+beforeEach(() => {
+  vi.spyOn(Animated, 'timing').mockImplementation(() => ({start: (callback?: (result: {finished: boolean}) => void) => callback?.({finished: true})}) as never);
+});
 
 afterEach(() => {
   Dimensions.set({window: WINDOW});
@@ -209,5 +214,48 @@ describe('Tabs back button (windows)', () => {
     await fireIsland(island(NAV), 'backRequested');
     expect(screen.getByText('Home screen')).toBeOnTheScreen();
     expect(island(NAV).props.backButton).toBe('hidden');
+  });
+});
+
+describe('Tabs motion and presses (windows)', () => {
+  const stacked = () => ({
+    _layout: () => <Tabs routes={routes}/>,
+    'index/_layout': () => <TabStack title="Home"/>,
+    'index/index': () => <Text>Home screen</Text>,
+    'index/deeper': () => <Text>Deeper screen</Text>,
+    settings: () => <Text>Settings screen</Text>,
+  });
+
+  it('moves the content along the top bar on a selection, forward and back, on the native driver', async () => {
+    const timing = vi.spyOn(Animated, 'timing').mockReturnValue({start: vi.fn()} as never);
+    await renderApp(app());
+    expect(timing).not.toHaveBeenCalled();
+    await fireIsland(island(NAV), 'selectionChange', {index: 1});
+    expect(timing).toHaveBeenCalledTimes(1);
+    expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({duration: 250, useNativeDriver: true}));
+    await fireIsland(island(NAV), 'selectionChange', {index: 0});
+    expect(timing).toHaveBeenCalledTimes(2);
+  });
+
+  it('refreshes the content in a side pane', async () => {
+    const timing = vi.spyOn(Animated, 'timing').mockReturnValue({start: vi.fn()} as never);
+    await renderApp(app({windowsPane: 'left'}));
+    await fireIsland(island(NAV), 'selectionChange', {index: 1});
+    expect(timing).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Settings screen')).toBeOnTheScreen();
+  });
+
+  it("returns to the section's root on a press of the selected item, and ignores a press on another", async () => {
+    await renderApp(stacked());
+    // At the root already: nothing to do.
+    await fireIsland(island(NAV), 'itemInvoked', {index: 0});
+    expect(screen.getByText('Home screen')).toBeOnTheScreen();
+    await act(async () => router.push('/deeper'));
+    expect(screen.getByText('Deeper screen')).toBeOnTheScreen();
+    await fireIsland(island(NAV), 'itemInvoked', {index: 1});
+    expect(screen.getByText('Deeper screen')).toBeOnTheScreen();
+    await fireIsland(island(NAV), 'itemInvoked', {index: 0});
+    expect(screen.getByText('Home screen')).toBeOnTheScreen();
+    expect(screen.queryByText('Deeper screen')).toBeNull();
   });
 });

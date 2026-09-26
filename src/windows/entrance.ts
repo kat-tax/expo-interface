@@ -1,46 +1,42 @@
 import type {ViewStyle} from 'react-native';
-import {useLayoutEffect, useRef, useState} from 'react';
-import {Animated, Easing} from 'react-native';
+import type {StackAnimation} from './motion';
+import {useLayoutEffect, useState} from 'react';
+import {Animated} from 'react-native';
+import {DECELERATE, DURATION} from './motion';
 
-/** How a screen arrives: WinUI's entrance, a fade alone, or at once. */
+/** How a dialog arrives: WinUI's dialog motion, a fade alone, or at once. */
 export type Entrance = 'default' | 'fade' | 'none';
 
-/** WinUI's entrance and dialog motion: 200 ms, decelerating. */
-const DURATION = 200;
-/** A card comes up from below by this much; a dialog settles from this scale. */
-const CARD_OFFSET = 24;
+/** A dialog settles from this scale, as a `ContentDialog` opens. */
 const DIALOG_SCALE = 1.05;
 
+/** The dialog motion a stack animation asks for: a fade is a fade, none is none, anything else is the dialog's own. */
+export function dialogEntrance(animation: StackAnimation = 'default'): Entrance {
+  if (animation === 'fade' || animation === 'flip') return 'fade';
+  if (animation === 'none') return 'none';
+  return 'default';
+}
+
 /**
- * The animated style of a screen arriving: a card slides up from a little
- * below and fades in, as WinUI's pages enter; a dialog settles from a
- * little larger, as a `ContentDialog` opens. It plays when `key` changes —
- * a push, a pop — and, for a dialog, when it mounts; a card on its first
- * mount is simply there, as the first page of a window is, unless
- * `playsOnMount` says the mount is itself the arrival, as it is for a card
- * drawn inside the tabs' frame. `animation` turns it into a fade or off, as
- * the stack's screen option does.
+ * The animated style of a dialog arriving: it settles from a little larger
+ * and fades in, as a `ContentDialog` opens, when it mounts. `animation`
+ * turns it into a fade or off, as the stack's screen option does. Cards
+ * have `useScreenMotion`, which also sees the screen they replace out.
  */
-export function useEntrance(key: string, kind: 'card' | 'dialog', animation: Entrance = 'default', playsOnMount = false): Animated.WithAnimatedObject<ViewStyle> {
+export function useEntrance(animation: StackAnimation = 'default'): Animated.WithAnimatedObject<ViewStyle> {
   const [progress] = useState(() => new Animated.Value(1));
-  const shown = useRef<string | null>(null);
+  const entrance = dialogEntrance(animation);
   useLayoutEffect(() => {
-    const first = shown.current === null;
-    const same = shown.current === key;
-    shown.current = key;
-    if (same || animation === 'none' || (first && kind === 'card' && !playsOnMount)) {
+    if (entrance === 'none') {
       progress.setValue(1);
       return;
     }
     progress.setValue(0);
-    Animated.timing(progress, {toValue: 1, duration: DURATION, easing: Easing.out(Easing.cubic), useNativeDriver: true}).start();
-  }, [key, kind, animation, playsOnMount, progress]);
-  if (animation === 'fade') return {opacity: progress};
+    Animated.timing(progress, {toValue: 1, duration: DURATION.arriving, easing: DECELERATE, useNativeDriver: true}).start();
+  }, [entrance, progress]);
+  if (entrance === 'fade') return {opacity: progress};
   return {
     opacity: progress,
-    transform:
-      kind === 'card'
-        ? [{translateY: progress.interpolate({inputRange: [0, 1], outputRange: [CARD_OFFSET, 0]})}]
-        : [{scale: progress.interpolate({inputRange: [0, 1], outputRange: [DIALOG_SCALE, 1]})}],
+    transform: [{scale: progress.interpolate({inputRange: [0, 1], outputRange: [DIALOG_SCALE, 1]})}],
   };
 }

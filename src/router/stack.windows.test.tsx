@@ -26,6 +26,11 @@ vi.mock('expo-modules-core', async importOriginal => ({
   requireOptionalNativeModule: (name: string) => (name === 'ExpoWindows' ? runtime.module : null),
 }));
 
+/** Every motion over at once, so a screen leaving is gone when the navigation is; the motion tests hold or count the timings instead. */
+beforeEach(() => {
+  vi.spyOn(Animated, 'timing').mockImplementation(() => ({start: (callback?: (result: {finished: boolean}) => void) => callback?.({finished: true})}) as never);
+});
+
 const app = (options: Record<string, unknown> = {}) => ({
   _layout: () => (
     <Stack screenOptions={options}>
@@ -200,12 +205,13 @@ describe('Stack header options and motion (windows)', () => {
       edit: () => <Text>Edit form</Text>,
     });
     expect(timing).not.toHaveBeenCalled();
+    // The screen arriving and the one leaving, each with a motion of its own.
     await act(async () => router.push('/detail'));
-    expect(timing).toHaveBeenCalledTimes(1);
-    await act(async () => router.push('/still'));
-    expect(timing).toHaveBeenCalledTimes(1);
-    await act(async () => router.push('/edit'));
     expect(timing).toHaveBeenCalledTimes(2);
+    await act(async () => router.push('/still'));
+    expect(timing).toHaveBeenCalledTimes(2);
+    await act(async () => router.push('/edit'));
+    expect(timing).toHaveBeenCalledTimes(3);
     expect(screen.getByText('Edit form')).toBeOnTheScreen();
   });
 });
@@ -445,5 +451,109 @@ describe('Stack over Tabs motion (windows)', () => {
     expect(timing).toHaveBeenCalledTimes(1);
     await act(async () => router.push('/still'));
     expect(timing).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Stack motion (windows)', () => {
+  /** A timing that never ends on its own: the callbacks are the test's to fire. */
+  function holdTimings() {
+    const callbacks: ((result: {finished: boolean}) => void)[] = [];
+    const timing = vi.spyOn(Animated, 'timing').mockImplementation(() => ({start: (callback?: (result: {finished: boolean}) => void) => {
+      if (callback) callbacks.push(callback);
+    }}) as never);
+    return {timing, finish: () => act(async () => callbacks.splice(0).forEach(callback => callback({finished: true})))};
+  }
+
+  it('keeps the screen leaving in the tree, taking no presses, until its motion ends', async () => {
+    const {timing, finish} = holdTimings();
+    await renderApp(app());
+    await act(async () => router.push('/detail'));
+    expect(screen.getByText('Detail screen')).toBeOnTheScreen();
+    expect(screen.getByText('Home screen')).toBeOnTheScreen();
+    expect(screen.getByTestId('leaving').props.pointerEvents).toBe('none');
+    expect(timing).toHaveBeenCalledTimes(2);
+    await finish();
+    expect(screen.queryByText('Home screen')).toBeNull();
+    expect(screen.queryByTestId('leaving')).toBeNull();
+    // Back: the detail leaves over the home screen, which is there at once.
+    await act(async () => router.back());
+    expect(screen.getByText('Home screen')).toBeOnTheScreen();
+    expect(screen.getByTestId('leaving')).toBeOnTheScreen();
+    await finish();
+    expect(screen.queryByText('Detail screen')).toBeNull();
+  });
+
+  const tabs: TabRoute[] = [{href: '/', name: '(home)', label: 'Home', icon: {ios: 'house', android: 'home', web: 'home'}}];
+  const framedApp = () => ({
+    _layout: () => (
+      <Stack screenOptions={{headerShown: false}}>
+        <Stack.Screen name="(tabs)"/>
+        <Stack.Screen name="detail" options={{animation: 'slide_from_right'}}/>
+        <Stack.Screen name="deeper"/>
+      </Stack>
+    ),
+    '(tabs)/_layout': () => <Tabs routes={tabs}/>,
+    '(tabs)/(home)/_layout': () => <TabStack title="Documents"/>,
+    '(tabs)/(home)/index': () => <Text>Documents screen</Text>,
+    detail: () => <Text>Detail screen</Text>,
+    deeper: () => <Text>Deeper screen</Text>,
+  });
+
+  it("sees a card out of the frame while the next card, or the tabs' own content, arrives", async () => {
+    const {timing, finish} = holdTimings();
+    await renderApp(framedApp());
+    await act(async () => router.push('/detail'));
+    expect(timing).toHaveBeenCalledTimes(1);
+    await finish();
+    // A second card over the first: the first leaves under it.
+    await act(async () => router.push('/deeper'));
+    expect(screen.getByText('Deeper screen')).toBeOnTheScreen();
+    expect(screen.getByText('Detail screen')).toBeOnTheScreen();
+    expect(screen.getByTestId('leaving')).toBeOnTheScreen();
+    await finish();
+    expect(screen.queryByText('Detail screen')).toBeNull();
+    // The last card out: the tabs' own content returns under it, with the card's motion reversed.
+    await act(async () => router.dismissAll());
+    expect(screen.getByText('Documents screen')).toBeOnTheScreen();
+    expect(screen.getByText('Deeper screen')).toBeOnTheScreen();
+    await finish();
+    expect(screen.queryByText('Deeper screen')).toBeNull();
+    expect(screen.queryByTestId('leaving')).toBeNull();
+  });
+
+  it("returns to the tab's root from the cards on a press of the selected item", async () => {
+    await renderApp(framedApp());
+    await act(async () => router.push('/detail'));
+    await fireIsland(island('ExpoInterfaceNavigationView'), 'itemInvoked', {index: 0});
+    expect(screen.getByText('Documents screen')).toBeOnTheScreen();
+    expect(screen.queryByText('Detail screen')).toBeNull();
+  });
+});
+
+describe('Stack room and stillness (windows)', () => {
+  const tabs: TabRoute[] = [{href: '/', name: '(home)', label: 'Home', icon: {ios: 'house', android: 'home', web: 'home'}}];
+
+  it("measures its own room for the slides, and returns the tabs' content at once when the card asked for no motion", async () => {
+    const timing = vi.spyOn(Animated, 'timing').mockReturnValue({start: vi.fn()} as never);
+    await renderApp({
+      _layout: () => (
+        <Stack screenOptions={{headerShown: false}}>
+          <Stack.Screen name="(tabs)"/>
+          <Stack.Screen name="still" options={{animation: 'none'}}/>
+        </Stack>
+      ),
+      '(tabs)/_layout': () => <Tabs routes={tabs}/>,
+      '(tabs)/(home)/_layout': () => <TabStack title="Documents"/>,
+      '(tabs)/(home)/index': () => <Text>Documents screen</Text>,
+      still: () => <Text>Still screen</Text>,
+    });
+    await fireEvent(screen.getAllByTestId('stack-room')[0], 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 640, height: 480}}});
+    await act(async () => router.push('/still'));
+    expect(screen.getByText('Still screen')).toBeOnTheScreen();
+    expect(screen.queryByText('Documents screen')).toBeNull();
+    await act(async () => router.back());
+    expect(screen.getByText('Documents screen')).toBeOnTheScreen();
+    expect(screen.queryByText('Still screen')).toBeNull();
+    expect(timing).not.toHaveBeenCalled();
   });
 });

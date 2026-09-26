@@ -18,8 +18,16 @@ Windows build with no other change.
 
 On Windows the stack draws its header (`title`, `headerTitle` as text or a
 node, `headerLeft`, `headerRight`, `headerBackVisible`, `headerShown`). A
-pushed screen arrives with WinUI's entrance, a short rise and fade rather than
-a slide, and `animation: 'fade' | 'none'` changes it. A screen with
+push plays WinUI's drill in: the screen settles in from a little small over
+the one it covers, which grows past the eye and fades, and a pop plays it in
+reverse, the closer screen receding. `animation` is read in the native
+stack's words: `slide_from_right`, `slide_from_left`, `ios_from_right`,
+`ios_from_left` and `simple_push` slide both screens across as one sheet,
+`slide_from_bottom` slides the screen up over the other, `fade_from_bottom`
+is page refresh, a short rise and fade, `fade` and `flip` fade, and `none` is
+at once. The motion is the compositor's, on the native driver, with Fluent's
+timing: 250 ms decelerating in, 167 ms accelerating out. The screen leaving
+keeps its state until it is gone. A screen with
 `presentation: 'modal'` (or `formSheet`, `containedModal`, `fullScreenModal`)
 is a card over smoke above the screen below, the way a WinUI dialog is
 arranged, and a `transparentModal` lies over the window as it is. Escape, the
@@ -61,7 +69,7 @@ Props: `routes` (`name`, `href`, `label`, `icon`, `badge`,
 | --- | --- |
 | iOS, Android | Expo Router's native tabs: the platform's own tab bar at the bottom, with `badge` as the bar's badge |
 | Web | A floating bar along the top with the app's logo, the tabs and action slots. A route's `badge` is a pill beside the label. |
-| Windows | A WinUI `NavigationView`: the top bar, or with `windowsPane` the navigation pane down the left side, expanded (`left`), at its glyph-only width (`compact`), or `auto` by the window's width at WinUI's own breakpoints (the expanded pane from 1008 points, the compact one from 641, the top bar below that). The pane's toggle button switches between the two. A count `badge` is an `InfoBadge`; other text is its dot. `windowsPlacement` puts a route at the pane's foot (`footer`) or makes it WinUI's own settings item (`settings`). The control's own back button, at the top of the pane or the start of the top bar, pops a card the stack above pushed over the tabs, or a screen a stack inside a tab pushed; a selection in the pane leaves the drilled-in screens. The button is drawn whenever a stack is around the tabs, disabled at the root as a WinUI app's is, and only while something can pop when the tabs are the root. |
+| Windows | A WinUI `NavigationView`: the top bar, or with `windowsPane` the navigation pane down the left side, expanded (`left`), at its glyph-only width (`compact`), or `auto` by the window's width at WinUI's own breakpoints (the expanded pane from 1008 points, the compact one from 641, the top bar below that). The pane's toggle button switches between the two. A count `badge` is an `InfoBadge`; other text is its dot. `windowsPlacement` puts a route at the pane's foot (`footer`) or makes it WinUI's own settings item (`settings`). The control's own back button, at the top of the pane or the start of the top bar, pops a card the stack above pushed over the tabs, or a screen a stack inside a tab pushed; a selection in the pane leaves the drilled-in screens. The button is drawn whenever a stack is around the tabs, disabled at the root as a WinUI app's is, and only while something can pop when the tabs are the root. A press on the selected item returns to its root, as the Settings app does. A selection slides the content along the top bar in the order of the items, or refreshes it in a side pane; back from a card, the content returns as the card leaves. |
 
 On web a screen under `Tabs` has one bar, not two: `ConstrainedStackHeader`
 hands its header to the bar and draws nothing itself. A pushed screen hands

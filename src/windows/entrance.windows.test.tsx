@@ -1,8 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import {Animated} from 'react-native';
-import {useEntrance} from './entrance';
-
-type Props = {key: string; kind: 'card' | 'dialog'; animation?: 'default' | 'fade' | 'none'};
+import {dialogEntrance, useEntrance} from './entrance';
 
 function spyTiming() {
   const start = vi.fn();
@@ -11,45 +9,30 @@ function spyTiming() {
 }
 
 describe('useEntrance (windows)', () => {
-  it('leaves a card where it is on its first mount, and plays the entrance when the key changes', async () => {
+  it('plays a dialog on its mount, settling from a little larger, on the native driver', async () => {
     const {timing, start} = spyTiming();
-    const {result, rerender} = await renderHook((props: Props) => useEntrance(props.key, props.kind, props.animation), {
-      initialProps: {key: 'index', kind: 'card'},
-    });
-    expect(timing).not.toHaveBeenCalled();
-    expect(result.current.transform).toEqual([{translateY: expect.anything()}]);
-    await rerender({key: 'index', kind: 'card'});
-    expect(timing).not.toHaveBeenCalled();
-    await rerender({key: 'detail', kind: 'card'});
+    const {result} = await renderHook(() => useEntrance());
     expect(timing).toHaveBeenCalledTimes(1);
-    expect(timing).toHaveBeenCalledWith(result.current.opacity, expect.objectContaining({toValue: 1, duration: 200, useNativeDriver: true}));
+    expect(timing).toHaveBeenCalledWith(result.current.opacity, expect.objectContaining({toValue: 1, duration: 250, useNativeDriver: true}));
     expect(start).toHaveBeenCalledTimes(1);
-  });
-
-  it('plays a card on its mount when told the mount is its arrival', async () => {
-    const {timing} = spyTiming();
-    const {result} = await renderHook(() => useEntrance('card', 'card', 'default', true));
-    expect(timing).toHaveBeenCalledTimes(1);
-    expect(result.current.transform).toEqual([{translateY: expect.anything()}]);
-  });
-
-  it('plays a dialog on its mount, settling from a little larger', async () => {
-    const {timing} = spyTiming();
-    const {result} = await renderHook(() => useEntrance('sheet', 'dialog'));
-    expect(timing).toHaveBeenCalledTimes(1);
     expect(result.current.transform).toEqual([{scale: expect.anything()}]);
   });
 
   it('fades alone, or arrives at once, as asked', async () => {
     const {timing} = spyTiming();
-    const {result, rerender} = await renderHook((props: Props) => useEntrance(props.key, props.kind, props.animation), {
-      initialProps: {key: 'a', kind: 'card', animation: 'fade'},
-    });
-    expect(result.current.transform).toBeUndefined();
-    await rerender({key: 'b', kind: 'card', animation: 'fade'});
+    const faded = await renderHook(() => useEntrance('fade'));
     expect(timing).toHaveBeenCalledTimes(1);
-    await rerender({key: 'c', kind: 'card', animation: 'none'});
+    expect(faded.result.current.transform).toBeUndefined();
+    const still = await renderHook(() => useEntrance('none'));
     expect(timing).toHaveBeenCalledTimes(1);
-    expect(result.current.transform).toEqual([{translateY: expect.anything()}]);
+    expect(still.result.current.opacity).toBeDefined();
+  });
+
+  it('reads the stack animations as a dialog does: a flip is a fade, a slide is the dialog\'s own', () => {
+    expect(dialogEntrance('flip')).toBe('fade');
+    expect(dialogEntrance('fade')).toBe('fade');
+    expect(dialogEntrance('none')).toBe('none');
+    expect(dialogEntrance('slide_from_bottom')).toBe('default');
+    expect(dialogEntrance()).toBe('default');
   });
 });
