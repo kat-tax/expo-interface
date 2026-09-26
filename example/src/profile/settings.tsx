@@ -1,6 +1,28 @@
 import {useState} from 'react';
-import {Alert, Button, Collapsible, Footnote, Menu, TextField, FieldGroup} from 'expo-interface';
+import {Platform} from 'react-native';
+import {Alert, Button, Collapsible, Footnote, Menu, SegmentedControl, TextField, FieldGroup} from 'expo-interface';
 import * as icon from '@/icons';
+import {PANES, setPane, usePane} from '@/profile/pane';
+
+/**
+ * Windows only: which of the WinUI `NavigationView`'s pane display modes the
+ * app's tabs draw, changed live. Every mode is here, so the frame itself is
+ * the demonstration of each one.
+ */
+function PaneSettings() {
+  const pane = usePane();
+  const current = PANES.find(entry => entry.value === pane) ?? PANES[0];
+  return (
+    <FieldGroup.Section title="Navigation">
+      <SegmentedControl testID="pane-mode" label="Pane" selectedValue={pane} onValueChange={setPane}>
+        {PANES.map(entry => (
+          <SegmentedControl.Item key={entry.value} label={entry.label} value={entry.value}/>
+        ))}
+      </SegmentedControl>
+      <Footnote color="secondaryLabel">{current.note}</Footnote>
+    </FieldGroup.Section>
+  );
+}
 
 export function ProfileSettings() {
   const [name, setName] = useState('');
@@ -9,6 +31,7 @@ export function ProfileSettings() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   return (
     <FieldGroup>
+      {Platform.OS === 'windows' ? <PaneSettings/> : null}
       <FieldGroup.Section title="User">
         <TextField
           testID="profile-name"

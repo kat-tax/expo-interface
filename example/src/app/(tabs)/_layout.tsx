@@ -1,4 +1,5 @@
 import {type TabRoute, Tabs} from 'expo-interface';
+import {usePane} from '@/profile/pane';
 
 export const routes: TabRoute[] = [
   {
@@ -24,7 +25,9 @@ export const routes: TabRoute[] = [
 ];
 
 export default function TabsLayout() {
+  // Windows only: the pane the Settings screen picks; the other platforms draw their own tabs.
+  const pane = usePane();
   return (
-    <Tabs webLogo="icon-only" webIcon={require('@/assets/images/icon.png')} routes={routes}/>
+    <Tabs webLogo="icon-only" webIcon={require('@/assets/images/icon.png')} routes={routes} windowsPane={pane}/>
   );
 }
