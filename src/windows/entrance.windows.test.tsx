@@ -22,8 +22,15 @@ describe('useEntrance (windows)', () => {
     expect(timing).not.toHaveBeenCalled();
     await rerender({key: 'detail', kind: 'card'});
     expect(timing).toHaveBeenCalledTimes(1);
-    expect(timing).toHaveBeenCalledWith(result.current.opacity, expect.objectContaining({toValue: 1, duration: 200, useNativeDriver: false}));
+    expect(timing).toHaveBeenCalledWith(result.current.opacity, expect.objectContaining({toValue: 1, duration: 200, useNativeDriver: true}));
     expect(start).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays a card on its mount when told the mount is its arrival', async () => {
+    const {timing} = spyTiming();
+    const {result} = await renderHook(() => useEntrance('card', 'card', 'default', true));
+    expect(timing).toHaveBeenCalledTimes(1);
+    expect(result.current.transform).toEqual([{translateY: expect.anything()}]);
   });
 
   it('plays a dialog on its mount, settling from a little larger', async () => {

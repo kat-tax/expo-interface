@@ -276,7 +276,8 @@ interface ShellCardProps {
  * from the tabs it is drawn in nor see the cards under it.
  */
 function ShellCard({route, options, render}: ShellCardProps) {
-  const entrance = useEntrance(route.key, 'card', options.animation);
+  // A new component for each card pushed, so its mount is the arrival.
+  const entrance = useEntrance(route.key, 'card', options.animation, true);
   return (
     <Animated.View style={[styles.slot, entrance]} testID={`card-${route.name}`}>
       {options.headerShown !== false ? <ScreenHeader {...headerOf(options, route.name, undefined, false)}/> : null}

@@ -418,3 +418,32 @@ describe('Tabs inside a card (windows)', () => {
     expect(island(NAV).props.backButton).toBe('disabled');
   });
 });
+
+describe('Stack over Tabs motion (windows)', () => {
+  const tabs: TabRoute[] = [{href: '/', name: '(home)', label: 'Home', icon: {ios: 'house', android: 'home', web: 'home'}}];
+
+  it('plays the entrance for a card drawn in the frame, whose mount is its arrival', async () => {
+    const start = vi.fn();
+    const timing = vi.spyOn(Animated, 'timing').mockReturnValue({start} as never);
+    await renderApp({
+      _layout: () => (
+        <Stack screenOptions={{headerShown: false}}>
+          <Stack.Screen name="(tabs)"/>
+          <Stack.Screen name="detail"/>
+          <Stack.Screen name="still" options={{animation: 'none'}}/>
+        </Stack>
+      ),
+      '(tabs)/_layout': () => <Tabs routes={tabs}/>,
+      '(tabs)/(home)/_layout': () => <TabStack title="Documents"/>,
+      '(tabs)/(home)/index': () => <Text>Documents screen</Text>,
+      detail: () => <Text>Detail screen</Text>,
+      still: () => <Text>Still screen</Text>,
+    });
+    expect(timing).not.toHaveBeenCalled();
+    await act(async () => router.push('/detail'));
+    expect(screen.getByTestId('card-detail')).toBeOnTheScreen();
+    expect(timing).toHaveBeenCalledTimes(1);
+    await act(async () => router.push('/still'));
+    expect(timing).toHaveBeenCalledTimes(1);
+  });
+});
