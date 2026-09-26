@@ -3,9 +3,9 @@ import {createContext, useCallback, useContext, useEffect, useId, useMemo, useSt
 import Constants from 'expo-constants';
 import {requireOptionalNativeModule} from 'expo-modules-core';
 import {Navigator, StackRouter} from 'expo-router';
-import {Animated, StyleSheet, View, useWindowDimensions} from 'react-native';
+import {Animated, StyleSheet, View} from 'react-native';
 import type {ShellCards} from '../tabs/shell';
-import type {Leaving, Size, StackAnimation} from '../windows/motion';
+import type {Leaving, StackAnimation} from '../windows/motion';
 import {ScreenHeader} from '../screen/header';
 import {StackHeaderContext} from '../stack-header/context';
 import {BackStoreContext, ShellCardsContext, ShellHostContext} from '../tabs/shell';
@@ -232,14 +232,9 @@ function StackBody() {
   }, [store, id, canGoBack, goBack, popToTop]);
   useEffect(() => () => store?.set(id, null), [store, id]);
 
-  // The room the screens move across: the stack's own once measured, the window's until then.
-  const window = useWindowDimensions();
-  const [measured, setMeasured] = useState<Size | null>(null);
-  const room = measured ?? window;
-
   // A card over the frame, handed down with its motion, and the card it replaced on its way out.
   const cardElement = framed ? <ShellCard route={base} options={baseOptions} render={descriptors[base.key].render}/> : null;
-  const cardMotion = useScreenMotion(framed ? {key: base.key, index: baseIndex, animation: baseOptions.animation, element: cardElement} : null, room, true);
+  const cardMotion = useScreenMotion(framed ? {key: base.key, index: baseIndex, route: base, animation: baseOptions.animation, element: cardElement} : null, true);
   // Asked by the tabs while a card is drawn, so there is a frame under the focus.
   const popAll = useCallback(() => navigation.dispatch({type: 'POP', payload: {count: state.index - frameIndex}}), [navigation, state.index, frameIndex]);
   const cards: ShellCards | null = framed || cardMotion.leaving
@@ -264,14 +259,14 @@ function StackBody() {
       </ShellCardsContext.Provider>
     </>
   );
-  const bodyMotion = useScreenMotion({key: body.key, index: bodyIndex, animation: bodyOptions.animation, element: bodyElement}, room);
+  const bodyMotion = useScreenMotion({key: body.key, index: bodyIndex, route: body, animation: bodyOptions.animation, element: bodyElement});
   const leaving = bodyMotion.leaving;
   // Painted, so that a page arriving translucent shows the scheme behind it, not the window's own white.
   const background = useColor('background');
 
   return (
     <LayerHost onBack={state.index > 0 ? goBack : undefined} takesFocus={depth === 1} testID="windows-stack">
-      <View style={[styles.root, {backgroundColor: background}]} onLayout={event => setMeasured({width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height})} testID="stack-room">
+      <View style={[styles.root, {backgroundColor: background}]}>
         {leaving && !leaving.onTop ? departing(leaving) : null}
         <Animated.View key={body.key} style={[styles.slot, bodyMotion.arriving]}>{bodyElement}</Animated.View>
         {leaving?.onTop ? departing(leaving) : null}

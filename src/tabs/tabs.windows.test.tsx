@@ -226,22 +226,23 @@ describe('Tabs motion and presses (windows)', () => {
     settings: () => <Text>Settings screen</Text>,
   });
 
-  it('moves the content along the top bar on a selection, forward and back, on the native driver', async () => {
+  it('moves the content along the top bar on a selection, forward and back', async () => {
     const timing = vi.spyOn(Animated, 'timing').mockReturnValue({start: vi.fn()} as never);
     await renderApp(app());
     expect(timing).not.toHaveBeenCalled();
     await fireIsland(island(NAV), 'selectionChange', {index: 1});
-    expect(timing).toHaveBeenCalledTimes(1);
-    expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({duration: 250, useNativeDriver: false}));
-    await fireIsland(island(NAV), 'selectionChange', {index: 0});
+    // The jump into view and the move in from the side, on the JavaScript thread.
     expect(timing).toHaveBeenCalledTimes(2);
+    expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({toValue: 0, delay: 150, duration: 300, useNativeDriver: false}));
+    await fireIsland(island(NAV), 'selectionChange', {index: 0});
+    expect(timing).toHaveBeenCalledTimes(4);
   });
 
   it('refreshes the content in a side pane', async () => {
     const timing = vi.spyOn(Animated, 'timing').mockReturnValue({start: vi.fn()} as never);
     await renderApp(app({windowsPane: 'left'}));
     await fireIsland(island(NAV), 'selectionChange', {index: 1});
-    expect(timing).toHaveBeenCalledTimes(1);
+    expect(timing).toHaveBeenCalledTimes(2);
     expect(screen.getByText('Settings screen')).toBeOnTheScreen();
   });
 

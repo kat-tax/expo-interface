@@ -1,5 +1,5 @@
 import type {LayoutChangeEvent} from 'react-native';
-import type {Direction, Size, Transition} from '../windows/motion';
+import type {Direction, Transition} from '../windows/motion';
 import type {TabBarProps, TabRoute, WindowsPane} from './types';
 import {useContext, useEffect, useState, useSyncExternalStore} from 'react';
 import {Navigator, TabRouter} from 'expo-router';
@@ -94,16 +94,16 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
   // The width the tabs are given: the window's until the first layout, then
   // their own — react-native-windows reports no dimension change when the
   // window is resized, but the layout follows it.
-  const {width: windowWidth, height: windowHeight} = useWindowDimensions();
-  const [measured, setMeasured] = useState<Size | null>(null);
-  const resolved = resolvePane(pane, measured?.width ?? windowWidth);
+  const {width: windowWidth} = useWindowDimensions();
+  const [measured, setMeasured] = useState<number | null>(null);
+  const resolved = resolvePane(pane, measured ?? windowWidth);
   const side = resolved !== 'top';
   // The pane's own open state holds while the pane it was made in stays resolved.
   const [toggle, setToggle] = useState<Toggle | null>(null);
   const open = toggle?.pane === resolved ? toggle.open : resolved === 'left';
   const current = state.routes[state.index]?.name;
   const selectedIndex = Math.max(0, routes.findIndex(route => route.name === current));
-  const onLayout = (event: LayoutChangeEvent) => setMeasured({width: event.nativeEvent.layout.width, height: event.nativeEvent.layout.height});
+  const onLayout = (event: LayoutChangeEvent) => setMeasured(event.nativeEvent.layout.width);
   // The stack above, if the tabs are in one: told that the bar is here while
   // it is drawn, so a push keeps the tabs as the frame and hands the card down.
   const host = useContext(ShellHostContext);
@@ -122,7 +122,6 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
   // of the items in the top mode, WinUI's page refresh in a side pane; back
   // from a card, the reverse of the motion the card leaves with. A card
   // arriving has a motion of its own.
-  const room = measured ?? {width: windowWidth, height: windowHeight};
   const slotKey = covered ? 'covered' : `tab:${current}`;
   const [lastSlot, setLastSlot] = useState({key: slotKey, index: selectedIndex});
   let transition: Transition = 'none';
@@ -138,7 +137,7 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
     }
     setLastSlot({key: slotKey, index: selectedIndex});
   }
-  const arriving = useArrival(slotKey, transition, direction, room);
+  const arriving = useArrival(slotKey, transition, direction);
   return (
     <View style={[styles.root, side && styles.row]} onLayout={onLayout} testID="tabs">
       {!hidden ? (

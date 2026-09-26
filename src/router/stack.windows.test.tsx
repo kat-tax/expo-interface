@@ -205,13 +205,13 @@ describe('Stack header options and motion (windows)', () => {
       edit: () => <Text>Edit form</Text>,
     });
     expect(timing).not.toHaveBeenCalled();
-    // The screen arriving and the one leaving, each with a motion of its own.
+    // A drill: a track each for scale and opacity, for the screen arriving and the one leaving.
     await act(async () => router.push('/detail'));
-    expect(timing).toHaveBeenCalledTimes(2);
+    expect(timing).toHaveBeenCalledTimes(4);
     await act(async () => router.push('/still'));
-    expect(timing).toHaveBeenCalledTimes(2);
+    expect(timing).toHaveBeenCalledTimes(4);
     await act(async () => router.push('/edit'));
-    expect(timing).toHaveBeenCalledTimes(3);
+    expect(timing).toHaveBeenCalledTimes(5);
     expect(screen.getByText('Edit form')).toBeOnTheScreen();
   });
 });
@@ -448,9 +448,9 @@ describe('Stack over Tabs motion (windows)', () => {
     expect(timing).not.toHaveBeenCalled();
     await act(async () => router.push('/detail'));
     expect(screen.getByTestId('card-detail')).toBeOnTheScreen();
-    expect(timing).toHaveBeenCalledTimes(1);
+    expect(timing).toHaveBeenCalledTimes(2);
     await act(async () => router.push('/still'));
-    expect(timing).toHaveBeenCalledTimes(1);
+    expect(timing).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -471,7 +471,7 @@ describe('Stack motion (windows)', () => {
     expect(screen.getByText('Detail screen')).toBeOnTheScreen();
     expect(screen.getByText('Home screen')).toBeOnTheScreen();
     expect(screen.getByTestId('leaving').props.pointerEvents).toBe('none');
-    expect(timing).toHaveBeenCalledTimes(2);
+    expect(timing).toHaveBeenCalledTimes(4);
     await finish();
     expect(screen.queryByText('Home screen')).toBeNull();
     expect(screen.queryByTestId('leaving')).toBeNull();
@@ -503,7 +503,7 @@ describe('Stack motion (windows)', () => {
     const {timing, finish} = holdTimings();
     await renderApp(framedApp());
     await act(async () => router.push('/detail'));
-    expect(timing).toHaveBeenCalledTimes(1);
+    expect(timing).toHaveBeenCalledTimes(2);
     await finish();
     // A second card over the first: the first leaves under it.
     await act(async () => router.push('/deeper'));
@@ -530,10 +530,10 @@ describe('Stack motion (windows)', () => {
   });
 });
 
-describe('Stack room and stillness (windows)', () => {
+describe('Stack stillness (windows)', () => {
   const tabs: TabRoute[] = [{href: '/', name: '(home)', label: 'Home', icon: {ios: 'house', android: 'home', web: 'home'}}];
 
-  it("measures its own room for the slides, and returns the tabs' content at once when the card asked for no motion", async () => {
+  it("returns the tabs' content at once when the card asked for no motion", async () => {
     const timing = vi.spyOn(Animated, 'timing').mockReturnValue({start: vi.fn()} as never);
     await renderApp({
       _layout: () => (
@@ -547,7 +547,6 @@ describe('Stack room and stillness (windows)', () => {
       '(tabs)/(home)/index': () => <Text>Documents screen</Text>,
       still: () => <Text>Still screen</Text>,
     });
-    await fireEvent(screen.getAllByTestId('stack-room')[0], 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 640, height: 480}}});
     await act(async () => router.push('/still'));
     expect(screen.getByText('Still screen')).toBeOnTheScreen();
     expect(screen.queryByText('Documents screen')).toBeNull();

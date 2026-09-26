@@ -1,14 +1,15 @@
 import type {ViewStyle} from 'react-native';
 import type {StackAnimation} from './motion';
 import {useLayoutEffect, useState} from 'react';
-import {Animated} from 'react-native';
-import {DECELERATE, DURATION} from './motion';
+import {Animated, Easing} from 'react-native';
 
 /** How a dialog arrives: WinUI's dialog motion, a fade alone, or at once. */
 export type Entrance = 'default' | 'fade' | 'none';
 
-/** A dialog settles from this scale, as a `ContentDialog` opens. */
+/** A dialog settles from this scale, as a `ContentDialog` opens, over WinUI's normal duration, decelerating. */
 const DIALOG_SCALE = 1.05;
+const DURATION = 250;
+const DECELERATE = Easing.bezier(0, 0, 0, 1);
 
 /** The dialog motion a stack animation asks for: a fade is a fade, none is none, anything else is the dialog's own. */
 export function dialogEntrance(animation: StackAnimation = 'default'): Entrance {
@@ -32,7 +33,7 @@ export function useEntrance(animation: StackAnimation = 'default'): Animated.Wit
       return;
     }
     progress.setValue(0);
-    Animated.timing(progress, {toValue: 1, duration: DURATION.arriving, easing: DECELERATE, useNativeDriver: true}).start();
+    Animated.timing(progress, {toValue: 1, duration: DURATION, easing: DECELERATE, useNativeDriver: true}).start();
   }, [entrance, progress]);
   if (entrance === 'fade') return {opacity: progress};
   return {

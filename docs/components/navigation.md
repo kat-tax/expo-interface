@@ -17,19 +17,24 @@ options work the same. An app that uses the kit's `Stack` in its layouts has a
 Windows build with no other change.
 
 On Windows the stack draws its header (`title`, `headerTitle` as text or a
-node, `headerLeft`, `headerRight`, `headerBackVisible`, `headerShown`). A
-push plays WinUI's drill in: the screen settles in from a little small over
-the one it covers, which grows past the eye and fades, and a pop plays it in
-reverse, the closer screen receding. `animation` is read in the native
-stack's words: `slide_from_right`, `slide_from_left`, `ios_from_right`,
-`ios_from_left` and `simple_push` slide both screens across as one sheet,
-`slide_from_bottom` slides the screen up over the other, `fade_from_bottom`
-is page refresh, a short rise and fade, `fade` and `flip` fade, and `none` is
-at once. Fluent's timing throughout: 250 ms decelerating in, 167 ms
-accelerating out. Drill in and the fades run on the compositor; the slides
-and page refresh run on the JavaScript thread, since react-native-windows
-0.84 does not animate a translation natively. The screen leaving keeps its
-state until it is gone. A screen with
+node, `headerLeft`, `headerRight`, `headerBackVisible`, `headerShown`). Its
+motion is the WinUI `Frame`'s, key frame for key frame. A push plays drill
+in: the screen it covers grows to 104% and fades over 100 ms while the new
+one settles from 94% over 783 ms, fading in over 333 ms; a pop plays the
+reverse, the closer screen shrinking to 96% over 100 ms while the one
+returning settles from 106% over 333 ms. `animation` is read in the native
+stack's words. `fade_from_bottom` is page refresh: the old screen fades
+over 150 ms, then the new one appears and rises 140 points over 300 ms.
+`slide_from_right`, `slide_from_left`, `ios_from_right`, `ios_from_left` and
+`simple_push` are the horizontal slide: the old screen moves 150 points on
+over 150 ms and goes, then the new one comes 200 points in from the other
+side over 300 ms. `slide_from_bottom` waits 250 ms, then rises 200 points
+over 350 ms while the old screen sinks. `fade` and `flip` are page refresh
+without the rise, and `none` is at once. Drill in and the fades run on the
+compositor. The slides and page refresh run on the JavaScript thread, since
+react-native-windows 0.84 does not animate a translation natively; that is
+react-native-windows' to fix, and an issue for it should be filed upstream.
+The screen leaving keeps its state until it is gone. A screen with
 `presentation: 'modal'` (or `formSheet`, `containedModal`, `fullScreenModal`)
 is a card over smoke above the screen below, the way a WinUI dialog is
 arranged, and a `transparentModal` lies over the window as it is. Escape, the
