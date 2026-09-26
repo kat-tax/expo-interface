@@ -232,7 +232,7 @@ describe('Tabs motion and presses (windows)', () => {
     expect(timing).not.toHaveBeenCalled();
     await fireIsland(island(NAV), 'selectionChange', {index: 1});
     expect(timing).toHaveBeenCalledTimes(1);
-    expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({duration: 250, useNativeDriver: true}));
+    expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({duration: 250, useNativeDriver: false}));
     await fireIsland(island(NAV), 'selectionChange', {index: 0});
     expect(timing).toHaveBeenCalledTimes(2);
   });

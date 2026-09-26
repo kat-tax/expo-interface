@@ -1,7 +1,7 @@
 import type {Drawn} from './motion';
 import {act, renderHook} from '@testing-library/react-native';
 import {Animated, Text} from 'react-native';
-import {DURATION, motionStyle, resolveTransition, timingOf, useArrival, useScreenMotion} from './motion';
+import {DURATION, motionStyle, resolveTransition, timingOf, useArrival, useScreenMotion, usesNativeDriver} from './motion';
 
 const ROOM = {width: 800, height: 600};
 
@@ -33,6 +33,16 @@ describe('the stack animations on Windows', () => {
     expect(resolveTransition('slide_from_left')).toBe('slide_left');
     expect(resolveTransition('ios_from_left')).toBe('slide_left');
     expect(resolveTransition('none')).toBe('none');
+  });
+
+  it('runs what fades and scales on the compositor, and what translates on the JavaScript thread', () => {
+    expect(usesNativeDriver('drill')).toBe(true);
+    expect(usesNativeDriver('fade')).toBe(true);
+    expect(usesNativeDriver('none')).toBe(true);
+    expect(usesNativeDriver('refresh')).toBe(false);
+    expect(usesNativeDriver('slide_right')).toBe(false);
+    expect(usesNativeDriver('slide_left')).toBe(false);
+    expect(usesNativeDriver('slide_bottom')).toBe(false);
   });
 
   it('times an arrival at WinUI\'s normal duration, a departure at its fast one, and a slide as one sheet', () => {
@@ -102,12 +112,13 @@ describe('useScreenMotion (windows)', () => {
   });
 
   it('takes the motion from the screen arriving forward and from the one leaving back, and clears the departure when its motion ends', async () => {
-    const {start} = spyTiming(true);
+    const {timing, start} = spyTiming(true);
     const {result, rerender} = await renderHook((props: {current: Drawn | null}) => useScreenMotion(props.current, ROOM), {
       initialProps: {current: drawn('index', 0, 'fade')},
     });
     await rerender({current: drawn('detail', 1, 'slide_from_right')});
-    // Seen out at once: the departure is over.
+    // A slide, on the JavaScript thread; seen out at once: the departure is over.
+    expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({useNativeDriver: false}));
     expect(start).toHaveBeenCalled();
     expect(result.current.leaving).toBeNull();
     expect((result.current.arriving.transform as {translateX: unknown}[])[0].translateX).toBeDefined();

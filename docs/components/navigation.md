@@ -25,9 +25,11 @@ stack's words: `slide_from_right`, `slide_from_left`, `ios_from_right`,
 `ios_from_left` and `simple_push` slide both screens across as one sheet,
 `slide_from_bottom` slides the screen up over the other, `fade_from_bottom`
 is page refresh, a short rise and fade, `fade` and `flip` fade, and `none` is
-at once. The motion is the compositor's, on the native driver, with Fluent's
-timing: 250 ms decelerating in, 167 ms accelerating out. The screen leaving
-keeps its state until it is gone. A screen with
+at once. Fluent's timing throughout: 250 ms decelerating in, 167 ms
+accelerating out. Drill in and the fades run on the compositor; the slides
+and page refresh run on the JavaScript thread, since react-native-windows
+0.84 does not animate a translation natively. The screen leaving keeps its
+state until it is gone. A screen with
 `presentation: 'modal'` (or `formSheet`, `containedModal`, `fullScreenModal`)
 is a card over smoke above the screen below, the way a WinUI dialog is
 arranged, and a `transparentModal` lies over the window as it is. Escape, the

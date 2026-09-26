@@ -77,6 +77,18 @@ export const ACCELERATE = Easing.bezier(1, 0, 1, 1);
 const REFRESH_OFFSET = 24;
 const DRILL_SCALE = 0.05;
 
+/**
+ * Whether a transition runs on the compositor. react-native-windows 0.84
+ * animates a view's opacity and scale there, but a translation it animates
+ * as `Translation.X` on a composition visual, which has no such property:
+ * the view stays where the motion started. So what translates, the slides
+ * and page refresh, runs on the JavaScript thread, and what fades and
+ * scales, drill in and a fade, on the compositor.
+ */
+export function usesNativeDriver(transition: Transition): boolean {
+  return transition === 'drill' || transition === 'fade' || transition === 'none';
+}
+
 /** How long a role of a transition plays, and along which curve. */
 export function timingOf(transition: Transition, role: Role): {duration: number; easing: (value: number) => number} {
   const slide = transition === 'slide_right' || transition === 'slide_left' || transition === 'slide_bottom';
@@ -144,7 +156,12 @@ export interface Leaving {
   onTop: boolean;
 }
 
-/** What plays for the key drawn now, settled when the key changed and kept for the whole motion. */
+/**
+ * What plays for the key drawn now, settled when the key changed and kept
+ * for the whole motion, with a value of its own: a value once driven by the
+ * compositor cannot be driven from JavaScript afterwards, and each
+ * transition picks its driver.
+ */
 interface Latched {
   key: string | null;
   index: number;
@@ -152,6 +169,7 @@ interface Latched {
   animation?: StackAnimation;
   transition: Transition;
   direction: Direction;
+  progress: Animated.Value;
 }
 
 interface Departure {
@@ -162,7 +180,14 @@ interface Departure {
   progress: Animated.Value;
 }
 
-const UNLATCHED: Latched = {key: null, index: -1, element: null, transition: 'none', direction: 'forward'};
+const UNLATCHED: Latched = {key: null, index: -1, element: null, transition: 'none', direction: 'forward', progress: new Animated.Value(1)};
+
+/** Plays a transition's role on a fresh value: from 0 to 1, on the driver the transition takes. */
+function play(progress: Animated.Value, transition: Transition, role: Role, onEnd?: (result: {finished: boolean}) => void) {
+  const {duration, easing} = timingOf(transition, role);
+  progress.setValue(0);
+  Animated.timing(progress, {toValue: 1, duration, easing, useNativeDriver: usesNativeDriver(transition)}).start(onEnd);
+}
 
 /**
  * The motion of a stack's screens: what is drawn now arrives, and what was
@@ -175,7 +200,6 @@ const UNLATCHED: Latched = {key: null, index: -1, element: null, transition: 'no
  * screen leaving is known in that same render, so it never leaves the tree.
  */
 export function useScreenMotion(current: Drawn | null, size: Size, playsOnMount = false): {arriving: Animated.WithAnimatedObject<ViewStyle>; leaving: Leaving | null} {
-  const [progress] = useState(() => new Animated.Value(1));
   const [stored, setStored] = useState<Latched>(UNLATCHED);
   const [departure, setDeparture] = useState<Departure | null>(null);
   const key = current?.key ?? null;
@@ -184,36 +208,31 @@ export function useScreenMotion(current: Drawn | null, size: Size, playsOnMount 
   if (stored.key !== key) {
     const direction: Direction = current === null || (stored.key !== null && stored.index > current.index) ? 'backward' : 'forward';
     const animation = direction === 'forward' ? current?.animation : stored.animation;
+    const transition = stored.key === null && !playsOnMount ? 'none' : resolveTransition(animation);
     latched = {
       key,
       index: current?.index ?? -1,
       element: current?.element ?? null,
       animation: current?.animation,
       direction,
-      transition: stored.key === null && !playsOnMount ? 'none' : resolveTransition(animation),
+      transition,
+      progress: new Animated.Value(transition === 'none' ? 1 : 0),
     };
     setStored(latched);
-    leaving = stored.key !== null && latched.transition !== 'none'
-      ? {key: stored.key, element: stored.element, transition: latched.transition, direction, progress: new Animated.Value(0)}
+    leaving = stored.key !== null && transition !== 'none'
+      ? {key: stored.key, element: stored.element, transition, direction, progress: new Animated.Value(0)}
       : null;
     setDeparture(leaving);
   }
-  const {transition, direction} = latched;
+  const {transition, direction, progress} = latched;
   useLayoutEffect(() => {
-    if (transition === 'none') {
-      progress.setValue(1);
-      return;
-    }
-    progress.setValue(0);
-    const {duration, easing} = timingOf(transition, 'arriving');
-    Animated.timing(progress, {toValue: 1, duration, easing, useNativeDriver: true}).start();
-    // The motion settles with the key; the transition was settled then too.
+    if (transition !== 'none') play(progress, transition, 'arriving');
+    // The motion settles with the key; the transition and its value were settled then too.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, progress]);
+  }, [key]);
   useLayoutEffect(() => {
     if (!departure) return;
-    const {duration, easing} = timingOf(departure.transition, 'leaving');
-    Animated.timing(departure.progress, {toValue: 1, duration, easing, useNativeDriver: true}).start(({finished}) => {
+    play(departure.progress, departure.transition, 'leaving', ({finished}) => {
       if (finished) setDeparture(gone => (gone === departure ? null : gone));
     });
   }, [departure]);
@@ -238,24 +257,18 @@ export function useScreenMotion(current: Drawn | null, size: Size, playsOnMount 
  * is simply there.
  */
 export function useArrival(key: string, transition: Transition, direction: Direction, size: Size): Animated.WithAnimatedObject<ViewStyle> {
-  const [progress] = useState(() => new Animated.Value(1));
   const [stored, setStored] = useState<Latched>(UNLATCHED);
   let latched = stored;
   if (stored.key !== key) {
-    latched = {key, index: 0, element: null, direction, transition: stored.key === null ? 'none' : transition};
+    const played = stored.key === null ? 'none' : transition;
+    latched = {key, index: 0, element: null, direction, transition: played, progress: new Animated.Value(played === 'none' ? 1 : 0)};
     setStored(latched);
   }
-  const played = latched.transition;
+  const {transition: played, progress} = latched;
   useLayoutEffect(() => {
-    if (played === 'none') {
-      progress.setValue(1);
-      return;
-    }
-    progress.setValue(0);
-    const {duration, easing} = timingOf(played, 'arriving');
-    Animated.timing(progress, {toValue: 1, duration, easing, useNativeDriver: true}).start();
-    // Plays once per key; what plays was settled with it.
+    if (played !== 'none') play(progress, played, 'arriving');
+    // Plays once per key; what plays, and its value, were settled with it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, progress]);
+  }, [key]);
   return motionStyle(played, 'arriving', latched.direction, progress, size);
 }
