@@ -1,6 +1,6 @@
 import type {LayoutChangeEvent} from 'react-native';
 import type {TabBarProps, TabRoute, WindowsPane} from './types';
-import {useState} from 'react';
+import {useContext, useEffect, useState, useSyncExternalStore} from 'react';
 import {Navigator, TabRouter} from 'expo-router';
 import {StyleSheet, View, useWindowDimensions} from 'react-native';
 import XamlNavigationView from '../windows/specs/ExpoInterfaceNavigationViewNativeComponent';
@@ -8,6 +8,7 @@ import {jsonProp, useXamlProps} from '../windows';
 import {useWindowChromeState} from '../windows/chrome';
 import {windowsGlyph} from '../symbol/segoe';
 import {useColor} from '../theme';
+import {BackStoreContext, ShellCardsContext, ShellHostContext, createBackStore} from './shell';
 
 /** The pane a tab bar resolves to: the row along the top, or the side pane, expanded or compact. */
 export type ResolvedPane = 'top' | 'left' | 'compact';
@@ -44,6 +45,15 @@ export function resolvePane(pane: WindowsPane, width: number): ResolvedPane {
  * The pane's toggle button collapses it to its glyphs and opens it again:
  * WinUI flips the pane, and the kit answers with the island's width and
  * the matching mode, expanded or compact.
+ *
+ * The control is the window's frame, as a `NavigationView` is: a card the
+ * stack above pushes is drawn in the tabs' content with the pane still there,
+ * and the pane's own back button — at the top of the pane, or the start of
+ * the top bar — pops it, or pops a screen a stack inside a tab pushed. The
+ * button is drawn whenever a stack is around the tabs, disabled at the root
+ * as a WinUI app's is, and only while something can pop when the tabs are
+ * the root. A selection in the pane leaves the drilled-in screens for the
+ * tab. Hidden tabs are no frame: a stack draws its own back button then.
  */
 export function Tabs({routes, hidden = false, windowsPane = 'top'}: TabBarProps) {
   return (
@@ -92,6 +102,19 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
   const current = state.routes[state.index]?.name;
   const selectedIndex = Math.max(0, routes.findIndex(route => route.name === current));
   const onLayout = (event: LayoutChangeEvent) => setMeasured(event.nativeEvent.layout.width);
+  // The stack above, if the tabs are in one: told that the bar is here while
+  // it is drawn, so a push keeps the tabs as the frame and hands the card down.
+  const host = useContext(ShellHostContext);
+  const shell = useContext(ShellCardsContext);
+  useEffect(() => {
+    if (!host || hidden) return;
+    host(true);
+    return () => host(false);
+  }, [host, hidden]);
+  // The way back a stack inside a tab has published, if it can pop.
+  const [store] = useState(createBackStore);
+  const inner = useSyncExternalStore(store.subscribe, store.get, store.get);
+  const canGoBack = shell !== null || inner !== null;
   return (
     <View style={[styles.root, side && styles.row]} onLayout={onLayout} testID="tabs">
       {!hidden ? (
@@ -100,10 +123,14 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
           selectedIndex={selectedIndex}
           paneMode={side ? (open ? 'left' : 'compact') : 'top'}
           background={background}
+          backButton={canGoBack ? 'enabled' : host ? 'disabled' : 'hidden'}
           onSelectionChange={event => {
             const route = routes[event.nativeEvent.index];
-            if (route && route.name !== current) navigation.navigate(route.name);
+            if (!route) return;
+            shell?.popAll();
+            if (route.name !== current) navigation.navigate(route.name);
           }}
+          onBackRequested={() => (shell ? shell.goBack() : inner?.())}
           onPaneOpenChange={event => setToggle({pane: resolved, open: event.nativeEvent.open})}
           style={
             side
@@ -115,7 +142,9 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
         />
       ) : null}
       <View style={styles.slot}>
-        <Navigator.Slot/>
+        <BackStoreContext.Provider value={hidden ? null : store}>
+          {shell ? shell.card : <Navigator.Slot/>}
+        </BackStoreContext.Provider>
       </View>
     </View>
   );

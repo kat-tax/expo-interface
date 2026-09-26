@@ -12,7 +12,10 @@ type PaneOpenEvent = Readonly<{open: boolean}>;
  * own settings item — and the selection is reported by the item's index in
  * that array, wherever the item was placed.
  * The content beside or under it is React Native's: the kit renders the
- * focused tab's screens itself, and sizes the island to the pane.
+ * focused tab's screens itself, and sizes the island to the pane. The
+ * control's own back button, at the top of the pane or the start of the top
+ * bar, is the window's way back through that content: the kit says whether
+ * there is anywhere to go back to, and hears the press.
  */
 export interface NativeProps extends ViewProps {
   /** JSON array of the tabs. */
@@ -37,9 +40,17 @@ export interface NativeProps extends ViewProps {
   background?: string;
   accentColor?: string;
   theme?: CodegenTypes.WithDefault<'light' | 'dark' | 'system', 'system'>;
+  /**
+   * The control's back button (`IsBackButtonVisible`, `IsBackEnabled`):
+   * not drawn, drawn but disabled as at the root of an app, or enabled
+   * because a screen can be gone back to.
+   */
+  backButton?: CodegenTypes.WithDefault<'hidden' | 'disabled' | 'enabled', 'hidden'>;
   onSelectionChange?: CodegenTypes.DirectEventHandler<SelectionEvent>;
   /** The pane wants to be open or closed: its toggle button was pressed, or a mode change flipped it. */
   onPaneOpenChange?: CodegenTypes.DirectEventHandler<PaneOpenEvent>;
+  /** The back button was pressed (`BackRequested`). */
+  onBackRequested?: CodegenTypes.DirectEventHandler<Readonly<{}>>;
 }
 
 export default codegenNativeComponent<NativeProps>('ExpoInterfaceNavigationView');

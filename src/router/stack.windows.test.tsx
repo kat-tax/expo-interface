@@ -3,7 +3,7 @@ import {act, fireEvent, screen} from '@testing-library/react-native';
 import {Animated, Text} from 'react-native';
 import {router} from 'expo-router';
 import {renderApp} from 'expo-vitest/router';
-import {island} from 'expo-vitest/windows';
+import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {TabStack} from '../tab-stack';
 import {Tabs} from '../tabs';
 import {Screen} from '../screen';
@@ -274,5 +274,147 @@ describe('Stack window title (windows)', () => {
     } finally {
       runtime.module = null;
     }
+  });
+});
+
+describe('Stack over Tabs (windows)', () => {
+  const NAV = 'ExpoInterfaceNavigationView';
+  const tabs: TabRoute[] = [
+    {href: '/', name: '(home)', label: 'Home', icon: {ios: 'house', android: 'home', web: 'home'}},
+    {href: '/settings', name: 'settings', label: 'Settings', icon: {ios: 'gearshape', android: 'settings', web: 'settings'}},
+  ];
+  const framedApp = (tabProps: Record<string, unknown> = {}, detail: Record<string, unknown> = {}) => ({
+    _layout: () => (
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
+        <Stack.Screen name="detail" options={{title: 'A drop', ...detail}}/>
+        <Stack.Screen name="edit" options={{title: 'Edit drop', presentation: 'modal'}}/>
+      </Stack>
+    ),
+    '(tabs)/_layout': () => <Tabs routes={tabs} {...tabProps}/>,
+    '(tabs)/(home)/_layout': () => <TabStack title="Documents"/>,
+    '(tabs)/(home)/index': () => <Text>Documents screen</Text>,
+    '(tabs)/(home)/nested': () => (
+      <>
+        <Stack.Screen options={{title: 'Nested'}}/>
+        <Text>Nested screen</Text>
+      </>
+    ),
+    '(tabs)/settings': () => <Text>Settings screen</Text>,
+    detail: () => <Text>Detail screen</Text>,
+    edit: () => <Text>Edit form</Text>,
+  });
+
+  it('keeps the pane as the frame under a pushed card, lights its back button, and pops from it', async () => {
+    await renderApp(framedApp());
+    expect(island(NAV).props.backButton).toBe('disabled');
+    await act(async () => router.push('/detail'));
+    // The tabs are still drawn; the card is in their content, with its title and no drawn back button.
+    const bar = island(NAV);
+    expect(bar.props.backButton).toBe('enabled');
+    expect(screen.getByTestId('card-detail')).toBeOnTheScreen();
+    expect(screen.getByText('A drop')).toBeOnTheScreen();
+    expect(screen.getByText('Detail screen')).toBeOnTheScreen();
+    expect(screen.queryByText('Documents screen')).toBeNull();
+    expect(screen.queryByLabelText('Go back')).toBeNull();
+    await fireIsland(bar, 'backRequested');
+    expect(screen.getByText('Documents screen')).toBeOnTheScreen();
+    expect(screen.queryByText('Detail screen')).toBeNull();
+    expect(island(NAV).props.backButton).toBe('disabled');
+  });
+
+  it('leaves the drilled-in screens, a modal over them too, when a tab is selected in the pane', async () => {
+    await renderApp(framedApp());
+    await act(async () => router.push('/detail'));
+    await act(async () => router.push('/edit'));
+    expect(screen.getByText('Edit form')).toBeOnTheScreen();
+    await fireIsland(island(NAV), 'selectionChange', {index: 1});
+    expect(screen.getByText('Settings screen')).toBeOnTheScreen();
+    expect(screen.queryByText('Detail screen')).toBeNull();
+    expect(screen.queryByText('Edit form')).toBeNull();
+    // The tab already selected takes the drilled-in screens away as well.
+    await act(async () => router.push('/detail'));
+    await fireIsland(island(NAV), 'selectionChange', {index: 1});
+    expect(screen.getByText('Settings screen')).toBeOnTheScreen();
+    expect(screen.queryByText('Detail screen')).toBeNull();
+  });
+
+  it('hands a tab\'s own pushed screen to the pane\'s back button, and a modal keeps its dismiss', async () => {
+    await renderApp(framedApp());
+    await act(async () => router.push('/nested'));
+    expect(island(NAV).props.backButton).toBe('enabled');
+    expect(screen.getByText('Nested')).toBeOnTheScreen();
+    expect(screen.queryByLabelText('Go back')).toBeNull();
+    await fireIsland(island(NAV), 'backRequested');
+    expect(screen.getByText('Documents screen')).toBeOnTheScreen();
+    expect(island(NAV).props.backButton).toBe('disabled');
+    // A modal over the tabs is dismissed from its own header; the pane's button is not its way out.
+    await act(async () => router.push('/edit'));
+    expect(island(NAV).props.backButton).toBe('disabled');
+    await fireEvent.press(screen.getByLabelText('Go back'));
+    expect(screen.queryByText('Edit form')).toBeNull();
+  });
+
+  it('is no frame while the tabs are hidden: a card replaces them and draws its back button', async () => {
+    await renderApp(framedApp({hidden: true}));
+    await act(async () => router.push('/detail'));
+    expect(screen.queryByTestId('card-detail')).toBeNull();
+    expect(screen.getByText('Detail screen')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByLabelText('Go back'));
+    expect(screen.getByText('Documents screen')).toBeOnTheScreen();
+  });
+
+  it('hides a card\'s header on request', async () => {
+    await renderApp(framedApp({}, {headerShown: false}));
+    await act(async () => router.push('/detail'));
+    expect(screen.queryByText('A drop')).toBeNull();
+    expect(screen.getByText('Detail screen')).toBeOnTheScreen();
+  });
+
+  it('tells a card\'s headerLeft there is a way back, though it draws no back button', async () => {
+    await renderApp(framedApp({}, {headerLeft: ({canGoBack}: {canGoBack: boolean}) => <Text>{canGoBack ? 'can go back' : 'at the root'}</Text>}));
+    await act(async () => router.push('/detail'));
+    expect(screen.getByText('can go back')).toBeOnTheScreen();
+    expect(screen.queryByLabelText('Go back')).toBeNull();
+  });
+});
+
+describe('Tabs inside a card (windows)', () => {
+  const NAV = 'ExpoInterfaceNavigationView';
+  const outer: TabRoute[] = [{href: '/', name: '(home)', label: 'Home', icon: {ios: 'house', android: 'home', web: 'home'}}];
+  const inner: TabRoute[] = [{href: '/doc', name: 'pages', label: 'Pages', icon: {ios: 'doc', android: 'description', web: 'description'}}];
+  const nestedApp = () => ({
+    _layout: () => (
+      <Stack screenOptions={{headerShown: false}}>
+        <Stack.Screen name="(tabs)"/>
+        <Stack.Screen name="doc"/>
+        <Stack.Screen name="detail" options={{title: 'A drop', headerShown: true}}/>
+      </Stack>
+    ),
+    '(tabs)/_layout': () => <Tabs routes={outer}/>,
+    '(tabs)/(home)/_layout': () => <TabStack title="Documents"/>,
+    '(tabs)/(home)/index': () => <Text>Documents screen</Text>,
+    'doc/_layout': () => <Tabs routes={inner}/>,
+    'doc/pages': () => <Text>Pages screen</Text>,
+    detail: () => <Text>Detail screen</Text>,
+  });
+
+  it('is no frame of its own: a card over it is drawn in the outer tabs, which keep their frame when it goes', async () => {
+    await renderApp(nestedApp());
+    await act(async () => router.push('/doc'));
+    // Both bars are drawn: the outer one as the frame, the inner one inside the card, with no stack to tell of.
+    const [outerBar, innerBar] = islands(NAV);
+    expect(outerBar.props.backButton).toBe('enabled');
+    expect(innerBar.props.backButton).toBe('hidden');
+    expect(screen.getByText('Pages screen')).toBeOnTheScreen();
+    await act(async () => router.push('/detail'));
+    expect(islands(NAV)).toHaveLength(1);
+    expect(screen.getByText('Detail screen')).toBeOnTheScreen();
+    expect(screen.queryByText('Pages screen')).toBeNull();
+    await act(async () => router.back());
+    expect(screen.getByText('Pages screen')).toBeOnTheScreen();
+    await act(async () => router.back());
+    expect(screen.getByText('Documents screen')).toBeOnTheScreen();
+    expect(island(NAV).props.backButton).toBe('disabled');
   });
 });

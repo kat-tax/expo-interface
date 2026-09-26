@@ -27,6 +27,16 @@ describe(`the example on ${device.platform}`, () => {
     await expect(device).toMatchScreenshot('drops');
   });
 
+  it('opens a drop from its link, with the drop named in its header', async () => {
+    // The drop's route is a stack of its own, pushed over the tabs: a
+    // navigator that draws nothing on a platform leaves an empty window here.
+    await device.open(`/${DEMO_DROP}`);
+    await element(by.text('HIS-201 Midterm Essay')).waitFor();
+    expect(await device.fullSnapshot()).toHaveElement(by.text('HIS-201 Midterm Essay'));
+    await device.open('/');
+    await element(by.text('Demo Reel')).waitFor();
+  });
+
   it('moves to settings when the tab is pressed, and back', async () => {
     await element(by.label('Settings')).press();
     // Settings is the only screen with these fields, so their arrival is the

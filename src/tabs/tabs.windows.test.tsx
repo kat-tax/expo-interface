@@ -5,6 +5,7 @@ import {Dimensions, StyleSheet, Text} from 'react-native';
 import {router} from 'expo-router';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {renderApp} from 'expo-vitest/router';
+import {TabStack} from '../tab-stack';
 import {PANE_BREAKPOINT, PANE_WIDTH, resolvePane, tabItems, Tabs} from './index.windows';
 
 const NAV = 'ExpoInterfaceNavigationView';
@@ -180,5 +181,33 @@ describe('Tabs pane (windows)', () => {
     expect(resolvePane('auto', PANE_BREAKPOINT.compact - 1)).toBe('top');
     expect(resolvePane('left', 100)).toBe('left');
     expect(resolvePane('top', 2000)).toBe('top');
+  });
+});
+
+describe('Tabs back button (windows)', () => {
+  const stacked = () => ({
+    _layout: () => <Tabs routes={routes}/>,
+    'index/_layout': () => <TabStack title="Home"/>,
+    'index/index': () => <Text>Home screen</Text>,
+    'index/deeper': () => <Text>Deeper screen</Text>,
+    settings: () => <Text>Settings screen</Text>,
+  });
+
+  it('draws none while the tabs are the root and nothing can pop, and a press then does nothing', async () => {
+    await renderApp(app());
+    expect(island(NAV).props.backButton).toBe('hidden');
+    await fireIsland(island(NAV), 'backRequested');
+    expect(screen.getByText('Home screen')).toBeOnTheScreen();
+  });
+
+  it('takes the back of a stack inside a tab while it can pop', async () => {
+    await renderApp(stacked());
+    expect(island(NAV).props.backButton).toBe('hidden');
+    await act(async () => router.push('/deeper'));
+    expect(island(NAV).props.backButton).toBe('enabled');
+    expect(screen.queryByLabelText('Go back')).toBeNull();
+    await fireIsland(island(NAV), 'backRequested');
+    expect(screen.getByText('Home screen')).toBeOnTheScreen();
+    expect(island(NAV).props.backButton).toBe('hidden');
   });
 });

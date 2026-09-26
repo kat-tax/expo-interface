@@ -32,8 +32,10 @@ struct ExpoInterfaceNavigationViewProps : winrt::implements<ExpoInterfaceNavigat
        background = cloneFromProps->background;
        accentColor = cloneFromProps->accentColor;
        theme = cloneFromProps->theme;
+       backButton = cloneFromProps->backButton;
        onSelectionChange = cloneFromProps->onSelectionChange;
-       onPaneOpenChange = cloneFromProps->onPaneOpenChange;  
+       onPaneOpenChange = cloneFromProps->onPaneOpenChange;
+       onBackRequested = cloneFromProps->onBackRequested;  
      }
   }
 
@@ -62,6 +64,9 @@ struct ExpoInterfaceNavigationViewProps : winrt::implements<ExpoInterfaceNavigat
   REACT_FIELD(theme)
   std::optional<std::string> theme;
 
+  REACT_FIELD(backButton)
+  std::optional<std::string> backButton;
+
    // These fields can be used to determine if JS has registered for this event
   REACT_FIELD(onSelectionChange)
   bool onSelectionChange{false};
@@ -69,7 +74,14 @@ struct ExpoInterfaceNavigationViewProps : winrt::implements<ExpoInterfaceNavigat
   REACT_FIELD(onPaneOpenChange)
   bool onPaneOpenChange{false};
 
+  REACT_FIELD(onBackRequested)
+  bool onBackRequested{false};
+
   const winrt::Microsoft::ReactNative::ViewProps ViewProps;
+};
+
+REACT_STRUCT(ExpoInterfaceNavigationViewSpec_onBackRequested)
+struct ExpoInterfaceNavigationViewSpec_onBackRequested {
 };
 
 REACT_STRUCT(ExpoInterfaceNavigationViewSpec_onPaneOpenChange)
@@ -90,6 +102,7 @@ struct ExpoInterfaceNavigationViewEventEmitter {
 
   using OnSelectionChange = ExpoInterfaceNavigationViewSpec_onSelectionChange;
   using OnPaneOpenChange = ExpoInterfaceNavigationViewSpec_onPaneOpenChange;
+  using OnBackRequested = ExpoInterfaceNavigationViewSpec_onBackRequested;
 
   void onSelectionChange(OnSelectionChange &&value) const {
     m_eventEmitter.DispatchEvent(L"selectionChange", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
@@ -99,6 +112,12 @@ struct ExpoInterfaceNavigationViewEventEmitter {
 
   void onPaneOpenChange(OnPaneOpenChange &&value) const {
     m_eventEmitter.DispatchEvent(L"paneOpenChange", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
+      winrt::Microsoft::ReactNative::WriteValue(writer, value);
+    });
+  }
+
+  void onBackRequested(OnBackRequested &&value) const {
+    m_eventEmitter.DispatchEvent(L"backRequested", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
       winrt::Microsoft::ReactNative::WriteValue(writer, value);
     });
   }

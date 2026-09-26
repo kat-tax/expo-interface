@@ -35,6 +35,7 @@ for what that means for an app today.
 | Content in the title bar | `useWindowChrome({extend: true})` in the root layout. See [The window](#the-window). |
 | Keyboard shortcuts | `shortcut` on a menu item, or `useKeyboardShortcut`. See [Keyboard](#keyboard). |
 | A navigation pane | `windowsPane` on `Tabs`. See [Tabs](../components/navigation.md#tabs). |
+| The pane's back button | Nothing. A screen pushed over or inside `Tabs` drills in with the pane still there, and its button pops. See [Stack](../components/navigation.md#stack). |
 | High contrast | Nothing. The theme follows it. See [Theming](../theming.md#high-contrast). |
 | Right to left, display scaling | Nothing. See [Right to left and scaling](#right-to-left-and-scaling). |
 | `@expo/ui` screens you already have | Nothing. They draw WinUI controls. See [Standing in for `@expo/ui`](#standing-in-for-expoui). |

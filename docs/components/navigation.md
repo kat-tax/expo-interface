@@ -27,6 +27,26 @@ smoke and the back button dismiss a modal; Alt+Left, the keyboard's back key
 and the mouse's back button pop the stack. With `expo-windows` the window's
 title follows the focused screen ("Settings – My App").
 
+A route that holds `Tabs` is the window's frame, as a WinUI `NavigationView`
+is: a card pushed over it is drawn inside the tabs' content with the pane
+still there, and the pane's own back button pops it. Under a pane a header
+row draws no back button of its own, since the pane's is the platform's;
+`headerLeft` is still told there is somewhere to go back to. A modal keeps
+its dismiss. With the tabs hidden there is no frame, and a card replaces
+them with a drawn back button, as it does with no tabs at all.
+
+The layout below is the usual one, and on Windows it gives the pane, the
+drill-in and the back button with nothing added:
+
+```tsx
+// app/_layout.tsx
+<Stack screenOptions={{headerShown: false}}/>
+// app/(tabs)/_layout.tsx
+<Tabs routes={routes}/>
+// app/[id]/_layout.tsx: pushed over the tabs
+<Stack/>
+```
+
 ## Tabs
 
 The app's section tabs for Expo Router.
@@ -41,7 +61,7 @@ Props: `routes` (`name`, `href`, `label`, `icon`, `badge`,
 | --- | --- |
 | iOS, Android | Expo Router's native tabs: the platform's own tab bar at the bottom, with `badge` as the bar's badge |
 | Web | A floating bar along the top with the app's logo, the tabs and action slots. A route's `badge` is a pill beside the label. |
-| Windows | A WinUI `NavigationView`: the top bar, or with `windowsPane` the navigation pane down the left side, expanded (`left`), at its glyph-only width (`compact`), or `auto` by the window's width at WinUI's own breakpoints (the expanded pane from 1008 points, the compact one from 641, the top bar below that). The pane's toggle button switches between the two. A count `badge` is an `InfoBadge`; other text is its dot. `windowsPlacement` puts a route at the pane's foot (`footer`) or makes it WinUI's own settings item (`settings`). |
+| Windows | A WinUI `NavigationView`: the top bar, or with `windowsPane` the navigation pane down the left side, expanded (`left`), at its glyph-only width (`compact`), or `auto` by the window's width at WinUI's own breakpoints (the expanded pane from 1008 points, the compact one from 641, the top bar below that). The pane's toggle button switches between the two. A count `badge` is an `InfoBadge`; other text is its dot. `windowsPlacement` puts a route at the pane's foot (`footer`) or makes it WinUI's own settings item (`settings`). The control's own back button, at the top of the pane or the start of the top bar, pops a card the stack above pushed over the tabs, or a screen a stack inside a tab pushed; a selection in the pane leaves the drilled-in screens. The button is drawn whenever a stack is around the tabs, disabled at the root as a WinUI app's is, and only while something can pop when the tabs are the root. |
 
 On web a screen under `Tabs` has one bar, not two: `ConstrainedStackHeader`
 hands its header to the bar and draws nothing itself. A pushed screen hands

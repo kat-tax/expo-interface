@@ -744,6 +744,7 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
     m_view = controls::NavigationView{};
     m_view.PaneDisplayMode(controls::NavigationViewPaneDisplayMode::Top);
     m_view.IsBackButtonVisible(controls::NavigationViewBackButtonVisible::Collapsed);
+    m_view.IsBackEnabled(false);
     m_view.IsSettingsVisible(false);
     m_view.IsPaneToggleButtonVisible(false);
     m_view.IsTitleBarAutoPaddingEnabled(false);
@@ -786,6 +787,15 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
           Codegen::ExpoInterfaceNavigationViewEventEmitter::OnSelectionChange event;
           event.index = index;
           emitter->onSelectionChange(std::move(event));
+        }
+      }
+    });
+    // The control's own back button: the press is the kit's to act on, as WinUI leaves the
+    // back stack to the app (a compact pane open as a flyout closes on it instead, by WinUI).
+    m_view.BackRequested([weak = get_weak()](const controls::NavigationView &, const controls::NavigationViewBackRequestedEventArgs &) {
+      if (auto strong = weak.get()) {
+        if (auto emitter = strong->EventEmitter()) {
+          emitter->onBackRequested(Codegen::ExpoInterfaceNavigationViewEventEmitter::OnBackRequested{});
         }
       }
     });
@@ -849,6 +859,10 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
     m_selected = std::max(0, props->selectedIndex.value_or(0));
     SelectRoute(m_selected);
     m_view.PaneTitle(ToHString(props->header.value_or("")));
+    const auto back = props->backButton.value_or("hidden");
+    m_view.IsBackButtonVisible(back == "hidden" ? controls::NavigationViewBackButtonVisible::Collapsed
+                                                : controls::NavigationViewBackButtonVisible::Visible);
+    m_view.IsBackEnabled(back == "enabled");
     // WinUI's own modes rather than a forced IsPaneOpen (WinUI reopens a forced-closed
     // pane on entering the expanded mode) or its adaptive mode (which closes the pane
     // on the very resize the kit makes to open it): entering the expanded mode opens

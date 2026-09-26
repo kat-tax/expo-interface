@@ -1,6 +1,5 @@
-import {Stack} from 'expo-router';
 import {Platform} from 'react-native';
-import {ConstrainedStackHeader, useNavTheme} from 'expo-interface';
+import {ConstrainedStackHeader, Stack, useNavTheme} from 'expo-interface';
 
 const sheet = {
   headerShown: false,

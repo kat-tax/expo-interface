@@ -34,6 +34,7 @@ The differences that change what a screen can do, in one place:
 | `EmptyState` native | iOS 17+ | Drawn | Drawn | Drawn |
 | `Collapsible` children | `@expo/ui` | `@expo/ui` | Any | Any |
 | `ExternalLink` | In-app browser | In-app browser | New tab | Default browser |
+| A screen pushed over `Tabs` | Over the tab bar | Over the tab bar | Replaces the bar | Inside the pane, its back button |
 | Keyboard shortcuts | No | No | No | Yes |
 | High contrast palette | No | No | No | Yes |
 | Window title and chrome | No | No | No | Yes |

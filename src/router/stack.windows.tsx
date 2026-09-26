@@ -1,5 +1,5 @@
 import type {ComponentProps, ReactNode} from 'react';
-import {createContext, useContext, useEffect} from 'react';
+import {createContext, useCallback, useContext, useEffect, useId, useMemo, useState} from 'react';
 import Constants from 'expo-constants';
 import {requireOptionalNativeModule} from 'expo-modules-core';
 import {Navigator, StackRouter} from 'expo-router';
@@ -7,6 +7,7 @@ import {Animated, StyleSheet, View} from 'react-native';
 import type {Entrance} from '../windows/entrance';
 import {ScreenHeader} from '../screen/header';
 import {StackHeaderContext} from '../stack-header/context';
+import {BackStoreContext, ShellCardsContext, ShellHostContext} from '../tabs/shell';
 import {useColor} from '../theme';
 import {useEntrance} from '../windows/entrance';
 import {LayerHost} from '../windows/layer';
@@ -76,6 +77,12 @@ function isModal(presentation: WindowsStackPresentation | undefined): boolean {
  * the keyboard's back key and the mouse's back button pop it from wherever
  * the focus is, Escape closes the topmost modal, and a `Sheet` below it
  * covers the window.
+ *
+ * A route that holds the kit's `Tabs` is the window's frame, as WinUI's
+ * `NavigationView` is: a card pushed over it is drawn inside the tabs'
+ * content with the pane still there, and the pane's back button pops it.
+ * Under a pane a header row draws no back button of its own, since the
+ * pane's is the platform's; a modal keeps its dismiss.
  */
 function StackNavigator({screenOptions, initialRouteName, children}: StackProps) {
   const depth = useContext(StackDepthContext) + 1;
@@ -183,21 +190,60 @@ function StackBody() {
   // The card: the last route at or below the focus that is not presented over another.
   let baseIndex = state.index;
   while (baseIndex > 0 && isModal(optionsOf(baseIndex).presentation)) baseIndex -= 1;
-  const base = state.routes[baseIndex];
   const baseOptions = optionsOf(baseIndex);
   const modals = state.routes.slice(baseIndex + 1, state.index + 1);
-  const goBack = () => navigation.goBack();
-  const entrance = useEntrance(base.key, 'card', baseOptions.animation);
+  const goBack = useCallback(() => navigation.goBack(), [navigation]);
+
+  // The routes whose tabs said they are drawn: a frame for the cards over them.
+  const [frames, setFrames] = useState<ReadonlySet<string>>(() => new Set());
+  const register = useCallback((key: string, hosts: boolean) => {
+    setFrames(previous => {
+      const next = new Set(previous);
+      if (hosts) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  }, []);
+  // The frame under the card, if there is one: the nearest route below it whose tabs are drawn. The
+  // frame is what is rendered then, with the card handed down to be drawn in its content.
+  let frameIndex = baseIndex;
+  while (frameIndex > 0 && !frames.has(state.routes[frameIndex].key)) frameIndex -= 1;
+  const framed = frameIndex < baseIndex && frames.has(state.routes[frameIndex].key);
+  const bodyIndex = framed ? frameIndex : baseIndex;
+  const body = state.routes[bodyIndex];
+  const bodyOptions = optionsOf(bodyIndex);
+  const host = useMemo(() => (hosts: boolean) => register(body.key, hosts), [register, body.key]);
+  const base = state.routes[baseIndex];
+  const cards = useMemo<ShellCardsValue | null>(() => framed ? {
+    card: <ShellCard key={base.key} route={base} options={baseOptions} render={descriptors[base.key].render}/>,
+    goBack,
+    popAll: () => navigation.dispatch({type: 'POP', payload: {count: state.index - frameIndex}}),
+  } : null, [framed, base, baseOptions, descriptors, goBack, navigation, state.index, frameIndex]);
+
+  // Under a pane that draws the back button, a stack that can pop hands its way back to it.
+  const store = useContext(BackStoreContext);
+  const id = useId();
+  const canGoBack = state.index > 0 && baseOptions.headerBackVisible !== false;
+  useEffect(() => {
+    store?.set(id, canGoBack ? goBack : null);
+  }, [store, id, canGoBack, goBack]);
+  useEffect(() => () => store?.set(id, null), [store, id]);
+
+  const entrance = useEntrance(body.key, 'card', bodyOptions.animation);
   // Painted, so that a card arriving — translucent, a little below — shows the scheme behind it, not the window's own white.
   const background = useColor('background');
 
   return (
     <LayerHost onBack={state.index > 0 ? goBack : undefined} takesFocus={depth === 1} testID="windows-stack">
       <View style={[styles.root, {backgroundColor: background}]}>
-        {baseOptions.headerShown !== false ? (
-          <ScreenHeader {...headerOf(baseOptions, base.name, baseIndex > 0 ? goBack : undefined)} dragRegion={depth === 1}/>
+        {bodyOptions.headerShown !== false ? (
+          <ScreenHeader {...headerOf(bodyOptions, body.name, bodyIndex > 0 ? goBack : undefined, store === null)} dragRegion={depth === 1}/>
         ) : null}
-        <Animated.View style={[styles.slot, entrance]}>{descriptors[base.key].render()}</Animated.View>
+        <Animated.View style={[styles.slot, entrance]}>
+          <ShellCardsContext.Provider value={cards}>
+            <ShellHostContext.Provider value={host}>{descriptors[body.key].render()}</ShellHostContext.Provider>
+          </ShellCardsContext.Provider>
+        </Animated.View>
       </View>
       {modals.map((route, index) => {
         const options = descriptors[route.key].options as WindowsStackOptions;
@@ -214,14 +260,46 @@ function StackBody() {
   );
 }
 
-/** The header row a screen's options describe: its title or title node, its leading node or back button, its trailing node. */
-function headerOf(options: WindowsStackOptions, name: string, goBack: (() => void) | undefined) {
+type ShellCardsValue = NonNullable<React.ContextType<typeof ShellCardsContext>>;
+
+interface ShellCardProps {
+  route: {key: string; name: string};
+  options: WindowsStackOptions;
+  render: () => ReactNode;
+}
+
+/**
+ * A card drawn in the tabs' content rather than in the stack's own body:
+ * its header row without a back button, since the pane's is the way back,
+ * and its screen, arriving with the entrance. The card is no frame of its
+ * own: tabs inside it are told of no stack, so they neither take the frame
+ * from the tabs it is drawn in nor see the cards under it.
+ */
+function ShellCard({route, options, render}: ShellCardProps) {
+  const entrance = useEntrance(route.key, 'card', options.animation);
+  return (
+    <Animated.View style={[styles.slot, entrance]} testID={`card-${route.name}`}>
+      {options.headerShown !== false ? <ScreenHeader {...headerOf(options, route.name, undefined, false)}/> : null}
+      <ShellCardsContext.Provider value={null}>
+        <ShellHostContext.Provider value={null}>{render()}</ShellHostContext.Provider>
+      </ShellCardsContext.Provider>
+    </Animated.View>
+  );
+}
+
+/**
+ * The header row a screen's options describe: its title or title node, its
+ * leading node or back button, its trailing node. Under a pane the back
+ * button is the pane's own and none is drawn here, though `headerLeft` is
+ * still told there is somewhere to go back to.
+ */
+function headerOf(options: WindowsStackOptions, name: string, goBack: (() => void) | undefined, drawsBack = true) {
   const title = titleOf(options, name);
   return {
     title,
     titleNode: typeof options.headerTitle === 'function' ? options.headerTitle({children: title}) : undefined,
-    leading: options.headerLeft?.({canGoBack: goBack !== undefined}),
-    onBack: options.headerBackVisible === false ? undefined : goBack,
+    leading: options.headerLeft?.({canGoBack: goBack !== undefined || !drawsBack}),
+    onBack: options.headerBackVisible === false || !drawsBack ? undefined : goBack,
     trailing: options.headerRight?.({}),
   };
 }
