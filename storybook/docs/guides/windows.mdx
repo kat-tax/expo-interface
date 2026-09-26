@@ -93,12 +93,13 @@ export default function Layout() {
 }
 ```
 
-`Tabs` draws a WinUI `NavigationView`: the top bar, or with `windowsPane` the
-navigation pane down the left side (`left` expanded, `compact` at its
-glyph-only width, or `auto` by the window's width at WinUI's own
-breakpoints). A route's `badge` is drawn in an `InfoBadge`, and
-`windowsPlacement` puts a route at the pane's foot or makes it WinUI's own
-settings item.
+`Tabs` draws a WinUI `NavigationView` in any of its pane display modes: the
+top bar, or with `windowsPane` the navigation pane down the left side (`left`
+expanded, `compact` at its glyph-only width, `minimal` as its toggle button
+alone, or `auto` by the window's width at WinUI's own breakpoints). The
+compact and minimal panes open over the content. A route's `badge` is drawn
+in an `InfoBadge`, and `windowsPlacement` puts a route at the pane's foot or
+makes it WinUI's own settings item.
 
 A modal route (`presentation: 'modal'`) opens as a card over smoke above the
 screen it came from, the way a WinUI dialog is arranged; Escape and a press on

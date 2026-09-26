@@ -26,12 +26,30 @@ export interface NativeProps extends ViewProps {
   /**
    * WinUI's pane display modes: `top`, a row of items along the top;
    * `left`, the expanded pane, labels beside the glyphs; `compact`, the
-   * pane at its glyph-only width. The side panes show the toggle button,
-   * whose press is reported as `onPaneOpenChange`; the kit answers with the
+   * pane at its glyph-only width, which opens over the content; `minimal`,
+   * only the pane's toggle button until the pane opens over the content.
+   * The side panes show the toggle button, whose press is reported as
+   * `onPaneOpenChange`. In the expanded pane the kit answers with the
    * island's width — `OpenPaneLength` (320) or `CompactPaneLength` (48) —
    * and the matching mode, and the mode change opens or closes the pane.
+   * In the two overlay modes the kit widens the island over its content
+   * and the pane opens inside it, at the control's own pace.
    */
-  paneMode?: CodegenTypes.WithDefault<'top' | 'left' | 'compact', 'top'>;
+  paneMode?: CodegenTypes.WithDefault<'top' | 'left' | 'compact' | 'minimal', 'top'>;
+  /**
+   * Whether the pane is open, for the two overlay modes (`IsPaneOpen`): a
+   * change closes a pane the kit's smoke dismissed, or the toggle button's
+   * opening is confirmed. Left unset in the other modes, where WinUI's own
+   * mode change opens and closes the pane.
+   */
+  paneOpen?: boolean;
+  /**
+   * The height of the content the minimal pane opens over. The control is
+   * kept at that height while the island shows only its toggle button, so
+   * the island's growth on opening changes no size of the control's own,
+   * which would leave the pane empty mid-animation.
+   */
+  paneHeight?: CodegenTypes.Double;
   /**
    * The colour painted behind the control: the kit's scheme background. An
    * island's root is white where its content is transparent, and the pane

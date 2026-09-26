@@ -5,6 +5,7 @@ import {Animated, Dimensions, StyleSheet, Text} from 'react-native';
 import {router} from 'expo-router';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {renderApp} from 'expo-vitest/router';
+import {Stack} from '../router/stack.windows';
 import {TabStack} from '../tab-stack';
 import {PANE_BREAKPOINT, PANE_WIDTH, resolvePane, tabItems, Tabs} from './index.windows';
 
@@ -139,16 +140,103 @@ describe('Tabs pane (windows)', () => {
     expect(screen.getByText('Settings screen')).toBeOnTheScreen();
   });
 
-  it('draws the compact pane at its glyph width, and answers its toggle button with the expanded mode and width', async () => {
+  it('draws the compact pane as a strip the content sits beside, and opens it over the content on its toggle button', async () => {
     await renderApp(app({windowsPane: 'compact'}));
+    const bar = island(NAV);
+    expect(bar.props.paneMode).toBe('compact');
+    expect(bar.props.paneOpen).toBe(false);
+    expect(bar.props.paneHeight).toBeUndefined();
+    expect(bar).toHaveStyle({position: 'absolute', top: 0, bottom: 0, start: 0, width: PANE_WIDTH.compact});
+    expect(screen.getByTestId('tabs-content')).toHaveStyle({marginStart: PANE_WIDTH.compact});
+    expect(screen.queryByTestId('pane-smoke')).toBeNull();
+    // A layout of the island in this mode is not a toggle row's.
+    await fireEvent(bar, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: PANE_WIDTH.compact, height: 600}}});
+    // The toggle button opens the pane: the island widens over the content, which keeps its place, and a press beside it closes the pane.
+    await fireIsland(bar, 'paneOpenChange', {open: true});
     expect(island(NAV).props.paneMode).toBe('compact');
-    expect(widthOf(island(NAV))).toBe(PANE_WIDTH.compact);
-    await fireIsland(island(NAV), 'paneOpenChange', {open: true});
-    expect(island(NAV).props.paneMode).toBe('left');
+    expect(island(NAV).props.paneOpen).toBe(true);
     expect(widthOf(island(NAV))).toBe(PANE_WIDTH.open);
-    await fireIsland(island(NAV), 'paneOpenChange', {open: false});
-    expect(island(NAV).props.paneMode).toBe('compact');
+    expect(screen.getByTestId('tabs-content')).toHaveStyle({marginStart: PANE_WIDTH.compact});
+    await fireEvent(screen.getByLabelText('Close the navigation pane'), 'press');
+    expect(island(NAV).props.paneOpen).toBe(false);
     expect(widthOf(island(NAV))).toBe(PANE_WIDTH.compact);
+    expect(screen.queryByTestId('pane-smoke')).toBeNull();
+    // A selection in the open pane navigates and closes it, as WinUI's pane closes on one.
+    await fireIsland(island(NAV), 'paneOpenChange', {open: true});
+    await fireIsland(island(NAV), 'selectionChange', {index: 1});
+    expect(screen.getByText('Settings screen')).toBeOnTheScreen();
+    expect(island(NAV).props.paneOpen).toBe(false);
+    expect(widthOf(island(NAV))).toBe(PANE_WIDTH.compact);
+  });
+
+  it('closes an open pane over the content on Escape from anywhere under the kit\'s stack', async () => {
+    await renderApp({
+      _layout: () => (
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
+        </Stack>
+      ),
+      '(tabs)/_layout': () => <Tabs routes={routes} windowsPane="compact"/>,
+      '(tabs)/index': () => <Text>Home screen</Text>,
+      '(tabs)/settings': () => <Text>Settings screen</Text>,
+    });
+    await fireIsland(island(NAV), 'paneOpenChange', {open: true});
+    expect(screen.getByTestId('pane-smoke')).toBeOnTheScreen();
+    await fireEvent(screen.getByTestId('windows-stack'), 'keyDown', {nativeEvent: {key: 'Escape'}});
+    expect(screen.queryByTestId('pane-smoke')).toBeNull();
+    expect(island(NAV).props.paneOpen).toBe(false);
+  });
+
+  it('draws the minimal pane as its toggle row at the top start, leaves a header the row\'s room, and opens the pane over the content', async () => {
+    await renderApp({
+      _layout: () => <Tabs routes={routes} windowsPane="minimal"/>,
+      'index/_layout': () => <TabStack title="Home"/>,
+      'index/index': () => <Text>Home screen</Text>,
+      settings: () => <Text>Settings screen</Text>,
+    });
+    const bar = island(NAV);
+    expect(bar.props.paneMode).toBe('minimal');
+    expect(bar.props.paneOpen).toBe(false);
+    // No size of the kit's: the island reports its toggle row's, and the control is kept at the content's height once that is known.
+    expect(bar).toHaveStyle({position: 'absolute', top: 0, start: 0});
+    expect(widthOf(bar)).toBeUndefined();
+    expect(StyleSheet.flatten(bar.props.style).bottom).toBeUndefined();
+    expect(bar.props.paneHeight).toBeUndefined();
+    await layout(500);
+    expect(island(NAV).props.paneHeight).toBe(600);
+    // The header under the row starts after it, by the width the island was laid out at.
+    const header = screen.getByText('Home').parent!.parent!;
+    expect(header).not.toHaveStyle({paddingStart: 88});
+    await fireEvent(island(NAV), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 88, height: 48}}});
+    expect(screen.getByText('Home').parent!.parent).toHaveStyle({paddingStart: 88});
+    // Open: the island is the pane's width down the whole side, and the header keeps its room for when the pane closes.
+    await fireIsland(island(NAV), 'paneOpenChange', {open: true});
+    expect(island(NAV).props.paneOpen).toBe(true);
+    expect(island(NAV)).toHaveStyle({position: 'absolute', top: 0, bottom: 0, start: 0, width: PANE_WIDTH.open});
+    await fireEvent(island(NAV), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: PANE_WIDTH.open, height: 600}}});
+    expect(screen.getByText('Home').parent!.parent).toHaveStyle({paddingStart: 88});
+    expect(screen.getByTestId('pane-smoke')).toBeOnTheScreen();
+    await fireIsland(island(NAV), 'paneOpenChange', {open: false});
+    expect(widthOf(island(NAV))).toBeUndefined();
+    expect(screen.queryByTestId('pane-smoke')).toBeNull();
+  });
+
+  it('leaves a header no room for a toggle row while hidden', async () => {
+    await renderApp({
+      _layout: () => <Tabs routes={routes} windowsPane="minimal" hidden/>,
+      'index/_layout': () => <TabStack title="Home"/>,
+      'index/index': () => <Text>Home screen</Text>,
+      settings: () => <Text>Settings screen</Text>,
+    });
+    expect(islands(NAV)).toHaveLength(0);
+    expect(screen.queryByTestId('pane-smoke')).toBeNull();
+    expect(screen.getByText('Home').parent!.parent).not.toHaveStyle({paddingStart: 0});
+  });
+
+  it('leaves the content no strip to sit beside while hidden', async () => {
+    await renderApp(app({windowsPane: 'compact', hidden: true}));
+    expect(islands(NAV)).toHaveLength(0);
+    expect(screen.getByTestId('tabs-content')).not.toHaveStyle({marginStart: PANE_WIDTH.compact});
   });
 
   it('picks the pane by the width in auto — the window\'s first, then its own layout — and a toggle belongs to the pane it was made in', async () => {
@@ -158,23 +246,27 @@ describe('Tabs pane (windows)', () => {
     await fireIsland(island(NAV), 'paneOpenChange', {open: false});
     expect(island(NAV).props.paneMode).toBe('compact');
     expect(widthOf(island(NAV))).toBe(PANE_WIDTH.compact);
-    // Under the expanded breakpoint the pane is compact by WinUI's rule.
+    // Under the expanded breakpoint the pane is compact by WinUI's rule, and opens over the content.
     await layout(800);
     expect(island(NAV).props.paneMode).toBe('compact');
     await fireIsland(island(NAV), 'paneOpenChange', {open: true});
-    expect(island(NAV).props.paneMode).toBe('left');
+    expect(island(NAV).props.paneMode).toBe('compact');
+    expect(island(NAV).props.paneOpen).toBe(true);
     expect(widthOf(island(NAV))).toBe(PANE_WIDTH.open);
     // Over it again: the expanded pane, open, whatever the compact one was toggled to.
     await layout(1200);
     expect(island(NAV).props.paneMode).toBe('left');
     expect(widthOf(island(NAV))).toBe(PANE_WIDTH.open);
-    // Under it again, the compact pane remembers it was opened.
+    // Under it again the compact pane starts closed, as WinUI's adaptive layout closes it, whatever it was toggled to before.
     await layout(800);
-    expect(island(NAV).props.paneMode).toBe('left');
-    expect(widthOf(island(NAV))).toBe(PANE_WIDTH.open);
-    // Under the compact breakpoint the bar goes along the top.
+    expect(island(NAV).props.paneMode).toBe('compact');
+    expect(island(NAV).props.paneOpen).toBe(false);
+    expect(widthOf(island(NAV))).toBe(PANE_WIDTH.compact);
+    expect(screen.queryByTestId('pane-smoke')).toBeNull();
+    // Under the compact breakpoint the pane is minimal, closed until its toggle button is pressed.
     await layout(500);
-    expect(island(NAV).props.paneMode).toBe('top');
+    expect(island(NAV).props.paneMode).toBe('minimal');
+    expect(island(NAV).props.paneOpen).toBe(false);
     expect(widthOf(island(NAV))).toBeUndefined();
     expect(screen.getByText('Home screen')).toBeOnTheScreen();
   });
@@ -183,8 +275,9 @@ describe('Tabs pane (windows)', () => {
     expect(resolvePane('auto', PANE_BREAKPOINT.expanded)).toBe('left');
     expect(resolvePane('auto', PANE_BREAKPOINT.expanded - 1)).toBe('compact');
     expect(resolvePane('auto', PANE_BREAKPOINT.compact)).toBe('compact');
-    expect(resolvePane('auto', PANE_BREAKPOINT.compact - 1)).toBe('top');
+    expect(resolvePane('auto', PANE_BREAKPOINT.compact - 1)).toBe('minimal');
     expect(resolvePane('left', 100)).toBe('left');
+    expect(resolvePane('minimal', 2000)).toBe('minimal');
     expect(resolvePane('top', 2000)).toBe('top');
   });
 });

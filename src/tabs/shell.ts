@@ -35,6 +35,15 @@ export const ShellCardsContext = createContext<ShellCards | null>(null);
  */
 export const ShellHostContext = createContext<((hosts: boolean) => void) | null>(null);
 
+/**
+ * Windows: the room the minimal pane's toggle row takes at the top start of
+ * the tabs' content, in points — the row with the pane's toggle button and,
+ * when there is somewhere to go back to, its back button. A header row under
+ * it starts after that room, so that its title is beside the button as a
+ * WinUI header is; `0` where there is no such row.
+ */
+export const PaneToggleContext = createContext(0);
+
 /** A stack's ways back, for the pane: one step, or all the way to its root. */
 export interface WayBack {
   goBack(): void;

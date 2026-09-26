@@ -72,21 +72,24 @@ export interface TabBarProps {
    */
   webFoldHeader?: boolean;
   /**
-   * Windows only: where the WinUI `NavigationView` puts its items. `top` is
-   * a row along the top of the window, the tab bar; `left` is the
-   * navigation pane down the left side, labels beside the glyphs, and
-   * `compact` that pane at its glyph-only width — the pane's toggle button
-   * collapses the expanded pane to its glyphs and opens the compact one over
-   * the content, as WinUI's does. `auto` follows WinUI's adaptive
-   * breakpoints by the width the tabs are given (the window's, at the
-   * root): the expanded pane from 1008 points, the compact one from 641,
-   * and the top bar in a narrower window.
+   * Windows only: the WinUI `NavigationView`'s pane display mode. `top` is
+   * a row of items along the top of the window, the tab bar. `left` is the
+   * navigation pane down the left side, labels beside the glyphs, and its
+   * toggle button collapses it to its glyphs beside the content and back.
+   * `compact` is that pane at its glyph-only width, and its toggle button
+   * opens the pane over the content. `minimal` is the toggle button alone,
+   * at the top start of the content, and the pane opens over the content
+   * from there. `auto` follows WinUI's adaptive breakpoints by the width
+   * the tabs are given (the window's, at the root): the expanded pane from
+   * 1008 points, the compact one from 641, and the minimal one in a
+   * narrower window. A pane open over the content closes on a selection,
+   * a press beside it or Escape.
    * @default 'top'
    */
   windowsPane?: WindowsPane;
 }
 
-export type WindowsPane = 'top' | 'left' | 'compact' | 'auto';
+export type WindowsPane = 'top' | 'left' | 'compact' | 'minimal' | 'auto';
 
 export type WebLogo =
   | 'icon-only'

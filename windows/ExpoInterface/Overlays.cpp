@@ -736,6 +736,19 @@ struct InfoBarView : winrt::implements<InfoBarView, winrt::IInspectable>,
  */
 constexpr double kOpenPaneLength = 320;
 constexpr double kCompactPaneLength = 48;
+/** How long, in milliseconds, the island's growth to the pane's width may take before a light dismiss of the pane counts again. */
+constexpr uint64_t kGrowthWindow = 1000;
+
+/** The first element of a name under `root` in the visual tree: a part of a control's template, once the template is applied. */
+static xaml::FrameworkElement FindDescendant(const xaml::DependencyObject &root, const wchar_t *name) noexcept {
+  const auto count = xaml::Media::VisualTreeHelper::GetChildrenCount(root);
+  for (int32_t index = 0; index < count; ++index) {
+    auto child = xaml::Media::VisualTreeHelper::GetChild(root, index);
+    if (auto element = child.try_as<xaml::FrameworkElement>(); element && element.Name() == name) return element;
+    if (auto found = FindDescendant(child, name)) return found;
+  }
+  return nullptr;
+}
 
 struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspectable>,
                             Codegen::BaseExpoInterfaceNavigationView<NavigationViewView>,
@@ -752,8 +765,10 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
     m_view.CompactPaneLength(kCompactPaneLength);
     // WinUI's pane fills are for a Mica window: the default one is in-app acrylic, which
     // has no backdrop in an island and paints solid white. The pane is transparent, over
-    // the kit's own background, as the top bar already is.
-    OverrideBrushes(m_view, {L"NavigationViewDefaultPaneBackground", L"NavigationViewExpandedPaneBackground"}, Color{0, 0, 0, 0});
+    // the kit's own background, as the top bar already is. So is the control's own
+    // content area, whose layer fill and top border would otherwise show behind the
+    // minimal pane's toggle row, the one place the island shows any of it.
+    OverrideBrushes(m_view, {L"NavigationViewDefaultPaneBackground", L"NavigationViewExpandedPaneBackground", L"NavigationViewContentBackground", L"NavigationViewContentGridBorderBrush"}, Color{0, 0, 0, 0});
     // The toggle button flips the pane; the kit hears of it, resizes the island and
     // asks for the other mode. Opening the compact pane is left to WinUI (the kit's
     // switch to the expanded mode keeps it open). Collapsing the expanded pane is
@@ -764,8 +779,28 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
     m_view.PaneOpening([weak = get_weak()](const controls::NavigationView &, const winrt::IInspectable &) {
       if (auto strong = weak.get()) strong->ReportPaneOpen(true);
     });
+    // The pane is open: whatever growth the island made for it is over.
+    m_view.PaneOpened([weak = get_weak()](const controls::NavigationView &, const winrt::IInspectable &) {
+      if (auto strong = weak.get()) strong->SettleGrowth();
+    });
+    // The minimal pane's island is its toggle row alone while the pane is closed: the
+    // row's size is reported as the row is laid out, since WinUI arranges the back
+    // button beside the toggle in that mode and the row grows when the button appears.
+    m_view.LayoutUpdated([weak = get_weak()](const winrt::IInspectable &, const winrt::IInspectable &) {
+      if (auto strong = weak.get()) {
+        if (strong->m_minimalClosed) strong->ReportDesiredSize({});
+      }
+    });
     m_view.PaneClosing([weak = get_weak()](const controls::NavigationView &, const controls::NavigationViewPaneClosingEventArgs &args) {
       if (auto strong = weak.get()) {
+        // An overlay pane is light-dismissed by WinUI when its XAML root changes size,
+        // and the island is that root: the kit's own growth of the island to the
+        // pane's width, on the pane's opening, would close what it opens. That one
+        // closing is refused; the pane goes on opening in the room it now has.
+        if (!strong->m_applying && strong->m_growing && GetTickCount64() - strong->m_growSince < kGrowthWindow) {
+          args.Cancel(true);
+          return;
+        }
         if (!strong->m_applying && strong->m_view.PaneDisplayMode() == controls::NavigationViewPaneDisplayMode::Left) {
           args.Cancel(true);
         }
@@ -823,6 +858,11 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
         strong->m_applying = true;
         strong->SelectRoute(strong->m_selected);
         strong->m_applying = false;
+        // The XAML root is the island: its change of size is what light-dismisses an open
+        // overlay pane, so the growth to the pane's width is over once the root has it.
+        strong->m_view.XamlRoot().Changed([weak](const xaml::XamlRoot &root, const xaml::XamlRootChangedEventArgs &) {
+          if (auto self = weak.get()) self->SettleGrowth();
+        });
       }
     });
     Attach(islandView, m_view);
@@ -888,15 +928,52 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
     const auto mode = props->paneMode.value_or("top");
     m_wanted = mode == "left"      ? controls::NavigationViewPaneDisplayMode::Left
                : mode == "compact" ? controls::NavigationViewPaneDisplayMode::LeftCompact
+               : mode == "minimal" ? controls::NavigationViewPaneDisplayMode::LeftMinimal
                                    : controls::NavigationViewPaneDisplayMode::Top;
     // The side pane keeps the control at the open width whatever the island's: the
     // island clips it to the compact strip, as a window shows the strip of a wider
     // control, and the pane's open and close animations never coincide with a resize
-    // of the control — which leaves the compact pane empty.
+    // of the control — which leaves the compact pane empty. The minimal pane's control
+    // is kept at the content's height too, since its island is the toggle row alone
+    // until the pane opens over the content.
     m_view.MinWidth(mode == "top" ? 0.0 : kOpenPaneLength);
+    m_view.MinHeight(mode == "minimal" ? std::max(0.0, props->paneHeight.value_or(0.0)) : 0.0);
     ApplyDisplayMode();
+    // In the overlay modes the pane opens and closes inside the island by IsPaneOpen —
+    // WinUI's toggle button flips it, the kit's smoke closes it — so a change in what
+    // the kit says is applied; the same value again is not, or a press on the toggle
+    // button whose report is still on its way to the kit would be undone.
+    const bool overlay = m_wanted == controls::NavigationViewPaneDisplayMode::LeftCompact ||
+                         m_wanted == controls::NavigationViewPaneDisplayMode::LeftMinimal;
+    if (overlay && props->paneOpen.has_value() && (!oldProps || oldProps->paneOpen != props->paneOpen)) {
+      if (m_view.IsPaneOpen() != *props->paneOpen) m_view.IsPaneOpen(*props->paneOpen);
+    }
+    // The kit widens the island to the pane's width once the pane opens: while that growth is on its way, WinUI's light dismiss of the pane is refused.
+    if (overlay && props->paneOpen.value_or(false) && Root().ActualWidth() < kOpenPaneLength) {
+      if (!m_growing) m_growSince = GetTickCount64();
+      m_growing = true;
+    }
+    m_minimalClosed = m_wanted == controls::NavigationViewPaneDisplayMode::LeftMinimal && !props->paneOpen.value_or(false);
+    if (m_minimalClosed) ReportDesiredSize({});
     m_view.IsPaneToggleButtonVisible(mode != "top");
     m_applying = false;
+  }
+
+  /**
+   * What the island wants from Yoga: the size its content measured, except
+   * for the minimal pane while it is closed, where the island is the toggle
+   * row alone — the control itself is the pane's whole width and the
+   * content's height, and the island shows its top corner.
+   */
+  void ReportDesiredSize(Size size) noexcept {
+    if (m_minimalClosed) {
+      if (!m_toggleRow) m_toggleRow = FindDescendant(m_view, L"PaneToggleButtonGrid");
+      size = {static_cast<float>(kCompactPaneLength), static_cast<float>(kCompactPaneLength)};
+      if (m_toggleRow && m_toggleRow.ActualWidth() > 0 && m_toggleRow.ActualHeight() > 0) {
+        size = {static_cast<float>(m_toggleRow.ActualWidth()), static_cast<float>(m_toggleRow.ActualHeight())};
+      }
+    }
+    XamlIsland<NavigationViewView>::ReportDesiredSize(size);
   }
 
   void UpdateState(const rn::ComponentView &, const rn::IComponentState &newState) noexcept override {
@@ -907,6 +984,18 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
   /** Puts the control in the mode the kit asked for; WinUI opens or closes the pane as the mode says. */
   void ApplyDisplayMode() noexcept {
     if (m_view.PaneDisplayMode() != m_wanted) m_view.PaneDisplayMode(m_wanted);
+  }
+
+  /**
+   * Once the island has grown to the pane's width, the growth is over — a
+   * turn after the root reports its new size, since the light dismiss that
+   * size triggers is delivered in the same turn and must still be refused.
+   */
+  void SettleGrowth() noexcept {
+    if (!m_growing || Root().ActualWidth() < kOpenPaneLength) return;
+    m_view.DispatcherQueue().TryEnqueue([weak = get_weak()]() {
+      if (auto strong = weak.get()) strong->m_growing = false;
+    });
   }
 
   void ReportPaneOpen(bool open) noexcept {
@@ -935,11 +1024,17 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
   }
 
   controls::NavigationView m_view{nullptr};
+  /** The template's `PaneToggleButtonGrid`: the toggle row the minimal pane's island is sized to while closed. */
+  xaml::FrameworkElement m_toggleRow{nullptr};
   std::string m_items;
   int32_t m_settingsIndex{-1};
   int32_t m_selected{0};
   controls::NavigationViewPaneDisplayMode m_wanted{controls::NavigationViewPaneDisplayMode::Top};
   bool m_applying{false};
+  bool m_minimalClosed{false};
+  /** The island is growing to the pane's width for a pane that has just opened, and since when. */
+  bool m_growing{false};
+  uint64_t m_growSince{0};
 };
 
 // -- TabView (document tabs) -------------------------------------------------

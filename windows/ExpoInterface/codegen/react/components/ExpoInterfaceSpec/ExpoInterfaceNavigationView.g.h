@@ -29,6 +29,8 @@ struct ExpoInterfaceNavigationViewProps : winrt::implements<ExpoInterfaceNavigat
        selectedIndex = cloneFromProps->selectedIndex;
        header = cloneFromProps->header;
        paneMode = cloneFromProps->paneMode;
+       paneOpen = cloneFromProps->paneOpen;
+       paneHeight = cloneFromProps->paneHeight;
        background = cloneFromProps->background;
        accentColor = cloneFromProps->accentColor;
        theme = cloneFromProps->theme;
@@ -55,6 +57,12 @@ struct ExpoInterfaceNavigationViewProps : winrt::implements<ExpoInterfaceNavigat
 
   REACT_FIELD(paneMode)
   std::optional<std::string> paneMode;
+
+  REACT_FIELD(paneOpen)
+  std::optional<bool> paneOpen{};
+
+  REACT_FIELD(paneHeight)
+  std::optional<double> paneHeight{};
 
   REACT_FIELD(background)
   std::optional<std::string> background;

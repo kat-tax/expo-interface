@@ -1,9 +1,10 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {Icon} from '../symbol';
 import {icon} from '../icons';
 import {StatePressable} from '../surface/pressable';
 import {pressFeedback} from '../surface/shared';
+import {PaneToggleContext} from '../tabs/shell';
 import {bound, fonts, fontWeights, spacing, useColor} from '../theme';
 import {reportDragRegion, useWindowChromeState} from '../windows/chrome';
 
@@ -31,12 +32,15 @@ const BACK = icon({ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back'
  * row, with the back arrow in Segoe Fluent Icons — a subtle button, with
  * the fill under the pointer, the focus ring and Enter that a
  * `NavigationView` back button has. A desktop window has no status bar to
- * leave room for.
+ * leave room for. Under a minimal pane the row starts after the pane's
+ * toggle row, so that the title is beside the toggle button as a WinUI
+ * header is.
  */
 export function ScreenHeader({title, titleNode, onBack, leading, trailing, dragRegion = false}: ScreenHeaderProps) {
   const label = useColor('label');
   const background = useColor('background');
   const chrome = useWindowChromeState();
+  const toggleRow = useContext(PaneToggleContext);
   const bar = useRef<View>(null);
   // A header that is not the root's but lies in the title bar's band all the same — the root's hidden, a tab's stack at the top.
   const [inBand, setInBand] = useState(false);
@@ -56,7 +60,7 @@ export function ScreenHeader({title, titleNode, onBack, leading, trailing, dragR
   };
 
   return (
-    <View ref={bar} onLayout={onLayout} style={[styles.bar, {backgroundColor: background}]}>
+    <View ref={bar} onLayout={onLayout} style={[styles.bar, {backgroundColor: background}, toggleRow > 0 && {paddingStart: toggleRow}]}>
       <View style={[styles.inner, room]}>
         {leading ?? (onBack ? (
           <StatePressable
