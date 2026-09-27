@@ -397,29 +397,42 @@ export const theme = {
   }),
 } as const;
 
-export const nav = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    primary: theme.tint,
-    background: theme.background,
-    card: theme.backgroundElement,
-    text: theme.label,
-    border: theme.separator,
-  },
-  fonts: {
-    regular: {fontFamily: fonts.sans, fontWeight: fontWeights.normal},
-    medium: {fontFamily: fonts.sans, fontWeight: fontWeights.medium},
-    bold: {fontFamily: fonts.sans, fontWeight: fontWeights.bold},
-    heavy: {fontFamily: fonts.sans, fontWeight: fontWeights.heavy},
-  },
-} as const;
+let navBase: typeof DefaultTheme | undefined;
+
+/**
+ * The navigation theme's base, built on first use rather than at load:
+ * expo-router's default theme is read then. expo-router loads modules of its
+ * own while it initializes (its native stack imports `expo-glass-effect`,
+ * which the kit answers for on Windows), and one of them importing the kit
+ * would find expo-router's exports still undefined here.
+ */
+function navTheme(): typeof DefaultTheme {
+  navBase ??= {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: theme.tint,
+      background: theme.background,
+      card: theme.backgroundElement,
+      text: theme.label,
+      border: theme.separator,
+    },
+    fonts: {
+      regular: {fontFamily: fonts.sans, fontWeight: fontWeights.normal},
+      medium: {fontFamily: fonts.sans, fontWeight: fontWeights.medium},
+      bold: {fontFamily: fonts.sans, fontWeight: fontWeights.bold},
+      heavy: {fontFamily: fonts.sans, fontWeight: fontWeights.heavy},
+    },
+  };
+  return navBase;
+}
 
 /**
  * React Navigation does not resolve PlatformColor tokens on native headers,
  * so resolve concrete palette colors (with the live accent seed as primary).
  */
 export function useNavTheme() {
+  const nav = navTheme();
   if (Platform.OS === 'web') return nav;
   /* eslint-disable react-hooks/rules-of-hooks -- Platform.OS is a runtime constant. */
   const seed = useAccentSeed();
