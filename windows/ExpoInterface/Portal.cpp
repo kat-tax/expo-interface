@@ -6,8 +6,10 @@
 
 #include <map>
 
+#include "Backdrop.h"
 #include "XamlHost.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceExpander.g.h"
+#include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceMaterial.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfacePortal.g.h"
 
 /**
@@ -45,6 +47,19 @@
  * - Measuring inside `LayoutUpdated` trips XAML's layout-cycle guard, which
  *   fails fast. Remeasures run on the next dispatcher turn.
  * - Composition visuals have no weak references.
+ * - RNW flattens plain views away, and mounts a relaid subtree bottom up. The
+ *   portal's one direct child is found by its parent, not by mount order, and
+ *   the JavaScript side keeps its wrapper a view with `collapsable={false}`.
+ * - A windowed popup renders its child in a window of its own, with an island
+ *   of its own that its visuals report only a frame after it opens. A slot in
+ *   one connects to that island, with the popup's child as the tree root; the
+ *   popup root above it is a sizeless canvas in the main island.
+ * - An island draws above the React Native content beside it whatever the
+ *   order, so content on a material island goes inside it, through a portal.
+ * - A system backdrop on a child island samples what is behind the window and
+ *   fills the island's rectangle. WinUI's `MicaBackdrop` and
+ *   `DesktopAcrylicBackdrop` render there; a custom `SystemBackdrop` gets no
+ *   default configuration and makes its own (Backdrop.cpp).
  */
 namespace winrt::ExpoInterface {
 
@@ -54,6 +69,7 @@ namespace content = winrt::Microsoft::UI::Content;
 namespace input = winrt::Microsoft::UI::Input;
 namespace hosting = winrt::Microsoft::UI::Xaml::Hosting;
 namespace dispatching = winrt::Microsoft::UI::Dispatching;
+
 
 /** WinUI's Expander opens in about 333 ms and closes in about 180 ms; the motion is over after these. */
 constexpr auto kOpenSettle = std::chrono::milliseconds(400);
@@ -78,6 +94,8 @@ std::map<std::string, Slot> &Slots() noexcept {
   return slots;
 }
 
+} // namespace
+
 void RegisterSlot(const std::string &name, const controls::Grid &grid) noexcept {
   auto &slot = Slots()[name];
   slot.grid = grid;
@@ -91,6 +109,8 @@ void RegisterSlot(const std::string &name, const controls::Grid &grid) noexcept 
 void UnregisterSlot(const std::string &name) noexcept {
   Slots().erase(name);
 }
+
+namespace {
 
 controls::Grid FindSlot(const std::string &name) noexcept {
   auto it = Slots().find(name);
@@ -137,10 +157,12 @@ xaml::FrameworkElement FindNamed(const xaml::DependencyObject &root, const wchar
 }
 
 /**
- * One container visual per island root, set as the root element's child
- * visual and clipped to the island, that every portal in that island puts its
- * frame into. Strong references: composition visuals have no
- * IWeakReferenceSource, and a weak_ref to one dereferences null.
+ * One container visual per tree root, set as the root element's child visual,
+ * that every portal under that root puts its frame into. Each frame clips
+ * itself to its control's content area; the layer clips nothing, since a
+ * windowed popup's root is a canvas with no size of its own. Strong
+ * references: composition visuals have no IWeakReferenceSource, and a
+ * weak_ref to one dereferences null.
  */
 winrt::Microsoft::UI::Composition::ContainerVisual LayerFor(const xaml::UIElement &root) {
   static std::map<void *, winrt::Microsoft::UI::Composition::ContainerVisual> layers;
@@ -148,8 +170,6 @@ winrt::Microsoft::UI::Composition::ContainerVisual LayerFor(const xaml::UIElemen
   if (auto it = layers.find(key); it != layers.end()) return it->second;
   auto compositor = hosting::ElementCompositionPreview::GetElementVisual(root).Compositor();
   auto layer = compositor.CreateContainerVisual();
-  layer.RelativeSizeAdjustment({1.0f, 1.0f});
-  layer.Clip(compositor.CreateInsetClip());
   hosting::ElementCompositionPreview::SetElementChildVisual(root, layer);
   layers.insert_or_assign(key, layer);
   return layer;
@@ -317,6 +337,86 @@ struct ExpanderView : winrt::implements<ExpanderView, winrt::IInspectable>,
   bool m_applying{false};
 };
 
+// -- Material ----------------------------------------------------------------
+
+/**
+ * A box drawn on one of Windows' materials, its whole area a slot. Mica and
+ * acrylic are system backdrops: the compositor draws them behind the island
+ * from what is behind the window, and they render on a child island. A system
+ * backdrop also clears the island's own fill, so the tint on the slot is the
+ * only paint over the material. The content is whatever portal names the
+ * slot, and the island takes the height the content lays out to; without a
+ * slot it is a box of material sized by its style.
+ */
+struct MaterialView : winrt::implements<MaterialView, winrt::IInspectable>,
+                      Codegen::BaseExpoInterfaceMaterial<MaterialView>,
+                      XamlIsland<MaterialView> {
+  void InitializeIsland(const composition::ContentIslandComponentView &islandView) noexcept {
+    m_slot = controls::Grid{};
+    m_slot.HorizontalAlignment(xaml::HorizontalAlignment::Stretch);
+    m_slot.VerticalAlignment(xaml::VerticalAlignment::Stretch);
+    m_slot.MinHeight(1);
+    // The portal gives the slot its content's height; the island follows.
+    m_slot.SizeChanged([weak = get_weak()](const winrt::IInspectable &, const xaml::SizeChangedEventArgs &) {
+      if (auto strong = weak.get()) strong->Remeasure();
+    });
+    Attach(islandView, m_slot);
+    islandView.Destroying([weak = get_weak()](const winrt::IInspectable &, const winrt::IInspectable &) {
+      if (auto strong = weak.get(); strong && !strong->m_slotName.empty()) UnregisterSlot(strong->m_slotName);
+    });
+  }
+
+  void UpdateProps(
+      const rn::ComponentView &view,
+      const winrt::com_ptr<Codegen::ExpoInterfaceMaterialProps> &newProps,
+      const winrt::com_ptr<Codegen::ExpoInterfaceMaterialProps> &oldProps) noexcept override {
+    Codegen::BaseExpoInterfaceMaterial<MaterialView>::UpdateProps(view, newProps, oldProps);
+    auto props = Props();
+    if (!props) return;
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
+    SetIdentity(m_slot, std::nullopt, props->ViewProps);
+    const std::string material = props->material.value_or("acrylic");
+    if (material != m_material) {
+      m_material = material;
+      try {
+        if (material == "none") {
+          Island().SystemBackdrop(nullptr);
+        } else if (material == "mica" || material == "micaAlt") {
+          media::MicaBackdrop mica;
+          mica.Kind(material == "micaAlt" ? winrt::Microsoft::UI::Composition::SystemBackdrops::MicaKind::BaseAlt : winrt::Microsoft::UI::Composition::SystemBackdrops::MicaKind::Base);
+          Island().SystemBackdrop(mica);
+        } else if (material == "acrylic") {
+          Island().SystemBackdrop(media::DesktopAcrylicBackdrop{});
+        } else {
+          Island().SystemBackdrop(winrt::make<implementation::MaterialBackdrop>(ToHString(material)));
+        }
+      } catch (const winrt::hresult_error &) {
+      }
+    }
+    Color tint{};
+    if (props->tintColor && TryParseColor(*props->tintColor, tint)) {
+      m_slot.Background(Brush(tint));
+    } else {
+      m_slot.Background(nullptr);
+    }
+    const std::string slot = props->slot.value_or("");
+    if (slot != m_slotName) {
+      if (!m_slotName.empty()) UnregisterSlot(m_slotName);
+      m_slotName = slot;
+      if (!m_slotName.empty()) RegisterSlot(m_slotName, m_slot);
+    }
+  }
+
+  void UpdateState(const rn::ComponentView &, const rn::IComponentState &newState) noexcept override {
+    KeepState(newState);
+  }
+
+ private:
+  controls::Grid m_slot{nullptr};
+  std::string m_slotName;
+  std::string m_material;
+};
+
 // -- Portal ------------------------------------------------------------------
 
 /** The constraints the portal's child is laid out in: the slot's width, any height. */
@@ -364,7 +464,7 @@ struct PortalView : winrt::implements<PortalView, winrt::IInspectable>, Codegen:
    * relayout.
    */
   void MountChildComponentView(const rn::ComponentView &, const rn::MountChildComponentViewArgs &args) noexcept override {
-    if (m_child) return;
+    if (!IsDirectChild(args.Child()) || m_child) return;
     m_child = args.Child();
     m_childToken = args.Child().LayoutMetricsChanged([weak = get_weak()](const winrt::IInspectable &, const rn::LayoutMetricsChangedArgs &changed) {
       if (auto strong = weak.get()) strong->Resize(changed.NewLayoutMetrics());
@@ -380,6 +480,18 @@ struct PortalView : winrt::implements<PortalView, winrt::IInspectable>, Codegen:
   }
 
  private:
+  /** Whether the view's parent is the portal's own root: the one direct child, whatever order RNW mounts the subtree in. */
+  bool IsDirectChild(const rn::ComponentView &child) const noexcept {
+    try {
+      auto portal = m_portal.get();
+      if (!portal) return false;
+      rn::ComponentView root = portal.ContentRoot();
+      return child.Parent() == root;
+    } catch (...) {
+      return false;
+    }
+  }
+
   void OnMounted(const rn::ComponentView &view) noexcept {
     m_mounted = true;
     TryConnect(view);
@@ -413,8 +525,47 @@ struct PortalView : winrt::implements<PortalView, winrt::IInspectable>, Codegen:
     try {
       auto portal = view.as<composition::PortalComponentView>();
       m_portal = winrt::make_weak(portal);
-      m_parentIsland = xamlRoot.ContentIsland();
-      m_root = xamlRoot.Content();
+      // The top of the tree the slot is in: the hosting island's own root, or
+      // a windowed popup's, which is not the XamlRoot's content. A popup is a
+      // window of its own with an island of its own, found from the slot's
+      // visual once XAML has moved the popup's tree there, a frame or so after
+      // it opens; until then the visual still reports the XamlRoot's island.
+      // Every popup is a logical child of the XamlRoot's popup root, a canvas
+      // in the main island; a windowed popup renders its own child and below
+      // in a window of its own. The tree root for the layer is that child.
+      xaml::UIElement top = grid;
+      xaml::UIElement below = grid;
+      for (xaml::DependencyObject node = grid; node; node = xaml::Media::VisualTreeHelper::GetParent(node)) {
+        if (auto element = node.try_as<xaml::UIElement>()) {
+          below = top;
+          top = element;
+        }
+      }
+      const bool inPopup = top != xamlRoot.Content();
+      if (inPopup) top = below;
+      content::ContentIsland island{nullptr};
+      try {
+        island = content::ContentIsland::GetByVisual(hosting::ElementCompositionPreview::GetElementVisual(grid));
+      } catch (const winrt::hresult_error &) {
+      }
+      const bool sameIsland = island && winrt::get_unknown(island) == winrt::get_unknown(xamlRoot.ContentIsland());
+      if (inPopup && (!island || sameIsland)) {
+        if (m_deferrals++ < 60) {
+          m_defer = dispatching::DispatcherQueue::GetForCurrentThread().CreateTimer();
+          m_defer.Interval(std::chrono::milliseconds(16));
+          m_defer.IsRepeating(false);
+          m_defer.Tick([weak = get_weak(), wkView = winrt::make_weak(view)](const winrt::IInspectable &, const winrt::IInspectable &) {
+            auto strong = weak.get();
+            auto strongView = wkView.get();
+            if (strong && strongView) strong->TryConnect(strongView);
+          });
+          m_defer.Start();
+        }
+        return;
+      }
+      m_deferrals = 0;
+      m_parentIsland = island ? island : xamlRoot.ContentIsland();
+      m_root = top;
       m_grid = grid;
       // A clipped frame at the control's content area, and the placement inside
       // it at the slot's position, both hung off the island root and positioned
@@ -535,6 +686,8 @@ struct PortalView : winrt::implements<PortalView, winrt::IInspectable>, Codegen:
     for (xaml::DependencyObject node = m_grid; node; node = xaml::Media::VisualTreeHelper::GetParent(node)) {
       if (auto element = node.try_as<xaml::UIElement>(); element && element.Visibility() != xaml::Visibility::Visible) return false;
     }
+    // Before its first layout pass the slot has no size at all; that is not a collapsed control.
+    if (m_grid.ActualWidth() == 0 && m_grid.ActualHeight() == 0) return true;
     return m_grid.ActualHeight() > 0;
   }
 
@@ -688,6 +841,8 @@ struct PortalView : winrt::implements<PortalView, winrt::IInspectable>, Codegen:
   }
 
   std::string m_slotName;
+  dispatching::DispatcherQueueTimer m_defer{nullptr};
+  int m_deferrals{0};
   bool m_mounted{false};
   bool m_leaving{false};
   bool m_enterBackward{false};
@@ -725,6 +880,7 @@ struct PortalView : winrt::implements<PortalView, winrt::IInspectable>, Codegen:
 
 void RegisterPortal(const rn::IReactPackageBuilder &packageBuilder) noexcept {
   RegisterIsland<ExpanderView>(packageBuilder, &Codegen::RegisterExpoInterfaceExpanderNativeComponent<ExpanderView>);
+  RegisterIsland<MaterialView>(packageBuilder, &Codegen::RegisterExpoInterfaceMaterialNativeComponent<MaterialView>);
   Codegen::RegisterExpoInterfacePortalNativeComponent<PortalView>(
       packageBuilder, [](const composition::IReactCompositionViewComponentBuilder &builder) {
         builder.SetPortalComponentViewInitializer([](const composition::PortalComponentView &portal) noexcept {
@@ -741,6 +897,8 @@ void RegisterPortal(const rn::IReactPackageBuilder &packageBuilder) noexcept {
 
 namespace winrt::ExpoInterface {
 void RegisterPortal(const winrt::Microsoft::ReactNative::IReactPackageBuilder &) noexcept {}
+void RegisterSlot(const std::string &, const winrt::Microsoft::UI::Xaml::Controls::Grid &) noexcept {}
+void UnregisterSlot(const std::string &) noexcept {}
 } // namespace winrt::ExpoInterface
 
 #endif // RNW_NEW_ARCH

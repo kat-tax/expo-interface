@@ -1,0 +1,15 @@
+namespace ExpoInterface
+{
+  // One of Windows' materials as a XAML island's system backdrop: a Mica or
+  // desktop acrylic controller of the kind named, attached to every target
+  // the backdrop is connected to. WinUI's own MicaBackdrop and
+  // DesktopAcrylicBackdrop expose no kind, and the alternate Mica and the
+  // thin acrylic are kinds. Kinds: mica, micaAlt, acrylic, acrylicBase,
+  // acrylicThin.
+  [default_interface]
+  [webhosthidden]
+  runtimeclass MaterialBackdrop : Microsoft.UI.Xaml.Media.SystemBackdrop
+  {
+    MaterialBackdrop(String kind);
+  }
+}

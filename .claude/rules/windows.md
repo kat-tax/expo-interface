@@ -21,9 +21,18 @@ its spec, and `XamlIsland<T>`; it creates its control and calls `Attach` from
 `InitializeIsland`. The kit's islands report the size their control wants to
 Yoga through `ReportDesiredSize`.
 
-- **An island takes pointer input for itself regardless of RN `pointerEvents`.**
-  An overlay island swallows presses meant for what is under it: anchors are a
-  1-pixel strip or a 1x1 point.
+- **An island takes pointer input for itself regardless of RN `pointerEvents`,
+  and draws above the RN content beside it whatever the order.** An overlay
+  island swallows presses meant for what is under it: anchors are a 1-pixel
+  strip or a 1x1 point. RN content laid over an island (a material under
+  text) is hidden by it: content on an island goes inside it, through a portal.
+- **Materials.** `XamlIsland.SystemBackdrop` with WinUI's `MicaBackdrop` and
+  `DesktopAcrylicBackdrop` renders on a child island (`ExpoInterfaceMaterial`).
+  A custom `SystemBackdrop` gets no default configuration on a child island
+  (`GetDefaultSystemBackdropConfiguration` returns null): make one. Every
+  backdrop samples what is behind the window, never the app's own content, and
+  fills the island's rectangle; nothing rounds it. In-app `AcrylicBrush` sees
+  only the island's own tree.
 - **A control's in-app acrylic paints white in an island** (it has no backdrop
   target). Override the brush to transparent and paint the scheme's background
   in the RN tree behind it, or give the island a `SystemBackdrop`, which renders
@@ -42,7 +51,12 @@ Yoga through `ReportDesiredSize`.
   page's whole UI Automation tree then enumerates nothing), only on the
   compositor; the placement visual hangs off the island root, positioned from
   layout; WinUI's `Expanding` and `Collapsed` both fire as a motion starts;
-  never measure inside `LayoutUpdated`.
+  never measure inside `LayoutUpdated`; RNW flattens plain views, so the
+  portal's wrapper is `collapsable={false}` and the direct child is found by
+  its parent, not by mount order; a slot in a windowed popup works
+  (`ContentDialog` body), and the portal's layer must not clip to the root,
+  which is a sizeless canvas there. An island that opens a popup on its first
+  props is connected but not placed: the window frame is found a moment later.
 
 ## The C++ toolchain
 

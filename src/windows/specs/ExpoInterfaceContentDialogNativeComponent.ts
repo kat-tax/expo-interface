@@ -18,6 +18,8 @@ export interface NativeProps extends ViewProps {
   message?: string;
   /** JSON array of the actions. */
   actions: string;
+  /** Names a content slot in the body an `ExpoInterfacePortal` fills with React Native content. */
+  slot?: string;
   accentColor?: string;
   theme?: CodegenTypes.WithDefault<'light' | 'dark' | 'system', 'system'>;
   onClose?: CodegenTypes.DirectEventHandler<ActionEvent>;

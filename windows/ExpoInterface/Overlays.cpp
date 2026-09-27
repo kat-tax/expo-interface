@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "Overlays.h"
+#include "Portal.h"
 
 #ifdef RNW_NEW_ARCH
 
@@ -21,6 +22,7 @@ using JsonObject = winrt::Windows::Data::Json::JsonObject;
 using JsonValueType = winrt::Windows::Data::Json::JsonValueType;
 
 /** An empty, transparent element for a flyout or dialog to be placed against; takes no presses. */
+
 controls::Grid MakeAnchor() noexcept {
   controls::Grid anchor;
   anchor.IsHitTestVisible(false);
@@ -268,6 +270,24 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       width = root.Size().Width;
       height = root.Size().Height;
     }
+    // An island opened on its first props is connected but not placed yet:
+    // the window cannot be found from it and its root has no size. A moment
+    // later it has both.
+    if (width <= 0 || height <= 0) {
+      if (m_retries++ < 20) {
+        m_retry = winrt::Microsoft::UI::Dispatching::DispatcherQueue::GetForCurrentThread().CreateTimer();
+        m_retry.Interval(std::chrono::milliseconds(50));
+        m_retry.IsRepeating(false);
+        m_retry.Tick([weak = get_weak()](const winrt::IInspectable &, const winrt::IInspectable &) {
+          if (auto strong = weak.get()) {
+            if (auto props = strong->Props(); props && props->open && !strong->m_popup) strong->Show();
+          }
+        });
+        m_retry.Start();
+      }
+      return;
+    }
+    m_retries = 0;
 
     std::vector<Action> others;
     std::optional<Action> cancel;
@@ -307,6 +327,16 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       message.TextWrapping(xaml::TextWrapping::Wrap);
       message.Margin({0, 12, 0, 0});
       body.Children().Append(message);
+    }
+    // A React Native body, through a portal naming the slot.
+    if (props->slot && !props->slot->empty()) {
+      controls::Grid slot;
+      slot.HorizontalAlignment(xaml::HorizontalAlignment::Stretch);
+      slot.MinHeight(8);
+      slot.Margin({0, 12, 0, 0});
+      body.Children().Append(slot);
+      m_slotName = *props->slot;
+      RegisterSlot(m_slotName, slot);
     }
     if (others.size() > 2) {
       controls::StackPanel extra;
@@ -399,7 +429,7 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
     m_popup = popup;
     try {
       popup.IsOpen(true);
-    } catch (...) {
+    } catch (const winrt::hresult_error &) {
       m_popup = nullptr;
       return;
     }
@@ -415,6 +445,10 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
   void OnClosed() noexcept {
     if (!m_popup) return;
     m_popup = nullptr;
+    if (!m_slotName.empty()) {
+      UnregisterSlot(m_slotName);
+      m_slotName.clear();
+    }
     const int32_t picked = m_picked < 0 ? m_cancel : m_picked;
     if (auto emitter = EventEmitter()) {
       Codegen::ExpoInterfaceContentDialogEventEmitter::OnClose event;
@@ -425,6 +459,9 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
 
   controls::Grid m_anchor{nullptr};
   controls::Primitives::Popup m_popup{nullptr};
+  winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer m_retry{nullptr};
+  int m_retries{0};
+  std::string m_slotName;
   int32_t m_cancel{-1};
   int32_t m_picked{-1};
 };

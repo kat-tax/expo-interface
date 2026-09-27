@@ -20,5 +20,6 @@
   "@react-native-masked-view/masked-view": "./community-masked-view.tsx",
   "@gorhom/bottom-sheet": "./community-bottom-sheet.tsx",
   "@react-native-menu/menu": "./community-menu.tsx",
-  "expo-checkbox": "./expo-checkbox.tsx"
+  "expo-checkbox": "./expo-checkbox.tsx",
+  "expo-glass-effect": "./expo-glass-effect.tsx"
 }

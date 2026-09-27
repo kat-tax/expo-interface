@@ -13,4 +13,13 @@ namespace winrt::ExpoInterface {
  */
 void RegisterPortal(const winrt::Microsoft::ReactNative::IReactPackageBuilder &packageBuilder) noexcept;
 
+/**
+ * The slot contract for a hosting island in another file: a named content
+ * area a portal fills with React Native content. Registered once the element
+ * exists, unregistered when it goes; a portal waiting for the name connects
+ * on registration.
+ */
+void RegisterSlot(const std::string &name, const winrt::Microsoft::UI::Xaml::Controls::Grid &grid) noexcept;
+void UnregisterSlot(const std::string &name) noexcept;
+
 } // namespace winrt::ExpoInterface

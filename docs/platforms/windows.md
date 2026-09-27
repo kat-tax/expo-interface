@@ -71,14 +71,15 @@ codegen emitter. The specs in `src/windows/specs/` are the contract, and
 | `ExpoInterfaceColorPicker` | `ColorPicker` in a `Flyout` | `ColorPicker` |
 | `ExpoInterfaceAutoSuggestBox` | `AutoSuggestBox` | `SearchField` |
 | `ExpoInterfaceMenuFlyout` | `MenuFlyout` | `Menu`, `ContextMenu`, `PopupMenu`, `Fab`, `HeaderMenu` |
-| `ExpoInterfaceContentDialog` | `ContentDialog`'s arrangement in a windowed popup | `Alert` |
+| `ExpoInterfaceContentDialog` | `ContentDialog`'s arrangement in a windowed popup, its body a slot for a portal | `Alert` |
 | `ExpoInterfaceTeachingTip` | `TeachingTip` | `Popover` |
 | `ExpoInterfaceCommandBar` | `CommandBar` | `Toolbar` |
 | `ExpoInterfaceInfoBar` | `InfoBar` | `Toast` |
 | `ExpoInterfaceNavigationView` | `NavigationView` | `Tabs` |
 | `ExpoInterfaceTabView` | `TabView` | `TabView` |
 | `ExpoInterfaceExpander` | `Expander`, its content area a slot for a portal | `Collapsible` |
-| `ExpoInterfacePortal` | No control: a react-native-windows portal whose React child renders inside another island's slot | `Collapsible` |
+| `ExpoInterfacePortal` | No control: a react-native-windows portal whose React child renders inside another island's slot | `Collapsible`, `GlassView` |
+| `ExpoInterfaceMaterial` | An island on a Mica or acrylic system backdrop, its whole area a slot for a portal | `GlassView` of `expo-glass-effect` |
 
 The library also holds one native module, `ExpoInterfaceShare`, over
 `DataTransferManager` for `ShareLink`.
@@ -95,8 +96,11 @@ to press.
 Two facts about islands shape the kit's Windows files:
 
 - An island takes pointer input for itself whatever React Native's
-  `pointerEvents` says. The kit's menu islands are therefore a one-pixel strip
-  along the trigger's edge or a one-point anchor, never laid over the trigger.
+  `pointerEvents` says, and it draws above the React Native content beside it
+  whatever order the two come in. The kit's menu islands are therefore a
+  one-pixel strip along the trigger's edge or a one-point anchor, never laid
+  over the trigger, and nothing of React Native's is laid over an island:
+  content that belongs on one goes inside it, through a portal.
 - An island holds XAML. A control that wraps content (`Expander`,
   `SwipeControl`, `TabView` items, `Flyout` content) holds the kit's React
   Native content through a portal: the island registers its content area as a
@@ -120,8 +124,11 @@ extends the content into the title bar: no system title, the caption buttons
 drawn for the scheme over the app's own top row, and the root `Stack`'s
 header as the region that drags the window, leaving the caption buttons
 their room. With that header hidden nothing drags the window. There is no
-Mica or acrylic backdrop behind the content: a Win32 window on the Windows
-App SDK's composition islands has no backdrop target in this release.
+Mica or acrylic backdrop behind the whole content: a Win32 window on the
+Windows App SDK's composition islands has no backdrop target in this release.
+A box on a material is drawn instead: `GlassView` from `expo-glass-effect`
+is an island with an acrylic system backdrop and its React content inside
+(see [Standing in](#standing-in-for-expoui)).
 
 ```tsx
 // app/_layout.tsx
@@ -211,6 +218,7 @@ affected.
 | `@expo/ui/swift-ui`, `@expo/ui/jetpack-compose` | Every export of both subpaths and of their `modifiers`. The controls are the kit's WinUI islands; the stacks, rows, columns and boxes are flex views; the layout modifiers (`frame`, `padding`, `size`, `fillMax*`, `cornerRadius`, `opacity`, `hidden`, `offset`, `zIndex`, `background`, `border`, `weight`) become styles and `onTapGesture` and `clickable` a press. SwiftUI's `NavigationStack`, `NavigationLink`, `NavigationDestination` and `Toolbar` are plain containers, since navigation is Expo Router's. Other modifiers are kept without effect. What a desktop has no counterpart for (charts, widgets, swipe actions) renders nothing and says so once in development. |
 | `@expo/ui/community/*` and the packages they wrap | The kit's `Slider`, `Picker`, `DateTimePicker`, `SegmentedControl`, `Sheet` and `ContextMenu` under each package's props and default export. The pager is a paging scroll view with the ref and page events; the masked view shows its content whole. The packages' own Windows ports are for the old architecture. |
 | `expo-checkbox` | The kit's `Checkbox` under the package's props. |
+| `expo-glass-effect` | `GlassView` is drawn on acrylic: an island with the system backdrop, `regular` the default kind and `clear` the thin one, the tint over it, and the children inside it through the portal, the view's padding around them. The material is what is behind the window, blurred, as with every Windows backdrop, and it fills the view's rectangle: a corner radius does not round it. `none` is a plain view, `GlassContainer` a view, and glass reports itself available, since the platform draws it. |
 
 The wrapped packages are `@react-native-community/slider`,
 `@react-native-picker/picker`, `@react-native-community/datetimepicker`,

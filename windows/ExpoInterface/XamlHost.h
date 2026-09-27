@@ -166,6 +166,11 @@ struct XamlIsland {
     return m_panel;
   }
 
+  /** The island itself: what a system backdrop is set on. */
+  xaml::XamlIsland Island() const noexcept {
+    return m_island;
+  }
+
   /**
    * The control the island hosts — the element UI Automation reports, and so
    * the one an automation id belongs on. The panel around it is not a control

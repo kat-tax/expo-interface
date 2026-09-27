@@ -1,6 +1,6 @@
 
 /*
- * This file is auto-generated from ExpoInterfaceContentDialogNativeComponent spec file in flow / TypeScript.
+ * This file is auto-generated from ExpoInterfaceMaterialNativeComponent spec file in flow / TypeScript.
  */
 // clang-format off
 #pragma once
@@ -18,21 +18,19 @@
 
 namespace winrt::ExpoInterface::Codegen {
 
-REACT_STRUCT(ExpoInterfaceContentDialogProps)
-struct ExpoInterfaceContentDialogProps : winrt::implements<ExpoInterfaceContentDialogProps, winrt::Microsoft::ReactNative::IComponentProps> {
-  ExpoInterfaceContentDialogProps(winrt::Microsoft::ReactNative::ViewProps props, const winrt::Microsoft::ReactNative::IComponentProps& cloneFrom)
+REACT_STRUCT(ExpoInterfaceMaterialProps)
+struct ExpoInterfaceMaterialProps : winrt::implements<ExpoInterfaceMaterialProps, winrt::Microsoft::ReactNative::IComponentProps> {
+  ExpoInterfaceMaterialProps(winrt::Microsoft::ReactNative::ViewProps props, const winrt::Microsoft::ReactNative::IComponentProps& cloneFrom)
     : ViewProps(props)
   {
      if (cloneFrom) {
-       auto cloneFromProps = cloneFrom.as<ExpoInterfaceContentDialogProps>();
-       open = cloneFromProps->open;
-       title = cloneFromProps->title;
-       message = cloneFromProps->message;
-       actions = cloneFromProps->actions;
+       auto cloneFromProps = cloneFrom.as<ExpoInterfaceMaterialProps>();
        slot = cloneFromProps->slot;
+       material = cloneFromProps->material;
+       tintColor = cloneFromProps->tintColor;
        accentColor = cloneFromProps->accentColor;
        theme = cloneFromProps->theme;
-       onClose = cloneFromProps->onClose;  
+  
      }
   }
 
@@ -40,20 +38,14 @@ struct ExpoInterfaceContentDialogProps : winrt::implements<ExpoInterfaceContentD
     winrt::Microsoft::ReactNative::ReadProp(hash, propName, value, *this);
   }
 
-  REACT_FIELD(open)
-  bool open{};
-
-  REACT_FIELD(title)
-  std::string title;
-
-  REACT_FIELD(message)
-  std::optional<std::string> message;
-
-  REACT_FIELD(actions)
-  std::string actions;
-
   REACT_FIELD(slot)
   std::optional<std::string> slot;
+
+  REACT_FIELD(material)
+  std::optional<std::string> material;
+
+  REACT_FIELD(tintColor)
+  std::optional<std::string> tintColor;
 
   REACT_FIELD(accentColor)
   std::optional<std::string> accentColor;
@@ -61,42 +53,24 @@ struct ExpoInterfaceContentDialogProps : winrt::implements<ExpoInterfaceContentD
   REACT_FIELD(theme)
   std::optional<std::string> theme;
 
-   // These fields can be used to determine if JS has registered for this event
-  REACT_FIELD(onClose)
-  bool onClose{false};
-
   const winrt::Microsoft::ReactNative::ViewProps ViewProps;
 };
 
-REACT_STRUCT(ExpoInterfaceContentDialogSpec_onClose)
-struct ExpoInterfaceContentDialogSpec_onClose {
-  REACT_FIELD(index)
-  int32_t index{};
-};
-
-struct ExpoInterfaceContentDialogEventEmitter {
-  ExpoInterfaceContentDialogEventEmitter(const winrt::Microsoft::ReactNative::EventEmitter &eventEmitter)
+struct ExpoInterfaceMaterialEventEmitter {
+  ExpoInterfaceMaterialEventEmitter(const winrt::Microsoft::ReactNative::EventEmitter &eventEmitter)
       : m_eventEmitter(eventEmitter) {}
-
-  using OnClose = ExpoInterfaceContentDialogSpec_onClose;
-
-  void onClose(OnClose &&value) const {
-    m_eventEmitter.DispatchEvent(L"close", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
-      winrt::Microsoft::ReactNative::WriteValue(writer, value);
-    });
-  }
 
  private:
   winrt::Microsoft::ReactNative::EventEmitter m_eventEmitter{nullptr};
 };
 
 template<typename TUserData>
-struct BaseExpoInterfaceContentDialog {
+struct BaseExpoInterfaceMaterial {
 
   virtual void UpdateProps(
     const winrt::Microsoft::ReactNative::ComponentView &/*view*/,
-    const winrt::com_ptr<ExpoInterfaceContentDialogProps> &newProps,
-    const winrt::com_ptr<ExpoInterfaceContentDialogProps> &/*oldProps*/) noexcept {
+    const winrt::com_ptr<ExpoInterfaceMaterialProps> &newProps,
+    const winrt::com_ptr<ExpoInterfaceMaterialProps> &/*oldProps*/) noexcept {
     m_props = newProps;
   }
 
@@ -113,7 +87,7 @@ struct BaseExpoInterfaceContentDialog {
     const winrt::Microsoft::ReactNative::IComponentState &/*newState*/) noexcept {
   }
 
-  virtual void UpdateEventEmitter(const std::shared_ptr<ExpoInterfaceContentDialogEventEmitter> &eventEmitter) noexcept {
+  virtual void UpdateEventEmitter(const std::shared_ptr<ExpoInterfaceMaterialEventEmitter> &eventEmitter) noexcept {
     m_eventEmitter = eventEmitter;
   }
 
@@ -149,32 +123,32 @@ struct BaseExpoInterfaceContentDialog {
 
   
 
-  const std::shared_ptr<ExpoInterfaceContentDialogEventEmitter>& EventEmitter() const { return m_eventEmitter; }
-  const winrt::com_ptr<ExpoInterfaceContentDialogProps>& Props() const { return m_props; }
+  const std::shared_ptr<ExpoInterfaceMaterialEventEmitter>& EventEmitter() const { return m_eventEmitter; }
+  const winrt::com_ptr<ExpoInterfaceMaterialProps>& Props() const { return m_props; }
 
 private:
-  winrt::com_ptr<ExpoInterfaceContentDialogProps> m_props;
-  std::shared_ptr<ExpoInterfaceContentDialogEventEmitter> m_eventEmitter;
+  winrt::com_ptr<ExpoInterfaceMaterialProps> m_props;
+  std::shared_ptr<ExpoInterfaceMaterialEventEmitter> m_eventEmitter;
 };
 
 template <typename TUserData>
-void RegisterExpoInterfaceContentDialogNativeComponent(
+void RegisterExpoInterfaceMaterialNativeComponent(
     winrt::Microsoft::ReactNative::IReactPackageBuilder const &packageBuilder,
     std::function<void(const winrt::Microsoft::ReactNative::Composition::IReactCompositionViewComponentBuilder&)> builderCallback) noexcept {
   packageBuilder.as<winrt::Microsoft::ReactNative::IReactPackageBuilderFabric>().AddViewComponent(
-      L"ExpoInterfaceContentDialog", [builderCallback](winrt::Microsoft::ReactNative::IReactViewComponentBuilder const &builder) noexcept {
+      L"ExpoInterfaceMaterial", [builderCallback](winrt::Microsoft::ReactNative::IReactViewComponentBuilder const &builder) noexcept {
         auto compBuilder = builder.as<winrt::Microsoft::ReactNative::Composition::IReactCompositionViewComponentBuilder>();
 
         builder.SetCreateProps([](winrt::Microsoft::ReactNative::ViewProps props,
                               const winrt::Microsoft::ReactNative::IComponentProps& cloneFrom) noexcept {
-            return winrt::make<ExpoInterfaceContentDialogProps>(props, cloneFrom); 
+            return winrt::make<ExpoInterfaceMaterialProps>(props, cloneFrom); 
         });
 
         builder.SetUpdatePropsHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                      const winrt::Microsoft::ReactNative::IComponentProps &newProps,
                                      const winrt::Microsoft::ReactNative::IComponentProps &oldProps) noexcept {
             auto userData = view.UserData().as<TUserData>();
-            userData->UpdateProps(view, newProps ? newProps.as<ExpoInterfaceContentDialogProps>() : nullptr, oldProps ? oldProps.as<ExpoInterfaceContentDialogProps>() : nullptr);
+            userData->UpdateProps(view, newProps ? newProps.as<ExpoInterfaceMaterialProps>() : nullptr, oldProps ? oldProps.as<ExpoInterfaceMaterialProps>() : nullptr);
         });
 
         compBuilder.SetUpdateLayoutMetricsHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
@@ -187,10 +161,10 @@ void RegisterExpoInterfaceContentDialogNativeComponent(
         builder.SetUpdateEventEmitterHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                      const winrt::Microsoft::ReactNative::EventEmitter &eventEmitter) noexcept {
           auto userData = view.UserData().as<TUserData>();
-          userData->UpdateEventEmitter(std::make_shared<ExpoInterfaceContentDialogEventEmitter>(eventEmitter));
+          userData->UpdateEventEmitter(std::make_shared<ExpoInterfaceMaterialEventEmitter>(eventEmitter));
         });
 
-        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::FinalizeUpdate != &BaseExpoInterfaceContentDialog<TUserData>::FinalizeUpdate) {
+        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::FinalizeUpdate != &BaseExpoInterfaceMaterial<TUserData>::FinalizeUpdate) {
             builder.SetFinalizeUpdateHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                      winrt::Microsoft::ReactNative::ComponentViewUpdateMask mask) noexcept {
             auto userData = view.UserData().as<TUserData>();
@@ -198,7 +172,7 @@ void RegisterExpoInterfaceContentDialogNativeComponent(
           });
         } 
 
-        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::UpdateState != &BaseExpoInterfaceContentDialog<TUserData>::UpdateState) {
+        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::UpdateState != &BaseExpoInterfaceMaterial<TUserData>::UpdateState) {
           builder.SetUpdateStateHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                      const winrt::Microsoft::ReactNative::IComponentState &newState) noexcept {
             auto userData = view.UserData().as<TUserData>();
@@ -206,7 +180,7 @@ void RegisterExpoInterfaceContentDialogNativeComponent(
           });
         }
 
-        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::MountChildComponentView != &BaseExpoInterfaceContentDialog<TUserData>::MountChildComponentView) {
+        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::MountChildComponentView != &BaseExpoInterfaceMaterial<TUserData>::MountChildComponentView) {
           builder.SetMountChildComponentViewHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                       const winrt::Microsoft::ReactNative::MountChildComponentViewArgs &args) noexcept {
             auto userData = view.UserData().as<TUserData>();
@@ -214,7 +188,7 @@ void RegisterExpoInterfaceContentDialogNativeComponent(
           });
         }
 
-        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::UnmountChildComponentView != &BaseExpoInterfaceContentDialog<TUserData>::UnmountChildComponentView) {
+        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::UnmountChildComponentView != &BaseExpoInterfaceMaterial<TUserData>::UnmountChildComponentView) {
           builder.SetUnmountChildComponentViewHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                       const winrt::Microsoft::ReactNative::UnmountChildComponentViewArgs &args) noexcept {
             auto userData = view.UserData().as<TUserData>();
@@ -222,7 +196,7 @@ void RegisterExpoInterfaceContentDialogNativeComponent(
           });
         }
 
-        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::CreateAutomationPeer != &BaseExpoInterfaceContentDialog<TUserData>::CreateAutomationPeer) {
+        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::CreateAutomationPeer != &BaseExpoInterfaceMaterial<TUserData>::CreateAutomationPeer) {
             builder.SetCreateAutomationPeerHandler([](const winrt::Microsoft::ReactNative::ComponentView &view,
                                      const winrt::Microsoft::ReactNative::CreateAutomationPeerArgs& args) noexcept {
             auto userData = view.UserData().as<TUserData>();
@@ -232,13 +206,13 @@ void RegisterExpoInterfaceContentDialogNativeComponent(
 
         compBuilder.SetViewComponentViewInitializer([](const winrt::Microsoft::ReactNative::ComponentView &view) noexcept {
           auto userData = winrt::make_self<TUserData>();
-          if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::Initialize != &BaseExpoInterfaceContentDialog<TUserData>::Initialize) {
+          if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::Initialize != &BaseExpoInterfaceMaterial<TUserData>::Initialize) {
             userData->Initialize(view);
           }
           view.UserData(*userData);
         });
 
-        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::CreateVisual != &BaseExpoInterfaceContentDialog<TUserData>::CreateVisual) {
+        if CONSTEXPR_SUPPORTED_ON_VIRTUAL_FN_ADDRESS (&TUserData::CreateVisual != &BaseExpoInterfaceMaterial<TUserData>::CreateVisual) {
           compBuilder.SetCreateVisualHandler([](const winrt::Microsoft::ReactNative::ComponentView &view) noexcept {
             auto userData = view.UserData().as<TUserData>();
             return userData->CreateVisual(view);

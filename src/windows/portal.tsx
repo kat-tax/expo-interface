@@ -19,7 +19,8 @@ export interface PortalProps {
  * leave the accessibility tree: unmounting them or `display: none` would
  * destroy or zero the nested islands, after which react-native-windows' UI
  * Automation tree enumerates nothing on the page. The wrapping view is the
- * portal's one direct child, the one whose height the slot takes.
+ * portal's one direct child, the one whose height the slot takes, so it must
+ * not be flattened away: `collapsable={false}` keeps it a view of its own.
  */
 export function Portal({slot, children}: PortalProps) {
   const [ready, setReady] = useState(false);
@@ -30,7 +31,7 @@ export function Portal({slot, children}: PortalProps) {
       onReady={() => setReady(true)}
       onVisibleChange={event => setVisible(event.nativeEvent.visible)}>
       {ready ? (
-        <View accessibilityElementsHidden={!visible} importantForAccessibility={visible ? 'auto' : 'no-hide-descendants'}>
+        <View collapsable={false} accessibilityElementsHidden={!visible} importantForAccessibility={visible ? 'auto' : 'no-hide-descendants'}>
           {children}
         </View>
       ) : null}
