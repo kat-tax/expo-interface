@@ -77,6 +77,8 @@ codegen emitter. The specs in `src/windows/specs/` are the contract, and
 | `ExpoInterfaceInfoBar` | `InfoBar` | `Toast` |
 | `ExpoInterfaceNavigationView` | `NavigationView` | `Tabs` |
 | `ExpoInterfaceTabView` | `TabView` | `TabView` |
+| `ExpoInterfaceExpander` | `Expander`, its content area a slot for a portal | `Collapsible` |
+| `ExpoInterfacePortal` | No control: a react-native-windows portal whose React child renders inside another island's slot | `Collapsible` |
 
 The library also holds one native module, `ExpoInterfaceShare`, over
 `DataTransferManager` for `ShareLink`.
@@ -96,9 +98,17 @@ Two facts about islands shape the kit's Windows files:
   `pointerEvents` says. The kit's menu islands are therefore a one-pixel strip
   along the trigger's edge or a one-point anchor, never laid over the trigger.
 - An island holds XAML. A control that wraps content (`Expander`,
-  `SwipeControl`, `TabView` items, `Flyout` content) cannot hold the kit's
-  React Native content, so those components draw the content beside or under
-  the island instead.
+  `SwipeControl`, `TabView` items, `Flyout` content) holds the kit's React
+  Native content through a portal: the island registers its content area as a
+  slot, with the element WinUI clips the content to and whether the area is at
+  rest or animating, and `ExpoInterfacePortal` connects a React island into it
+  through a `ChildSiteLink`, in the same React tree. The portal places the
+  content from layout, follows the slot every frame while the control animates,
+  clips it where the control clips its own, sizes the slot from the content,
+  and carries focus in and out. The content mounts once the portal is
+  connected, and while the control hides it the content stays mounted, hidden
+  on the compositor and out of the accessibility tree. `Collapsible` is the
+  first component drawn this way.
 
 Menus, dropdowns, the popover and the alert open as windowed popups, which is
 why they can extend past their island.

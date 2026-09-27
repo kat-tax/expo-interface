@@ -116,6 +116,7 @@
     <ClInclude Include="AutoSuggest.h" />
     <ClInclude Include="Overlays.h" />
     <ClInclude Include="XamlHost.h" />
+    <ClInclude Include="Portal.h" />
     <ClInclude Include="YogaXamlPanel.h">
       <DependentUpon>YogaXamlPanel.idl</DependentUpon>
     </ClInclude>
@@ -133,6 +134,7 @@
     <ClCompile Include="Share.cpp" />
     <ClCompile Include="Overlays.cpp" />
     <ClCompile Include="XamlHost.cpp" />
+    <ClCompile Include="Portal.cpp" />
     <ClCompile Include="YogaXamlPanel.cpp">
       <DependentUpon>YogaXamlPanel.idl</DependentUpon>
     </ClCompile>

@@ -128,7 +128,9 @@ describe('@expo/ui universal controls (windows)', () => {
       </>,
     );
     expect(screen.getByText('Sheet body')).toBeOnTheScreen();
-    expect(screen.getByText('Advanced')).toBeOnTheScreen();
+    // The collapsible is a WinUI Expander island; its content arrives through a portal once connected.
+    expect(island('ExpoInterfaceExpander').props).toMatchObject({header: 'Advanced', expanded: true});
+    await fireIsland(island('ExpoInterfacePortal'), 'ready', {connected: true});
     expect(screen.getByText('Inside')).toBeOnTheScreen();
     expect(screen.getByText('GENERAL')).toBeOnTheScreen();
     expect(screen.getByText('Runs every hour.')).toBeOnTheScreen();

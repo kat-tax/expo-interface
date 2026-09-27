@@ -159,7 +159,13 @@ describe('@expo/ui/swift-ui layout (windows)', () => {
         </ui.NavigationStack>
       </ui.Form>,
     );
-    for (const text of ['General', 'Row', 'Note', 'Advanced', 'Item', 'cell', 'Group', 'c', 'Key', 'Value', 'Node', 'V2', 'Nothing', 'Add something', 'More', 'Details', 'Labelled', 'Go', 'Page', 'Tool']) expect(screen.getByText(text)).toBeOnTheScreen();
+    // The expandable section and the disclosure groups are WinUI Expander islands whose
+    // headers are props; their content arrives through portals once each is connected.
+    expect(island('ExpoInterfaceExpander', 0).props).toMatchObject({header: 'Advanced', expanded: false});
+    expect(island('ExpoInterfaceExpander', 1).props).toMatchObject({header: 'More', expanded: true});
+    expect(island('ExpoInterfaceExpander', 2).props.header).toBe('Labelled');
+    for (const index of [0, 1, 2]) await fireIsland(island('ExpoInterfacePortal', index), 'ready', {connected: true});
+    for (const text of ['General', 'Row', 'Note', 'Item', 'cell', 'Group', 'c', 'Key', 'Value', 'Node', 'V2', 'Nothing', 'Add something', 'Details', 'D2', 'Go', 'Page', 'Tool']) expect(screen.getByText(text)).toBeOnTheScreen();
     // A destination is pushed by SwiftUI's stack; nothing pushes here.
     expect(screen.queryByText('Pushed')).toBeNull();
     expect(screen.getByTestId('stack')).toBeOnTheScreen();

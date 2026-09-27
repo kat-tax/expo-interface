@@ -11,6 +11,7 @@
 #include "Inputs.h"
 #include "AutoSuggest.h"
 #include "Overlays.h"
+#include "Portal.h"
 
 using namespace winrt::Microsoft::ReactNative;
 
@@ -30,6 +31,7 @@ void ReactPackageProvider::CreatePackage(IReactPackageBuilder const &packageBuil
   RegisterInputs(packageBuilder);
   RegisterOverlays(packageBuilder);
   RegisterAutoSuggest(packageBuilder);
+  RegisterPortal(packageBuilder);
 #endif
 }
 

@@ -195,7 +195,7 @@ A tappable header that shows or hides its content. Controlled with
 | iOS | SwiftUI `DisclosureGroup` |
 | Android | `@expo/ui`'s Material 3 expandable list item |
 | Web | A real `<details>` and `<summary>` |
-| Windows | A drawn header row with a Segoe chevron. WinUI's `Expander` is the same row, but its content would have to be XAML, and a collapsible holds React Native content. |
+| Windows | A WinUI `Expander`, with the React Native content inside its content area through a portal (see [Windows](../platforms/windows.md#islands)). The content slides out from under the header and back as WinUI's own does, and leaves the accessibility tree and the tab order while the control is closed. |
 
 `children` must be `@expo/ui` content on iOS and Android.
 

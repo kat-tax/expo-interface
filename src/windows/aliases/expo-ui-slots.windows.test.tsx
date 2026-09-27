@@ -173,6 +173,8 @@ describe('@expo/ui defaults (windows)', () => {
     expect(screen.getByTestId('empty').props.children).toBeNull();
     expect(screen.getByTestId('z')).toHaveStyle({alignItems: 'flex-start'});
     expect(screen.getByText('plain section')).toBeOnTheScreen();
+    // An expandable section is a WinUI Expander island; its content arrives through a portal once connected.
+    await fireIsland(island('ExpoInterfacePortal'), 'ready', {connected: true});
     expect(screen.getByText('expanded section')).toBeOnTheScreen();
     expect(island(BUTTON, 0).props).toMatchObject({variant: 'filled'});
     await fireIsland(island(SLIDER), 'valueChange', {value: 0.5});

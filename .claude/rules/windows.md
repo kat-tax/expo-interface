@@ -24,16 +24,25 @@ Yoga through `ReportDesiredSize`.
 - **An island takes pointer input for itself regardless of RN `pointerEvents`.**
   An overlay island swallows presses meant for what is under it: anchors are a
   1-pixel strip or a 1x1 point.
-- **An island's root is white wherever its control is transparent.** Paint the
-  scheme's background in the RN tree behind it.
+- **A control's in-app acrylic paints white in an island** (it has no backdrop
+  target). Override the brush to transparent and paint the scheme's background
+  in the RN tree behind it, or give the island a `SystemBackdrop`, which renders
+  Mica and acrylic on a child island.
 - Call `EnsureXaml()` before any control.
 - When a prop replaces a control's content, the island must re-measure
   (`Remeasure()`), or Yoga keeps the old size.
 - Event names must not collide with core bubbling events (`onPress`,
   `onKeyPress`).
 - A control that wraps content (`Expander`, `SwipeControl`, `TabView` items,
-  `Flyout` content) cannot hold React Native content. Draw the content beside or
-  under the island instead.
+  `Flyout` content) holds React Native content through `ExpoInterfacePortal`
+  (`Portal.cpp`): the island registers a slot, its clip element and its motion
+  state; the portal connects a React island into it. Rules that cost real time:
+  islands under a portal mount only after the portal's `onReady`, or RNW aborts;
+  the portal's content is never hidden by unmounting or `display: none` (the
+  page's whole UI Automation tree then enumerates nothing), only on the
+  compositor; the placement visual hangs off the island root, positioned from
+  layout; WinUI's `Expanding` and `Collapsed` both fire as a motion starts;
+  never measure inside `LayoutUpdated`.
 
 ## The C++ toolchain
 
