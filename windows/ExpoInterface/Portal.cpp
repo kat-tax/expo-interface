@@ -737,11 +737,17 @@ struct PortalView : winrt::implements<PortalView, winrt::IInspectable>, Codegen:
     return width > 0 ? static_cast<float>(width) : 280.0f;
   }
 
+  /** The slot's maximum height, when its control gives it one; content taller than it scrolls inside. */
+  float SlotMaxHeight() const noexcept {
+    const auto max = m_grid ? m_grid.MaxHeight() : std::numeric_limits<double>::infinity();
+    return std::isfinite(max) && max > 0 ? static_cast<float>(max) : std::numeric_limits<float>::infinity();
+  }
+
   void UpdateConstraints(float width) noexcept {
     if (!m_state || !m_parentIsland) return;
     rn::LayoutConstraints constraints;
     constraints.MinimumSize = {width, 0};
-    constraints.MaximumSize = {width, std::numeric_limits<float>::infinity()};
+    constraints.MaximumSize = {width, SlotMaxHeight()};
     constraints.LayoutDirection = rn::LayoutDirection::Undefined;
     const auto direction = m_parentIsland.LayoutDirection();
     if (direction == content::ContentLayoutDirection::LeftToRight) constraints.LayoutDirection = rn::LayoutDirection::LeftToRight;
@@ -763,7 +769,7 @@ struct PortalView : winrt::implements<PortalView, winrt::IInspectable>, Codegen:
   /** The child laid out: the slot takes its height and the link its size, in whole points. */
   void Resize(const rn::LayoutMetrics &metrics) noexcept {
     if (!m_link || !m_grid) return;
-    const float height = std::ceil(metrics.Frame.Height);
+    const float height = std::min(std::ceil(metrics.Frame.Height), SlotMaxHeight());
     if (metrics.Frame.Width == 0 && height == 0) return;
     // A text line lays out 82.62 one pass and 83 the next; whole points keep
     // the slot, the island and the link still.

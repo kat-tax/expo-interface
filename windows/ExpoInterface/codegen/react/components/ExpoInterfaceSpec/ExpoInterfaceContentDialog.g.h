@@ -30,6 +30,7 @@ struct ExpoInterfaceContentDialogProps : winrt::implements<ExpoInterfaceContentD
        message = cloneFromProps->message;
        actions = cloneFromProps->actions;
        slot = cloneFromProps->slot;
+       lightDismiss = cloneFromProps->lightDismiss;
        accentColor = cloneFromProps->accentColor;
        theme = cloneFromProps->theme;
        onClose = cloneFromProps->onClose;  
@@ -54,6 +55,9 @@ struct ExpoInterfaceContentDialogProps : winrt::implements<ExpoInterfaceContentD
 
   REACT_FIELD(slot)
   std::optional<std::string> slot;
+
+  REACT_FIELD(lightDismiss)
+  std::optional<bool> lightDismiss{};
 
   REACT_FIELD(accentColor)
   std::optional<std::string> accentColor;

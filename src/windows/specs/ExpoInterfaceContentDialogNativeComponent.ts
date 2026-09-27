@@ -20,6 +20,8 @@ export interface NativeProps extends ViewProps {
   actions: string;
   /** Names a content slot in the body an `ExpoInterfacePortal` fills with React Native content. */
   slot?: string;
+  /** Whether a press on the smoke closes the dialog as the cancel action. */
+  lightDismiss?: boolean;
   accentColor?: string;
   theme?: CodegenTypes.WithDefault<'light' | 'dark' | 'system', 'system'>;
   onClose?: CodegenTypes.DirectEventHandler<ActionEvent>;

@@ -57,6 +57,14 @@ Yoga through `ReportDesiredSize`.
   (`ContentDialog` body), and the portal's layer must not clip to the root,
   which is a sizeless canvas there. An island that opens a popup on its first
   props is connected but not placed: the window frame is found a moment later.
+  A portal in a popup lives ONE presentation: RNW makes one island per portal
+  for its life (a second `CreatePortal` fail-fasts, a closed island cannot be
+  connected to a new link), and unmounting the content to remount it takes
+  its nested islands with it, which empties the page's UI Automation tree. So
+  `Sheet` and `Popover` stay React layers until RNW changes; the dialog's
+  `slot` is for a body shown once per mount. Keyboard focus does not enter a
+  popup by itself: the dialog focuses its first button, or the portal's tab
+  stop in the slot.
 
 ## The C++ toolchain
 

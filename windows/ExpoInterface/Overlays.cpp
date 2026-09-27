@@ -178,9 +178,10 @@ struct MenuFlyoutView : winrt::implements<MenuFlyoutView, winrt::IInspectable>,
  * A modal dialog over the whole window. WinUI's `ContentDialog` covers its
  * XamlRoot, and an island's XamlRoot is the island itself, so the dialog is
  * a windowed popup sized to the app window instead: a smoke layer and a card
- * in ContentDialog's arrangement — the title and the message in the body,
- * the first two actions across the bottom as the primary and secondary
- * buttons, the cancel action as the close button, any more in the body.
+ * in ContentDialog's arrangement, the title and the message in the body, a
+ * slot for a React Native body below them (through the kit's portal), the
+ * first two actions across the bottom as the primary and secondary buttons,
+ * the cancel action as the close button, any more in the body.
  */
 struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspectable>,
                            Codegen::BaseExpoInterfaceContentDialog<ContentDialogView>,
@@ -315,25 +316,30 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
     body.Padding({24, 24, 24, 24});
     body.Background(Brush(layer));
     body.CornerRadius({8, 8, 0, 0});
-    controls::TextBlock title;
-    title.Text(ToHString(props->title));
-    title.FontSize(20);
-    title.FontWeight(winrt::Microsoft::UI::Text::FontWeights::SemiBold());
-    title.TextWrapping(xaml::TextWrapping::Wrap);
-    body.Children().Append(title);
+    if (!props->title.empty()) {
+      controls::TextBlock title;
+      title.Text(ToHString(props->title));
+      title.FontSize(20);
+      title.FontWeight(winrt::Microsoft::UI::Text::FontWeights::SemiBold());
+      title.TextWrapping(xaml::TextWrapping::Wrap);
+      body.Children().Append(title);
+    }
     if (props->message && !props->message->empty()) {
       controls::TextBlock message;
       message.Text(ToHString(*props->message));
       message.TextWrapping(xaml::TextWrapping::Wrap);
-      message.Margin({0, 12, 0, 0});
+      if (body.Children().Size() > 0) message.Margin({0, 12, 0, 0});
       body.Children().Append(message);
     }
-    // A React Native body, through a portal naming the slot.
-    if (props->slot && !props->slot->empty()) {
+    // A React Native body, through a portal naming the slot. It lays out in
+    // the slot's width and, past the slot's height, scrolls inside it.
+    const bool hasSlot = props->slot && !props->slot->empty();
+    if (hasSlot) {
       controls::Grid slot;
       slot.HorizontalAlignment(xaml::HorizontalAlignment::Stretch);
       slot.MinHeight(8);
-      slot.Margin({0, 12, 0, 0});
+      slot.MaxHeight(std::max(120.0, height * 0.9 - 200.0));
+      if (body.Children().Size() > 0) slot.Margin({0, 12, 0, 0});
       body.Children().Append(slot);
       m_slotName = *props->slot;
       RegisterSlot(m_slotName, slot);
@@ -388,41 +394,59 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       place(button);
     }
 
-    // The card, centered on a smoke layer the size of the window.
-    controls::StackPanel column;
-    column.Children().Append(body);
-    if (row.Children().Size() > 0) column.Children().Append(row);
-    controls::Border card;
-    card.Child(column);
-    card.MinWidth(320);
-    card.MaxWidth(548);
-    card.Background(Brush(base));
-    card.BorderBrush(Brush(stroke));
-    card.BorderThickness({1, 1, 1, 1});
-    card.CornerRadius({8, 8, 8, 8});
-    card.HorizontalAlignment(xaml::HorizontalAlignment::Center);
-    card.VerticalAlignment(xaml::VerticalAlignment::Center);
-    controls::Grid smoke;
-    smoke.Width(width);
-    smoke.Height(height);
-    smoke.Background(Brush(Color{77, 0, 0, 0}));
-    smoke.RequestedTheme(Root().RequestedTheme());
-    smoke.Children().Append(card);
-    smoke.KeyDown([weak = get_weak()](const winrt::IInspectable &, const xaml::Input::KeyRoutedEventArgs &args) {
+    // The card centered on a smoke layer the size of the window.
+    auto escape = [weak = get_weak()](const winrt::IInspectable &, const xaml::Input::KeyRoutedEventArgs &args) {
       if (args.Key() != winrt::Windows::System::VirtualKey::Escape) return;
       if (auto strong = weak.get()) {
         args.Handled(true);
         strong->Close(strong->m_cancel);
       }
-    });
+    };
+    controls::StackPanel column;
+    column.Children().Append(body);
+    if (row.Children().Size() > 0) column.Children().Append(row);
+    controls::Border card;
+    card.Child(column);
+    // A React body wants a definite width to lay out in; XAML's own takes its content's.
+    if (hasSlot) {
+      card.Width(std::min(548.0, width - 48.0));
+    } else {
+      card.MinWidth(320);
+      card.MaxWidth(548);
+    }
+    card.Background(Brush(base));
+    card.BorderBrush(Brush(stroke));
+    card.BorderThickness({1, 1, 1, 1});
+    card.CornerRadius({8, 8, 8, 8});
+    card.RequestedTheme(Root().RequestedTheme());
+    card.KeyDown(escape);
+    controls::Grid smoke;
+    smoke.Width(width);
+    smoke.Height(height);
+    smoke.Background(Brush(Color{77, 0, 0, 0}));
+    smoke.RequestedTheme(Root().RequestedTheme());
+    smoke.KeyDown(escape);
+    if (props->lightDismiss.value_or(false)) {
+      smoke.Tapped([weak = get_weak()](const winrt::IInspectable &, const xaml::Input::TappedRoutedEventArgs &) {
+        if (auto strong = weak.get()) strong->Close(strong->m_cancel);
+      });
+    }
 
-    controls::Primitives::Popup popup;
-    popup.XamlRoot(root);
-    popup.ShouldConstrainToRootBounds(false);
-    popup.IsLightDismissEnabled(false);
+    auto makePopup = [&root](const xaml::UIElement &child) {
+      controls::Primitives::Popup popup;
+      popup.XamlRoot(root);
+      popup.ShouldConstrainToRootBounds(false);
+      popup.IsLightDismissEnabled(false);
+      popup.Child(child);
+      return popup;
+    };
+    // The card centered in the smoke, one windowed popup.
+    card.HorizontalAlignment(xaml::HorizontalAlignment::Center);
+    card.VerticalAlignment(xaml::VerticalAlignment::Center);
+    smoke.Children().Append(card);
+    auto popup = makePopup(smoke);
     popup.HorizontalOffset(offsetX);
     popup.VerticalOffset(offsetY);
-    popup.Child(smoke);
     popup.Closed([weak = get_weak()](const winrt::IInspectable &, const winrt::IInspectable &) {
       if (auto strong = weak.get()) strong->OnClosed();
     });
@@ -433,7 +457,21 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       m_popup = nullptr;
       return;
     }
-    if (first) first.Focus(xaml::FocusState::Programmatic);
+    if (first) {
+      first.Focus(xaml::FocusState::Programmatic);
+    } else if (hasSlot) {
+      // No button of its own: the keyboard goes to the React body, through the
+      // portal's tab stop in the slot, once the portal has put it there.
+      m_focus = winrt::Microsoft::UI::Dispatching::DispatcherQueue::GetForCurrentThread().CreateTimer();
+      m_focus.Interval(std::chrono::milliseconds(150));
+      m_focus.IsRepeating(false);
+      m_focus.Tick([weak = get_weak(), card](const winrt::IInspectable &, const winrt::IInspectable &) {
+        if (auto strong = weak.get(); strong && strong->m_popup) {
+          if (auto element = xaml::Input::FocusManager::FindFirstFocusableElement(card).try_as<xaml::UIElement>()) element.Focus(xaml::FocusState::Programmatic);
+        }
+      });
+      m_focus.Start();
+    }
   }
 
   void Close(int32_t picked) noexcept {
@@ -460,6 +498,7 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
   controls::Grid m_anchor{nullptr};
   controls::Primitives::Popup m_popup{nullptr};
   winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer m_retry{nullptr};
+  winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer m_focus{nullptr};
   int m_retries{0};
   std::string m_slotName;
   int32_t m_cancel{-1};
