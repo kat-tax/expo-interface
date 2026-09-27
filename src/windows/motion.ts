@@ -78,14 +78,17 @@ export function resolveTransition(animation: StackAnimation = 'default'): Transi
 
 /**
  * Whether a transition runs on the compositor. react-native-windows 0.84
- * animates a view's opacity and scale there, but a translation it animates
- * as `Translation.X` on a composition visual, which has no such property:
- * the view stays where the motion started. So what translates, the slides
- * and page refresh, runs on the JavaScript thread, and what fades and
- * scales, drill in and a fade, on the compositor.
+ * animates a view's opacity there. A translation it animates as
+ * `Translation.X` on a composition visual, which has no such property: the
+ * view stays where the motion started. A scale it animates as the visual's
+ * `Scale` while the scale the style rendered stays in the visual's own
+ * matrix, so the two multiply and a screen drilling in from 0.94 ends at
+ * 0.94, drawn smaller than it is laid out. So only what fades alone runs on
+ * the compositor; drill in, the slides and page refresh run on the
+ * JavaScript thread.
  */
 export function usesNativeDriver(transition: Transition): boolean {
-  return transition === 'drill' || transition === 'fade' || transition === 'none';
+  return transition === 'fade' || transition === 'none';
 }
 
 /** The curves WinUI's `Frame` plays its page transitions along, as cubic Béziers. */

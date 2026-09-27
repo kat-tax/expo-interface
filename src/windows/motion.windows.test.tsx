@@ -33,8 +33,8 @@ describe('the stack animations on Windows', () => {
     expect(resolveTransition('none')).toBe('none');
   });
 
-  it('runs what fades and scales on the compositor, and what translates on the JavaScript thread', () => {
-    expect(usesNativeDriver('drill')).toBe(true);
+  it('runs what only fades on the compositor, and what scales or translates on the JavaScript thread', () => {
+    expect(usesNativeDriver('drill')).toBe(false);
     expect(usesNativeDriver('fade')).toBe(true);
     expect(usesNativeDriver('none')).toBe(true);
     expect(usesNativeDriver('refresh')).toBe(false);
@@ -146,10 +146,10 @@ describe('useScreenMotion (windows)', () => {
     expect(result.current.arriving).toEqual({});
     expect(result.current.leaving).toBeNull();
     await rerender({current: drawn('detail', 1)});
-    // A track each for the arrival's scale and opacity and the departure's, on the compositor.
+    // A track each for the arrival's scale and opacity and the departure's, on the JavaScript thread since a scale is in them.
     expect(timing).toHaveBeenCalledTimes(4);
-    expect(timing).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({toValue: 1, duration: 783, delay: 0, useNativeDriver: true}));
-    expect(timing).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({toValue: 1.04, duration: 100, useNativeDriver: true}));
+    expect(timing).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({toValue: 1, duration: 783, delay: 0, useNativeDriver: false}));
+    expect(timing).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({toValue: 1.04, duration: 100, useNativeDriver: false}));
     expect(start).toHaveBeenCalledTimes(4);
     expect(result.current.leaving).toMatchObject({key: 'index', transition: 'drill', onTop: false});
     expect(result.current.arriving.transform).toEqual([{scale: expect.anything()}]);

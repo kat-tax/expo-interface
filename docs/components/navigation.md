@@ -30,10 +30,13 @@ over 150 ms, then the new one appears and rises 140 points over 300 ms.
 over 150 ms and goes, then the new one comes 200 points in from the other
 side over 300 ms. `slide_from_bottom` waits 250 ms, then rises 200 points
 over 350 ms while the old screen sinks. `fade` and `flip` are page refresh
-without the rise, and `none` is at once. Drill in and the fades run on the
-compositor. The slides and page refresh run on the JavaScript thread, since
-react-native-windows 0.84 does not animate a translation natively; that is
-react-native-windows' to fix, and an issue for it should be filed upstream.
+without the rise, and `none` is at once. The fades run on the compositor.
+Drill in, the slides and page refresh run on the JavaScript thread:
+react-native-windows 0.84 does not animate a translation natively, and a
+scale it animates natively is multiplied onto the scale the style already
+holds, so a screen would stay at the drill's first frame, drawn smaller than
+it is laid out. Both are react-native-windows' to fix, and issues for them
+should be filed upstream.
 The screen leaving keeps its state until it is gone. A screen with
 `presentation: 'modal'` (or `formSheet`, `containedModal`, `fullScreenModal`)
 is a card over smoke above the screen below, the way a WinUI dialog is
