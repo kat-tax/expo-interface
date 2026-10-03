@@ -45,13 +45,14 @@ export function HeaderMenu(props: HeaderMenuProps) {
 }
 
 function HeaderMenuTrigger({label, icon, items, hideLabel, tone = 'accent', disabled, onOpenChange, testID}: HeaderMenuProps) {
-  const {size, iconSize} = useHeaderTrigger();
+  const {size, iconSize, iconOnly} = useHeaderTrigger();
   return (
     <Menu
       label={label}
       icon={icon}
       items={items}
-      hideLabel={hideLabel}
+      // In a bar too narrow for labels the icon stands alone, when there is one.
+      hideLabel={hideLabel || (iconOnly && icon != null)}
       tone={tone}
       disabled={disabled}
       onOpenChange={onOpenChange}

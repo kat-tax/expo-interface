@@ -5,13 +5,13 @@ import type {TabBarProps, TabRoute, WebLogo} from './types';
 
 import {Tabs as WebTabs, TabSlot, TabList, TabTrigger} from 'expo-router/ui';
 import {View, Pressable, StyleSheet} from 'react-native';
-import {useState, useSyncExternalStore} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {SymbolView} from 'expo-symbols';
 import {Image} from 'expo-image';
 import app from 'expo-constants';
 
 import {theme, spacing, bound} from '../theme';
-import {HeaderSlotContext, InBarContext, TabBarContext, createHeaderSlot, noSubscription} from './context';
+import {HeaderSlotContext, InBarContext, NarrowBarContext, TabBarContext, createHeaderSlot, noSubscription, useNarrowBar} from './context';
 import {Headline, Label} from '../typography';
 
 export function Tabs({
@@ -95,6 +95,7 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
       />
     )
     : title == null && logo;
+  const {row, narrow} = useFit();
   return (
     // A landmark, not a `tablist`. These move between routes rather than
     // between panels in a page, so the honest markup is navigation — and a
@@ -103,7 +104,7 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
     // are). Named, because a page can hold more than one landmark and "banner"
     // alone tells a screen-reader user nothing.
     <View {...props} role="navigation" aria-label="Main" testID="tab-bar" style={[styles.list, !shown && styles.hidden]}>
-      <View testID="tab-bar-row" style={styles.inner}>
+      <View ref={row} testID="tab-bar-row" style={styles.inner}>
         <View style={styles.logo}>
           {header?.onBack ? <BackButton onPress={header.onBack}/> : mark}
           {title != null ? (
@@ -121,15 +122,54 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
           ) : null}
         </View>
         <InBarContext.Provider value={true}>
-          {actionsPlacement === 'before' ? trailing : null}
-          <View testID="tab-bar-tabs" style={[styles.tabs, hidden && styles.hidden]}>
-            {props.children}
-          </View>
-          {actionsPlacement === 'after' ? trailing : null}
+          <NarrowBarContext.Provider value={narrow}>
+            {actionsPlacement === 'before' ? trailing : null}
+            <View testID="tab-bar-tabs" style={[styles.tabs, hidden && styles.hidden]}>
+              {props.children}
+            </View>
+            {actionsPlacement === 'after' ? trailing : null}
+          </NarrowBarContext.Provider>
         </InBarContext.Provider>
       </View>
     </View>
   );
+}
+
+/**
+ * Whether the bar's row fits what is in it. The row is as wide as the window
+ * allows and clips what it cannot hold, so when its content is wider than it
+ * is, the tabs drop their labels (`NarrowBarContext`) and the row is read
+ * again. The width the labelled content needed is kept, and the labels come
+ * back once the row is that wide again, so the bar does not flip between
+ * the two states at one width. The row is read after every render, since
+ * what is in it changes with the screen (a folded header), and on a resize.
+ */
+function useFit(): {row: React.RefObject<View | null>; narrow: boolean} {
+  const row = useRef<View>(null);
+  const [narrow, setNarrow] = useState(false);
+  const needed = useRef(0);
+  const check = useCallback(() => {
+    // A react-native-web view's ref is its DOM element.
+    const element = row.current as unknown as HTMLElement | null;
+    if (!element) return;
+    const {clientWidth, scrollWidth} = element;
+    if (!narrow && scrollWidth > clientWidth) {
+      needed.current = scrollWidth;
+      setNarrow(true);
+    } else if (narrow && clientWidth >= needed.current) {
+      setNarrow(false);
+    }
+  }, [narrow]);
+  useLayoutEffect(check);
+  useEffect(() => {
+    const element = row.current as unknown as HTMLElement | null;
+    // A static render has no observer, and nothing to resize.
+    if (!element || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(check);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [check]);
+  return {row, narrow};
 }
 
 /** A pushed screen's back button, at the mark's size and in its place. */
@@ -150,14 +190,21 @@ function BackButton({onPress}: {onPress: () => void}) {
 }
 
 export function TabLink({children, isFocused, icon, badge, ...props}: TabTriggerSlotProps & {icon: TabRoute['icon']; badge?: TabRoute['badge']}) {
+  // In a bar too narrow for its labels the icon stands alone, and the name
+  // becomes the link's accessible name instead.
+  const narrow = useNarrowBar();
   return (
     // The tab standing for the route being shown is the current page, which is
     // what a screen reader announces to say where you are. Nothing else in the
     // bar said so before: every tab read identically.
-    <Pressable {...props} aria-current={isFocused ? 'page' : undefined} style={({pressed}) => pressed && styles.pressed}>
+    <Pressable
+      {...props}
+      aria-current={isFocused ? 'page' : undefined}
+      aria-label={narrow && typeof children === 'string' ? children : undefined}
+      style={({pressed}) => pressed && styles.pressed}>
       <View style={styles.link}>
         <SymbolView name={icon} size={18} tintColor={isFocused ? theme.label : theme.secondaryLabel}/>
-        <Label color={isFocused ? 'label' : 'secondaryLabel'}>{children}</Label>
+        {narrow ? null : <Label color={isFocused ? 'label' : 'secondaryLabel'}>{children}</Label>}
         {badge ? (
           <View style={styles.badge} testID="tab-badge">
             <Label color="onTint">{String(badge)}</Label>
@@ -198,6 +245,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     maxWidth: bound.contentMaxWidth,
+    // The row never grows past the window: it shrinks to what it is given and
+    // clips what it cannot hold, so the page never scrolls sideways; what it
+    // cannot hold is what makes it drop its labels (`useFit`).
+    minWidth: 0,
+    flexShrink: 1,
+    overflow: 'hidden',
     // Fixed, so a screen's folded header — a menu at the header's size, a
     // button — cannot make the bar taller than its own tabs do.
     height: BAR_HEIGHT,

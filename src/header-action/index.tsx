@@ -46,13 +46,14 @@ export function HeaderAction(props: HeaderActionProps) {
 }
 
 function HeaderActionTrigger({label, icon, onPress, hideLabel, tone = 'accent', disabled, testID}: HeaderActionProps) {
-  const {size, iconSize} = useHeaderTrigger();
+  const {size, iconSize, iconOnly} = useHeaderTrigger();
   return (
     <Button
       label={label}
       prefixIcon={icon}
       onPress={onPress}
-      hideLabel={hideLabel}
+      // In a bar too narrow for labels the icon stands alone, when there is one.
+      hideLabel={hideLabel || (iconOnly && icon != null)}
       tone={tone}
       disabled={disabled}
       variant="text"

@@ -3,7 +3,7 @@ import {Platform} from 'react-native';
 import {render as renderDom, screen as dom} from '@testing-library/react';
 import {act, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
-import {InBarContext} from '../tabs/context';
+import {InBarContext, NarrowBarContext} from '../tabs/context';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {HeaderMenu} from '.';
 
@@ -47,6 +47,20 @@ describe(`HeaderMenu (${Platform.OS})`, () => {
       // The bar is the height of its tabs; a header-sized button would grow it.
       expect(trigger).toHaveClass('ui-button--small');
       expect(trigger).not.toHaveClass('ui-button--medium');
+    });
+
+    it('shows the icon alone in a bar too narrow for labels, unless it has none', () => {
+      renderDom(
+        <InBarContext.Provider value={true}>
+          <NarrowBarContext.Provider value={true}>
+            <HeaderMenu label="New…" icon={icons.add} items={items}/>
+            <HeaderMenu label="Edit" items={items}/>
+          </NarrowBarContext.Provider>
+        </InBarContext.Provider>,
+      );
+      // The label stays the accessible name.
+      expect(dom.getByRole('button', {name: 'New…'})).toHaveClass('ui-button--icon-only');
+      expect(dom.getByRole('button', {name: 'Edit'})).not.toHaveClass('ui-button--icon-only');
     });
 
     it('takes the label tone, hides the label and disables', () => {

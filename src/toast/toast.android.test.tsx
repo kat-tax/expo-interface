@@ -50,7 +50,7 @@ describe('Toast (android)', () => {
     expect(report).toHaveBeenLastCalledWith(0);
     // The host is as tall as the snackbar Compose shows in it, and nothing
     // once it leaves: that height is what the screen's fab lifts by.
-    await fireEvent(screen.root, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 412, height: 60}}});
+    await fireEvent(screen.root!, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 412, height: 60}}});
     expect(report).toHaveBeenLastCalledWith(60);
 
     await rerender(

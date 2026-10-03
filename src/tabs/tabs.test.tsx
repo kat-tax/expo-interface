@@ -4,6 +4,9 @@ import {act, fireEvent, screen as dom, waitFor} from '@testing-library/react';
 import {screen} from '@testing-library/react-native';
 import Constants from 'expo-constants';
 import {router} from 'expo-router';
+import * as icons from '../__stories__/icons';
+import {HeaderAction} from '../header-action';
+import {HeaderMenu} from '../header-menu';
 import {colors} from '../theme';
 import {nodes} from 'expo-vitest/native';
 import {renderApp} from 'expo-vitest/router';
@@ -215,6 +218,105 @@ describe(`Tabs (${Platform.OS})`, () => {
         await waitFor(() => expect(getComputedStyle(home).opacity).toBe('0.7'));
         fireEvent.mouseUp(home);
         expect(getComputedStyle(home).opacity).not.toBe('0.7');
+      });
+
+      describe('in a window narrower than its labels', () => {
+        /** The row's widths as the browser would report them: what it has, and what its content needs. */
+        const widths = {client: 0, scroll: 0};
+        /** The resize observers the bar makes, to resize it from the test. */
+        const observers: ResizeObserverCallback[] = [];
+        const Observer = globalThis.ResizeObserver;
+        let clientWidth: ReturnType<typeof vi.spyOn>;
+        let scrollWidth: ReturnType<typeof vi.spyOn>;
+
+        beforeEach(() => {
+          // jsdom lays nothing out: the row's widths come from here, for every element.
+          clientWidth = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(() => widths.client);
+          scrollWidth = vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(() => widths.scroll);
+          observers.length = 0;
+          globalThis.ResizeObserver = class {
+            constructor(callback: ResizeObserverCallback) {
+              observers.push(callback);
+            }
+            observe() {}
+            unobserve() {}
+            disconnect() {}
+          } as unknown as typeof ResizeObserver;
+        });
+        afterEach(() => {
+          clientWidth.mockRestore();
+          scrollWidth.mockRestore();
+          globalThis.ResizeObserver = Observer;
+        });
+
+        const resize = async (client: number) => {
+          widths.client = client;
+          await act(async () => {
+            for (const observer of observers) observer([], {} as ResizeObserver);
+          });
+        };
+
+        it('drops the labels for the icons alone, and brings them back once there is room', async () => {
+          // A phone's width, with a row that needs more.
+          widths.client = 390;
+          widths.scroll = 456;
+          await renderApp(await app());
+          const [home, settings] = dom.getAllByRole('link');
+          // The names stay as the links' accessible names.
+          expect(home).toHaveAttribute('aria-label', 'Home');
+          expect(settings).toHaveAttribute('aria-label', 'Settings');
+          expect(home.textContent).toBe('');
+          expect(dom.getByText('Home screen')).toBeInTheDocument();
+
+          // Wide enough for what the labelled row needed: the labels return.
+          widths.scroll = 390;
+          await resize(456);
+          expect(home.textContent).toBe('Home');
+          expect(home).not.toHaveAttribute('aria-label');
+        });
+
+        it('leaves the labels alone while the row fits, and clips rather than scrolls', async () => {
+          widths.client = 600;
+          widths.scroll = 456;
+          await renderApp(await app());
+          const [home] = dom.getAllByRole('link');
+          expect(home.textContent).toBe('Home');
+          await resize(700);
+          expect(home.textContent).toBe('Home');
+          // What the row cannot hold is cut, never a sideways scroll of the page.
+          const style = getComputedStyle(dom.getByTestId('tab-bar-row'));
+          expect(style.overflowX).toBe('hidden');
+          expect(style.minWidth).toBe('0px');
+          expect(style.flexShrink).toBe('1');
+        });
+
+        it('shows a header control by its icon alone, and keeps one without an icon whole', async () => {
+          widths.client = 390;
+          widths.scroll = 456;
+          await renderApp(await app({
+            webActions: (
+              <>
+                <HeaderMenu label="More" icon={icons.add} items={[{label: 'New'}]}/>
+                <HeaderAction label="Share" icon={icons.share} onPress={() => {}}/>
+                <HeaderAction label="Save" onPress={() => {}}/>
+              </>
+            ),
+          }));
+          expect(dom.getByRole('button', {name: 'More'})).toHaveClass('ui-button--icon-only');
+          expect(dom.getByRole('button', {name: 'Share'})).toHaveClass('ui-button--icon-only');
+          expect(dom.getByRole('button', {name: 'Save'})).not.toHaveClass('ui-button--icon-only');
+          expect(dom.getByRole('button', {name: 'Save'}).textContent).toBe('Save');
+        });
+
+        it('reads the row once, without an observer, where there is none', async () => {
+          // A static render: nothing to resize, and no observer to make.
+          globalThis.ResizeObserver = undefined as unknown as typeof ResizeObserver;
+          widths.client = 390;
+          widths.scroll = 456;
+          await renderApp(await app());
+          expect(observers).toHaveLength(0);
+          expect(dom.getAllByRole('link')[0]).toHaveAttribute('aria-label', 'Home');
+        });
       });
     });
   } else {

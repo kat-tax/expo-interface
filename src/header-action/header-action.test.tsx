@@ -2,7 +2,7 @@ import {Platform} from 'react-native';
 import {fireEvent as fireDom, render as renderDom, screen as dom} from '@testing-library/react';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
-import {InBarContext} from '../tabs/context';
+import {InBarContext, NarrowBarContext} from '../tabs/context';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {HeaderAction} from '.';
 
@@ -43,6 +43,19 @@ describe(`HeaderAction (${Platform.OS})`, () => {
       const trigger = dom.getByRole('button', {name: 'Copy'});
       expect(trigger).toHaveClass('ui-button--small');
       expect(trigger).not.toHaveClass('ui-button--medium');
+    });
+
+    it('shows the icon alone in a bar too narrow for labels, unless it has none', () => {
+      renderDom(
+        <InBarContext.Provider value={true}>
+          <NarrowBarContext.Provider value={true}>
+            <HeaderAction label="Copy" icon={icons.share} onPress={vi.fn()}/>
+            <HeaderAction label="Save" onPress={vi.fn()}/>
+          </NarrowBarContext.Provider>
+        </InBarContext.Provider>,
+      );
+      expect(dom.getByRole('button', {name: 'Copy'})).toHaveClass('ui-button--icon-only');
+      expect(dom.getByRole('button', {name: 'Save'})).not.toHaveClass('ui-button--icon-only');
     });
 
     it('takes the label tone, hides the label and does not press while disabled', () => {

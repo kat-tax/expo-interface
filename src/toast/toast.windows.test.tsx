@@ -27,7 +27,7 @@ describe('Toast (windows)', () => {
       </ToastInsetContext.Provider>,
     );
     expect(report).toHaveBeenLastCalledWith(0);
-    await fireEvent(screen.root, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 800, height: 50}}});
+    await fireEvent(screen.root!, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 800, height: 50}}});
     expect(report).toHaveBeenLastCalledWith(50 + spacing.four);
 
     await rerender(

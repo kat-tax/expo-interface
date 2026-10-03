@@ -27,6 +27,19 @@ export function useInBar(): boolean {
   return useContext(InBarContext);
 }
 
+/** True while the web tab bar is too narrow for its labels — see {@link useNarrowBar}. */
+export const NarrowBarContext = createContext(false);
+
+/**
+ * Whether the web tab bar has dropped its labels for want of room (a phone's
+ * width): the tabs show their icons alone, and a header control in the bar
+ * with an icon of its own shows that alone too, its label kept as the
+ * accessible name.
+ */
+export function useNarrowBar(): boolean {
+  return useContext(NarrowBarContext);
+}
+
 /** A screen's header, as the web tab bar draws it — see {@link HeaderSlot}. */
 export interface WebHeader {
   /**

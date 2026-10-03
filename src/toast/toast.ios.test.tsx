@@ -29,7 +29,7 @@ describe('Toast (ios)', () => {
     );
     // Nothing until the strip is measured.
     expect(report).toHaveBeenLastCalledWith(0);
-    await fireEvent(screen.root, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 44}}});
+    await fireEvent(screen.root!, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 44}}});
     // The capsule and the gap under it, which a fab has to clear.
     expect(report).toHaveBeenLastCalledWith(44 + spacing.four);
 
