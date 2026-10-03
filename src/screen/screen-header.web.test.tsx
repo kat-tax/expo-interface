@@ -1,7 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {Button} from '../button';
-import {bound, inset} from '../theme';
+import {bound, inset, theme} from '../theme';
 import {TabBarContext} from '../tabs/context';
 import {ScreenHeader} from './header';
 
@@ -29,6 +29,28 @@ describe('ScreenHeader (web)', () => {
   it('renders the trailing slot', () => {
     mount(<ScreenHeader title="Settings" trailing={<Button label="Done"/>}/>);
     expect(screen.getByRole('button', {name: 'Done'})).toBeInTheDocument();
+  });
+
+  it('paints the background by default, and hands the bar to the stylesheet for a material', () => {
+    mount(<ScreenHeader title="Settings"/>);
+    const bar = () => screen.getByText('Settings').parentElement!.parentElement!;
+    expect(getComputedStyle(bar()).backgroundColor).toBe(theme.background);
+    expect(bar()).not.toHaveAttribute('data-material');
+
+    // The screen's background thinned over a blur, with a hairline along the
+    // bottom: drawn by `material.css` from these attributes, so the bar's own
+    // fill stays off.
+    const {unmount} = mount(<ScreenHeader title="Glass" material="thin"/>);
+    const glass = screen.getByText('Glass').parentElement!.parentElement!;
+    expect(glass).toHaveAttribute('data-material', 'thin');
+    expect(glass).toHaveAttribute('data-material-fill', 'background');
+    expect(glass).toHaveAttribute('data-material-edge', 'bottom');
+    expect(getComputedStyle(glass).backgroundColor).not.toBe(theme.background);
+    unmount();
+
+    // `none` is the default said out loud.
+    mount(<ScreenHeader title="Plain" material="none"/>);
+    expect(screen.getByText('Plain').parentElement!.parentElement!).not.toHaveAttribute('data-material');
   });
 
   it('applies no safe-area padding on web, and clears a floating tab bar', () => {

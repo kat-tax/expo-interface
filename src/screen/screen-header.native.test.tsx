@@ -51,4 +51,11 @@ describe(`ScreenHeader (${Platform.OS})`, () => {
     expect(bar.backgroundColor).toBe(colors.light.background);
     expect(inner.maxWidth).toBe(bound.contentMaxWidth);
   });
+
+  it('stays opaque with a material, which is the web bar\'s alone', async () => {
+    await mount(<ScreenHeader title="Settings" material="regular"/>);
+    const [, bar] = nodes();
+    expect(StyleSheet.flatten(bar.props.style).backgroundColor).toBeUndefined();
+    expect(bar.props.dataSet).toBeUndefined();
+  });
 });

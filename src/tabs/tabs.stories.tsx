@@ -58,3 +58,12 @@ export const WithActions: Story = {
 export const Hidden: Story = {
   args: {hidden: true},
 };
+
+/**
+ * The bar as a material (web): its fill thinned over a blur of what scrolls
+ * under it, with a hairline and a soft shadow at its edge. Content passes
+ * under it on a `Screen underBar`.
+ */
+export const Glass: Story = {
+  args: {webMaterial: 'regular'},
+};

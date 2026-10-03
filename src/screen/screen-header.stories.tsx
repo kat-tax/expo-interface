@@ -36,3 +36,8 @@ export const LongTitle: Story = {
     trailing: <Button label="Done" variant="text" onPress={fn()}/>,
   },
 };
+
+/** The bar as a material (web): the background thinned over a blur of what the app lays under it. */
+export const Glass: Story = {
+  args: {material: 'regular'},
+};

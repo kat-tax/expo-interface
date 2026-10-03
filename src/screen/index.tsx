@@ -49,6 +49,15 @@ export interface ScreenProps extends PropsWithChildren {
   /** Whether to apply a horizontal padding to the screen. */
   gutter?: boolean;
   /**
+   * Web only: the content starts under the floating tab bar rather than
+   * below it, for a scrolling screen whose content should pass under a
+   * material bar (`Tabs webMaterial`) and show through it. Pad the scroll
+   * content's top by `useTabBarInset()` so its first row starts clear of the
+   * bar. Natively the top inset is already nothing, so this changes nothing.
+   * @default false
+   */
+  underBar?: boolean;
+  /**
    * A floating action button (`Fab`) the screen places itself: bottom
    * trailing, `spacing.three` from the edges plus the safe-area bottom inset
    * natively (which includes the tab bar when the screen shows one), fixed
@@ -63,6 +72,7 @@ export function Screen({
   native = false,
   header,
   gutter = false,
+  underBar = false,
   fab,
 }: ScreenProps) {
   const seed = useAccentSeed();
@@ -82,7 +92,7 @@ export function Screen({
       style={{flex: 1, backgroundColor}}
       edges={underHeader ? CONTENT_EDGES : undefined}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'}/>
-      <View style={[styles.root, {paddingTop: underHeader ? 0 : theme.inset.topBar}]}>
+      <View style={[styles.root, {paddingTop: underHeader || underBar ? 0 : theme.inset.topBar}]}>
         <View style={[styles.content, gutter ? styles.gutter : undefined]}>
           <ToastInsetContext.Provider value={lift.report}>
             {!native ? children : (

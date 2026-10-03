@@ -7,7 +7,7 @@ import {router} from 'expo-router';
 import * as icons from '../__stories__/icons';
 import {HeaderAction} from '../header-action';
 import {HeaderMenu} from '../header-menu';
-import {colors} from '../theme';
+import {colors, theme} from '../theme';
 import {nodes} from 'expo-vitest/native';
 import {renderApp} from 'expo-vitest/router';
 
@@ -218,6 +218,25 @@ describe(`Tabs (${Platform.OS})`, () => {
         await waitFor(() => expect(getComputedStyle(home).opacity).toBe('0.7'));
         fireEvent.mouseUp(home);
         expect(getComputedStyle(home).opacity).not.toBe('0.7');
+      });
+
+      it('paints a solid fill by default', async () => {
+        await renderApp(await app());
+        const row = dom.getByTestId('tab-bar-row');
+        expect(getComputedStyle(row).backgroundColor).toBe(theme.backgroundElement);
+        expect(row).not.toHaveAttribute('data-material');
+      });
+
+      it('hands the row to the stylesheet for a material', async () => {
+        // The material is the sheet's scale, drawn by `material.css` from
+        // these attributes; the row's own fill stays off so it cannot paint
+        // over the blur.
+        await renderApp(await app({webMaterial: 'regular'}));
+        const row = dom.getByTestId('tab-bar-row');
+        expect(row).toHaveAttribute('data-material', 'regular');
+        expect(row).toHaveAttribute('data-material-fill', 'element');
+        expect(row).toHaveAttribute('data-material-edge', 'all');
+        expect(getComputedStyle(row).backgroundColor).not.toBe(theme.backgroundElement);
       });
 
       describe('in a window narrower than its labels', () => {

@@ -17,9 +17,11 @@ button.
 
 Props: `native` (mount an `@expo/ui` host around the screen), `header`
 (the screen sits under a stack header and skips the top inset; inferred under
-`TabStack`), `gutter` (horizontal padding), `fab` (a node placed at the bottom
-trailing corner, above the safe area and the tab bar, lifted above a `Toast`
-while one shows).
+`TabStack`), `gutter` (horizontal padding), `underBar` (web: the content
+starts under the floating tab bar rather than below it, for a scrolling
+screen that passes under a material bar; its scroll content pads its top by
+`useTabBarInset()`), `fab` (a node placed at the bottom trailing corner,
+above the safe area and the tab bar, lifted above a `Toast` while one shows).
 
 | Platform | Renders |
 | --- | --- |
@@ -34,12 +36,13 @@ Content is capped at 800 points and centered on every platform.
 A header bar with a title, an optional back button and a trailing slot, for a
 screen that draws its own header.
 
-Props: `title`, `onBack`, `trailing`, `dragRegion` (Windows: the row drags
-the window while the content is in the title bar).
+Props: `title`, `onBack`, `trailing`, `material` (web: `none`, `thin`,
+`regular`, `thick`), `dragRegion` (Windows: the row drags the window while
+the content is in the title bar).
 
 | Platform | Renders |
 | --- | --- |
-| iOS, Android, Web | A 64-point row under the status bar (under the floating tab bar on web), a chevron or arrow back button, a single-line title |
+| iOS, Android, Web | A 64-point row under the status bar (under the floating tab bar on web), a chevron or arrow back button, a single-line title. On web `material` thins the background over a blur of what the app lays under the bar, with a hairline along the bottom edge, and is solid where the blur cannot be had or is not wanted. |
 | Windows | A 48-point row like a WinUI title row, a Segoe back glyph, the caption buttons' room left at the ends, and `titleNode` and `leading` slots |
 
 ## NativeHost

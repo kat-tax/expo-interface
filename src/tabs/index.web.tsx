@@ -1,5 +1,6 @@
 import type {TabTriggerSlotProps, TabListProps} from 'expo-router/ui';
 import type {ReactNode} from 'react';
+import type {SheetMaterial} from '../sheet/types';
 import type {HeaderSlot} from './context';
 import type {TabBarProps, TabRoute, WebLogo} from './types';
 
@@ -11,6 +12,8 @@ import {Image} from 'expo-image';
 import app from 'expo-constants';
 
 import {theme, spacing, bound} from '../theme';
+import {materialProps} from '../material';
+import {hasMaterial} from '../sheet/shared';
 import {HeaderSlotContext, InBarContext, NarrowBarContext, TabBarContext, createHeaderSlot, noSubscription, useNarrowBar} from './context';
 import {Headline, Label} from '../typography';
 
@@ -22,6 +25,7 @@ export function Tabs({
   webActions,
   webActionsPlacement = 'before',
   webFoldHeader = true,
+  webMaterial = 'none',
 }: TabBarProps) {
   // One slot per bar, built once: the headers below publish into it.
   const [store] = useState(createHeaderSlot);
@@ -44,7 +48,7 @@ export function Tabs({
           <TabSlot style={styles.slot}/>
           {/* The triggers stay in the list even while the bar is hidden: that is where the router looks for the routes. */}
           <TabList asChild>
-            <WebTabList logo={webLogo} icon={webIcon} slot={slot} hidden={hidden} shown={shown} actions={webActions} actionsPlacement={webActionsPlacement}>
+            <WebTabList logo={webLogo} icon={webIcon} slot={slot} hidden={hidden} shown={shown} actions={webActions} actionsPlacement={webActionsPlacement} material={webMaterial}>
               {routes.map(route => (
                 <TabTrigger key={route.name} name={route.name} href={route.href} asChild>
                   <TabLink icon={route.icon} badge={route.badge}>{route.label}</TabLink>
@@ -69,9 +73,11 @@ interface WebTabListProps extends TabListProps {
   shown?: boolean;
   actions?: ReactNode;
   actionsPlacement?: 'before' | 'after';
+  /** The bar's material (`Tabs webMaterial`): a blur of what passes under it, or its solid fill. */
+  material?: SheetMaterial;
 }
 
-export function WebTabList({logo, icon, slot, hidden = false, shown = true, actions, actionsPlacement = 'before', ...props}: WebTabListProps) {
+export function WebTabList({logo, icon, slot, hidden = false, shown = true, actions, actionsPlacement = 'before', material = 'none', ...props}: WebTabListProps) {
   // As in `Tabs`: one reader for the live bar and for a static render, which
   // has no published header either way.
   const read = () => (slot ? slot.get() : null);
@@ -104,7 +110,8 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
     // are). Named, because a page can hold more than one landmark and "banner"
     // alone tells a screen-reader user nothing.
     <View {...props} role="navigation" aria-label="Main" testID="tab-bar" style={[styles.list, !shown && styles.hidden]}>
-      <View ref={row} testID="tab-bar-row" style={styles.inner}>
+      {/* A material paints the row through the stylesheet, so the row's own fill stays off then. */}
+      <View ref={row} testID="tab-bar-row" style={[styles.inner, !hasMaterial(material) && styles.solid]} {...materialProps(material, 'element', 'all')}>
         <View style={styles.logo}>
           {header?.onBack ? <BackButton onPress={header.onBack}/> : mark}
           {title != null ? (
@@ -257,6 +264,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.five,
     gap: spacing.three,
     borderRadius: spacing.five,
+  },
+  solid: {
     backgroundColor: theme.backgroundElement,
   },
   logo: {

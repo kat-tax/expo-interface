@@ -76,6 +76,11 @@ describe('Screen (web)', () => {
 
     rerender(<SafeAreaProvider><Screen header><View testID="kid"/></Screen></SafeAreaProvider>);
     expect(paddingTop()).toBe('0px');
+
+    // A screen whose content passes under a material bar pays no inset at
+    // the root either: its scroll content pads itself by `useTabBarInset()`.
+    rerender(<SafeAreaProvider><Screen underBar><View testID="kid"/></Screen></SafeAreaProvider>);
+    expect(paddingTop()).toBe('0px');
   });
 
   it('pads the content horizontally with gutter', () => {

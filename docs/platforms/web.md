@@ -28,4 +28,12 @@ Styles live in a `.css` file beside each component. The palette is CSS
 custom properties from `getThemeCSS()`, the accent is `--color-tint` set by
 `AccentProvider`, and a forced scheme is `data-theme` on the root.
 
+The kit's materials (`Sheet material`, `Tabs webMaterial`, `ScreenHeader
+material`) are `backdrop-filter` under a fill thinned with `color-mix`, on
+the sheet's own scale of opacity and radius per thickness. The bar and the
+header take theirs from `src/material/material.css` through `data-material`
+attributes. `@supports` falls back to the solid fill where the blur is not
+available, and so do `prefers-reduced-transparency: reduce` and
+`forced-colors: active`.
+
 The Material Symbols font is registered by the kit on import.

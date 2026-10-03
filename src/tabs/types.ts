@@ -2,6 +2,7 @@ import type {Href} from 'expo-router';
 import type {SFSymbol, AndroidSymbol} from 'expo-symbols';
 import type {ReactNode} from 'react';
 import type {ImageSource} from 'expo-image';
+import type {SheetMaterial} from '../sheet/types';
 
 /**
  * Props for the tab bar component.
@@ -62,6 +63,19 @@ export interface TabBarProps {
    * @default 'before'
    */
   webActionsPlacement?: 'before' | 'after';
+  /**
+   * Web only: draws the bar as one of the kit's materials, the ones `Sheet`
+   * takes: its fill thinned over a blur of what scrolls under it, a hairline
+   * in the separator color at its edge and a soft shadow. Where the browser
+   * has no `backdrop-filter`, under a reduced-transparency setting and in
+   * forced colors the bar is solid instead. `regular` and `thick` keep the
+   * labels legible over any content in both schemes; `thin` lets more
+   * through than that in the dark scheme, so use it over the app's own
+   * background. Content passes under the bar only on a `Screen underBar`;
+   * otherwise the bar sits over the screen's background alone.
+   * @default 'none'
+   */
+  webMaterial?: SheetMaterial;
   /**
    * Web only: the bar takes the header of the screen under it — the title
    * (with a back button on a pushed screen) in the logo slot, `headerRight`

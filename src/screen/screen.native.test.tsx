@@ -77,6 +77,12 @@ describe(`Screen (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(root.props.style).paddingTop).toBe(inset.topBar);
   });
 
+  it('changes nothing for underBar, since the top inset is already nothing natively', async () => {
+    await render(<Screen underBar><View/></Screen>);
+    expect(StyleSheet.flatten(parts().root.props.style).paddingTop).toBe(0);
+    expect(inset.topBar).toBe(0);
+  });
+
   it('drops the top edge and inset under a stack header', async () => {
     await render(<Screen header><View/></Screen>);
     const {safeArea, root} = parts();

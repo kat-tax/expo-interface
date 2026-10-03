@@ -72,8 +72,9 @@ The app's section tabs for Expo Router.
 Props: `routes` (`name`, `href`, `label`, `icon`, `badge`,
 `windowsPlacement`), `hidden`, and per platform: `webLogo` (`icon-only`,
 `text-only`, `icon-and-text` or a node), `webIcon`, `webActions`,
-`webActionsPlacement`, `webFoldHeader`, `windowsPane` (`top`, `left`,
-`compact`, `minimal`, `auto`).
+`webActionsPlacement`, `webFoldHeader`, `webMaterial` (`none`, `thin`,
+`regular`, `thick`), `windowsPane` (`top`, `left`, `compact`, `minimal`,
+`auto`).
 
 | Platform | Renders |
 | --- | --- |
@@ -94,6 +95,18 @@ than the bar while a pushed screen's header is folded in;
 On web the bar is a `navigation` landmark of links, not a `tablist`, since the
 tabs move between routes rather than panels; the active one carries
 `aria-current="page"`, and a pushed screen's title is the page's `h1`.
+
+`webMaterial` draws the bar as one of the kit's materials, the ones `Sheet`
+takes: its fill thinned over a blur of what scrolls under it, a hairline in
+the separator color at its edge and a soft shadow, so the web reads as the
+same app as iOS, whose bars are glass. The bar is solid where the browser has
+no `backdrop-filter`, under a reduced-transparency setting and in forced
+colors. `regular` and `thick` keep the labels legible over any content in
+both schemes; `thin` lets more through than that in the dark scheme, so use
+it over the app's own background. A screen's content passes under the bar
+only on a `Screen underBar`, whose scroll content pads its top by
+`useTabBarInset()`; otherwise the bar sits over the screen's background
+alone.
 
 The Windows pane width is measured rather than read from the window, since
 react-native-windows reports no dimension change when the window is resized.
