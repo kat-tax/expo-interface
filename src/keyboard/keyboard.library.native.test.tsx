@@ -75,18 +75,21 @@ describe(`KeyboardBar with the keyboard library (${Platform.OS})`, () => {
     const bar = screen.getByTestId('bar').parent!;
     expect(bar.props.style).toEqual(expect.arrayContaining([{backgroundColor: colors.light.background}, {paddingTop: 4}]));
 
+    // The measure is taken on the wrapper around the sticky view, which the
+    // keyboard never moves, so it holds while the keyboard is up as well: a
+    // screen that mounts under an open keyboard still learns what lies under
+    // its bar.
     await setKeyboard({isVisible: true, height: 300});
     expect(onKeyboard).toHaveBeenLastCalledWith(300);
-    // While the keyboard is up the bar is not re-measured (it has moved).
-    await fireEvent(bar, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 0, height: 0}}});
-    expect(measure).not.toHaveBeenCalled();
-    expect(screen.getByLabelText('opened 0')).toBeOnTheScreen();
+    const wrapper = sticky.parent!;
+    await fireEvent(wrapper, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 0, height: 0}}});
+    expect(measure).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText('opened 40')).toBeOnTheScreen();
 
-    // Once it is away the bar measures what lies under it in the window.
     await setKeyboard({isVisible: false, height: 300});
     expect(onKeyboard).toHaveBeenLastCalledWith(0);
-    await fireEvent(bar, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 0, height: 0}}});
-    expect(measure).toHaveBeenCalledTimes(1);
+    await fireEvent(wrapper, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 0, height: 0}}});
+    expect(measure).toHaveBeenCalledTimes(2);
     expect(screen.getByLabelText('opened 40')).toBeOnTheScreen();
     measure.mockRestore();
   });

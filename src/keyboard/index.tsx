@@ -56,21 +56,23 @@ function Sticky({library: {KeyboardStickyView, useKeyboardState}, background, ch
   }, [height, onKeyboard]);
   // The keyboard's height is from the window's bottom edge, the bar sits
   // above the navigation inset: the sticky translation is corrected by what
-  // lies under the bar, measured while the keyboard is away (a measure while
-  // it is up would see the bar moved).
+  // lies under the bar. That is measured on a wrapper around the sticky view,
+  // which the keyboard never moves, so the measure holds whenever the bar is
+  // laid out, including on a screen that mounts while the keyboard is up.
   const window = useWindowDimensions().height;
   const view = useRef<View>(null);
   const [below, setBelow] = useState(0);
   const onLayout = useCallback(() => {
-    if (height > 0) return;
     view.current?.measureInWindow((_x, y, _w, h) => setBelow(Math.max(0, window - (y + h))));
-  }, [height, window]);
+  }, [window]);
   return (
-    <KeyboardStickyView offset={{opened: below}}>
-      <View ref={view} onLayout={onLayout} style={[styles.bar, {backgroundColor: background}, style]}>
-        {children}
-      </View>
-    </KeyboardStickyView>
+    <View ref={view} onLayout={onLayout} style={styles.bar}>
+      <KeyboardStickyView offset={{opened: below}}>
+        <View style={[styles.bar, {backgroundColor: background}, style]}>
+          {children}
+        </View>
+      </KeyboardStickyView>
+    </View>
   );
 }
 
