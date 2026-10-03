@@ -1,11 +1,12 @@
 import type {ToastProps} from './types';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import {Platform, StyleSheet, View} from 'react-native';
 import {Button} from '../button';
 import {NativeHost} from '../host';
 import {Surface} from '../surface';
 import {Footnote} from '../typography';
 import {spacing} from '../theme';
+import {useToastInset} from './context';
 import {TOAST_DURATION} from './types';
 
 /**
@@ -20,11 +21,15 @@ export function Toast({message, visible, action, onDismiss, duration = TOAST_DUR
     const timer = setTimeout(onDismiss, duration);
     return () => clearTimeout(timer);
   }, [visible, message, duration, onDismiss]);
+  // What the toast covers of the screen's bottom edge, for its fab to clear:
+  // the capsule and the gap under it.
+  const [height, setHeight] = useState(0);
+  useToastInset(visible && height > 0 ? height + spacing.four : 0);
 
   if (!visible) return null;
 
   return (
-    <View style={styles.slot}>
+    <View style={styles.slot} onLayout={event => setHeight(event.nativeEvent.layout.height)}>
       <Surface
         raised
         radius="pill"

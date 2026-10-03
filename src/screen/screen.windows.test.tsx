@@ -1,15 +1,26 @@
+import {useContext, useEffect} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {PlatformColor, Text, View} from 'react-native';
+import {Animated, PlatformColor, Text, View} from 'react-native';
 import {useNativeHost} from '../host';
 import {setColorScheme} from '../scheme';
 import {StackHeaderContext} from '../stack-header/context';
 import {bound, colors, spacing} from '../theme';
+import {ToastInsetContext} from '../toast/context';
 import {ScreenHeader} from './header';
 import {hostAccentProps} from './host-accent';
 import {Screen} from '.';
 
 function Hosted() {
   return <Text>{useNativeHost() ? 'hosted' : 'bare'}</Text>;
+}
+
+/** What a toast under the screen does: reports what it covers of the bottom edge. */
+function ToastStandIn({height}: {height: number}) {
+  const report = useContext(ToastInsetContext);
+  useEffect(() => {
+    report(height);
+  }, [height, report]);
+  return null;
 }
 
 describe('Screen (windows)', () => {
@@ -48,6 +59,21 @@ describe('Screen (windows)', () => {
     await render(<Screen fab={<Text>Add</Text>}><View/></Screen>);
     expect(screen.getByTestId('screen-fab')).toHaveStyle({position: 'absolute', right: spacing.three, bottom: spacing.three});
     expect(screen.getByText('Add')).toBeOnTheScreen();
+  });
+
+  it('lifts the floating action button above a toast that reports its height', async () => {
+    const timing = vi.spyOn(Animated, 'timing');
+    try {
+      await render(
+        <Screen fab={<Text>Add</Text>}>
+          <ToastStandIn height={74}/>
+        </Screen>,
+      );
+      expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({toValue: -74, useNativeDriver: true}));
+      expect(screen.getByText('Add')).toBeOnTheScreen();
+    } finally {
+      timing.mockRestore();
+    }
   });
 
   it('has no host to seed', () => {

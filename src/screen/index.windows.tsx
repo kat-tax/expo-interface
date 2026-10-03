@@ -1,9 +1,11 @@
 import type {ScreenProps} from './index';
-import {StyleSheet, View} from 'react-native';
+import {Animated, StyleSheet, View} from 'react-native';
 import {NativeHostContext} from '../host/context';
 import {useStackHeader} from '../stack-header/context';
 import {useColorScheme} from '../scheme';
+import {ToastInsetContext} from '../toast/context';
 import * as theme from '../theme';
+import {useToastLift} from './lift';
 
 /**
  * Windows: a desktop window has no safe areas, no status bar to color and no
@@ -18,22 +20,25 @@ export function Screen({children, native = false, header, gutter = false, fab}: 
   const underHeader = header ?? stackHeader;
   const scheme = useColorScheme();
   const backgroundColor = theme.colors[scheme].background;
+  const lift = useToastLift();
 
   return (
     <View style={[styles.screen, {backgroundColor}]}>
       <View style={[styles.root, {paddingTop: underHeader ? 0 : theme.inset.topBar}]}>
         <View style={[styles.content, gutter ? styles.gutter : undefined]}>
-          {native ? (
-            <NativeHostContext.Provider value={true}>
-              <View style={styles.host}>{children}</View>
-            </NativeHostContext.Provider>
-          ) : children}
+          <ToastInsetContext.Provider value={lift.report}>
+            {native ? (
+              <NativeHostContext.Provider value={true}>
+                <View style={styles.host}>{children}</View>
+              </NativeHostContext.Provider>
+            ) : children}
+          </ToastInsetContext.Provider>
         </View>
       </View>
       {fab != null ? (
-        <View testID="screen-fab" style={styles.fab}>
+        <Animated.View testID="screen-fab" style={[styles.fab, lift.style]}>
           {fab}
-        </View>
+        </Animated.View>
       ) : null}
     </View>
   );

@@ -1,5 +1,7 @@
-import {act, render} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
+import {spacing} from '../theme';
+import {ToastInsetContext} from './context';
 import {Toast} from '.';
 
 const BAR = 'ExpoInterfaceInfoBar';
@@ -15,6 +17,25 @@ describe('Toast (windows)', () => {
   it('renders nothing while hidden', async () => {
     await render(<Toast message="Copied" visible={false}/>);
     expect(islands(BAR)).toHaveLength(0);
+  });
+
+  it('tells the screen what it covers of the bottom edge, and nothing once it goes', async () => {
+    const report = vi.fn();
+    const {rerender} = await render(
+      <ToastInsetContext.Provider value={report}>
+        <Toast message="Copied" visible/>
+      </ToastInsetContext.Provider>,
+    );
+    expect(report).toHaveBeenLastCalledWith(0);
+    await fireEvent(screen.root, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 800, height: 50}}});
+    expect(report).toHaveBeenLastCalledWith(50 + spacing.four);
+
+    await rerender(
+      <ToastInsetContext.Provider value={report}>
+        <Toast message="Copied" visible={false}/>
+      </ToastInsetContext.Provider>,
+    );
+    expect(report).toHaveBeenLastCalledWith(0);
   });
 
   it('shows an InfoBar with the message and puts it away when its time is up', async () => {

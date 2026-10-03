@@ -6,15 +6,17 @@ import {Host} from '@expo/ui';
 import {useEffect} from 'react';
 import {StatusBar} from 'expo-status-bar';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
-import {Appearance, Platform, StyleSheet, View} from 'react-native';
+import {Animated, Appearance, Platform, StyleSheet, View} from 'react-native';
 import {setBackgroundColorAsync} from 'expo-system-ui';
 import {useAccentSeed} from '../accent';
 import {NativeHostContext} from '../host';
 import {useStackHeader} from '../stack-header/context';
 import {useColorScheme} from '../scheme';
+import {ToastInsetContext} from '../toast/context';
 import * as theme from '../theme';
 
 import {hostAccentProps} from './host-accent';
+import {useToastLift} from './lift';
 
 const CONTENT_EDGES: Edge[] = ['left', 'right', 'bottom'];
 const BG_COLOR: Record<ColorSchemeName, ColorValue> = {
@@ -50,7 +52,8 @@ export interface ScreenProps extends PropsWithChildren {
    * A floating action button (`Fab`) the screen places itself: bottom
    * trailing, `spacing.three` from the edges plus the safe-area bottom inset
    * natively (which includes the tab bar when the screen shows one), fixed
-   * to the viewport on web.
+   * to the viewport on web. While a `Toast` under the screen shows, the
+   * button lifts above it and comes back down as it goes.
    */
   fab?: ReactNode;
 }
@@ -68,6 +71,7 @@ export function Screen({
   const scheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const backgroundColor = background(scheme);
+  const lift = useToastLift();
 
   useEffect(() => {
     setBackgroundColorAsync(backgroundColor);
@@ -80,26 +84,29 @@ export function Screen({
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'}/>
       <View style={[styles.root, {paddingTop: underHeader ? 0 : theme.inset.topBar}]}>
         <View style={[styles.content, gutter ? styles.gutter : undefined]}>
-          {!native ? children : (
-            <NativeHostContext.Provider value={true}>
-              <Host style={{flex: 1}} {...hostAccentProps(seed)}>
-                {children}
-              </Host>
-            </NativeHostContext.Provider>
-          )}
+          <ToastInsetContext.Provider value={lift.report}>
+            {!native ? children : (
+              <NativeHostContext.Provider value={true}>
+                <Host style={{flex: 1}} {...hostAccentProps(seed)}>
+                  {children}
+                </Host>
+              </NativeHostContext.Provider>
+            )}
+          </ToastInsetContext.Provider>
         </View>
       </View>
       {fab != null ? (
-        <View
+        <Animated.View
           testID="screen-fab"
           style={[
             styles.fab,
             Platform.OS === 'web'
               ? styles.fabFixed
               : {right: theme.spacing.three + insets.right, bottom: theme.spacing.three + insets.bottom},
+            lift.style,
           ]}>
           {fab}
-        </View>
+        </Animated.View>
       ) : null}
     </SafeAreaView>
   );

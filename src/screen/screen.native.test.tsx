@@ -1,4 +1,5 @@
-import {Platform, StyleSheet, Text, View} from 'react-native';
+import {useContext, useEffect} from 'react';
+import {Animated, Platform, StyleSheet, Text, View} from 'react-native';
 import {act, render, screen} from '@testing-library/react-native';
 import {setColorScheme, setInsets} from 'vitest-native/helpers';
 import {setBackgroundColorAsync} from 'expo-system-ui';
@@ -8,6 +9,7 @@ import {Switch} from '../switch';
 import {host, modifier, nodes} from 'expo-vitest/native';
 import {hostAccentProps} from './host-accent';
 import {StackHeaderContext} from '../stack-header/context';
+import {ToastInsetContext} from '../toast/context';
 import {Screen} from '.';
 
 vi.mock('expo-system-ui');
@@ -146,4 +148,38 @@ describe(`Screen (${Platform.OS})`, () => {
     await render(<Screen><View/></Screen>);
     expect(screen.queryByTestId('screen-fab')).toBeNull();
   });
+
+  it('lifts the fab above a toast that reports its height, and lowers it as the toast goes', async () => {
+    const timing = vi.spyOn(Animated, 'timing');
+    try {
+      const {rerender} = await render(
+        <Screen fab={<Text>New</Text>}>
+          <ToastStandIn height={68}/>
+        </Screen>,
+      );
+      // The slot rides a transform the native driver can animate, by the
+      // toast's height, the way Material's scaffold moves its button.
+      expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({toValue: -68, useNativeDriver: true}));
+      const slot = screen.getByTestId('screen-fab');
+      expect(StyleSheet.flatten(slot.props.style).transform).toEqual([{translateY: expect.anything()}]);
+
+      await rerender(
+        <Screen fab={<Text>New</Text>}>
+          <ToastStandIn height={0}/>
+        </Screen>,
+      );
+      expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({toValue: -0}));
+    } finally {
+      timing.mockRestore();
+    }
+  });
 });
+
+/** What a toast under the screen does: reports what it covers of the bottom edge. */
+function ToastStandIn({height}: {height: number}) {
+  const report = useContext(ToastInsetContext);
+  useEffect(() => {
+    report(height);
+  }, [height, report]);
+  return null;
+}

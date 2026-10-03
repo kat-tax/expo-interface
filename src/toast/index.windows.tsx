@@ -1,9 +1,10 @@
 import type {ToastProps} from './types';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import XamlInfoBar from '../windows/specs/ExpoInterfaceInfoBarNativeComponent';
 import {useXamlProps} from '../windows';
 import {spacing} from '../theme';
+import {useToastInset} from './context';
 import {TOAST_DURATION} from './types';
 
 /**
@@ -18,11 +19,14 @@ export function Toast({message, visible, action, onDismiss, duration = TOAST_DUR
     const timer = setTimeout(onDismiss, duration);
     return () => clearTimeout(timer);
   }, [visible, message, duration, onDismiss]);
+  // What the bar covers of the screen's bottom edge, for its fab to clear.
+  const [height, setHeight] = useState(0);
+  useToastInset(visible && height > 0 ? height + spacing.four : 0);
 
   if (!visible) return null;
 
   return (
-    <View style={styles.slot}>
+    <View style={styles.slot} onLayout={event => setHeight(event.nativeEvent.layout.height)}>
       <XamlInfoBar
         message={message}
         actionLabel={action?.label}

@@ -1,5 +1,6 @@
-import {act, render, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import {byComposeTestID, nodes} from 'expo-vitest/native';
+import {ToastInsetContext} from './context';
 import {Toast} from '.';
 
 const {showSnackbar} = vi.hoisted(() => ({showSnackbar: vi.fn()}));
@@ -37,6 +38,27 @@ describe('Toast (android)', () => {
   it('asks for nothing while it is not visible', async () => {
     await render(<Toast message="3 files added" visible={false}/>);
     expect(showSnackbar).not.toHaveBeenCalled();
+  });
+
+  it('tells the screen the snackbar host\'s height while visible, and nothing otherwise', async () => {
+    const report = vi.fn();
+    const {rerender} = await render(
+      <ToastInsetContext.Provider value={report}>
+        <Toast message="Saved" visible/>
+      </ToastInsetContext.Provider>,
+    );
+    expect(report).toHaveBeenLastCalledWith(0);
+    // The host is as tall as the snackbar Compose shows in it, and nothing
+    // once it leaves: that height is what the screen's fab lifts by.
+    await fireEvent(screen.root, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 412, height: 60}}});
+    expect(report).toHaveBeenLastCalledWith(60);
+
+    await rerender(
+      <ToastInsetContext.Provider value={report}>
+        <Toast message="Saved" visible={false}/>
+      </ToastInsetContext.Provider>,
+    );
+    expect(report).toHaveBeenLastCalledWith(0);
   });
 
   it('takes the long duration and reports the action Compose resolves with', async () => {

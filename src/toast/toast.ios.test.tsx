@@ -1,6 +1,7 @@
 import {StyleSheet} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {colors} from '../theme';
+import {colors, spacing} from '../theme';
+import {ToastInsetContext} from './context';
 import {Toast} from '.';
 
 describe('Toast (ios)', () => {
@@ -17,6 +18,27 @@ describe('Toast (ios)', () => {
   it('shows nothing while it is not visible', async () => {
     await render(<Toast message="Copied" visible={false} testID="toast"/>);
     expect(screen.queryByTestId('toast')).toBeNull();
+  });
+
+  it('tells the screen what it covers of the bottom edge, and nothing once it goes', async () => {
+    const report = vi.fn();
+    const {rerender} = await render(
+      <ToastInsetContext.Provider value={report}>
+        <Toast message="Copied" visible testID="toast"/>
+      </ToastInsetContext.Provider>,
+    );
+    // Nothing until the strip is measured.
+    expect(report).toHaveBeenLastCalledWith(0);
+    await fireEvent(screen.root, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 44}}});
+    // The capsule and the gap under it, which a fab has to clear.
+    expect(report).toHaveBeenLastCalledWith(44 + spacing.four);
+
+    await rerender(
+      <ToastInsetContext.Provider value={report}>
+        <Toast message="Copied" visible={false} testID="toast"/>
+      </ToastInsetContext.Provider>,
+    );
+    expect(report).toHaveBeenLastCalledWith(0);
   });
 
   it('puts itself away when its time is up', async () => {

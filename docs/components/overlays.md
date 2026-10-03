@@ -174,3 +174,6 @@ is dismissed, which is what Material calls an indefinite snackbar.
 | Windows | WinUI `InfoBar` over the bottom of the screen, with a close button, timed by the kit |
 
 The drawn toast is a polite live region.
+
+A toast under a `Screen` tells it how much of the bottom edge it covers, and
+the screen's `Fab` lifts above it while it shows.

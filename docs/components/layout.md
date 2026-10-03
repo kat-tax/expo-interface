@@ -18,7 +18,8 @@ button.
 Props: `native` (mount an `@expo/ui` host around the screen), `header`
 (the screen sits under a stack header and skips the top inset; inferred under
 `TabStack`), `gutter` (horizontal padding), `fab` (a node placed at the bottom
-trailing corner, above the safe area and the tab bar).
+trailing corner, above the safe area and the tab bar, lifted above a `Toast`
+while one shows).
 
 | Platform | Renders |
 | --- | --- |

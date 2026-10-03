@@ -1,9 +1,11 @@
 import type {ColorSchemeName} from 'react-native';
-import {Text, View} from 'react-native';
+import {useContext, useEffect} from 'react';
+import {Animated, Text, View} from 'react-native';
 import {render, screen} from '@testing-library/react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {Switch} from '../switch';
 import {bound, inset, spacing, theme} from '../theme';
+import {ToastInsetContext} from '../toast/context';
 import {hostAccentProps} from './host-accent';
 import {Screen} from '.';
 
@@ -123,4 +125,29 @@ describe('Screen (web)', () => {
     mount(<Screen><View testID="kid"/></Screen>);
     expect(screen.queryByTestId('screen-fab')).toBeNull();
   });
+
+  it('lifts the fab above a toast that reports its height, on the JavaScript driver', () => {
+    const timing = vi.spyOn(Animated, 'timing');
+    try {
+      mount(
+        <Screen fab={<Text testID="fab">New</Text>}>
+          <ToastStandIn height={68}/>
+        </Screen>,
+      );
+      // react-native-web has no native driver and warns when asked for one.
+      expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({toValue: -68, useNativeDriver: false}));
+      expect(screen.getByTestId('screen-fab').contains(screen.getByTestId('fab'))).toBe(true);
+    } finally {
+      timing.mockRestore();
+    }
+  });
 });
+
+/** What a toast under the screen does: reports what it covers of the bottom edge. */
+function ToastStandIn({height}: {height: number}) {
+  const report = useContext(ToastInsetContext);
+  useEffect(() => {
+    report(height);
+  }, [height, report]);
+  return null;
+}

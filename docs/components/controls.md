@@ -62,6 +62,10 @@ menu instead of pressing), `onOpenChange`, `size` (`small`, `regular`, `large`,
 `onOpenChange` is reported on Android, web and Windows. SwiftUI's `Menu` has
 no presentation binding, so iOS never reports it.
 
+While a `Toast` under the same `Screen` shows, the button moves up by the
+toast's height and back down as it goes, as Material's scaffold moves its
+button for a snackbar, so the message is never covered.
+
 ```tsx
 <Screen fab={<Fab label="New drop" icon={icons.upload} onPress={create}/>}>
   ...
