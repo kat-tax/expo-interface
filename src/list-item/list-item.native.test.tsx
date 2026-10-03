@@ -1,15 +1,38 @@
 import {Platform, Text} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
+import {NativeHostContext} from '../host';
 import {colors} from '../theme';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {ListItem} from '.';
 
 const isIOS = Platform.OS === 'ios';
+const HOST = 'ViewManagerAdapter_ExpoUI_HostView';
 const row = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
 const slot = (name: string) => nodes().filter(n => n.props?.slotName === name);
 const accessories = () => nodes().filter(n => n.props?.matchContents === true);
+const hosts = () => nodes().filter(n => n.type === HOST);
 
 describe(`ListItem (${Platform.OS})`, () => {
+  it('mounts a host of its own where there is none above', async () => {
+    // A native row outside a host draws nothing and warns about nothing: a
+    // list of rows in a React Native scroll view was a blank screen.
+    await render(<ListItem testID="row">Wi-Fi</ListItem>);
+    expect(hosts()).toHaveLength(1);
+    expect(host(p => p.text === 'Wi-Fi')).toBeTruthy();
+    // The host fills the width and takes the row's height, as a list row does.
+    expect(hosts()[0].props.matchContents ?? hosts()[0].props.matchContentsVertical).toBeTruthy();
+  });
+
+  it('renders bare inside a host', async () => {
+    await render(
+      <NativeHostContext.Provider value={true}>
+        <ListItem testID="row">Wi-Fi</ListItem>
+      </NativeHostContext.Provider>,
+    );
+    expect(hosts()).toHaveLength(0);
+    expect(host(p => p.text === 'Wi-Fi')).toBeTruthy();
+  });
+
   it('renders the headline as native text', async () => {
     await render(<ListItem testID="row">Wi-Fi</ListItem>);
     const {props} = row('row');
@@ -166,7 +189,8 @@ describe(`ListItem (${Platform.OS})`, () => {
 
   (isIOS ? it.skip : it)('passes numeric and element headlines through without a testID', async () => {
     const {rerender} = await render(<ListItem>{42}</ListItem>);
-    expect(nodes()[0].props.modifiers).toEqual([]);
+    // The first node is the host the row mounts for itself; the row is next.
+    expect(nodes()[1].props.modifiers).toEqual([]);
     expect(host(p => String(p.text) === '42').props.color).toBe(colors.light.label);
     await rerender(<ListItem><Text>Rich</Text></ListItem>);
     expect(JSON.stringify(slot('headlineContent')[0])).toContain('"Rich"');

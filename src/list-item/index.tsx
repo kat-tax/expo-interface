@@ -2,6 +2,7 @@ import type {ListItemProps} from './types';
 import {ListItem as UIListItem} from '@expo/ui';
 import {SwipeActions} from '@expo/ui/swift-ui';
 import {Button} from '../button';
+import {NativeHost, useNativeHost} from '../host';
 
 /**
  * iOS renders the universal `@expo/ui` `ListItem` (a SwiftUI list row)
@@ -14,8 +15,19 @@ import {Button} from '../button';
  * `swipeActions` become the system's own `swipeActions`: revealed by a swipe
  * from the trailing edge, with a full swipe running the destructive one the
  * way Mail's does.
+ *
+ * A SwiftUI row draws nothing outside a host. A row that finds no host above
+ * it (a `ScrollView` of rows in a React Native screen) mounts one of its own,
+ * as wide as its container and as tall as the row; inside a `FieldGroup`, a
+ * `Screen native` or a `Sheet` it renders bare.
  */
-export function ListItem({children, leading, trailing, action, supporting, swipeActions, onPress, testID}: ListItemProps) {
+export function ListItem(props: ListItemProps) {
+  const hosted = useNativeHost();
+  const row = <ListItemRow {...props}/>;
+  return hosted ? row : <NativeHost>{row}</NativeHost>;
+}
+
+function ListItemRow({children, leading, trailing, action, supporting, swipeActions, onPress, testID}: ListItemProps) {
   const filled = action?.variant === 'filled';
   const trailingContent = action ? (
     <>

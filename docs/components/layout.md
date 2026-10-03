@@ -184,6 +184,9 @@ Differences:
   wrap the row in a `ContextMenu` as well.
 - `inset` has nothing to turn off on iOS, where the `Form` supplies every
   inset.
+- On iOS and Android a row outside a host (a React Native `ScrollView` of
+  rows) mounts a host of its own, so it draws there too. See
+  [Native hosts](../hosts.md).
 
 ## Collapsible
 

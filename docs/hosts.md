@@ -56,7 +56,10 @@ them.
 `useNativeHost()` answers whether there is a host above. Components that
 present natively mount a host of their own only when there is none:
 
-- `Alert` and `Spinner` check, so they can be rendered anywhere.
+- `Alert`, `Spinner` and `ListItem` check, so they can be rendered anywhere.
+  A `ListItem` in a React Native `ScrollView` gets a host as wide as its
+  container and as tall as the row; inside a `FieldGroup`, a `Screen native`
+  or a `Sheet` it renders bare.
 - `PopupMenu`, `Fab` (iOS and Android), `ShareLink` (iOS) and `EmptyState`
   (iOS 17 and later) mount one where they need it.
 - `Toast` and `Toolbar` do the same for their native parts.

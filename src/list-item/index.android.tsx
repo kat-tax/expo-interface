@@ -4,6 +4,7 @@ import {WithRowMenu} from './shared';
 import {Button, Column, ListItem as ComposeListItem, Row, Shape, Text, TextButton} from '@expo/ui/jetpack-compose';
 import {clickable, fillMaxWidth, testID as testIDModifier, weight, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
 import {androidContentPadding} from '../button/shared';
+import {NativeHost, useNativeHost} from '../host';
 import {useColor} from '../theme';
 
 /** The `rounded` button shape, as the kit's own `Button` draws it. */
@@ -16,14 +17,21 @@ const ROUNDED = Shape.RoundedCorner({cornerRadii: {topStart: 12, topEnd: 12, bot
  * The menu takes the tap as well, because it owns the gesture on this
  * platform; the row inside it is not separately pressable, which would give
  * the same press two owners.
+ *
+ * A Compose row draws nothing outside a host, and says nothing about it. So
+ * a row that finds no host above it (a `ScrollView` of rows in a React Native
+ * screen) mounts one of its own, as wide as its container and as tall as the
+ * row; inside a `FieldGroup`, a `Screen native` or a `Sheet` it renders bare.
  */
 export function ListItem({swipeActions, ...props}: ListItemProps) {
+  const hosted = useNativeHost();
   const menued = !!swipeActions && swipeActions.length > 0;
-  return (
+  const row = (
     <WithRowMenu actions={swipeActions} onPress={props.onPress}>
       <ListItemRow {...props} onPress={menued ? undefined : props.onPress}/>
     </WithRowMenu>
   );
+  return hosted ? row : <NativeHost>{row}</NativeHost>;
 }
 
 /**
