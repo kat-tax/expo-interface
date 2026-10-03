@@ -156,10 +156,9 @@ function useFit(): {row: React.RefObject<View | null>; narrow: boolean} {
   const [narrow, setNarrow] = useState(false);
   const needed = useRef(0);
   const check = useCallback(() => {
-    // A react-native-web view's ref is its DOM element.
-    const element = row.current as unknown as HTMLElement | null;
-    if (!element) return;
-    const {clientWidth, scrollWidth} = element;
+    // A react-native-web view's ref is its DOM element; the row is always
+    // rendered, so it is set by the time an effect or the observer runs.
+    const {clientWidth, scrollWidth} = row.current as unknown as HTMLElement;
     if (!narrow && scrollWidth > clientWidth) {
       needed.current = scrollWidth;
       setNarrow(true);
@@ -169,11 +168,10 @@ function useFit(): {row: React.RefObject<View | null>; narrow: boolean} {
   }, [narrow]);
   useLayoutEffect(check);
   useEffect(() => {
-    const element = row.current as unknown as HTMLElement | null;
     // A static render has no observer, and nothing to resize.
-    if (!element || typeof ResizeObserver === 'undefined') return;
+    if (typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(check);
-    observer.observe(element);
+    observer.observe(row.current as unknown as HTMLElement);
     return () => observer.disconnect();
   }, [check]);
   return {row, narrow};
