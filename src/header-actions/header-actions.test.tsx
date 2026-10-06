@@ -110,6 +110,14 @@ describe(`HeaderActions (${Platform.OS})`, () => {
         Saved
       </HeaderActions>,
     ));
-    expect(barItems('Drops').map(item => item.type)).toEqual(['button', 'custom']);
+    const bar = barItems('Drops');
+    expect(bar.map(item => item.type)).toEqual(['button', 'custom']);
+    // The view is inside the bar, and says so: a kit control an app's
+    // component renders there draws itself in the view instead of sending
+    // itself to the header again, as a second toolbar inside the bar's own.
+    const view = bar[1].children;
+    expect(view.type).toBe(InHeaderContext.Provider);
+    expect(view.props.value).toBe(true);
+    expect(view.props.children.type).toBe(Text);
   });
 });

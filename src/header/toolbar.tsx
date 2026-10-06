@@ -11,7 +11,7 @@ import {Button} from '../button';
 import {iosSymbol} from '../button/shared';
 import {Menu} from '../menu';
 import {useColor} from '../theme';
-import {HeaderHost, useHeaderTrigger} from './shared';
+import {HeaderHost, InHeaderContext, useHeaderTrigger} from './shared';
 
 /**
  * What a kit header component is, read off its element without rendering
@@ -54,6 +54,11 @@ function itemOf(element: ReactElement): HeaderItem | undefined {
  * a `HeaderMenu` a menu, a `HeaderActions` its children one after another,
  * and any other element a custom view in the bar. Bare text is left out: the
  * bar has no item for it.
+ *
+ * A custom view is rendered inside the bar, so it counts as a header there:
+ * a kit control it renders (an app's component around a `HeaderMenu`) draws
+ * itself in the view, in a host, rather than sending itself to the header a
+ * second time, which would be a `Stack.Toolbar` inside the bar's own.
  */
 export function toolbarItems(children: ReactNode, tints: Tints): ReactNode[] {
   return Children.toArray(children).flatMap(child => {
@@ -63,7 +68,11 @@ export function toolbarItems(children: ReactNode, tints: Tints): ReactNode[] {
     if (item === 'actions' || child.type === Fragment) return toolbarItems(props.children, tints);
     if (item === 'action') return [action(child.props as HeaderActionProps, tints, child.key)];
     if (item === 'menu') return [menu(child.props as HeaderMenuProps, tints, child.key)];
-    return [<Stack.Toolbar.View key={child.key}>{child}</Stack.Toolbar.View>];
+    return [
+      <Stack.Toolbar.View key={child.key}>
+        <InHeaderContext.Provider value={true}>{child}</InHeaderContext.Provider>
+      </Stack.Toolbar.View>,
+    ];
   });
 }
 
