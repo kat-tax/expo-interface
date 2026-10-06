@@ -91,16 +91,16 @@ own press. Put actions in `overlay`, not in the body.
 A bar of tools along a canvas: an editor's status bar, the strip over a
 drawing, the row under a preview.
 
-Props: `commands` (the bar described as data: `label`, `icon`, `onPress`,
-`secondary`, `disabled`, `role`, `separator`, `testID` per command), or
-`leading` and `trailing` nodes; `field` (a `TextField variant="inline"` that
+Props: `commands` (the bar described as data: `label`, `icon`, `hideLabel`,
+`active`, `tone`, `onPress`, `secondary`, `disabled`, `role`, `separator`,
+`testID` per command), or `leading` and `trailing` nodes; `field` (a `TextField variant="inline"` that
 grows into the space the controls leave); `placement` (`top` or `bottom`;
 the rule goes on the side facing the content); `density` (`regular` or
 `compact`); `children` (a second row under the controls); `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
-| iOS, Android, Web | A drawn `Surface` bar. The controls sit in one native host as a single row, so a bar of buttons and menus costs one host rather than one per control. With `commands`, the kit draws them as text buttons and puts the `secondary` ones behind a `Menu` labelled "More". |
+| iOS, Android, Web | A drawn `Surface` bar. The controls sit in one native host as a single row, so a bar of buttons and menus costs one host rather than one per control. With `commands`, the kit draws them as text buttons at the platform's own bar metrics (a 22pt symbol at the bar button's size on iOS, as the header's actions; Material's 24dp icon in its 48dp icon button on Android, which is the bar's height there; the kit's small button on web) and puts the `secondary` ones behind a `Menu` labelled "More". A command that is `active` is drawn filled; `tone` draws the others in the label color, for a row of tools where the accent marks the active one; `hideLabel` keeps the icon alone. |
 | Windows | With `commands` and no `field`, a WinUI `CommandBar` island: the control lays the commands out, moves the ones that do not fit into its own overflow menu, and draws labels beside the icons (`compact` drops them and leaves the naming to the overflow). Otherwise a drawn bar of islands. |
 
 Differences:
@@ -110,6 +110,8 @@ Differences:
 - A `field` sends every platform to the drawn path: a text field is a React
   Native input and cannot live inside a `CommandBar`.
 - `leading` and `trailing` are ignored when `commands` are given.
+- Controls given as `leading` and `trailing` draw at the size the app gives
+  them; the bar's metrics are the `commands`' alone.
 
 ## KeyboardBar
 
