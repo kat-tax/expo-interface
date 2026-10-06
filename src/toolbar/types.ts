@@ -32,16 +32,22 @@ export type ToolbarDensity = 'regular' | 'compact';
 export interface ToolbarCommand {
   label: string;
   icon?: IconToken;
-  /** The icon alone, with `label` as the accessible name: a bar of tools. */
+  /**
+   * The icon alone, with `label` as the accessible name: a bar of tools. The
+   * Windows `CommandBar` decides its own labels (`density`) and ignores it.
+   */
   hideLabel?: boolean;
   /**
    * The command's state is on (a check that runs, a panel that is open): it
-   * is drawn filled, in the accent, where the others are plain.
+   * is drawn filled, in the accent, where the others are plain. The Windows
+   * `CommandBar` has no on state for a command and ignores it.
    */
   active?: boolean;
   /**
    * Color of the command: the accent, or the label color for a tool, where
-   * the accent marks the active one.
+   * the accent marks the active one. The Windows `CommandBar` takes no tone
+   * (a command is in the bar's own colors, a `destructive` one in the
+   * critical color) and ignores it.
    * @default 'accent'
    */
   tone?: ButtonTone;

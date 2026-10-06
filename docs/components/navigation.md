@@ -235,8 +235,8 @@ a React Native view, and these are the bar's own items.
 | --- | --- |
 | iOS | The navigation bar's own button items, through Expo Router's `Stack.Toolbar`: an action is a bar button with its SF Symbol (or its label, when the label shows), a menu a bar button with a `UIMenu` of the entries, in the bar's own size and spacing. A `tone` of `label` draws the item in the header's text color, the default in the accent. |
 | Android | The top app bar's icon buttons, with the label as the accessible name, and a menu's entries in a Material dropdown; an entry that is `active` has a trailing check, a `destructive` one the danger color, and a `separator` starts a group under a rule. A control without an Android drawable in its icon is drawn as the kit's own text button, in a host. |
-| Web | The kit's text button or `Menu` trigger at the header's size in the drawn header row, or at the tab bar's size in the bar a header folds into, where a control with an icon shows that alone when the bar is too narrow for labels. `HeaderActions` is the one host for the row. |
-| Windows | The same triggers as islands, in the header row the kit's stack draws. |
+| Web | The kit's text button or `Menu` trigger at the header's size in the drawn header row, or at the tab bar's size in the bar a header folds into, where a control with an icon shows that alone when the bar is too narrow for labels. `HeaderActions` is a flex row with a gap. |
+| Windows | The same triggers as islands, in the header row the kit's stack draws; `HeaderActions` is a plain view of them. |
 
 Rendered inside a header already (a custom header's trailing slot, the web
 tab bar), a control draws itself there. Natively a `HeaderActions` takes
