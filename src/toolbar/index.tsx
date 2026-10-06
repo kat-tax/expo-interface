@@ -23,14 +23,24 @@ const DENSITY = {
 /**
  * What a command draws at: the platform's own bar metrics. On iOS a 22pt
  * symbol at the bar button's control size, as the header's actions, since a
- * `small` button's 16pt symbol is a bar too fine for a thumb; on Android
- * Material's 24dp icon in its 48dp icon button; on web the kit's small button.
+ * `small` button's 16pt symbol is a bar too fine for a thumb; on Android a
+ * 22dp icon in Material's 48dp icon button, a touch under the app bar's 24,
+ * which reads large in a row of tools; on web the kit's small button.
  */
 const TOOL = Platform.select({
   ios: {size: 'large', iconSize: 22},
-  android: {size: 'medium', iconSize: 24},
+  android: {size: 'medium', iconSize: 22},
   default: {size: 'small', iconSize: undefined},
 } as const);
+
+/**
+ * Between the commands: the bar's own pitch, whatever the density. On iOS a
+ * plain button is exactly its symbol, so the space makes the 44pt pitch of
+ * a toolbar's items; on Android the icon buttons carry a 48dp container
+ * each, which is the pitch; on web the small buttons take the density's gap
+ * (`undefined` here leaves the row's).
+ */
+const COMMAND_GAP = Platform.select({ios: 22, android: 0, default: undefined});
 
 /**
  * Above and below the controls. None on Android, where Material's icon
@@ -49,7 +59,7 @@ export function Toolbar({commands, leading, trailing, field, placement = 'bottom
   // Commands replace the two slots: a bar is described either way round, not
   // both. Here the kit draws them; on Windows the platform's own bar does.
   const described = hasCommands(commands);
-  const start = described ? <Commands commands={splitCommands(commands).primary}/> : leading;
+  const start = described ? <Commands commands={splitCommands(commands).primary} gap={gap}/> : leading;
   const end = described ? <Overflow commands={splitCommands(commands).secondary}/> : trailing;
   return (
     <Surface
@@ -79,11 +89,11 @@ export function Toolbar({commands, leading, trailing, field, placement = 'bottom
   );
 }
 
-/** The commands the bar shows, as the kit's own buttons. */
-function Commands({commands}: {commands: ToolbarCommand[]}) {
+/** The commands the bar shows, as the kit's own buttons, in a row of their own at the bar's pitch. */
+function Commands({commands, gap}: {commands: ToolbarCommand[]; gap: number}) {
   if (commands.length === 0) return null;
   return (
-    <>
+    <Row alignment="center" spacing={COMMAND_GAP ?? gap}>
       {commands.map((command, index) => (
         <Button
           key={index}
@@ -100,7 +110,7 @@ function Commands({commands}: {commands: ToolbarCommand[]}) {
           testID={command.testID}
         />
       ))}
-    </>
+    </Row>
   );
 }
 

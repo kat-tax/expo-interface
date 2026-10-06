@@ -174,6 +174,10 @@ describe('commands', () => {
     const button = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
     const pen = button('pen').props;
     const erase = button('erase').props;
+    // The commands sit in a row of their own at the bar's pitch, whatever the
+    // density: 44pt on iOS (a 22pt symbol and 22 beside it), Android's 48dp
+    // containers with nothing between them. The outer row keeps the density's gap.
+    expect(rowSpacings()).toEqual(isIOS ? [8, 22] : [8, 0]);
     if (isIOS) {
       // The bar button's control size with a 22pt symbol, as the header's actions.
       expect(modifier(pen, 'controlSize')?.size).toBe('large');
@@ -184,10 +188,10 @@ describe('commands', () => {
       expect(modifier(host(p => p.systemName === 'plus').props, 'font')?.size).toBe(22);
       expect(modifier(host(p => p.systemName === 'ellipsis').props, 'font')?.size).toBe(22);
     } else {
-      // Material's 24dp icon in its icon button; the label color for the plain tool.
+      // A 22dp icon in Material's icon button; the label color for the plain tool.
       expect(pen.colors).toEqual({containerColor: '#007AFF', contentColor: '#FFFFFF'});
       expect(erase.colors).toEqual({contentColor: '#000000'});
-      expect(host(p => p.contentDescription === 'Pen').props.size).toBe(24);
+      expect(host(p => p.contentDescription === 'Pen').props.size).toBe(22);
     }
   });
 });
