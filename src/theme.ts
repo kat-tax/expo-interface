@@ -440,6 +440,10 @@ function navTheme(): typeof DefaultTheme {
 /**
  * React Navigation does not resolve PlatformColor tokens on native headers,
  * so resolve concrete palette colors (with the live accent seed as primary).
+ * The theme also says which scheme it is: the native stack hands `dark` to
+ * the bar as its interface style, which is what a system material and a
+ * menu presented from the bar draw in. Left at the default's `false`, a
+ * translucent header and its menus came out light in the dark scheme.
  */
 export function useNavTheme() {
   const nav = navTheme();
@@ -452,6 +456,7 @@ export function useNavTheme() {
   const palette = contrast.colors ? highContrastPalette(contrast.colors) : colors[scheme];
   return {
     ...nav,
+    dark: scheme === 'dark',
     colors: {
       ...nav.colors,
       primary: contrast.colors ? palette.tint : seed,
