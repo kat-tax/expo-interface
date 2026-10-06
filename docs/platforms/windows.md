@@ -69,7 +69,7 @@ codegen emitter. The specs in `src/windows/specs/` are the contract, and
 | `ExpoInterfaceDatePicker`, `ExpoInterfaceTimePicker` | `CalendarDatePicker`, `TimePicker` | `DateTimePicker` |
 | `ExpoInterfaceTextBox` | `TextBox`, `PasswordBox` | `TextField` |
 | `ExpoInterfaceColorPicker` | `ColorPicker` in a `Flyout` | `ColorPicker` |
-| `ExpoInterfaceAutoSuggestBox` | `AutoSuggestBox` | `SearchField` |
+| `ExpoInterfaceAutoSuggestBox` | `AutoSuggestBox` | `SearchField`, `HeaderSearch` |
 | `ExpoInterfaceMenuFlyout` | `MenuFlyout` | `Menu`, `ContextMenu`, `PopupMenu`, `Fab`, `HeaderMenu` |
 | `ExpoInterfaceContentDialog` | `ContentDialog`'s arrangement in a windowed popup, its body a slot for a portal | `Alert` |
 | `ExpoInterfaceTeachingTip` | `TeachingTip` | `Popover` |

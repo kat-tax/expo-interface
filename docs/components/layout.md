@@ -23,7 +23,13 @@ scrolling screen that passes under a material bar: the web tab bar, or on
 iOS the header of a `TabStack` with a `material`; its scroll content pads
 its top by `useTabBarInset()`), `fab` (a node placed at the bottom
 trailing corner, above the safe area and the tab bar, lifted above a `Toast`
-while one shows).
+while one shows and above a bar the screen draws at its bottom).
+
+A control in the content can give the screen a bar of its own: a
+`HeaderSearch` whose placement the platform has no header for puts its row
+above the content (Android's `stacked`) or its bottom bar below it
+(`integrated`), and the screen draws them at its edges, outside the content's
+host and clear of its gutter.
 
 | Platform | Renders |
 | --- | --- |

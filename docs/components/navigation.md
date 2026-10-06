@@ -79,7 +79,7 @@ Props: `routes` (`name`, `href`, `label`, `icon`, `badge`,
 | Platform | Renders |
 | --- | --- |
 | iOS, Android | Expo Router's native tabs: the platform's own tab bar at the bottom, with `badge` as the bar's badge |
-| Web | A floating bar along the top with the app's logo, the tabs and action slots. A route's `badge` is a pill beside the label. In a window too narrow for the row, a phone's width, the tabs show their icons alone with their names as accessible names, and a `HeaderMenu` or `HeaderAction` in the bar with an icon shows that alone. The row clips what it cannot hold, so the page never scrolls sideways. |
+| Web | A floating bar along the top with the app's logo, the tabs and action slots. A route's `badge` is a pill beside the label. In a window too narrow for the row, a phone's width, the tabs show their icons alone with their names as accessible names, and a `HeaderMenu` or `HeaderAction` in the bar with an icon shows that alone. A folded header's `HeaderSearch` sits among the actions, or in a second pill under the bar for `stacked`. The row clips what it cannot hold, so the page never scrolls sideways. |
 | Windows | A WinUI `NavigationView` in any of its pane display modes: the top bar (`top`), or with `windowsPane` the navigation pane down the left side, expanded (`left`), at its glyph-only width (`compact`), or as its toggle button alone (`minimal`); `auto` picks by the window's width at WinUI's own breakpoints, the expanded pane from 1008 points, the compact one from 641 and the minimal one below that. The expanded pane's toggle button collapses it to its glyphs beside the content and back. The compact pane's opens the pane over the content, and so does the minimal pane's, which is drawn at the top start of the content with the screen's header beside it; a selection, a press beside the open pane or Escape closes it. A count `badge` is an `InfoBadge`; other text is its dot. `windowsPlacement` puts a route at the pane's foot (`footer`) or makes it WinUI's own settings item (`settings`). The control's own back button, at the top of the pane or the start of the top bar, pops a card the stack above pushed over the tabs, or a screen a stack inside a tab pushed; a selection in the pane leaves the drilled-in screens. The button is drawn whenever a stack is around the tabs, disabled at the root as a WinUI app's is, and only while something can pop when the tabs are the root. A press on the selected item returns to its root, as the Settings app does. A selection slides the content along the top bar in the order of the items, or refreshes it in a side pane; back from a card, the content returns as the card leaves. |
 
 On web a screen under `Tabs` has one bar, not two: `ConstrainedStackHeader`
@@ -245,6 +245,77 @@ off them, and a component of the app's own between the row and its items
 cannot be. Such a component is a custom view in the bar, and the controls it
 renders draw themselves inside it, each in a host of its own. `testID` names
 the web and Windows triggers; the native items are found by their `label`.
+
+## HeaderSearch
+
+The header's search, in the placements the platforms have. Like the other
+header controls it is rendered in the screen's content and sends itself to
+the header from there; mounting it adds the search and unmounting it takes
+the search away.
+
+```tsx
+export default function Documents() {
+  return (
+    <>
+      <HeaderSearch placement="stacked" placeholder="Search documents" onChangeText={setQuery} onSubmit={search}/>
+      <Screen>...</Screen>
+    </>
+  );
+}
+```
+
+Props: `placement` (`automatic`, `stacked`, `integrated`, `action`,
+`inline`), `placeholder`, `autoFocus`, `autoCapitalize`, `inputType` (the
+keyboard Android's field opens with: `text`, `phone`, `number`, `email`),
+`hideWhenScrolling` (iOS `stacked`: the field collapses as the content
+scrolls, default true), `integration` (`field`, `button`, `centered`, iOS
+26's three integrated looks), `onChangeText`, `onSubmit` (the search key or
+button), `onOpen` and `onClose`, `onFocus`, `onBlur`, `testID`, and a `ref`
+with `focus`, `blur`, `setText`, `clear` and `cancel`.
+
+No native search field is controlled, so there is no `value`: the text is
+read through `onChangeText` and set through the `ref`, and a change made
+through the `ref` is not reported, as the platforms' own commands are not.
+The colors are the palette's: the accent for the cursor and iOS's cancel,
+the label color for the text and Android's icons, the tertiary label color
+for Android's hint. `onOpen` and `onClose` report an `action` expanding and
+collapsing, a field taking and giving up the focus (iOS's controller, the
+drawn fields), and Android's `SearchView` opening and closing.
+
+| `placement` | iOS | Android | Web | Windows |
+| --- | --- | --- | --- | --- |
+| `stacked` | Native: `UISearchController` under the title, collapsing as the content scrolls (`hideWhenScrolling`) | Drawn: a row under the app bar in the header's fill with its hairline, the `SearchField` box the width of the content | Drawn: a row under the header row at the content's width, in the header's fill. Under a `Tabs` bar that folds the header, a second pill under the bar, in the bar's material, which the screens pay for through `useTabBarInset()`. | Drawn: the same row, with the `AutoSuggestBox` |
+| `integrated` | Native on iOS 26: the bottom toolbar's search, as a field, a button or centred (`integration`); on iOS 16 to 18 UIKit's own fallback, `inline` | Drawn: a bottom `Toolbar` with the field in its field slot | The same | The same, with the `AutoSuggestBox` |
+| `action` | Native on iOS 26: the bar's own search button, which expands into the field and stays in the navigation bar rather than the toolbar; on iOS 16 to 18 UIKit's own fallback, `inline` | Native: the toolbar's `SearchView`, a magnifier among the actions that opens across the bar and is iconified again on close | Drawn: a magnifier among the header's controls that expands into a field across the row and takes the focus; the title goes while it is open. It collapses on Escape, through `cancel`, or when it loses the focus with nothing in it. | The same, with the `AutoSuggestBox` |
+| `inline` | Native on iOS 16 to 18: a field beside the title; on iOS 26 UIKit's own fallback | Drawn as the `SearchView` open from the start, and opened again when it is closed: the one open form the toolbar has | Drawn: a field in the header row before the trailing controls | The same, with the `AutoSuggestBox` |
+| `automatic` | Native: the system's choice | `action` | `stacked` in a window too narrow for a field beside the title, and under a `Tabs` bar once the bar has dropped its labels; `inline` otherwise | `inline` |
+
+The drawn rows are drawn with what the kit has: `SearchField`'s box at the
+header's metrics, a `HeaderAction` for the magnifier, `Toolbar` for the
+bottom bar, the header's fill and material, and the same events and commands
+as the native search, so an app writes one search and reads one table.
+
+The row Android draws for `stacked` and the bar every drawn platform draws for
+`integrated` are the `Screen`'s when the search is rendered inside one: the
+row above the content, the bar below it with the `Fab` lifted above it.
+Outside a `Screen` they are drawn where the element is, the bar over the
+bottom edge of the view it is in.
+
+A `HeaderActions` beside it keeps its items: the search is the header's own
+search, not one of its items. Natively a `HeaderSearch` inside a
+`HeaderActions` is lifted out and sent beside the row. It is not what
+`TabStack headerRight` takes: render it in the screen's content.
+
+Differences:
+
+- `hideWhenScrolling` and `integration` are iOS's; the drawn rows stay where
+  they are. `inputType` is Android's. `autoCapitalize` is not applied on
+  Windows.
+- On iOS the native stack draws the bar translucent while a search is set,
+  and UIKit insets a scroll view under it; content that is not a scroll
+  view starts under the bar.
+- On Windows `focus` and `blur` through the `ref` ask the `AutoSuggestBox`'s
+  island for the focus through react-native-windows' focus command.
 
 ## ExternalLink
 

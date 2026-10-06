@@ -17,9 +17,10 @@ import {HeaderHost, InHeaderContext, useHeaderTrigger} from './shared';
  * What a kit header component is, read off its element without rendering
  * it: the native header takes its items as data, not as React children, so
  * `HeaderAction`, `HeaderMenu` and `HeaderActions` carry this mark and the
- * slot converts their elements.
+ * slot converts their elements. `HeaderSearch` carries `search`: it is the
+ * bar's search rather than one of its items, and goes beside the toolbar.
  */
-export type HeaderItem = 'action' | 'menu' | 'actions';
+export type HeaderItem = 'action' | 'menu' | 'actions' | 'search';
 
 /** The colors a header control draws in: the header's own label color, or the accent. */
 export interface Tints {
@@ -42,11 +43,27 @@ export function useHeaderTints(): Tints {
  * rendered here: their elements are read.
  */
 export function ToolbarSlot({children}: PropsWithChildren) {
-  return <Stack.Toolbar placement="right">{toolbarItems(children, useHeaderTints())}</Stack.Toolbar>;
+  return (
+    <>
+      {/* A search among the controls is the bar's own search, not an item: it sends itself beside the toolbar. */}
+      {searchElements(children)}
+      <Stack.Toolbar placement="right">{toolbarItems(children, useHeaderTints())}</Stack.Toolbar>
+    </>
+  );
 }
 
 function itemOf(element: ReactElement): HeaderItem | undefined {
   return (element.type as {item?: HeaderItem}).item;
+}
+
+/** The `HeaderSearch` elements among the slot's children, through rows and fragments, to render as they are. */
+export function searchElements(children: ReactNode): ReactElement[] {
+  return Children.toArray(children).flatMap((child): ReactElement[] => {
+    if (!isValidElement(child)) return [];
+    const item = itemOf(child);
+    if (item === 'actions' || child.type === Fragment) return searchElements((child.props as PropsWithChildren).children);
+    return item === 'search' ? [child] : [];
+  });
 }
 
 /**
@@ -61,13 +78,14 @@ function itemOf(element: ReactElement): HeaderItem | undefined {
  * second time, which would be a `Stack.Toolbar` inside the bar's own.
  */
 export function toolbarItems(children: ReactNode, tints: Tints): ReactNode[] {
-  return Children.toArray(children).flatMap(child => {
+  return Children.toArray(children).flatMap((child): ReactNode[] => {
     if (!isValidElement(child)) return [];
     const item = itemOf(child);
     const props = child.props as PropsWithChildren;
     if (item === 'actions' || child.type === Fragment) return toolbarItems(props.children, tints);
     if (item === 'action') return [action(child.props as HeaderActionProps, tints, child.key)];
     if (item === 'menu') return [menu(child.props as HeaderMenuProps, tints, child.key)];
+    if (item === 'search') return [];
     return [
       <Stack.Toolbar.View key={child.key}>
         <InHeaderContext.Provider value={true}>{child}</InHeaderContext.Provider>

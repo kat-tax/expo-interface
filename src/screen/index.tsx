@@ -1,9 +1,9 @@
-import type {ColorSchemeName, ColorValue} from 'react-native';
+import type {ColorSchemeName, ColorValue, LayoutChangeEvent} from 'react-native';
 import type {Edge} from 'react-native-safe-area-context';
 import type {PropsWithChildren, ReactNode} from 'react';
 
 import {Host} from '@expo/ui';
-import {useEffect} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {StatusBar} from 'expo-status-bar';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Animated, Appearance, Platform, StyleSheet, View} from 'react-native';
@@ -12,10 +12,11 @@ import {useAccentSeed} from '../accent';
 import {NativeHostContext} from '../host';
 import {useFloatingHeader, useStackHeader} from '../stack-header/context';
 import {useColorScheme} from '../scheme';
-import {useNativeTabs} from '../tabs/context';
+import {FoldedSearchContext, useNativeTabs} from '../tabs/context';
 import {ToastInsetContext} from '../toast/context';
 import * as theme from '../theme';
 
+import {ScreenBarsContext, useScreenBars} from './bars';
 import {hostAccentProps} from './host-accent';
 import {useToastLift} from './lift';
 
@@ -64,11 +65,18 @@ export interface ScreenProps extends PropsWithChildren {
    * trailing, `spacing.three` from the edges plus the safe-area bottom inset
    * natively (which includes the tab bar when the screen shows one), fixed
    * to the viewport on web. While a `Toast` under the screen shows, the
-   * button lifts above it and comes back down as it goes.
+   * button lifts above it and comes back down as it goes, and it sits above
+   * a bar the screen draws at its bottom.
    */
   fab?: ReactNode;
 }
 
+/**
+ * The root of a route. A control in its content can give it a bar of the
+ * screen's own (`ScreenBar`): a `HeaderSearch` that mirrors a header the
+ * platform does not have puts its row at the top, above the content, or its
+ * bottom bar below it, where the `Fab` lifts above it.
+ */
 export function Screen({
   children,
   native = false,
@@ -85,17 +93,24 @@ export function Screen({
   const insets = useSafeAreaInsets();
   const backgroundColor = background(scheme);
   const lift = useToastLift();
+  const {bars, top, bottom, hasBottom} = useScreenBars();
+  // The bottom bars' height, measured, which the fab sits above.
+  const [barHeight, setBarHeight] = useState(0);
+  const onBarsLayout = (event: LayoutChangeEvent) => setBarHeight(event.nativeEvent.layout.height);
   // Android's tab host keeps its screens above the navigation bar itself: a
   // safe-area view in one measures from the host, not the window, and would
   // pay the inset a second time, so the bottom is the host's there.
   const underTabs = useNativeTabs();
   const bottomPaid = Platform.OS === 'android' && underTabs;
   const edges: Edge[] = [...(underHeader ? [] : ['top' as const]), 'left', 'right', ...(bottomPaid ? [] : ['bottom' as const])];
+  // On web a folded header's search row under the tab bar is one more thing above the content.
+  const foldedSearch = useContext(FoldedSearchContext);
   // The top: the status bar's own, with no header above (web pads the bar's
   // height, and the top edge pays the status bar natively); under a header
   // the content runs under, the header's height stays clear, unless the
   // content passes under it and pads itself (`underBar`).
-  const paddingTop = underBar ? 0 : !underHeader ? theme.inset.topBar : floating ? insets.top + theme.inset.header : 0;
+  const paddingTop = underBar ? 0 : !underHeader ? theme.inset.topBar + foldedSearch : floating ? insets.top + theme.inset.header : 0;
+  const fabBottom = theme.spacing.three + (hasBottom ? barHeight : 0);
 
   useEffect(() => {
     setBackgroundColorAsync(backgroundColor);
@@ -107,26 +122,30 @@ export function Screen({
       edges={edges}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'}/>
       <View style={[styles.root, {paddingTop}]}>
+        {top}
         <View style={[styles.content, gutter ? styles.gutter : undefined]}>
           <ToastInsetContext.Provider value={lift.report}>
-            {!native ? children : (
-              <NativeHostContext.Provider value={true}>
-                <Host style={{flex: 1}} {...hostAccentProps(seed)}>
-                  {children}
-                </Host>
-              </NativeHostContext.Provider>
-            )}
+            <ScreenBarsContext.Provider value={bars}>
+              {!native ? children : (
+                <NativeHostContext.Provider value={true}>
+                  <Host style={{flex: 1}} {...hostAccentProps(seed)}>
+                    {children}
+                  </Host>
+                </NativeHostContext.Provider>
+              )}
+            </ScreenBarsContext.Provider>
           </ToastInsetContext.Provider>
         </View>
       </View>
+      {hasBottom ? <View onLayout={onBarsLayout} testID="screen-bars">{bottom}</View> : null}
       {fab != null ? (
         <Animated.View
           testID="screen-fab"
           style={[
             styles.fab,
             Platform.OS === 'web'
-              ? styles.fabFixed
-              : {right: theme.spacing.three + insets.right, bottom: theme.spacing.three + (bottomPaid ? 0 : insets.bottom)},
+              ? [styles.fabFixed, {bottom: fabBottom}]
+              : {right: theme.spacing.three + insets.right, bottom: fabBottom + (bottomPaid ? 0 : insets.bottom)},
             lift.style,
           ]}>
           {fab}
@@ -161,6 +180,5 @@ const styles = StyleSheet.create({
   fabFixed: {
     position: 'fixed' as 'absolute',
     right: theme.spacing.three,
-    bottom: theme.spacing.three,
   },
 });

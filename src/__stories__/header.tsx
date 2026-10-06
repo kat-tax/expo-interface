@@ -5,6 +5,34 @@ import {ScreenStackHeaderRightView} from 'react-native-screens';
 import {stackHeaders} from 'expo-vitest/native';
 
 /**
+ * The native header's search bar for a screen in a test, by the header's
+ * title: the props the native stack hands react-native-screens' `SearchBar`
+ * (`placement`, `placeholder`, the events, the commands' `ref`), read off the
+ * element in the header config without rendering it. `null` when the screen
+ * has no search. The element is found by its component's name: the Android
+ * project reaches react-native-screens' mock through another module than the
+ * stack does, so the component is not the same function there.
+ */
+export function searchBar(title: string): Record<string, any> | null {
+  const header = stackHeaders().find(h => h.title === title);
+  if (!header) throw new Error(`No native header titled ${title}`);
+  const bar = find(header.children, 'SearchBar');
+  return bar ? (bar.props as Record<string, any>) : null;
+}
+
+/** The first element whose component is named `name` in a tree of elements, without rendering it. */
+function find(node: ReactNode, name: string): ReactElement | null {
+  let found: ReactElement | null = null;
+  Children.forEach(node, child => {
+    if (found || !isValidElement(child)) return;
+    const type = child.type as {displayName?: string; name?: string};
+    if (typeof child.type !== 'string' && (type.displayName ?? type.name) === name) found = child;
+    else found = find((child.props as {children?: ReactNode}).children, name);
+  });
+  return found;
+}
+
+/**
  * What the native header holds for a screen in a test, by the header's title,
  * in the shape react-native-screens gives iOS's bar button items: `type`,
  * `title`, `icon`, `tintColor`, `disabled`, `onPress`, and for a menu

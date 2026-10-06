@@ -73,6 +73,19 @@ describe('Stack (windows)', () => {
     expect(screen.getByText('Plain screen')).toBeOnTheScreen();
   });
 
+  it('draws the screen\'s search in the header row', async () => {
+    await renderApp({
+      ...app(),
+      index: () => (
+        <>
+          <Stack.Screen options={{headerSearch: {placement: 'inline', node: <Text testID="q">Search</Text>}}}/>
+          <Text>Home screen</Text>
+        </>
+      ),
+    });
+    expect(screen.getByText('Drops').parent!).toContainElement(screen.getByTestId('q'));
+  });
+
   it('hides the header on request', async () => {
     await renderApp(app({headerShown: false}));
     expect(screen.queryByText('Drops')).toBeNull();

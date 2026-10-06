@@ -1,6 +1,8 @@
+import type {HeaderSearchSlot} from '../header-search/types';
 import {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {InHeaderContext} from '../header/shared';
+import {useSearchSite} from '../header-search/site';
 import {Icon} from '../symbol';
 import {icon} from '../icons';
 import {StatePressable} from '../surface/pressable';
@@ -17,6 +19,14 @@ interface ScreenHeaderProps {
   /** Drawn in place of the back button (`headerLeft`). */
   leading?: React.ReactNode;
   trailing?: React.ReactNode;
+  /**
+   * The screen's search (`HeaderSearch`), as the route's `headerSearch`
+   * option hands it over: the `AutoSuggestBox` under the title in a second
+   * row, in the row beside the title, or behind a magnifier among the
+   * trailing controls that takes the row when it opens. `automatic` is
+   * `inline`: a desktop window has the room.
+   */
+  search?: HeaderSearchSlot;
   /**
    * The root stack's header: while the content is in the title bar
    * (`useWindowChrome`), it drags the window and leaves the caption buttons
@@ -37,11 +47,12 @@ const BACK = icon({ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back'
  * toggle row, so that the title is beside the toggle button as a WinUI
  * header is.
  */
-export function ScreenHeader({title, titleNode, onBack, leading, trailing, dragRegion = false}: ScreenHeaderProps) {
+export function ScreenHeader({title, titleNode, onBack, leading, trailing, search, dragRegion = false}: ScreenHeaderProps) {
   const label = useColor('label');
   const background = useColor('background');
   const chrome = useWindowChromeState();
   const toggleRow = useContext(PaneToggleContext);
+  const site = useSearchSite(search, false);
   const bar = useRef<View>(null);
   // A header that is not the root's but lies in the title bar's band all the same — the root's hidden, a tab's stack at the top.
   const [inBand, setInBand] = useState(false);
@@ -72,13 +83,16 @@ export function ScreenHeader({title, titleNode, onBack, leading, trailing, dragR
             <Icon icon={BACK} size={16} tintColor={label}/>
           </StatePressable>
         ) : null)}
-        {titleNode ?? (
+        {/* An open search takes the row: the title goes until it closes. */}
+        {site.open ? null : titleNode ?? (
           <Text numberOfLines={1} style={[styles.title, {color: label}]}>
             {title}
           </Text>
         )}
+        {site.inRow}
         <InHeaderContext.Provider value={true}>{trailing}</InHeaderContext.Provider>
       </View>
+      {site.stacked ? <View style={[styles.search, room]}>{site.stacked}</View> : null}
     </View>
   );
 }
@@ -111,5 +125,12 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 28,
     fontWeight: fontWeights.semibold,
+  },
+  // The stacked search: a row under the title at the content's width, in the bar's own fill.
+  search: {
+    width: '100%',
+    maxWidth: bound.contentMaxWidth,
+    paddingHorizontal: spacing.three,
+    paddingBottom: spacing.two,
   },
 });

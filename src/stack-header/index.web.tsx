@@ -1,3 +1,4 @@
+import type {HeaderSearchSlot} from '../header-search/types';
 import type {HeaderSlot, WebHeader} from '../tabs/context';
 import {useEffect, useId} from 'react';
 import {useIsFocused} from 'expo-router';
@@ -12,14 +13,16 @@ interface StackHeaderProps {
     title?: string;
     headerTitle?: string | (() => React.ReactNode);
     headerRight?: (props: {tintColor?: string}) => React.ReactNode;
+    /** The screen's search, which `HeaderSearch` sets from the screen's content. */
+    headerSearch?: HeaderSearchSlot;
   };
 }
 
 /**
  * The stack header on web: a row of the screen's content width, or nothing at
  * all under a `Tabs` bar that takes headers (`webFoldHeader`), where the bar
- * draws this screen's back button, title and trailing slot instead — one bar
- * over the screen rather than two.
+ * draws this screen's back button, title, trailing slot and search instead —
+ * one bar over the screen rather than two.
  *
  * The navigator calls this as a function rather than rendering it as a
  * component (`options.header(props)`), so its hooks would land in the
@@ -37,13 +40,14 @@ function StackHeader({navigation, route, back, options}: StackHeaderProps) {
     : options.title ?? route.name;
 
   const trailing = options.headerRight?.({});
+  const search = options.headerSearch;
   const onBack = back ? () => navigation.goBack() : undefined;
 
   // Under a bar that takes headers, that bar is this row: nothing is drawn
   // here. Only a pushed screen hands over its title, which the bar shows
   // beside the back button in the logo slot; a tab's own screen keeps its
   // title — the tab next to it in the bar already says it — and folds in its
-  // trailing slot alone.
+  // trailing slot and its search alone.
   if (slot) {
     return (
       <FoldedHeader
@@ -51,6 +55,7 @@ function StackHeader({navigation, route, back, options}: StackHeaderProps) {
         title={onBack ? title : undefined}
         onBack={onBack}
         trailing={trailing}
+        search={search}
       />
     );
   }
@@ -60,6 +65,7 @@ function StackHeader({navigation, route, back, options}: StackHeaderProps) {
       title={title}
       onBack={onBack}
       trailing={trailing}
+      search={search}
     />
   );
 }
@@ -72,7 +78,7 @@ function StackHeader({navigation, route, back, options}: StackHeaderProps) {
  * published on render alone would leave the bar drawing the screen the user
  * left — and offering its actions.
  */
-function FoldedHeader({slot, title, onBack, trailing}: {slot: HeaderSlot} & WebHeader) {
+function FoldedHeader({slot, title, onBack, trailing, search}: {slot: HeaderSlot} & WebHeader) {
   const focused = useIsFocused();
   const id = useId();
 
@@ -81,7 +87,7 @@ function FoldedHeader({slot, title, onBack, trailing}: {slot: HeaderSlot} & WebH
   // again does not render the screen again. Cleared when the screen blurs, and
   // again on its way out.
   useEffect(() => {
-    slot.set(id, focused ? {title, onBack, trailing} : null);
+    slot.set(id, focused ? {title, onBack, trailing, search} : null);
   });
   useEffect(() => () => slot.set(id, null), [slot, id]);
 

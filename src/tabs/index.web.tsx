@@ -12,10 +12,18 @@ import {Image} from 'expo-image';
 import app from 'expo-constants';
 
 import {theme, spacing, bound} from '../theme';
+import {useSearchSite} from '../header-search/site';
 import {materialProps} from '../material';
 import {hasMaterial} from '../sheet/shared';
-import {HeaderSlotContext, InBarContext, NarrowBarContext, TabBarContext, createHeaderSlot, noSubscription, useNarrowBar} from './context';
+import {FoldedSearchContext, HeaderSlotContext, InBarContext, NarrowBarContext, TabBarContext, createHeaderSlot, noSubscription, useNarrowBar} from './context';
 import {Headline, Label} from '../typography';
+
+/**
+ * The height of the search row a folded header puts under the bar: the field
+ * with the bar's padding around it, and the gap to the bar. What the screens
+ * pay on top of the bar's inset while the row is there.
+ */
+export const FOLDED_SEARCH_INSET = 56;
 
 export function Tabs({
   routes,
@@ -40,23 +48,29 @@ export function Tabs({
   const folded = useSyncExternalStore(slot ? slot.subscribe : noSubscription, isFolded, isFolded);
   // The bar stays while it carries a screen's header, even with the tabs hidden.
   const shown = !hidden || folded;
+  // Whether the bar has put a folded header's search under itself, which the
+  // bar decides (an `automatic` search is stacked only where the bar is
+  // narrow) and the screens pay for.
+  const [searchRow, setSearchRow] = useState(false);
   return (
     <HeaderSlotContext.Provider value={slot}>
       {/* The bar floats over the screens; what is under it leaves its space clear. */}
       <TabBarContext.Provider value={shown}>
-        <WebTabs>
-          <TabSlot style={styles.slot}/>
-          {/* The triggers stay in the list even while the bar is hidden: that is where the router looks for the routes. */}
-          <TabList asChild>
-            <WebTabList logo={webLogo} icon={webIcon} slot={slot} hidden={hidden} shown={shown} actions={webActions} actionsPlacement={webActionsPlacement} material={webMaterial}>
-              {routes.map(route => (
-                <TabTrigger key={route.name} name={route.name} href={route.href} asChild>
-                  <TabLink icon={route.icon} badge={route.badge}>{route.label}</TabLink>
-                </TabTrigger>
-              ))}
-            </WebTabList>
-          </TabList>
-        </WebTabs>
+        <FoldedSearchContext.Provider value={searchRow ? FOLDED_SEARCH_INSET : 0}>
+          <WebTabs>
+            <TabSlot style={styles.slot}/>
+            {/* The triggers stay in the list even while the bar is hidden: that is where the router looks for the routes. */}
+            <TabList asChild>
+              <WebTabList logo={webLogo} icon={webIcon} slot={slot} hidden={hidden} shown={shown} actions={webActions} actionsPlacement={webActionsPlacement} material={webMaterial} onSearchRow={setSearchRow}>
+                {routes.map(route => (
+                  <TabTrigger key={route.name} name={route.name} href={route.href} asChild>
+                    <TabLink icon={route.icon} badge={route.badge}>{route.label}</TabLink>
+                  </TabTrigger>
+                ))}
+              </WebTabList>
+            </TabList>
+          </WebTabs>
+        </FoldedSearchContext.Provider>
       </TabBarContext.Provider>
     </HeaderSlotContext.Provider>
   );
@@ -75,9 +89,11 @@ interface WebTabListProps extends TabListProps {
   actionsPlacement?: 'before' | 'after';
   /** The bar's material (`Tabs webMaterial`): a blur of what passes under it, or its solid fill. */
   material?: SheetMaterial;
+  /** Told whether a folded header's search is drawn as a row under the bar. */
+  onSearchRow?: (drawn: boolean) => void;
 }
 
-export function WebTabList({logo, icon, slot, hidden = false, shown = true, actions, actionsPlacement = 'before', material = 'none', ...props}: WebTabListProps) {
+export function WebTabList({logo, icon, slot, hidden = false, shown = true, actions, actionsPlacement = 'before', material = 'none', onSearchRow, ...props}: WebTabListProps) {
   // As in `Tabs`: one reader for the live bar and for a static render, which
   // has no published header either way.
   const read = () => (slot ? slot.get() : null);
@@ -102,42 +118,65 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
     )
     : title == null && logo;
   const {row, narrow} = useFit();
+  // The folded header's search: a field or a magnifier among the actions, or
+  // a row under the bar, which an `automatic` search is where the bar is
+  // too narrow for a field beside the tabs.
+  const search = useSearchSite(header?.search, narrow);
+  const stackedRow = search.stacked != null;
+  useEffect(() => {
+    onSearchRow?.(stackedRow);
+  }, [onSearchRow, stackedRow]);
+  const fill = hasMaterial(material) ? null : styles.solid;
+  const actionsAndSearch = (
+    <>
+      {trailing}
+      {search.inRow}
+    </>
+  );
   return (
-    // A landmark, not a `tablist`. These move between routes rather than
-    // between panels in a page, so the honest markup is navigation — and a
-    // navigation's links are each their own tab stop, which means there is no
-    // arrow-key pattern owed here (see `src/a11y/roving.ts` for the ones that
-    // are). Named, because a page can hold more than one landmark and "banner"
-    // alone tells a screen-reader user nothing.
-    <View {...props} role="navigation" aria-label="Main" testID="tab-bar" style={[styles.list, !shown && styles.hidden]}>
-      {/* A material paints the row through the stylesheet, so the row's own fill stays off then. */}
-      <View ref={row} testID="tab-bar-row" style={[styles.inner, !hasMaterial(material) && styles.solid]} {...materialProps(material, 'element', 'all')}>
-        <View style={styles.logo}>
-          {header?.onBack ? <BackButton onPress={header.onBack}/> : mark}
-          {title != null ? (
-            // The pushed screen's title is the page's heading, so it is the
-            // one h1 on it.
-            <Headline color="label" level={1} numberOfLines={1} style={styles.title}>
-              {title}
-            </Headline>
-          ) : isPreset && !isIconOnly ? (
-            // The app's name is not a heading: it names the whole site, and it
-            // sits inside the navigation landmark rather than over any content.
-            <Headline color="label" level={false}>
-              {app.expoConfig?.name}
-            </Headline>
-          ) : null}
+    <View style={[styles.block, !shown && styles.hidden]}>
+      {/* A landmark, not a `tablist`. These move between routes rather than
+          between panels in a page, so the honest markup is navigation — and a
+          navigation's links are each their own tab stop, which means there is no
+          arrow-key pattern owed here (see `src/a11y/roving.ts` for the ones that
+          are). Named, because a page can hold more than one landmark and "banner"
+          alone tells a screen-reader user nothing. */}
+      <View {...props} role="navigation" aria-label="Main" testID="tab-bar" style={[styles.list, !shown && styles.hidden]}>
+        {/* A material paints the row through the stylesheet, so the row's own fill stays off then. */}
+        <View ref={row} testID="tab-bar-row" style={[styles.inner, fill]} {...materialProps(material, 'element', 'all')}>
+          <View style={styles.logo}>
+            {header?.onBack ? <BackButton onPress={header.onBack}/> : mark}
+            {title != null ? (
+              // The pushed screen's title is the page's heading, so it is the
+              // one h1 on it.
+              <Headline color="label" level={1} numberOfLines={1} style={styles.title}>
+                {title}
+              </Headline>
+            ) : isPreset && !isIconOnly ? (
+              // The app's name is not a heading: it names the whole site, and it
+              // sits inside the navigation landmark rather than over any content.
+              <Headline color="label" level={false}>
+                {app.expoConfig?.name}
+              </Headline>
+            ) : null}
+          </View>
+          <InBarContext.Provider value={true}>
+            <NarrowBarContext.Provider value={narrow}>
+              {actionsPlacement === 'before' ? actionsAndSearch : null}
+              <View testID="tab-bar-tabs" style={[styles.tabs, hidden && styles.hidden]}>
+                {props.children}
+              </View>
+              {actionsPlacement === 'after' ? actionsAndSearch : null}
+            </NarrowBarContext.Provider>
+          </InBarContext.Provider>
         </View>
-        <InBarContext.Provider value={true}>
-          <NarrowBarContext.Provider value={narrow}>
-            {actionsPlacement === 'before' ? trailing : null}
-            <View testID="tab-bar-tabs" style={[styles.tabs, hidden && styles.hidden]}>
-              {props.children}
-            </View>
-            {actionsPlacement === 'after' ? trailing : null}
-          </NarrowBarContext.Provider>
-        </InBarContext.Provider>
       </View>
+      {/* The stacked search: a second pill under the bar, in the bar's own material, at the bar's width. */}
+      {stackedRow ? (
+        <View testID="tab-bar-search" style={[styles.searchRow, fill]} {...materialProps(material, 'element', 'all')}>
+          <InBarContext.Provider value={true}>{search.stacked}</InBarContext.Provider>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -227,13 +266,19 @@ const styles = StyleSheet.create({
   slot: {
     height: '100%',
   },
-  list: {
+  // The bar and the search row under it, floating over the screens.
+  block: {
     position: 'absolute',
+    width: '100%',
+    alignItems: 'center',
+    padding: spacing.three,
+    gap: spacing.two,
+  },
+  list: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
-    padding: spacing.three,
   },
   hidden: {
     display: 'none',
@@ -265,6 +310,15 @@ const styles = StyleSheet.create({
   },
   solid: {
     backgroundColor: theme.backgroundElement,
+  },
+  // The search row: the field in a pill of the bar's fill, the bar's width.
+  searchRow: {
+    width: '100%',
+    maxWidth: bound.contentMaxWidth,
+    height: FOLDED_SEARCH_INSET - spacing.two,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.two,
+    borderRadius: spacing.five,
   },
   logo: {
     flexDirection: 'row',

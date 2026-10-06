@@ -1,10 +1,13 @@
+import type {LayoutChangeEvent} from 'react-native';
 import type {ScreenProps} from './index';
+import {useState} from 'react';
 import {Animated, StyleSheet, View} from 'react-native';
 import {NativeHostContext} from '../host/context';
 import {useStackHeader} from '../stack-header/context';
 import {useColorScheme} from '../scheme';
 import {ToastInsetContext} from '../toast/context';
 import * as theme from '../theme';
+import {ScreenBarsContext, useScreenBars} from './bars';
 import {useToastLift} from './lift';
 
 /**
@@ -13,7 +16,9 @@ import {useToastLift} from './lift';
  * a React Native layout directly. `native` therefore only marks the tree as
  * hosted, so components that would mount a host of their own elsewhere
  * render bare here. The screen paints the scheme's background and keeps the
- * content width every platform shares.
+ * content width every platform shares, and draws the bars a control in its
+ * content gives it (`ScreenBar`) at its top and its bottom, the floating
+ * action button above the bottom ones.
  */
 export function Screen({children, native = false, header, gutter = false, fab}: ScreenProps) {
   const stackHeader = useStackHeader();
@@ -21,22 +26,29 @@ export function Screen({children, native = false, header, gutter = false, fab}: 
   const scheme = useColorScheme();
   const backgroundColor = theme.colors[scheme].background;
   const lift = useToastLift();
+  const {bars, top, bottom, hasBottom} = useScreenBars();
+  const [barHeight, setBarHeight] = useState(0);
+  const onBarsLayout = (event: LayoutChangeEvent) => setBarHeight(event.nativeEvent.layout.height);
 
   return (
     <View style={[styles.screen, {backgroundColor}]}>
       <View style={[styles.root, {paddingTop: underHeader ? 0 : theme.inset.topBar}]}>
+        {top}
         <View style={[styles.content, gutter ? styles.gutter : undefined]}>
           <ToastInsetContext.Provider value={lift.report}>
-            {native ? (
-              <NativeHostContext.Provider value={true}>
-                <View style={styles.host}>{children}</View>
-              </NativeHostContext.Provider>
-            ) : children}
+            <ScreenBarsContext.Provider value={bars}>
+              {native ? (
+                <NativeHostContext.Provider value={true}>
+                  <View style={styles.host}>{children}</View>
+                </NativeHostContext.Provider>
+              ) : children}
+            </ScreenBarsContext.Provider>
           </ToastInsetContext.Provider>
         </View>
       </View>
+      {hasBottom ? <View onLayout={onBarsLayout} testID="screen-bars">{bottom}</View> : null}
       {fab != null ? (
-        <Animated.View testID="screen-fab" style={[styles.fab, lift.style]}>
+        <Animated.View testID="screen-fab" style={[styles.fab, {bottom: theme.spacing.three + (hasBottom ? barHeight : 0)}, lift.style]}>
           {fab}
         </Animated.View>
       ) : null}
@@ -67,7 +79,6 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: theme.spacing.three,
-    bottom: theme.spacing.three,
     // Only the button takes presses, not the slot it sits in.
     pointerEvents: 'box-none',
   },

@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import type {HeaderSearchSlot} from '../header-search/types';
 import {createContext, useContext} from 'react';
 import {Platform} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -9,19 +10,28 @@ import {inset} from '../theme';
 export const TabBarContext = createContext(false);
 
 /**
+ * Web: the height of the search row the tab bar has put under itself, for a
+ * folded header whose search is `stacked`, and zero without one. The bar
+ * floats over the screens, so what is under it pays this on top of the
+ * bar's own inset — see {@link useTabBarInset}.
+ */
+export const FoldedSearchContext = createContext(0);
+
+/**
  * The space a bar floating over the screen takes at its top: what content
  * passing under it (`Screen underBar`) pads itself by. On web it is the tab
  * bar's, while the bar is drawn (`Tabs hidden` with no header folded into it
- * draws none); on iOS, where the tab bar is the platform's own and sits at
- * the bottom, it is the stack header's under a `TabStack` with a `material`,
- * the status bar included, and zero under an opaque one, which Android's
- * header always is.
+ * draws none), plus the search row a folded header has put under the bar;
+ * on iOS, where the tab bar is the platform's own and sits at the bottom, it
+ * is the stack header's under a `TabStack` with a `material`, the status bar
+ * included, and zero under an opaque one, which Android's header always is.
  */
 export function useTabBarInset(): number {
   const bar = useContext(TabBarContext);
+  const search = useContext(FoldedSearchContext);
   const floating = useFloatingHeader();
   const insets = useSafeAreaInsets();
-  if (Platform.OS === 'web') return bar ? inset.topBar : 0;
+  if (Platform.OS === 'web') return bar ? inset.topBar + search : 0;
   return floating ? insets.top + inset.header : 0;
 }
 
@@ -76,6 +86,11 @@ export interface WebHeader {
   onBack?: () => void;
   /** The screen's `headerRight`, in the bar's actions slot. */
   trailing?: ReactNode;
+  /**
+   * The screen's search (`HeaderSearch`): a field or a magnifier in the
+   * actions slot, or a row under the bar for `stacked`.
+   */
+  search?: HeaderSearchSlot;
 }
 
 /**

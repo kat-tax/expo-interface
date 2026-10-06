@@ -1,8 +1,11 @@
+import type {HeaderSearchSlot} from '../header-search/types';
 import type {SheetMaterial} from '../sheet/types';
-import {Platform, Pressable, StyleSheet, Text, View} from 'react-native';
+import {Platform, Pressable, StyleSheet, Text, View, useWindowDimensions} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SymbolView} from 'expo-symbols';
 import {InHeaderContext} from '../header/shared';
+import {isNarrow} from '../header-search/shared';
+import {useSearchSite} from '../header-search/site';
 import {materialProps} from '../material';
 import {hasMaterial} from '../sheet/shared';
 import {bound, spacing, useColor} from '../theme';
@@ -12,6 +15,14 @@ interface ScreenHeaderProps {
   title: string;
   onBack?: () => void;
   trailing?: React.ReactNode;
+  /**
+   * The screen's search (`HeaderSearch`), as the route's `headerSearch`
+   * option hands it over: a field under the title in a second row, a field
+   * in the row beside the title, or a magnifier among the trailing controls
+   * that takes the row when it opens. `automatic` is `stacked` in a window
+   * too narrow for a field beside the title, `inline` otherwise.
+   */
+  search?: HeaderSearchSlot;
   /**
    * Web only: draws the bar as one of the kit's materials, the ones `Sheet`
    * takes: the screen's background thinned over a blur of what the app lays
@@ -25,11 +36,13 @@ interface ScreenHeaderProps {
   dragRegion?: boolean;
 }
 
-export function ScreenHeader({title, onBack, trailing, material = 'none'}: ScreenHeaderProps) {
+export function ScreenHeader({title, onBack, trailing, search, material = 'none'}: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
   const tabBar = useTabBarInset();
+  const {width} = useWindowDimensions();
   const label = useColor('label');
   const background = useColor('background');
+  const site = useSearchSite(search, isNarrow(width));
   // Under the status bar natively; under the floating tab bar on web.
   const paddingTop = Platform.OS === 'web' ? tabBar : insets.top;
 
@@ -50,11 +63,16 @@ export function ScreenHeader({title, onBack, trailing, material = 'none'}: Scree
             />
           </Pressable>
         ) : null}
-        <Text numberOfLines={1} style={[styles.title, {color: label}]}>
-          {title}
-        </Text>
+        {/* An open search takes the row, as Android's does: the title goes until it closes. */}
+        {site.open ? null : (
+          <Text numberOfLines={1} style={[styles.title, {color: label}]}>
+            {title}
+          </Text>
+        )}
+        {site.inRow}
         <InHeaderContext.Provider value={true}>{trailing}</InHeaderContext.Provider>
       </View>
+      {site.stacked ? <View style={styles.search}>{site.stacked}</View> : null}
     </View>
   );
 }
@@ -81,5 +99,12 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 17,
     fontWeight: '600',
+  },
+  // The stacked search: a row under the title at the content's width, in the bar's own fill.
+  search: {
+    width: '100%',
+    maxWidth: bound.contentMaxWidth,
+    paddingHorizontal: spacing.three,
+    paddingBottom: spacing.two,
   },
 });

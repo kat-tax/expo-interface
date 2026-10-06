@@ -26,6 +26,11 @@ The differences that change what a screen can do, in one place:
 | `TextField` `submitBehavior` | Native | Native | Yes | Enter keeps focus |
 | `SearchField` `clearable` | Yes | Yes | The control's own | The control's own |
 | `SearchField` suggestions with icons | Yes | Yes | Text only | Text only |
+| `HeaderSearch` `stacked` | Native | Drawn under the app bar | Drawn under the header | Drawn under the header |
+| `HeaderSearch` `integrated` | Native on iOS 26 | A bottom `Toolbar` | A bottom `Toolbar` | A bottom `Toolbar` |
+| `HeaderSearch` `action` | Native on iOS 26 | Native | Drawn | Drawn |
+| `HeaderSearch` `inline` | Native on iOS 16 to 18 | The `SearchView` kept open | Drawn | Drawn |
+| `HeaderSearch` `hideWhenScrolling`, `integration` | Yes | Ignored | Ignored | Ignored |
 | `DateTimePicker` time bounds | Yes | Yes | Yes | Date only |
 | `FieldGroup` `titleUppercase` | Ignored | Yes | Yes | Yes |
 | `TabView` reordering | No | No | No | Off |
