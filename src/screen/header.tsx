@@ -2,6 +2,7 @@ import type {SheetMaterial} from '../sheet/types';
 import {Platform, Pressable, StyleSheet, Text, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SymbolView} from 'expo-symbols';
+import {InHeaderContext} from '../header/shared';
 import {materialProps} from '../material';
 import {hasMaterial} from '../sheet/shared';
 import {bound, spacing, useColor} from '../theme';
@@ -52,7 +53,7 @@ export function ScreenHeader({title, onBack, trailing, material = 'none'}: Scree
         <Text numberOfLines={1} style={[styles.title, {color: label}]}>
           {title}
         </Text>
-        {trailing}
+        <InHeaderContext.Provider value={true}>{trailing}</InHeaderContext.Provider>
       </View>
     </View>
   );

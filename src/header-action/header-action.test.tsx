@@ -1,29 +1,41 @@
-import {Platform} from 'react-native';
+import type {ReactNode} from 'react';
+import {Platform, Text} from 'react-native';
 import {fireEvent as fireDom, render as renderDom, screen as dom} from '@testing-library/react';
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, screen} from '@testing-library/react-native';
+import {barItems} from '../__stories__/header';
 import * as icons from '../__stories__/icons';
+import {InHeaderContext} from '../header/shared';
+import {TabStack} from '../tab-stack';
 import {InBarContext, NarrowBarContext} from '../tabs/context';
-import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {nodes} from 'expo-vitest/native';
+import {renderApp} from 'expo-vitest/router';
 import {HeaderAction} from '.';
-
-/** The screen's focus, as the navigator would report it. */
-const focus = {value: true};
-vi.mock('expo-router', async importOriginal => {
-  const router = await importOriginal<typeof import('expo-router')>();
-  return {...router, useIsFocused: () => focus.value};
-});
 
 const HOST = 'ViewManagerAdapter_ExpoUI_HostView';
 
-describe(`HeaderAction (${Platform.OS})`, () => {
-  afterEach(() => {
-    focus.value = true;
-  });
+/** The control as a header draws it: inside the header's trailing slot. */
+function inHeader(node: ReactNode) {
+  return <InHeaderContext.Provider value={true}>{node}</InHeaderContext.Provider>;
+}
 
+/** An app whose root screen renders the control in its content. */
+function app(control: ReactNode) {
+  return {
+    _layout: () => <TabStack title="Drops"/>,
+    index: () => (
+      <>
+        {control}
+        <Text>Home screen</Text>
+      </>
+    ),
+  };
+}
+
+describe(`HeaderAction (${Platform.OS})`, () => {
   if (Platform.OS === 'web') {
     it('renders the header-sized text button and reports the press', () => {
       const onPress = vi.fn();
-      renderDom(<HeaderAction label="Copy" icon={icons.share} onPress={onPress} testID="copy"/>);
+      renderDom(inHeader(<HeaderAction label="Copy" icon={icons.share} onPress={onPress} testID="copy"/>));
       const trigger = dom.getByRole('button', {name: 'Copy'});
       expect(trigger).toHaveClass('ui-button--text', 'ui-button--medium');
       expect(trigger).toHaveAttribute('data-testid', 'copy');
@@ -60,90 +72,85 @@ describe(`HeaderAction (${Platform.OS})`, () => {
 
     it('takes the label tone, hides the label and does not press while disabled', () => {
       const onPress = vi.fn();
-      renderDom(<HeaderAction label="Copy" icon={icons.share} onPress={onPress} tone="label" hideLabel disabled/>);
+      renderDom(inHeader(<HeaderAction label="Copy" icon={icons.share} onPress={onPress} tone="label" hideLabel disabled/>));
       const trigger = dom.getByRole('button', {name: 'Copy'});
       expect(trigger).toHaveClass('ui-button--label', 'ui-button--icon-only');
       expect((trigger as HTMLButtonElement).disabled).toBe(true);
       fireDom.click(trigger);
       expect(onPress).not.toHaveBeenCalled();
     });
+
+    it('sends itself to the header from the screen it is rendered in', async () => {
+      const onPress = vi.fn();
+      await renderApp(app(<HeaderAction label="Copy" icon={icons.share} onPress={onPress} testID="copy"/>));
+      const trigger = dom.getByRole('button', {name: 'Copy'});
+      // In the header row, after the title and before the screen's content.
+      const title = dom.getByText('Drops');
+      const content = dom.getByText('Home screen');
+      expect(title.compareDocumentPosition(trigger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(trigger.compareDocumentPosition(content) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(trigger).toHaveClass('ui-button--medium');
+      fireDom.click(trigger);
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
     return;
   }
 
   const isIOS = Platform.OS === 'ios';
-  const trigger = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
 
-  it('mounts the header-sized text button in its own host', async () => {
-    await render(<HeaderAction label="Copy" icon={icons.share} onPress={vi.fn()} testID="copy"/>);
-    const hostView = nodes().find(n => n.type === HOST)!;
-    expect(hostView).toBeDefined();
-    expect(hostView.props.matchContentsVertical ?? hostView.props.matchContents).toBeTruthy();
-    const {props} = trigger('copy');
-    if (isIOS) {
-      expect(props.label).toBe('Copy');
-      expect(props.systemImage).toBe('square.and.arrow.up');
-      expect(modifier(props, 'buttonStyle')?.style).toBe('plain');
-      // 17pt text, the size of a bar button's title.
-      expect(modifier(props, 'controlSize')?.size).toBe('large');
-      expect(modifier(props, 'tint')?.tint.color).toBe('#007AFF');
-    } else {
-      expect(props.colors).toEqual({contentColor: '#007AFF'});
-      // A 24dp icon, not the button size's 18.
-      expect(nodes().some(n => n.props.size === 24 && n.props.tint === '#007AFF')).toBe(true);
-    }
-  });
-
-  it('draws the icon at the header size when the label is hidden', async () => {
-    await render(<HeaderAction label="Copy" icon={icons.share} onPress={vi.fn()} hideLabel testID="copy"/>);
-    const {props} = trigger('copy');
-    if (isIOS) {
-      // A sized symbol has to be the button's label view: `systemImage` would
-      // take the control size instead.
-      expect(props.systemImage).toBeUndefined();
-      expect(modifier(props, 'accessibilityLabel')?.label).toBe('Copy');
-      const image = host(p => p.systemName === 'square.and.arrow.up');
-      expect(modifier(image.props, 'font')?.size).toBe(22);
-    } else {
-      expect(nodes().some(n => n.props.size === 24 && n.props.contentDescription === 'Copy')).toBe(true);
-    }
-  });
-
-  it('reports the press', async () => {
+  it('is the bar\'s own item: the symbol or drawable, named by the label, in the accent', async () => {
     const onPress = vi.fn();
-    await render(<HeaderAction label="Copy" onPress={onPress} testID="copy"/>);
-    if (isIOS) {
-      await fireEvent.press(screen.getByTestId('copy'));
-    } else {
-      await act(async () => {
-        byComposeTestID('copy').props.onButtonPressed();
-      });
-    }
+    await renderApp(app(<HeaderAction label="Copy" icon={icons.share} onPress={onPress} hideLabel/>));
+    expect(screen.getByText('Home screen')).toBeOnTheScreen();
+    // No host of the kit's own: the item is the platform's.
+    expect(nodes().filter(n => n.type === HOST)).toHaveLength(0);
+    const [item] = barItems('Drops');
+    expect(item).toMatchObject({
+      type: 'button',
+      accessibilityLabel: 'Copy',
+      icon: isIOS ? {type: 'sfSymbol', name: 'square.and.arrow.up'} : icons.share.drawable,
+      tintColor: '#007AFF',
+    });
+    expect(item.title).toBeFalsy();
+    await act(async () => item.onPress());
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
-  it('takes the label tone and does not press while disabled', async () => {
-    const onPress = vi.fn();
-    await render(<HeaderAction label="Copy" onPress={onPress} tone="label" disabled testID="copy"/>);
-    const {props} = trigger('copy');
-    if (isIOS) {
-      expect(modifier(props, 'tint')?.tint.color).toBe('#000000');
-      expect(modifier(props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
-    } else {
-      expect(props.colors).toEqual({contentColor: '#000000'});
-      expect(props.enabled).toBe(false);
-      // The Compose view is handed no press handler at all, so there is
-      // nothing for a press on it to reach.
-      expect(props.onButtonPressed).toBeUndefined();
-    }
-    expect(onPress).not.toHaveBeenCalled();
+  it('takes the label tone and disables', async () => {
+    await renderApp(app(<HeaderAction label="Copy" icon={icons.share} onPress={vi.fn()} hideLabel tone="label" disabled/>));
+    expect(barItems('Drops')[0]).toMatchObject({tintColor: '#000000', disabled: true});
   });
 
-  (isIOS ? it.skip : it)('rebuilds the host when the screen loses and regains focus', async () => {
-    const {rerender} = await render(<HeaderAction label="Copy" onPress={vi.fn()} testID="copy"/>);
-    expect(nodes().filter(n => n.type === HOST)).toHaveLength(1);
-    focus.value = false;
-    await rerender(<HeaderAction label="Copy" onPress={vi.fn()} testID="copy"/>);
-    expect(nodes().filter(n => n.type === HOST)).toHaveLength(1);
-    expect(trigger('copy')).toBeTruthy();
+  it('is the last lone control rendered: each sends itself, and the bar takes one', async () => {
+    await renderApp(app(
+      <>
+        <HeaderAction label="Copy" icon={icons.share} onPress={vi.fn()} hideLabel/>
+        <HeaderAction label="Save" icon={icons.add} onPress={vi.fn()} hideLabel/>
+      </>,
+    ));
+    expect(barItems('Drops').map(item => item.accessibilityLabel)).toEqual(['Save']);
   });
+
+  if (isIOS) {
+    it('shows the label as the item\'s title when the label is not hidden, or there is no symbol', async () => {
+      await renderApp(app(<HeaderAction label="Copy" icon={icons.share} onPress={vi.fn()}/>));
+      const [item] = barItems('Drops');
+      expect(item.title).toBe('Copy');
+      expect(item.icon).toBeUndefined();
+    });
+  } else {
+    it('draws the icon whenever there is a drawable, since the app bar\'s actions are icons', async () => {
+      await renderApp(app(<HeaderAction label="Copy" icon={icons.share} onPress={vi.fn()}/>));
+      expect(barItems('Drops')[0]).toMatchObject({type: 'button', icon: icons.share.drawable, accessibilityLabel: 'Copy'});
+    });
+
+    it('draws a text action as the kit\'s own button in a host, since the app bar has no text item', async () => {
+      await renderApp(app(<HeaderAction label="Save" onPress={vi.fn()}/>));
+      const [item] = barItems('Drops');
+      expect(item.type).toBe('custom');
+      // The bar's custom view holds the kit's host and button; the test
+      // renderer keeps the bar's items as elements, so neither is mounted.
+      expect(nodes().filter(n => n.type === HOST)).toHaveLength(0);
+    });
+  }
 });

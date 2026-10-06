@@ -1,7 +1,8 @@
 import type {ButtonTone} from '../button/types';
 import type {IconToken} from '../icons';
 import type {MenuItem} from '../menu/types';
-import {HeaderHost, useHeaderTrigger} from '../header/shared';
+import {HeaderHost, useHeaderTrigger, useInHeader} from '../header/shared';
+import {HeaderSlot} from '../header/slot';
 import {Menu} from '../menu';
 
 export interface HeaderMenuProps {
@@ -21,28 +22,35 @@ export interface HeaderMenuProps {
   tone?: ButtonTone;
   /** Disables the trigger. */
   disabled?: boolean;
-  /** Called when the menu opens and closes (not reported on iOS). */
+  /** Called when the menu opens and closes. Not reported on iOS and Android, where the platform presents the menu. */
   onOpenChange?: (open: boolean) => void;
   /** Identifier used to locate the trigger in end-to-end tests. */
   testID?: string;
 }
 
 /**
- * A `Menu` for a stack header's trailing slot (`TabStack`'s `headerRight`, a
- * `Stack.Screen`'s `headerRight` option): the trigger at the platform's header
- * size, in its own accent-seeded host so it can live in the React Native
- * header — or in the one a `HeaderActions` around it already mounted. Needs a
- * navigator above it on Android (it reads the screen's focus); on web it is
- * the plain `Menu` trigger, for a custom header such as
- * `ConstrainedStackHeader`. See `HeaderAction` for one that presses.
+ * A `Menu` for a stack header's trailing slot: the trigger at the platform's
+ * header size, with the entries behind it. Rendered in the screen's content
+ * and sent to the header from there, as `HeaderAction` describes: on iOS a
+ * navigation bar menu item (its entries a `UIMenu`), on Android the top app
+ * bar's icon button with a dropdown, both made from this element's props by
+ * the slot (`header/toolbar.tsx`); on web and Windows the plain `Menu`
+ * trigger in the drawn header row, or in the web tab bar the header folds
+ * into. Rendered inside a header already, it draws itself in place.
  */
-export function HeaderMenu(props: HeaderMenuProps) {
-  return (
-    <HeaderHost>
-      <HeaderMenuTrigger {...props}/>
-    </HeaderHost>
-  );
-}
+export const HeaderMenu = Object.assign(
+  function HeaderMenu(props: HeaderMenuProps) {
+    const inHeader = useInHeader();
+    if (!inHeader) return <HeaderSlot><HeaderMenu {...props}/></HeaderSlot>;
+    return (
+      <HeaderHost>
+        <HeaderMenuTrigger {...props}/>
+      </HeaderHost>
+    );
+  },
+  // What the native slot reads this element as, without rendering it.
+  {item: 'menu' as const},
+);
 
 function HeaderMenuTrigger({label, icon, items, hideLabel, tone = 'accent', disabled, onOpenChange, testID}: HeaderMenuProps) {
   const {size, iconSize, iconOnly} = useHeaderTrigger();

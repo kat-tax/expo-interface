@@ -3,8 +3,11 @@ import {HeaderMenu, TabStack} from 'expo-interface';
 import {demoDropData} from '@/drop/data';
 import * as icons from '@/icons';
 
-/** The header's trailing menu: a kit `HeaderMenu`, which survives Android's header re-parenting. */
-function NewMenu() {
+/**
+ * The header's trailing menu: a kit `HeaderMenu`, returned as the element
+ * itself, since natively the stack reads the bar's items off it.
+ */
+function newMenu() {
   const [first] = demoDropData;
   return (
     <HeaderMenu
@@ -19,5 +22,5 @@ function NewMenu() {
 }
 
 export default function DropsLayout() {
-  return <TabStack title="Drops" headerRight={() => <NewMenu/>}/>;
+  return <TabStack title="Drops" headerRight={newMenu}/>;
 }

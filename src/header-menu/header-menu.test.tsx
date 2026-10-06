@@ -1,18 +1,18 @@
+import type {ReactNode} from 'react';
+import type {IconToken} from '../icons';
 import type {MenuItem} from '../menu/types';
-import {Platform} from 'react-native';
+import {Platform, Text} from 'react-native';
 import {render as renderDom, screen as dom} from '@testing-library/react';
-import {act, render, screen} from '@testing-library/react-native';
+import {act, screen} from '@testing-library/react-native';
+import {barItems} from '../__stories__/header';
 import * as icons from '../__stories__/icons';
+import {iosSymbol} from '../button/shared';
+import {InHeaderContext} from '../header/shared';
+import {TabStack} from '../tab-stack';
 import {InBarContext, NarrowBarContext} from '../tabs/context';
-import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {nodes} from 'expo-vitest/native';
+import {renderApp} from 'expo-vitest/router';
 import {HeaderMenu} from '.';
-
-/** The screen's focus, as the navigator would report it. */
-const focus = {value: true};
-vi.mock('expo-router', async importOriginal => {
-  const router = await importOriginal<typeof import('expo-router')>();
-  return {...router, useIsFocused: () => focus.value};
-});
 
 const HOST = 'ViewManagerAdapter_ExpoUI_HostView';
 const items: MenuItem[] = [
@@ -20,14 +20,28 @@ const items: MenuItem[] = [
   {label: 'Import files…', icon: icons.share},
 ];
 
-describe(`HeaderMenu (${Platform.OS})`, () => {
-  afterEach(() => {
-    focus.value = true;
-  });
+/** The control as a header draws it: inside the header's trailing slot. */
+function inHeader(node: ReactNode) {
+  return <InHeaderContext.Provider value={true}>{node}</InHeaderContext.Provider>;
+}
 
+/** An app whose root screen renders the control in its content. */
+function app(control: ReactNode) {
+  return {
+    _layout: () => <TabStack title="Drops"/>,
+    index: () => (
+      <>
+        {control}
+        <Text>Home screen</Text>
+      </>
+    ),
+  };
+}
+
+describe(`HeaderMenu (${Platform.OS})`, () => {
   if (Platform.OS === 'web') {
     it('renders the plain header-sized text menu trigger for a custom header', () => {
-      renderDom(<HeaderMenu label="New…" icon={icons.add} items={items} testID="new"/>);
+      renderDom(inHeader(<HeaderMenu label="New…" icon={icons.add} items={items} testID="new"/>));
       const trigger = dom.getByRole('button', {name: 'New…'});
       expect(trigger).toHaveClass('ui-button--text', 'ui-button--medium');
       expect(trigger).toHaveAttribute('data-testid', 'new');
@@ -64,92 +78,77 @@ describe(`HeaderMenu (${Platform.OS})`, () => {
     });
 
     it('takes the label tone, hides the label and disables', () => {
-      renderDom(<HeaderMenu label="New" icon={icons.add} items={items} tone="label" hideLabel disabled/>);
+      renderDom(inHeader(<HeaderMenu label="New" icon={icons.add} items={items} tone="label" hideLabel disabled/>));
       const trigger = dom.getByRole('button', {name: 'New'});
       expect(trigger).toHaveClass('ui-button--label', 'ui-button--icon-only');
       expect((trigger as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it('sends itself to the header from the screen it is rendered in', async () => {
+      await renderApp(app(<HeaderMenu label="New…" icon={icons.add} items={items} testID="new"/>));
+      const trigger = dom.getByRole('button', {name: 'New…'});
+      // In the header row, after the title and before the screen's content.
+      const title = dom.getByText('Drops');
+      const content = dom.getByText('Home screen');
+      expect(title.compareDocumentPosition(trigger) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(trigger.compareDocumentPosition(content) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      expect(trigger).toHaveClass('ui-button--medium');
+      expect(dom.getAllByRole('menuitem', {hidden: true})).toHaveLength(2);
     });
     return;
   }
 
   const isIOS = Platform.OS === 'ios';
-  const trigger = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
+  const icon = (token: IconToken) => isIOS ? {type: 'sfSymbol', name: iosSymbol(token)} : token.drawable;
 
-  it('mounts the header-sized text menu trigger in its own host', async () => {
-    await render(<HeaderMenu label="New…" icon={icons.add} items={items} testID="new"/>);
-    const hostView = nodes().find(n => n.type === HOST)!;
-    expect(hostView).toBeDefined();
-    expect(hostView.props.matchContentsVertical ?? hostView.props.matchContents).toBeTruthy();
-    const {props} = trigger('new');
-    if (isIOS) {
-      expect(props.label).toBe('New…');
-      expect(props.systemImage).toBe('plus');
-      expect(modifier(props, 'buttonStyle')?.style).toBe('plain');
-      // 17pt text, the size of a bar button's title.
-      expect(modifier(props, 'controlSize')?.size).toBe('large');
-      expect(modifier(props, 'tint')?.tint.color).toBe('#007AFF');
-    } else {
-      expect(props.colors).toEqual({contentColor: '#007AFF'});
-      expect(props.contentPadding).toEqual({start: 16, top: 10, end: 24, bottom: 10});
-      // A 24dp icon, not the button size's 18.
-      expect(nodes().some(n => n.props.size === 24 && n.props.tint === '#007AFF')).toBe(true);
-    }
-  });
-
-  it('draws the icon at the header size when the label is hidden', async () => {
-    await render(<HeaderMenu label="New…" icon={icons.add} items={items} hideLabel testID="new"/>);
-    const {props} = trigger('new');
-    if (isIOS) {
-      // A sized symbol has to be the menu's label view: `systemImage` would
-      // take the control size instead.
-      expect(props.systemImage).toBeUndefined();
-      expect(modifier(props, 'accessibilityLabel')?.label).toBe('New…');
-      const image = host(p => p.systemName === 'plus');
-      expect(modifier(image.props, 'font')?.size).toBe(22);
-    } else {
-      expect(nodes().some(n => n.props.size === 24 && n.props.contentDescription === 'New…')).toBe(true);
-    }
+  it('is the bar\'s own menu: the trigger an item in the accent, the entries its menu', async () => {
+    const onBlank = vi.fn();
+    const entries: MenuItem[] = [
+      {label: 'Blank document', icon: icons.add, onPress: onBlank},
+      {label: 'Import files…', icon: icons.share, active: true},
+      {label: 'Delete', role: 'destructive', separator: true, disabled: true},
+    ];
+    await renderApp(app(<HeaderMenu label="New…" icon={icons.add} items={entries} hideLabel/>));
+    expect(screen.getByText('Home screen')).toBeOnTheScreen();
+    // No host of the kit's own: the menu is the platform's.
+    expect(nodes().filter(n => n.type === HOST)).toHaveLength(0);
+    const [item] = barItems('Drops');
+    expect(item).toMatchObject({type: 'menu', accessibilityLabel: 'New…', icon: icon(icons.add), tintColor: '#007AFF'});
+    expect(item.title).toBeFalsy();
+    const [blank, imports, group] = item.menu.items;
+    expect(blank).toMatchObject({type: 'action', title: 'Blank document', icon: icon(icons.add), state: 'off', destructive: false});
+    // An active entry is on; a separator starts an inline group, with the
+    // destructive entry in the danger color and disabled.
+    expect(imports).toMatchObject({type: 'action', title: 'Import files…', state: 'on'});
+    expect(group).toMatchObject({type: 'submenu', displayInline: true});
+    expect(group.items).toHaveLength(1);
+    expect(group.items[0]).toMatchObject({type: 'action', title: 'Delete', destructive: true, disabled: true, state: 'off'});
+    await act(async () => blank.onPress());
+    expect(onBlank).toHaveBeenCalledTimes(1);
   });
 
   it('takes the label tone and disables', async () => {
-    await render(<HeaderMenu label="New…" items={items} tone="label" disabled testID="new"/>);
-    const {props} = trigger('new');
-    if (isIOS) {
-      expect(modifier(props, 'tint')?.tint.color).toBe('#000000');
-      expect(modifier(props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
-    } else {
-      expect(props.colors).toEqual({contentColor: '#000000'});
-      expect(props.enabled).toBe(false);
-    }
+    await renderApp(app(<HeaderMenu label="New…" icon={icons.add} items={items} hideLabel tone="label" disabled/>));
+    expect(barItems('Drops')[0]).toMatchObject({type: 'menu', tintColor: '#000000', disabled: true});
   });
 
-  (isIOS ? it.skip : it)('rebuilds the host when the screen loses and regains focus', async () => {
-    const {rerender} = await render(<HeaderMenu label="New…" items={items} testID="new"/>);
-    expect(nodes().filter(n => n.type === HOST)).toHaveLength(1);
-    focus.value = false;
-    await rerender(<HeaderMenu label="New…" items={items} testID="new"/>);
-    expect(nodes().filter(n => n.type === HOST)).toHaveLength(1);
-    expect(trigger('new')).toBeTruthy();
-    focus.value = true;
-    await rerender(<HeaderMenu label="New…" items={items} testID="new"/>);
-    expect(trigger('new')).toBeTruthy();
-  });
+  if (isIOS) {
+    it('shows the label as the item\'s title when the label is not hidden, or there is no symbol', async () => {
+      await renderApp(app(<HeaderMenu label="New…" icon={icons.add} items={items}/>));
+      const [item] = barItems('Drops');
+      expect(item).toMatchObject({type: 'menu', title: 'New…'});
+      expect(item.icon).toBeUndefined();
+      expect(item.menu.items.map((entry: {title: string}) => entry.title)).toEqual(['Blank document', 'Import files…']);
+    });
+  } else {
+    it('draws the icon whenever there is a drawable, since the app bar\'s actions are icons', async () => {
+      await renderApp(app(<HeaderMenu label="New…" icon={icons.add} items={items}/>));
+      expect(barItems('Drops')[0]).toMatchObject({type: 'menu', icon: icons.add.drawable, accessibilityLabel: 'New…'});
+    });
 
-  (isIOS ? it.skip : it)('gives the host the size Compose measured, so the toolbar lays it out', async () => {
-    await render(<HeaderMenu label="New…" items={items} testID="new"/>);
-    // `fit` hosts carry no style of their own until one is measured.
-    const hostView = () => nodes().find(n => n.type === HOST)!;
-    const style = () => (hostView().props.style as unknown[])[1];
-    expect(style()).toBeUndefined();
-    await act(async () => {
-      hostView().props.onLayoutContent({nativeEvent: {width: 96, height: 48}});
+    it('draws a text menu as the kit\'s own menu in a host, since the app bar has no text item', async () => {
+      await renderApp(app(<HeaderMenu label="New…" items={items}/>));
+      expect(barItems('Drops')[0].type).toBe('custom');
     });
-    expect(style()).toEqual({width: 96, height: 48});
-    // The same size again is not a new state.
-    const before = style();
-    await act(async () => {
-      hostView().props.onLayoutContent({nativeEvent: {width: 96, height: 48}});
-    });
-    expect(style()).toBe(before);
-  });
+  }
 });

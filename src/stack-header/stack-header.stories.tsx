@@ -12,13 +12,7 @@ const app = {
   _layout: () => (
     <Stack screenOptions={{headerShown: true, header: ConstrainedStackHeader}}>
       <Stack.Screen name="index" options={{title: 'Drops'}}/>
-      <Stack.Screen
-        name="detail"
-        options={{
-          title: 'Holiday photos',
-          headerRight: () => <HeaderAction label="Share" icon={icons.share} hideLabel onPress={fn()}/>,
-        }}
-      />
+      <Stack.Screen name="detail" options={{title: 'Holiday photos'}}/>
     </Stack>
   ),
   index: () => (
@@ -28,7 +22,12 @@ const app = {
       </Link>
     </Page>
   ),
-  detail: () => <Page title="Holiday photos" body="12 files, shared until Friday."/>,
+  // The screen renders its header control, which sends itself to the header's trailing slot.
+  detail: () => (
+    <Page title="Holiday photos" body="12 files, shared until Friday.">
+      <HeaderAction label="Share" icon={icons.share} hideLabel onPress={fn()}/>
+    </Page>
+  ),
 };
 
 const meta = {
