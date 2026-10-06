@@ -2,6 +2,8 @@ import type {CodegenTypes, ViewProps} from 'react-native';
 import {codegenNativeComponent} from 'react-native';
 
 type TextEvent = Readonly<{text: string}>;
+type FocusEvent = Readonly<{focused: boolean}>;
+type KeyEvent = Readonly<{key: string; shiftKey: boolean}>;
 
 /**
  * A WinUI 3 `AutoSuggestBox` hosted in a XAML island: the platform's own
@@ -15,12 +17,18 @@ export interface NativeProps extends ViewProps {
   /** JSON array of the completions to offer. Empty draws no list. */
   suggestions: string;
   disabled?: boolean;
+  /** Takes the keyboard focus once the control has loaded. */
+  autoFocus?: boolean;
   accentColor?: string;
   theme?: CodegenTypes.WithDefault<'light' | 'dark' | 'system', 'system'>;
   /** The text a person typed — never a change the kit itself made. */
   onTextChange?: CodegenTypes.DirectEventHandler<TextEvent>;
   /** Enter, the search glyph, or a suggestion taken from the list. */
   onSubmit?: CodegenTypes.DirectEventHandler<TextEvent>;
+  /** The box taking and losing the keyboard focus. */
+  onFocusChange?: CodegenTypes.DirectEventHandler<FocusEvent>;
+  /** A key pressed in the box, by React Native's name for it. */
+  onKeyPress?: CodegenTypes.BubblingEventHandler<KeyEvent>;
 }
 
 export default codegenNativeComponent<NativeProps>('ExpoInterfaceAutoSuggestBox');

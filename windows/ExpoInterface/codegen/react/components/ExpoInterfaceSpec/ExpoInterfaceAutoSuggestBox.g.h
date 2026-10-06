@@ -29,10 +29,13 @@ struct ExpoInterfaceAutoSuggestBoxProps : winrt::implements<ExpoInterfaceAutoSug
        placeholder = cloneFromProps->placeholder;
        suggestions = cloneFromProps->suggestions;
        disabled = cloneFromProps->disabled;
+       autoFocus = cloneFromProps->autoFocus;
        accentColor = cloneFromProps->accentColor;
        theme = cloneFromProps->theme;
        onTextChange = cloneFromProps->onTextChange;
-       onSubmit = cloneFromProps->onSubmit;  
+       onSubmit = cloneFromProps->onSubmit;
+       onFocusChange = cloneFromProps->onFocusChange;
+       onKeyPress = cloneFromProps->onKeyPress;  
      }
   }
 
@@ -52,6 +55,9 @@ struct ExpoInterfaceAutoSuggestBoxProps : winrt::implements<ExpoInterfaceAutoSug
   REACT_FIELD(disabled)
   std::optional<bool> disabled{};
 
+  REACT_FIELD(autoFocus)
+  std::optional<bool> autoFocus{};
+
   REACT_FIELD(accentColor)
   std::optional<std::string> accentColor;
 
@@ -65,7 +71,28 @@ struct ExpoInterfaceAutoSuggestBoxProps : winrt::implements<ExpoInterfaceAutoSug
   REACT_FIELD(onSubmit)
   bool onSubmit{false};
 
+  REACT_FIELD(onFocusChange)
+  bool onFocusChange{false};
+
+  REACT_FIELD(onKeyPress)
+  bool onKeyPress{false};
+
   const winrt::Microsoft::ReactNative::ViewProps ViewProps;
+};
+
+REACT_STRUCT(ExpoInterfaceAutoSuggestBoxSpec_onKeyPress)
+struct ExpoInterfaceAutoSuggestBoxSpec_onKeyPress {
+  REACT_FIELD(key)
+  std::string key;
+
+  REACT_FIELD(shiftKey)
+  bool shiftKey{};
+};
+
+REACT_STRUCT(ExpoInterfaceAutoSuggestBoxSpec_onFocusChange)
+struct ExpoInterfaceAutoSuggestBoxSpec_onFocusChange {
+  REACT_FIELD(focused)
+  bool focused{};
 };
 
 REACT_STRUCT(ExpoInterfaceAutoSuggestBoxSpec_onSubmit)
@@ -86,6 +113,8 @@ struct ExpoInterfaceAutoSuggestBoxEventEmitter {
 
   using OnTextChange = ExpoInterfaceAutoSuggestBoxSpec_onTextChange;
   using OnSubmit = ExpoInterfaceAutoSuggestBoxSpec_onSubmit;
+  using OnFocusChange = ExpoInterfaceAutoSuggestBoxSpec_onFocusChange;
+  using OnKeyPress = ExpoInterfaceAutoSuggestBoxSpec_onKeyPress;
 
   void onTextChange(OnTextChange &&value) const {
     m_eventEmitter.DispatchEvent(L"textChange", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
@@ -95,6 +124,18 @@ struct ExpoInterfaceAutoSuggestBoxEventEmitter {
 
   void onSubmit(OnSubmit &&value) const {
     m_eventEmitter.DispatchEvent(L"submit", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
+      winrt::Microsoft::ReactNative::WriteValue(writer, value);
+    });
+  }
+
+  void onFocusChange(OnFocusChange &&value) const {
+    m_eventEmitter.DispatchEvent(L"focusChange", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
+      winrt::Microsoft::ReactNative::WriteValue(writer, value);
+    });
+  }
+
+  void onKeyPress(OnKeyPress &&value) const {
+    m_eventEmitter.DispatchEvent(L"keyPress", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
       winrt::Microsoft::ReactNative::WriteValue(writer, value);
     });
   }

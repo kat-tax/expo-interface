@@ -1,4 +1,15 @@
+import type {Ref} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
+
+/**
+ * What a `TextField` can be told to do through its `ref`: the `inline`
+ * variant on every platform, and the web row, which are React Native inputs.
+ * The native rows (SwiftUI, Compose and WinUI) take no commands.
+ */
+export interface TextFieldCommands {
+  focus(): void;
+  blur(): void;
+}
 
 /** Keyboard variant shown while editing, conformed across platforms. */
 export type TextFieldKeyboard =
@@ -61,6 +72,12 @@ export interface TextFieldProps {
    * cover. `inline` variant only.
    */
   onKeyPress?: (key: string, shiftKey: boolean) => void;
+  /** Called when the field takes the focus. `inline` variant and the web row only, as `onKeyPress`. */
+  onFocus?: () => void;
+  /** Called when the field gives up the focus. `inline` variant and the web row only. */
+  onBlur?: () => void;
+  /** The commands, see {@link TextFieldCommands}. */
+  ref?: Ref<TextFieldCommands>;
   /** Disables editing and dims the field. */
   disabled?: boolean;
   /** Masks the input for sensitive values such as passwords. */

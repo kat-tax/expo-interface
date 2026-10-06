@@ -135,12 +135,13 @@ A checked or unchecked box with a leading label. Props: `label`, `value`,
 ## TextField
 
 A single or multi-line text input. Props: `placeholder` (also the row's
-label), `value`, `onChangeText`, `onSubmit`, `onKeyPress`, `disabled`,
-`secureTextEntry`, `keyboardType` (`default`, `email`, `number`, `phone`,
-`decimal`, `url`), `autoCapitalize`, `autoCorrect`, `multiline`, `autoFocus`,
-`returnKeyType` (`done`, `go`, `next`, `search`, `send`), `submitBehavior`
-(`blurAndSubmit`, `submit`), `variant` (`row`, `inline`), `maxLength`,
-`accentColor`, `style`, `testID`.
+label), `value`, `onChangeText`, `onSubmit`, `onKeyPress`, `onFocus`,
+`onBlur`, `disabled`, `secureTextEntry`, `keyboardType` (`default`, `email`,
+`number`, `phone`, `decimal`, `url`), `autoCapitalize`, `autoCorrect`,
+`multiline`, `autoFocus`, `returnKeyType` (`done`, `go`, `next`, `search`,
+`send`), `submitBehavior` (`blurAndSubmit`, `submit`), `variant` (`row`,
+`inline`), `maxLength`, `accentColor`, `style`, `testID`, and a `ref` with
+`focus` and `blur`.
 
 The `row` variant is the platform's field with a form row's borderless look.
 The `inline` variant is a React Native input for a field inside a React
@@ -160,6 +161,9 @@ Differences:
 - `submitBehavior` is honoured on web and in `inline`. Compose keeps the field
   focused after a submit, and on Windows Enter submits and keeps the focus.
 - `onKeyPress` reaches `inline` and the web and Windows rows.
+- `onFocus`, `onBlur` and the `ref` reach `inline` and the web row, the
+  React Native inputs. The SwiftUI, Compose and WinUI rows report no focus
+  and take no commands.
 - `onSubmit` on web fires for Enter but not Shift+Enter.
 - `style` applies to the text on web and in `inline`.
 
@@ -168,7 +172,9 @@ Differences:
 A field for searching: the query box, a way to clear it, and optionally a
 list of completions under it. Props: `value`, `onChangeText`, `onSubmit`
 (Enter, the platform's search key, or a completion taken), `placeholder`,
-`suggestions`, `disabled`, `clearable` (default true), `style`, `testID`.
+`suggestions`, `disabled`, `clearable` (default true), `autoFocus`,
+`autoCapitalize`, `onFocus`, `onBlur`, `onKeyPress` (a key by its name),
+`style`, `testID`, and a `ref` with `focus` and `blur`.
 
 | Platform | Renders |
 | --- | --- |
@@ -178,7 +184,10 @@ list of completions under it. Props: `value`, `onChangeText`, `onSubmit`
 
 `clearable` is honoured on iOS and Android only; web and Windows have the
 control's own clear button. A `<datalist>` entry is text only, so a
-suggestion carries no icon on web.
+suggestion carries no icon on web. `autoCapitalize` has no Windows
+equivalent. On Windows `focus` and `blur` through the `ref` ask the
+`AutoSuggestBox`'s island for the focus through react-native-windows' focus
+command.
 
 ## Picker
 

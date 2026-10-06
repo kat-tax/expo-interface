@@ -1,5 +1,7 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
+import type {TextFieldCommands} from './types';
+import {createRef} from 'react';
 import {fireEvent, render, screen} from '@testing-library/react';
 import {TextField} from '.';
 
@@ -42,6 +44,20 @@ describe('TextField (web)', () => {
     fireEvent.keyDown(input, {key: 'Enter', keyCode: 13});
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit).toHaveBeenCalledWith('hello');
+  });
+
+  it('reports the focus coming and going, and takes and gives it up through the ref', () => {
+    const ref = createRef<TextFieldCommands>();
+    const onFocus = vi.fn();
+    const onBlur = vi.fn();
+    render(<TextField ref={ref} placeholder="Name" onFocus={onFocus} onBlur={onBlur} testID="name"/>);
+    const input = screen.getByTestId('name');
+    ref.current!.focus();
+    expect(document.activeElement).toBe(input);
+    expect(onFocus).toHaveBeenCalledTimes(1);
+    ref.current!.blur();
+    expect(document.activeElement).not.toBe(input);
+    expect(onBlur).toHaveBeenCalledTimes(1);
   });
 
   it('becomes read-only when disabled', () => {

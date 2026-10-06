@@ -252,6 +252,38 @@ void SetIdentity(
   SetAutomationId(element, viewProps.TestId());
 }
 
+// -- Keys --------------------------------------------------------------------
+
+std::string KeyName(winrt::Windows::System::VirtualKey key) noexcept {
+  using VK = winrt::Windows::System::VirtualKey;
+  switch (key) {
+    case VK::Enter: return "Enter";
+    case VK::Escape: return "Escape";
+    case VK::Back: return "Backspace";
+    case VK::Tab: return "Tab";
+    case VK::Delete: return "Delete";
+    case VK::Space: return " ";
+    case VK::Up: return "ArrowUp";
+    case VK::Down: return "ArrowDown";
+    case VK::Left: return "ArrowLeft";
+    case VK::Right: return "ArrowRight";
+    case VK::Home: return "Home";
+    case VK::End: return "End";
+    case VK::PageUp: return "PageUp";
+    case VK::PageDown: return "PageDown";
+    default: break;
+  }
+  const int code = static_cast<int>(key);
+  if (code >= 'A' && code <= 'Z') return std::string(1, static_cast<char>(code - 'A' + 'a'));
+  if (code >= '0' && code <= '9') return std::string(1, static_cast<char>(code));
+  return "Unidentified";
+}
+
+bool ShiftDown() noexcept {
+  const auto state = winrt::Microsoft::UI::Input::InputKeyboardSource::GetKeyStateForCurrentThread(winrt::Windows::System::VirtualKey::Shift);
+  return (state & winrt::Windows::UI::Core::CoreVirtualKeyStates::Down) == winrt::Windows::UI::Core::CoreVirtualKeyStates::Down;
+}
+
 // -- JSON --------------------------------------------------------------------
 
 winrt::Windows::Data::Json::JsonArray ParseArray(const std::string &json) noexcept {

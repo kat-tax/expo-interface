@@ -105,7 +105,7 @@ export type {ProgressProps, ProgressVariant} from './progress/types';
 export {ShareLink} from './share-link';
 export type {ShareLinkProps} from './share-link/types';
 export {SearchField} from './search-field';
-export type {SearchFieldProps} from './search-field/types';
+export type {SearchFieldCommands, SearchFieldProps} from './search-field/types';
 export {SegmentedControl} from './segmented';
 export type {SegmentedControlProps, SegmentedControlShape, SegmentedControlSize} from './segmented/types';
 export {Slider} from './slider';
@@ -123,6 +123,7 @@ export type {TooltipProps} from './tooltip/types';
 export {TextField} from './text-field';
 export type {
   TextFieldCapitalize,
+  TextFieldCommands,
   TextFieldKeyboard,
   TextFieldProps,
   TextFieldReturnKey,

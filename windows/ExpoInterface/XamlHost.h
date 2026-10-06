@@ -62,6 +62,13 @@ winrt::hstring GlyphFromCodePoint(std::string_view hex) noexcept;
 /** The `FontIcon` for a code point, sized; empty glyph for an empty code point. */
 controls::FontIcon MakeGlyph(std::string_view hex, double size) noexcept;
 
+// -- Keys --------------------------------------------------------------------
+
+/** The name React Native gives a key (`Enter`, `Backspace`, `a`). */
+std::string KeyName(winrt::Windows::System::VirtualKey key) noexcept;
+/** Whether Shift is held on this thread's keyboard. */
+bool ShiftDown() noexcept;
+
 // -- Theme and accent --------------------------------------------------------
 
 /** `light` / `dark` / anything else follows the system. */

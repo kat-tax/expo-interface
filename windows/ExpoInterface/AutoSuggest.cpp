@@ -71,6 +71,19 @@ struct AutoSuggestBoxView : winrt::implements<AutoSuggestBoxView, winrt::IInspec
       }
     });
 
+    // The focus coming and going, and the keys, for a search that opens and
+    // closes with them (a header's search collapses on Escape, or when the
+    // box loses the focus with nothing in it).
+    m_box.GotFocus([weak = get_weak()](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
+      if (auto strong = weak.get()) strong->Focused(true);
+    });
+    m_box.LostFocus([weak = get_weak()](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
+      if (auto strong = weak.get()) strong->Focused(false);
+    });
+    m_box.KeyDown([weak = get_weak()](const winrt::IInspectable &, const xaml::Input::KeyRoutedEventArgs &args) {
+      if (auto strong = weak.get()) strong->Key(args);
+    });
+
     Attach(islandView, m_box);
   }
 
@@ -88,6 +101,17 @@ struct AutoSuggestBoxView : winrt::implements<AutoSuggestBoxView, winrt::IInspec
     m_box.IsEnabled(!props->disabled.value_or(false));
     m_all = JsonStrings(ParseArray(props->suggestions));
     SetIdentity(m_box, props->placeholder, props->ViewProps);
+    // Once: the box takes the focus when it has loaded, or at once if it has.
+    if (props->autoFocus.value_or(false) && !m_focused) {
+      m_focused = true;
+      if (m_box.IsLoaded()) {
+        m_box.Focus(xaml::FocusState::Programmatic);
+      } else {
+        m_box.Loaded([](const winrt::IInspectable &sender, const xaml::RoutedEventArgs &) {
+          sender.as<controls::Control>().Focus(xaml::FocusState::Programmatic);
+        });
+      }
+    }
   }
 
   void UpdateState(const rn::ComponentView &, const rn::IComponentState &newState) noexcept override {
@@ -114,8 +138,27 @@ struct AutoSuggestBoxView : winrt::implements<AutoSuggestBoxView, winrt::IInspec
     m_box.ItemsSource(items);
   }
 
+  void Focused(bool focused) noexcept {
+    if (auto emitter = EventEmitter()) {
+      Codegen::ExpoInterfaceAutoSuggestBoxEventEmitter::OnFocusChange event;
+      event.focused = focused;
+      emitter->onFocusChange(std::move(event));
+    }
+  }
+
+  /** A key as React Native names it. Enter is the box's own `QuerySubmitted`, reported through `onSubmit`. */
+  void Key(const xaml::Input::KeyRoutedEventArgs &args) noexcept {
+    if (auto emitter = EventEmitter()) {
+      Codegen::ExpoInterfaceAutoSuggestBoxEventEmitter::OnKeyPress event;
+      event.key = KeyName(args.Key());
+      event.shiftKey = ShiftDown();
+      emitter->onKeyPress(std::move(event));
+    }
+  }
+
   controls::AutoSuggestBox m_box{nullptr};
   std::vector<std::string> m_all;
+  bool m_focused{false};
 };
 
 } // namespace
