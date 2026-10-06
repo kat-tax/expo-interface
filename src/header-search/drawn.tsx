@@ -8,10 +8,8 @@ import {SearchField} from '../search-field';
 import {Surface} from '../surface';
 import {bound, spacing} from '../theme';
 import {Toolbar} from '../toolbar';
+import {InlineField} from './inline';
 import {DrawnSearchContext, SEARCH_ICON, drawnPlacement} from './shared';
-
-/** A field in the bar beside the title: a desktop search box's width. */
-const INLINE_WIDTH = 240;
 
 /** What the field is drawn as: one of the header's placements, or the bottom bar's field across the bar. */
 export type DrawnSearchMode = DrawnSearchPlacement | 'bar';
@@ -24,9 +22,11 @@ export interface DrawnSearchProps extends Omit<HeaderSearchProps, 'placement' | 
 
 /**
  * The search as the kit draws it where the platform has no header search of
- * its own: `SearchField`'s box, holding the text the way a native search
- * field does (the kit's commands set it, the app reads it through the
- * events), in one of the header's placements or across a bottom bar.
+ * its own, holding the text the way a native search field does (the kit's
+ * commands set it, the app reads it through the events), in one of the
+ * header's placements or across a bottom bar. The rows and the bar take
+ * `SearchField`'s box; `inline` is the field beside the title as the platform
+ * draws one there (frameless on web, the `AutoSuggestBox` on Windows).
  *
  * An `action` is the magnifier until it is pressed, then the field with the
  * focus; it collapses on Escape, through `cancel`, or when it loses the
@@ -91,34 +91,37 @@ export function DrawnSearch({mode, placeholder, autoFocus = false, autoCapitaliz
     );
   }
 
+  const fieldProps = {
+    ref: field,
+    value: text,
+    placeholder,
+    autoCapitalize,
+    // An action's field was just opened, by a press or a command, and takes the focus.
+    autoFocus: action || autoFocus,
+    onChangeText: (next: string) => {
+      setText(next);
+      onChangeText?.(next);
+    },
+    onSubmit,
+    onFocus: () => {
+      onFocus?.();
+      if (!action) onOpen?.();
+    },
+    onBlur: () => {
+      onBlur?.();
+      if (!action) onClose?.();
+      else if (text === '') toggle(false);
+    },
+    onKeyPress: (key: string) => {
+      if (key === 'Escape' && action) collapse();
+    },
+    testID,
+  };
+
+  if (mode === 'inline') return <InlineField {...fieldProps}/>;
   return (
     <View style={styles[mode]}>
-      <SearchField
-        ref={field}
-        value={text}
-        placeholder={placeholder}
-        autoCapitalize={autoCapitalize}
-        // An action's field was just opened, by a press or a command, and takes the focus.
-        autoFocus={action || autoFocus}
-        onChangeText={next => {
-          setText(next);
-          onChangeText?.(next);
-        }}
-        onSubmit={onSubmit}
-        onFocus={() => {
-          onFocus?.();
-          if (!action) onOpen?.();
-        }}
-        onBlur={() => {
-          onBlur?.();
-          if (!action) onClose?.();
-          else if (text === '') toggle(false);
-        }}
-        onKeyPress={key => {
-          if (key === 'Escape' && action) collapse();
-        }}
-        testID={testID}
-      />
+      <SearchField {...fieldProps}/>
     </View>
   );
 }
@@ -127,11 +130,11 @@ export function DrawnSearch({mode, placeholder, autoFocus = false, autoCapitaliz
  * The element a drawn header holds for a screen's search: it draws the
  * field in the placement the header resolved, and tells the header when an
  * `action` has the row. Outside a header's site (a custom header's trailing
- * slot) the placement asked for is drawn as a wide header would draw it.
+ * slot) the placement asked for is drawn as a header would draw it.
  */
 export function SiteSearch({placement, ...props}: Omit<HeaderSearchProps, 'placement'> & {placement: HeaderSearchSlot['placement']}) {
   const site = useContext(DrawnSearchContext);
-  const mode = site?.placement ?? drawnPlacement(placement, false);
+  const mode = site?.placement ?? drawnPlacement(placement);
   return <DrawnSearch {...props} mode={mode} onOpenChange={site?.setOpen}/>;
 }
 
@@ -164,10 +167,6 @@ const styles = StyleSheet.create({
   },
   bar: {
     width: '100%',
-  },
-  inline: {
-    width: INLINE_WIDTH,
-    maxWidth: '100%',
   },
   // The open action takes the row: the header lets go of its title for it.
   action: {

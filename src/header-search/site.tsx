@@ -17,14 +17,13 @@ export interface SearchSite {
 }
 
 /**
- * Resolves a screen's search for the header that draws it: `automatic` by
- * whether the header is too narrow for a field beside its title, and the
- * element wrapped in what it needs to draw itself there, the header context
- * and the site it was given.
+ * Resolves a screen's search for the header that draws it, and wraps the
+ * element in what it needs to draw itself there: the header context and the
+ * site it was given.
  */
-export function useSearchSite(slot: HeaderSearchSlot | undefined, narrow: boolean): SearchSite {
+export function useSearchSite(slot: HeaderSearchSlot | undefined): SearchSite {
   const [open, setOpen] = useState(false);
-  const placement = slot ? drawnPlacement(slot.placement, narrow) : null;
+  const placement = slot ? drawnPlacement(slot.placement) : null;
   const site = useMemo(() => (placement ? {placement, setOpen} : null), [placement]);
   const node = slot && site ? (
     <DrawnSearchContext.Provider value={site}>

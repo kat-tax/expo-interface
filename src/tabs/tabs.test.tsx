@@ -29,8 +29,12 @@ const app = async (props: Record<string, any> = {}) => {
   };
 };
 
-/** A tab holding a `TabStack`, whose screens hand their header to the bar; `control` is rendered in the home screen's content. */
-const stackApp = async (props: Record<string, any> = {}, control?: React.ReactNode) => {
+/**
+ * A tab holding a `TabStack`, whose screens hand their header to the bar;
+ * `control` is rendered in the home screen's content, `pushed` in the detail
+ * screen's.
+ */
+const stackApp = async (props: Record<string, any> = {}, control?: React.ReactNode, pushed?: React.ReactNode) => {
   const {Tabs} = await import('.');
   const {TabStack} = await import('../tab-stack');
   const stacked: TabRoute[] = [{...routes[0], href: '/home', name: 'home'}, routes[1]];
@@ -43,7 +47,12 @@ const stackApp = async (props: Record<string, any> = {}, control?: React.ReactNo
         <Text testID="kid">Home screen</Text>
       </Screen>
     ) : <Text>Home screen</Text>),
-    'home/detail': () => <Text>Detail screen</Text>,
+    'home/detail': () => (
+      <>
+        {pushed}
+        <Text>Detail screen</Text>
+      </>
+    ),
     settings: () => <Text>Settings screen</Text>,
   };
 };
@@ -205,13 +214,43 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(dom.getByLabelText('Go back')).toBeInTheDocument();
       });
 
-      it('folds a screen\'s inline search into the bar beside the actions', async () => {
-        await renderApp(await stackApp({}, <HeaderSearch placement="inline" placeholder="Find a drop"/>), '/home');
-        const bar = dom.getByTestId('tab-bar');
-        expect(bar.contains(dom.getByRole('searchbox', {name: 'Find a drop'}))).toBe(true);
+      it('folds a screen\'s inline search into the bar as a frameless field beside the logo, and after a pushed screen\'s title', async () => {
+        await renderApp(await stackApp({}, <HeaderSearch placement="inline" placeholder="Find a drop"/>, <HeaderSearch placement="inline" placeholder="Find a detail"/>), '/home');
+        const input = dom.getByRole('searchbox', {name: 'Find a drop'});
+        // In the logo slot, after the app's name and before the actions and the tabs.
+        expect(dom.getByTestId('tab-bar-logo').contains(input)).toBe(true);
+        expect(dom.getByText(appName).compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(input.compareDocumentPosition(dom.getByTestId('new')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(input.compareDocumentPosition(dom.getByTestId('tab-bar-tabs')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        // Frameless: not `SearchField`'s box.
+        expect(input).toHaveClass('ui-header-search__input');
         expect(dom.queryByTestId('tab-bar-search')).toBeNull();
         // Nothing is under the bar: the screens pay the bar's inset alone.
         expect(getComputedStyle(dom.getByTestId('kid').parentElement!.parentElement!).paddingTop).toBe(`${inset.topBar}px`);
+        // The slot grows into the row's spare width, which the field takes before the gap does.
+        const slot = getComputedStyle(dom.getByTestId('tab-bar-logo'));
+        expect(slot.flexGrow).toBe('1');
+        expect(slot.flexShrink).toBe('1');
+
+        // A pushed screen's search follows its title.
+        await act(async () => router.push('/home/detail'));
+        const pushed = dom.getByRole('searchbox', {name: 'Find a detail'});
+        expect(dom.getByTestId('tab-bar-logo').contains(pushed)).toBe(true);
+        expect(dom.getByText('detail').compareDocumentPosition(pushed) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      });
+
+      it('folds an automatic search in as the inline field, whatever the width', async () => {
+        await renderApp(await stackApp({}, <HeaderSearch placeholder="Find a drop"/>), '/home');
+        expect(dom.getByTestId('tab-bar-logo').contains(dom.getByRole('searchbox', {name: 'Find a drop'}))).toBe(true);
+        expect(dom.queryByTestId('tab-bar-search')).toBeNull();
+      });
+
+      it('keeps an action\'s magnifier among the actions', async () => {
+        await renderApp(await stackApp({}, <HeaderSearch placement="action" placeholder="Find a drop"/>), '/home');
+        const magnifier = dom.getByRole('button', {name: 'Find a drop'});
+        expect(dom.getByTestId('tab-bar').contains(magnifier)).toBe(true);
+        expect(dom.getByTestId('tab-bar-logo').contains(magnifier)).toBe(false);
+        expect(dom.getByTestId('new').compareDocumentPosition(magnifier) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       });
 
       it('puts a screen\'s stacked search in a second pill under the bar, which the screens pay for', async () => {
@@ -282,6 +321,8 @@ describe(`Tabs (${Platform.OS})`, () => {
       describe('in a window narrower than its labels', () => {
         /** The row's widths as the browser would report them: what it has, and what its content needs. */
         const widths = {client: 0, scroll: 0};
+        /** The logo slot's, the same way; a slot that fits reports no more than it has. */
+        const slotWidths = {client: 0, scroll: 0};
         /** The resize observers the bar makes, to resize it from the test. */
         const observers: ResizeObserverCallback[] = [];
         const Observer = globalThis.ResizeObserver;
@@ -289,9 +330,16 @@ describe(`Tabs (${Platform.OS})`, () => {
         let scrollWidth: ReturnType<typeof vi.spyOn>;
 
         beforeEach(() => {
-          // jsdom lays nothing out: the row's widths come from here, for every element.
-          clientWidth = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(() => widths.client);
-          scrollWidth = vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(() => widths.scroll);
+          // jsdom lays nothing out: the widths come from here, the slot's for the slot and the row's for every other element.
+          const measured = (element: HTMLElement) => (element.getAttribute('data-testid') === 'tab-bar-logo' ? slotWidths : widths);
+          clientWidth = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) {
+            return measured(this).client;
+          });
+          scrollWidth = vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function (this: HTMLElement) {
+            return measured(this).scroll;
+          });
+          slotWidths.client = 0;
+          slotWidths.scroll = 0;
           observers.length = 0;
           globalThis.ResizeObserver = class {
             constructor(callback: ResizeObserverCallback) {
@@ -332,6 +380,36 @@ describe(`Tabs (${Platform.OS})`, () => {
           await resize(456);
           expect(home.textContent).toBe('Home');
           expect(home).not.toHaveAttribute('aria-label');
+        });
+
+        it('drops the labels when the logo slot is squeezed below its floor, and a search beside the mark takes the name\'s room', async () => {
+          // The row reads as fitting; the slot does not: its mark, name and field need 60 more.
+          widths.client = 600;
+          widths.scroll = 600;
+          slotWidths.client = 200;
+          slotWidths.scroll = 260;
+          await renderApp(await stackApp({webIcon: {uri: 'https://example.com/icon.png'}}, <HeaderSearch placement="inline" placeholder="Find a drop"/>), '/home');
+          const [home] = dom.getAllByRole('link');
+          expect(home).toHaveAttribute('aria-label', 'Home');
+          expect(dom.queryByText(appName)).toBeNull();
+          expect(dom.getByRole('img')).toBeInTheDocument();
+          expect(dom.getByTestId('tab-bar-logo').contains(dom.getByRole('searchbox', {name: 'Find a drop'}))).toBe(true);
+
+          // The row's width plus the slot's deficit is what the labels wait for.
+          slotWidths.client = 260;
+          await resize(659);
+          expect(home).toHaveAttribute('aria-label', 'Home');
+          await resize(660);
+          expect(home).not.toHaveAttribute('aria-label');
+          expect(dom.getByText(appName)).toBeInTheDocument();
+        });
+
+        it('keeps the name beside the mark in a narrow bar without a search', async () => {
+          widths.client = 390;
+          widths.scroll = 456;
+          await renderApp(await app({webIcon: {uri: 'https://example.com/icon.png'}}));
+          expect(dom.getAllByRole('link')[0]).toHaveAttribute('aria-label', 'Home');
+          expect(dom.getByText(appName)).toBeInTheDocument();
         });
 
         it('leaves the labels alone while the row fits, and clips rather than scrolls', async () => {

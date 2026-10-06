@@ -87,8 +87,9 @@ export interface WebHeader {
   /** The screen's `headerRight`, in the bar's actions slot. */
   trailing?: ReactNode;
   /**
-   * The screen's search (`HeaderSearch`): a field or a magnifier in the
-   * actions slot, or a row under the bar for `stacked`.
+   * The screen's search (`HeaderSearch`): a frameless field in the logo slot
+   * for `inline`, a magnifier in the actions slot for `action`, or a row
+   * under the bar for `stacked`.
    */
   search?: HeaderSearchSlot;
 }

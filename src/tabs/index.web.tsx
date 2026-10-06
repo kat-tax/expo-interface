@@ -48,9 +48,8 @@ export function Tabs({
   const folded = useSyncExternalStore(slot ? slot.subscribe : noSubscription, isFolded, isFolded);
   // The bar stays while it carries a screen's header, even with the tabs hidden.
   const shown = !hidden || folded;
-  // Whether the bar has put a folded header's search under itself, which the
-  // bar decides (an `automatic` search is stacked only where the bar is
-  // narrow) and the screens pay for.
+  // Whether the bar has put a folded header's `stacked` search under itself,
+  // which the screens pay for.
   const [searchRow, setSearchRow] = useState(false);
   return (
     <HeaderSlotContext.Provider value={slot}>
@@ -117,11 +116,12 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
       />
     )
     : title == null && logo;
-  const {row, narrow} = useFit();
-  // The folded header's search: a field or a magnifier among the actions, or
-  // a row under the bar, which an `automatic` search is where the bar is
-  // too narrow for a field beside the tabs.
-  const search = useSearchSite(header?.search, narrow);
+  const {row, logo: logoSlot, narrow} = useFit();
+  // The folded header's search. An inline field goes in the logo slot, after
+  // the mark and the name or a pushed screen's title, where a site's search
+  // sits; a magnifier goes among the actions; a stacked row goes under the bar.
+  const search = useSearchSite(header?.search);
+  const inline = search.placement === 'inline' ? search.inRow : null;
   const stackedRow = search.stacked != null;
   useEffect(() => {
     onSearchRow?.(stackedRow);
@@ -130,7 +130,7 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
   const actionsAndSearch = (
     <>
       {trailing}
-      {search.inRow}
+      {inline ? null : search.inRow}
     </>
   );
   return (
@@ -144,7 +144,7 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
       <View {...props} role="navigation" aria-label="Main" testID="tab-bar" style={[styles.list, !shown && styles.hidden]}>
         {/* A material paints the row through the stylesheet, so the row's own fill stays off then. */}
         <View ref={row} testID="tab-bar-row" style={[styles.inner, fill]} {...materialProps(material, 'element', 'all')}>
-          <View style={styles.logo}>
+          <View ref={logoSlot} testID="tab-bar-logo" style={styles.logo}>
             {header?.onBack ? <BackButton onPress={header.onBack}/> : mark}
             {title != null ? (
               // The pushed screen's title is the page's heading, so it is the
@@ -152,13 +152,16 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
               <Headline color="label" level={1} numberOfLines={1} style={styles.title}>
                 {title}
               </Headline>
-            ) : isPreset && !isIconOnly ? (
+            ) : isPreset && !isIconOnly && !(narrow && inline && mark) ? (
               // The app's name is not a heading: it names the whole site, and it
               // sits inside the navigation landmark rather than over any content.
+              // In a bar too narrow for its labels a search beside the mark
+              // takes the name's room, and the mark stands for the app alone.
               <Headline color="label" level={false}>
                 {app.expoConfig?.name}
               </Headline>
             ) : null}
+            {inline ? <InBarContext.Provider value={true}>{inline}</InBarContext.Provider> : null}
           </View>
           <InBarContext.Provider value={true}>
             <NarrowBarContext.Provider value={narrow}>
@@ -189,17 +192,29 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
  * back once the row is that wide again, so the bar does not flip between
  * the two states at one width. The row is read after every render, since
  * what is in it changes with the screen (a folded header), and on a resize.
+ *
+ * The logo slot shrinks before the tabs do, so a title in it is bounded by
+ * the bar rather than the row overflowing. What the slot holds besides the
+ * title does not shrink past its floor (the mark, the app's name, the short
+ * field a search shrinks to), so a slot squeezed below that overflows itself
+ * while the row still reads as fitting. That deficit is the row's too: it is
+ * counted with the row's overflow, and in the width the labels wait for.
  */
-function useFit(): {row: React.RefObject<View | null>; narrow: boolean} {
+function useFit(): {row: React.RefObject<View | null>; logo: React.RefObject<View | null>; narrow: boolean} {
   const row = useRef<View>(null);
+  const logo = useRef<View>(null);
   const [narrow, setNarrow] = useState(false);
   const needed = useRef(0);
   const check = useCallback(() => {
-    // A react-native-web view's ref is its DOM element; the row is always
-    // rendered, so it is set by the time an effect or the observer runs.
+    // A react-native-web view's ref is its DOM element; the row and the slot
+    // are always rendered, so both are set by the time an effect or the
+    // observer runs.
     const {clientWidth, scrollWidth} = row.current as unknown as HTMLElement;
-    if (!narrow && scrollWidth > clientWidth) {
-      needed.current = scrollWidth;
+    const slot = logo.current as unknown as HTMLElement;
+    const squeezed = Math.max(0, slot.scrollWidth - slot.clientWidth);
+    const content = scrollWidth + squeezed;
+    if (!narrow && content > clientWidth) {
+      needed.current = content;
       setNarrow(true);
     } else if (narrow && clientWidth >= needed.current) {
       setNarrow(false);
@@ -213,7 +228,7 @@ function useFit(): {row: React.RefObject<View | null>; narrow: boolean} {
     observer.observe(row.current as unknown as HTMLElement);
     return () => observer.disconnect();
   }, [check]);
-  return {row, narrow};
+  return {row, logo, narrow};
 }
 
 /** A pushed screen's back button, at the mark's size and in its place. */
@@ -320,14 +335,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.two,
     borderRadius: spacing.five,
   },
+  // The slot takes the row's spare width, which is the gap before the actions
+  // and the tabs, or the room a search in it grows into. It shrinks before
+  // the tabs do, so a title in it is bounded by the bar (`useFit`).
   logo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 'auto',
-    gap: spacing.two,
-    // The slot shrinks before the tabs do, so a title in it is bounded by the bar.
+    flexGrow: 1,
     flexShrink: 1,
     minWidth: 0,
+    gap: spacing.two,
   },
   icon: {
     width: 24,

@@ -26,7 +26,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** The platform’s choice: iOS decides, Android’s magnifier, a field beside the title on a wide web header and under it on a narrow one, Windows beside the title. */
+/** The platform’s choice: iOS decides, Android’s magnifier, a field beside the title on web and Windows. */
 export const Automatic: Story = {};
 
 /** The classic field under the title: iOS’s controller, a row under the header everywhere else. */
@@ -39,7 +39,7 @@ export const Action: Story = {
   args: {placement: 'action'},
 };
 
-/** A field in the bar beside the title, the desktop look. */
+/** A field in the bar beside the title, the desktop look: frameless on web, where the bar is its frame. */
 export const Inline: Story = {
   args: {placement: 'inline'},
 };
