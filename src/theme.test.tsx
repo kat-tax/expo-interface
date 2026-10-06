@@ -113,6 +113,7 @@ describe('useNavTheme', () => {
     } else {
       expect(result.current.colors.primary).toBe('#8959EA');
       expect(result.current.colors.background).toBe(colors.light.background);
+      expect(result.current.dark).toBe(false);
     }
     expect(result.current.fonts.bold.fontWeight).toBe('700');
   });
@@ -173,8 +174,11 @@ if (Platform.OS !== 'web') {
       expect(result.current).toEqual([colors.dark.label, '#8959EA']);
     });
 
-    it('maps the dark palette onto the navigation theme', async () => {
+    it('maps the dark palette onto the navigation theme, and says the theme is dark', async () => {
       const {result} = await renderHook(() => useNavTheme(), {wrapper});
+      // The native stack hands this to the bar as its interface style: a
+      // system material and a menu from the bar draw dark only with it.
+      expect(result.current.dark).toBe(true);
       expect(result.current.colors).toMatchObject({
         primary: '#8959EA',
         background: colors.dark.background,
