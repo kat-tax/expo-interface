@@ -112,6 +112,10 @@ Differences:
 - `leading` and `trailing` are ignored when `commands` are given.
 - Controls given as `leading` and `trailing` draw at the size the app gives
   them; the bar's metrics are the `commands`' alone.
+- A command's `hideLabel`, `active` and `tone` are the drawn bar's. The
+  Windows `CommandBar` decides its own labels (`density`), has no on state
+  for a command and takes no tone: a command is in the bar's own colors, a
+  `destructive` one in the critical color.
 
 ## KeyboardBar
 

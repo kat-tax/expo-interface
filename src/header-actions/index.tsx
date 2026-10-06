@@ -28,10 +28,11 @@ export interface HeaderActionsProps extends PropsWithChildren {
  * and the row itself draws nothing. `testID` has no item to go on there; the
  * accessible name of each control is its `label`.
  *
- * On web the row is the one host for all of them: a header control mounts a
- * host of its own when it has to, so three of them side by side would be three
- * hosts in one header; inside this row they find they are already in one and
- * mount none.
+ * Drawn (on web, or in a header that holds views), the row is one host for
+ * all of them: a header control mounts a host of its own when it has to, so
+ * three side by side would be three hosts in one header; inside this row they
+ * find they are already in one and mount none. On web there is no host at
+ * all, and the row is the DOM's.
  */
 export const HeaderActions = Object.assign(
   function HeaderActions(props: HeaderActionsProps) {
