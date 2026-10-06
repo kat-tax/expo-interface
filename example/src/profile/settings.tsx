@@ -3,6 +3,7 @@ import {Platform} from 'react-native';
 import {Alert, Button, Collapsible, Footnote, Menu, SegmentedControl, TextField, FieldGroup} from 'expo-interface';
 import * as icon from '@/icons';
 import {PANES, setPane, usePane} from '@/profile/pane';
+import {PLACEMENTS, setSearchPlacement, useSearchPlacement} from '@/profile/search';
 
 /**
  * Windows only: which of the WinUI `NavigationView`'s pane display modes the
@@ -24,6 +25,22 @@ function PaneSettings() {
   );
 }
 
+/** Where the Drops screen's header search goes, changed live, so every placement can be seen on every platform. */
+function SearchSettings() {
+  const placement = useSearchPlacement();
+  const current = PLACEMENTS.find(entry => entry.value === placement) ?? PLACEMENTS[0];
+  return (
+    <FieldGroup.Section title="Search">
+      <SegmentedControl testID="search-placement" label="Placement" selectedValue={placement} onValueChange={setSearchPlacement}>
+        {PLACEMENTS.map(entry => (
+          <SegmentedControl.Item key={entry.value} label={entry.label} value={entry.value}/>
+        ))}
+      </SegmentedControl>
+      <Footnote color="secondaryLabel">{current.note}</Footnote>
+    </FieldGroup.Section>
+  );
+}
+
 export function ProfileSettings() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -32,6 +49,7 @@ export function ProfileSettings() {
   return (
     <FieldGroup>
       {Platform.OS === 'windows' ? <PaneSettings/> : null}
+      <SearchSettings/>
       <FieldGroup.Section title="User">
         <TextField
           testID="profile-name"
