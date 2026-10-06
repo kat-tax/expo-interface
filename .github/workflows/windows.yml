@@ -49,7 +49,9 @@ jobs:
       matrix:
         line:
           - {rn: '', rnw: '0.84 (the template)', cli: '20.1.0', preview: false}
-          - {rn: '0.85.3', rnw: '0.85.0-preview.1', cli: '20.2.0', preview: true}
+          # The 0.85 preview line is out of the matrix for now: a second build
+          # on every push for a line the kit cannot ship on yet.
+          # - {rn: '0.85.3', rnw: '0.85.0-preview.1', cli: '20.2.0', preview: true}
     continue-on-error: ${{ matrix.line.preview }}
     steps:
       - uses: actions/checkout@v7
