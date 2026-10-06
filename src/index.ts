@@ -24,7 +24,7 @@ export type {NativeHostProps} from './host';
 export {Surface} from './surface';
 export type {SurfaceBorder, SurfaceColor, SurfaceProps} from './surface/types';
 export {Toolbar} from './toolbar';
-export type {ToolbarDensity, ToolbarPlacement, ToolbarProps} from './toolbar/types';
+export type {ToolbarCommand, ToolbarDensity, ToolbarPlacement, ToolbarProps} from './toolbar/types';
 export {Sheet} from './sheet';
 export type {SheetMaterial} from './sheet/types';
 export {ConstrainedStackHeader} from './stack-header';
