@@ -15,6 +15,8 @@ import {TabStack} from '../tab-stack';
 import {colors} from '../theme';
 import {nodes} from 'expo-vitest/native';
 import {renderApp} from 'expo-vitest/router';
+import {InlineField} from './inline';
+import {INLINE_MIN_WIDTH, INLINE_WIDTH} from './shared';
 import {HeaderSearch} from '.';
 
 const HOST = 'ViewManagerAdapter_ExpoUI_HostView';
@@ -33,8 +35,7 @@ function app(control: ReactNode) {
 }
 
 /**
- * jsdom lays nothing out, so react-native-web reads a window of no width,
- * which the header takes as a window it cannot measure and draws wide. A
+ * jsdom lays nothing out, so react-native-web reads a window of no width. A
  * narrow window is this: the document's width, and the resize that makes
  * `Dimensions` read it again.
  */
@@ -78,22 +79,95 @@ describe(`HeaderSearch (${Platform.OS})`, () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('draws an inline search in the header row beside the title, which is what automatic is in a wide window', async () => {
-      await renderApp(app(<HeaderSearch placeholder="Find a drop"/>));
+    it('draws an inline search as a frameless field in the header row after the title, which is what automatic is', async () => {
+      await renderApp(app(<HeaderSearch placeholder="Find a drop" testID="q"/>));
       const input = dom.getByRole('searchbox', {name: 'Find a drop'});
       const title = dom.getByText('Drops');
       expect(title.parentElement!.contains(input)).toBe(true);
+      expect(title.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      // Not `SearchField`'s box: the magnifier and the input on the bar's own fill.
+      expect(input).toHaveClass('ui-header-search__input');
+      expect(input).toHaveAttribute('type', 'search');
+      expect(input).toHaveAttribute('data-testid', 'q');
+      const field = input.parentElement!;
+      expect(field).toHaveClass('ui-header-search');
+      expect(field).toHaveAttribute('data-testid', 'q-row');
+      expect(field.querySelector('.ui-symbol')!.textContent).toBe('search');
+      // A desktop search box's width at most, a short field at least: the rest is the row's.
+      expect(getComputedStyle(field).minWidth).toBe(`${INLINE_MIN_WIDTH}px`);
+      expect(getComputedStyle(field).maxWidth).toBe(`${INLINE_WIDTH}px`);
+      expect(dom.queryByRole('button', {name: 'Find a drop'})).toBeNull();
     });
 
-    it('stacks an automatic search in a window too narrow for a field beside the title', async () => {
+    it('keeps an automatic search inline in a narrow window: nothing stacks unless asked', async () => {
       const restore = windowWidth(390);
       try {
         await renderApp(app(<HeaderSearch placeholder="Find a drop"/>));
         const input = dom.getByRole('searchbox', {name: 'Find a drop'});
-        expect(dom.getByText('Drops').parentElement!.contains(input)).toBe(false);
+        expect(dom.getByText('Drops').parentElement!.contains(input)).toBe(true);
       } finally {
         restore();
       }
+    });
+
+    it('holds the text in an inline field, reports it, and takes the commands through the ref', async () => {
+      const ref = createRef<HeaderSearchCommands>();
+      const onChangeText = vi.fn();
+      const onSubmit = vi.fn();
+      const onOpen = vi.fn();
+      const onClose = vi.fn();
+      await renderApp(app(<HeaderSearch ref={ref} placement="inline" placeholder="Find a drop" autoCapitalize="none" onChangeText={onChangeText} onSubmit={onSubmit} onOpen={onOpen} onClose={onClose}/>));
+      const input = dom.getByRole('searchbox', {name: 'Find a drop'});
+      expect(input).toHaveAttribute('autocapitalize', 'none');
+      expect(input).toHaveAttribute('enterkeyhint', 'search');
+      fireDom.change(input, {target: {value: 'dem'}});
+      expect(onChangeText).toHaveBeenCalledWith('dem');
+      expect(input).toHaveValue('dem');
+      fireDom.keyDown(input, {key: 'Enter'});
+      expect(onSubmit).toHaveBeenCalledWith('dem');
+      // Escape is nothing to a field that is not an action.
+      fireDom.keyDown(input, {key: 'Escape'});
+      expect(input).toHaveValue('dem');
+      // The focus coming and going is the search opening and closing.
+      actDom(() => ref.current!.focus());
+      expect(document.activeElement).toBe(input);
+      expect(onOpen).toHaveBeenCalledTimes(1);
+      actDom(() => ref.current!.blur());
+      expect(document.activeElement).not.toBe(input);
+      expect(onClose).toHaveBeenCalledTimes(1);
+      actDom(() => ref.current!.setText('Demo'));
+      expect(input).toHaveValue('Demo');
+      actDom(() => ref.current!.clear());
+      expect(input).toHaveValue('');
+      actDom(() => ref.current!.focus());
+      actDom(() => ref.current!.setText('Demo'));
+      actDom(() => ref.current!.cancel());
+      expect(input).toHaveValue('');
+      expect(document.activeElement).not.toBe(input);
+      // Setting the text is not typing: nothing more was reported.
+      expect(onChangeText).toHaveBeenCalledTimes(1);
+    });
+
+    it('focuses an inline field on mount when asked', async () => {
+      await renderApp(app(<HeaderSearch placement="inline" autoFocus/>));
+      expect(document.activeElement).toBe(dom.getByRole('searchbox', {name: 'Search'}));
+    });
+
+    it('draws the inline field without handlers or a testID, and takes the commands after the input is gone', () => {
+      const ref = createRef<{focus(): void; blur(): void}>();
+      const {unmount} = renderDom(<InlineField ref={ref} value="" onChangeText={vi.fn()}/>);
+      const input = dom.getByRole('searchbox', {name: 'Search'});
+      expect(input).not.toHaveAttribute('data-testid');
+      expect(input.parentElement).not.toHaveAttribute('data-testid');
+      // Keys and the search key with nothing listening.
+      fireDom.keyDown(input, {key: 'a'});
+      fireDom.keyDown(input, {key: 'Enter'});
+      const commands = ref.current!;
+      unmount();
+      expect(() => {
+        commands.focus();
+        commands.blur();
+      }).not.toThrow();
     });
 
     it('draws an action as a magnifier that expands into a field across the row, and collapses again', async () => {

@@ -68,7 +68,7 @@ describe('ScreenHeader (web)', () => {
     expect(row().contains(search)).toBe(false);
     expect(row().parentElement!.contains(search)).toBe(true);
 
-    // A window it cannot measure is drawn wide: automatic is inline.
+    // Automatic is inline, at every width.
     rerender(<SafeAreaProvider><ScreenHeader title="Settings" search={{placement: 'automatic', node: <SearchStandIn/>}}/></SafeAreaProvider>);
     search = screen.getByRole('button', {name: 'search:inline'});
     expect(row().contains(search)).toBe(true);

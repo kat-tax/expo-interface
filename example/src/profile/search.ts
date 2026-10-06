@@ -3,10 +3,10 @@ import {useSyncExternalStore} from 'react';
 
 /** Every placement a header search has, with what each one draws. */
 export const PLACEMENTS: readonly {value: HeaderSearchPlacement; label: string; note: string}[] = [
-  {value: 'automatic', label: 'Auto', note: 'The platform\'s choice: iOS decides, Android\'s magnifier, a field beside the title on a wide web header, Windows beside the title.'},
+  {value: 'automatic', label: 'Auto', note: 'The platform\'s choice: iOS decides, Android\'s magnifier, a field beside the title on web and Windows.'},
   {value: 'stacked', label: 'Stacked', note: 'A field under the title. iOS\'s own, collapsing as the list scrolls; a row under the header elsewhere.'},
   {value: 'action', label: 'Action', note: 'A magnifier among the header\'s actions that opens into a field across the bar: Android\'s search, iOS 26\'s bar button.'},
-  {value: 'inline', label: 'Inline', note: 'A field in the bar beside the title, the desktop look.'},
+  {value: 'inline', label: 'Inline', note: 'A field in the bar beside the title, the desktop look: frameless on web, where the bar is its frame.'},
   {value: 'integrated', label: 'Integrated', note: 'The search in a bottom toolbar: iOS 26\'s glass, a bottom bar with the field elsewhere.'},
 ];
 

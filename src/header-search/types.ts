@@ -13,11 +13,12 @@ import type {TextFieldCapitalize} from '../text-field/types';
  *   field across the bar. Native on Android (the toolbar's `SearchView`) and
  *   on iOS 26 (the bar's search button); drawn on web and Windows.
  * - `inline`: a field in the bar beside the title, the desktop look. Native
- *   on iOS 16 to 18; drawn on web and Windows; Android's `SearchView` open
- *   from the start.
+ *   on iOS 16 to 18; drawn on web as a frameless field on the bar's own
+ *   fill, beside the logo in a `Tabs` bar, that takes the bar's spare width
+ *   and shrinks with it; Windows' `AutoSuggestBox`; Android's `SearchView`
+ *   open from the start.
  * - `automatic`: the platform's choice. iOS decides itself; Android takes
- *   `action`; web takes `stacked` where the bar is too narrow for a field
- *   beside the title and `inline` where it is wide; Windows takes `inline`.
+ *   `action`; web and Windows take `inline`, at every width.
  */
 export type HeaderSearchPlacement = 'automatic' | 'stacked' | 'integrated' | 'action' | 'inline';
 

@@ -7,17 +7,17 @@ import {ScreenBar} from '../screen/bars';
 import {SearchBottomBar, SiteSearch} from './drawn';
 
 /**
- * Web and Windows: the header is drawn by the kit, so the search is too,
- * with `SearchField`'s box at the header's metrics. Rendered in the screen's
- * content like the other header controls, it goes to the route's
- * `headerSearch` option, which the drawn header picks up and places by the
- * placement asked for: under the title (`stacked`), in the row beside it
- * (`inline`), or as a magnifier among the actions that expands across the
- * row (`action`); `automatic` is decided by the header's width. On web a
- * `Tabs` bar that folds the header takes the search as it takes the rest of
- * it. `integrated` is a bottom `Toolbar` with the field, the `Screen`'s when
- * the search is rendered inside one. Rendered inside a header already, it
- * draws itself in place.
+ * Web and Windows: the header is drawn by the kit, so the search is too.
+ * Rendered in the screen's content like the other header controls, it goes
+ * to the route's `headerSearch` option, which the drawn header picks up and
+ * places by the placement asked for: under the title (`stacked`, with
+ * `SearchField`'s box), in the row beside it (`inline`, which `automatic` is:
+ * a frameless field on web, the `AutoSuggestBox` on Windows), or as a
+ * magnifier among the actions that expands across the row (`action`). On web
+ * a `Tabs` bar that folds the header takes the search as it takes the rest
+ * of it, the inline field beside the logo. `integrated` is a bottom `Toolbar`
+ * with the field, the `Screen`'s when the search is rendered inside one.
+ * Rendered inside a header already, it draws itself in place.
  *
  * One implementation for web and Windows, as the slot is: the two draw their
  * headers the same way. Their index files name it, since a Windows resolver

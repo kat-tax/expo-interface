@@ -1,0 +1,46 @@
+/*
+ * The web header's inline search: a frameless field beside the title. The
+ * magnifier and the placeholder sit on the bar's own fill, with no border,
+ * box or fill of their own, since the bar is the frame. The input is the
+ * browser's search input, so the clear button is the engine's, and the focus
+ * shows as the kit's inputs show it.
+ *
+ * The field takes the row's spare width and shrinks with the row; its bounds
+ * (a desktop search box's width, and the short field it shrinks to) are
+ * written as inline styles from `shared.ts`.
+ */
+.ui-header-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 0px;
+  box-sizing: border-box;
+  height: 32px;
+  padding: 0 8px;
+  color: var(--color-secondary-label);
+}
+
+.ui-header-search__input {
+  flex: 1 1 0px;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--color-label);
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.ui-header-search__input::placeholder {
+  color: var(--color-tertiary-label);
+  text-overflow: ellipsis;
+}
+
+.ui-header-search__input:focus-visible {
+  outline: 2px solid var(--color-tint);
+  outline-offset: 2px;
+}

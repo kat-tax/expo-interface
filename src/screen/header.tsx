@@ -1,10 +1,9 @@
 import type {HeaderSearchSlot} from '../header-search/types';
 import type {SheetMaterial} from '../sheet/types';
-import {Platform, Pressable, StyleSheet, Text, View, useWindowDimensions} from 'react-native';
+import {Platform, Pressable, StyleSheet, Text, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {SymbolView} from 'expo-symbols';
 import {InHeaderContext} from '../header/shared';
-import {isNarrow} from '../header-search/shared';
 import {useSearchSite} from '../header-search/site';
 import {materialProps} from '../material';
 import {hasMaterial} from '../sheet/shared';
@@ -17,10 +16,11 @@ interface ScreenHeaderProps {
   trailing?: React.ReactNode;
   /**
    * The screen's search (`HeaderSearch`), as the route's `headerSearch`
-   * option hands it over: a field under the title in a second row, a field
-   * in the row beside the title, or a magnifier among the trailing controls
-   * that takes the row when it opens. `automatic` is `stacked` in a window
-   * too narrow for a field beside the title, `inline` otherwise.
+   * option hands it over: a field under the title in a second row, a
+   * frameless field in the row after the title, or a magnifier among the
+   * trailing controls that takes the row when it opens. `automatic` is
+   * `inline`: the field shares the row's width with the title at every
+   * width.
    */
   search?: HeaderSearchSlot;
   /**
@@ -39,10 +39,9 @@ interface ScreenHeaderProps {
 export function ScreenHeader({title, onBack, trailing, search, material = 'none'}: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
   const tabBar = useTabBarInset();
-  const {width} = useWindowDimensions();
   const label = useColor('label');
   const background = useColor('background');
-  const site = useSearchSite(search, isNarrow(width));
+  const site = useSearchSite(search);
   // Under the status bar natively; under the floating tab bar on web.
   const paddingTop = Platform.OS === 'web' ? tabBar : insets.top;
 

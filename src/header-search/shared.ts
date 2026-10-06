@@ -5,6 +5,17 @@ import {icon} from '../icons';
 /** The magnifier, where the kit draws the search's own button. */
 export const SEARCH_ICON = icon({ios: 'magnifyingglass', android: 'search', web: 'search'});
 
+/** A field in the bar beside the title: a desktop search box's width. */
+export const INLINE_WIDTH = 240;
+
+/**
+ * The short field a web `inline` search shrinks to with its row: the
+ * magnifier and a few words of the placeholder. Below this the row is too
+ * narrow for what it holds, and it is the bar's labels that go, not the
+ * search.
+ */
+export const INLINE_MIN_WIDTH = 120;
+
 /**
  * The placement in UIKit's words (`UINavigationItem.SearchBarPlacement`, as
  * react-native-screens names them). `integrated` is one of three looks;
@@ -26,26 +37,12 @@ export function iosPlacement(placement: HeaderSearchPlacement, integration: Head
 }
 
 /**
- * What a drawn header draws for a placement. `automatic` is `stacked` where
- * the row is too narrow for a field beside the title and `inline` where it
- * is wide; Windows is always wide, as the issue's table has it.
+ * What a drawn header draws for a placement. `automatic` is `inline` at
+ * every width: the field beside the title shrinks with the row, so nothing
+ * stacks unless asked.
  */
-export function drawnPlacement(placement: Exclude<HeaderSearchPlacement, 'integrated'>, narrow: boolean): DrawnSearchPlacement {
-  if (placement === 'automatic') return narrow ? 'stacked' : 'inline';
-  return placement;
-}
-
-/** A web header row narrower than this has no room for a field beside its title. */
-export const NARROW_HEADER = 600;
-
-/**
- * Whether a window of this width is too narrow for a field beside the title.
- * A width of zero is no width at all: a static render, which has no window
- * to measure, and is drawn wide rather than stacked and then rearranged on
- * the first paint in a desktop window.
- */
-export function isNarrow(width: number): boolean {
-  return width > 0 && width < NARROW_HEADER;
+export function drawnPlacement(placement: Exclude<HeaderSearchPlacement, 'integrated'>): DrawnSearchPlacement {
+  return placement === 'automatic' ? 'inline' : placement;
 }
 
 /**

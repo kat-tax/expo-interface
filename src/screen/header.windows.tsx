@@ -52,7 +52,7 @@ export function ScreenHeader({title, titleNode, onBack, leading, trailing, searc
   const background = useColor('background');
   const chrome = useWindowChromeState();
   const toggleRow = useContext(PaneToggleContext);
-  const site = useSearchSite(search, false);
+  const site = useSearchSite(search);
   const bar = useRef<View>(null);
   // A header that is not the root's but lies in the title bar's band all the same — the root's hidden, a tab's stack at the top.
   const [inBand, setInBand] = useState(false);
