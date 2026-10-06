@@ -1,4 +1,12 @@
+import type {Ref} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {TextFieldCapitalize} from '../text-field/types';
+
+/** What a `SearchField` can be told to do through its `ref`. */
+export interface SearchFieldCommands {
+  focus(): void;
+  blur(): void;
+}
 
 /**
  * A field for searching: the query box, a way to clear it, and optionally a
@@ -39,6 +47,16 @@ export interface SearchFieldProps {
    * @default true
    */
   clearable?: boolean;
+  /** Focuses the box once it is mounted. */
+  autoFocus?: boolean;
+  /** Automatic capitalization while typing; the platform's default when omitted. Windows has no equivalent. */
+  autoCapitalize?: TextFieldCapitalize;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  /** A key pressed in the box, by its name (`Enter`, `Escape`, `a`). */
+  onKeyPress?: (key: string) => void;
+  /** The commands, see {@link SearchFieldCommands}. */
+  ref?: Ref<SearchFieldCommands>;
   testID?: string;
   style?: StyleProp<ViewStyle>;
 }

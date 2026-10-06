@@ -1,7 +1,7 @@
 import './search-field.css';
 import type {CSSProperties} from 'react';
 import type {SearchFieldProps} from './types';
-import {useId} from 'react';
+import {useId, useImperativeHandle, useRef} from 'react';
 import {StyleSheet, type TextStyle} from 'react-native';
 import {flatten} from '../theme';
 import {SEARCH_LABEL} from './shared';
@@ -27,15 +27,27 @@ export function SearchField({
   placeholder,
   suggestions,
   disabled,
+  autoFocus,
+  autoCapitalize,
+  onFocus,
+  onBlur,
+  onKeyPress,
+  ref,
   testID,
   style,
 }: SearchFieldProps) {
+  const input = useRef<HTMLInputElement>(null);
   const list = `ui-search-${useId().replaceAll(/[^A-Za-z0-9_-]/g, '_')}`;
   const label = placeholder ?? SEARCH_LABEL;
   const vars = flatten(StyleSheet.flatten(style) as TextStyle) as CSSProperties;
+  useImperativeHandle(ref, () => ({
+    focus: () => input.current?.focus(),
+    blur: () => input.current?.blur(),
+  }));
   return (
     <div className="ui-search" style={vars} data-testid={testID ? `${testID}-row` : undefined}>
       <input
+        ref={input}
         type="search"
         className="ui-search__input"
         // The browser draws the list, and knows how to reach it from the
@@ -45,11 +57,16 @@ export function SearchField({
         placeholder={label}
         aria-label={label}
         disabled={disabled}
+        autoFocus={autoFocus}
+        autoCapitalize={autoCapitalize}
         // `search` in the enter-key hint, which phones honour.
         enterKeyHint="search"
         data-testid={testID}
         onChange={event => onChangeText(event.target.value)}
+        onFocus={onFocus}
+        onBlur={onBlur}
         onKeyDown={event => {
+          onKeyPress?.(event.key);
           if (event.key === 'Enter') onSubmit?.(event.currentTarget.value);
         }}
       />

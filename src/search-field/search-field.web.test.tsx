@@ -1,5 +1,7 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
+import type {SearchFieldCommands} from './types';
+import {createRef} from 'react';
 import {fireEvent, render, screen} from '@testing-library/react';
 import {SearchField} from '.';
 
@@ -53,5 +55,31 @@ describe('SearchField (web)', () => {
     render(<SearchField value="" disabled onChangeText={() => {}} style={{opacity: 0.5}} testID="q"/>);
     expect(screen.getByTestId('q')).toBeDisabled();
     expect(screen.getByTestId('q-row')).toHaveStyle({opacity: 0.5});
+  });
+
+  it('reports the focus coming and going, and every key by its name', () => {
+    const onFocus = vi.fn();
+    const onBlur = vi.fn();
+    const onKeyPress = vi.fn();
+    render(<SearchField value="" onChangeText={() => {}} onFocus={onFocus} onBlur={onBlur} onKeyPress={onKeyPress} autoCapitalize="none" testID="q"/>);
+    const input = screen.getByTestId('q');
+    expect(input).toHaveAttribute('autocapitalize', 'none');
+    fireEvent.focus(input);
+    fireEvent.blur(input);
+    expect(onFocus).toHaveBeenCalledTimes(1);
+    expect(onBlur).toHaveBeenCalledTimes(1);
+    fireEvent.keyDown(input, {key: 'Escape'});
+    expect(onKeyPress).toHaveBeenCalledWith('Escape');
+  });
+
+  it('focuses on mount when asked, and takes and gives up the focus through the ref', () => {
+    const ref = createRef<SearchFieldCommands>();
+    render(<SearchField ref={ref} value="" onChangeText={() => {}} autoFocus testID="q"/>);
+    const input = screen.getByTestId('q');
+    expect(document.activeElement).toBe(input);
+    ref.current!.blur();
+    expect(document.activeElement).not.toBe(input);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(input);
   });
 });

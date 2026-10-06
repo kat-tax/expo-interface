@@ -22,13 +22,13 @@ const CLEAR = {ios: 'xmark.circle.fill', android: 'cancel', web: 'cancel'} as co
  * on one platform — is the failure this kit exists to avoid.
  */
 export function SearchField(props: SearchFieldProps) {
-  const {value, onChangeText, onSubmit, placeholder, suggestions, disabled, testID, style} = props;
+  const {value, onChangeText, onSubmit, placeholder, suggestions, disabled, autoFocus, autoCapitalize, onFocus, onBlur, onKeyPress, ref, testID, style} = props;
   const muted = useColor('secondaryLabel');
   const ink = useColor('label');
   const label = placeholder ?? SEARCH_LABEL;
-  // The text decides whether the list is open, not the focus: `TextField` has
-  // no focus callbacks, and tying it to the text means the list closes when a
-  // suggestion is taken or the box is cleared, which is when it should.
+  // The text decides whether the list is open, not the focus: tying it to the
+  // text means the list closes when a suggestion is taken or the box is
+  // cleared, which is when it should.
   const matches = matchingSuggestions(value, suggestions);
   return (
     <View style={style} testID={testID ? `${testID}-row` : undefined}>
@@ -36,12 +36,18 @@ export function SearchField(props: SearchFieldProps) {
         <SymbolView name={SEARCH} size={ICON} tintColor={muted}/>
         <View style={styles.field}>
           <TextField
+            ref={ref}
             variant="inline"
             value={value}
             placeholder={label}
             onChangeText={onChangeText}
             onSubmit={onSubmit}
+            onFocus={onFocus}
+            onBlur={onBlur}
+            onKeyPress={onKeyPress ? key => onKeyPress(key) : undefined}
             disabled={disabled}
+            autoFocus={autoFocus}
+            autoCapitalize={autoCapitalize}
             autoCorrect={false}
             returnKeyType="search"
             testID={testID}

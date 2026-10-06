@@ -1,3 +1,5 @@
+import type {SearchFieldCommands} from './types';
+import {createRef} from 'react';
 import {Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {SearchField} from '.';
@@ -59,5 +61,29 @@ describe(`SearchField (${Platform.OS})`, () => {
     expect(screen.queryByTestId('q-suggestions')).toBeNull();
     await render(<SearchField value="zzz" suggestions={['Demo Reel']} onChangeText={() => {}} testID="none"/>);
     expect(screen.queryByTestId('none-suggestions')).toBeNull();
+  });
+
+  it('hands the focus, the keys and the capitalization to the field inside, and its commands to the ref', async () => {
+    const ref = createRef<SearchFieldCommands>();
+    const onFocus = vi.fn();
+    const onBlur = vi.fn();
+    const onKeyPress = vi.fn();
+    await render(
+      <SearchField ref={ref} value="" onChangeText={() => {}} onFocus={onFocus} onBlur={onBlur} onKeyPress={onKeyPress} autoCapitalize="none" autoFocus testID="q"/>,
+    );
+    const input = screen.getByTestId('q');
+    expect(input.props.autoCapitalize).toBe('none');
+    expect(input.props.autoFocus).toBeUndefined();
+    await fireEvent(input, 'focus');
+    await fireEvent(input, 'blur');
+    expect(onFocus).toHaveBeenCalledTimes(1);
+    expect(onBlur).toHaveBeenCalledTimes(1);
+    await fireEvent(input, 'keyPress', {nativeEvent: {key: 'Escape'}});
+    expect(onKeyPress).toHaveBeenCalledWith('Escape');
+    // The commands reach the input: a focused field is the input's business, so only that they are wired is checked here.
+    expect(() => {
+      ref.current!.focus();
+      ref.current!.blur();
+    }).not.toThrow();
   });
 });

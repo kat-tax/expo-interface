@@ -1,7 +1,7 @@
 import type {TextFieldProps} from './types';
 import type {NativeSyntheticEvent, TextInputKeyPressEventData, TextStyle} from 'react-native';
 
-import {useRef} from 'react';
+import {useImperativeHandle, useRef} from 'react';
 import {StyleSheet, TextInput} from 'react-native';
 import {fonts, fontWeights, theme, variants} from '../theme';
 import {InlineTextField} from './inline';
@@ -28,6 +28,9 @@ function RowTextField({
   onChangeText,
   onSubmit,
   onKeyPress,
+  onFocus,
+  onBlur,
+  ref,
   disabled,
   secureTextEntry,
   keyboardType,
@@ -46,6 +49,10 @@ function RowTextField({
   const [current, setValue] = useTextValue(value, onChangeText);
   const cursor = accentColor ?? (theme.tint as string);
   useAutoFocus(input, autoFocus);
+  useImperativeHandle(ref, () => ({
+    focus: () => input.current?.focus(),
+    blur: () => input.current?.blur(),
+  }));
 
   return (
     <TextInput
@@ -68,6 +75,8 @@ function RowTextField({
       onSubmitEditing={onSubmit ? event => onSubmit(event.nativeEvent.text) : undefined}
       onKeyPress={onKeyPress ? (event: NativeSyntheticEvent<TextInputKeyPressEventData & {shiftKey?: boolean}>) =>
         onKeyPress(event.nativeEvent.key, event.nativeEvent.shiftKey === true) : undefined}
+      onFocus={onFocus}
+      onBlur={onBlur}
       aria-label={placeholder}
       testID={testID}
       style={[styles.input, disabled && styles.disabled, style]}

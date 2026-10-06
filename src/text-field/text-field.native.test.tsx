@@ -1,3 +1,5 @@
+import type {TextFieldCommands} from './types';
+import {createRef} from 'react';
 import {Platform} from 'react-native';
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 import {useNativeState} from '@expo/ui';
@@ -258,6 +260,23 @@ describe(`TextField (${Platform.OS})`, () => {
     const input = screen.getByTestId('name');
     expect(input.props.editable).toBe(false);
     expect(input.props.style).toEqual(expect.arrayContaining([{opacity: 0.4}]));
+  });
+
+  it('reports the inline variant\'s focus coming and going, and takes its commands through the ref', async () => {
+    const ref = createRef<TextFieldCommands>();
+    const onFocus = vi.fn();
+    const onBlur = vi.fn();
+    await render(<TextField ref={ref} variant="inline" onFocus={onFocus} onBlur={onBlur} testID="name"/>);
+    const input = screen.getByTestId('name');
+    await fireEvent(input, 'focus');
+    await fireEvent(input, 'blur');
+    expect(onFocus).toHaveBeenCalledTimes(1);
+    expect(onBlur).toHaveBeenCalledTimes(1);
+    // The commands reach the input; whether it is focused is the renderer's business.
+    expect(() => {
+      ref.current!.focus();
+      ref.current!.blur();
+    }).not.toThrow();
   });
 
   (isIOS ? it.skip : it)('carries no testID modifier without a testID', async () => {

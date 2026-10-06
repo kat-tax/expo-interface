@@ -1,6 +1,6 @@
 import type {NativeSyntheticEvent, TextInputKeyPressEventData} from 'react-native';
 import type {TextFieldProps} from './types';
-import {useRef} from 'react';
+import {useImperativeHandle, useRef} from 'react';
 import {StyleSheet, TextInput} from 'react-native';
 import {fonts, fontWeights, spacing, useColor} from '../theme';
 import {keyboardTypeFor, useAutoFocus, useTextValue} from './shared';
@@ -10,8 +10,9 @@ import {keyboardTypeFor, useAutoFocus, useTextValue} from './shared';
  * platform, for a field that sits inside a React Native layout (a search
  * row in a toolbar, a prompt in a bar) where the native form control would
  * need a host of its own. It grows to the room it is given, focuses on
- * mount when asked (and makes sure the keyboard came on Android), and steps
- * with the keyboard's action key (`returnKeyType` with `submitBehavior`).
+ * mount when asked (and makes sure the keyboard came on Android), steps
+ * with the keyboard's action key (`returnKeyType` with `submitBehavior`),
+ * reports the focus coming and going, and takes it through the `ref`.
  */
 export function InlineTextField({
   placeholder,
@@ -19,6 +20,9 @@ export function InlineTextField({
   onChangeText,
   onSubmit,
   onKeyPress,
+  onFocus,
+  onBlur,
+  ref,
   disabled,
   secureTextEntry,
   keyboardType,
@@ -40,6 +44,10 @@ export function InlineTextField({
   const tint = useColor('tint');
   const cursor = accentColor ?? tint;
   useAutoFocus(input, autoFocus);
+  useImperativeHandle(ref, () => ({
+    focus: () => input.current?.focus(),
+    blur: () => input.current?.blur(),
+  }));
 
   return (
     <TextInput
@@ -62,6 +70,8 @@ export function InlineTextField({
       onSubmitEditing={onSubmit ? event => onSubmit(event.nativeEvent.text) : undefined}
       onKeyPress={onKeyPress ? (event: NativeSyntheticEvent<TextInputKeyPressEventData & {shiftKey?: boolean}>) =>
         onKeyPress(event.nativeEvent.key, event.nativeEvent.shiftKey === true) : undefined}
+      onFocus={onFocus}
+      onBlur={onBlur}
       aria-label={placeholder}
       testID={testID}
       style={[styles.input, {color: label}, disabled && styles.disabled, style]}
