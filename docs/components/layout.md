@@ -19,9 +19,9 @@ Props: `native` (mount an `@expo/ui` host around the screen), `header`
 (the screen sits under a stack header and skips the top inset; inferred under
 `TabStack`), `gutter` (horizontal padding), `underBar` (the content starts
 under the bar floating over the screen's top rather than below it, for a
-scrolling screen that passes under a material bar: the web tab bar, or
-natively the header of a `TabStack` with a `material`; its scroll content
-pads its top by `useTabBarInset()`), `fab` (a node placed at the bottom
+scrolling screen that passes under a material bar: the web tab bar, or on
+iOS the header of a `TabStack` with a `material`; its scroll content pads
+its top by `useTabBarInset()`), `fab` (a node placed at the bottom
 trailing corner, above the safe area and the tab bar, lifted above a `Toast`
 while one shows).
 

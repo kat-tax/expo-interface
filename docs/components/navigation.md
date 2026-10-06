@@ -129,13 +129,15 @@ its trailing slot.
 
 `material` draws the header as one of the kit's materials, the ones `Sheet`
 takes (`thin`, `regular`, `thick`), with the screens running under it: on
-iOS the system's material behind a translucent bar, on Android the bar's fill
-thinned to the material's opacity over what passes under it (Android has no
-bar material of its own). A `Screen` under it leaves the header's height
-clear at the top, and one that is `underBar` lets its content pass under the
-bar, padding that content by `useTabBarInset()`, as it does under the web tab
-bar's material. On web the header folds into the bar, which has `Tabs
-webMaterial`; a drawn web header stays opaque, and so does Windows'.
+iOS the system's material behind a translucent bar. A `Screen` under it
+leaves the header's height clear at the top, and one that is `underBar` lets
+its content pass under the bar, padding that content by `useTabBarInset()`,
+as it does under the web tab bar's material. Android has no bar material of
+its own, and its bar's items and menus take the header's colour (Expo Router
+paints its icon buttons and the dropdown's surface with it), so its header
+stays the bar's opaque fill with the screens below it, whatever `material`
+says. On web the header folds into the bar, which has `Tabs webMaterial`; a
+drawn web header stays opaque, and so does Windows'.
 
 ## ConstrainedStackHeader
 

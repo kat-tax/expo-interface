@@ -1,11 +1,10 @@
-import type {ColorValue} from 'react-native';
 import type {SheetMaterial} from '../sheet/types';
 import type {TabStackProps} from './index';
 import {Stack} from 'expo-router';
 import {Platform} from 'react-native';
 import {toolbarItems, useHeaderTints} from '../header/toolbar';
 import {FloatingHeaderContext, StackHeaderContext} from '../stack-header/context';
-import {MATERIAL_OPACITY, hasMaterial} from '../sheet/shared';
+import {hasMaterial} from '../sheet/shared';
 import {useNavTheme} from '../theme';
 
 /**
@@ -20,7 +19,11 @@ import {useNavTheme} from '../theme';
 export function TabStack({title, headerRight, material = 'none'}: TabStackProps) {
   const {colors} = useNavTheme();
   const tints = useHeaderTints();
-  const floating = hasMaterial(material);
+  // iOS alone: Android has no bar material, and its bar's items and menus
+  // take the header's colour (Expo Router paints its icon buttons and the
+  // dropdown's surface with it), so a thinned fill there made the menus
+  // translucent, or the items' backgrounds opaque squares over the content.
+  const floating = Platform.OS === 'ios' && hasMaterial(material);
 
   return (
     <StackHeaderContext.Provider value={true}>
@@ -32,7 +35,7 @@ export function TabStack({title, headerRight, material = 'none'}: TabStackProps)
             headerBackButtonDisplayMode: 'minimal',
             headerTintColor: colors.text,
             headerTitleStyle: {color: colors.text},
-            ...(floating ? materialOptions(material, colors.background) : {headerStyle: {backgroundColor: colors.background}}),
+            ...(floating ? materialOptions(material) : {headerStyle: {backgroundColor: colors.background}}),
           }}>
           <Stack.Screen name="index" options={{title}}>
             {headerRight ? <Stack.Toolbar placement="right">{toolbarItems(headerRight(), tints)}</Stack.Toolbar> : null}
@@ -51,28 +54,12 @@ const IOS_BLUR = {
 } as const;
 
 /**
- * The native stack's options for a header the screens run under
- * (`headerTransparent`): on iOS a blur of the system's material, whose
- * background the stack leaves clear; on Android, which has no bar material,
- * the bar's own fill thinned to the material's opacity over the content.
+ * The iOS stack's options for a header the screens run under
+ * (`headerTransparent`): a blur of the system's material, whose background
+ * the stack leaves clear.
  */
-function materialOptions(material: Exclude<SheetMaterial, 'none'>, background: ColorValue) {
-  if (Platform.OS === 'ios') {
-    return {headerTransparent: true, headerBlurEffect: IOS_BLUR[material]};
-  }
-  return {headerTransparent: true, headerStyle: {backgroundColor: withAlpha(background, MATERIAL_OPACITY[material])}};
-}
-
-/**
- * A palette color at an opacity, as `rgba()`. The navigation theme's colors
- * are the palette's own `#rrggbb` strings (`useNavTheme` resolves them, since
- * a native header takes no platform color token); any other value is left
- * as it is.
- */
-export function withAlpha(color: ColorValue, alpha: number): ColorValue {
-  if (typeof color !== 'string' || !/^#[0-9a-f]{6}$/i.test(color)) return color;
-  const [r, g, b] = [1, 3, 5].map(at => parseInt(color.slice(at, at + 2), 16));
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+function materialOptions(material: Exclude<SheetMaterial, 'none'>) {
+  return {headerTransparent: true, headerBlurEffect: IOS_BLUR[material]};
 }
 
 export type {TabStackProps} from './index';

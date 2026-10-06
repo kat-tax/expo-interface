@@ -52,10 +52,10 @@ export interface ScreenProps extends PropsWithChildren {
    * The content starts under the bar floating over the screen's top rather
    * than below it, for a scrolling screen whose content should pass under a
    * material bar and show through it: the web tab bar (`Tabs webMaterial`),
-   * or natively the stack header of a `TabStack` with a `material`. Pad the
+   * or on iOS the stack header of a `TabStack` with a `material`. Pad the
    * scroll content's top by `useTabBarInset()` so its first row starts clear
-   * of the bar. Under an opaque header the top inset is already nothing, so
-   * this changes nothing.
+   * of the bar. Under an opaque header (Android's always is) the top inset is
+   * already nothing, so this changes nothing.
    * @default false
    */
   underBar?: boolean;

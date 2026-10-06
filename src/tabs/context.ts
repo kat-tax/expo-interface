@@ -12,9 +12,10 @@ export const TabBarContext = createContext(false);
  * The space a bar floating over the screen takes at its top: what content
  * passing under it (`Screen underBar`) pads itself by. On web it is the tab
  * bar's, while the bar is drawn (`Tabs hidden` with no header folded into it
- * draws none); on iOS and Android, where the tab bar is the platform's own
- * and sits at the bottom, it is the stack header's under a `TabStack` with a
- * `material`, the status bar included, and zero under an opaque one.
+ * draws none); on iOS, where the tab bar is the platform's own and sits at
+ * the bottom, it is the stack header's under a `TabStack` with a `material`,
+ * the status bar included, and zero under an opaque one, which Android's
+ * header always is.
  */
 export function useTabBarInset(): number {
   const bar = useContext(TabBarContext);

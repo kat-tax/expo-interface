@@ -18,13 +18,14 @@ export interface TabStackProps {
    */
   headerRight?: () => ReactNode;
   /**
-   * iOS and Android: the header as one of the kit's materials, the ones
-   * `Sheet` takes, with the screens running under it. On iOS the system's
-   * material behind a translucent bar, on Android the bar's fill thinned over
-   * what passes under it. The screens pay the header's height at the top
-   * (`Screen` does, unless it is `underBar`, where the content's own top inset
-   * is `useTabBarInset()`). On web the bar a header folds into has `Tabs
-   * webMaterial`, and a drawn header stays opaque, as Windows' does.
+   * iOS: the header as one of the kit's materials, the ones `Sheet` takes,
+   * the system's material behind a translucent bar with the screens running
+   * under it. The screens pay the header's height at the top (`Screen` does,
+   * unless it is `underBar`, where the content's own top inset is
+   * `useTabBarInset()`). Android has no bar material, and its bar's items and
+   * menus take the header's colour, so its header stays the bar's opaque
+   * fill with the screens below it. On web the bar a header folds into has
+   * `Tabs webMaterial`, and a drawn header stays opaque, as Windows' does.
    * @default 'none'
    */
   material?: SheetMaterial;
