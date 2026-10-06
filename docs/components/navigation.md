@@ -114,9 +114,18 @@ react-native-windows reports no dimension change when the window is resized.
 ## TabStack
 
 The stack inside a tab, with the platform's header over the tab's screens.
-Props: `title`, `headerRight`. On web its header is `ConstrainedStackHeader`;
-on Windows it is the kit's `Stack`. A `HeaderMenu` in `headerRight` survives
-Android's header re-parenting; a plain `Menu` in a host does not.
+Props: `title`, `headerRight`. On web its header is
+`ConstrainedStackHeader`; on Windows it is the kit's `Stack`.
+
+`headerRight` returns the root screen's header controls: a `HeaderMenu`, a
+`HeaderAction`, or several in a `HeaderActions`. On iOS and Android they
+become the bar's own items, read off the elements returned and declared with
+the index screen the way Expo Router takes a `Stack.Toolbar` inside a
+`Stack.Screen`, so the stack never holds a React Native view in a native bar.
+Return the kit's elements themselves: a component of the app's own around
+them is placed in the bar as a custom view, since its items cannot be read
+without rendering it. On web and Windows the drawn header row takes them in
+its trailing slot.
 
 ## ConstrainedStackHeader
 
@@ -183,29 +192,45 @@ so nothing hidden can take focus.
 
 ## HeaderMenu, HeaderAction, HeaderActions
 
-Controls for a stack header's trailing slot (`TabStack`'s `headerRight`).
-`HeaderMenu` is a `Menu` at the platform's header size; `HeaderAction` is the
-same trigger with a press instead of a menu; `HeaderActions` is the row for a
-slot that takes one node, and the one host for all of them.
+The controls of a stack header's trailing slot. `HeaderMenu` is a menu
+behind a trigger at the platform's header size; `HeaderAction` is the same
+trigger with a press instead of a menu; `HeaderActions` holds several, in the
+order given.
+
+A header control is rendered in the screen's content, beside the screen's
+own views, and sends itself to the header from there:
 
 ```tsx
-headerRight={() => (
-  <HeaderActions>
-    <HeaderAction label="Share" icon={icon.share} hideLabel tone="label" onPress={share}/>
-    <HeaderMenu label="Export" icon={icon.export} hideLabel tone="label" items={exports}/>
-  </HeaderActions>
-)}
+export default function Document() {
+  return (
+    <>
+      <HeaderActions>
+        <HeaderAction label="Share" icon={icon.share} hideLabel tone="label" onPress={share}/>
+        <HeaderMenu label="Export" icon={icon.export} hideLabel tone="label" items={exports}/>
+      </HeaderActions>
+      <Screen>...</Screen>
+    </>
+  );
+}
 ```
 
-A plain `Button` is the wrong thing in a header: the app would have to size
-it, it would not shrink when the web tab bar carries the header, and natively
-it is a SwiftUI or Compose view that a React Native header cannot hold
-without a host. The row spaces its children the way each platform spaces its
-own header actions: none on Android, where Material's icon buttons carry
-their own 48dp container. On Android the host is rebuilt on every focus
-change, since the native stack re-parents the header's views on a tab switch
-and a Compose view refuses a second parent, so these need a navigator above
-them there. On Windows the row is a plain view of islands.
+For a tab's root screen, `TabStack headerRight` takes the same elements. A
+stack's `headerRight` option is not where they go: natively that slot holds
+a React Native view, and these are the bar's own items.
+
+| Platform | Renders |
+| --- | --- |
+| iOS | The navigation bar's own button items, through Expo Router's `Stack.Toolbar`: an action is a bar button with its SF Symbol (or its label, when the label shows), a menu a bar button with a `UIMenu` of the entries, in the bar's own size and spacing. A `tone` of `label` draws the item in the header's text color, the default in the accent. |
+| Android | The top app bar's icon buttons, with the label as the accessible name, and a menu's entries in a Material dropdown; an entry that is `active` has a trailing check, a `destructive` one the danger color, and a `separator` starts a group under a rule. A control without an Android drawable in its icon is drawn as the kit's own text button, in a host. |
+| Web | The kit's text button or `Menu` trigger at the header's size in the drawn header row, or at the tab bar's size in the bar a header folds into, where a control with an icon shows that alone when the bar is too narrow for labels. `HeaderActions` is the one host for the row. |
+| Windows | The same triggers as islands, in the header row the kit's stack draws. |
+
+Rendered inside a header already (a custom header's trailing slot, the web
+tab bar), a control draws itself there. Natively a `HeaderActions` takes
+`HeaderAction` and `HeaderMenu` elements directly: the bar's items are read
+off them, and a component of the app's own between the row and its items
+cannot be. `testID` names the web and Windows triggers; the native items
+are found by their `label`.
 
 ## ExternalLink
 

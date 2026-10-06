@@ -1,6 +1,5 @@
 import type {ReactNode} from 'react';
 import {Stack} from 'expo-router';
-import {Platform} from 'react-native';
 import {ConstrainedStackHeader} from '../stack-header';
 import {StackHeaderContext} from '../stack-header/context';
 import {useHeaderSlot} from '../tabs/context';
@@ -10,8 +9,11 @@ export interface TabStackProps {
   /** Title of the tab's root screen, in its native header. */
   title: string;
   /**
-   * Content of the header's trailing slot. A `HeaderMenu` survives Android's
-   * header re-parenting; a plain `Menu` in a host does not.
+   * Content of the header's trailing slot: a `HeaderMenu`, a `HeaderAction`,
+   * or several in a `HeaderActions`. On iOS and Android they become the
+   * platform's bar items, read off the elements returned (a component of the
+   * app's own around them is a custom view in the bar instead); on web and
+   * Windows the drawn header row takes them in its trailing slot.
    */
   headerRight?: () => ReactNode;
 }
@@ -30,7 +32,7 @@ export interface TabStackProps {
  */
 export function TabStack({title, headerRight}: TabStackProps) {
   const {colors} = useNavTheme();
-  // Web only: a slot means the header is drawn by the bar above, not here.
+  // A slot means the header is drawn by the bar above, not here.
   const folds = useHeaderSlot() !== null;
 
   return (
@@ -38,7 +40,7 @@ export function TabStack({title, headerRight}: TabStackProps) {
       <Stack
         screenOptions={{
           headerShown: true,
-          header: Platform.OS === 'web' ? ConstrainedStackHeader : undefined,
+          header: ConstrainedStackHeader,
           headerShadowVisible: false,
           headerBackButtonDisplayMode: 'minimal',
           headerTintColor: colors.text,

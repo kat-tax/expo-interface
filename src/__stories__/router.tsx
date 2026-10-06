@@ -55,23 +55,26 @@ export function RouterApp({routes, url = '/'}: RouterAppProps) {
 }
 
 /**
- * A one screen app whose header carries `headerRight`: what a header control
- * needs around it, since it reads the screen's focus, with the kit's own
- * header on web and the native stack's bar everywhere else.
+ * A one screen app whose screen renders a header control in its content,
+ * from where the control sends itself to the header: the kit's own header on
+ * web, the native stack's bar everywhere else.
  */
-export function headerApp(title: string, body: string, headerRight: () => ReactNode): Routes {
+export function headerApp(title: string, body: string, control: () => ReactNode): Routes {
   return {
     _layout: () => (
       <Stack
         screenOptions={{
           headerShown: true,
           header: Platform.OS === 'web' ? ConstrainedStackHeader : undefined,
-          headerRight,
         }}>
         <Stack.Screen name="index" options={{title}}/>
       </Stack>
     ),
-    index: () => <Page header title={title} body={body}/>,
+    index: () => (
+      <Page header title={title} body={body}>
+        {control()}
+      </Page>
+    ),
   };
 }
 

@@ -1,5 +1,6 @@
 import {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
+import {InHeaderContext} from '../header/shared';
 import {Icon} from '../symbol';
 import {icon} from '../icons';
 import {StatePressable} from '../surface/pressable';
@@ -76,7 +77,7 @@ export function ScreenHeader({title, titleNode, onBack, leading, trailing, dragR
             {title}
           </Text>
         )}
-        {trailing}
+        <InHeaderContext.Provider value={true}>{trailing}</InHeaderContext.Provider>
       </View>
     </View>
   );

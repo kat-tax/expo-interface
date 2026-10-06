@@ -34,99 +34,102 @@ export function DropUpload({id}: DropUploadProps) {
       f.id === fileId ? {...f, status: 'complete', progress: 1} : f));
 
   return (
-    <ScrollView>
-      <Column spacing={spacing.four}>
+    <>
+      <DropUploadHeaderActions id={id}/>
+      <ScrollView>
         <Column spacing={spacing.four}>
-          {drop?.description ? (
-            <Text textStyle={{fontSize: 15, color: subtle, lineHeight: 21}}>
-              {drop.description}
-            </Text>
-          ) : null}
-          <Column spacing={spacing.one}>
-            {drop?.expiresAt ? (
-              <Row spacing={spacing.two} alignment="center">
-                <SymbolView name={icon.calendar.symbol} size={16} tintColor={subtle}/>
-                <Text textStyle={{fontSize: 14, color: subtle}}>
-                  {formatExpiry(drop.expiresAt)}
-                </Text>
-              </Row>
+          <Column spacing={spacing.four}>
+            {drop?.description ? (
+              <Text textStyle={{fontSize: 15, color: subtle, lineHeight: 21}}>
+                {drop.description}
+              </Text>
             ) : null}
-            {drop?.limit ? (
-              <Row spacing={spacing.two} alignment="center">
-                <SymbolView name={icon.limit.symbol} size={16} tintColor={subtle}/>
-                <Text textStyle={{fontSize: 14, color: subtle}}>
-                  {drop.limit}
-                </Text>
-              </Row>
-            ) : null}
+            <Column spacing={spacing.one}>
+              {drop?.expiresAt ? (
+                <Row spacing={spacing.two} alignment="center">
+                  <SymbolView name={icon.calendar.symbol} size={16} tintColor={subtle}/>
+                  <Text textStyle={{fontSize: 14, color: subtle}}>
+                    {formatExpiry(drop.expiresAt)}
+                  </Text>
+                </Row>
+              ) : null}
+              {drop?.limit ? (
+                <Row spacing={spacing.two} alignment="center">
+                  <SymbolView name={icon.limit.symbol} size={16} tintColor={subtle}/>
+                  <Text textStyle={{fontSize: 14, color: subtle}}>
+                    {drop.limit}
+                  </Text>
+                </Row>
+              ) : null}
+            </Column>
           </Column>
-        </Column>
 
-        <Column
-          spacing={spacing.three}
-          alignment="center"
-          modifiers={fillWidth}
-          style={{
-            borderWidth: 1,
-            borderRadius: 20,
-            borderColor: border,
-            ...(isWeb ? {borderStyle: 'dashed'} : null),
-            backgroundColor: background,
-            paddingVertical: spacing.five,
-            paddingHorizontal: spacing.three,
-          } satisfies ViewStyle}>
-          <SymbolView name={icon.upload.symbol} size={40} tintColor={subtle}/>
-          <Column spacing={spacing.one} alignment="center">
-            <Text textStyle={{fontSize: 18, fontWeight: '600', color: label}}>
-              Add to the drop
-            </Text>
-            <Text textStyle={{fontSize: 14, color: subtle, textAlign: 'center'}}>
-              {isWeb
-                ? 'Drag files here or choose a source'
-                : 'Choose a source and select files'}
-            </Text>
-          </Column>
-          <Row spacing={spacing.two} alignment="center" modifiers={fillWidth}>
-            <Spacer flexible/>
-            <Button
-              variant="filled"
-              size="small"
-              label="Files"
-              prefixIcon={icon.fileAdd}
-              onPress={() => {}}
-            />
-            <Button
-              variant="filled"
-              size="small"
-              label="Media"
-              prefixIcon={icon.media}
-              onPress={() => {}}
-            />
-            <Button
-              variant="filled"
-              size="small"
-              label="Camera"
-              prefixIcon={icon.camera}
-              onPress={() => {}}
-            />
-            <Spacer flexible/>
-          </Row>
-        </Column>
-
-        <Column spacing={spacing.two}>
-          {files.length === 0 ? null : (
-            files.map(file => (
-              <UploadItem
-                key={file.id}
-                file={file}
-                onRemove={() => removeFile(file.id)}
-                onRetry={() => retryFile(file.id)}
+          <Column
+            spacing={spacing.three}
+            alignment="center"
+            modifiers={fillWidth}
+            style={{
+              borderWidth: 1,
+              borderRadius: 20,
+              borderColor: border,
+              ...(isWeb ? {borderStyle: 'dashed'} : null),
+              backgroundColor: background,
+              paddingVertical: spacing.five,
+              paddingHorizontal: spacing.three,
+            } satisfies ViewStyle}>
+            <SymbolView name={icon.upload.symbol} size={40} tintColor={subtle}/>
+            <Column spacing={spacing.one} alignment="center">
+              <Text textStyle={{fontSize: 18, fontWeight: '600', color: label}}>
+                Add to the drop
+              </Text>
+              <Text textStyle={{fontSize: 14, color: subtle, textAlign: 'center'}}>
+                {isWeb
+                  ? 'Drag files here or choose a source'
+                  : 'Choose a source and select files'}
+              </Text>
+            </Column>
+            <Row spacing={spacing.two} alignment="center" modifiers={fillWidth}>
+              <Spacer flexible/>
+              <Button
+                variant="filled"
+                size="small"
+                label="Files"
+                prefixIcon={icon.fileAdd}
+                onPress={() => {}}
               />
-            ))
-          )}
+              <Button
+                variant="filled"
+                size="small"
+                label="Media"
+                prefixIcon={icon.media}
+                onPress={() => {}}
+              />
+              <Button
+                variant="filled"
+                size="small"
+                label="Camera"
+                prefixIcon={icon.camera}
+                onPress={() => {}}
+              />
+              <Spacer flexible/>
+            </Row>
+          </Column>
+
+          <Column spacing={spacing.two}>
+            {files.length === 0 ? null : (
+              files.map(file => (
+                <UploadItem
+                  key={file.id}
+                  file={file}
+                  onRemove={() => removeFile(file.id)}
+                  onRetry={() => retryFile(file.id)}
+                />
+              ))
+            )}
+          </Column>
         </Column>
-      </Column>
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 }
 
@@ -135,13 +138,11 @@ function useDropUploadHeader(id: string) {
 
   useLayoutEffect(() => {
     const drop = getDrop(id);
-    nav.setOptions({
-      title: drop?.name ?? 'New Drop',
-      headerRight: () => <DropUploadHeaderActions id={id}/>,
-    });
+    nav.setOptions({title: drop?.name ?? 'New Drop'});
   }, [nav, id]);
 }
 
+/** The header's actions, rendered in the screen's content: each sends itself to the header from there. */
 function DropUploadHeaderActions({id}: {id: string}) {
   return (
     <HeaderActions>

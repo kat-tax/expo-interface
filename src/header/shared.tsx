@@ -1,10 +1,25 @@
 import type {ButtonSize} from '../button/types';
 import type {PropsWithChildren} from 'react';
-import {useState} from 'react';
+import {createContext, useContext} from 'react';
 import {Platform} from 'react-native';
-import {useIsFocused} from 'expo-router';
 import {NativeHost, useNativeHost} from '../host';
 import {useInBar, useNarrowBar} from '../tabs/context';
+
+/** True inside a header's trailing slot — see {@link useInHeader}. */
+export const InHeaderContext = createContext(false);
+
+/**
+ * Whether this is drawn inside a header already: a stack header's trailing
+ * slot, or the web tab bar a header folds into. A header control rendered
+ * there draws itself; rendered anywhere else, in a screen's content, it sends
+ * itself to the screen's header instead (`HeaderSlot`) and draws nothing in
+ * place.
+ */
+export function useInHeader(): boolean {
+  const inHeader = useContext(InHeaderContext);
+  const inBar = useInBar();
+  return inHeader || inBar;
+}
 
 /**
  * A header action is the platform's, not the kit's smallest button: on iOS
@@ -40,46 +55,15 @@ export function useHeaderTrigger(): {size: ButtonSize; iconSize: number; iconOnl
 }
 
 /**
- * The host a header control needs to live in a React Native header — and
+ * The host a drawn header control needs to live in a React Native view — and
  * nothing at all where it is already inside one, so a `HeaderActions` can host
  * a whole row once (nesting hosts is not allowed) and its children stay usable
- * on their own.
- *
- * On Android the native stack re-parents the header's views on a tab switch,
- * and a Compose view refuses a second parent ("The specified child already has
- * a parent"). The host is therefore keyed on the screen's focus, so the Compose
- * view is created afresh each time the header is rebuilt rather than re-added —
- * which is why a header control needs a navigator above it there. On web there
- * is no host: the controls are DOM.
+ * on their own. On web there is no host: the controls are DOM. Natively the
+ * bar's items need none either; the host is for the control Android's bar
+ * cannot draw itself, in the bar's custom view (`header/toolbar.tsx`).
  */
 export function HeaderHost({children}: PropsWithChildren) {
   const hosted = useNativeHost();
   if (Platform.OS === 'web' || hosted) return <>{children}</>;
-  if (Platform.OS === 'android') return <AndroidHeaderHost>{children}</AndroidHeaderHost>;
   return <NativeHost fit>{children}</NativeHost>;
-}
-
-function AndroidHeaderHost({children}: PropsWithChildren) {
-  // Keyed on the screen's focus: a fresh host, and Compose view, per rebuild.
-  return <MeasuredHost key={useIsFocused() ? 'focused' : 'blurred'}>{children}</MeasuredHost>;
-}
-
-function MeasuredHost({children}: PropsWithChildren) {
-  // The toolbar lays its end-gravity subviews out against the header's end
-  // inset once React has given them a size. A host measured by Compose alone
-  // reports none, so one created after the toolbar was laid out overflows past
-  // the inset, flush with the screen's edge. Reporting the measured size back
-  // as the host's own style puts it back where the first mount was.
-  const [size, setSize] = useState<{width: number; height: number} | null>(null);
-  return (
-    <NativeHost
-      fit
-      style={size ?? undefined}
-      onLayoutContent={({nativeEvent}) => {
-        if (nativeEvent.width === size?.width && nativeEvent.height === size?.height) return;
-        setSize({width: nativeEvent.width, height: nativeEvent.height});
-      }}>
-      {children}
-    </NativeHost>
-  );
 }
