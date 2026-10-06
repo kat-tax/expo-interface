@@ -4,6 +4,7 @@ import Constants from 'expo-constants';
 import {requireOptionalNativeModule} from 'expo-modules-core';
 import {Navigator, StackRouter} from 'expo-router';
 import {Animated, StyleSheet, View} from 'react-native';
+import type {HeaderSearchSlot} from '../header-search/types';
 import type {ShellCards} from '../tabs/shell';
 import type {Leaving, StackAnimation} from '../windows/motion';
 import {ScreenHeader} from '../screen/header';
@@ -31,6 +32,8 @@ export interface WindowsStackOptions {
   headerTitle?: string | ((props: {children: string; tintColor?: string}) => ReactNode);
   headerShown?: boolean;
   headerRight?: (props: {tintColor?: string}) => ReactNode;
+  /** The screen's search, which `HeaderSearch` sets from the screen's content; the header row draws it. */
+  headerSearch?: HeaderSearchSlot;
   /** Drawn in place of the back button. */
   headerLeft?: (props: {tintColor?: string; canGoBack: boolean}) => ReactNode;
   /** `false` hides the back button; Alt+Left and the back keys still pop. */
@@ -336,6 +339,7 @@ function headerOf(options: WindowsStackOptions, name: string, goBack: (() => voi
     leading: options.headerLeft?.({canGoBack: goBack !== undefined || !drawsBack}),
     onBack: options.headerBackVisible === false || !drawsBack ? undefined : goBack,
     trailing: options.headerRight?.({}),
+    search: options.headerSearch,
   };
 }
 

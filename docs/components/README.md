@@ -38,6 +38,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`TabView`](navigation.md#tabview) | Document tabs the user opens and closes. |
 | [`Pager`](navigation.md#pager) | Full-width pages that snap, with an indicator. |
 | [`HeaderMenu`, `HeaderAction`, `HeaderActions`](navigation.md#headermenu-headeraction-headeractions) | Controls for a stack header's trailing slot. |
+| [`HeaderSearch`](navigation.md#headersearch) | The header's search, in the platforms' placements. |
 | [`ExternalLink`](navigation.md#externallink) | A link to a URL outside the app. |
 | [`ShareLink`](navigation.md#sharelink) | A button that opens the platform's share sheet. |
 

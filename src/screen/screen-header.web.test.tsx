@@ -1,9 +1,17 @@
+import {useContext} from 'react';
 import {fireEvent, render, screen} from '@testing-library/react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {Button} from '../button';
+import {DrawnSearchContext} from '../header-search/shared';
 import {bound, inset, theme} from '../theme';
 import {TabBarContext} from '../tabs/context';
 import {ScreenHeader} from './header';
+
+/** A stand-in for the search element: says which placement the header resolved, and opens as an action does. */
+function SearchStandIn() {
+  const site = useContext(DrawnSearchContext)!;
+  return <button onClick={() => site.setOpen(true)}>{`search:${site.placement}`}</button>;
+}
 
 function mount(ui: React.ReactElement) {
   return render(<SafeAreaProvider>{ui}</SafeAreaProvider>);
@@ -51,6 +59,26 @@ describe('ScreenHeader (web)', () => {
     // `none` is the default said out loud.
     mount(<ScreenHeader title="Plain" material="none"/>);
     expect(screen.getByText('Plain').parentElement!.parentElement!).not.toHaveAttribute('data-material');
+  });
+
+  it('draws the search where its placement says: under the row, in the row, or in the row with the title gone once it opens', () => {
+    const {rerender} = mount(<ScreenHeader title="Settings" search={{placement: 'stacked', node: <SearchStandIn/>}}/>);
+    const row = () => screen.getByText('Settings').parentElement!;
+    let search = screen.getByRole('button', {name: 'search:stacked'});
+    expect(row().contains(search)).toBe(false);
+    expect(row().parentElement!.contains(search)).toBe(true);
+
+    // A window it cannot measure is drawn wide: automatic is inline.
+    rerender(<SafeAreaProvider><ScreenHeader title="Settings" search={{placement: 'automatic', node: <SearchStandIn/>}}/></SafeAreaProvider>);
+    search = screen.getByRole('button', {name: 'search:inline'});
+    expect(row().contains(search)).toBe(true);
+
+    rerender(<SafeAreaProvider><ScreenHeader title="Settings" search={{placement: 'action', node: <SearchStandIn/>}}/></SafeAreaProvider>);
+    search = screen.getByRole('button', {name: 'search:action'});
+    expect(row().contains(search)).toBe(true);
+    fireEvent.click(search);
+    expect(screen.queryByText('Settings')).toBeNull();
+    expect(screen.getByRole('button', {name: 'search:action'})).toBeInTheDocument();
   });
 
   it('applies no safe-area padding on web, and clears a floating tab bar', () => {

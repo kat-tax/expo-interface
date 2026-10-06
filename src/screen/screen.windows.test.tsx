@@ -1,11 +1,13 @@
 import {useContext, useEffect} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {Animated, PlatformColor, Text, View} from 'react-native';
+import {DrawnSearchContext} from '../header-search/shared';
 import {useNativeHost} from '../host';
 import {setColorScheme} from '../scheme';
 import {StackHeaderContext} from '../stack-header/context';
 import {bound, colors, spacing} from '../theme';
 import {ToastInsetContext} from '../toast/context';
+import {ScreenBar} from './bars';
 import {ScreenHeader} from './header';
 import {hostAccentProps} from './host-accent';
 import {Screen} from '.';
@@ -61,6 +63,19 @@ describe('Screen (windows)', () => {
     expect(screen.getByText('Add')).toBeOnTheScreen();
   });
 
+  it('draws a bar a control gives it at its bottom, and lifts the floating action button above it', async () => {
+    await render(
+      <Screen fab={<Text>Add</Text>}>
+        <ScreenBar edge="bottom"><Text testID="bar">Search</Text></ScreenBar>
+      </Screen>,
+    );
+    const bars = screen.getByTestId('screen-bars');
+    expect(bars).toContainElement(screen.getByTestId('bar'));
+    expect(screen.getByTestId('screen-fab')).toHaveStyle({bottom: spacing.three});
+    await fireEvent(bars, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 800, height: 48}}});
+    expect(screen.getByTestId('screen-fab')).toHaveStyle({bottom: spacing.three + 48});
+  });
+
   it('lifts the floating action button above a toast that reports its height', async () => {
     const timing = vi.spyOn(Animated, 'timing');
     try {
@@ -102,7 +117,29 @@ describe('ScreenHeader (windows)', () => {
     await render(<ScreenHeader title="Drops"/>);
     expect(screen.queryByLabelText('Go back')).toBeNull();
   });
+
+  it('draws the search where its placement says, automatic beside the title, and lets go of the title for an open action', async () => {
+    const {rerender} = await render(<ScreenHeader title="Drops" search={{placement: 'stacked', node: <SearchStandIn/>}}/>);
+    const row = () => screen.getByText('Drops').parent!;
+    expect(row()).not.toContainElement(screen.getByText('search:stacked'));
+    expect(row().parent!).toContainElement(screen.getByText('search:stacked'));
+
+    await rerender(<ScreenHeader title="Drops" search={{placement: 'automatic', node: <SearchStandIn/>}}/>);
+    expect(row()).toContainElement(screen.getByText('search:inline'));
+
+    await rerender(<ScreenHeader title="Drops" search={{placement: 'action', node: <SearchStandIn/>}}/>);
+    expect(row()).toContainElement(screen.getByText('search:action'));
+    await fireEvent.press(screen.getByText('search:action'));
+    expect(screen.queryByText('Drops')).toBeNull();
+    expect(screen.getByText('search:action')).toBeOnTheScreen();
+  });
 });
+
+/** A stand-in for the search element: says which placement the header resolved, and opens as an action does. */
+function SearchStandIn() {
+  const site = useContext(DrawnSearchContext)!;
+  return <Text onPress={() => site.setOpen(true)}>{`search:${site.placement}`}</Text>;
+}
 
 describe('ScreenHeader back button (windows)', () => {
   it('takes the subtle fill under the pointer', async () => {

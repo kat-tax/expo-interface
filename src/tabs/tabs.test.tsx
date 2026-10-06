@@ -7,7 +7,9 @@ import {router} from 'expo-router';
 import * as icons from '../__stories__/icons';
 import {HeaderAction} from '../header-action';
 import {HeaderMenu} from '../header-menu';
-import {colors, theme} from '../theme';
+import {HeaderSearch} from '../header-search';
+import {Screen} from '../screen';
+import {colors, inset, theme} from '../theme';
 import {nodes} from 'expo-vitest/native';
 import {renderApp} from 'expo-vitest/router';
 
@@ -27,15 +29,20 @@ const app = async (props: Record<string, any> = {}) => {
   };
 };
 
-/** A tab holding a `TabStack`, whose screens hand their header to the bar. */
-const stackApp = async (props: Record<string, any> = {}) => {
+/** A tab holding a `TabStack`, whose screens hand their header to the bar; `control` is rendered in the home screen's content. */
+const stackApp = async (props: Record<string, any> = {}, control?: React.ReactNode) => {
   const {Tabs} = await import('.');
   const {TabStack} = await import('../tab-stack');
   const stacked: TabRoute[] = [{...routes[0], href: '/home', name: 'home'}, routes[1]];
   return {
     _layout: () => <Tabs routes={stacked} {...props}/>,
     'home/_layout': () => <TabStack title="Drops" headerRight={() => <Text testID="new">New…</Text>}/>,
-    'home/index': () => <Text>Home screen</Text>,
+    'home/index': () => (control ? (
+      <Screen>
+        {control}
+        <Text testID="kid">Home screen</Text>
+      </Screen>
+    ) : <Text>Home screen</Text>),
     'home/detail': () => <Text>Detail screen</Text>,
     settings: () => <Text>Settings screen</Text>,
   };
@@ -196,6 +203,39 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).toBe('none');
         expect(dom.getByTestId('tab-bar').contains(dom.getByText('detail'))).toBe(true);
         expect(dom.getByLabelText('Go back')).toBeInTheDocument();
+      });
+
+      it('folds a screen\'s inline search into the bar beside the actions', async () => {
+        await renderApp(await stackApp({}, <HeaderSearch placement="inline" placeholder="Find a drop"/>), '/home');
+        const bar = dom.getByTestId('tab-bar');
+        expect(bar.contains(dom.getByRole('searchbox', {name: 'Find a drop'}))).toBe(true);
+        expect(dom.queryByTestId('tab-bar-search')).toBeNull();
+        // Nothing is under the bar: the screens pay the bar's inset alone.
+        expect(getComputedStyle(dom.getByTestId('kid').parentElement!.parentElement!).paddingTop).toBe(`${inset.topBar}px`);
+      });
+
+      it('puts a screen\'s stacked search in a second pill under the bar, which the screens pay for', async () => {
+        await renderApp(await stackApp({}, <HeaderSearch placement="stacked" placeholder="Find a drop"/>), '/home');
+        const row = dom.getByTestId('tab-bar-search');
+        const input = dom.getByRole('searchbox', {name: 'Find a drop'});
+        expect(row.contains(input)).toBe(true);
+        expect(dom.getByTestId('tab-bar').contains(input)).toBe(false);
+        // Under the bar, in its block, in its solid fill.
+        expect(dom.getByTestId('tab-bar').compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        expect(getComputedStyle(row).backgroundColor).toBe(theme.backgroundElement);
+        // The screen pads the row's height on top of the bar's inset.
+        expect(getComputedStyle(dom.getByTestId('kid').parentElement!.parentElement!).paddingTop).toBe(`${inset.topBar + 56}px`);
+        // A pushed screen without a search takes the row away.
+        await act(async () => router.push('/home/detail'));
+        expect(dom.queryByTestId('tab-bar-search')).toBeNull();
+      });
+
+      it('hands the search row the bar\'s material', async () => {
+        await renderApp(await stackApp({webMaterial: 'regular'}, <HeaderSearch placement="stacked"/>), '/home');
+        const row = dom.getByTestId('tab-bar-search');
+        expect(row).toHaveAttribute('data-material', 'regular');
+        expect(row).toHaveAttribute('data-material-fill', 'element');
+        expect(getComputedStyle(row).backgroundColor).not.toBe(theme.backgroundElement);
       });
 
       it('leaves the header to the screen when the fold is off', async () => {

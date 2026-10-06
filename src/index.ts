@@ -84,6 +84,8 @@ export {HeaderActions} from './header-actions';
 export type {HeaderActionsProps} from './header-actions';
 export {HeaderMenu} from './header-menu';
 export type {HeaderMenuProps} from './header-menu';
+export {HeaderSearch} from './header-search';
+export type {HeaderSearchCommands, HeaderSearchInput, HeaderSearchIntegration, HeaderSearchPlacement, HeaderSearchProps} from './header-search/types';
 export {IconToggle} from './icon-toggle';
 export type {IconToggleProps} from './icon-toggle/types';
 export {ListItem} from './list-item';

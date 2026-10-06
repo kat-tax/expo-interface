@@ -23,6 +23,7 @@ import {
   HeaderAction,
   HeaderActions,
   HeaderMenu,
+  HeaderSearch,
   Headline,
   IconToggle,
   KeyboardBar,
@@ -581,6 +582,14 @@ function HeaderActionsPreview() {
   );
 }
 
+function HeaderSearchPreview() {
+  return (
+    <Device>
+      <RouterApp routes={headerApp('Photos', <HeaderSearch placement="inline" placeholder="Search photos" onChangeText={noop}/>)}/>
+    </Device>
+  );
+}
+
 function ExternalLinkPreview() {
   return (
     <RouterApp
@@ -660,6 +669,7 @@ export const navigation: CardEntry[] = [
   {name: 'HeaderMenu', href: docs('navigation-headermenu'), stage: 'device', preview: <HeaderMenuPreview/>},
   {name: 'HeaderAction', href: docs('navigation-headeraction'), stage: 'device', preview: <HeaderActionPreview/>},
   {name: 'HeaderActions', href: docs('navigation-headeractions'), stage: 'device', preview: <HeaderActionsPreview/>},
+  {name: 'HeaderSearch', href: docs('navigation-headersearch'), stage: 'device', preview: <HeaderSearchPreview/>},
   {name: 'ExternalLink', href: docs('navigation-externallink'), stage: 'center', preview: <ExternalLinkPreview/>},
   {name: 'ShareLink', href: docs('navigation-sharelink'), stage: 'center', preview: <ShareLink label="Share drop" icon={icons.share} url="https://drop.example/holiday" title="Holiday photos"/>},
 ];

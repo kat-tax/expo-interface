@@ -1,3 +1,4 @@
+import type {HeaderSearchSlot} from '../header-search/types';
 import {Platform, Text} from 'react-native';
 import {act, fireEvent, render, screen as dom} from '@testing-library/react';
 import {screen} from '@testing-library/react-native';
@@ -49,6 +50,7 @@ describe(`ConstrainedStackHeader (${Platform.OS})`, () => {
 
     it('hands its header to a bar slot and draws nothing itself', async () => {
       const slot = createHeaderSlot();
+      const search: HeaderSearchSlot = {placement: 'inline', node: <Text>Search</Text>};
       // The header publishes only while its screen is the focused one, so it
       // needs the navigator it always has in place of a bare render.
       await renderApp({
@@ -56,7 +58,7 @@ describe(`ConstrainedStackHeader (${Platform.OS})`, () => {
         _layout: () => (
           <HeaderSlotContext.Provider value={slot}>
             <Stack screenOptions={{headerShown: true, header: ConstrainedStackHeader}}>
-              <Stack.Screen name="index" options={{title: 'Drops', headerRight: () => <Button label="New"/>}}/>
+              <Stack.Screen name="index" options={{title: 'Drops', headerRight: () => <Button label="New"/>, headerSearch: search} as object}/>
               <Stack.Screen
                 name="detail"
                 options={{title: 'Detail', headerRight: () => <Button label="Edit"/>}}
@@ -66,10 +68,11 @@ describe(`ConstrainedStackHeader (${Platform.OS})`, () => {
         ),
       });
 
-      // A tab's own screen hands over its trailing slot and keeps its title.
+      // A tab's own screen hands over its trailing slot and its search, and keeps its title.
       expect(dom.queryByText('Drops')).toBeNull();
       expect(slot.get()!.title).toBeUndefined();
       expect(slot.get()!.trailing).toBeTruthy();
+      expect(slot.get()!.search).toEqual(search);
 
       // A pushed screen hands over all three, and still draws none of them.
       act(() => router.push('/detail'));
@@ -84,7 +87,7 @@ describe(`ConstrainedStackHeader (${Platform.OS})`, () => {
       expect(slot.get()!.title).toBeUndefined();
     });
 
-    it('prefers a string headerTitle and falls back to the route name', () => {
+    it('prefers a string headerTitle and falls back to the route name, and draws the screen\'s search', () => {
       const goBack = vi.fn();
       const {rerender} = render(
         <SafeAreaProvider>
@@ -92,12 +95,14 @@ describe(`ConstrainedStackHeader (${Platform.OS})`, () => {
             navigation={{goBack}}
             route={{name: 'detail'}}
             back={{title: 'Home'}}
-            options={{title: 'Ignored', headerTitle: 'Custom'}}
+            options={{title: 'Ignored', headerTitle: 'Custom', headerSearch: {placement: 'inline', node: <Text>Search</Text>}}}
           />
         </SafeAreaProvider>,
       );
       expect(dom.getByText('Custom')).toBeInTheDocument();
       expect(dom.queryByText('Ignored')).toBeNull();
+      // The search in the row beside the title.
+      expect(dom.getByText('Custom').parentElement!.contains(dom.getByText('Search'))).toBe(true);
       fireEvent.click(dom.getByLabelText('Go back'));
       expect(goBack).toHaveBeenCalledTimes(1);
 
