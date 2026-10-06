@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import type {SheetMaterial} from '../sheet/types';
 import {Stack} from 'expo-router';
 import {ConstrainedStackHeader} from '../stack-header';
 import {StackHeaderContext} from '../stack-header/context';
@@ -16,6 +17,17 @@ export interface TabStackProps {
    * Windows the drawn header row takes them in its trailing slot.
    */
   headerRight?: () => ReactNode;
+  /**
+   * iOS and Android: the header as one of the kit's materials, the ones
+   * `Sheet` takes, with the screens running under it. On iOS the system's
+   * material behind a translucent bar, on Android the bar's fill thinned over
+   * what passes under it. The screens pay the header's height at the top
+   * (`Screen` does, unless it is `underBar`, where the content's own top inset
+   * is `useTabBarInset()`). On web the bar a header folds into has `Tabs
+   * webMaterial`, and a drawn header stays opaque, as Windows' does.
+   * @default 'none'
+   */
+  material?: SheetMaterial;
 }
 
 /**

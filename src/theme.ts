@@ -70,6 +70,16 @@ export const inset = {
     android: 80,
     ios: 50,
   }),
+  /**
+   * The native stack header's own height, below the status bar: the
+   * navigation bar's on iOS, the top app bar's on Android. What a screen
+   * under a header it runs under (`TabStack material`) leaves clear.
+   */
+  header: Platform.select({
+    default: 0,
+    android: 56,
+    ios: 44,
+  }),
 } as const;
 
 export const fonts = Platform.select({

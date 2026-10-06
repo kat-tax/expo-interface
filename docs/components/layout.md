@@ -17,15 +17,17 @@ button.
 
 Props: `native` (mount an `@expo/ui` host around the screen), `header`
 (the screen sits under a stack header and skips the top inset; inferred under
-`TabStack`), `gutter` (horizontal padding), `underBar` (web: the content
-starts under the floating tab bar rather than below it, for a scrolling
-screen that passes under a material bar; its scroll content pads its top by
-`useTabBarInset()`), `fab` (a node placed at the bottom trailing corner,
-above the safe area and the tab bar, lifted above a `Toast` while one shows).
+`TabStack`), `gutter` (horizontal padding), `underBar` (the content starts
+under the bar floating over the screen's top rather than below it, for a
+scrolling screen that passes under a material bar: the web tab bar, or
+natively the header of a `TabStack` with a `material`; its scroll content
+pads its top by `useTabBarInset()`), `fab` (a node placed at the bottom
+trailing corner, above the safe area and the tab bar, lifted above a `Toast`
+while one shows).
 
 | Platform | Renders |
 | --- | --- |
-| iOS, Android | `SafeAreaView`, `StatusBar` styled for the scheme, the window background painted through `expo-system-ui`, and with `native` an accent-seeded `@expo/ui` `Host` |
+| iOS, Android | `SafeAreaView`, `StatusBar` styled for the scheme, the window background painted through `expo-system-ui`, and with `native` an accent-seeded `@expo/ui` `Host`. Under a header the screens run under, the header's height stays clear at the top. |
 | Web | The same, with the background as the palette's CSS variable so a static export is in the right scheme before any JavaScript runs; the fab slot is fixed to the viewport |
 | Windows | A plain view. A desktop window has no safe areas, no status bar and no `@expo/ui` host; `native` only marks the tree as hosted so self-hosting components render bare |
 

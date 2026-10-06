@@ -11,3 +11,17 @@ export const StackHeaderContext = createContext(false);
 export function useStackHeader(): boolean {
   return useContext(StackHeaderContext);
 }
+
+/** True below a stack header the screens run under — see {@link useFloatingHeader}. */
+export const FloatingHeaderContext = createContext(false);
+
+/**
+ * Whether the stack header above this point is one the screens run under: a
+ * `TabStack` with a `material`, whose bar is translucent over the content.
+ * A `Screen` below it leaves the header's height clear at the top, or lets
+ * its content pass under the bar with `underBar`, padding that content by
+ * `useTabBarInset()`.
+ */
+export function useFloatingHeader(): boolean {
+  return useContext(FloatingHeaderContext);
+}

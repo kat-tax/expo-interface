@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import {useContext, useEffect} from 'react';
 import {Animated, Platform, StyleSheet, Text, View} from 'react-native';
 import {act, render, screen} from '@testing-library/react-native';
@@ -8,7 +9,7 @@ import {colors, inset, spacing} from '../theme';
 import {Switch} from '../switch';
 import {host, modifier, nodes} from 'expo-vitest/native';
 import {hostAccentProps} from './host-accent';
-import {StackHeaderContext} from '../stack-header/context';
+import {FloatingHeaderContext, StackHeaderContext} from '../stack-header/context';
 import {ToastInsetContext} from '../toast/context';
 import {Screen} from '.';
 
@@ -75,6 +76,26 @@ describe(`Screen (${Platform.OS})`, () => {
     // No `edges` prop — the real SafeAreaView applies all four edges.
     expect(safeArea.props.edges).toBeUndefined();
     expect(StyleSheet.flatten(root.props.style).paddingTop).toBe(inset.topBar);
+  });
+
+  it('keeps the header height clear under a header the screens run under, unless the content passes under it', async () => {
+    await act(async () => setInsets({top: 47, left: 0, right: 0, bottom: 0}));
+    try {
+      const floating = (node: ReactNode) => (
+        <StackHeaderContext.Provider value={true}>
+          <FloatingHeaderContext.Provider value={true}>{node}</FloatingHeaderContext.Provider>
+        </StackHeaderContext.Provider>
+      );
+      await render(floating(<Screen><View/></Screen>));
+      // The status bar and the bar below it, since the top edge is not paid under a header.
+      expect(StyleSheet.flatten(parts().root.props.style).paddingTop).toBe(47 + inset.header);
+      expect(parts().safeArea.props.edges).toEqual(['left', 'right', 'bottom']);
+      await render(floating(<Screen underBar><View/></Screen>));
+      // The content pads itself by `useTabBarInset()` instead.
+      expect(StyleSheet.flatten(parts().root.props.style).paddingTop).toBe(0);
+    } finally {
+      await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 0}));
+    }
   });
 
   it('changes nothing for underBar, since the top inset is already nothing natively', async () => {

@@ -114,7 +114,7 @@ react-native-windows reports no dimension change when the window is resized.
 ## TabStack
 
 The stack inside a tab, with the platform's header over the tab's screens.
-Props: `title`, `headerRight`. On web its header is
+Props: `title`, `headerRight`, `material`. On web its header is
 `ConstrainedStackHeader`; on Windows it is the kit's `Stack`.
 
 `headerRight` returns the root screen's header controls: a `HeaderMenu`, a
@@ -126,6 +126,16 @@ Return the kit's elements themselves: a component of the app's own around
 them is placed in the bar as a custom view, since its items cannot be read
 without rendering it. On web and Windows the drawn header row takes them in
 its trailing slot.
+
+`material` draws the header as one of the kit's materials, the ones `Sheet`
+takes (`thin`, `regular`, `thick`), with the screens running under it: on
+iOS the system's material behind a translucent bar, on Android the bar's fill
+thinned to the material's opacity over what passes under it (Android has no
+bar material of its own). A `Screen` under it leaves the header's height
+clear at the top, and one that is `underBar` lets its content pass under the
+bar, padding that content by `useTabBarInset()`, as it does under the web tab
+bar's material. On web the header folds into the bar, which has `Tabs
+webMaterial`; a drawn web header stays opaque, and so does Windows'.
 
 ## ConstrainedStackHeader
 

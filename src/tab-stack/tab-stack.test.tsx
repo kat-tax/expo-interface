@@ -47,6 +47,7 @@ describe(`TabStack (${Platform.OS})`, () => {
       expect(screenOptions.headerTintColor).toBe(colors.light.label);
       expect(screenOptions.headerTitleStyle).toEqual({color: colors.light.label});
       expect(screenOptions.headerStyle).toEqual({backgroundColor: colors.light.background});
+      expect(screenOptions.headerTransparent).toBeUndefined();
     }
     expect(children.props).toMatchObject({name: 'index', options: {title: 'Drops'}});
   });
@@ -117,4 +118,45 @@ describe(`TabStack (${Platform.OS})`, () => {
     expect(detail).toBeDefined();
     expect(detail!.headerRightBarButtonItems ?? []).toEqual([]);
   });
+
+  it('draws an opaque header by default, with the screens below it', async () => {
+    const {result} = await renderHook(() => TabStack({title: 'Drops'}));
+    // The floating-header context is the stack's second wrapper.
+    expect(result.current.props.children.props.value).toBe(false);
+  });
+
+  it('draws the header as a material the screens run under', async () => {
+    const {result} = await renderHook(() => TabStack({title: 'Drops', material: 'regular'}));
+    expect(result.current.props.children.props.value).toBe(true);
+    const {screenOptions} = stackOf(result);
+    expect(screenOptions.headerTransparent).toBe(true);
+    if (isIOS) {
+      // The system's material behind a bar the stack leaves clear.
+      expect(screenOptions.headerBlurEffect).toBe('systemMaterial');
+      expect(screenOptions.headerStyle).toBeUndefined();
+    } else {
+      // No bar material on Android: the bar's own fill, thinned over the content.
+      expect(screenOptions.headerBlurEffect).toBeUndefined();
+      expect(screenOptions.headerStyle).toEqual({backgroundColor: 'rgba(255, 255, 255, 0.72)'});
+    }
+  });
+
+  if (isIOS) {
+    it('maps each material to the system\'s', async () => {
+      const blur = async (material: 'thin' | 'thick') => {
+        const {result} = await renderHook(() => TabStack({title: 'Drops', material}));
+        return stackOf(result).screenOptions.headerBlurEffect;
+      };
+      expect(await blur('thin')).toBe('systemThinMaterial');
+      expect(await blur('thick')).toBe('systemThickMaterial');
+    });
+  } else {
+    it('thins the fill to each material\'s opacity, and leaves a color it cannot read alone', async () => {
+      const {withAlpha} = await import('./index.native');
+      expect(withAlpha('#1C1C1E', 0.5)).toBe('rgba(28, 28, 30, 0.5)');
+      expect(withAlpha('transparent', 0.5)).toBe('transparent');
+      const {result} = await renderHook(() => TabStack({title: 'Drops', material: 'thin'}));
+      expect(stackOf(result).screenOptions.headerStyle).toEqual({backgroundColor: 'rgba(255, 255, 255, 0.5)'});
+    });
+  }
 });
