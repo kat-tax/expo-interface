@@ -10,7 +10,7 @@ import {Animated, Appearance, Platform, StyleSheet, View} from 'react-native';
 import {setBackgroundColorAsync} from 'expo-system-ui';
 import {useAccentSeed} from '../accent';
 import {NativeHostContext} from '../host';
-import {useStackHeader} from '../stack-header/context';
+import {useFloatingHeader, useStackHeader} from '../stack-header/context';
 import {useColorScheme} from '../scheme';
 import {ToastInsetContext} from '../toast/context';
 import * as theme from '../theme';
@@ -49,11 +49,13 @@ export interface ScreenProps extends PropsWithChildren {
   /** Whether to apply a horizontal padding to the screen. */
   gutter?: boolean;
   /**
-   * Web only: the content starts under the floating tab bar rather than
-   * below it, for a scrolling screen whose content should pass under a
-   * material bar (`Tabs webMaterial`) and show through it. Pad the scroll
-   * content's top by `useTabBarInset()` so its first row starts clear of the
-   * bar. Natively the top inset is already nothing, so this changes nothing.
+   * The content starts under the bar floating over the screen's top rather
+   * than below it, for a scrolling screen whose content should pass under a
+   * material bar and show through it: the web tab bar (`Tabs webMaterial`),
+   * or natively the stack header of a `TabStack` with a `material`. Pad the
+   * scroll content's top by `useTabBarInset()` so its first row starts clear
+   * of the bar. Under an opaque header the top inset is already nothing, so
+   * this changes nothing.
    * @default false
    */
   underBar?: boolean;
@@ -78,10 +80,16 @@ export function Screen({
   const seed = useAccentSeed();
   const stackHeader = useStackHeader();
   const underHeader = header ?? stackHeader;
+  const floating = useFloatingHeader();
   const scheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const backgroundColor = background(scheme);
   const lift = useToastLift();
+  // The top: the status bar's own, with no header above (web pads the bar's
+  // height, and the top edge pays the status bar natively); under a header
+  // the content runs under, the header's height stays clear, unless the
+  // content passes under it and pads itself (`underBar`).
+  const paddingTop = underBar ? 0 : !underHeader ? theme.inset.topBar : floating ? insets.top + theme.inset.header : 0;
 
   useEffect(() => {
     setBackgroundColorAsync(backgroundColor);
@@ -92,7 +100,7 @@ export function Screen({
       style={{flex: 1, backgroundColor}}
       edges={underHeader ? CONTENT_EDGES : undefined}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'}/>
-      <View style={[styles.root, {paddingTop: underHeader || underBar ? 0 : theme.inset.topBar}]}>
+      <View style={[styles.root, {paddingTop}]}>
         <View style={[styles.content, gutter ? styles.gutter : undefined]}>
           <ToastInsetContext.Provider value={lift.report}>
             {!native ? children : (

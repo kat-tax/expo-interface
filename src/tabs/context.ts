@@ -1,18 +1,27 @@
 import type {ReactNode} from 'react';
 import {createContext, useContext} from 'react';
+import {Platform} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useFloatingHeader} from '../stack-header/context';
 import {inset} from '../theme';
 
 /** True while the web tab bar floats over the screens — see {@link useTabBarInset}. */
 export const TabBarContext = createContext(false);
 
 /**
- * The space a floating tab bar takes at the top of the screen on web: what a
- * header under it has to leave clear. Zero on iOS and Android, where the tab
- * bar is the platform's own and sits at the bottom, and zero on web while the
- * bar is not drawn (`Tabs hidden`, with no header folded into it).
+ * The space a bar floating over the screen takes at its top: what content
+ * passing under it (`Screen underBar`) pads itself by. On web it is the tab
+ * bar's, while the bar is drawn (`Tabs hidden` with no header folded into it
+ * draws none); on iOS and Android, where the tab bar is the platform's own
+ * and sits at the bottom, it is the stack header's under a `TabStack` with a
+ * `material`, the status bar included, and zero under an opaque one.
  */
 export function useTabBarInset(): number {
-  return useContext(TabBarContext) ? inset.topBar : 0;
+  const bar = useContext(TabBarContext);
+  const floating = useFloatingHeader();
+  const insets = useSafeAreaInsets();
+  if (Platform.OS === 'web') return bar ? inset.topBar : 0;
+  return floating ? insets.top + inset.header : 0;
 }
 
 /** True inside the web tab bar's own row — see {@link useInBar}. */
