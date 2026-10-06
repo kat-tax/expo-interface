@@ -124,8 +124,9 @@ the index screen the way Expo Router takes a `Stack.Toolbar` inside a
 `Stack.Screen`, so the stack never holds a React Native view in a native bar.
 Return the kit's elements themselves: a component of the app's own around
 them is placed in the bar as a custom view, since its items cannot be read
-without rendering it. On web and Windows the drawn header row takes them in
-its trailing slot.
+without rendering it, and the controls inside it draw themselves there, in a
+host. On web and Windows the drawn header row takes them in its trailing
+slot.
 
 `material` draws the header as one of the kit's materials, the ones `Sheet`
 takes (`thin`, `regular`, `thick`), with the screens running under it: on
@@ -241,8 +242,9 @@ Rendered inside a header already (a custom header's trailing slot, the web
 tab bar), a control draws itself there. Natively a `HeaderActions` takes
 `HeaderAction` and `HeaderMenu` elements directly: the bar's items are read
 off them, and a component of the app's own between the row and its items
-cannot be. `testID` names the web and Windows triggers; the native items
-are found by their `label`.
+cannot be. Such a component is a custom view in the bar, and the controls it
+renders draw themselves inside it, each in a host of its own. `testID` names
+the web and Windows triggers; the native items are found by their `label`.
 
 ## ExternalLink
 
