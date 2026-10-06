@@ -10,6 +10,7 @@ import {Switch} from '../switch';
 import {host, modifier, nodes} from 'expo-vitest/native';
 import {hostAccentProps} from './host-accent';
 import {FloatingHeaderContext, StackHeaderContext} from '../stack-header/context';
+import {NativeTabsContext} from '../tabs/context';
 import {ToastInsetContext} from '../toast/context';
 import {Screen} from '.';
 
@@ -73,9 +74,34 @@ describe(`Screen (${Platform.OS})`, () => {
   it('keeps every safe-area edge and the top-bar inset by default', async () => {
     await render(<Screen><View/></Screen>);
     const {safeArea, root} = parts();
-    // No `edges` prop — the real SafeAreaView applies all four edges.
-    expect(safeArea.props.edges).toBeUndefined();
+    expect(safeArea.props.edges).toEqual(['top', 'left', 'right', 'bottom']);
     expect(StyleSheet.flatten(root.props.style).paddingTop).toBe(inset.topBar);
+  });
+
+  it('leaves the bottom inset to the tab host under the native tabs on Android, which pays it already', async () => {
+    await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 24}));
+    try {
+      await render(
+        <NativeTabsContext.Provider value={true}>
+          <Screen fab={<Text>New</Text>}><View/></Screen>
+        </NativeTabsContext.Provider>,
+      );
+      const {safeArea} = parts();
+      const fab = StyleSheet.flatten(screen.getByTestId('screen-fab').props.style);
+      if (isIOS) {
+        // iOS's tab controller lays the screens out under the bar, so the
+        // safe-area view's bottom inset is the only one paid.
+        expect(safeArea.props.edges).toEqual(['top', 'left', 'right', 'bottom']);
+        expect(fab.bottom).toBe(spacing.three + 24);
+      } else {
+        // Android's tab host keeps its screens above the navigation bar
+        // itself: the safe-area view would pay the inset a second time.
+        expect(safeArea.props.edges).toEqual(['top', 'left', 'right']);
+        expect(fab.bottom).toBe(spacing.three);
+      }
+    } finally {
+      await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 0}));
+    }
   });
 
   it('keeps the header height clear under a header the screens run under, unless the content passes under it', async () => {

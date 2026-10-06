@@ -24,6 +24,19 @@ export function useTabBarInset(): number {
   return floating ? insets.top + inset.header : 0;
 }
 
+/** True inside the native tab bar's screens — see {@link useNativeTabs}. */
+export const NativeTabsContext = createContext(false);
+
+/**
+ * Whether this is a screen of the platform's own tab bar (`Tabs` on iOS and
+ * Android). Android's tab host keeps its screens above the navigation bar
+ * itself, so a `Screen` there pays no bottom inset of its own: the safe-area
+ * view measures from the host, not the window, and would pay it twice.
+ */
+export function useNativeTabs(): boolean {
+  return useContext(NativeTabsContext);
+}
+
 /** True inside the web tab bar's own row — see {@link useInBar}. */
 export const InBarContext = createContext(false);
 
