@@ -12,13 +12,13 @@ import {useAccentSeed} from '../accent';
 import {NativeHostContext} from '../host';
 import {useFloatingHeader, useStackHeader} from '../stack-header/context';
 import {useColorScheme} from '../scheme';
+import {useNativeTabs} from '../tabs/context';
 import {ToastInsetContext} from '../toast/context';
 import * as theme from '../theme';
 
 import {hostAccentProps} from './host-accent';
 import {useToastLift} from './lift';
 
-const CONTENT_EDGES: Edge[] = ['left', 'right', 'bottom'];
 const BG_COLOR: Record<ColorSchemeName, ColorValue> = {
   unspecified: theme.colors.light.background,
   light: theme.colors.light.background,
@@ -85,6 +85,12 @@ export function Screen({
   const insets = useSafeAreaInsets();
   const backgroundColor = background(scheme);
   const lift = useToastLift();
+  // Android's tab host keeps its screens above the navigation bar itself: a
+  // safe-area view in one measures from the host, not the window, and would
+  // pay the inset a second time, so the bottom is the host's there.
+  const underTabs = useNativeTabs();
+  const bottomPaid = Platform.OS === 'android' && underTabs;
+  const edges: Edge[] = [...(underHeader ? [] : ['top' as const]), 'left', 'right', ...(bottomPaid ? [] : ['bottom' as const])];
   // The top: the status bar's own, with no header above (web pads the bar's
   // height, and the top edge pays the status bar natively); under a header
   // the content runs under, the header's height stays clear, unless the
@@ -98,7 +104,7 @@ export function Screen({
   return (
     <SafeAreaView
       style={{flex: 1, backgroundColor}}
-      edges={underHeader ? CONTENT_EDGES : undefined}>
+      edges={edges}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'}/>
       <View style={[styles.root, {paddingTop}]}>
         <View style={[styles.content, gutter ? styles.gutter : undefined]}>
@@ -120,7 +126,7 @@ export function Screen({
             styles.fab,
             Platform.OS === 'web'
               ? styles.fabFixed
-              : {right: theme.spacing.three + insets.right, bottom: theme.spacing.three + insets.bottom},
+              : {right: theme.spacing.three + insets.right, bottom: theme.spacing.three + (bottomPaid ? 0 : insets.bottom)},
             lift.style,
           ]}>
           {fab}
