@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import type {ToolbarCommand, ToolbarProps} from './types';
-import {StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 import {Row, Spacer} from '@expo/ui';
 import {Button} from '../button';
 import {NativeHost} from '../host';
@@ -21,6 +21,25 @@ const DENSITY = {
 } as const;
 
 /**
+ * What a command draws at: the platform's own bar metrics. On iOS a 22pt
+ * symbol at the bar button's control size, as the header's actions, since a
+ * `small` button's 16pt symbol is a bar too fine for a thumb; on Android
+ * Material's 24dp icon in its 48dp icon button; on web the kit's small button.
+ */
+const TOOL = Platform.select({
+  ios: {size: 'large', iconSize: 22},
+  android: {size: 'medium', iconSize: 24},
+  default: {size: 'small', iconSize: undefined},
+} as const);
+
+/**
+ * Above and below the controls. None on Android, where Material's icon
+ * buttons carry a 48dp container of their own: the bar is that container,
+ * as the app bar's row is, and padding it as well made a 64dp bar.
+ */
+const PADDING_VERTICAL = Platform.select({android: 0, default: spacing.two});
+
+/**
  * A bar of tools along a canvas (see {@link ToolbarProps}). The bar itself
  * is a `Surface` in the screen's background with a hairline on the edge
  * facing the content; the controls are native.
@@ -37,7 +56,7 @@ export function Toolbar({commands, leading, trailing, field, placement = 'bottom
       color="background"
       radius={0}
       border={placement === 'bottom' ? 'top' : 'bottom'}
-      style={[styles.bar, {paddingHorizontal: edge}, style]}
+      style={[styles.bar, {paddingHorizontal: edge, paddingVertical: PADDING_VERTICAL}, style]}
       testID={testID}>
       {field == null ? (
         // One host: the whole bar of controls is a single native view.
@@ -68,10 +87,13 @@ function Commands({commands}: {commands: ToolbarCommand[]}) {
       {commands.map((command, index) => (
         <Button
           key={index}
-          variant="text"
-          size="small"
+          variant={command.active ? 'filled' : 'text'}
+          size={TOOL.size}
+          iconSize={TOOL.iconSize}
           label={command.label}
           prefixIcon={command.icon}
+          hideLabel={command.hideLabel}
+          tone={command.tone}
           role={command.role}
           disabled={command.disabled}
           onPress={command.onPress}
@@ -93,7 +115,8 @@ function Overflow({commands}: {commands: ToolbarCommand[]}) {
       hideLabel
       icon={MORE}
       variant="text"
-      size="small"
+      size={TOOL.size}
+      iconSize={TOOL.iconSize}
       items={commands.map(command => ({
         label: command.label,
         icon: command.icon,
@@ -119,7 +142,6 @@ function Group({gap, children}: {gap: number; children?: ReactNode}) {
 const styles = StyleSheet.create({
   bar: {
     width: '100%',
-    paddingVertical: spacing.two,
     // Between the control row and the second row, not between the controls.
     gap: spacing.two,
   },

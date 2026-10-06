@@ -1,10 +1,11 @@
 import {Platform, StyleSheet, Text as RNText} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
+import * as icons from '../__stories__/icons';
 import {Button} from '../button';
 import {Divider} from '../divider';
 import {TextField} from '../text-field';
-import {colors} from '../theme';
-import {nodes} from 'expo-vitest/native';
+import {colors, spacing} from '../theme';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {Toolbar} from '.';
 
 const HOST = 'ViewManagerAdapter_ExpoUI_HostView';
@@ -74,6 +75,9 @@ describe(`Toolbar (${Platform.OS})`, () => {
     expect(compact.paddingHorizontal).toBe(8);
     // The bar is no shorter for it: only the space across it changes.
     expect(compact.paddingVertical).toBe(regular.paddingVertical);
+    // No padding above and below on Android, where Material's icon buttons
+    // carry a 48dp container of their own and the bar is that container.
+    expect(regular.paddingVertical).toBe(Platform.OS === 'android' ? 0 : spacing.two);
     // And the controls inside the host move with the ends, in that order.
     expect(rowSpacings()).toEqual([8, 2]);
   });
@@ -155,5 +159,35 @@ describe('commands', () => {
   it('still takes the two slots when it was given no commands', async () => {
     await render(<Toolbar leading={<Button label="Bold" variant="text"/>} testID="bar"/>);
     expect(onBar('Bold')).toBe(true);
+  });
+
+  it('draws a command at the bar metrics of the platform, filled when active, in the label tone when asked', async () => {
+    await render(
+      <Toolbar
+        commands={[
+          {label: 'Pen', icon: icons.add, hideLabel: true, active: true, testID: 'pen'},
+          {label: 'Erase', icon: icons.trash, hideLabel: true, tone: 'label', testID: 'erase'},
+          {label: 'More tools', icon: icons.settings, secondary: true},
+        ]}
+      />,
+    );
+    const button = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
+    const pen = button('pen').props;
+    const erase = button('erase').props;
+    if (isIOS) {
+      // The bar button's control size with a 22pt symbol, as the header's actions.
+      expect(modifier(pen, 'controlSize')?.size).toBe('large');
+      expect(modifier(pen, 'buttonStyle')?.style).toBe('borderedProminent');
+      expect(modifier(erase, 'buttonStyle')?.style).toBe('plain');
+      expect(modifier(erase, 'tint')?.tint.color).toBe('#000000');
+      expect(modifier(pen, 'accessibilityLabel')?.label).toBe('Pen');
+      expect(modifier(host(p => p.systemName === 'plus').props, 'font')?.size).toBe(22);
+      expect(modifier(host(p => p.systemName === 'ellipsis').props, 'font')?.size).toBe(22);
+    } else {
+      // Material's 24dp icon in its icon button; the label color for the plain tool.
+      expect(pen.colors).toEqual({containerColor: '#007AFF', contentColor: '#FFFFFF'});
+      expect(erase.colors).toEqual({contentColor: '#000000'});
+      expect(host(p => p.contentDescription === 'Pen').props.size).toBe(24);
+    }
   });
 });

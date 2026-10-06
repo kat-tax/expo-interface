@@ -1,5 +1,6 @@
 import type {PropsWithChildren, ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {ButtonTone} from '../button/types';
 import type {IconToken} from '../icons';
 
 /** Which edge of its content a `Toolbar` sits on, and so where its rule goes. */
@@ -31,6 +32,19 @@ export type ToolbarDensity = 'regular' | 'compact';
 export interface ToolbarCommand {
   label: string;
   icon?: IconToken;
+  /** The icon alone, with `label` as the accessible name: a bar of tools. */
+  hideLabel?: boolean;
+  /**
+   * The command's state is on (a check that runs, a panel that is open): it
+   * is drawn filled, in the accent, where the others are plain.
+   */
+  active?: boolean;
+  /**
+   * Color of the command: the accent, or the label color for a tool, where
+   * the accent marks the active one.
+   * @default 'accent'
+   */
+  tone?: ButtonTone;
   onPress?: () => void;
   /**
    * Put this one in the overflow menu rather than on the bar. On Windows the
