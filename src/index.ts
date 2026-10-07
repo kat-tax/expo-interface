@@ -184,3 +184,7 @@ export type {RelativeTimeProps} from './relative-time/types';
 // Platform services
 export {haptic} from './haptic';
 export type {HapticKind} from './haptic';
+export {saveFile} from './save-file';
+export type {SaveFileOptions} from './save-file/types';
+export {DropZone, useDrop} from './drop';
+export type {DropOptions, DropZoneProps, DroppedFile} from './drop/types';
