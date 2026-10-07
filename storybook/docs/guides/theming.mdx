@@ -15,9 +15,12 @@ export const TOKENS = {
   tint: 'Interactive elements such as buttons, switches and links; the accent seed',
   onTint: 'Text and icons drawn on top of tint, for example a filled button label',
   switchTrack: 'Track of a switch in the off position',
-  switchOn: 'Success states such as a completed upload',
+  switchOn: 'Track of a switch in the on position, the platform's green',
+  success: 'A state that went well: a finished upload, a peer online, a check that passed',
   destructive: 'Delete buttons, failed states and other destructive actions',
   onDestructive: 'Text and icons drawn on top of destructive',
+  highlight: 'The fill behind marked text: a quote, a search hit. Opaque in both schemes',
+  opaqueSeparator: 'The separator as an opaque color, for a canvas or an image edge',
 };
 
 # Theming
@@ -146,8 +149,9 @@ app is branded in WinUI too. `theme.*` resolves to Fluent theme resources
 where one matches (`label` is `TextFillColorPrimary`, `background` is
 `SolidBackgroundFillColorBase`, `separator` is `ControlStrokeColorDefault`),
 which react-native-windows resolves per scheme and in high contrast. Tokens
-with no Fluent twin (`tint`, `destructive`, `switchOn`) keep the palette
-literal, and `useColor` answers the palette for all of them.
+with no Fluent twin (`tint`, `destructive`, `switchOn`, `success`,
+`highlight`, `opaqueSeparator`) keep the palette literal, and `useColor`
+answers the palette for all of them.
 
 With `expo-windows`, while the user has a high contrast theme on, `useColor`,
 `usePalette` and `useNavTheme` answer the theme's own colors and follow the

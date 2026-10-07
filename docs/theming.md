@@ -99,9 +99,12 @@ system again.
 | `tint` | Interactive elements such as buttons, switches and links; the accent seed |
 | `onTint` | Text and icons drawn on top of `tint` |
 | `switchTrack` | Track of a switch in the off position |
-| `switchOn` | Success states such as a completed upload |
+| `switchOn` | Track of a switch in the on position, the platform's green |
+| `success` | A state that went well: a finished upload, a peer online, a check that passed |
 | `destructive` | Delete buttons, failed states and other destructive actions |
 | `onDestructive` | Text and icons drawn on top of `destructive` |
+| `highlight` | The fill behind marked text: a quote, a search hit. Opaque in both schemes, so an editor that takes a plain `#rrggbb` can take it as it is |
+| `opaqueSeparator` | The separator as an opaque color, for a canvas or an image edge that cannot blend the translucent one |
 
 Each token resolves to a platform value the OS keeps current:
 
@@ -110,7 +113,7 @@ Each token resolves to a platform value the OS keeps current:
 | iOS | A `PlatformColor` (the iOS system colors) |
 | Android | A theme attribute |
 | Web | A `var(--color-*)` custom property |
-| Windows | A Fluent theme resource where one matches: `label` is `TextFillColorPrimary`, `background` is `SolidBackgroundFillColorBase`, `separator` is `ControlStrokeColorDefault`. `tint`, `onTint`, `switchOn`, `destructive` and `onDestructive` have no Fluent twin and keep the palette literal. |
+| Windows | A Fluent theme resource where one matches: `label` is `TextFillColorPrimary`, `background` is `SolidBackgroundFillColorBase`, `separator` is `ControlStrokeColorDefault`. `tint`, `onTint`, `switchOn`, `success`, `destructive`, `onDestructive`, `highlight` and `opaqueSeparator` have no Fluent twin and keep the palette literal. |
 
 ## Reading colors
 
@@ -121,7 +124,7 @@ Each token resolves to a platform value the OS keeps current:
 | `usePalette()` | The resolved palette of the current scheme as plain strings on every platform, with the live accent as `tint`. For canvases, native views and anything that cannot read a variable. |
 | `useNavTheme()` | A React Navigation theme built from the palette and the accent. |
 | `colors` | The raw light and dark palettes. |
-| `getThemeCSS()` | The palette as CSS variables, for `+html.tsx`. |
+| `getThemeCSS()` | The palette as CSS variables, and the body painted in the scheme's background, for `+html.tsx`. |
 | `getThemeBootScript()` | The script that applies a saved forced scheme before the bundle runs, for `+html.tsx`. |
 
 ## High contrast

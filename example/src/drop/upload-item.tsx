@@ -18,7 +18,7 @@ export function UploadItem({file, onRemove, onRetry}: UploadItemProps) {
   const subtle = useColor('secondaryLabel');
   const colorMap = {
     uploading: useColor('tint'),
-    complete: useColor('switchOn'),
+    complete: useColor('success'),
     failed: useColor('destructive'),
   } as const;
   const status = file.status ?? 'complete';

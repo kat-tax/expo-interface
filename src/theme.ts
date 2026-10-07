@@ -144,8 +144,11 @@ export const colors = {
     segmentSelected: '#FFFFFF',
     switchTrack: '#e9e9ea',
     switchOn: '#34C759',
+    success: '#34C759',
     destructive: '#FF3B30',
     onDestructive: '#FFFFFF',
+    highlight: '#FFF1B8',
+    opaqueSeparator: '#C6C6C8',
   },
   dark: {
     label: '#ffffff',
@@ -161,8 +164,11 @@ export const colors = {
     segmentSelected: '#636366',
     switchTrack: '#39393d',
     switchOn: '#30D158',
+    success: '#30D158',
     destructive: '#FF453A',
     onDestructive: '#FFFFFF',
+    highlight: '#4D4000',
+    opaqueSeparator: '#38383A',
   },
 } as const;
 
@@ -365,9 +371,10 @@ export const theme = {
     default: colors.light.switchTrack,
   }),
   /**
-   * Success green (iOS systemGreen), e.g. completed states. Note switches
+   * The green a switch's track takes while on (iOS systemGreen). Switches
    * themselves follow the accent `tint` on every platform (the iOS Host
-   * `tint` cascade colors the SwiftUI `Toggle` with the seed).
+   * `tint` cascade colors the SwiftUI `Toggle` with the seed); `success` is
+   * the token for a state that went well.
    * - iOS: `PlatformColor('systemGreen')` — #34C759 light / #30D158 dark.
    * - Android: `?attr/colorPrimary` here; palette via `useColor`.
    * - Web: `var(--color-switch-on)`.
@@ -378,6 +385,21 @@ export const theme = {
     android: () => PlatformColor('?attr/colorPrimary'),
     web: 'var(--color-switch-on)',
     default: colors.light.switchOn,
+  }),
+  /**
+   * A state that went well: a finished upload, a peer online, a check that
+   * passed. iOS's systemGreen; the same green on the other platforms, which
+   * name no success colour of their own (Material has no success role, and
+   * Fluent's is a fill behind text rather than a colour for it).
+   * - iOS: `PlatformColor('systemGreen')`.
+   * - Web: `var(--color-success)`.
+   * - Fallback: #34C759 light / #30D158 dark.
+   */
+  success: getPlatformToken({
+    ios: () => PlatformColor('systemGreen'),
+    android: colors.light.success,
+    web: 'var(--color-success)',
+    default: colors.light.success,
   }),
   /**
    * Destructive actions (delete buttons, error states).
@@ -404,6 +426,33 @@ export const theme = {
     android: colors.light.onDestructive,
     web: 'var(--color-on-destructive)',
     default: colors.light.onDestructive,
+  }),
+  /**
+   * The fill behind marked text: a quote, a search hit, a change under
+   * review. An opaque amber in both schemes, so an editor that takes a
+   * `#rrggbb` can take it as it is and the label color still reads on it.
+   * No platform names one, so the value is the palette's everywhere.
+   * - Web: `var(--color-highlight)`.
+   * - Fallback: #FFF1B8 light / #4D4000 dark.
+   */
+  highlight: getPlatformToken({
+    ios: colors.light.highlight,
+    android: colors.light.highlight,
+    web: 'var(--color-highlight)',
+    default: colors.light.highlight,
+  }),
+  /**
+   * The separator as an opaque colour, for a surface that cannot blend a
+   * translucent one: a canvas, an editor's own rule, an image's edge.
+   * - iOS: `PlatformColor('opaqueSeparator')` — #C6C6C8 light / #38383A dark.
+   * - Web: `var(--color-opaque-separator)`.
+   * - Fallback: #C6C6C8 light / #38383A dark.
+   */
+  opaqueSeparator: getPlatformToken({
+    ios: () => PlatformColor('opaqueSeparator'),
+    android: colors.light.opaqueSeparator,
+    web: 'var(--color-opaque-separator)',
+    default: colors.light.opaqueSeparator,
   }),
 } as const;
 
@@ -611,10 +660,16 @@ export function getThemeCSS(): string {
   const render = (o: ColorValues, skipAccent = false) => Object.entries(o)
     .filter(([k]) => !skipAccent || (k !== 'tint' && k !== 'onTint'))
     .map(([k,v]) => `\t\t${`--color-${format(k)}`}: ${v};`).join('\n');
+  // The body painted in the scheme's background from the first byte of the
+  // page, before the bundle's own stylesheet has arrived: a static export
+  // that opens dark shows no white behind its content.
   return `
     :root {
       color-scheme: light dark;
       ${render(colors.light)}
+    }
+    body {
+      background-color: var(--color-background);
     }
     @media (prefers-color-scheme: dark) {
       :root {

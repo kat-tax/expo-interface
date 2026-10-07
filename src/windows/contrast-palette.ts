@@ -51,7 +51,12 @@ export function highContrastPalette(colors: HighContrastColors): Palette {
     segmentSelected: colors.buttonFace,
     switchTrack: colors.buttonFace,
     switchOn: colors.highlight,
+    success: colors.highlight,
     destructive: colors.text,
     onDestructive: colors.background,
+    // Marked text keeps the label color, which is not the theme's highlight
+    // text, so the mark is a control face rather than the theme's highlight.
+    highlight: colors.buttonFace,
+    opaqueSeparator: colors.text,
   };
 }

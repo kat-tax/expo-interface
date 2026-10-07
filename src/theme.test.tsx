@@ -53,6 +53,17 @@ describe('getThemeCSS', () => {
     }
   });
 
+  it('paints the body in the scheme\'s background, before the bundle\'s stylesheet arrives', () => {
+    expect(css).toContain('body {\n      background-color: var(--color-background);');
+  });
+
+  it('names a highlight, an opaque separator and a success green', () => {
+    expect(css).toContain('--color-highlight: #FFF1B8;');
+    expect(css).toContain('--color-opaque-separator: #C6C6C8;');
+    expect(css).toContain('--color-success: #34C759;');
+    expect(colors.dark.highlight).toBe('#4D4000');
+  });
+
   it('keys the forced palettes on data-theme with a matching color-scheme', () => {
     expect(css).toContain(':root[data-theme="light"]');
     expect(css).toContain(':root[data-theme="dark"]');

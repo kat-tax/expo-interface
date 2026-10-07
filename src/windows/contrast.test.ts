@@ -31,8 +31,11 @@ describe('high contrast (not windows)', () => {
     expect(palette.tint).toBe('#1AEBFF');
     expect(palette.onTint).toBe('#000000');
     expect(palette.switchOn).toBe('#1AEBFF');
+    expect(palette.success).toBe('#1AEBFF');
+    expect(palette.highlight).toBe(palette.backgroundElement);
+    expect(palette.opaqueSeparator).toBe(palette.label);
     expect(palette.destructive).toBe('#FFFFFF');
     expect(palette.onDestructive).toBe('#000000');
-    expect(Object.keys(palette)).toHaveLength(15);
+    expect(Object.keys(palette)).toHaveLength(18);
   });
 });

@@ -13,6 +13,9 @@ describe('theme (windows)', () => {
     expect(theme.tint).toBe(colors.light.tint);
     expect(theme.onTint).toBe(colors.light.onTint);
     expect(theme.switchOn).toBe(colors.light.switchOn);
+    expect(theme.success).toBe(colors.light.success);
+    expect(theme.highlight).toBe(colors.light.highlight);
+    expect(theme.opaqueSeparator).toBe(colors.light.opaqueSeparator);
     expect(theme.destructive).toBe(colors.light.destructive);
     expect(theme.onDestructive).toBe(colors.light.onDestructive);
   });
