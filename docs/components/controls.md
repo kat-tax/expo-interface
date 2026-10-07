@@ -16,12 +16,22 @@ Props: `label` (required, the accessible name even with `hideLabel`),
 `destructive`), `color`, `tone` (`accent`, `label`; filled and outlined
 buttons ignore it), `size` (`inline`, `small`, `medium`, `large`), `shape`
 (`rounded`, `pill`, `circle`; each platform's default when omitted),
-`iconSize`, `prefixIcon`, `suffixIcon`, `hideLabel`, `disabled`, `loading`
-(the platform's spinner in the icon's place, and no presses until it is
-done; the label stays, so the button keeps its width), `fillWidth`,
-`testID`. Web only: `popoverTarget` and `popoverTargetAction`, so the browser
-manages a popover's open state, `aria-expanded` and light dismiss without
-JavaScript.
+`iconSize`, `prefixIcon`, `suffixIcon`, `hideLabel`, `disabled`, `pressed`
+(the button is a toggle, on or off), `loading` (the platform's spinner in the
+icon's place, and no presses until it is done; the label stays, so the
+button keeps its width), `fillWidth`, `testID`. Web only: `popoverTarget`
+and `popoverTargetAction`, so the browser manages a popover's open state,
+`aria-expanded` and light dismiss without JavaScript.
+
+A button with `pressed` is a toggle: a tool that stays down while it is on,
+a mode in a bar. While on it is drawn filled in the accent, whatever the
+variant, and assistive technology hears the state: `aria-pressed` on web,
+the selected trait on iOS, and on Android Material's own toggle buttons
+(`IconToggleButton` for an icon, `ToggleButton` with a label, a toggleable
+row at the `inline` size), whose checked state TalkBack reads. On Windows the
+island draws the on state, and the button is announced as a button; a
+toggle that announces itself there is an `IconToggle` or a `Toolbar`
+command, which the `CommandBar` makes an `AppBarToggleButton`.
 
 | Platform | Renders |
 | --- | --- |

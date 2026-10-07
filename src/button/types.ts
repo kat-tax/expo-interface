@@ -91,6 +91,15 @@ export interface ButtonProps {
   /** Disables interaction and dims the button. */
   disabled?: boolean;
   /**
+   * The button is a toggle, on (`true`) or off (`false`): a tool that stays
+   * down while it is on, a mode in a bar. While on it is drawn filled in the
+   * accent, whatever the variant, and assistive technology hears the state:
+   * `aria-pressed` on web, the selected trait on iOS, a Material toggle
+   * button's checked state on Android. Leave it out for a button that is not
+   * a toggle.
+   */
+  pressed?: boolean;
+  /**
    * Something the button started is on its way: the platform's activity
    * indicator takes the icon's place before the label, and the button takes
    * no presses until it is done. The label stays, so the button keeps its

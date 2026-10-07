@@ -26,6 +26,17 @@ describe(`Button (${Platform.OS})`, () => {
     expect(props.iconOnly).toBe(false);
   });
 
+  it('draws a toggle that is on filled, whatever its variant', async () => {
+    await render(
+      <>
+        <Button label="Bold" variant="text" pressed testID="on"/>
+        <Button label="Italic" variant="text" pressed={false} testID="off"/>
+      </>,
+    );
+    expect(button('on').props.variant).toBe('filled');
+    expect(button('off').props.variant).toBe('text');
+  });
+
   it('hands the island the loading state, which it draws as a ring', async () => {
     await render(<Button label="Saving" loading testID="busy"/>);
     expect(button('busy').props.loading).toBe(true);

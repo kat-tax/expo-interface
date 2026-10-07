@@ -128,7 +128,9 @@ Props: `commands` (the bar described as data: `label`, `icon`, `hideLabel`,
 `testID` per command), or `leading` and `trailing` nodes; `field` (a `TextField variant="inline"` that
 grows into the space the controls leave); `placement` (`top` or `bottom`;
 the rule goes on the side facing the content); `density` (`regular` or
-`compact`); `children` (a second row under the controls); `style`, `testID`.
+`compact`); `children` (a second row under the controls); `floating`; `at`,
+`preferredEdge` (`top` by default) and `insets`, for a bar floating beside a
+rectangle; `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -145,10 +147,28 @@ Differences:
 - Controls given as `leading` and `trailing` draw at the size the app gives
   them, spaced by `density`; the bar's metrics and pitch are the `commands`'
   alone, whatever the density.
-- A command's `hideLabel`, `active` and `tone` are the drawn bar's. The
-  Windows `CommandBar` decides its own labels (`density`), has no on state
-  for a command and takes no tone: a command is in the bar's own colors, a
-  `destructive` one in the critical color.
+- A command's `hideLabel` and `tone` are the drawn bar's. The Windows
+  `CommandBar` decides its own labels (`density`) and takes no tone: a
+  command is in the bar's own colors, a `destructive` one in the critical
+  color.
+- A command with `active` is a toggle, on or off: drawn filled while on,
+  and heard as one. The drawn bars give it the kit's `Button` with
+  `pressed` (`aria-pressed` on web, the selected trait on iOS, Material's
+  icon toggle button on Android); the Windows `CommandBar` makes it an
+  `AppBarToggleButton`.
+
+A `floating` bar floats over the content rather than running along an edge:
+raised and rounded, the width of its controls, as the strip of tools over a
+selection or a block. On Android it is Material 3's
+`HorizontalFloatingToolbar`; on iOS and web the kit's raised capsule holding
+one native row; on Windows the same raised card around the `CommandBar`,
+its labels left to the overflow.
+
+`at` floats the bar over its parent beside a rectangle: centred on it, over
+it unless there is no room (`preferredEdge` says which side to try first),
+and kept inside the parent less `insets`. The bar is laid over the parent
+as an overlay that takes no presses but the bar's, is drawn only once it has
+been measured and placed, and goes when `at` is `null`.
 
 ## KeyboardBar
 

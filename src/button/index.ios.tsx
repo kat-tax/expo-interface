@@ -1,7 +1,7 @@
 import type {ButtonProps, ButtonVariant} from './types';
 import type {ViewModifier} from '@expo/ui/swift-ui/modifiers';
 import {Button as SwiftUIButton, HStack, Image, ProgressView, Text} from '@expo/ui/swift-ui';
-import {accessibilityLabel, buttonStyle, buttonBorderShape, controlSize, labelStyle, padding, progressViewStyle, tint, disabled as disabledMod} from '@expo/ui/swift-ui/modifiers';
+import {accessibilityAddTraits, accessibilityLabel, buttonStyle, buttonBorderShape, controlSize, labelStyle, padding, progressViewStyle, tint, disabled as disabledMod} from '@expo/ui/swift-ui/modifiers';
 import {ICON_GAP, SIZE_ICON, iosSymbol, swiftBorderShape, swiftControlSize} from './shared';
 import {onAccent as contrastOf} from '../accent';
 import {fillWidth as fillWidthModifiers} from '../fill';
@@ -47,10 +47,13 @@ function NativeButton({
   suffixIcon,
   hideLabel = false,
   disabled,
+  pressed,
   loading = false,
   fillWidth = false,
   testID,
 }: ButtonProps) {
+  // A toggle that is on is drawn filled, whatever its variant.
+  const shown = pressed ? 'filled' : variant;
   const themeTint = useColor('tint');
   const themeLabel = useColor('label');
   const destructive = useColor('destructive');
@@ -58,15 +61,15 @@ function NativeButton({
   const hasSuffix = !!suffixIcon && !hideLabel;
   const iconOnly = hideLabel && !!prefixIcon;
   // The label tone only applies to the text variant: a tool, not a call to action.
-  const labelTone = variant === 'text' && tone === 'label' && role !== 'destructive';
+  const labelTone = shown === 'text' && tone === 'label' && role !== 'destructive';
   const accent = color ?? (role === 'destructive' ? destructive : labelTone ? themeLabel : themeTint);
   // A custom accent brings its own contrast color for filled content.
   const onAccent = color ? contrastOf(color) : themeOnAccent;
-  const iconColor = variant === 'filled' ? onAccent : accent;
+  const iconColor = shown === 'filled' ? onAccent : accent;
   const iconSize = iconSizeProp ?? SIZE_ICON[size];
   const buttonRole = role === 'destructive' ? 'destructive' : 'default';
   const modifiers: ViewModifier[] = [
-    buttonStyle(VARIANT_STYLE[variant]),
+    buttonStyle(VARIANT_STYLE[shown]),
     controlSize(swiftControlSize(size)),
     tint(accent),
   ];
@@ -75,6 +78,8 @@ function NativeButton({
   // The bar size: exactly the content, so the button doesn't set the bar's height.
   if (size === 'inline') modifiers.push(padding({all: 0}));
   if (disabled || loading) modifiers.push(disabledMod(true));
+  // VoiceOver says a toggle that is on is selected.
+  if (pressed) modifiers.push(accessibilityAddTraits(['isSelected']));
   if (iconOnly && !loading) modifiers.push(labelStyle('iconOnly'));
 
   // The system's spinner in the icon's place, in the content's color.

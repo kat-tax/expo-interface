@@ -594,31 +594,50 @@ struct CommandBarView : winrt::implements<CommandBarView, winrt::IInspectable>,
           m_bar.PrimaryCommands().Append(separator);
         }
       }
-      controls::AppBarButton button;
-      button.Label(ToHString(JsonString(entry, L"label")));
-      const auto glyph = JsonString(entry, L"glyph");
-      if (!glyph.empty()) button.Icon(MakeGlyph(glyph, 16));
-      button.IsEnabled(!JsonBool(entry, L"disabled"));
-      if (JsonString(entry, L"role") == "destructive") {
-        button.Foreground(Brush(Critical(dark)));
-      }
-      // The label is the accessible name: an icon-only command in a collapsed
-      // bar names nothing otherwise.
-      SetName(button, std::optional<std::string>{JsonString(entry, L"label")});
-      button.Click([weak = get_weak(), current](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
-        if (auto strong = weak.get()) {
-          if (auto emitter = strong->EventEmitter()) {
-            Codegen::ExpoInterfaceCommandBarEventEmitter::OnPress event;
-            event.index = current;
-            emitter->onPress(std::move(event));
-          }
-        }
-      });
-      if (secondary) {
-        m_bar.SecondaryCommands().Append(button);
+      // A command with an on state is the bar's own toggle button, which
+      // Narrator reads as on or off; the others are plain buttons.
+      if (JsonBool(entry, L"toggle")) {
+        controls::AppBarToggleButton toggle;
+        toggle.IsChecked(JsonBool(entry, L"checked"));
+        Dress(toggle, entry, current, dark);
+        Append(toggle, secondary);
       } else {
-        m_bar.PrimaryCommands().Append(button);
+        controls::AppBarButton button;
+        Dress(button, entry, current, dark);
+        Append(button, secondary);
       }
+    }
+  }
+
+  /** The label, glyph, state and press every command takes, a toggle or not. */
+  template <typename T>
+  void Dress(T &button, const JsonObject &entry, int32_t current, bool dark) noexcept {
+    button.Label(ToHString(JsonString(entry, L"label")));
+    const auto glyph = JsonString(entry, L"glyph");
+    if (!glyph.empty()) button.Icon(MakeGlyph(glyph, 16));
+    button.IsEnabled(!JsonBool(entry, L"disabled"));
+    if (JsonString(entry, L"role") == "destructive") {
+      button.Foreground(Brush(Critical(dark)));
+    }
+    // The label is the accessible name: an icon-only command in a collapsed
+    // bar names nothing otherwise.
+    SetName(button, std::optional<std::string>{JsonString(entry, L"label")});
+    button.Click([weak = get_weak(), current](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
+      if (auto strong = weak.get()) {
+        if (auto emitter = strong->EventEmitter()) {
+          Codegen::ExpoInterfaceCommandBarEventEmitter::OnPress event;
+          event.index = current;
+          emitter->onPress(std::move(event));
+        }
+      }
+    });
+  }
+
+  void Append(const controls::ICommandBarElement &element, bool secondary) noexcept {
+    if (secondary) {
+      m_bar.SecondaryCommands().Append(element);
+    } else {
+      m_bar.PrimaryCommands().Append(element);
     }
   }
 

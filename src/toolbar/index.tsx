@@ -7,8 +7,10 @@ import {NativeHost} from '../host';
 import {Menu} from '../menu';
 import {Surface} from '../surface';
 import {icon as iconToken} from '../icons';
+import {useAnchored} from '../anchored';
 import {spacing} from '../theme';
-import {hasCommands, splitCommands} from './shared';
+import {FloatingSurface} from './floating';
+import {anchoredStyles, hasCommands, splitCommands} from './shared';
 
 /**
  * Space between the controls, and at the bar's ends. `compact` is what a bar
@@ -52,15 +54,62 @@ const PADDING_VERTICAL = Platform.select({android: 0, default: spacing.two});
 /**
  * A bar of tools along a canvas (see {@link ToolbarProps}). The bar itself
  * is a `Surface` in the screen's background with a hairline on the edge
- * facing the content; the controls are native.
+ * facing the content; the controls are native. A floating bar is raised and
+ * rounded instead, and one at a rectangle floats over its parent beside it.
  */
-export function Toolbar({commands, leading, trailing, field, placement = 'bottom', density = 'regular', children, style, testID}: ToolbarProps) {
-  const {gap, edge} = DENSITY[density];
+export function Toolbar(props: ToolbarProps) {
+  if (props.at !== undefined) return <AnchoredToolbar {...props}/>;
+  if (props.floating) return <FloatingToolbar {...props}/>;
+  return <EdgeToolbar {...props}/>;
+}
+
+/** The controls a bar holds: its commands and their overflow, or its two slots. */
+function controlsOf({commands, leading, trailing}: ToolbarProps, gap: number) {
   // Commands replace the two slots: a bar is described either way round, not
   // both. Here the kit draws them; on Windows the platform's own bar does.
-  const described = hasCommands(commands);
-  const start = described ? <Commands commands={splitCommands(commands).primary} gap={gap}/> : leading;
-  const end = described ? <Overflow commands={splitCommands(commands).secondary}/> : trailing;
+  if (!hasCommands(commands)) return {start: leading, end: trailing};
+  const {primary, secondary} = splitCommands(commands);
+  return {start: <Commands commands={primary} gap={gap}/>, end: <Overflow commands={secondary}/>};
+}
+
+/** A floating bar where it is laid out. */
+function FloatingToolbar(props: ToolbarProps) {
+  const {gap} = DENSITY[props.density ?? 'regular'];
+  const {start, end} = controlsOf(props, gap);
+  return (
+    <FloatingSurface gap={gap} style={props.style} testID={props.testID}>
+      {start}
+      {end}
+    </FloatingSurface>
+  );
+}
+
+/**
+ * A floating bar beside a rectangle, laid over its parent: centred on the
+ * rectangle, over it unless there is no room, inside the parent less its
+ * insets, and drawn only once it has been measured and placed.
+ */
+function AnchoredToolbar(props: ToolbarProps) {
+  const {at = null, preferredEdge = 'top', insets, testID} = props;
+  const anchored = useAnchored({at, preferredEdge, insets, align: 'center'});
+  return (
+    <View style={anchoredStyles.bounds} onLayout={anchored.onBounds} testID={testID ? `${testID}-bounds` : undefined}>
+      {at ? (
+        <View
+          onLayout={anchored.onCard}
+          style={[anchoredStyles.bar, {left: anchored.left, top: anchored.top}, anchored.placed ? null : anchoredStyles.unplaced]}>
+          <FloatingToolbar {...props}/>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+/** The bar along an edge of its content. */
+function EdgeToolbar(props: ToolbarProps) {
+  const {field, placement = 'bottom', density = 'regular', children, style, testID} = props;
+  const {gap, edge} = DENSITY[density];
+  const {start, end} = controlsOf(props, gap);
   return (
     <Surface
       color="background"
@@ -97,7 +146,8 @@ function Commands({commands, gap}: {commands: ToolbarCommand[]; gap: number}) {
       {commands.map((command, index) => (
         <Button
           key={index}
-          variant={command.active ? 'filled' : 'text'}
+          variant="text"
+          pressed={command.active}
           size={TOOL.size}
           iconSize={TOOL.iconSize}
           label={command.label}

@@ -1,6 +1,6 @@
 import type {ButtonProps, ButtonShape, ButtonVariant} from './types';
-import {alpha, clickable, fillMaxWidth, size as sizeModifier, testID as testIDModifier, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
-import {Button as ComposeButton, CircularProgressIndicator, OutlinedButton, TextButton, Icon, IconButton, FilledIconButton, OutlinedIconButton, Row, Spacer, Shape, Text} from '@expo/ui/jetpack-compose';
+import {alpha, clickable, fillMaxWidth, size as sizeModifier, testID as testIDModifier, toggleable, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
+import {Button as ComposeButton, CircularProgressIndicator, OutlinedButton, TextButton, Icon, IconButton, IconToggleButton, FilledIconButton, OutlinedIconButton, Row, Spacer, Shape, Text, ToggleButton} from '@expo/ui/jetpack-compose';
 import {SIZE_ICON, SIZE_TEXT, androidContentPadding} from './shared';
 import {onAccent as contrastOf} from '../accent';
 import {SelfHosted} from '../host';
@@ -21,6 +21,14 @@ const ICON_ONLY_COMPONENT: Record<ButtonVariant, typeof FilledIconButton | typeo
 
 /** The spinner's stroke, finer than the kit's ring, since it sits in a line of text. */
 const SPINNER_STROKE = 2;
+
+const TRANSPARENT = '#00000000';
+
+/** What a press on the inline row is: a toggle's change, which TalkBack hears as on or off, or a click. */
+function toggleOrClick(pressed: boolean | undefined, onPress: (() => void) | undefined) {
+  if (!onPress) return [];
+  return [pressed === undefined ? clickable(onPress) : toggleable(pressed, onPress)];
+}
 
 function resolveShape(shape?: ButtonShape) {
   if (!shape) return undefined;
@@ -72,20 +80,23 @@ function NativeButton({
   suffixIcon,
   hideLabel = false,
   disabled,
+  pressed,
   loading = false,
   fillWidth = false,
   testID,
 }: ButtonProps) {
+  // A toggle that is on is drawn filled, whatever its variant.
+  const shown = pressed ? 'filled' : variant;
   const themeTint = useColor('tint');
   const themeLabel = useColor('label');
   const destructive = useColor('destructive');
   const themeOnAccent = useColor(role === 'destructive' ? 'onDestructive' : 'onTint');
   // The label tone only applies to the text variant: a tool, not a call to action.
-  const labelTone = variant === 'text' && tone === 'label' && role !== 'destructive';
+  const labelTone = shown === 'text' && tone === 'label' && role !== 'destructive';
   const accent = color ?? (role === 'destructive' ? destructive : labelTone ? themeLabel : themeTint);
   // A custom accent brings its own contrast color for filled content.
   const onAccent = color ? contrastOf(color) : themeOnAccent;
-  const onFilled = variant === 'filled';
+  const onFilled = shown === 'filled';
   const textColor = onFilled ? onAccent : accent;
   const colors = onFilled
     ? {containerColor: accent, contentColor: onAccent}
@@ -153,10 +164,29 @@ function NativeButton({
         verticalAlignment="center"
         modifiers={[
           ...modifiers,
-          ...(inactive ? [alpha(0.45)] : onPress ? [clickable(onPress)] : []),
+          ...(inactive ? [alpha(0.45)] : toggleOrClick(pressed, onPress)),
         ]}>
         {content}
       </Row>
+    );
+  }
+
+  // A toggle is Material's own: its checked state is in the semantics tree,
+  // so TalkBack says whether it is on. Off it takes its variant's colors.
+  if (pressed !== undefined) {
+    const offContainer = variant === 'filled' ? accent : TRANSPARENT;
+    const offContent = variant === 'filled' ? onAccent : accent;
+    const toggleColors = {containerColor: offContainer, contentColor: offContent, checkedContainerColor: accent, checkedContentColor: onAccent};
+    const Toggle = iconOnly ? IconToggleButton : ToggleButton;
+    return (
+      <Toggle
+        checked={pressed}
+        onCheckedChange={() => onPress?.()}
+        enabled={!inactive}
+        colors={toggleColors}
+        modifiers={modifiers}>
+        {iconOnly ? leading : content}
+      </Toggle>
     );
   }
 

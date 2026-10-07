@@ -161,7 +161,7 @@ describe('commands', () => {
     expect(onBar('Bold')).toBe(true);
   });
 
-  it('draws a command at the bar metrics of the platform, filled when active, in the label tone when asked', async () => {
+  it('draws a command at the bar metrics of the platform, a toggle filled while on, in the label tone when asked', async () => {
     await render(
       <Toolbar
         commands={[
@@ -182,14 +182,19 @@ describe('commands', () => {
       // The bar button's control size with a 22pt symbol, as the header's actions.
       expect(modifier(pen, 'controlSize')?.size).toBe('large');
       expect(modifier(pen, 'buttonStyle')?.style).toBe('borderedProminent');
+      // VoiceOver hears the toggle that is on as selected.
+      expect(modifier(pen, 'accessibilityAddTraits')?.traits).toEqual(['isSelected']);
       expect(modifier(erase, 'buttonStyle')?.style).toBe('plain');
+      expect(modifier(erase, 'accessibilityAddTraits')).toBeUndefined();
       expect(modifier(erase, 'tint')?.tint.color).toBe('#000000');
       expect(modifier(pen, 'accessibilityLabel')?.label).toBe('Pen');
       expect(modifier(host(p => p.systemName === 'plus').props, 'font')?.size).toBe(22);
       expect(modifier(host(p => p.systemName === 'ellipsis').props, 'font')?.size).toBe(22);
     } else {
-      // A 22dp icon in Material's icon button; the label color for the plain tool.
-      expect(pen.colors).toEqual({containerColor: '#007AFF', contentColor: '#FFFFFF'});
+      // A toggle is Material's icon toggle button, checked while on, its
+      // checked state in the semantics tree; the label color for the plain tool.
+      expect(pen.checked).toBe(true);
+      expect(pen.colors).toEqual({containerColor: '#00000000', contentColor: '#007AFF', checkedContainerColor: '#007AFF', checkedContentColor: '#FFFFFF'});
       expect(erase.colors).toEqual({contentColor: '#000000'});
       expect(host(p => p.contentDescription === 'Pen').props.size).toBe(22);
     }

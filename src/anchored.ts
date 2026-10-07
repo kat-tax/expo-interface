@@ -41,6 +41,12 @@ interface AnchoredOptions {
    * @default 8
    */
   gap?: number;
+  /**
+   * How the card lines up with the rectangle across: from its leading edge,
+   * or centred on it, as a bar of tools over a selection is.
+   * @default 'start'
+   */
+  align?: 'start' | 'center';
 }
 
 interface Anchored {
@@ -67,7 +73,7 @@ interface Anchored {
  * been, the card is placed from what is known, and it settles once they
  * are (`placed`).
  */
-export function useAnchored({at, preferredEdge = 'auto', width, insets, gap = 8}: AnchoredOptions): Anchored {
+export function useAnchored({at, preferredEdge = 'auto', width, insets, gap = 8, align = 'start'}: AnchoredOptions): Anchored {
   const [bounds, setBounds] = useState({width: 0, height: 0});
   const [card, setCard] = useState({width: width ?? 0, height: 0});
   const onBounds = (event: LayoutChangeEvent) => {
@@ -95,7 +101,8 @@ export function useAnchored({at, preferredEdge = 'auto', width, insets, gap = 8}
   const top = at ? (above ? Math.max(top0, at.y - card.height - gap) : below) : 0;
   // Until the parent has been measured there is nothing to clamp against.
   const rightMost = bounds.width > 0 ? Math.max(left0, rightEdge - card.width) : Infinity;
-  const left = at ? Math.max(left0, Math.min(at.x, rightMost)) : 0;
+  const from = at && align === 'center' ? at.x + (at.width ?? 0) / 2 - card.width / 2 : at?.x ?? 0;
+  const left = at ? Math.max(left0, Math.min(from, rightMost)) : 0;
 
   return {onBounds, onCard, left, top, above, placed: bounds.height > 0 && card.height > 0};
 }

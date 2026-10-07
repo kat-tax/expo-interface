@@ -1,4 +1,5 @@
 import type {Meta, StoryObj} from '@storybook/react-native';
+import {useState} from 'react';
 import {fn} from 'storybook/test';
 import {Column, Row} from '@expo/ui';
 import {fillWidth} from '../fill';
@@ -67,6 +68,16 @@ export const Loading: Story = {
 
 export const FillWidth: Story = {
   args: {fillWidth: true},
+};
+
+/** A toggle: drawn filled while it is on, and heard as on or off. */
+function Toggle(args: React.ComponentProps<typeof Button>) {
+  const [on, setOn] = useState(false);
+  return <Button {...args} label="Bold" prefixIcon={icons.add} hideLabel variant="text" tone="label" pressed={on} onPress={() => setOn(value => !value)}/>;
+}
+
+export const Pressed: Story = {
+  render: args => <Toggle {...args}/>,
 };
 
 export const Sizes: Story = {

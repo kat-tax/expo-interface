@@ -31,6 +31,7 @@ export function Button({
   suffixIcon,
   hideLabel = false,
   disabled,
+  pressed,
   loading = false,
   fillWidth = false,
   testID,
@@ -46,7 +47,7 @@ export function Button({
       glyph={glyph}
       glyphAfter={iconOnly ? undefined : glyphOf(suffixIcon)}
       iconOnly={iconOnly}
-      variant={variant}
+      variant={pressed ? 'filled' : variant}
       buttonRole={role}
       tone={tone}
       color={color}

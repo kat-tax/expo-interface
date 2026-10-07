@@ -40,30 +40,33 @@ export function Button({
   suffixIcon,
   hideLabel = false,
   disabled = false,
+  pressed,
   loading = false,
   fillWidth = false,
   testID,
   popoverTarget,
   popoverTargetAction,
 }: WebButtonProps) {
+  // A toggle that is on is drawn filled, whatever its variant.
+  const shown = pressed ? 'filled' : variant;
   const themeTint = useColor('tint');
   const themeLabel = useColor('label');
   const destructive = useColor('destructive');
   const themeOnAccent = useColor(role === 'destructive' ? 'onDestructive' : 'onTint');
   // The label tone only applies to the text variant: a tool, not a call to action.
-  const labelTone = variant === 'text' && tone === 'label' && role !== 'destructive';
+  const labelTone = shown === 'text' && tone === 'label' && role !== 'destructive';
   const accent = color ?? (role === 'destructive' ? destructive : labelTone ? themeLabel : themeTint);
   // A custom accent brings its own contrast color for filled content.
   const onAccent = color ? contrastOf(color) : themeOnAccent;
   const iconOnly = hideLabel && !!prefixIcon;
   const iconSize = iconSizeProp ?? SIZE_ICON[size];
-  const iconColor = variant === 'filled' ? onAccent : accent;
+  const iconColor = shown === 'filled' ? onAccent : accent;
   const style = color
     ? ({'--ui-button-accent': color, '--ui-button-on-accent': onAccent} as CSSProperties)
     : undefined;
   const className = [
     'ui-button',
-    `ui-button--${variant}`,
+    `ui-button--${shown}`,
     `ui-button--${size}`,
     shape && `ui-button--${shape}`,
     !shape && 'ui-button--pill',
@@ -81,6 +84,7 @@ export function Button({
       className={className}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
+      aria-pressed={pressed}
       onClick={onPress}
       popoverTarget={popoverTarget}
       popoverTargetAction={popoverTarget ? popoverTargetAction : undefined}

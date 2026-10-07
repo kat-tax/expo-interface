@@ -1,9 +1,11 @@
 import type {Meta, StoryObj} from '@storybook/react-native';
 import {fn} from 'storybook/test';
-import {StyleSheet, View} from 'react-native';
+import {useState} from 'react';
+import {Pressable, StyleSheet, View} from 'react-native';
 import {Button} from '../button';
 import {Divider} from '../divider';
 import {Footnote} from '../typography';
+import {useColor} from '../theme';
 import {Menu} from '../menu';
 import {TextField} from '../text-field';
 import * as icons from '../__stories__/icons';
@@ -98,6 +100,57 @@ export const WithAField: Story = {
   ),
 };
 
+/** An editor's formatting toggles: bold and italic stay down while they are on. */
+function useFormatting() {
+  const [bold, setBold] = useState(true);
+  const [italic, setItalic] = useState(false);
+  return [
+    {label: 'Bold', icon: icons.add, hideLabel: true, active: bold, tone: 'label' as const, onPress: () => setBold(on => !on)},
+    {label: 'Italic', icon: icons.star, hideLabel: true, active: italic, tone: 'label' as const, onPress: () => setItalic(on => !on)},
+    {label: 'Link', icon: icons.share, hideLabel: true, tone: 'label' as const, onPress: fn()},
+    {label: 'Clear formatting', secondary: true, onPress: fn()},
+  ];
+}
+
+/**
+ * A floating bar: raised and rounded, the width of its controls. Material's
+ * floating toolbar on Android, the kit's capsule on iOS and web, the
+ * `CommandBar` in a raised card on Windows. Its toggles are heard as on or off.
+ */
+export const Floating: Story = {
+  render: function Floating(args) {
+    const commands = useFormatting();
+    return (
+      <View style={styles.stage}>
+        <Footnote color="tertiaryLabel">A canvas under the bar</Footnote>
+        <Toolbar {...args} floating commands={commands}/>
+      </View>
+    );
+  },
+};
+
+/**
+ * The strip over a selection: centred on the selected words, over them
+ * unless there is no room, and drawn only once it is placed.
+ */
+export const AtASelection: Story = {
+  render: function AtASelection(args) {
+    const commands = useFormatting();
+    const [selected, setSelected] = useState(true);
+    const fill = useColor('backgroundSelected');
+    return (
+      <View style={styles.canvas}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Select the words" onPress={() => setSelected(on => !on)} style={[styles.selection, selected ? {backgroundColor: fill} : null]}>
+          <Footnote color="label">the selected words</Footnote>
+        </Pressable>
+        <Toolbar {...args} at={selected ? {x: 60, y: 120, width: 140, height: 22} : null} commands={commands}/>
+      </View>
+    );
+  },
+};
+
 const styles = StyleSheet.create({
   stage: {gap: 24},
+  canvas: {height: 220, alignSelf: 'stretch'},
+  selection: {position: 'absolute', left: 60, top: 120, width: 140, height: 22, justifyContent: 'center', paddingHorizontal: 4, borderRadius: 4},
 });

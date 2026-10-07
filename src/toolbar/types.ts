@@ -1,5 +1,6 @@
 import type {PropsWithChildren, ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {AnchorInsets, AnchorRect} from '../anchored';
 import type {ButtonTone} from '../button/types';
 import type {IconToken} from '../icons';
 
@@ -38,9 +39,12 @@ export interface ToolbarCommand {
    */
   hideLabel?: boolean;
   /**
-   * The command's state is on (a check that runs, a panel that is open): it
-   * is drawn filled, in the accent, where the others are plain. The Windows
-   * `CommandBar` has no on state for a command and ignores it.
+   * The command is a toggle, on (`true`) or off (`false`): bold in an
+   * editor, a check that runs, a panel that is open. It is drawn filled in
+   * the accent while on, and assistive technology hears the state: the kit's
+   * `Button` with `pressed` on iOS, Android and web, an `AppBarToggleButton`
+   * in the Windows `CommandBar`. Leave it out for a command that is not a
+   * toggle.
    */
   active?: boolean;
   /**
@@ -103,6 +107,29 @@ export interface ToolbarProps extends PropsWithChildren {
   density?: ToolbarDensity;
   /** A second row under the controls: peers, counts, a progress bar. */
   children?: ReactNode;
+  /**
+   * A bar that floats over the content rather than running along an edge:
+   * raised and rounded, the width of its controls, as the strip of tools
+   * over a selection or a block. Material's floating toolbar on Android.
+   * @default false
+   */
+  floating?: boolean;
+  /**
+   * Floats the bar over its parent beside this rectangle (a selection, a
+   * block): centred on it, over it unless there is no room, and kept inside
+   * the parent less `insets`. `null` hides it. The bar is laid over the
+   * parent as an overlay that takes no presses but the bar's, and is drawn
+   * only once it has been measured and placed. Implies `floating`.
+   */
+  at?: AnchorRect | null;
+  /**
+   * Which side of `at` the bar prefers; it moves to the other when there is
+   * no room.
+   * @default 'top'
+   */
+  preferredEdge?: 'auto' | 'top' | 'bottom';
+  /** What a bar at `at` keeps clear of at its parent's edges: a header, the keyboard's bar. */
+  insets?: AnchorInsets;
   /** Style applied to the bar. */
   style?: StyleProp<ViewStyle>;
   /** Identifier used to locate the bar in end-to-end tests. */
