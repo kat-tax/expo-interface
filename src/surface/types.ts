@@ -1,5 +1,6 @@
 import type {PropsWithChildren, ReactNode} from 'react';
 import type {LayoutChangeEvent, PressableProps, StyleProp, ViewStyle} from 'react-native';
+import type {ColorTokens} from '../theme';
 
 /** Fill of a `Surface`, from the theme's background tokens. */
 export type SurfaceColor = 'background' | 'element' | 'selected' | 'none';
@@ -51,8 +52,12 @@ export interface SurfaceProps extends PropsWithChildren {
   border?: SurfaceBorder;
   /** Draw the hairline dashed, for a drop target. */
   dashed?: boolean;
-  /** Hairline color. Defaults to the theme `separator`. */
-  borderColor?: string;
+  /**
+   * Hairline color: a palette token (`opaqueSeparator`, `tint`), which
+   * follows the scheme, or any color.
+   * @default 'separator'
+   */
+  borderColor?: ColorTokens | (string & {});
   /**
    * Corner radius in points; `pill` rounds the ends fully.
    * @default 12

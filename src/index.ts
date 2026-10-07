@@ -12,6 +12,7 @@ export {
   SCHEME_STORAGE_KEY,
   getColorSchemeMode,
   getThemeBootScript,
+  restoreColorScheme,
   setColorScheme,
   useColorScheme,
 } from './scheme';
@@ -24,6 +25,8 @@ export {ScreenHeader} from './screen/header';
 export {hostAccentProps} from './screen/host-accent';
 export {NativeHost, useNativeHost} from './host';
 export type {NativeHostFit, NativeHostProps} from './host';
+export {Material} from './material';
+export type {MaterialEdge, MaterialFill, MaterialKind, MaterialProps} from './material';
 export {Surface} from './surface';
 export type {SurfaceBorder, SurfaceColor, SurfaceProps} from './surface/types';
 export {Toolbar} from './toolbar';

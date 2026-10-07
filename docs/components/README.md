@@ -18,6 +18,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`ScreenHeader`](layout.md#screenheader) | A header bar for a screen that draws its own. |
 | [`NativeHost`](layout.md#nativehost) | A native host around a group of controls. |
 | [`Surface`](layout.md#surface) | A box in the theme's colors, pressable if you like. |
+| [`Material`](layout.md#material) | A view on the platform's material: blur, Liquid Glass, acrylic. |
 | [`Card`](layout.md#card) | A pressable surface with a picture, a title, the platform's menu, a star, and slots of the app's own. |
 | [`Toolbar`](layout.md#toolbar) | A bar of tools along a canvas, or floating beside a selection. |
 | [`FindBar`](layout.md#findbar) | A bar to find text: a field, the count, previous, next and close. |
@@ -94,9 +95,9 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 
 | Export | What it is | Page |
 | --- | --- | --- |
-| `AccentProvider`, `useAccentSeed`, `onAccent`, `ACCENT_SEED` | The accent seed. | [Theming](../theming.md#accent) |
-| `useColorScheme`, `setColorScheme`, `getColorSchemeMode`, `SCHEME_STORAGE_KEY` | The light or dark scheme, and forcing it. | [Theming](../theming.md#color-scheme) |
-| `theme`, `useColor`, `usePalette`, `useNavTheme`, `colors`, `getThemeCSS`, `getThemeBootScript` | Reading colors. | [Theming](../theming.md#reading-colors) |
+| `AccentProvider`, `useAccentSeed`, `onAccent`, `resolveAccent`, `currentAccent`, `ACCENT_SEED`, `ACCENT_STORAGE_KEY` | The accent seed, legible in each scheme and kept on web. | [Theming](../theming.md#accent) |
+| `useColorScheme`, `setColorScheme`, `getColorSchemeMode`, `restoreColorScheme`, `SCHEME_STORAGE_KEY` | The light or dark scheme, and forcing it. | [Theming](../theming.md#color-scheme) |
+| `theme`, `useColor`, `usePalette`, `resolvedPalette`, `isColorToken`, `useNavTheme`, `colors`, `getThemeCSS`, `getThemeBootScript` | Reading colors. | [Theming](../theming.md#reading-colors) |
 | `spacing`, `bound`, `inset`, `fonts`, `fontWeights`, `variants` | Constants. | [Theming](../theming.md#constants) |
 | `useHighContrast`, `highContrastPalette` | Windows high contrast. | [Theming](../theming.md#high-contrast) |
 | `icon`, `symbolName`, `materialName`, `registerDrawables`, `drawableOf`, `getSymbolFontCSS`, `SEGOE_GLYPHS`, `windowsGlyph` | Icon tokens, their names per platform, the Android drawables and the web font. | [Icons](../icons.md) |

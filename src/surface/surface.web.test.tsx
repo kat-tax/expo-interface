@@ -11,6 +11,17 @@ describe('Surface (web)', () => {
     expect(style.boxShadow).toContain('rgba(0, 0, 0, 0.18)');
   });
 
+  it('draws the hairline in a palette token as its variable, and in any other color as it is', () => {
+    render(
+      <>
+        <Surface border="all" borderColor="opaqueSeparator" testID="token"/>
+        <Surface border="all" borderColor="#8959EA" testID="literal"/>
+      </>,
+    );
+    expect(getComputedStyle(screen.getByTestId('token')).borderColor).toBe('var(--color-opaque-separator)');
+    expect(getComputedStyle(screen.getByTestId('literal')).borderColor).toBe('rgb(137, 89, 234)');
+  });
+
   it('is a button when it presses', () => {
     const onPress = vi.fn();
     render(<Surface onPress={onPress} label="Notes" testID="surface"/>);

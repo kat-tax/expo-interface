@@ -1,7 +1,9 @@
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
+import {render, screen} from '@testing-library/react';
+import {Text} from 'react-native';
 import {BLUR_RADIUS, MATERIAL_OPACITY} from '../sheet/shared';
-import {materialProps} from '.';
+import {Material, materialProps} from '.';
 
 describe('materialProps (web)', () => {
   it('names the material, its fill and its edge for the stylesheet', () => {
@@ -30,5 +32,33 @@ describe('materialProps (web)', () => {
     expect(css).toContain('@supports not (backdrop-filter: blur(1px))');
     expect(css).toContain('@media (prefers-reduced-transparency: reduce)');
     expect(css).toContain('@media (forced-colors: active)');
+    // Each edge but none has a rule.
+    for (const edge of ['all', 'top', 'bottom']) expect(css).toContain(`[data-material][data-material-edge="${edge}"]`);
+    expect(css).not.toContain('[data-material-edge="none"]');
+  });
+});
+
+describe('Material (web)', () => {
+  it('draws a view on the stylesheet material, with its children on top', () => {
+    render(
+      <Material kind="thin" fill="element" edge="all" radius={16} testID="material">
+        <Text>Over</Text>
+      </Material>,
+    );
+    const view = screen.getByTestId('material');
+    expect(view.dataset).toMatchObject({material: 'thin', materialFill: 'element', materialEdge: 'all'});
+    expect(getComputedStyle(view).borderTopLeftRadius).toBe('16px');
+    expect(screen.getByText('Over')).toBeTruthy();
+  });
+
+  it('is the regular material on the screen fill with no hairline by default, glass the regular one', () => {
+    render(
+      <>
+        <Material testID="plain"/>
+        <Material kind="glass" testID="glass"/>
+      </>,
+    );
+    expect(screen.getByTestId('plain').dataset).toMatchObject({material: 'regular', materialFill: 'background', materialEdge: 'none'});
+    expect(screen.getByTestId('glass').dataset.material).toBe('regular');
   });
 });

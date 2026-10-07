@@ -1,11 +1,13 @@
 /*
- * The kit's materials on the web, for the tab bar and a screen header: the
- * fill thinned over a blur of what passes under, which is the web's own way
- * of saying what a SwiftUI material says. A view takes one through three
- * data attributes: `data-material` is the thickness (`thin`, `regular`,
- * `thick`), `data-material-fill` the color that is thinned (`element`, the
- * raised fill, or `background`, the screen's) and `data-material-edge` where
- * the hairline goes (`all` around a pill, `bottom` under a bar). The
+ * The kit's materials on the web, for the tab bar, a screen header and the
+ * `Material` view: the fill thinned over a blur of what passes under, which
+ * is the web's own way of saying what a SwiftUI material says. A view takes
+ * one through three data attributes: `data-material` is the thickness
+ * (`thin`, `regular`, `thick`), `data-material-fill` the color that is
+ * thinned (`element`, the raised fill, or `background`, the screen's) and
+ * `data-material-edge` where the hairline goes (`all` around a pill, `top`
+ * over a bar at the bottom, `bottom` under one at the top, `none` for no
+ * hairline and no shadow). The
  * opacities and radii are the sheet's (`src/sheet/shared.ts`), so a bar and
  * a sheet of one thickness read the same.
  *
@@ -41,6 +43,10 @@
  */
 [data-material][data-material-edge="all"] {
   box-shadow: inset 0 0 0 1px var(--color-separator), 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+[data-material][data-material-edge="top"] {
+  box-shadow: inset 0 1px 0 var(--color-separator), 0 -1px 8px rgba(0, 0, 0, 0.06);
 }
 
 [data-material][data-material-edge="bottom"] {

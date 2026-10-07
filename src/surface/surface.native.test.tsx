@@ -38,6 +38,7 @@ describe(`Surface (${Platform.OS})`, () => {
         <Surface border="top" testID="top"/>
         <Surface border="bottom" testID="bottom"/>
         <Surface border="all" dashed borderColor="#8959EA" testID="dashed"/>
+        <Surface border="all" borderColor="opaqueSeparator" testID="token"/>
       </>,
     );
     const hairline = StyleSheet.hairlineWidth;
@@ -53,6 +54,8 @@ describe(`Surface (${Platform.OS})`, () => {
     expect(style('bottom').borderBottomWidth).toBe(hairline);
     expect(style('bottom').borderTopWidth).toBeUndefined();
     expect(style('dashed')).toMatchObject({borderStyle: 'dashed', borderColor: '#8959EA'});
+    // A palette token follows the scheme.
+    expect(style('token').borderColor).toBe(colors.light.opaqueSeparator);
   });
 
   it('rounds a pill, lifts a raised surface and pads it', async () => {

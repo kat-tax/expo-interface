@@ -2,7 +2,7 @@ import type {ViewStyle} from 'react-native';
 import type {Feedback, SurfaceColor, SurfaceProps} from './types';
 import type {ColorTokens} from '../theme';
 import {Platform, StyleSheet, View} from 'react-native';
-import {useColor} from '../theme';
+import {isColorToken, useColor} from '../theme';
 import {StatePressable} from './pressable';
 import {pressFeedback} from './shared';
 
@@ -54,8 +54,8 @@ export function Surface({
   testID,
 }: SurfaceProps) {
   const fill = useColor(color === 'none' ? 'background' : FILL[color]);
-  const separator = useColor('separator');
-  const line = borderColor ?? separator;
+  const token = useColor(borderColor != null && isColorToken(borderColor) ? borderColor : 'separator');
+  const line = borderColor == null || isColorToken(borderColor) ? token : borderColor;
   const width = border === 'none' ? undefined : StyleSheet.hairlineWidth;
   const box: ViewStyle = {
     backgroundColor: color === 'none' ? undefined : fill,

@@ -68,10 +68,11 @@ a card, a drop target, a notice. The one kit component that is React Native
 on every platform, so it can hold what is not native.
 
 Props: `color` (`background`, `element`, `selected`, `none`), `border`
-(`none`, `all`, `top`, `bottom`), `dashed`, `borderColor`, `radius` (a number
-or `pill`), `raised` (a soft shadow), `padding`, `onPress`, `onLongPress`,
-`disabled`, `label` (the accessible name of a pressable surface), `onLayout`,
-`style`, `testID`.
+(`none`, `all`, `top`, `bottom`), `dashed`, `borderColor` (a palette token
+such as `opaqueSeparator`, which follows the scheme, or any color;
+`separator` by default), `radius` (a number or `pill`), `raised` (a soft
+shadow), `padding`, `onPress`, `onLongPress`, `disabled`, `label` (the
+accessible name of a pressable surface), `onLayout`, `style`, `testID`.
 
 Differences:
 
@@ -80,6 +81,31 @@ Differences:
   fill while pressed), reacts to hover, takes the focus ring, and presses on
   Enter and Space.
 - On web a pressable surface is a real `<button>`.
+
+## Material
+
+A view on the platform's material, with its children on top: a strip of tabs
+floating over scrolling content, a panel over a photo. On web it is the
+material the kit's own bars are drawn in.
+
+```tsx
+<Material kind="glass" edge="bottom" style={{position: 'absolute', top: barInset, left: 0, right: 0}}>
+  <TabStrip/>
+</Material>
+```
+
+Props: `kind` (`thin`, `regular`, `thick`, or `glass`; `regular` by default),
+`fill` (the palette fill the material is made of on web and Android:
+`background` by default, or `element`), `edge` (where the hairline goes:
+`all`, `top`, `bottom`, or `none` by default), `radius`, `onLayout`,
+`style`, `testID`.
+
+| Platform | What it draws |
+| --- | --- |
+| iOS | A SwiftUI shape filled with the system material, in a host of its own behind the children. `glass` is Liquid Glass from iOS 26, and the regular material before it. |
+| Android | The palette fill, opaque. Material 3 has no material that shows what passes under it. |
+| Web | The palette fill thinned over a blur of what passes under it, by the stylesheet the tab bar and `ScreenHeader` use. Solid where the blur cannot be had or is not wanted, and a frame in forced colors. `glass` is the regular material. |
+| Windows | Acrylic: an `ExpoInterfaceMaterial` island with the children inside it through a portal. `thin` is the thin acrylic, `thick` the base acrylic, and `glass` the default one. The backdrop is drawn from what is behind the window, to the island's rectangle; a radius rounds the box. |
 
 ## Card
 
