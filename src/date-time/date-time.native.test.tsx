@@ -87,7 +87,8 @@ describe(`DateTimePicker (${Platform.OS})`, () => {
       await act(async () => {
         modifier(pill().props, 'clickable')?.eventListener();
       });
-      expect(dialog()?.props.selectableDates).toEqual({start: start.getTime(), end: end.getTime()});
+      // The dialog keeps its days in UTC: each bound is its local day at midnight UTC.
+      expect(dialog()?.props.selectableDates).toEqual({start: Date.UTC(2026, 5, 1), end: Date.UTC(2026, 5, 30)});
     }
   });
 
@@ -181,13 +182,15 @@ describe(`DateTimePicker (${Platform.OS})`, () => {
     await act(async () => {
       modifier(pill().props, 'clickable')?.eventListener();
     });
-    expect(dialog()?.props.initialDate).toBe(JUNE_15.getTime());
+    // The local day, handed over as midnight UTC, which the dialog shows as that day.
+    expect(dialog()?.props.initialDate).toBe(Date.UTC(2026, 5, 15));
     expect(dialog()?.props.color).toBe('#007AFF');
     expect(dialog()?.props.selectableDates).toBeNull();
 
     // Picking a day keeps the original time and hands off to the time dialog.
     await act(async () => {
-      dialog()?.props.onDateSelected({nativeEvent: {date: new Date(2026, 11, 24, 0, 0).toISOString()}});
+      // The dialog answers the day at midnight UTC, read back as the local day.
+      dialog()?.props.onDateSelected({nativeEvent: {date: new Date(Date.UTC(2026, 11, 24)).toISOString()}});
     });
     expect(onChange).not.toHaveBeenCalled();
     expect(dialog()?.props.initialDate).toBe(new Date(2026, 11, 24, 9, 30).getTime());
@@ -209,7 +212,7 @@ describe(`DateTimePicker (${Platform.OS})`, () => {
       modifier(pill().props, 'clickable')?.eventListener();
     });
     await act(async () => {
-      dialog()?.props.onDateSelected({nativeEvent: {date: new Date(2030, 0, 2).toISOString()}});
+      dialog()?.props.onDateSelected({nativeEvent: {date: new Date(Date.UTC(2030, 0, 2)).toISOString()}});
     });
     await act(async () => {
       dialog()?.props.onDismissRequest();
@@ -228,10 +231,11 @@ describe(`DateTimePicker (${Platform.OS})`, () => {
       modifier(pill().props, 'clickable')?.eventListener();
     });
     await act(async () => {
-      dialog()?.props.onDateSelected({nativeEvent: {date: new Date(2026, 11, 24).toISOString()}});
+      dialog()?.props.onDateSelected({nativeEvent: {date: new Date(Date.UTC(2026, 11, 24)).toISOString()}});
     });
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange.mock.calls[0][0].getTime()).toBe(new Date(2026, 11, 24, 9, 30).getTime());
+    expect(onChange.mock.calls[0][1]).toBe('2026-12-24');
     expect(dialog()).toBeUndefined();
 
     await rerender(<DateTimePicker mode="time" value={JUNE_15} onChange={onChange}/>);

@@ -70,7 +70,7 @@ export {ColorPicker} from './color-picker';
 export type {ColorPickerProps} from './color-picker/types';
 export {ContextMenu} from './context-menu';
 export {DateTimePicker} from './date-time';
-export type {DateTimeMode, DateTimePickerProps} from './date-time/types';
+export type {DateTimeAnchor, DateTimeMode, DateTimePickerProps, DateTimeValue} from './date-time/types';
 export {Divider} from './divider';
 export type {DividerProps} from './divider/types';
 export {EmptyState} from './empty-state';

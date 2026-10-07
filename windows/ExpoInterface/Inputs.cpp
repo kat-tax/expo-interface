@@ -7,6 +7,7 @@
 #include "XamlHost.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceColorPicker.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceComboBox.g.h"
+#include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceDateFlyout.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceDatePicker.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceNumberBox.g.h"
 #include "codegen/react/components/ExpoInterfaceSpec/ExpoInterfaceSelectorBar.g.h"
@@ -380,6 +381,150 @@ struct DatePickerView : winrt::implements<DatePickerView, winrt::IInspectable>,
   bool m_applying{false};
 };
 
+// -- DateFlyout (the presented picker) --------------------------------------
+
+/**
+ * A day in a `CalendarView` held by a `Flyout`, or a time in a
+ * `TimePickerFlyout`, shown from an empty anchor at a point. A pick is
+ * reported and the flyout stays up until the kit closes it through `open`;
+ * a new `mode` while it is open closes one flyout and shows the other from
+ * the first one's `Closed`, with no close reported.
+ */
+struct DateFlyoutView : winrt::implements<DateFlyoutView, winrt::IInspectable>,
+                        Codegen::BaseExpoInterfaceDateFlyout<DateFlyoutView>,
+                        XamlIsland<DateFlyoutView> {
+  void InitializeIsland(const composition::ContentIslandComponentView &islandView) noexcept {
+    m_anchor = controls::Grid{};
+    m_anchor.IsHitTestVisible(false);
+    m_anchor.Background(nullptr);
+    m_calendar = controls::CalendarView{};
+    m_calendar.SelectionMode(controls::CalendarViewSelectionMode::Single);
+    m_calendar.SelectedDatesChanged([weak = get_weak()](const controls::CalendarView &, const controls::CalendarViewSelectedDatesChangedEventArgs &args) {
+      if (auto strong = weak.get()) {
+        if (strong->m_applying || args.AddedDates().Size() == 0) return;
+        if (auto emitter = strong->EventEmitter()) {
+          Codegen::ExpoInterfaceDateFlyoutEventEmitter::OnDateChange event;
+          event.date = DateToString(args.AddedDates().GetAt(0));
+          emitter->onDateChange(std::move(event));
+        }
+      }
+    });
+    m_dateFlyout = controls::Flyout{};
+    m_dateFlyout.Content(m_calendar);
+    m_timeFlyout = controls::TimePickerFlyout{};
+    m_timeFlyout.MinuteIncrement(1);
+    m_timeFlyout.TimePicked([weak = get_weak()](const controls::TimePickerFlyout &, const controls::TimePickedEventArgs &args) {
+      if (auto strong = weak.get()) {
+        if (auto emitter = strong->EventEmitter()) {
+          Codegen::ExpoInterfaceDateFlyoutEventEmitter::OnTimeChange event;
+          event.time = TimeToString(args.NewTime());
+          emitter->onTimeChange(std::move(event));
+        }
+      }
+    });
+    auto closed = [weak = get_weak()](const winrt::IInspectable &, const winrt::IInspectable &) {
+      if (auto strong = weak.get()) strong->OnClosed();
+    };
+    m_dateFlyout.Closed(closed);
+    m_timeFlyout.Closed(closed);
+    Attach(islandView, m_anchor);
+  }
+
+  void UpdateProps(
+      const rn::ComponentView &view,
+      const winrt::com_ptr<Codegen::ExpoInterfaceDateFlyoutProps> &newProps,
+      const winrt::com_ptr<Codegen::ExpoInterfaceDateFlyoutProps> &oldProps) noexcept override {
+    Codegen::BaseExpoInterfaceDateFlyout<DateFlyoutView>::UpdateProps(view, newProps, oldProps);
+    auto props = Props();
+    if (!props) return;
+    m_applying = true;
+    ApplyLook(props->ViewProps, props->theme, props->accentColor);
+    // The calendar lives in a popup, outside the island's tree: it takes the
+    // scheme and the accent from the island by hand.
+    m_calendar.RequestedTheme(Root().RequestedTheme());
+    ApplyAccent(m_calendar, props->accentColor);
+    if (auto min = DateFromString(props->minDate.value_or(""))) m_calendar.MinDate(*min);
+    else if (auto floor = DateFromString("1900-01-01")) m_calendar.MinDate(*floor);
+    if (auto max = DateFromString(props->maxDate.value_or(""))) m_calendar.MaxDate(*max);
+    else if (auto ceiling = DateFromString("2100-12-31")) m_calendar.MaxDate(*ceiling);
+    if (auto date = DateFromString(props->date.value_or(""))) {
+      m_calendar.SelectedDates().Clear();
+      m_calendar.SelectedDates().Append(*date);
+      m_calendar.SetDisplayDate(*date);
+    }
+    if (auto time = TimeFromString(props->time.value_or(""))) m_timeFlyout.Time(*time);
+    m_applying = false;
+    const bool time = props->mode.value_or("date") == "time";
+    if (props->open && !m_open) {
+      if (!m_switching) Show(time);
+    } else if (!props->open && m_open) {
+      Current().Hide();
+    } else if (props->open && m_open && time != m_time) {
+      m_switching = true;
+      Current().Hide();
+    }
+  }
+
+  void UpdateState(const rn::ComponentView &, const rn::IComponentState &newState) noexcept override {
+    KeepState(newState);
+  }
+
+ private:
+  controls::Primitives::FlyoutBase Current() const noexcept {
+    if (m_time) return m_timeFlyout;
+    return m_dateFlyout;
+  }
+
+  void Show(bool time) noexcept {
+    if (!m_anchor.XamlRoot()) {
+      // Not in the tree yet: shown once it is.
+      m_anchor.Loaded([weak = get_weak()](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
+        if (auto strong = weak.get()) {
+          if (auto props = strong->Props(); props && props->open && !strong->m_open) strong->Show(props->mode.value_or("date") == "time");
+        }
+      });
+      return;
+    }
+    auto props = Props();
+    if (!props) return;
+    m_open = true;
+    m_time = time;
+    controls::Primitives::FlyoutShowOptions options;
+    options.Position(winrt::Windows::Foundation::Point{static_cast<float>(props->x.value_or(0.0)), static_cast<float>(props->y.value_or(0.0))});
+    options.Placement(controls::Primitives::FlyoutPlacementMode::BottomEdgeAlignedLeft);
+    Current().ShowAt(m_anchor, options);
+    if (auto emitter = EventEmitter()) {
+      Codegen::ExpoInterfaceDateFlyoutEventEmitter::OnOpenChange event;
+      event.open = true;
+      emitter->onOpenChange(std::move(event));
+    }
+  }
+
+  void OnClosed() noexcept {
+    m_open = false;
+    // Closed to swap the calendar for the time, or back: show the other.
+    if (m_switching) {
+      m_switching = false;
+      if (auto props = Props(); props && props->open) Show(props->mode.value_or("date") == "time");
+      return;
+    }
+    if (auto emitter = EventEmitter()) {
+      Codegen::ExpoInterfaceDateFlyoutEventEmitter::OnOpenChange event;
+      event.open = false;
+      emitter->onOpenChange(std::move(event));
+    }
+  }
+
+  controls::Grid m_anchor{nullptr};
+  controls::CalendarView m_calendar{nullptr};
+  controls::Flyout m_dateFlyout{nullptr};
+  controls::TimePickerFlyout m_timeFlyout{nullptr};
+  bool m_applying{false};
+  bool m_open{false};
+  bool m_time{false};
+  bool m_switching{false};
+};
+
 // -- TimePicker --------------------------------------------------------------
 
 struct TimePickerView : winrt::implements<TimePickerView, winrt::IInspectable>,
@@ -659,6 +804,7 @@ void RegisterInputs(rn::IReactPackageBuilder const &packageBuilder) noexcept {
   RegisterIsland<SelectorBarView>(packageBuilder, &Codegen::RegisterExpoInterfaceSelectorBarNativeComponent<SelectorBarView>);
   RegisterIsland<DatePickerView>(packageBuilder, &Codegen::RegisterExpoInterfaceDatePickerNativeComponent<DatePickerView>);
   RegisterIsland<TimePickerView>(packageBuilder, &Codegen::RegisterExpoInterfaceTimePickerNativeComponent<TimePickerView>);
+  RegisterIsland<DateFlyoutView>(packageBuilder, &Codegen::RegisterExpoInterfaceDateFlyoutNativeComponent<DateFlyoutView>);
   RegisterIsland<TextBoxView>(packageBuilder, &Codegen::RegisterExpoInterfaceTextBoxNativeComponent<TextBoxView>);
   RegisterIsland<ColorPickerView>(packageBuilder, &Codegen::RegisterExpoInterfaceColorPickerNativeComponent<ColorPickerView>);
 }

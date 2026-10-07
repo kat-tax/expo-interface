@@ -61,7 +61,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`SegmentedControl`](controls.md#segmentedcontrol) | A row of segments that selects one option. |
 | [`Slider`](controls.md#slider) | A thumb along a continuous or stepped range. |
 | [`Stepper`](controls.md#stepper) | A number with increment and decrement buttons. |
-| [`DateTimePicker`](controls.md#datetimepicker) | A date, a time or both. |
+| [`DateTimePicker`](controls.md#datetimepicker) | A date, a time or both, as a row or presented from a chip. |
 | [`ColorPicker`](controls.md#colorpicker) | A color well that opens a picker, with swatches. |
 
 ## Indicators

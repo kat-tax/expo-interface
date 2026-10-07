@@ -298,9 +298,10 @@ Windows, where the box shows the number it edits.
 
 ## DateTimePicker
 
-Picks a date, a time or both. Props: `label`, `value`, `onChange`, `mode`
-(`date`, `time`, `datetime`), `minimumDate`, `maximumDate`, `disabled`,
-`accentColor`, `style`, `testID`.
+Picks a date, a time or both. Props: `label`, `value` (a `Date`, or a day as
+`YYYY-MM-DD`), `onChange(date, day)`, `mode` (`date`, `time`, `datetime`),
+`minimumDate`, `maximumDate` (a `Date` or a day), `disabled`, `accentColor`,
+`presented`, `at`, `onDismiss`, `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -311,6 +312,26 @@ Picks a date, a time or both. Props: `label`, `value`, `onChange`, `mode`
 
 The bounds are honoured everywhere except by the Windows `TimePicker`, which
 takes none.
+
+A day written `YYYY-MM-DD` is a day in no time zone, a due date or a
+birthday, read as its local midnight, and `onChange` hands back the local day
+the new value falls on beside the `Date`, so a value kept as a day stays one.
+Material's date dialog keeps its days in UTC; the kit hands it each day as
+midnight UTC and reads its answer back the same way, so the day picked is the
+day reported in every zone.
+
+`presented` draws no row. It presents the platform's own picker over the
+content, from `at` (the chip's rectangle, in the coordinates of the parent it
+is laid over), for a date chip on a canvas the kit did not draw; `onDismiss`
+is called when it closes, picked or not, after `onChange`. A day picked in
+`date` mode closes it.
+
+| Platform | Presented |
+| --- | --- |
+| iOS | A SwiftUI popover from the chip's bottom edge, holding the graphical calendar, or the wheels for a time. It closes on a tap outside. |
+| Android | The Material dialogs: the date, then the time for `datetime`. They open in the middle of the screen whatever `at` says. Dismissing the time after a day was picked keeps the day. |
+| Web | The browser's picker, opened with `showPicker()` from an unseen input laid over the chip. Where the browser refuses for want of a recent press, the input takes the focus and the keyboard edits it. It closes when the focus leaves or on Escape. |
+| Windows | A `CalendarView` in a flyout under the chip, then a `TimePickerFlyout` for `datetime`, from a one-point island. A light dismiss after a day was picked keeps the day. |
 
 ## ColorPicker
 

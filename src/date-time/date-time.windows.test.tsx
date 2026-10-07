@@ -49,9 +49,9 @@ describe('DateTimePicker (windows)', () => {
     const onChange = vi.fn();
     await render(<DateTimePicker value={noon} onChange={onChange}/>);
     await fireIsland(island(DATE), 'dateChange', {date: '2026-07-04'});
-    expect(onChange).toHaveBeenLastCalledWith(new Date(2026, 6, 4, 12, 30));
+    expect(onChange).toHaveBeenLastCalledWith(new Date(2026, 6, 4, 12, 30), '2026-07-04');
     await fireIsland(island(TIME), 'timeChange', {time: '08:05'});
-    expect(onChange).toHaveBeenLastCalledWith(new Date(2026, 5, 15, 8, 5));
+    expect(onChange).toHaveBeenLastCalledWith(new Date(2026, 5, 15, 8, 5), '2026-06-15');
   });
 
   it('ignores a malformed or empty value from an island', async () => {

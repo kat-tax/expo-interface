@@ -1,9 +1,12 @@
 import type {Meta, StoryObj} from '@storybook/react-native';
-import type {DateTimePickerProps} from './types';
+import type {DateTimeAnchor, DateTimePickerProps} from './types';
 import {fn} from 'storybook/test';
-import {useState} from 'react';
+import {useRef, useState} from 'react';
+import {Pressable, StyleSheet, View} from 'react-native';
 import {Column} from '@expo/ui';
 import {fillWidth} from '../fill';
+import {useColor} from '../theme';
+import {Footnote} from '../typography';
 import {DateTimePicker} from '.';
 
 const JUNE_15 = new Date(2026, 5, 15, 9, 30);
@@ -15,9 +18,9 @@ function Controlled({value, onChange, ...props}: DateTimePickerProps) {
     <DateTimePicker
       {...props}
       value={date}
-      onChange={next => {
+      onChange={(next, day) => {
         setDate(next);
-        onChange?.(next);
+        onChange?.(next, day);
       }}
     />
   );
@@ -29,9 +32,9 @@ function Form({onChange}: Pick<DateTimePickerProps, 'onChange'>) {
     end: new Date(2026, 5, 15, 17, 0),
     reminder: new Date(2026, 5, 14, 8, 0),
   });
-  const update = (key: keyof typeof state) => (date: Date) => {
+  const update = (key: keyof typeof state) => (date: Date, day: string) => {
     setState(s => ({...s, [key]: date}));
-    onChange?.(date);
+    onChange?.(date, day);
   };
   return (
     <Column modifiers={fillWidth} spacing={16}>
@@ -104,3 +107,50 @@ export const NoLabel: Story = {
 export const EventForm: Story = {
   render: args => <Form onChange={args.onChange}/>,
 };
+
+/**
+ * A due date kept as a day, `YYYY-MM-DD`, in a chip on a canvas: pressing the
+ * chip presents the platform's own picker from it, and a picked day closes it.
+ */
+function DueChip({onChange}: Pick<DateTimePickerProps, 'onChange'>) {
+  const [due, setDue] = useState('2026-06-15');
+  const [at, setAt] = useState<DateTimeAnchor | null>(null);
+  // Where the chip was laid out, which the picker opens from.
+  const chipRect = useRef<DateTimeAnchor>({x: 12, y: 12, width: 120, height: 28});
+  const fill = useColor('backgroundElement');
+  return (
+    <View style={styles.canvas}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Due ${due}`}
+        style={[styles.chip, {backgroundColor: fill}]}
+        onLayout={event => {
+          const {x, y, width, height} = event.nativeEvent.layout;
+          chipRect.current = {x, y, width, height};
+        }}
+        onPress={() => setAt(chipRect.current)}>
+        <Footnote color="label">{`Due ${due}`}</Footnote>
+      </Pressable>
+      <DateTimePicker
+        mode="date"
+        value={due}
+        presented={at !== null}
+        at={at}
+        onChange={(date, day) => {
+          setDue(day);
+          onChange?.(date, day);
+        }}
+        onDismiss={() => setAt(null)}
+      />
+    </View>
+  );
+}
+
+export const PresentedFromAChip: Story = {
+  render: args => <DueChip onChange={args.onChange}/>,
+};
+
+const styles = StyleSheet.create({
+  canvas: {height: 380, padding: 12, alignSelf: 'stretch'},
+  chip: {alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8},
+});

@@ -1,10 +1,12 @@
 import type {DateTimePickerProps} from './types';
+import {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
+import XamlDateFlyout from '../windows/specs/ExpoInterfaceDateFlyoutNativeComponent';
 import XamlDatePicker from '../windows/specs/ExpoInterfaceDatePickerNativeComponent';
 import XamlTimePicker from '../windows/specs/ExpoInterfaceTimePickerNativeComponent';
 import {useXamlProps} from '../windows';
 import {Label} from '../typography';
-import {useDateValue, withDatePart, withTimePart} from './shared';
+import {toDate, useDateValue, withDatePart, withTimePart} from './shared';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -41,9 +43,15 @@ export function parseTimeString(raw: string, base: Date): Date | null {
  * calendar flyout) and `TimePicker` (a field that opens a time flyout) in
  * XAML islands, one or both by `mode`, at the trailing edge of a row whose
  * label the kit draws. Each edits its own part of the value and keeps the
- * other's.
+ * other's. Presented, there is no row: the calendar or the time opens in a
+ * flyout at the chip.
  */
-export function DateTimePicker({
+export function DateTimePicker(props: DateTimePickerProps) {
+  if (props.presented !== undefined) return <PresentedPicker {...props}/>;
+  return <RowPicker {...props}/>;
+}
+
+function RowPicker({
   label,
   value,
   onChange,
@@ -58,6 +66,8 @@ export function DateTimePicker({
   const xaml = useXamlProps();
   const [current, setValue] = useDateValue(value, onChange);
   const shared = {...xaml, accentColor: accentColor ?? xaml.accentColor, disabled, label};
+  const minimum = toDate(minimumDate);
+  const maximum = toDate(maximumDate);
   return (
     <View style={[styles.row, style]} testID={testID}>
       {label != null ? (
@@ -69,8 +79,8 @@ export function DateTimePicker({
         {mode !== 'time' ? (
           <XamlDatePicker
             date={toDateString(current)}
-            minDate={minimumDate ? toDateString(minimumDate) : ''}
-            maxDate={maximumDate ? toDateString(maximumDate) : ''}
+            minDate={minimum ? toDateString(minimum) : ''}
+            maxDate={maximum ? toDateString(maximum) : ''}
             onDateChange={event => {
               const next = parseDateString(event.nativeEvent.date, current);
               if (next) setValue(next);
@@ -93,7 +103,89 @@ export function DateTimePicker({
   );
 }
 
+/**
+ * The calendar in a flyout at the chip, then the time for `datetime`, from a
+ * one-point island at the parent's origin. A day picked in `date` mode
+ * closes it, and so does a time; a light dismiss after a day was picked on
+ * the way to the time keeps the day.
+ */
+function PresentedPicker({
+  value,
+  onChange,
+  mode = 'datetime',
+  minimumDate,
+  maximumDate,
+  accentColor,
+  presented = false,
+  at,
+  onDismiss,
+  testID,
+}: DateTimePickerProps) {
+  const xaml = useXamlProps();
+  const [current, setValue] = useDateValue(value, onChange);
+  const first = mode === 'time' ? 'time' : 'date';
+  const [shown, setShown] = useState(false);
+  const [stage, setStage] = useState<'date' | 'time'>(first);
+  const [draft, setDraft] = useState<Date | null>(null);
+  if (presented !== shown) {
+    setShown(presented);
+    if (presented) {
+      setStage(first);
+      setDraft(null);
+    }
+  }
+  const minimum = toDate(minimumDate);
+  const maximum = toDate(maximumDate);
+  const shownValue = draft ?? current;
+  return (
+    <XamlDateFlyout
+      open={presented}
+      mode={stage}
+      date={toDateString(shownValue)}
+      time={toTimeString(shownValue)}
+      minDate={minimum ? toDateString(minimum) : ''}
+      maxDate={maximum ? toDateString(maximum) : ''}
+      x={at?.x ?? 0}
+      y={(at?.y ?? 0) + (at?.height ?? 0)}
+      onDateChange={event => {
+        const next = parseDateString(event.nativeEvent.date, current);
+        if (!next) return;
+        if (mode === 'datetime') {
+          setDraft(next);
+          setStage('time');
+          return;
+        }
+        setValue(next);
+        onDismiss?.();
+      }}
+      onTimeChange={event => {
+        const next = parseTimeString(event.nativeEvent.time, shownValue);
+        if (next) setValue(next);
+        onDismiss?.();
+      }}
+      onOpenChange={event => {
+        // A close after the app stopped presenting it is the app's own.
+        if (event.nativeEvent.open || !presented) return;
+        if (draft) setValue(draft);
+        onDismiss?.();
+      }}
+      style={styles.flyout}
+      testID={testID}
+      {...xaml}
+      accentColor={accentColor ?? xaml.accentColor}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
+  flyout: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: 1,
+    height: 1,
+    pointerEvents: 'none',
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

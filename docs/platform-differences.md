@@ -32,6 +32,7 @@ The differences that change what a screen can do, in one place:
 | `HeaderSearch` `inline` | Native on iOS 16 to 18 | The `SearchView` kept open | Drawn, frameless | Drawn, the `AutoSuggestBox` |
 | `HeaderSearch` `hideWhenScrolling`, `integration` | Yes | Ignored | Ignored | Ignored |
 | `DateTimePicker` time bounds | Yes | Yes | Yes | Date only |
+| `DateTimePicker` presented | A popover from the chip | The dialogs, in the middle of the screen | The browser's picker at the chip | A flyout under the chip |
 | `FieldGroup` `titleUppercase` | Ignored | Yes | Yes | Yes |
 | `TabView` reordering | No | No | No | Off |
 | `TabView` close on the keyboard | Button | Button | Delete | The control's cross |

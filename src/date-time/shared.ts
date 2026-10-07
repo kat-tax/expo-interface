@@ -1,4 +1,4 @@
-import type {DateTimeMode} from './types';
+import type {DateTimeMode, DateTimeValue} from './types';
 import {useCallback, useState} from 'react';
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB', {
@@ -33,27 +33,61 @@ export function formatValue(date: Date, mode: DateTimeMode): string {
 
 /**
  * Bridges controlled and uncontrolled usage. When `value` is provided the
- * component is controlled; otherwise it falls back to internal state.
+ * component is controlled; otherwise it falls back to internal state. A
+ * value given as a `YYYY-MM-DD` day is read as that day's local midnight,
+ * and every change is reported with the local day it falls on.
  * @param value - The current value of the date time picker.
  * @param onChange - The function to call when the date time picker value changes.
  * @returns The current value and the function to call when the date time picker value changes.
  */
 export function useDateValue(
-  value: Date | undefined,
-  onChange: ((date: Date) => void) | undefined,
+  value: DateTimeValue | undefined,
+  onChange: ((date: Date, day: string) => void) | undefined,
 ): [Date, (next: Date) => void] {
-  const [internal, setInternal] = useState(() => value ?? new Date());
-  const current = value ?? internal;
+  const given = toDate(value);
+  const [internal, setInternal] = useState(() => given ?? new Date());
+  const current = given ?? internal;
   const setValue = useCallback(
     (next: Date) => {
       if (value === undefined) {
         setInternal(next);
       }
-      onChange?.(next);
+      onChange?.(next, dayOf(next));
     },
     [value, onChange],
   );
   return [current, setValue];
+}
+
+/** A date's local calendar day, as `YYYY-MM-DD`. */
+export function dayOf(date: Date): string {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/** A `YYYY-MM-DD` day as its local midnight; `undefined` for anything else. */
+export function parseDay(day: string): Date | undefined {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);
+  if (!match) return undefined;
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+}
+
+/** A value as a `Date`: a day string read as its local midnight, a `Date` as it is. */
+export function toDate(value: DateTimeValue | undefined): Date | undefined {
+  return typeof value === 'string' ? parseDay(value) : value;
+}
+
+/**
+ * The instant Material's date dialog shows as a date's local day: midnight
+ * UTC of that day, since the dialog keeps its days in UTC. The local
+ * instant itself shows as the day before, west of Greenwich, before noon.
+ */
+export function utcDayOf(date: Date): Date {
+  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+}
+
+/** The local day Material's date dialog picked, from its answer at midnight UTC. */
+export function fromUtcDay(picked: Date): Date {
+  return new Date(picked.getUTCFullYear(), picked.getUTCMonth(), picked.getUTCDate());
 }
 
 /**
