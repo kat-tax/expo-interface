@@ -10,9 +10,10 @@ import {Animated, Appearance, Platform, StyleSheet, View} from 'react-native';
 import {setBackgroundColorAsync} from 'expo-system-ui';
 import {useAccentSeed} from '../accent';
 import {NativeHostContext} from '../host';
-import {useFloatingHeader, useStackHeader} from '../stack-header/context';
+import {Material} from '../material';
+import {HeaderMaterialContext, useFloatingHeader, useStackHeader} from '../stack-header/context';
 import {useColorScheme} from '../scheme';
-import {FoldedSearchContext, useNativeTabs, useTabBarInset} from '../tabs/context';
+import {BarRowsContext, useNativeTabs, useTabBarInset} from '../tabs/context';
 import {ToastInsetContext} from '../toast/context';
 import * as theme from '../theme';
 
@@ -96,9 +97,20 @@ export function Screen({
   const insets = useSafeAreaInsets();
   const backgroundColor = background(scheme);
   const lift = useToastLift();
-  const {bars, top, bottom, hasBottom} = useScreenBars();
+  const {bars, top, bottom, hasTop, hasBottom} = useScreenBars();
+  // Under a header the screen runs under, the rows at its top (a
+  // `HeaderAccessory`) float at the header's bottom edge in its material, and
+  // are paid for as the header is: measured, and added to the bar's inset for
+  // the content under them.
+  const headerMaterial = useContext(HeaderMaterialContext);
+  const floatingRows = floating && hasTop;
+  const [rowsHeight, setRowsHeight] = useState(0);
+  const onRowsLayout = (event: LayoutChangeEvent) => setRowsHeight(event.nativeEvent.layout.height);
+  const rows = floatingRows ? rowsHeight : 0;
+  // On web, the rows the tab bar has put under itself (a folded header's search, its accessory).
+  const barRows = useContext(BarRowsContext);
   // What the content under a bar pads itself by, handed to the kit's scrolling components.
-  const barInset = useTabBarInset();
+  const barInset = useTabBarInset() + rows;
   const scrollInsets = useMemo(() => ({top: underBar ? barInset : 0, bottom: 0}), [underBar, barInset]);
   // The bottom bars' height, measured, which the fab sits above.
   const [barHeight, setBarHeight] = useState(0);
@@ -109,13 +121,12 @@ export function Screen({
   const underTabs = useNativeTabs();
   const bottomPaid = Platform.OS === 'android' && underTabs;
   const edges: Edge[] = [...(underHeader ? [] : ['top' as const]), 'left', 'right', ...(bottomPaid ? [] : ['bottom' as const])];
-  // On web a folded header's search row under the tab bar is one more thing above the content.
-  const foldedSearch = useContext(FoldedSearchContext);
   // The top: the status bar's own, with no header above (web pads the bar's
-  // height, and the top edge pays the status bar natively); under a header
-  // the content runs under, the header's height stays clear, unless the
-  // content passes under it and pads itself (`underBar`).
-  const paddingTop = underBar ? 0 : !underHeader ? theme.inset.topBar + foldedSearch : floating ? insets.top + theme.inset.header : 0;
+  // height and the rows under it, and the top edge pays the status bar
+  // natively); under a header the content runs under, the header's height
+  // and its rows stay clear, unless the content passes under them and pads
+  // itself (`underBar`).
+  const paddingTop = underBar ? 0 : !underHeader ? theme.inset.topBar + barRows : floating ? insets.top + theme.inset.header + rows : 0;
   const fabBottom = theme.spacing.three + (hasBottom ? barHeight : 0);
 
   useEffect(() => {
@@ -128,23 +139,30 @@ export function Screen({
       edges={edges}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'}/>
       <View style={[styles.root, {paddingTop}]}>
-        {top}
+        {floatingRows ? null : top}
         <View style={[styles.content, gutter ? styles.gutter : undefined]}>
           <ToastInsetContext.Provider value={lift.report}>
             <ScreenBarsContext.Provider value={bars}>
-              <ScrollInsetsContext.Provider value={scrollInsets}>
-                {!native ? children : (
-                  <NativeHostContext.Provider value={true}>
-                    <Host style={{flex: 1}} {...hostAccentProps(seed)}>
-                      {children}
-                    </Host>
-                  </NativeHostContext.Provider>
-                )}
-              </ScrollInsetsContext.Provider>
+              <BarRowsContext.Provider value={barRows + rows}>
+                <ScrollInsetsContext.Provider value={scrollInsets}>
+                  {!native ? children : (
+                    <NativeHostContext.Provider value={true}>
+                      <Host style={{flex: 1}} {...hostAccentProps(seed)}>
+                        {children}
+                      </Host>
+                    </NativeHostContext.Provider>
+                  )}
+                </ScrollInsetsContext.Provider>
+              </BarRowsContext.Provider>
             </ScreenBarsContext.Provider>
           </ToastInsetContext.Provider>
         </View>
       </View>
+      {floatingRows ? (
+        <View testID="screen-header-rows" onLayout={onRowsLayout} style={[styles.headerRows, {top: insets.top + theme.inset.header}]}>
+          <Material kind={headerMaterial === 'none' ? 'regular' : headerMaterial} edge="bottom">{top}</Material>
+        </View>
+      ) : null}
       {hasBottom ? <View onLayout={onBarsLayout} testID="screen-bars">{bottom}</View> : null}
       {fab != null ? (
         <Animated.View
@@ -176,6 +194,12 @@ const styles = StyleSheet.create({
   },
   gutter: {
     paddingHorizontal: theme.spacing.three,
+  },
+  // The rows floating under a header the screen runs under, the screen's width.
+  headerRows: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
   },
   fab: {
     position: 'absolute',

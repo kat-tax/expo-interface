@@ -3,7 +3,7 @@ import {act, renderHook} from '@testing-library/react-native';
 import {setInsets} from 'vitest-native/helpers';
 import {FloatingHeaderContext} from '../stack-header/context';
 import {inset} from '../theme';
-import {useTabBarInset} from './context';
+import {BarRowsContext, useTabBarInset} from './context';
 
 describe(`useTabBarInset (${Platform.OS})`, () => {
   it('is nothing under an opaque header, with the tab bar at the bottom', async () => {
@@ -20,6 +20,15 @@ describe(`useTabBarInset (${Platform.OS})`, () => {
       // The navigation bar's height on iOS, the top app bar's on Android.
       expect(inset.header).toBe(Platform.OS === 'ios' ? 44 : 56);
       expect(result.current).toBe(47 + inset.header);
+      // A row floating under the header (`HeaderAccessory`) is paid on top.
+      const {result: rows} = await renderHook(() => useTabBarInset(), {
+        wrapper: ({children}) => (
+          <FloatingHeaderContext.Provider value={true}>
+            <BarRowsContext.Provider value={40}>{children}</BarRowsContext.Provider>
+          </FloatingHeaderContext.Provider>
+        ),
+      });
+      expect(rows.current).toBe(47 + inset.header + 40);
     } finally {
       await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 0}));
     }

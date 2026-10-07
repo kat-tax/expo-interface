@@ -1,3 +1,4 @@
+import type {SheetMaterial} from '../sheet/types';
 import {createContext, useContext} from 'react';
 
 /** True below a stack header — see {@link useStackHeader}. */
@@ -25,3 +26,10 @@ export const FloatingHeaderContext = createContext(false);
 export function useFloatingHeader(): boolean {
   return useContext(FloatingHeaderContext);
 }
+
+/**
+ * The material of the floating stack header above this point (`TabStack
+ * material`), which a row floating under it (`HeaderAccessory`) is drawn in;
+ * `none` under an opaque header.
+ */
+export const HeaderMaterialContext = createContext<SheetMaterial>('none');

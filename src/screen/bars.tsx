@@ -26,7 +26,7 @@ interface Entry {
  * puts its row here, so the row is the screen's wherever the control was
  * rendered, outside the content's host and clear of its gutter.
  */
-export function useScreenBars(): {bars: ScreenBars; top: ReactNode; bottom: ReactNode; hasBottom: boolean} {
+export function useScreenBars(): {bars: ScreenBars; top: ReactNode; bottom: ReactNode; hasTop: boolean; hasBottom: boolean} {
   const [entries, setEntries] = useState<ReadonlyMap<string, Entry>>(() => new Map());
   const bars = useMemo<ScreenBars>(() => ({
     set(id, edge, node) {
@@ -39,11 +39,13 @@ export function useScreenBars(): {bars: ScreenBars; top: ReactNode; bottom: Reac
     },
   }), []);
   const on = (edge: ScreenBarEdge) => [...entries].filter(([, entry]) => entry.edge === edge);
+  const top = on('top');
   const bottom = on('bottom');
   return {
     bars,
-    top: on('top').map(([id, entry]) => <Fragment key={id}>{entry.node}</Fragment>),
+    top: top.map(([id, entry]) => <Fragment key={id}>{entry.node}</Fragment>),
     bottom: bottom.map(([id, entry]) => <Fragment key={id}>{entry.node}</Fragment>),
+    hasTop: top.length > 0,
     hasBottom: bottom.length > 0,
   };
 }

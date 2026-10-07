@@ -4,6 +4,7 @@ import {Animated, Text} from 'react-native';
 import {router} from 'expo-router';
 import {renderApp} from 'expo-vitest/router';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
+import {HeaderAccessory} from '../header-accessory';
 import {TabStack} from '../tab-stack';
 import {Tabs} from '../tabs';
 import {Screen} from '../screen';
@@ -84,6 +85,22 @@ describe('Stack (windows)', () => {
       ),
     });
     expect(screen.getByText('Drops').parent!).toContainElement(screen.getByTestId('q'));
+  });
+
+  it('draws the screen\'s accessory under the header row', async () => {
+    await renderApp({
+      ...app(),
+      index: () => (
+        <>
+          <HeaderAccessory><Text testID="strip">Strip</Text></HeaderAccessory>
+          <Text>Home screen</Text>
+        </>
+      ),
+    });
+    const strip = screen.getByTestId('strip');
+    // In the header, under its row rather than in it.
+    expect(screen.getByText('Drops').parent!).not.toContainElement(strip);
+    expect(screen.getByText('Drops').parent!.parent!).toContainElement(strip);
   });
 
   it('hides the header on request', async () => {

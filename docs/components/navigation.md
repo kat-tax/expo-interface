@@ -352,6 +352,35 @@ Differences:
 - On Windows `focus` and `blur` through the `ref` ask the `AutoSuggestBox`'s
   island for the focus through react-native-windows' focus command.
 
+## HeaderAccessory
+
+A row of the screen's own under its header: a strip of document tabs, a
+filter bar, a breadcrumb. Render it in the screen's content, as a
+`HeaderSearch` is, and the header takes it. The row lays out its own height.
+
+```tsx
+<Screen underBar>
+  <HeaderAccessory>
+    <TabView tabs={open} selected={current} onSelect={setCurrent}/>
+  </HeaderAccessory>
+  <List data={rows} renderItem={renderRow}/>
+</Screen>
+```
+
+Content passing under a bar pays for the row through `useTabBarInset()`, as
+it pays for the bar, so a `Screen underBar` with the kit's `List` or
+`CardGrid` starts its first row clear of both.
+
+| Platform | Draws |
+| --- | --- |
+| iOS | The row is the `Screen`'s, at its top. Under a header the screens run under (a `TabStack` with a `material`), it floats at the header's bottom edge in the header's material, and its height is added to `useTabBarInset()`. Under an opaque header it sits above the content. |
+| Android | The row above the content, under the app bar, which is opaque. |
+| Web | Under the header's row, in the header's fill. Under a `Tabs` bar that folds the header, a pill under the bar (and under a stacked search), in the bar's material, measured, and added to `useTabBarInset()`. |
+| Windows | Under the header's row, in the header's fill, clear of the caption buttons in the title bar. |
+
+Outside a `Screen` on iOS and Android the row is drawn where the element
+is.
+
 ## ExternalLink
 
 A link to a URL outside the app.

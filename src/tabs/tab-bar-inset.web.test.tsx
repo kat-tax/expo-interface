@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {inset} from '../theme';
-import {FoldedSearchContext, TabBarContext, useTabBarInset} from './context';
+import {BarRowsContext, TabBarContext, useTabBarInset} from './context';
 
 describe('useTabBarInset (web)', () => {
   it('is nothing without a bar, the bar\'s inset under one, and the search row\'s height on top of it', () => {
@@ -10,7 +10,7 @@ describe('useTabBarInset (web)', () => {
         wrapper: ({children}) => (
           <SafeAreaProvider>
             <TabBarContext.Provider value={bar}>
-              <FoldedSearchContext.Provider value={search}>{children}</FoldedSearchContext.Provider>
+              <BarRowsContext.Provider value={search}>{children}</BarRowsContext.Provider>
             </TabBarContext.Provider>
           </SafeAreaProvider>
         ),

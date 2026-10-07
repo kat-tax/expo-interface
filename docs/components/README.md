@@ -43,6 +43,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`Pager`](navigation.md#pager) | Full-width pages that snap, with an indicator. |
 | [`HeaderMenu`, `HeaderAction`, `HeaderActions`](navigation.md#headermenu-headeraction-headeractions) | Controls for a stack header's trailing slot. |
 | [`HeaderSearch`](navigation.md#headersearch) | The header's search, in the platforms' placements. |
+| [`HeaderAccessory`](navigation.md#headeraccessory) | A row of the screen's own under its header, paid for in the bar's inset. |
 | [`ExternalLink`](navigation.md#externallink) | A link to a URL outside the app. |
 | [`ShareLink`](navigation.md#sharelink) | A button that opens the platform's share sheet. |
 
@@ -106,4 +107,5 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | `useKeyboardShortcut` | A keyboard shortcut on Windows. | [Windows](../platforms/windows.md#keyboard) |
 | `nextSelection` | Which tab to select when one closes. | [TabView](navigation.md#tabview) |
 | `useScrollInsets` | The insets a screen's scroll content pays for a bar it passes under, plus its own. | [Screen](layout.md#screen) |
+| `useTabBarInset` | The space the bar floating over the screen takes at its top, with the rows under it. | [HeaderAccessory](navigation.md#headeraccessory) |
 | `caretPoint` | Where the caret is in a text field, on web. | [PopupMenu](overlays.md#popupmenu) |

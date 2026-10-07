@@ -16,7 +16,7 @@ import {useSearchSite} from '../header-search/site';
 import {materialProps} from '../material';
 import {hasMaterial} from '../sheet/shared';
 import {Icon} from '../symbol';
-import {FoldedSearchContext, HeaderSlotContext, InBarContext, NarrowBarContext, TabBarContext, createHeaderSlot, noSubscription, useNarrowBar} from './context';
+import {BarRowsContext, HeaderSlotContext, InBarContext, NarrowBarContext, TabBarContext, createHeaderSlot, noSubscription, useNarrowBar} from './context';
 import {routeToken} from './icon';
 import {Headline, Label} from '../typography';
 
@@ -50,19 +50,19 @@ export function Tabs({
   const folded = useSyncExternalStore(slot ? slot.subscribe : noSubscription, isFolded, isFolded);
   // The bar stays while it carries a screen's header, even with the tabs hidden.
   const shown = !hidden || folded;
-  // Whether the bar has put a folded header's `stacked` search under itself,
-  // which the screens pay for.
-  const [searchRow, setSearchRow] = useState(false);
+  // The rows the bar has put under itself for a folded header (its `stacked`
+  // search, its accessory), which the screens pay for.
+  const [rows, setRows] = useState(0);
   return (
     <HeaderSlotContext.Provider value={slot}>
       {/* The bar floats over the screens; what is under it leaves its space clear. */}
       <TabBarContext.Provider value={shown}>
-        <FoldedSearchContext.Provider value={searchRow ? FOLDED_SEARCH_INSET : 0}>
+        <BarRowsContext.Provider value={rows}>
           <WebTabs>
             <TabSlot style={styles.slot}/>
             {/* The triggers stay in the list even while the bar is hidden: that is where the router looks for the routes. */}
             <TabList asChild>
-              <WebTabList logo={webLogo} icon={webIcon} slot={slot} hidden={hidden} shown={shown} actions={webActions} actionsPlacement={webActionsPlacement} material={webMaterial} onSearchRow={setSearchRow}>
+              <WebTabList logo={webLogo} icon={webIcon} slot={slot} hidden={hidden} shown={shown} actions={webActions} actionsPlacement={webActionsPlacement} material={webMaterial} onRows={setRows}>
                 {routes.map(route => (
                   <TabTrigger key={route.name} name={route.name} href={route.href} asChild>
                     <TabLink icon={route.icon} badge={route.badge}>{route.label}</TabLink>
@@ -71,7 +71,7 @@ export function Tabs({
               </WebTabList>
             </TabList>
           </WebTabs>
-        </FoldedSearchContext.Provider>
+        </BarRowsContext.Provider>
       </TabBarContext.Provider>
     </HeaderSlotContext.Provider>
   );
@@ -90,11 +90,14 @@ interface WebTabListProps extends TabListProps {
   actionsPlacement?: 'before' | 'after';
   /** The bar's material (`Tabs webMaterial`): a blur of what passes under it, or its solid fill. */
   material?: SheetMaterial;
-  /** Told whether a folded header's search is drawn as a row under the bar. */
-  onSearchRow?: (drawn: boolean) => void;
+  /**
+   * Told the height of the rows the bar draws under itself for a folded
+   * header, its stacked search and its accessory, with the gaps to the bar.
+   */
+  onRows?: (height: number) => void;
 }
 
-export function WebTabList({logo, icon, slot, hidden = false, shown = true, actions, actionsPlacement = 'before', material = 'none', onSearchRow, ...props}: WebTabListProps) {
+export function WebTabList({logo, icon, slot, hidden = false, shown = true, actions, actionsPlacement = 'before', material = 'none', onRows, ...props}: WebTabListProps) {
   // As in `Tabs`: one reader for the live bar and for a static render, which
   // has no published header either way.
   const read = () => (slot ? slot.get() : null);
@@ -126,9 +129,14 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
   const search = useSearchSite(header?.search);
   const inline = search.placement === 'inline' ? search.inRow : null;
   const stackedRow = search.stacked != null;
+  // The folded header's accessory: a row of its own under the bar (and under
+  // the stacked search), measured, since its content sets its height.
+  const accessory = header?.accessory;
+  const {row: accessoryRow, height: accessoryHeight} = useRowHeight(accessory != null);
+  const rows = (stackedRow ? FOLDED_SEARCH_INSET : 0) + (accessoryHeight > 0 ? accessoryHeight + spacing.two : 0);
   useEffect(() => {
-    onSearchRow?.(stackedRow);
-  }, [onSearchRow, stackedRow]);
+    onRows?.(rows);
+  }, [onRows, rows]);
   const fill = hasMaterial(material) ? null : styles.solid;
   const actionsAndSearch = (
     <>
@@ -188,8 +196,37 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
           <InBarContext.Provider value={true}>{search.stacked}</InBarContext.Provider>
         </View>
       ) : null}
+      {/* The accessory: a pill under the bar, in the bar's own material, at the bar's width. */}
+      {accessory != null ? (
+        <View ref={accessoryRow} testID="tab-bar-accessory" style={[styles.accessoryRow, fill]} {...materialProps(material, 'element', 'all')}>
+          {accessory}
+        </View>
+      ) : null}
     </View>
   );
+}
+
+/**
+ * The height of a row under the bar whose content sets it, read from the
+ * page after every render and on a resize; zero while the row is not drawn.
+ */
+function useRowHeight(drawn: boolean): {row: React.RefObject<View | null>; height: number} {
+  const row = useRef<View>(null);
+  const [height, setHeight] = useState(0);
+  const read = useCallback(() => {
+    // A react-native-web view's ref is its DOM element.
+    const element = row.current as unknown as HTMLElement | null;
+    setHeight(element ? element.offsetHeight : 0);
+  }, []);
+  useLayoutEffect(read);
+  useEffect(() => {
+    // A static render has no observer, and nothing to resize.
+    if (!drawn || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(read);
+    observer.observe(row.current as unknown as HTMLElement);
+    return () => observer.disconnect();
+  }, [drawn, read]);
+  return {row, height};
 }
 
 /**
@@ -343,6 +380,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.two,
     borderRadius: spacing.five,
+  },
+  // The accessory row: the screen's own content in a pill of the bar's fill, the bar's width.
+  accessoryRow: {
+    width: '100%',
+    maxWidth: bound.contentMaxWidth,
+    paddingHorizontal: spacing.two,
+    borderRadius: spacing.five,
+    overflow: 'hidden',
   },
   // The slot takes the row's spare width, which is the gap before the actions
   // and the tabs, or the room a search in it grows into. It shrinks before

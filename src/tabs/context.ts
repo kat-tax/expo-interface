@@ -10,29 +10,33 @@ import {inset} from '../theme';
 export const TabBarContext = createContext(false);
 
 /**
- * Web: the height of the search row the tab bar has put under itself, for a
- * folded header whose search is `stacked`, and zero without one. The bar
- * floats over the screens, so what is under it pays this on top of the
- * bar's own inset — see {@link useTabBarInset}.
+ * The height of the rows under the bar floating over the screen, with the
+ * gaps between them, and zero without any. On web, the rows the tab bar has
+ * put under itself for a folded header: its `stacked` search and its
+ * accessory (`HeaderAccessory`). On iOS, a `HeaderAccessory` floating under a
+ * header the screens run under. What is under the bar pays this on top of
+ * the bar's own inset (see {@link useTabBarInset}).
  */
-export const FoldedSearchContext = createContext(0);
+export const BarRowsContext = createContext(0);
 
 /**
  * The space a bar floating over the screen takes at its top: what content
  * passing under it (`Screen underBar`) pads itself by. On web it is the tab
  * bar's, while the bar is drawn (`Tabs hidden` with no header folded into it
- * draws none), plus the search row a folded header has put under the bar;
- * on iOS, where the tab bar is the platform's own and sits at the bottom, it
- * is the stack header's under a `TabStack` with a `material`, the status bar
- * included, and zero under an opaque one, which Android's header always is.
+ * draws none), plus the rows a folded header has put under the bar (its
+ * stacked search, its `HeaderAccessory`); on iOS, where the tab bar is the
+ * platform's own and sits at the bottom, it is the stack header's under a
+ * `TabStack` with a `material`, the status bar and a `HeaderAccessory`
+ * floating under it included, and zero under an opaque one, which Android's
+ * header always is.
  */
 export function useTabBarInset(): number {
   const bar = useContext(TabBarContext);
-  const search = useContext(FoldedSearchContext);
+  const rows = useContext(BarRowsContext);
   const floating = useFloatingHeader();
   const insets = useSafeAreaInsets();
-  if (Platform.OS === 'web') return bar ? inset.topBar + search : 0;
-  return floating ? insets.top + inset.header : 0;
+  if (Platform.OS === 'web') return bar ? inset.topBar + rows : 0;
+  return floating ? insets.top + inset.header + rows : 0;
 }
 
 /** True inside the native tab bar's screens — see {@link useNativeTabs}. */
@@ -92,6 +96,8 @@ export interface WebHeader {
    * under the bar for `stacked`.
    */
   search?: HeaderSearchSlot;
+  /** The screen's row under its header (`HeaderAccessory`), which the bar puts under itself. */
+  accessory?: ReactNode;
 }
 
 /**

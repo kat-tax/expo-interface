@@ -23,6 +23,8 @@ interface ScreenHeaderProps {
    * width.
    */
   search?: HeaderSearchSlot;
+  /** A row of the screen's own under the header's (`HeaderAccessory`), in the bar's fill. */
+  accessory?: React.ReactNode;
   /**
    * Web only: draws the bar as one of the kit's materials, the ones `Sheet`
    * takes: the screen's background thinned over a blur of what the app lays
@@ -36,7 +38,7 @@ interface ScreenHeaderProps {
   dragRegion?: boolean;
 }
 
-export function ScreenHeader({title, onBack, trailing, search, material = 'none'}: ScreenHeaderProps) {
+export function ScreenHeader({title, onBack, trailing, search, accessory, material = 'none'}: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
   const tabBar = useTabBarInset();
   const label = useColor('label');
@@ -72,6 +74,7 @@ export function ScreenHeader({title, onBack, trailing, search, material = 'none'
         <InHeaderContext.Provider value={true}>{trailing}</InHeaderContext.Provider>
       </View>
       {site.stacked ? <View style={styles.search}>{site.stacked}</View> : null}
+      {accessory != null ? <View style={styles.search}>{accessory}</View> : null}
     </View>
   );
 }
@@ -99,7 +102,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
   },
-  // The stacked search: a row under the title at the content's width, in the bar's own fill.
+  // The stacked search and the accessory: rows under the title at the content's width, in the bar's own fill.
   search: {
     width: '100%',
     maxWidth: bound.contentMaxWidth,

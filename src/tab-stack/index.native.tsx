@@ -3,7 +3,7 @@ import type {TabStackProps} from './index';
 import {Stack} from 'expo-router';
 import {Platform} from 'react-native';
 import {toolbarItems, useHeaderTints} from '../header/toolbar';
-import {FloatingHeaderContext, StackHeaderContext} from '../stack-header/context';
+import {FloatingHeaderContext, HeaderMaterialContext, StackHeaderContext} from '../stack-header/context';
 import {hasMaterial} from '../sheet/shared';
 import {useNavTheme} from '../theme';
 
@@ -28,19 +28,21 @@ export function TabStack({title, headerRight, material = 'none'}: TabStackProps)
   return (
     <StackHeaderContext.Provider value={true}>
       <FloatingHeaderContext.Provider value={floating}>
-        <Stack
-          screenOptions={{
-            headerShown: true,
-            headerShadowVisible: false,
-            headerBackButtonDisplayMode: 'minimal',
-            headerTintColor: colors.text,
-            headerTitleStyle: {color: colors.text},
-            ...(floating ? materialOptions(material) : {headerStyle: {backgroundColor: colors.background}}),
-          }}>
-          <Stack.Screen name="index" options={{title}}>
-            {headerRight ? <Stack.Toolbar placement="right">{toolbarItems(headerRight(), tints)}</Stack.Toolbar> : null}
-          </Stack.Screen>
-        </Stack>
+        <HeaderMaterialContext.Provider value={floating ? material : 'none'}>
+          <Stack
+            screenOptions={{
+              headerShown: true,
+              headerShadowVisible: false,
+              headerBackButtonDisplayMode: 'minimal',
+              headerTintColor: colors.text,
+              headerTitleStyle: {color: colors.text},
+              ...(floating ? materialOptions(material) : {headerStyle: {backgroundColor: colors.background}}),
+            }}>
+            <Stack.Screen name="index" options={{title}}>
+              {headerRight ? <Stack.Toolbar placement="right">{toolbarItems(headerRight(), tints)}</Stack.Toolbar> : null}
+            </Stack.Screen>
+          </Stack>
+        </HeaderMaterialContext.Provider>
       </FloatingHeaderContext.Provider>
     </StackHeaderContext.Provider>
   );

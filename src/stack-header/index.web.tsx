@@ -15,6 +15,8 @@ interface StackHeaderProps {
     headerRight?: (props: {tintColor?: string}) => React.ReactNode;
     /** The screen's search, which `HeaderSearch` sets from the screen's content. */
     headerSearch?: HeaderSearchSlot;
+    /** The screen's row under its header, which `HeaderAccessory` sets from the screen's content. */
+    headerAccessory?: React.ReactNode;
   };
 }
 
@@ -41,6 +43,7 @@ function StackHeader({navigation, route, back, options}: StackHeaderProps) {
 
   const trailing = options.headerRight?.({});
   const search = options.headerSearch;
+  const accessory = options.headerAccessory;
   const onBack = back ? () => navigation.goBack() : undefined;
 
   // Under a bar that takes headers, that bar is this row: nothing is drawn
@@ -56,6 +59,7 @@ function StackHeader({navigation, route, back, options}: StackHeaderProps) {
         onBack={onBack}
         trailing={trailing}
         search={search}
+        accessory={accessory}
       />
     );
   }
@@ -66,6 +70,7 @@ function StackHeader({navigation, route, back, options}: StackHeaderProps) {
       onBack={onBack}
       trailing={trailing}
       search={search}
+      accessory={accessory}
     />
   );
 }
@@ -78,7 +83,7 @@ function StackHeader({navigation, route, back, options}: StackHeaderProps) {
  * published on render alone would leave the bar drawing the screen the user
  * left — and offering its actions.
  */
-function FoldedHeader({slot, title, onBack, trailing, search}: {slot: HeaderSlot} & WebHeader) {
+function FoldedHeader({slot, title, onBack, trailing, search, accessory}: {slot: HeaderSlot} & WebHeader) {
   const focused = useIsFocused();
   const id = useId();
 
@@ -87,7 +92,7 @@ function FoldedHeader({slot, title, onBack, trailing, search}: {slot: HeaderSlot
   // again does not render the screen again. Cleared when the screen blurs, and
   // again on its way out.
   useEffect(() => {
-    slot.set(id, focused ? {title, onBack, trailing, search} : null);
+    slot.set(id, focused ? {title, onBack, trailing, search, accessory} : null);
   });
   useEffect(() => () => slot.set(id, null), [slot, id]);
 

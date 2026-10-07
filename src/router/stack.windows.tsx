@@ -34,6 +34,8 @@ export interface WindowsStackOptions {
   headerRight?: (props: {tintColor?: string}) => ReactNode;
   /** The screen's search, which `HeaderSearch` sets from the screen's content; the header row draws it. */
   headerSearch?: HeaderSearchSlot;
+  /** The screen's row under its header, which `HeaderAccessory` sets from the screen's content. */
+  headerAccessory?: ReactNode;
   /** Drawn in place of the back button. */
   headerLeft?: (props: {tintColor?: string; canGoBack: boolean}) => ReactNode;
   /** `false` hides the back button; Alt+Left and the back keys still pop. */
@@ -340,6 +342,7 @@ function headerOf(options: WindowsStackOptions, name: string, goBack: (() => voi
     onBack: options.headerBackVisible === false || !drawsBack ? undefined : goBack,
     trailing: options.headerRight?.({}),
     search: options.headerSearch,
+    accessory: options.headerAccessory,
   };
 }
 

@@ -27,6 +27,8 @@ interface ScreenHeaderProps {
    * `inline`: a desktop window has the room.
    */
   search?: HeaderSearchSlot;
+  /** A row of the screen's own under the header's (`HeaderAccessory`), in the bar's fill. */
+  accessory?: React.ReactNode;
   /**
    * The root stack's header: while the content is in the title bar
    * (`useWindowChrome`), it drags the window and leaves the caption buttons
@@ -47,7 +49,7 @@ const BACK = icon({ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back'
  * toggle row, so that the title is beside the toggle button as a WinUI
  * header is.
  */
-export function ScreenHeader({title, titleNode, onBack, leading, trailing, search, dragRegion = false}: ScreenHeaderProps) {
+export function ScreenHeader({title, titleNode, onBack, leading, trailing, search, accessory, dragRegion = false}: ScreenHeaderProps) {
   const label = useColor('label');
   const background = useColor('background');
   const chrome = useWindowChromeState();
@@ -93,6 +95,7 @@ export function ScreenHeader({title, titleNode, onBack, leading, trailing, searc
         <InHeaderContext.Provider value={true}>{trailing}</InHeaderContext.Provider>
       </View>
       {site.stacked ? <View style={[styles.search, room]}>{site.stacked}</View> : null}
+      {accessory != null ? <View style={[styles.search, room]}>{accessory}</View> : null}
     </View>
   );
 }
@@ -126,7 +129,7 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     fontWeight: fontWeights.semibold,
   },
-  // The stacked search: a row under the title at the content's width, in the bar's own fill.
+  // The stacked search and the accessory: rows under the title at the content's width, in the bar's own fill.
   search: {
     width: '100%',
     maxWidth: bound.contentMaxWidth,

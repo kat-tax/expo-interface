@@ -5,11 +5,12 @@ import {screen} from '@testing-library/react-native';
 import Constants from 'expo-constants';
 import {router} from 'expo-router';
 import * as icons from '../__stories__/icons';
+import {HeaderAccessory} from '../header-accessory';
 import {HeaderAction} from '../header-action';
 import {HeaderMenu} from '../header-menu';
 import {HeaderSearch} from '../header-search';
 import {Screen} from '../screen';
-import {colors, inset, theme} from '../theme';
+import {colors, inset, spacing, theme} from '../theme';
 import {nodes} from 'expo-vitest/native';
 import {visibleText} from '../a11y/roving';
 import {renderApp} from 'expo-vitest/router';
@@ -278,6 +279,75 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(row).toHaveAttribute('data-material', 'regular');
         expect(row).toHaveAttribute('data-material-fill', 'element');
         expect(getComputedStyle(row).backgroundColor).not.toBe(theme.backgroundElement);
+      });
+
+      describe('a header accessory', () => {
+        /** The accessory row's height, as the browser would lay it out. */
+        let rowHeight = 40;
+        let offsetHeight: ReturnType<typeof vi.spyOn>;
+        const Observer = globalThis.ResizeObserver;
+
+        beforeEach(() => {
+          rowHeight = 40;
+          offsetHeight = vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (this: HTMLElement) {
+            return this.getAttribute('data-testid') === 'tab-bar-accessory' ? rowHeight : 0;
+          });
+        });
+        afterEach(() => {
+          offsetHeight.mockRestore();
+          globalThis.ResizeObserver = Observer;
+        });
+
+        const strip = <HeaderAccessory><Text testID="strip">Strip</Text></HeaderAccessory>;
+        const paddingTop = () => getComputedStyle(dom.getByTestId('kid').parentElement!.parentElement!).paddingTop;
+
+        it('puts the row in a pill under the bar, under a stacked search, and the screens pay its height', async () => {
+          await renderApp(await stackApp({}, <><HeaderSearch placement="stacked" placeholder="Find a drop"/>{strip}</>), '/home');
+          const row = dom.getByTestId('tab-bar-accessory');
+          expect(row.contains(dom.getByTestId('strip'))).toBe(true);
+          expect(dom.getByTestId('tab-bar').contains(row)).toBe(false);
+          expect(dom.getByTestId('tab-bar-search').compareDocumentPosition(row) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+          expect(getComputedStyle(row).backgroundColor).toBe(theme.backgroundElement);
+          // The bar, the search row, and the accessory with its gap.
+          expect(paddingTop()).toBe(`${inset.topBar + 56 + 40 + spacing.two}px`);
+          // A pushed screen without one takes the row away, and its height with it.
+          await act(async () => router.push('/home/detail'));
+          expect(dom.queryByTestId('tab-bar-accessory')).toBeNull();
+        });
+
+        it('follows the row as its content resizes it', async () => {
+          const observers: ResizeObserverCallback[] = [];
+          globalThis.ResizeObserver = class {
+            constructor(callback: ResizeObserverCallback) {
+              observers.push(callback);
+            }
+            observe() {}
+            unobserve() {}
+            disconnect() {}
+          } as unknown as typeof ResizeObserver;
+          await renderApp(await stackApp({}, strip), '/home');
+          expect(paddingTop()).toBe(`${inset.topBar + 40 + spacing.two}px`);
+          rowHeight = 64;
+          await act(async () => {
+            for (const observer of observers) observer([], {} as ResizeObserver);
+          });
+          expect(paddingTop()).toBe(`${inset.topBar + 64 + spacing.two}px`);
+        });
+
+        it('hands the row the bar\'s material', async () => {
+          await renderApp(await stackApp({webMaterial: 'regular'}, strip), '/home');
+          const row = dom.getByTestId('tab-bar-accessory');
+          expect(row).toHaveAttribute('data-material', 'regular');
+          expect(row).toHaveAttribute('data-material-edge', 'all');
+        });
+
+        it('is the header\'s own row under its title when the fold is off', async () => {
+          await renderApp(await stackApp({webFoldHeader: false}, strip), '/home');
+          expect(dom.queryByTestId('tab-bar-accessory')).toBeNull();
+          const title = dom.getByText('Drops');
+          expect(title.compareDocumentPosition(dom.getByTestId('strip')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+          expect(dom.getByTestId('tab-bar').contains(dom.getByTestId('strip'))).toBe(false);
+        });
       });
 
       it('leaves the header to the screen when the fold is off', async () => {

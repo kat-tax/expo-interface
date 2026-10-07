@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react';
 import {useContext, useEffect} from 'react';
 import {Animated, Platform, StyleSheet, Text, View} from 'react-native';
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 import {setColorScheme, setInsets} from 'vitest-native/helpers';
 import {setBackgroundColorAsync} from 'expo-system-ui';
 import {AccentProvider} from '../accent';
@@ -9,8 +9,10 @@ import {colors, inset, spacing} from '../theme';
 import {Switch} from '../switch';
 import {host, modifier, nodes} from 'expo-vitest/native';
 import {hostAccentProps} from './host-accent';
-import {FloatingHeaderContext, StackHeaderContext} from '../stack-header/context';
-import {NativeTabsContext} from '../tabs/context';
+import {HeaderAccessory} from '../header-accessory';
+import {FloatingHeaderContext, HeaderMaterialContext, StackHeaderContext} from '../stack-header/context';
+import {NativeTabsContext, useTabBarInset} from '../tabs/context';
+import {useScrollInsets} from './insets';
 import {ToastInsetContext} from '../toast/context';
 import {Screen} from '.';
 
@@ -122,6 +124,69 @@ describe(`Screen (${Platform.OS})`, () => {
     } finally {
       await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 0}));
     }
+  });
+
+  it('floats a header accessory at the bottom edge of a header the screens run under, in its material, and pays its height', async () => {
+    await act(async () => setInsets({top: 47, left: 0, right: 0, bottom: 0}));
+    try {
+      const seen = {bar: -1, scroll: -1};
+      function Probe() {
+        const bar = useTabBarInset();
+        const scroll = useScrollInsets().top;
+        useEffect(() => {
+          seen.bar = bar;
+          seen.scroll = scroll;
+        });
+        return null;
+      }
+      const floating = (node: ReactNode, material?: 'thin') => (
+        <StackHeaderContext.Provider value={true}>
+          <FloatingHeaderContext.Provider value={true}>
+            {material ? <HeaderMaterialContext.Provider value={material}>{node}</HeaderMaterialContext.Provider> : node}
+          </FloatingHeaderContext.Provider>
+        </StackHeaderContext.Provider>
+      );
+      const strip = <HeaderAccessory><Text>Strip</Text></HeaderAccessory>;
+      await render(floating(<Screen>{strip}<Probe/></Screen>, 'thin'));
+      const rows = screen.getByTestId('screen-header-rows');
+      expect(within(rows).getByText('Strip')).toBeOnTheScreen();
+      expect(StyleSheet.flatten(rows.props.style)).toMatchObject({position: 'absolute', top: 47 + inset.header, left: 0, right: 0});
+      if (isIOS) {
+        const shape = nodes().find(n => n.type.includes('RoundedRectangle'))!;
+        expect(modifier(shape.props, 'foregroundStyle')?.style).toMatchObject({type: 'material', material: 'thin'});
+      }
+      // Measured, and paid as the header is: below it for the screen, in the bar's inset for the content.
+      await fireEvent(rows, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 40}}});
+      expect(StyleSheet.flatten(parts().root.props.style).paddingTop).toBe(47 + inset.header + 40);
+      expect(seen.bar).toBe(47 + inset.header + 40);
+
+      // Content passing under the header passes under the row too, and its scroll view pads both.
+      await render(floating(<Screen underBar>{strip}<Probe/></Screen>));
+      await fireEvent(screen.getByTestId('screen-header-rows'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 40}}});
+      expect(StyleSheet.flatten(parts().root.props.style).paddingTop).toBe(0);
+      expect(seen.scroll).toBe(47 + inset.header + 40);
+      if (isIOS) {
+        // A header with no material of its own named gets the regular one.
+        const shape = nodes().find(n => n.type.includes('RoundedRectangle'))!;
+        expect(modifier(shape.props, 'foregroundStyle')?.style).toMatchObject({type: 'material', material: 'regular'});
+      }
+    } finally {
+      await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 0}));
+    }
+  });
+
+  it('puts a header accessory above the content under an opaque header, where nothing passes under it', async () => {
+    await render(
+      <StackHeaderContext.Provider value={true}>
+        <Screen>
+          <HeaderAccessory><Text>Strip</Text></HeaderAccessory>
+          <Text>Body</Text>
+        </Screen>
+      </StackHeaderContext.Provider>,
+    );
+    expect(screen.queryByTestId('screen-header-rows')).toBeNull();
+    expect(screen.getByText('Strip')).toBeOnTheScreen();
+    expect(StyleSheet.flatten(parts().root.props.style).paddingTop).toBe(0);
   });
 
   it('changes nothing for underBar, since the top inset is already nothing natively', async () => {
