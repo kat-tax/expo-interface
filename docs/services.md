@@ -90,3 +90,25 @@ const covered = useKeyboardInset(editor);
 | Android | `keyboardDidShow`, measured the same way |
 | Web | The visual viewport, which a phone's browser shrinks to what the on-screen keyboard leaves: the part of the view inside the page that the visual viewport no longer shows |
 | Windows | The touch keyboard, which `expo-windows` raises `keyboardDidShow` for |
+
+## Launch and window colors
+
+The kit's config plugin paints the launch screen and the window behind the
+app in the kit's background for each scheme, so nothing shows Expo's
+defaults before the first screen does:
+
+```json
+{"expo": {"plugins": ["expo-interface"]}}
+```
+
+`["expo-interface", {"light": "#fafafa", "dark": "#111111"}]` takes colors of
+the app's own; the palette's `background` is the default.
+
+| What | How |
+| --- | --- |
+| Android's window | `android:windowBackground` in the app theme, with the light color in `values` and the dark one in `values-night`, so the window follows the scheme from the moment the app starts |
+| iOS's window | `backgroundColor`, which `expo-system-ui` writes as the root view's color. iOS takes one color there, the light one; `Screen` paints the scheme's as the app loads |
+| The launch screen | `expo-splash-screen`'s `backgroundColor` and `dark.backgroundColor`, when the app has `expo-splash-screen` and does not configure it itself |
+
+An app's own `backgroundColor`, `android.backgroundColor` or
+`expo-splash-screen` options win over the plugin's.
