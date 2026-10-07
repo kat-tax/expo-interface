@@ -93,6 +93,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`Alert`](overlays.md#alert) | A modal dialog or an action sheet, with a field for a prompt. |
 | [`Sheet`](overlays.md#sheet) | A bottom sheet with a title bar, a cap on its height, a footer and actions. |
 | [`Toast`](overlays.md#toast) | A brief message over the screen. |
+| [`ToastProvider`, `useToast`](overlays.md#toast) | The app's toasts, queued and shown one at a time. |
 
 ## Hooks and functions
 

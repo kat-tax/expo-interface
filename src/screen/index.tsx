@@ -14,7 +14,7 @@ import {Material} from '../material';
 import {HeaderMaterialContext, useFloatingHeader, useStackHeader} from '../stack-header/context';
 import {useColorScheme} from '../scheme';
 import {BarRowsContext, TabActionLiftContext, useNativeTabs, useTabBarInset} from '../tabs/context';
-import {ToastInsetContext} from '../toast/context';
+import {AppToastInsetContext, ToastInsetContext} from '../toast/context';
 import * as theme from '../theme';
 
 import {ScreenBarsContext, useScreenBars} from './bars';
@@ -96,7 +96,8 @@ export function Screen({
   const scheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const backgroundColor = background(scheme);
-  const lift = useToastLift();
+  // The fab lifts above a toast of the screen's own, and above the app's.
+  const lift = useToastLift(useContext(AppToastInsetContext));
   const {bars, top, bottom, hasTop, hasBottom} = useScreenBars();
   // Under a header the screen runs under, the rows at its top (a
   // `HeaderAccessory`) float at the header's bottom edge in its material, and

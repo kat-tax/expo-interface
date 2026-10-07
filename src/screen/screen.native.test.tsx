@@ -13,7 +13,7 @@ import {HeaderAccessory} from '../header-accessory';
 import {FloatingHeaderContext, HeaderMaterialContext, StackHeaderContext} from '../stack-header/context';
 import {NativeTabsContext, useTabBarInset} from '../tabs/context';
 import {useScrollInsets} from './insets';
-import {ToastInsetContext} from '../toast/context';
+import {AppToastInsetContext, ToastInsetContext} from '../toast/context';
 import {Screen} from '.';
 
 vi.mock('expo-system-ui');
@@ -288,6 +288,29 @@ describe(`Screen (${Platform.OS})`, () => {
         </Screen>,
       );
       expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({toValue: -0}));
+    } finally {
+      timing.mockRestore();
+    }
+  });
+
+  it('lifts the fab above the app\'s toast too, by the larger of the two', async () => {
+    const timing = vi.spyOn(Animated, 'timing');
+    try {
+      const tree = (app: number, own: number) => (
+        <AppToastInsetContext.Provider value={app}>
+          <Screen fab={<Text>New</Text>}>
+            <ToastStandIn height={own}/>
+          </Screen>
+        </AppToastInsetContext.Provider>
+      );
+      const {rerender} = await render(tree(60, 0));
+      expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({toValue: -60}));
+      await rerender(tree(60, 90));
+      expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({toValue: -90}));
+      const calls = timing.mock.calls.length;
+      // A change under the larger moves nothing.
+      await rerender(tree(30, 90));
+      expect(timing).toHaveBeenCalledTimes(calls);
     } finally {
       timing.mockRestore();
     }

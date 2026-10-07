@@ -8,6 +8,13 @@ import {createContext, useContext, useEffect} from 'react';
 export const ToastInsetContext = createContext<(height: number) => void>(() => {});
 
 /**
+ * What the app's toast (`ToastProvider`) covers of the bottom edge, for a
+ * `Screen` under the provider to lift its fab above, as it lifts it above a
+ * toast of its own. Zero without one.
+ */
+export const AppToastInsetContext = createContext(0);
+
+/**
  * Reports a toast's height from the screen's bottom edge while it shows, and
  * nothing once it goes.
  */

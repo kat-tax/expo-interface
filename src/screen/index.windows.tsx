@@ -1,11 +1,11 @@
 import type {LayoutChangeEvent} from 'react-native';
 import type {ScreenProps} from './index';
-import {useState} from 'react';
+import {useContext, useState} from 'react';
 import {Animated, StyleSheet, View} from 'react-native';
 import {NativeHostContext} from '../host/context';
 import {useStackHeader} from '../stack-header/context';
 import {useColorScheme} from '../scheme';
-import {ToastInsetContext} from '../toast/context';
+import {AppToastInsetContext, ToastInsetContext} from '../toast/context';
 import * as theme from '../theme';
 import {ScreenBarsContext, useScreenBars} from './bars';
 import {useToastLift} from './lift';
@@ -25,7 +25,8 @@ export function Screen({children, native = false, header, gutter = false, fab}: 
   const underHeader = header ?? stackHeader;
   const scheme = useColorScheme();
   const backgroundColor = theme.colors[scheme].background;
-  const lift = useToastLift();
+  // The fab lifts above a toast of the screen's own, and above the app's.
+  const lift = useToastLift(useContext(AppToastInsetContext));
   const {bars, top, bottom, hasBottom} = useScreenBars();
   const [barHeight, setBarHeight] = useState(0);
   const onBarsLayout = (event: LayoutChangeEvent) => setBarHeight(event.nativeEvent.layout.height);

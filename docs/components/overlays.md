@@ -260,3 +260,18 @@ The drawn toast is a polite live region.
 
 A toast under a `Screen` tells it how much of the bottom edge it covers, and
 the screen's `Fab` lifts above it while it shows.
+
+For toasts the app shows from anywhere ("Copied", "Moved to the bin"), put a
+`ToastProvider` around the app's navigation and call `useToast().show()`:
+
+```tsx
+const toast = useToast();
+toast.show('Copied');
+toast.show({message: 'Moved to the bin', action: {label: 'Undo', onPress: restore}, duration: 6000});
+```
+
+The provider queues them and shows one at a time, each for its duration or
+until its action is taken, at the foot of its area. `show` answers an id;
+`dismiss(id)` takes that toast away, showing or waiting, and `dismiss()` the
+one showing. A `Screen` under the provider lifts its `Fab` above the app's
+toast as it does above its own, by the larger of the two.

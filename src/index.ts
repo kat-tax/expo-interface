@@ -182,6 +182,8 @@ export {RelativeTime} from './relative-time';
 export type {RelativeTimeProps} from './relative-time/types';
 
 // Platform services
+export {ToastProvider, useToast} from './toast/provider';
+export type {ToastApi, ToastOptions} from './toast/provider';
 export {haptic} from './haptic';
 export type {HapticKind} from './haptic';
 export {saveFile} from './save-file';
