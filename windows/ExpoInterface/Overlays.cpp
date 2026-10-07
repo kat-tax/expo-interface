@@ -46,6 +46,52 @@ controls::Button MakeTextButton(const std::string &label, Color color) noexcept 
   return button;
 }
 
+/**
+ * Fills a `MenuFlyout` from the kit's menu JSON (`menuItemsProp` in `src/menu/windows.ts`):
+ * each entry's label, its glyph or swatch, its shortcut text and its flags. A pick is
+ * reported by the entry's index in the array.
+ */
+void FillMenu(const controls::MenuFlyout &flyout, const winrt::Windows::Data::Json::JsonArray &entries, bool dark,
+              const std::function<void(int32_t)> &onPick) noexcept {
+  flyout.Items().Clear();
+  int32_t index = 0;
+  for (auto value : entries) {
+    const int32_t current = index++;
+    if (value.ValueType() != JsonValueType::Object) continue;
+    auto entry = value.GetObject();
+    if (JsonBool(entry, L"separator") && flyout.Items().Size() > 0) {
+      flyout.Items().Append(controls::MenuFlyoutSeparator{});
+    }
+    controls::MenuFlyoutItem item{nullptr};
+    if (JsonBool(entry, L"active")) {
+      controls::ToggleMenuFlyoutItem toggle;
+      toggle.IsChecked(true);
+      item = toggle;
+    } else {
+      item = controls::MenuFlyoutItem{};
+    }
+    item.Text(ToHString(JsonString(entry, L"label")));
+    // The shortcut is drawn as WinUI draws an accelerator; the kit binds the keys itself.
+    const auto shortcut = JsonString(entry, L"shortcut");
+    if (!shortcut.empty()) item.KeyboardAcceleratorTextOverride(ToHString(shortcut));
+    const auto swatch = JsonString(entry, L"swatch");
+    const auto glyph = JsonString(entry, L"glyph");
+    Color swatchColor;
+    if (!swatch.empty() && TryParseColor(swatch, swatchColor)) {
+      // A solid circle in the swatch's color, where the icon goes.
+      auto dot = MakeGlyph("E91F", 16);
+      dot.Foreground(Brush(swatchColor));
+      item.Icon(dot);
+    } else if (!glyph.empty()) {
+      item.Icon(MakeGlyph(glyph, 16));
+    }
+    if (JsonBool(entry, L"destructive")) item.Foreground(Brush(Critical(dark)));
+    item.IsEnabled(!JsonBool(entry, L"disabled"));
+    item.Click([onPick, current](const winrt::IInspectable &, const xaml::RoutedEventArgs &) { onPick(current); });
+    flyout.Items().Append(item);
+  }
+}
+
 // -- MenuFlyout --------------------------------------------------------------
 
 struct MenuFlyoutView : winrt::implements<MenuFlyoutView, winrt::IInspectable>,
@@ -109,52 +155,15 @@ struct MenuFlyoutView : winrt::implements<MenuFlyoutView, winrt::IInspectable>,
 
  private:
   void Build(const winrt::Windows::Data::Json::JsonArray &entries) noexcept {
-    m_flyout.Items().Clear();
-    const bool dark = IsDark(Root());
-    int32_t index = 0;
-    for (auto value : entries) {
-      const int32_t current = index++;
-      if (value.ValueType() != JsonValueType::Object) continue;
-      auto entry = value.GetObject();
-      if (JsonBool(entry, L"separator") && m_flyout.Items().Size() > 0) {
-        m_flyout.Items().Append(controls::MenuFlyoutSeparator{});
-      }
-      controls::MenuFlyoutItem item{nullptr};
-      if (JsonBool(entry, L"active")) {
-        controls::ToggleMenuFlyoutItem toggle;
-        toggle.IsChecked(true);
-        item = toggle;
-      } else {
-        item = controls::MenuFlyoutItem{};
-      }
-      item.Text(ToHString(JsonString(entry, L"label")));
-      // The shortcut is drawn as WinUI draws an accelerator; the kit binds the keys itself.
-      const auto shortcut = JsonString(entry, L"shortcut");
-      if (!shortcut.empty()) item.KeyboardAcceleratorTextOverride(ToHString(shortcut));
-      const auto swatch = JsonString(entry, L"swatch");
-      const auto glyph = JsonString(entry, L"glyph");
-      Color swatchColor;
-      if (!swatch.empty() && TryParseColor(swatch, swatchColor)) {
-        // A solid circle in the swatch's color, where the icon goes.
-        auto dot = MakeGlyph("E91F", 16);
-        dot.Foreground(Brush(swatchColor));
-        item.Icon(dot);
-      } else if (!glyph.empty()) {
-        item.Icon(MakeGlyph(glyph, 16));
-      }
-      if (JsonBool(entry, L"destructive")) item.Foreground(Brush(Critical(dark)));
-      item.IsEnabled(!JsonBool(entry, L"disabled"));
-      item.Click([weak = get_weak(), current](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
-        if (auto strong = weak.get()) {
-          if (auto emitter = strong->EventEmitter()) {
-            Codegen::ExpoInterfaceMenuFlyoutEventEmitter::OnSelect event;
-            event.index = current;
-            emitter->onSelect(std::move(event));
-          }
+    FillMenu(m_flyout, entries, IsDark(Root()), [weak = get_weak()](int32_t index) {
+      if (auto strong = weak.get()) {
+        if (auto emitter = strong->EventEmitter()) {
+          Codegen::ExpoInterfaceMenuFlyoutEventEmitter::OnSelect event;
+          event.index = index;
+          emitter->onSelect(std::move(event));
         }
-      });
-      m_flyout.Items().Append(item);
-    }
+      }
+    });
   }
 
   void Show(bool atPoint, double x, double y, bool above) noexcept {
@@ -953,6 +962,11 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
         if (args.IsSettingsInvoked()) {
           index = strong->m_settingsIndex;
         } else if (auto item = args.InvokedItemContainer().try_as<controls::NavigationViewItem>()) {
+          // The app's action with a menu: the press opens the menu, whose picks are reported instead.
+          if (controls::Primitives::FlyoutBase::GetAttachedFlyout(item)) {
+            controls::Primitives::FlyoutBase::ShowAttachedFlyout(item);
+            return;
+          }
           index = winrt::unbox_value_or<int32_t>(item.Tag(), -1);
         }
         if (index < 0) return;
@@ -1015,6 +1029,32 @@ struct NavigationViewView : winrt::implements<NavigationViewView, winrt::IInspec
         const auto placement = JsonString(entry, L"placement");
         if (placement == "settings") {
           m_settingsIndex = index++;
+          continue;
+        }
+        // The app's action: first among the items, invoked rather than selected. Its press is
+        // reported by its index; a menu opens from it instead, its picks reported after it.
+        if (JsonBool(entry, L"action")) {
+          controls::NavigationViewItem item;
+          item.Content(winrt::box_value(ToHString(JsonString(entry, L"label"))));
+          const auto glyph = JsonString(entry, L"glyph");
+          if (!glyph.empty()) item.Icon(MakeGlyph(glyph, 16));
+          item.Tag(winrt::box_value(index));
+          item.SelectsOnInvoked(false);
+          if (entry.HasKey(L"menu") && entry.Lookup(L"menu").ValueType() == JsonValueType::Array) {
+            controls::MenuFlyout flyout;
+            FillMenu(flyout, entry.GetNamedArray(L"menu"), IsDark(Root()), [weak = get_weak(), first = index + 1](int32_t picked) {
+              if (auto strong = weak.get()) {
+                if (auto emitter = strong->EventEmitter()) {
+                  Codegen::ExpoInterfaceNavigationViewEventEmitter::OnItemInvoked event;
+                  event.index = first + picked;
+                  emitter->onItemInvoked(std::move(event));
+                }
+              }
+            });
+            controls::Primitives::FlyoutBase::SetAttachedFlyout(item, flyout);
+          }
+          m_view.MenuItems().InsertAt(0, item);
+          ++index;
           continue;
         }
         controls::NavigationViewItem item;

@@ -10,7 +10,11 @@ type PaneOpenEvent = Readonly<{open: boolean}>;
  * is a JSON array of `{label, glyph, badge?, placement?}` — a count or text
  * in an `InfoBadge`; `footer` for the pane's foot, `settings` for WinUI's
  * own settings item — and the selection is reported by the item's index in
- * that array, wherever the item was placed.
+ * that array, wherever the item was placed. An entry with `action: true`
+ * (and a `menu` of the menu island's entries) is the app's action, first
+ * among the items: invoked rather than selected, its press reported by its
+ * index through `onItemInvoked`, or its menu opened, each pick reported by
+ * the index after the action's plus the entry's place in the menu.
  * The content beside or under it is React Native's: the kit renders the
  * focused tab's screens itself, and sizes the island to the pane. The
  * control's own back button, at the top of the pane or the start of the top

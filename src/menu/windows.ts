@@ -10,7 +10,12 @@ import {bindShortcut} from '../windows/shortcuts';
  * and are found by index when the island reports a pick.
  */
 export function menuItemsProp(items: readonly MenuItem[]): string {
-  return jsonProp(items.map(item => ({
+  return jsonProp(menuEntries(items));
+}
+
+/** The entries `menuItemsProp` serializes, for a menu carried inside another island's JSON. */
+export function menuEntries(items: readonly MenuItem[]): object[] {
+  return items.map(item => ({
     label: item.label,
     glyph: glyphOf(item.icon) ?? null,
     swatch: item.swatch ?? null,
@@ -19,7 +24,7 @@ export function menuItemsProp(items: readonly MenuItem[]): string {
     destructive: item.role === 'destructive',
     disabled: item.disabled === true,
     separator: item.separator === true,
-  })));
+  }));
 }
 
 /**

@@ -1,6 +1,7 @@
 import type {LayoutChangeEvent} from 'react-native';
+import type {MenuItem} from '../menu/types';
 import type {Direction, Transition} from '../windows/motion';
-import type {TabBarProps, TabRoute, WindowsPane} from './types';
+import type {TabBarAction, TabBarProps, TabRoute, WindowsPane} from './types';
 import {useCallback, useContext, useEffect, useState, useSyncExternalStore} from 'react';
 import {Navigator, TabRouter} from 'expo-router';
 import {Animated, Pressable, StyleSheet, View, useWindowDimensions} from 'react-native';
@@ -10,7 +11,9 @@ import {useWindowChromeState} from '../windows/chrome';
 import {useLayerDismiss} from '../windows/layer';
 import {useArrival} from '../windows/motion';
 import {windowsGlyph} from '../symbol/segoe';
+import {menuEntries, useMenuShortcuts} from '../menu/windows';
 import {useColor} from '../theme';
+import {tabBadgeValue} from './badge';
 import {routeToken} from './icon';
 import {BackStoreContext, PaneToggleContext, ShellCardsContext, ShellHostContext, createBackStore} from './shell';
 
@@ -62,27 +65,44 @@ export function resolvePane(pane: WindowsPane, width: number): ResolvedPane {
  * the root. A selection in the pane leaves the drilled-in screens for the
  * tab. Hidden tabs are no frame: a stack draws its own back button then.
  */
-export function Tabs({routes, hidden = false, windowsPane = 'top'}: TabBarProps) {
+export function Tabs({routes, hidden = false, action, badgeMax = 99, windowsPane = 'top'}: TabBarProps) {
   return (
     <Navigator router={TabRouter} initialRouteName={routes[0]?.name}>
-      <TabsBody routes={routes} hidden={hidden} pane={windowsPane}/>
+      <TabsBody routes={routes} hidden={hidden} action={action} badgeMax={badgeMax} pane={windowsPane}/>
     </Navigator>
   );
 }
 
 /**
  * The bar's items as the island's JSON: the label and the Fluent glyph of
- * each tab, its badge when it has one, and its placement when it is not
- * among the items — the pane's foot, or WinUI's own settings item.
+ * each tab, its badge when it has one (a count capped at `badgeMax`), and
+ * its placement when it is not among the items — the pane's foot, or
+ * WinUI's own settings item. The app's action comes after the tabs, with
+ * its menu's entries when it has one.
  */
-export function tabItems(routes: readonly TabRoute[]): string {
-  return jsonProp(routes.map(route => ({
-    label: route.label,
-    glyph: windowsGlyph(routeToken(route.icon)) ?? null,
-    ...(route.badge ? {badge: route.badge} : {}),
-    ...(route.windowsPlacement && route.windowsPlacement !== 'menu' ? {placement: route.windowsPlacement} : {}),
-  })));
+export function tabItems(routes: readonly TabRoute[], action?: TabBarAction, badgeMax = 99): string {
+  const tabs: object[] = routes.map(route => {
+    const badge = tabBadgeValue(route.badge, badgeMax);
+    return {
+      label: route.label,
+      glyph: windowsGlyph(routeToken(route.icon)) ?? null,
+      ...(badge != null ? {badge} : {}),
+      ...(route.windowsPlacement && route.windowsPlacement !== 'menu' ? {placement: route.windowsPlacement} : {}),
+    };
+  });
+  if (action) {
+    tabs.push({
+      label: action.label,
+      glyph: windowsGlyph(action.icon) ?? null,
+      action: true,
+      ...(action.items ? {menu: menuEntries(action.items)} : {}),
+    });
+  }
+  return jsonProp(tabs);
 }
+
+/** No menu entries, one array for every render. */
+const NO_ITEMS: MenuItem[] = [];
 
 /** The tabs' own size, from their layout. */
 interface Measured {
@@ -90,9 +110,11 @@ interface Measured {
   height: number;
 }
 
-function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: boolean; pane: WindowsPane}) {
+function TabsBody({routes, hidden, action, badgeMax, pane}: {routes: readonly TabRoute[]; hidden: boolean; action?: TabBarAction; badgeMax: number; pane: WindowsPane}) {
   const {state, navigation} = Navigator.useContext();
   const xaml = useXamlProps();
+  // The action's menu binds its shortcuts while the tabs are up, as WinUI's accelerators are.
+  useMenuShortcuts(action?.items ?? NO_ITEMS);
   const background = useColor('background');
   // With the content in the title bar, the top bar's far end is under the caption buttons: it stops short of them.
   const chrome = useWindowChromeState();
@@ -172,7 +194,7 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
   else islandStyle = open ? [styles.over, {width: PANE_WIDTH.open}] : styles.corner;
   const bar = drawn ? (
     <XamlNavigationView
-      items={tabItems(routes)}
+      items={tabItems(routes, action, badgeMax)}
       selectedIndex={selectedIndex}
       paneMode={resolved === 'left' && !open ? 'compact' : resolved}
       paneOpen={overlay ? open : undefined}
@@ -188,8 +210,15 @@ function TabsBody({routes, hidden, pane}: {routes: readonly TabRoute[]; hidden: 
         if (overlay) close();
       }}
       onItemInvoked={event => {
+        const {index} = event.nativeEvent;
+        // The app's action, after the tabs, and its menu's entries after it.
+        if (action && index >= routes.length) {
+          if (index === routes.length) action.onPress?.();
+          else action.items?.[index - routes.length - 1]?.onPress?.();
+          return;
+        }
         // The section already selected: back to its root, as the Settings app goes.
-        if (event.nativeEvent.index !== selectedIndex) return;
+        if (index !== selectedIndex) return;
         if (covered) shell?.popAll();
         inner?.popToTop();
       }}

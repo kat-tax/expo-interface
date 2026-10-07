@@ -1,7 +1,7 @@
 import type {TabRoute} from './types';
-import {Platform, Text} from 'react-native';
+import {Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, screen as dom, waitFor} from '@testing-library/react';
-import {screen} from '@testing-library/react-native';
+import {fireEvent as fireNative, render, screen} from '@testing-library/react-native';
 import Constants from 'expo-constants';
 import {router} from 'expo-router';
 import * as icons from '../__stories__/icons';
@@ -11,7 +11,7 @@ import {HeaderMenu} from '../header-menu';
 import {HeaderSearch} from '../header-search';
 import {Screen} from '../screen';
 import {colors, inset, spacing, theme} from '../theme';
-import {nodes} from 'expo-vitest/native';
+import {host, modifier, nodes} from 'expo-vitest/native';
 import {visibleText} from '../a11y/roving';
 import {renderApp} from 'expo-vitest/router';
 
@@ -377,6 +377,35 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(dom.getByTestId('tab-badge').textContent).toBe('3');
       });
 
+      it('caps a count at badgeMax, as a Badge does', async () => {
+        await renderApp(await app({routes: [{...routes[0], badge: 120}, routes[1]], badgeMax: 99}));
+        expect(dom.getByTestId('tab-badge').textContent).toBe('99+');
+      });
+
+      it('draws the app\'s action among the bar\'s actions as a button', async () => {
+        const onPress = vi.fn();
+        await renderApp(await app({action: {label: 'New', icon: icons.add, onPress}}));
+        const button = dom.getByTestId('tab-action');
+        expect(dom.getByTestId('tab-bar').contains(button)).toBe(true);
+        fireEvent.click(button);
+        expect(onPress).toHaveBeenCalledTimes(1);
+      });
+
+      it('draws an action with entries as a menu', async () => {
+        await renderApp(await app({action: {label: 'New', icon: icons.add, items: [{label: 'Document', onPress: () => {}}]}}));
+        expect(dom.getByRole('menuitem', {name: 'Document', hidden: true})).toBeInTheDocument();
+      });
+
+      it('does nothing for an action with nothing to run', async () => {
+        await renderApp(await app({action: {label: 'New', icon: icons.add}}));
+        expect(() => fireEvent.click(dom.getByTestId('tab-action'))).not.toThrow();
+      });
+
+      it('keeps the app\'s action beside what a screen folds in', async () => {
+        await renderApp(await stackApp({action: {label: 'New', icon: icons.add, onPress: () => {}}}), '/home');
+        expect(dom.getByTestId('new').compareDocumentPosition(dom.getByTestId('tab-action')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      });
+
       it('dims a link while it is pressed', async () => {
         await renderApp(await app());
         const [home] = dom.getAllByRole('link');
@@ -603,6 +632,69 @@ describe(`Tabs (${Platform.OS})`, () => {
       expect(home.props.badgeValue).toBe('3');
       expect(settings.props.badgeValue).toBeUndefined();
     });
+
+    it('caps a count at badgeMax, and keeps text as it is', async () => {
+      await renderApp(await app({routes: [{...routes[0], badge: 120}, {...routes[1], badge: 'new'}]}));
+      const [home, settings] = triggers();
+      expect(home.props.badgeValue).toBe('99+');
+      expect(settings.props.badgeValue).toBe('new');
+      await renderApp(await app({routes: [{...routes[0], badge: 12}, routes[1]], badgeMax: 9}));
+      expect(triggers()[0].props.badgeValue).toBe('9+');
+    });
+
+    it('floats the app\'s action above the tab bar where the bar has no place for it, and lifts a screen\'s fab above it', async () => {
+      const onPress = vi.fn();
+      const version = Object.getOwnPropertyDescriptor(Platform, 'Version')!;
+      Object.defineProperty(Platform, 'Version', {configurable: true, get: () => (isIOS ? '18.0' : 35)});
+      const {setInsets} = await import('vitest-native/helpers');
+      await act(async () => setInsets({top: 0, left: 0, right: 8, bottom: 20}));
+      try {
+        await renderApp({
+          ...(await app({action: {label: 'New', icon: icons.add, onPress}})),
+          index: () => <Screen fab={<Text testID="own">Own</Text>}><Text>Home screen</Text></Screen>,
+        });
+        const slot = screen.getByTestId('tab-action-slot');
+        expect(StyleSheet.flatten(slot.props.style)).toMatchObject({position: 'absolute', right: spacing.three + 8, bottom: inset.bottomTab + 20 + spacing.three});
+        if (isIOS) {
+          await fireNative.press(screen.getByTestId('tab-action'));
+        } else {
+          const [view] = screen.container.queryAll(i => typeof i.props.onButtonPressed === 'function');
+          await fireNative(view, 'buttonPressed');
+        }
+        expect(onPress).toHaveBeenCalledTimes(1);
+        // The screen's own button sits above the tabs' one (natively over the safe area, which Android's tab host pays).
+        const own = StyleSheet.flatten(screen.getByTestId('screen-fab').props.style);
+        expect(own.bottom).toBe(spacing.three + 56 + spacing.three + (isIOS ? 20 : 0));
+        // Hidden tabs take their action with them.
+        await renderApp(await app({hidden: true, action: {label: 'New', icon: icons.add, onPress}}));
+        expect(screen.queryByTestId('tab-action-slot')).toBeNull();
+      } finally {
+        Object.defineProperty(Platform, 'Version', version);
+        await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 0}));
+      }
+    });
+
+    if (isIOS) {
+      it('puts the app\'s action in the tab bar\'s bottom accessory on iOS 26, its icon alone where the accessory is inline', async () => {
+        const version = Object.getOwnPropertyDescriptor(Platform, 'Version')!;
+        Object.defineProperty(Platform, 'Version', {configurable: true, get: () => '26.0'});
+        try {
+          await renderApp(await app({action: {label: 'New', icon: icons.add, onPress: vi.fn()}}));
+          expect(screen.queryByTestId('tab-action-slot')).toBeNull();
+          const accessory = nodes().find(n => n.type === 'RNSTabsHost')!.props.ios.bottomAccessory as (placement: string) => React.ReactElement;
+          await render(accessory('regular'));
+          expect(modifier(host(p => p.label === 'New').props, 'labelStyle')).toBeUndefined();
+          await render(accessory('inline'));
+          expect(modifier(host(p => p.label === 'New').props, 'labelStyle')).toEqual({$type: 'labelStyle', style: 'iconOnly'});
+          await renderApp(await app({action: {label: 'New', icon: icons.add, items: [{label: 'Document', onPress: vi.fn()}]}}));
+          const menu = nodes().find(n => n.type === 'RNSTabsHost')!.props.ios.bottomAccessory as (placement: string) => React.ReactElement;
+          await render(menu('regular'));
+          expect(nodes().some(n => n.props.label === 'New')).toBe(true);
+        } finally {
+          Object.defineProperty(Platform, 'Version', version);
+        }
+      });
+    }
 
     it('passes hidden to the native tab bar', async () => {
       await renderApp(await app({hidden: true}));

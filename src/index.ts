@@ -47,7 +47,7 @@ export type {WindowChrome, WindowChromeOptions} from './windows/chrome';
 export {useHighContrast} from './windows/contrast';
 export {highContrastPalette} from './windows/contrast-palette';
 export type {HighContrast, HighContrastColors} from './windows/contrast-palette';
-export type {TabBarProps, TabIcon, TabRoute, WebLogo, WindowsPane} from './tabs/types';
+export type {TabBarAction, TabBarProps, TabIcon, TabRoute, WebLogo, WindowsPane} from './tabs/types';
 export type {TabViewLayout, TabViewProps, TabViewTab} from './tab-view/types';
 export {KeyboardBar} from './keyboard';
 export type {KeyboardBarProps, KeyboardLibrary, KeyboardState} from './keyboard';

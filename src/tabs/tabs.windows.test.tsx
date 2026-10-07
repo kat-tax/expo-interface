@@ -121,6 +121,35 @@ describe('Tabs (windows)', () => {
     ]);
   });
 
+  it('caps a count at badgeMax, as the InfoBadge holds a number alone, and puts the app\'s action after the tabs', () => {
+    const icon = {ios: 'house', android: 'home', web: 'home'} as const;
+    expect(JSON.parse(tabItems([{href: '/', name: 'inbox', label: 'Inbox', icon, badge: 120}]))).toEqual([{label: 'Inbox', glyph: 'E80F', badge: 99}]);
+    expect(JSON.parse(tabItems([{href: '/', name: 'inbox', label: 'Inbox', icon, badge: 120}], undefined, 9))).toEqual([{label: 'Inbox', glyph: 'E80F', badge: 9}]);
+    expect(JSON.parse(tabItems(routes, {label: 'New', icon: icons.add, onPress: () => {}})).at(-1)).toEqual({label: 'New', glyph: 'E710', action: true});
+    const [, , entry] = JSON.parse(tabItems(routes, {label: 'New', icon: icons.add, items: [{label: 'Document', icon: icons.share, onPress: () => {}}]}));
+    expect(entry).toMatchObject({label: 'New', action: true, menu: [{label: 'Document', glyph: expect.any(String), disabled: false}]});
+    // An icon with no Fluent glyph leaves the action's blank.
+    const odd = {ios: 'house', android: 'nope', web: 'nope'} as never;
+    expect(JSON.parse(tabItems(routes, {label: 'Odd', icon: odd})).at(-1)).toEqual({label: 'Odd', glyph: null, action: true});
+  });
+
+  it('runs the app\'s action when its item is invoked, and its menu\'s entries by their place after it', async () => {
+    const onPress = vi.fn();
+    const document = vi.fn();
+    const folder = vi.fn();
+    await renderApp(app({action: {label: 'New', icon: icons.add, onPress}}));
+    await fireIsland(island(NAV), 'itemInvoked', {index: routes.length});
+    expect(onPress).toHaveBeenCalledTimes(1);
+    await renderApp(app({action: {label: 'New', icon: icons.add, items: [{label: 'Document', onPress: document}, {label: 'Folder', onPress: folder}]}}));
+    await fireIsland(island(NAV), 'itemInvoked', {index: routes.length + 2});
+    expect(folder).toHaveBeenCalledTimes(1);
+    expect(document).not.toHaveBeenCalled();
+    // The action's own press, with a menu, opens the menu natively and runs nothing here.
+    await fireIsland(island(NAV), 'itemInvoked', {index: routes.length});
+    expect(document).not.toHaveBeenCalled();
+    expect(screen.getByText('Home screen')).toBeOnTheScreen();
+  });
+
   it('leaves a tab without a Fluent glyph blank', () => {
     expect(JSON.parse(tabItems([{href: '/', name: 'odd', label: 'Odd', icon: {ios: 'house', android: 'nope' as never, web: 'nope' as never}}]))).toEqual([{label: 'Odd', glyph: null}]);
   });

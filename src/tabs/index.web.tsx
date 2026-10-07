@@ -15,8 +15,11 @@ import {theme, spacing, bound} from '../theme';
 import {useSearchSite} from '../header-search/site';
 import {materialProps} from '../material';
 import {hasMaterial} from '../sheet/shared';
+import {HeaderAction} from '../header-action';
+import {HeaderMenu} from '../header-menu';
 import {Icon} from '../symbol';
 import {BarRowsContext, HeaderSlotContext, InBarContext, NarrowBarContext, TabBarContext, createHeaderSlot, noSubscription, useNarrowBar} from './context';
+import {tabBadge} from './badge';
 import {routeToken} from './icon';
 import {Headline, Label} from '../typography';
 
@@ -30,6 +33,8 @@ export const FOLDED_SEARCH_INSET = 56;
 export function Tabs({
   routes,
   hidden = false,
+  action,
+  badgeMax = 99,
   webLogo = 'icon-and-text',
   webIcon,
   webActions,
@@ -62,10 +67,10 @@ export function Tabs({
             <TabSlot style={styles.slot}/>
             {/* The triggers stay in the list even while the bar is hidden: that is where the router looks for the routes. */}
             <TabList asChild>
-              <WebTabList logo={webLogo} icon={webIcon} slot={slot} hidden={hidden} shown={shown} actions={webActions} actionsPlacement={webActionsPlacement} material={webMaterial} onRows={setRows}>
+              <WebTabList logo={webLogo} icon={webIcon} slot={slot} hidden={hidden} shown={shown} actions={webActions} actionsPlacement={webActionsPlacement} material={webMaterial} action={action} onRows={setRows}>
                 {routes.map(route => (
                   <TabTrigger key={route.name} name={route.name} href={route.href} asChild>
-                    <TabLink icon={route.icon} badge={route.badge}>{route.label}</TabLink>
+                    <TabLink icon={route.icon} badge={tabBadge(route.badge, badgeMax) ?? undefined}>{route.label}</TabLink>
                   </TabTrigger>
                 ))}
               </WebTabList>
@@ -90,6 +95,8 @@ interface WebTabListProps extends TabListProps {
   actionsPlacement?: 'before' | 'after';
   /** The bar's material (`Tabs webMaterial`): a blur of what passes under it, or its solid fill. */
   material?: SheetMaterial;
+  /** The app's action (`Tabs action`), a header control among the actions. */
+  action?: TabBarProps['action'];
   /**
    * Told the height of the rows the bar draws under itself for a folded
    * header, its stacked search and its accessory, with the gaps to the bar.
@@ -97,7 +104,7 @@ interface WebTabListProps extends TabListProps {
   onRows?: (height: number) => void;
 }
 
-export function WebTabList({logo, icon, slot, hidden = false, shown = true, actions, actionsPlacement = 'before', material = 'none', onRows, ...props}: WebTabListProps) {
+export function WebTabList({logo, icon, slot, hidden = false, shown = true, actions, actionsPlacement = 'before', material = 'none', action, onRows, ...props}: WebTabListProps) {
   // As in `Tabs`: one reader for the live bar and for a static render, which
   // has no published header either way.
   const read = () => (slot ? slot.get() : null);
@@ -138,10 +145,17 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
     onRows?.(rows);
   }, [onRows, rows]);
   const fill = hasMaterial(material) ? null : styles.solid;
+  // The app's action stays whatever the screen folds in: it is the app's, not the screen's.
+  const appAction = action == null ? null : action.items ? (
+    <HeaderMenu label={action.label} icon={action.icon} items={action.items} testID="tab-action"/>
+  ) : (
+    <HeaderAction label={action.label} icon={action.icon} onPress={action.onPress ?? noop} testID="tab-action"/>
+  );
   const actionsAndSearch = (
     <>
       {trailing}
       {inline ? null : search.inRow}
+      {appAction}
     </>
   );
   return (
@@ -319,6 +333,8 @@ export function TabLink({children, isFocused, icon, badge, ...props}: TabTrigger
     </Pressable>
   );
 }
+
+const noop = () => {};
 
 /** The bar's height: what its tabs need, and what a folded header gets. */
 const BAR_HEIGHT = 56;

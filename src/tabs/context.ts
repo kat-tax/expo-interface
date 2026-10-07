@@ -39,6 +39,13 @@ export function useTabBarInset(): number {
   return floating ? insets.top + inset.header + rows : 0;
 }
 
+/**
+ * The room the tab bar's own action takes at the bottom trailing corner,
+ * where it is a floating button (`Tabs action` on Android, and on iOS
+ * before 26): a `Screen`'s `fab` sits above it. Nothing elsewhere.
+ */
+export const TabActionLiftContext = createContext(0);
+
 /** True inside the native tab bar's screens — see {@link useNativeTabs}. */
 export const NativeTabsContext = createContext(false);
 

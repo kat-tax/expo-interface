@@ -13,7 +13,7 @@ import {NativeHostContext} from '../host';
 import {Material} from '../material';
 import {HeaderMaterialContext, useFloatingHeader, useStackHeader} from '../stack-header/context';
 import {useColorScheme} from '../scheme';
-import {BarRowsContext, useNativeTabs, useTabBarInset} from '../tabs/context';
+import {BarRowsContext, TabActionLiftContext, useNativeTabs, useTabBarInset} from '../tabs/context';
 import {ToastInsetContext} from '../toast/context';
 import * as theme from '../theme';
 
@@ -127,7 +127,9 @@ export function Screen({
   // and its rows stay clear, unless the content passes under them and pads
   // itself (`underBar`).
   const paddingTop = underBar ? 0 : !underHeader ? theme.inset.topBar + barRows : floating ? insets.top + theme.inset.header + rows : 0;
-  const fabBottom = theme.spacing.three + (hasBottom ? barHeight : 0);
+  // Above a bottom bar the screen draws, and above the tab bar's own floating action.
+  const tabAction = useContext(TabActionLiftContext);
+  const fabBottom = theme.spacing.three + (hasBottom ? barHeight : 0) + tabAction;
 
   useEffect(() => {
     setBackgroundColorAsync(backgroundColor);

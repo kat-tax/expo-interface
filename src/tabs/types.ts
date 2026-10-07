@@ -3,6 +3,7 @@ import type {SFSymbol, AndroidSymbol} from 'expo-symbols';
 import type {ReactNode} from 'react';
 import type {ImageSource} from 'expo-image';
 import type {IconToken} from '../icons';
+import type {MenuItem} from '../menu/types';
 import type {SheetMaterial} from '../sheet/types';
 
 /**
@@ -40,6 +41,22 @@ export interface TabBarProps {
    * @default false
    */
   hidden?: boolean;
+  /**
+   * The app's one action beside its tabs, a "New" that every section
+   * offers, declared once: on iOS 26 a button or menu in the tab bar's
+   * bottom accessory; on Android, and iOS before 26, a floating action
+   * button above the tab bar at the bottom trailing corner, over every
+   * tab's screens (a `Screen`'s own `fab` sits above it); on web a header
+   * control in the bar's actions slot; on Windows an item first among the
+   * `NavigationView`'s, which invokes rather than selects.
+   */
+  action?: TabBarAction;
+  /**
+   * Counts above this are drawn as `99+`, as `Badge max` draws them. WinUI's
+   * `InfoBadge` holds a number alone, so Windows draws the cap.
+   * @default 99
+   */
+  badgeMax?: number;
   /**
    * Controls the web tab bar logo. Use a preset mode to show the app icon
    * and/or name, or pass a custom node to replace them entirely. The slot
@@ -106,6 +123,18 @@ export interface TabBarProps {
 }
 
 export type WindowsPane = 'top' | 'left' | 'compact' | 'minimal' | 'auto';
+
+/** The app's one action beside its tabs (`Tabs action`). */
+export interface TabBarAction {
+  /** What it does: its accessible name, and its text where the platform shows one. */
+  label: string;
+  /** Its icon. */
+  icon: IconToken;
+  /** Called on a press; ignored when `items` are given. */
+  onPress?: () => void;
+  /** A menu instead of a press: the entries `Menu` takes. */
+  items?: MenuItem[];
+}
 
 /** A tab's icon as the symbol names per platform, the shape a route carried before tokens were taken. */
 export interface TabIcon {
