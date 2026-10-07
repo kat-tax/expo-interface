@@ -58,6 +58,11 @@ describe(`Surface (${Platform.OS})`, () => {
     expect(style('token').borderColor).toBe(colors.light.opaqueSeparator);
   });
 
+  it('has no browser menu to keep closed natively', async () => {
+    await render(<Surface suppressNativeMenu testID="surface"/>);
+    expect(screen.getByTestId('surface').props.onContextMenu).toBeUndefined();
+  });
+
   it('rounds a pill, lifts a raised surface and pads it', async () => {
     await render(<Surface radius="pill" raised padding={16} testID="surface"/>);
     expect(style()).toMatchObject({borderRadius: 999, padding: 16});

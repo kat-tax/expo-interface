@@ -115,3 +115,4 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | `haptic` | The feel of a touch, by what it means. | [Platform services](../services.md#haptics) |
 | `saveFile` | Saves a file where the user chooses. | [Platform services](../services.md#saving-a-file) |
 | `DropZone`, `useDrop` | Takes files dropped on a view, on the web. | [Platform services](../services.md#dropping-files) |
+| `useKeyboardInset` | How much of a view the keyboard covers. | [Platform services](../services.md#the-keyboard-over-a-view) |

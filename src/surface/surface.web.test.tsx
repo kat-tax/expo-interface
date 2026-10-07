@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import {Surface} from '.';
 
 describe('Surface (web)', () => {
@@ -20,6 +20,19 @@ describe('Surface (web)', () => {
     );
     expect(getComputedStyle(screen.getByTestId('token')).borderColor).toBe('var(--color-opaque-separator)');
     expect(getComputedStyle(screen.getByTestId('literal')).borderColor).toBe('rgb(137, 89, 234)');
+  });
+
+  it('keeps the context menu of the browser closed over it on request, plain or pressable', () => {
+    render(
+      <>
+        <Surface suppressNativeMenu testID="canvas"/>
+        <Surface suppressNativeMenu onPress={() => {}} label="Card" testID="card"/>
+        <Surface testID="plain"/>
+      </>,
+    );
+    expect(fireEvent.contextMenu(screen.getByTestId('canvas'))).toBe(false);
+    expect(fireEvent.contextMenu(screen.getByTestId('card'))).toBe(false);
+    expect(fireEvent.contextMenu(screen.getByTestId('plain'))).toBe(true);
   });
 
   it('is a button when it presses', () => {

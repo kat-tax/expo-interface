@@ -70,3 +70,23 @@ of text or links are left to the page.
 This is the web's: files reach an iOS, Android or Windows app through the
 share sheet and the pickers, so there `DropZone` draws its children and
 `useDrop` never fires.
+
+## The keyboard over a view
+
+`useKeyboardInset(ref)` answers how much of a view the keyboard covers, in
+points: zero while it is down or clear of the view. It is for a view the kit
+does not lay out itself, such as an editor or a canvas, that has to keep
+what is typed in sight. `KeyboardBar` is the kit's own answer for a bar.
+
+```tsx
+const editor = useRef<View>(null);
+const covered = useKeyboardInset(editor);
+<View ref={editor} style={{flex: 1, paddingBottom: covered}}>
+```
+
+| Platform | Reads |
+| --- | --- |
+| iOS | The keyboard's frame as it starts to change (`keyboardWillChangeFrame`), so the answer arrives with the keyboard, measured against the view in the window |
+| Android | `keyboardDidShow`, measured the same way |
+| Web | The visual viewport, which a phone's browser shrinks to what the on-screen keyboard leaves: the part of the view inside the page that the visual viewport no longer shows |
+| Windows | The touch keyboard, which `expo-windows` raises `keyboardDidShow` for |

@@ -189,4 +189,5 @@ export type {HapticKind} from './haptic';
 export {saveFile} from './save-file';
 export type {SaveFileOptions} from './save-file/types';
 export {DropZone, useDrop} from './drop';
+export {useKeyboardInset} from './keyboard-inset';
 export type {DropOptions, DropZoneProps, DroppedFile} from './drop/types';

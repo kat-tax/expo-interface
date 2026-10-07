@@ -23,6 +23,14 @@ const FEEDBACK: Record<SurfaceColor, Feedback> = {
 const SHADOW = '0 8px 24px rgba(0, 0, 0, 0.18)';
 
 /**
+ * Web: keeps the browser's context menu closed over the surface. React
+ * Native's types do not know the event, which react-native-web forwards.
+ */
+const NO_NATIVE_MENU = Platform.OS === 'web'
+  ? ({onContextMenu: (event: {preventDefault(): void}) => event.preventDefault()} as object)
+  : null;
+
+/**
  * react-native-web renders a pressable with a button role as a real
  * `<button>`, whose user-agent style centres everything inside it and leaves
  * the arrow cursor. A surface is a box, not a label: undo both.
@@ -48,6 +56,7 @@ export function Surface({
   onPress,
   onLongPress,
   disabled = false,
+  suppressNativeMenu = false,
   label,
   onLayout,
   style,
@@ -72,7 +81,7 @@ export function Surface({
   };
 
   if (!onPress && !onLongPress) {
-    return <View style={[box, style]} onLayout={onLayout} testID={testID}>{children}</View>;
+    return <View style={[box, style]} onLayout={onLayout} testID={testID} {...(suppressNativeMenu ? NO_NATIVE_MENU : null)}>{children}</View>;
   }
 
   return (
@@ -84,7 +93,8 @@ export function Surface({
       onLongPress={onLongPress}
       onLayout={onLayout}
       style={state => [box, WEB_BUTTON, pressFeedback(state, FEEDBACK[color]), style]}
-      testID={testID}>
+      testID={testID}
+      {...(suppressNativeMenu ? NO_NATIVE_MENU : null)}>
       {children}
     </StatePressable>
   );

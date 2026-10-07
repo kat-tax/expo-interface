@@ -73,6 +73,12 @@ export interface SurfaceProps extends PropsWithChildren {
   onLongPress?: () => void;
   /** Dims the surface and ignores presses. */
   disabled?: boolean;
+  /**
+   * Web only: the browser's own context menu does not open over the surface,
+   * for content with menus of its own (a canvas, an editor) that a right
+   * click should not cover with the page's.
+   */
+  suppressNativeMenu?: boolean;
   /** Accessibility name, for a pressable surface. */
   label?: string;
   /** Called with the surface's size once it is laid out. */

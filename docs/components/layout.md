@@ -77,7 +77,9 @@ Props: `color` (`background`, `element`, `selected`, `none`), `border`
 such as `opaqueSeparator`, which follows the scheme, or any color;
 `separator` by default), `radius` (a number or `pill`), `raised` (a soft
 shadow), `padding`, `onPress`, `onLongPress`, `disabled`, `label` (the
-accessible name of a pressable surface), `onLayout`, `style`, `testID`.
+accessible name of a pressable surface), `suppressNativeMenu` (web only:
+the browser's context menu does not open over the surface, for a canvas or
+an editor with menus of its own), `onLayout`, `style`, `testID`.
 
 Differences:
 
