@@ -1,7 +1,8 @@
 import type {BadgeProps} from './types';
-import {StyleSheet, Text, View} from 'react-native';
+import {Animated, StyleSheet, Text} from 'react-native';
 import {onAccent} from '../accent';
 import {useColor} from '../theme';
+import {usePulseOpacity} from './pulse';
 import {BADGE_FONT_SIZE, BADGE_PADDING, BADGE_SIZE, badgeLabel, badgeText} from './shared';
 
 /**
@@ -20,18 +21,19 @@ import {BADGE_FONT_SIZE, BADGE_PADDING, BADGE_SIZE, badgeLabel, badgeText} from 
 export function Badge(props: BadgeProps) {
   const text = badgeText(props);
   const destructive = useColor('destructive');
+  const opacity = usePulseOpacity(props.pulse === true);
   if (text === null) return null;
   const {dot, color, textColor, testID, style} = props;
   const fill = color ?? destructive;
   const size = dot ? BADGE_SIZE.dot : BADGE_SIZE.count;
   return (
-    <View
+    <Animated.View
       accessible
       accessibilityRole="text"
       accessibilityLabel={badgeLabel(props, text)}
       style={[
         styles.badge,
-        {backgroundColor: fill, minWidth: size, height: size, borderRadius: size / 2},
+        {backgroundColor: fill, minWidth: size, height: size, borderRadius: size / 2, opacity},
         dot ? styles.dot : null,
         style,
       ]}
@@ -44,7 +46,7 @@ export function Badge(props: BadgeProps) {
           {text}
         </Text>
       )}
-    </View>
+    </Animated.View>
   );
 }
 

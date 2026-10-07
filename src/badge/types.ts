@@ -35,6 +35,11 @@ export interface BadgeProps {
   /** Draw a `0` rather than nothing. */
   showZero?: boolean;
   /**
+   * Pulses, its opacity down and back up every 900 ms: someone typing, a
+   * sync in flight. Still while the user asks for less motion.
+   */
+  pulse?: boolean;
+  /**
    * A dot with no number: "something changed here", where the count is not
    * worth saying. Takes precedence over `count`.
    */

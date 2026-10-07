@@ -20,6 +20,16 @@ describe('Badge (web)', () => {
     expect(screen.getByTestId('unread')).toHaveAccessibleName('3 unread messages');
   });
 
+  it('pulses through the stylesheet, which stills it under reduced motion', async () => {
+    render(<Badge dot pulse testID="typing"/>);
+    expect(screen.getByTestId('typing')).toHaveClass('ui-badge', 'ui-badge--dot', 'ui-badge--pulse');
+    const {readFileSync} = await import('node:fs');
+    const {join} = await import('node:path');
+    const css = readFileSync(join(__dirname, 'badge.css'), 'utf8');
+    expect(css).toContain('animation: ui-badge-pulse 900ms ease-in-out infinite;');
+    expect(css).toContain('@media (prefers-reduced-motion: reduce)');
+  });
+
   it('draws a dot with no number in it', () => {
     render(<Badge dot testID="dot"/>);
     const badge = screen.getByTestId('dot');

@@ -1,3 +1,6 @@
+/** The width of an avatar's ring, inside its edge. */
+export const AVATAR_RING = 2;
+
 /** Palette a name is hashed into when an avatar is given no color of its own. */
 export const AVATAR_COLORS = [
   '#E5484D',

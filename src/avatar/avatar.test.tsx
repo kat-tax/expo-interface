@@ -1,6 +1,7 @@
 import {Platform, StyleSheet} from 'react-native';
 import {render as renderDom, screen as dom} from '@testing-library/react';
 import {render, screen} from '@testing-library/react-native';
+import {colors} from '../theme';
 import {colorOf} from './shared';
 import {Avatar} from '.';
 
@@ -36,5 +37,17 @@ describe(`Avatar (${Platform.OS})`, () => {
     });
     const text = screen.getByText('A1');
     expect(StyleSheet.flatten(text.props.style)).toMatchObject({color: '#000000', fontSize: 16});
+  });
+
+  it('draws a ring in a palette token or a color of its own, and dims for someone away', async () => {
+    await render(
+      <>
+        <Avatar name="Ada" ring="background" testID="parted"/>
+        <Avatar name="Grace" ring="#FF00FF" dimmed testID="typing"/>
+      </>,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId('parted').props.style)).toMatchObject({borderWidth: 2, borderColor: colors.light.background});
+    expect(StyleSheet.flatten(screen.getByTestId('parted').props.style).opacity).toBeUndefined();
+    expect(StyleSheet.flatten(screen.getByTestId('typing').props.style)).toMatchObject({borderWidth: 2, borderColor: '#FF00FF', opacity: 0.5});
   });
 });

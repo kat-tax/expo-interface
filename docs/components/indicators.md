@@ -46,7 +46,14 @@ A value within a range in the SwiftUI gauge styles. Props: `value`, `min`,
 A count or a dot beside the thing it is about. Props: `count` (`0` draws
 nothing), `max` (99; counts above draw as `99+`), `showZero`, `dot`, `label`
 (the accessible name; defaults to the count and what it is about), `color`,
-`textColor`, `style`, `testID`.
+`textColor`, `pulse` (the badge's opacity goes down and back up every 900
+ms: someone typing, a sync in flight; still while the user asks for less
+motion), `style`, `testID`.
+
+A pulse is each platform's own animation: Compose animates the badge's alpha
+toward each end in turn on Android, iOS and Windows loop the opacity of the
+view (on iOS on the native driver), and the web runs a CSS animation that
+`prefers-reduced-motion` stills.
 
 | Platform | Renders |
 | --- | --- |
@@ -68,12 +75,41 @@ button swallows the button's presses.
 
 A person as a colored circle with their initials, hashed from the name so
 the same person keeps the same color. Props: `name`, `initials`, `color`,
-`size` (28), `testID`.
+`size` (28), `ring` (a 2 point ring inside the edge, a palette token or a
+color: the person's own while they type), `dimmed` (half opacity: someone
+away), `testID`.
 
 | Platform | Renders |
 | --- | --- |
 | iOS, Android, Web | A drawn circle |
-| Windows | WinUI `PersonPicture`, filled with the same hashed color |
+| Windows | WinUI `PersonPicture`, filled with the same hashed color. A ring is the view around the picture, which is drawn the ring's width smaller inside it. |
+
+## AvatarGroup
+
+People as overlapping faces, a facepile: the peers on a document. Each face
+overlaps the one before it by a quarter of its size, parted from it by a
+ring in the fill behind the group, and past `max` the rest are counted in a
+`+N` face.
+
+```tsx
+<AvatarGroup
+  people={peers.map(peer => ({name: peer.name, color: peer.color, dimmed: peer.away, ring: peer.typing ? peer.color : undefined}))}
+  onPress={peer => follow(peer)}
+  onLongPress={peer => openMenu(peer)}
+/>
+```
+
+Props: `people` (each `name`, `initials`, `color`, `ring`, `dimmed`, `key`),
+`max` (3), `size` (24), `ring` (the parting ring, a palette token or a
+color: `background` by default, so give the fill behind the group when it
+sits on a raised surface; a person's own `ring` wins), `onPress(person,
+index)`, `onLongPress(person, index)`, `onPressMore`, `testID`.
+
+A face is a button named for the person when the group is told what a press
+or a press and hold does, and the count a button named "3 more" with
+`onPressMore`. The faces are drawn in React Native on every platform,
+Windows included, where `Avatar` is a `PersonPicture` island: an island
+takes the pointer, and a facepile's faces are pressed.
 
 ## Typography
 

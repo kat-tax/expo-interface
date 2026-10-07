@@ -1,6 +1,8 @@
 import type {BadgeProps} from './types';
+import {Animated} from 'react-native';
 import XamlInfoBadge from '../windows/specs/ExpoInterfaceInfoBadgeNativeComponent';
 import {useXamlProps} from '../windows';
+import {usePulseOpacity} from './pulse';
 import {BADGE_SIZE, badgeLabel, badgeText, badgeValue} from './shared';
 
 /**
@@ -21,10 +23,11 @@ import {BADGE_SIZE, badgeLabel, badgeText, badgeValue} from './shared';
 export function Badge(props: BadgeProps) {
   const text = badgeText(props);
   const xaml = useXamlProps();
+  const opacity = usePulseOpacity(props.pulse === true);
   if (text === null) return null;
   const {dot, color, textColor, testID, style} = props;
   const height = dot ? BADGE_SIZE.dot : BADGE_SIZE.count;
-  return (
+  const badge = (
     <XamlInfoBadge
       value={badgeValue(props)}
       color={color}
@@ -35,4 +38,6 @@ export function Badge(props: BadgeProps) {
       {...xaml}
     />
   );
+  // The island pulses with the view around it, whose opacity its visual takes.
+  return props.pulse ? <Animated.View style={{opacity}}>{badge}</Animated.View> : badge;
 }

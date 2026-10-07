@@ -57,7 +57,8 @@ export type {KeyboardBarProps, KeyboardLibrary, KeyboardState} from './keyboard'
 export {Alert} from './alert';
 export type {AlertAction, AlertActionRole, AlertInput, AlertProps} from './alert/types';
 export {Avatar} from './avatar';
-export type {AvatarProps} from './avatar/types';
+export {AvatarGroup} from './avatar';
+export type {AvatarGroupPerson, AvatarGroupProps, AvatarProps} from './avatar/types';
 export {Badge} from './badge';
 export type {BadgeProps} from './badge/types';
 export {Button} from './button';

@@ -25,7 +25,7 @@ export function Badge(props: BadgeProps) {
   } as CSSProperties;
   return (
     <span
-      className={dot ? 'ui-badge ui-badge--dot' : 'ui-badge'}
+      className={['ui-badge', dot && 'ui-badge--dot', props.pulse && 'ui-badge--pulse'].filter(Boolean).join(' ')}
       style={vars}
       role="status"
       aria-label={badgeLabel(props, text)}

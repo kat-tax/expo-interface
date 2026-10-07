@@ -31,7 +31,7 @@ You can also see every component live, with its props, in the
 | [Layout](components/layout.md) | `Screen`, `ScreenHeader`, `NativeHost`, `Surface`, `Card`, `Toolbar`, `FindBar`, `KeyboardBar`, `FieldGroup`, `ListItem`, `List`, `CardGrid`, `Collapsible`, `Divider`, `EmptyState` |
 | [Navigation](components/navigation.md) | `Stack`, `Tabs`, `TabStack`, `ConstrainedStackHeader`, `TabView`, `Pager`, `HeaderMenu`, `HeaderAction`, `HeaderActions`, `ExternalLink`, `ShareLink` |
 | [Controls](components/controls.md) | `Button`, `Fab`, `Chip`, `IconToggle`, `Switch`, `Checkbox`, `TextField`, `Composer`, `SearchField`, `Picker`, `SegmentedControl`, `Slider`, `Stepper`, `DateTimePicker`, `ColorPicker` |
-| [Indicators](components/indicators.md) | `Progress`, `Spinner`, `Gauge`, `Badge`, `Avatar`, `Typography` and its variants, `RelativeTime` |
+| [Indicators](components/indicators.md) | `Progress`, `Spinner`, `Gauge`, `Badge`, `Avatar`, `AvatarGroup`, `Typography` and its variants, `RelativeTime` |
 | [Overlays](components/overlays.md) | `Menu`, `ContextMenu`, `PopupMenu`, `Popover`, `Tooltip`, `Alert`, `Sheet`, `Toast` |
 
 ## Platforms

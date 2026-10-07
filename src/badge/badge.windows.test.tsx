@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {Animated, StyleSheet} from 'react-native';
 import {render} from '@testing-library/react-native';
 import {island} from 'expo-vitest/windows';
 import {Badge} from '.';
@@ -39,5 +39,21 @@ describe('Badge (windows)', () => {
   it('draws nothing for a count of zero', async () => {
     const {toJSON} = await render(<Badge count={0}/>);
     expect(toJSON()).toBeNull();
+  });
+
+  it('pulses the island through the view around it', async () => {
+    const start = vi.fn();
+    const stop = vi.fn();
+    const loop = vi.spyOn(Animated, 'loop').mockReturnValue({start, stop, reset: vi.fn()} as never);
+    const timing = vi.spyOn(Animated, 'timing');
+    const {rerender} = await render(<Badge dot pulse testID="typing"/>);
+    expect(start).toHaveBeenCalledTimes(1);
+    // React Native for Windows animates on the JavaScript side.
+    expect(timing).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({toValue: 0.35, duration: 450, useNativeDriver: false}));
+    expect(island(BADGE).props.testID).toBe('typing');
+    await rerender(<Badge dot testID="typing"/>);
+    expect(stop).toHaveBeenCalledTimes(1);
+    loop.mockRestore();
+    timing.mockRestore();
   });
 });
