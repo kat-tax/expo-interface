@@ -240,6 +240,24 @@ describe('Menu (web)', () => {
       supports.mockRestore();
     }
   });
+
+  it('opens over the point when the top is asked for, without CSS anchor positioning', async () => {
+    const supports = vi.spyOn(CSS, 'supports').mockReturnValue(false);
+    vi.resetModules();
+    try {
+      const {MenuList} = await import('./list');
+      const point = document.createElement('span');
+      vi.spyOn(point, 'getBoundingClientRect').mockReturnValue({left: 120, right: 200, top: 100, bottom: 124} as DOMRect);
+      render(<MenuList id="ui-menu-z" items={items} anchor="--ui-menu-z" atPoint edge="top" anchorRef={{current: point}}/>);
+      const menu = screen.getByRole('menu', {hidden: true});
+      fireEvent(menu, toggleEvent('open'));
+      // Over the anchor's top less a gap; jsdom lays the popup out with no height.
+      expect(menu.style.top).toBe('96px');
+      expect(menu).not.toHaveClass('ui-menu__list--above');
+    } finally {
+      supports.mockRestore();
+    }
+  });
 });
 describe('the menu keyboard pattern', () => {
   /** What `role="menu"` promises anyone without a pointer. */

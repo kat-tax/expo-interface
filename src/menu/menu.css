@@ -67,6 +67,11 @@
   margin-block: 0;
 }
 
+/* Over the anchor when the top was asked for, under it when there is no room. */
+.ui-menu__list--above {
+  position-area: top span-right;
+}
+
 .ui-menu__list::backdrop {
   background: transparent;
 }
@@ -108,6 +113,11 @@
 
 .ui-menu__item--destructive {
   color: var(--color-destructive);
+}
+
+/* The entry a field the focus stays in has made current: drawn as a hover is. */
+.ui-menu__item--highlighted {
+  background: color-mix(in srgb, var(--color-label) 8%, transparent);
 }
 
 /* The current state: highlighted like a hover, with a tick at the trailing edge. */

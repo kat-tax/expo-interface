@@ -8,6 +8,7 @@ import {caretPoint} from '../caret';
 import {Footnote} from '../typography';
 import {spacing, useColor} from '../theme';
 import * as icons from '../__stories__/icons';
+import {filterItems, popupOptionId} from './types';
 import {PopupMenu} from '.';
 
 /**
@@ -55,6 +56,20 @@ export const AtAPoint: Story = {};
 
 export const Filtered: Story = {
   args: {filter: 'list'},
+};
+
+/**
+ * Beside a rectangle (a block's handle) rather than over it: under it, or
+ * over it when the top is asked for and there is room.
+ */
+export const BesideARectangle: Story = {
+  args: {at: {x: 24, y: 40, width: 120, height: 28}, preferredEdge: 'bottom'},
+  render: args => (
+    <View style={styles.canvas}>
+      <View style={[styles.handle, {left: 24, top: 40}]}/>
+      <PopupMenu {...args}/>
+    </View>
+  ),
 };
 
 export const Interactive: Story = {
@@ -122,11 +137,72 @@ export const SlashCommand: Story = {
   },
 };
 
+/**
+ * The same slash command with the focus left in the editor: on web the menu
+ * is a listbox whose current entry the arrow keys in the field move, named
+ * in the field's `aria-activedescendant`, and Enter picks it. The native
+ * menus take the focus as their platform does.
+ */
+export const SlashCommandKeepingTheFocus: Story = {
+  render: function SlashCommandKeepingTheFocus(args) {
+    const field = useRef<TextInput>(null);
+    const canvas = useRef<View>(null);
+    const [text, setText] = useState('Type / for the menu');
+    const [at, setAt] = useState<MenuPoint | null>(null);
+    const [filter, setFilter] = useState('');
+    const [highlighted, setHighlighted] = useState(0);
+    const ink = useColor('label');
+    const border = useColor('separator');
+    const entries = filterItems(items, filter);
+    return (
+      <View ref={canvas} style={styles.canvas}>
+        <TextInput
+          ref={field}
+          multiline
+          value={text}
+          accessibilityLabel="Notes"
+          aria-controls="slash-menu"
+          aria-activedescendant={at ? popupOptionId('slash-menu', highlighted) : undefined}
+          style={[styles.editor, {color: ink, borderColor: border}]}
+          onKeyPress={event => {
+            if (!at) return;
+            const key = event.nativeEvent.key;
+            if (key === 'ArrowDown' || key === 'ArrowUp') {
+              event.preventDefault();
+              const step = key === 'ArrowDown' ? 1 : -1;
+              setHighlighted(current => (current + step + entries.length) % entries.length);
+            } else if (key === 'Enter') {
+              event.preventDefault();
+              entries[highlighted]?.onPress?.();
+              setAt(null);
+            }
+          }}
+          onChangeText={next => {
+            setText(next);
+            const element = field.current as unknown as CaretField | null;
+            const query = slashQuery(next, element?.selectionStart ?? next.length);
+            setFilter(query ?? '');
+            setHighlighted(0);
+            if (query === null) {
+              setAt(null);
+              return;
+            }
+            const point = caretPoint(element, canvas.current as unknown as Element);
+            setAt(point ? {x: point.x, y: point.y + point.height} : FALLBACK);
+          }}
+        />
+        <PopupMenu {...args} at={at} filter={filter} takesFocus={false} highlighted={highlighted} id="slash-menu" onDismiss={() => setAt(null)}/>
+      </View>
+    );
+  },
+};
+
 /** Under the field, for a platform that cannot say where the caret is. */
 const FALLBACK = {x: spacing.three, y: 96};
 
 const styles = StyleSheet.create({
   canvas: {height: 200, padding: 12},
+  handle: {position: 'absolute', width: 120, height: 28, borderRadius: 6, borderWidth: 1, borderStyle: 'dashed', borderColor: '#8E8E93'},
   editor: {
     minHeight: 72,
     padding: spacing.two,

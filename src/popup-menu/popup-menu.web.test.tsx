@@ -131,8 +131,10 @@ describe('PopupMenu (web)', () => {
     const menu = screen.getByRole('menu', {hidden: true});
     const event = new Event('toggle');
     Object.defineProperty(event, 'newState', {value: 'closed'});
+    open = false;
     menu.dispatchEvent(event);
     expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(onDismiss).toHaveBeenCalledWith('dismiss');
   });
 
   it('says nothing when the browser opens the popup', () => {

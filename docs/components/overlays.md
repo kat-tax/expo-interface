@@ -79,8 +79,10 @@ Differences:
 
 The platform's menu opened at a point over content the kit did not draw: a
 canvas, a web view, an editor. It wraps nothing. Props: `items`, `at` (a
-point, or `null` to close), `filter` (matches the label or `keywords`, for a
-menu typed into), `onDismiss`, `testID`.
+point or a rectangle, or `null` to close), `preferredEdge` (`auto`, `top`,
+`bottom`), `filter` (matches the label or `keywords`, for a menu typed
+into), `onDismiss(reason)`, `takesFocus`, `highlighted` and `id` (web, for
+a menu typed into), `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -88,6 +90,30 @@ menu typed into), `onDismiss`, `testID`.
 | Android | Material 3 `DropdownMenu` from a one-point host |
 | Web | The same menu popover, anchored at the point |
 | Windows | WinUI `MenuFlyout` at the point |
+
+A rectangle (a handle, a chip, a selection) opens the menu beside it rather
+than over it: under it, or over it when the top is asked for and there is
+room. iOS opens the popover from the rectangle's edge with its arrow fixed to
+that side; Android anchors a strip one point wide and the rectangle's height
+at its leading edge, so Compose opens the menu under it or, with no room
+there, over it, which is Compose's own choice whatever `preferredEdge` says;
+web and Windows place the menu on the edge asked for and move it to stay on
+screen.
+
+`onDismiss` says why the menu closed of its own accord: `select` (an entry
+was picked) or `dismiss` (a press outside, Escape, the back gesture). A close
+the app asked for by clearing `at` is not reported. While the menu is open,
+a new `at` moves it: a menu moved from one handle to the next stays open,
+and no late close of the first reaches the second. On web, Escape closes the
+menu wherever the focus is, even in an editor that keeps the key for itself,
+and the key goes no further.
+
+`takesFocus={false}` is for a menu typed into, a slash command in an editor.
+On web the focus stays in the field, and the menu is a `listbox` whose
+current entry is `highlighted`, which the field moves with its arrow keys:
+give the menu an `id`, and the field `aria-controls={id}` and
+`aria-activedescendant={popupOptionId(id, highlighted)}`. The native menus
+take the focus as their platform does and ignore the three props.
 
 On web the matched part of a label is marked with the CSS Custom Highlight
 API, which adds nothing to the DOM and leaves the accessible name as it was.

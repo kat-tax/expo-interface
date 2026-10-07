@@ -57,6 +57,14 @@ struct MenuFlyoutView : winrt::implements<MenuFlyoutView, winrt::IInspectable>,
     m_flyout.Closed([weak = get_weak()](const winrt::IInspectable &, const winrt::IInspectable &) {
       if (auto strong = weak.get()) {
         strong->m_open = false;
+        // Closed to move it: open it again at the new place, and say nothing.
+        if (strong->m_moving) {
+          strong->m_moving = false;
+          if (auto props = strong->Props(); props && props->open) {
+            strong->Show(props->atPoint.value_or(false), props->x.value_or(0.0), props->y.value_or(0.0), props->edge.value_or("bottom") == "top");
+          }
+          return;
+        }
         if (auto emitter = strong->EventEmitter()) {
           Codegen::ExpoInterfaceMenuFlyoutEventEmitter::OnOpenChange event;
           event.open = false;
@@ -79,9 +87,18 @@ struct MenuFlyoutView : winrt::implements<MenuFlyoutView, winrt::IInspectable>,
       m_items = props->items;
       Build(ParseArray(m_items));
     }
+    const bool atPoint = props->atPoint.value_or(false);
+    const double x = props->x.value_or(0.0);
+    const double y = props->y.value_or(0.0);
+    const bool above = props->edge.value_or("bottom") == "top";
     if (props->open && !m_open) {
-      Show(props->atPoint.value_or(false), props->x.value_or(0.0), props->y.value_or(0.0));
+      if (!m_moving) Show(atPoint, x, y, above);
     } else if (!props->open && m_open) {
+      m_flyout.Hide();
+    } else if (props->open && m_open && (x != m_x || y != m_y || above != m_above)) {
+      // A new anchor while the menu is open: the flyout is closed and opened
+      // again there, as one move rather than a close the app hears of.
+      m_moving = true;
       m_flyout.Hide();
     }
   }
@@ -140,21 +157,24 @@ struct MenuFlyoutView : winrt::implements<MenuFlyoutView, winrt::IInspectable>,
     }
   }
 
-  void Show(bool atPoint, double x, double y) noexcept {
+  void Show(bool atPoint, double x, double y, bool above) noexcept {
     if (!m_anchor.XamlRoot()) {
       // Not in the tree yet: shown once it is.
-      m_anchor.Loaded([weak = get_weak(), atPoint, x, y](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
+      m_anchor.Loaded([weak = get_weak(), atPoint, x, y, above](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
         if (auto strong = weak.get()) {
-          if (auto props = strong->Props(); props && props->open && !strong->m_open) strong->Show(atPoint, x, y);
+          if (auto props = strong->Props(); props && props->open && !strong->m_open) strong->Show(atPoint, x, y, above);
         }
       });
       return;
     }
     m_open = true;
+    m_x = x;
+    m_y = y;
+    m_above = above;
     controls::Primitives::FlyoutShowOptions options;
     if (atPoint) {
       options.Position(winrt::Windows::Foundation::Point{static_cast<float>(x), static_cast<float>(y)});
-      options.Placement(controls::Primitives::FlyoutPlacementMode::BottomEdgeAlignedLeft);
+      options.Placement(above ? controls::Primitives::FlyoutPlacementMode::TopEdgeAlignedLeft : controls::Primitives::FlyoutPlacementMode::BottomEdgeAlignedLeft);
     } else {
       options.Placement(controls::Primitives::FlyoutPlacementMode::BottomEdgeAlignedRight);
     }
@@ -170,6 +190,11 @@ struct MenuFlyoutView : winrt::implements<MenuFlyoutView, winrt::IInspectable>,
   controls::MenuFlyout m_flyout{nullptr};
   std::string m_items;
   bool m_open{false};
+  // Where the open menu was placed, and whether it is being moved.
+  double m_x{0.0};
+  double m_y{0.0};
+  bool m_above{false};
+  bool m_moving{false};
 };
 
 // -- ContentDialog -----------------------------------------------------------

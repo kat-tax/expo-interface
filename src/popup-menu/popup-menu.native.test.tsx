@@ -52,6 +52,45 @@ describe(`PopupMenu (${Platform.OS})`, () => {
       await fireEvent(menu, 'dismissRequest');
     }
     expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(onDismiss).toHaveBeenCalledWith('dismiss');
+  });
+
+  it('reports a pick as a selection', async () => {
+    const onDismiss = vi.fn();
+    const onPress = vi.fn();
+    await render(<PopupMenu items={[{label: 'Heading', onPress}]} at={{x: 0, y: 0}} onDismiss={onDismiss} testID="popup"/>);
+    if (isIOS) {
+      const [button] = screen.container.queryAll(i => typeof i.props.onButtonPress === 'function');
+      await fireEvent(button, 'buttonPress');
+    } else {
+      const [entry] = screen.container.queryAll(i => typeof i.props.onItemPressed === 'function');
+      await fireEvent(entry, 'itemPressed');
+    }
+    expect(onPress).toHaveBeenCalledTimes(1);
+    expect(onDismiss).toHaveBeenCalledWith('select');
+  });
+
+  it('opens beside a rectangle rather than over it', async () => {
+    const at = {x: 120, y: 48, width: 80, height: 24};
+    const {rerender} = await render(<PopupMenu items={items} at={at} testID="popup"/>);
+    if (isIOS) {
+      // From the rectangle's bottom edge, the arrow on the popover's top: under it.
+      expect(StyleSheet.flatten(hostView().props.style)).toMatchObject({left: 120, top: 72});
+      expect(screen.getByTestId('popup').props.arrowEdge).toBe('top');
+      await rerender(<PopupMenu items={items} at={at} preferredEdge="top" testID="popup"/>);
+      // From its top edge, the arrow on the popover's bottom: over it.
+      expect(StyleSheet.flatten(hostView().props.style)).toMatchObject({left: 120, top: 48});
+      expect(screen.getByTestId('popup').props.arrowEdge).toBe('bottom');
+      await rerender(<PopupMenu items={items} at={{x: 5, y: 5}} testID="popup"/>);
+      // A point with no preference leaves the side to the system.
+      expect(screen.getByTestId('popup').props.arrowEdge).toBeUndefined();
+      await rerender(<PopupMenu items={items} at={{x: 5, y: 5}} preferredEdge="bottom" testID="popup"/>);
+      expect(screen.getByTestId('popup').props.arrowEdge).toBe('top');
+    } else {
+      // A strip the rectangle's height at its leading edge: Compose opens under it or over it.
+      expect(StyleSheet.flatten(hostView().props.style)).toMatchObject({left: 120, top: 48});
+      expect(modifier(byComposeTestID('popup').props, 'size')).toMatchObject({width: 1, height: 24});
+    }
   });
 
   it('needs no testID', async () => {

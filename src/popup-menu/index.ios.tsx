@@ -7,38 +7,52 @@ import {buttonStyle, foregroundStyle, frame, opacity, padding} from '@expo/ui/sw
 import {iosSymbol} from '../button/shared';
 import {NativeHost} from '../host';
 import {useColor} from '../theme';
-import {filterItems} from './types';
+import {anchorPoint, filterItems} from './types';
 
 /** Width the popover asks for, so its rows are not squeezed to their text. */
 const MIN_WIDTH = 220;
 const ICON_SIZE = 16;
 
 /**
+ * Where the popover's arrow sits for each preference: on its top edge for a
+ * popover under the anchor, on its bottom edge for one over it. A point with
+ * no preference leaves the side to the system.
+ */
+function arrowEdgeFor(rect: boolean, edge: 'auto' | 'top' | 'bottom'): 'top' | 'bottom' | undefined {
+  if (edge === 'top') return 'bottom';
+  return edge === 'bottom' || rect ? 'top' : undefined;
+}
+
+/**
  * iOS presents a SwiftUI `popover` from a point-sized anchor laid over the
  * content — the only SwiftUI presentation that opens where it is asked to,
  * and the one UIKit uses for an editor's own menus. `presentationCompact-
- * Adaptation` keeps it a popover on a phone rather than a sheet.
+ * Adaptation` keeps it a popover on a phone rather than a sheet. Beside a
+ * rectangle the anchor is the rectangle's bottom edge, or its top edge when
+ * the top is asked for, and the arrow is fixed to that side.
  *
  * A popover's content is drawn by hand rather than taken from a `Menu`,
  * which SwiftUI only opens from its own button.
  */
-export function PopupMenu({items, at, filter, onDismiss, testID}: PopupMenuProps) {
+export function PopupMenu({items, at, preferredEdge = 'auto', filter, onDismiss, testID}: PopupMenuProps) {
+  const point = anchorPoint(at, preferredEdge);
   return (
     <NativeHost
       fit
       pointerEvents="box-none"
-      style={[styles.anchor, {left: at?.x ?? 0, top: at?.y ?? 0}]}>
+      style={[styles.anchor, {left: point.x, top: point.y}]}>
       <Popover
         isPresented={at != null}
+        arrowEdge={arrowEdgeFor(at !== null && 'width' in at, preferredEdge)}
         onIsPresentedChange={presented => {
-          if (!presented) onDismiss?.();
+          if (!presented) onDismiss?.('dismiss');
         }}
         testID={testID}>
         <Popover.Trigger>
           <Spacer modifiers={[frame({width: 1, height: 1})]}/>
         </Popover.Trigger>
         <Popover.Content>
-          <PopupItems items={filterItems(items, filter)} onClose={() => onDismiss?.()}/>
+          <PopupItems items={filterItems(items, filter)} onClose={() => onDismiss?.('select')}/>
         </Popover.Content>
       </Popover>
     </NativeHost>

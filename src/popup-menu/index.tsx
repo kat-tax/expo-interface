@@ -3,30 +3,40 @@ import type {CSSProperties} from 'react';
 import type {PopupMenuProps} from './types';
 import {useEffect, useId, useRef} from 'react';
 import {MenuList, menuIdent} from '../menu/list';
-import {filterItems} from './types';
+import {filterItems, sizeOf} from './types';
 
 /**
  * On web the entries live in the same native `popover="auto"` element as
  * `Menu`, opened with `showPopover()` and laid out by CSS anchor positioning
- * against a zero-size anchor placed at `at` — so the browser flips the popup
- * to keep it on screen, and closes it on an outside click or Escape.
+ * against an anchor placed at `at` — a point, or a box the size of the
+ * rectangle — so the browser flips the popup to keep it on screen, and
+ * closes it on an outside click. Escape closes it wherever the focus is.
  */
-export function PopupMenu({items, at, filter, onDismiss, testID}: PopupMenuProps) {
-  const ident = menuIdent(useId());
-  const anchor = `--${ident}`;
+export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus = true, highlighted, id, onDismiss, testID}: PopupMenuProps) {
+  const generated = menuIdent(useId());
+  const ident = id ?? generated;
+  const anchor = `--${generated}`;
   const popover = useRef<HTMLDivElement>(null);
   const point = useRef<HTMLSpanElement>(null);
   const pressed = usePointerDown();
+  // Why the popup is closing, when it is not a dismissal: a pick, or the app
+  // clearing `at`, which it already knows of and is not told about.
+  const closing = useRef<'select' | 'app' | null>(null);
+  const open = at !== null;
 
   useEffect(() => {
     // The popover element is in the DOM by the time an effect runs.
     const element = popover.current!;
-    const open = element.matches(':popover-open');
+    const showing = element.matches(':popover-open');
     if (!at) {
-      if (open) element.hidePopover();
+      if (showing) {
+        closing.current = 'app';
+        element.hidePopover();
+      }
       return;
     }
-    if (open) return;
+    if (showing) return;
+    closing.current = null;
     if (!pressed.current) {
       element.showPopover();
       return;
@@ -50,6 +60,22 @@ export function PopupMenu({items, at, filter, onDismiss, testID}: PopupMenuProps
     };
   }, [at, pressed]);
 
+  // Escape closes the menu wherever the focus is: an editor that holds it
+  // and keeps the key for itself would otherwise leave the menu up. The key
+  // is the menu's then, and goes no further.
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      const element = popover.current!;
+      if (event.key !== 'Escape' || !element.matches(':popover-open')) return;
+      event.stopPropagation();
+      element.hidePopover();
+    };
+    document.addEventListener('keydown', onKey, true);
+    return () => document.removeEventListener('keydown', onKey, true);
+  }, [open]);
+
+  const size = sizeOf(at);
   return (
     <span
       ref={point}
@@ -59,6 +85,8 @@ export function PopupMenu({items, at, filter, onDismiss, testID}: PopupMenuProps
         anchorName: anchor,
         left: at?.x ?? 0,
         top: at?.y ?? 0,
+        width: size.width,
+        height: size.height,
       } as CSSProperties}>
       <MenuList
         id={ident}
@@ -66,10 +94,19 @@ export function PopupMenu({items, at, filter, onDismiss, testID}: PopupMenuProps
         match={filter}
         anchor={anchor}
         atPoint
+        edge={preferredEdge}
+        focusOnOpen={takesFocus}
+        highlighted={highlighted}
         anchorRef={point}
         popoverRef={popover}
-        onOpenChange={open => {
-          if (!open) onDismiss?.();
+        onPick={() => {
+          closing.current = 'select';
+        }}
+        onOpenChange={next => {
+          if (next) return;
+          const reason = closing.current;
+          closing.current = null;
+          if (reason !== 'app') onDismiss?.(reason === 'select' ? 'select' : 'dismiss');
         }}
       />
     </span>
@@ -105,3 +142,5 @@ function usePointerDown() {
   }, []);
   return down;
 }
+
+export type {MenuRect, PopupMenuDismissReason, PopupMenuProps} from './types';

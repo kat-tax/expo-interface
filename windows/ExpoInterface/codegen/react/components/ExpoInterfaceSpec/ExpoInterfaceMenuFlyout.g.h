@@ -30,6 +30,7 @@ struct ExpoInterfaceMenuFlyoutProps : winrt::implements<ExpoInterfaceMenuFlyoutP
        atPoint = cloneFromProps->atPoint;
        x = cloneFromProps->x;
        y = cloneFromProps->y;
+       edge = cloneFromProps->edge;
        accentColor = cloneFromProps->accentColor;
        theme = cloneFromProps->theme;
        onSelect = cloneFromProps->onSelect;
@@ -55,6 +56,9 @@ struct ExpoInterfaceMenuFlyoutProps : winrt::implements<ExpoInterfaceMenuFlyoutP
 
   REACT_FIELD(y)
   std::optional<double> y{};
+
+  REACT_FIELD(edge)
+  std::optional<std::string> edge;
 
   REACT_FIELD(accentColor)
   std::optional<std::string> accentColor;

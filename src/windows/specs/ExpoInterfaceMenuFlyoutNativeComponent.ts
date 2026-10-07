@@ -24,6 +24,12 @@ export interface NativeProps extends ViewProps {
   atPoint?: boolean;
   x?: CodegenTypes.WithDefault<CodegenTypes.Double, 0>;
   y?: CodegenTypes.WithDefault<CodegenTypes.Double, 0>;
+  /**
+   * Which side of the point a menu at a point opens on: under it, or over
+   * it (`top`). The flyout still moves to stay in the window. A new point or
+   * edge while the menu is open moves it there, with no close reported.
+   */
+  edge?: CodegenTypes.WithDefault<'bottom' | 'top', 'bottom'>;
   accentColor?: string;
   theme?: CodegenTypes.WithDefault<'light' | 'dark' | 'system', 'system'>;
   onSelect?: CodegenTypes.DirectEventHandler<SelectEvent>;

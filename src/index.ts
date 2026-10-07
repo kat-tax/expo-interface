@@ -110,7 +110,8 @@ export type {PickerItemProps, PickerOption, PickerProps, PickerValue} from './pi
 export {Popover} from './popover';
 export type {PopoverAction, PopoverDismissReason, PopoverInsets, PopoverProps, PopoverRect} from './popover/types';
 export {PopupMenu} from './popup-menu';
-export type {PopupMenuProps} from './popup-menu/types';
+export {popupOptionId} from './popup-menu/types';
+export type {MenuRect, PopupMenuDismissReason, PopupMenuProps} from './popup-menu/types';
 export {Progress} from './progress';
 export type {ProgressProps, ProgressVariant} from './progress/types';
 export {ShareLink} from './share-link';

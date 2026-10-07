@@ -1,9 +1,10 @@
 import type {CSSProperties, ToggleEvent} from 'react';
 import type {MenuItem} from './types';
-import {useRef} from 'react';
+import {useEffect, useRef} from 'react';
 import {useMatchHighlight} from '../a11y/highlight';
 import {useRovingFocus} from '../a11y/roving';
 import {Icon} from '../symbol';
+import {optionId} from './option-id';
 
 const ICON_SIZE = 16;
 const VIEWPORT_GAP = 8;
@@ -43,7 +44,21 @@ interface MenuListProps {
    * is handed these items.
    */
   match?: string;
+  /** Which side of a point anchor the popup opens on; below unless `top` is asked for. */
+  edge?: 'auto' | 'top' | 'bottom';
+  /**
+   * Whether the popup takes the keyboard focus as it opens. Without it the
+   * list is a `listbox` whose current entry is `highlighted`, driven from
+   * the field the focus stays in through `aria-activedescendant`.
+   * @default true
+   */
+  focusOnOpen?: boolean;
+  /** The entry drawn as the current one in a list that does not take the focus. */
+  highlighted?: number;
+  /** Called as an entry is picked, before its `onPress`. */
+  onPick?: () => void;
 }
+
 
 /**
  * Web `role="menu"` popup shared by `Menu`, `ContextMenu` and `Fab`, rendered
@@ -53,7 +68,7 @@ interface MenuListProps {
  * menu declaratively. Placement is CSS anchor positioning (see `menu.css`),
  * with a measured fallback for engines without it.
  */
-export function MenuList({id, items, anchor, atPoint, anchorRef, position, popoverRef, onOpenChange, match}: MenuListProps) {
+export function MenuList({id, items, anchor, atPoint, anchorRef, position, popoverRef, onOpenChange, match, edge = 'auto', focusOnOpen = true, highlighted, onPick}: MenuListProps) {
   const localRef = useRef<HTMLDivElement>(null);
   const ref = popoverRef ?? localRef;
   const anchored = !!anchor && !position;
@@ -65,7 +80,14 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
   const roving = useRovingFocus(ref, {activeIndex: checked === -1 ? 0 : checked, typeahead: true});
   // What the search matched, painted in place rather than wrapped in a tag.
   useMatchHighlight(ref, match, '.ui-menu__label');
+  // A list the focus stays out of shows its current entry and keeps it in view.
+  const listbox = !focusOnOpen;
+  useEffect(() => {
+    if (!listbox || highlighted === undefined) return;
+    ref.current?.querySelector('[aria-selected="true"]')?.scrollIntoView?.({block: 'nearest'});
+  }, [listbox, highlighted, ref]);
 
+  const above = atPoint === true && edge === 'top';
   const style: Record<string, string | number> = {};
   if (anchored && ANCHOR_SUPPORTED) style.positionAnchor = anchor;
   if (position) {
@@ -76,6 +98,9 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
   const onToggle = (event: ToggleEvent<HTMLDivElement>) => {
     const popover = event.currentTarget;
     if (event.newState !== 'open') {
+      // The browser reports a close in a task of its own, by which time the
+      // popup may be open again for the next anchor: that close is over.
+      if (popover.matches(':popover-open')) return;
       onOpenChange?.(false);
       return;
     }
@@ -83,7 +108,7 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
     if (anchored && !ANCHOR_SUPPORTED && anchorRef?.current) {
       const rect = anchorRef.current.getBoundingClientRect();
       popover.style.left = `${Math.max(VIEWPORT_GAP, atPoint ? rect.left : rect.right - popover.offsetWidth)}px`;
-      popover.style.top = `${rect.bottom + 4}px`;
+      popover.style.top = above ? `${Math.max(VIEWPORT_GAP, rect.top - popover.offsetHeight - 4)}px` : `${rect.bottom + 4}px`;
     }
     // Pointer placement: nudge back inside the viewport.
     if (position) {
@@ -92,7 +117,7 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
       popover.style.left = `${Math.max(VIEWPORT_GAP, Math.min(position.x, maxX))}px`;
       popover.style.top = `${Math.max(VIEWPORT_GAP, Math.min(position.y, maxY))}px`;
     }
-    (popover.querySelector('button:not(:disabled)') as HTMLButtonElement | null)?.focus();
+    if (focusOnOpen) (popover.querySelector('button:not(:disabled)') as HTMLButtonElement | null)?.focus();
     onOpenChange?.(true);
   };
 
@@ -100,33 +125,38 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
     <div
       ref={ref}
       id={id}
-      role="menu"
+      role={listbox ? 'listbox' : 'menu'}
       popover="auto"
       className={[
         'ui-menu__list',
         anchored && ANCHOR_SUPPORTED && 'ui-menu__list--anchored',
         anchored && ANCHOR_SUPPORTED && atPoint && 'ui-menu__list--point',
+        anchored && ANCHOR_SUPPORTED && above && 'ui-menu__list--above',
       ].filter(Boolean).join(' ')}
       style={style as CSSProperties}
       onToggle={onToggle}
-      onKeyDown={roving.onKeyDown}>
+      onKeyDown={listbox ? undefined : roving.onKeyDown}>
       {items.map((item, index) => (
         <div key={index}>
           {item.separator && index > 0 ? <div className="ui-menu__separator" role="separator"/> : null}
           <button
             type="button"
-            role="menuitem"
+            role={listbox ? 'option' : 'menuitem'}
             aria-current={item.active ? 'true' : undefined}
             className={[
               'ui-menu__item',
               item.role === 'destructive' && 'ui-menu__item--destructive',
               item.active && 'ui-menu__item--active',
+              listbox && index === highlighted && 'ui-menu__item--highlighted',
             ].filter(Boolean).join(' ')}
             disabled={item.disabled}
             popoverTarget={id}
             popoverTargetAction="hide"
-            {...roving.itemProps(index)}
-            onClick={item.onPress}>
+            {...(listbox ? {id: optionId(id, index), tabIndex: -1, 'aria-selected': index === highlighted} : roving.itemProps(index))}
+            onClick={() => {
+              onPick?.();
+              item.onPress?.();
+            }}>
             {item.swatch ? (
               <span className="ui-menu__swatch" style={{background: item.swatch}} aria-hidden="true"/>
             ) : item.icon ? (
