@@ -59,7 +59,7 @@ export type {BadgeProps} from './badge/types';
 export {Button} from './button';
 export type {ButtonProps, ButtonRole, ButtonShape, ButtonSize, ButtonTone, ButtonVariant} from './button/types';
 export {Card} from './card';
-export type {CardProps} from './card/types';
+export type {CardFavorite, CardProps} from './card/types';
 export {Checkbox} from './checkbox';
 export type {CheckboxProps} from './checkbox/types';
 export {Chip} from './chip';

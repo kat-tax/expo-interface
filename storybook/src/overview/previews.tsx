@@ -102,9 +102,10 @@ function Device({children}: PropsWithChildren) {
 function CardPreview() {
   return (
     <Card
-      label="Holiday photos"
-      onPress={noop}
-      footer={<Headline color="label">Holiday photos</Headline>}>
+      title="Holiday photos"
+      subtitle="Edited yesterday"
+      menu={[{label: 'Rename'}, {label: 'Delete', role: 'destructive'}]}
+      onPress={noop}>
       <View style={styles.cardPreview}>
         <Footnote color="tertiaryLabel">Preview</Footnote>
       </View>

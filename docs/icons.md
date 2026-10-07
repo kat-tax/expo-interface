@@ -149,8 +149,11 @@ It imports each outlined vector from `@expo/material-symbols` where the
 package ships it and downloads the rest from Google Fonts, downloads the
 `fill` form of every token that asks for one, and writes
 `drawables.android.ts` with the two maps and a `drawables.ts` stub for the
-other platforms. A token's own `drawable` still wins. `drawableOf(token)`
-is the lookup the kit's Android controls use.
+other platforms. The names the kit's own controls draw on Android are
+written whether or not the sources name them: `more_horiz`, the ellipsis of
+a `Toolbar`'s overflow and a `Card`'s menu, and `star`, outlined and
+filled, for a `Card`'s favorite. A token's own `drawable` still wins.
+`drawableOf(token)` is the lookup the kit's Android controls use.
 
 ## The web font
 

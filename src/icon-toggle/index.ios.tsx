@@ -1,6 +1,6 @@
 import type {IconToggleProps} from './types';
 import {Button, Image} from '@expo/ui/swift-ui';
-import {accessibilityAddTraits, accessibilityLabel, buttonStyle, disabled as disabledMod, opacity} from '@expo/ui/swift-ui/modifiers';
+import {accessibilityAddTraits, accessibilityLabel, buttonStyle, disabled as disabledMod, hidden, opacity} from '@expo/ui/swift-ui/modifiers';
 import {iosSymbol} from '../button/shared';
 import {SelfHosted} from '../host';
 import {useColor} from '../theme';
@@ -29,6 +29,7 @@ function NativeIconToggle({
   offColor,
   size = 24,
   disabled = false,
+  offVisibility = 'visible',
   testID,
 }: IconToggleProps) {
   const tint = useColor('tint');
@@ -36,6 +37,9 @@ function NativeIconToggle({
   const modifiers = [buttonStyle('plain'), accessibilityLabel(label)];
   if (value) modifiers.push(accessibilityAddTraits(['isSelected']));
   if (disabled) modifiers.push(disabledMod(true), opacity(0.4));
+  // SwiftUI's `hidden` keeps the frame and takes the button out of hit
+  // testing and VoiceOver's tree at once.
+  if (offVisibility === 'hidden' && !value) modifiers.push(hidden());
   return (
     <Button onPress={() => onValueChange(!value)} modifiers={modifiers} testID={testID}>
       <Image

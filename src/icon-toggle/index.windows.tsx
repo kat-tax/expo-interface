@@ -17,6 +17,7 @@ export function IconToggle({
   offColor,
   size = 24,
   disabled = false,
+  offVisibility = 'visible',
   testID,
 }: IconToggleProps) {
   const xaml = useXamlProps();
@@ -32,6 +33,7 @@ export function IconToggle({
       offColor={offColor}
       label={label}
       disabled={disabled}
+      hidden={offVisibility === 'hidden' && !value}
       onValueChange={event => onValueChange(event.nativeEvent.value)}
       style={{alignSelf: 'flex-start'}}
       testID={testID}

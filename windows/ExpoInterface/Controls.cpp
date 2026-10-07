@@ -327,6 +327,9 @@ struct ToggleButtonView : winrt::implements<ToggleButtonView, winrt::IInspectabl
     ApplyLook(props->ViewProps, props->theme, props->accentColor);
     m_button.IsChecked(props->value);
     m_button.IsEnabled(!props->disabled.value_or(false));
+    // Collapsed rather than transparent: a control a card reveals under the
+    // pointer is out of hit testing and the UIA tree while it is hidden.
+    m_button.Visibility(props->hidden.value_or(false) ? xaml::Visibility::Collapsed : xaml::Visibility::Visible);
     SetIdentity(m_button, std::optional<std::string>{props->label}, props->ViewProps);
     Paint(props->value);
     m_applying = false;

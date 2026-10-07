@@ -31,6 +31,15 @@ export interface IconToggleProps {
   size?: number;
   /** Disables interaction and dims the toggle. */
   disabled?: boolean;
+  /**
+   * What the toggle is while it is off. `hidden` draws nothing: not drawn,
+   * not pressable and not announced, for a control a `Card` reveals under
+   * the pointer and a star that is set stays. The space it took is kept on
+   * iOS, web and Windows, and given up on Android, where Compose has nothing
+   * that hides a control from TalkBack short of leaving it out.
+   * @default 'visible'
+   */
+  offVisibility?: 'visible' | 'hidden';
   /** Identifier used to locate the toggle in end-to-end tests. */
   testID?: string;
 }

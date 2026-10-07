@@ -23,6 +23,8 @@ export interface NativeProps extends ViewProps {
   offColor?: string;
   label: string;
   disabled?: boolean;
+  /** Collapses the control: not drawn, not pressable, out of the UIA tree. */
+  hidden?: boolean;
   accentColor?: string;
   theme?: CodegenTypes.WithDefault<'light' | 'dark' | 'system', 'system'>;
   onValueChange?: CodegenTypes.DirectEventHandler<ValueEvent>;

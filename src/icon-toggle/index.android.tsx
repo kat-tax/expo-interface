@@ -29,11 +29,15 @@ function NativeIconToggle({
   offColor,
   size = 24,
   disabled = false,
+  offVisibility = 'visible',
   testID,
 }: IconToggleProps) {
   const tint = useColor('tint');
   const secondary = useColor('secondaryLabel');
   const shown = drawableOf(value ? activeIcon ?? icon : icon);
+  // Nothing in `@expo/ui`'s modifiers hides a control from TalkBack while it
+  // is drawn invisibly, so an off toggle that is hidden is left out.
+  if (offVisibility === 'hidden' && !value) return null;
   const modifiers = [];
   if (disabled) modifiers.push(alpha(0.4));
   if (testID) modifiers.push(testIDModifier(testID));

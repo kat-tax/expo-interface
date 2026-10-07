@@ -1,8 +1,117 @@
 import {Platform, StyleSheet, Text} from 'react-native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {drawables} from '../__stories__/icons.drawables';
+import {registerDrawables} from '../icons';
+import {MENU_ROOM} from './shared';
 import {Card} from '.';
 
+const isIOS = Platform.OS === 'ios';
+
 describe(`Card (${Platform.OS})`, () => {
+  beforeAll(() => {
+    // Compose draws the star from the app's registered vector.
+    registerDrawables({star: drawables.star, more_horiz: drawables.settings}, {star: drawables.star_fill});
+  });
+
+  it('draws the title and subtitle as its footer, names itself from them, and keeps room for the menu', async () => {
+    const rename = vi.fn();
+    await render(
+      <Card title="Holiday photos" subtitle="Edited yesterday" menu={[{label: 'Rename', onPress: rename}]} onPress={vi.fn()} testID="card">
+        <Text>Preview</Text>
+      </Card>,
+    );
+    expect(screen.getByText('Holiday photos')).toBeOnTheScreen();
+    expect(screen.getByText('Edited yesterday')).toBeOnTheScreen();
+    expect(screen.getByTestId('card').props.accessibilityLabel).toBe('Holiday photos, Edited yesterday');
+    const titles = screen.getByText('Holiday photos').parent!;
+    expect(StyleSheet.flatten(titles.props.style).paddingRight).toBe(MENU_ROOM);
+    // The platform's menu, in the overlay slot.
+    expect(host(p => p.text === 'Rename' || p.label === 'Rename')).toBeTruthy();
+    expect(screen.getByTestId('card-overlay')).toBeOnTheScreen();
+    // Once the footer has been laid out, the slot is as tall as the footer
+    // and the card's padding around it, so the menu is centred on the title.
+    await fireEvent(screen.getByText('Holiday photos'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 200, height: 36}}});
+    expect(StyleSheet.flatten(screen.getByTestId('card-overlay').props.style)).toMatchObject({height: 36 + 24, justifyContent: 'center'});
+  });
+
+  it('is named by a label over its title, and by its title alone without a subtitle', async () => {
+    await render(
+      <>
+        <Card title="Holiday photos" label="Photos" onPress={vi.fn()} testID="labelled"/>
+        <Card title="Holiday photos" onPress={vi.fn()} testID="titled"/>
+      </>,
+    );
+    expect(screen.getByTestId('labelled').props.accessibilityLabel).toBe('Photos');
+    expect(screen.getByTestId('titled').props.accessibilityLabel).toBe('Holiday photos');
+    // Without a menu the title takes the whole width, and the card is the surface itself.
+    expect(StyleSheet.flatten(screen.getAllByText('Holiday photos')[1].parent!.props.style).paddingRight).toBeUndefined();
+    expect(screen.queryByTestId('titled-overlay')).toBeNull();
+  });
+
+  it('bleeds the media to the edges, clipped by the corners, with the content padded under it', async () => {
+    await render(
+      <Card media={<Text>Picture</Text>} title="Holiday photos" padding={16} gap={4} testID="card">
+        <Text>Body</Text>
+      </Card>,
+    );
+    const card = StyleSheet.flatten(screen.getByTestId('card').props.style);
+    expect(card.overflow).toBe('hidden');
+    expect(card.padding).toBe(0);
+    expect(card.gap).toBeUndefined();
+    expect(StyleSheet.flatten(screen.getByText('Body').parent!.props.style)).toMatchObject({padding: 16, gap: 4});
+    expect(screen.getByText('Picture')).toBeOnTheScreen();
+  });
+
+  it('draws the star in the badge slot, always shown here, and reports the press', async () => {
+    const onValueChange = vi.fn();
+    await render(
+      <Card favorite={{value: false, onValueChange}} title="Holiday photos" testID="card">
+        <Text>Preview</Text>
+      </Card>,
+    );
+    expect(screen.getByTestId('card-badge')).toBeOnTheScreen();
+    if (isIOS) {
+      const star = screen.getByTestId('card-favorite');
+      expect(modifier(star.props, 'accessibilityLabel')?.label).toBe('Favorite');
+      // Nothing hovers on a phone, so the off star is never hidden.
+      expect(modifier(star.props, 'hidden')).toBeUndefined();
+      expect(host(p => p.systemName === 'star')).toBeTruthy();
+      await fireEvent(star, 'buttonPress');
+    } else {
+      const star = byComposeTestID('card-favorite');
+      expect(star.props.checked).toBe(false);
+      expect(host(p => p.contentDescription === 'Favorite')).toBeTruthy();
+      // The Compose view reports through its own event prop.
+      await act(async () => {
+        star.props.onCheckedChange({nativeEvent: {checked: true}});
+      });
+    }
+    expect(onValueChange).toHaveBeenCalledWith(true);
+  });
+
+  it('needs no testID for its menu and its star', async () => {
+    await render(<Card menu={[{label: 'Rename'}]} favorite={{value: true, onValueChange: vi.fn()}}/>);
+    expect(host(p => p.text === 'Rename' || p.label === 'Rename')).toBeTruthy();
+    expect(screen.queryByTestId('card-favorite')).toBeNull();
+    if (isIOS) {
+      expect(host(p => p.systemName === 'star.fill').props.testID).toBeUndefined();
+    } else {
+      expect(nodes().some(n => n.props.contentDescription === 'Favorite')).toBe(true);
+    }
+  });
+
+  it('fills the star while it is set, under a name of the app\'s own', async () => {
+    await render(<Card favorite={{value: true, onValueChange: vi.fn(), label: 'Starred'}} testID="card"/>);
+    if (isIOS) {
+      expect(host(p => p.systemName === 'star.fill')).toBeTruthy();
+      expect(modifier(screen.getByTestId('card-favorite').props, 'accessibilityLabel')?.label).toBe('Starred');
+    } else {
+      expect(byComposeTestID('card-favorite').props.checked).toBe(true);
+      expect(nodes().some(n => n.props.contentDescription === 'Starred')).toBe(true);
+    }
+  });
+
   it('stacks the header, body and footer in a bordered surface', async () => {
     await render(
       <Card

@@ -30,3 +30,8 @@
   opacity: 0.4;
   cursor: default;
 }
+
+/* Off and hidden: the box stays, the button is gone from the pointer, the keyboard and the accessibility tree. */
+.ui-icon-toggle--hidden {
+  visibility: hidden;
+}

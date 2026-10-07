@@ -3,6 +3,8 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {
   FONT_FAMILY,
+  KIT_FILLED,
+  KIT_NAMES,
   drawablesModule,
   filledUrl,
   fontFaceCSS,
@@ -34,6 +36,11 @@ describe('expo-interface-symbols', () => {
     expect([...filled]).toEqual(['star']);
     // A fill option on a token without a Material name asks for nothing.
     expect([...scanSource("icon({ios: 'heart'}, undefined, {fill: true})").filled]).toEqual([]);
+  });
+
+  it('always writes the names the kit\'s own controls draw: the ellipsis and the star, filled too', () => {
+    expect(KIT_NAMES).toEqual(['more_horiz', 'star']);
+    expect(KIT_FILLED).toEqual(['star']);
   });
 
   it('walks the sources under the roots, tests and stories left out, and merges their names', () => {

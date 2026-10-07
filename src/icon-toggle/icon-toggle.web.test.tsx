@@ -33,6 +33,14 @@ describe('IconToggle (web)', () => {
     expect(toggle.style.getPropertyValue('--ui-icon-toggle-size')).toBe('18px');
   });
 
+  it('hides itself while off with offVisibility hidden, keeping its box, and shows itself while on', () => {
+    const {rerender} = render(<IconToggle label="Favourite" icon={icons.star} value={false} offVisibility="hidden" onValueChange={vi.fn()}/>);
+    const toggle = () => screen.getByRole('button', {name: 'Favourite', hidden: true});
+    expect(toggle()).toHaveClass('ui-icon-toggle--hidden');
+    rerender(<IconToggle label="Favourite" icon={icons.star} value offVisibility="hidden" onValueChange={vi.fn()}/>);
+    expect(toggle()).not.toHaveClass('ui-icon-toggle--hidden');
+  });
+
   it('draws the outline while off and the solid glyph while on', () => {
     const {rerender} = render(
       <IconToggle label="Favourite" icon={icons.star} activeIcon={icons.starFilled} value={false} onValueChange={vi.fn()}/>,

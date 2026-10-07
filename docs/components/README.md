@@ -18,7 +18,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`ScreenHeader`](layout.md#screenheader) | A header bar for a screen that draws its own. |
 | [`NativeHost`](layout.md#nativehost) | A native host around a group of controls. |
 | [`Surface`](layout.md#surface) | A box in the theme's colors, pressable if you like. |
-| [`Card`](layout.md#card) | A pressable surface with header, body, footer, overlay and badge slots. |
+| [`Card`](layout.md#card) | A pressable surface with a picture, a title, the platform's menu, a star, and slots of the app's own. |
 | [`Toolbar`](layout.md#toolbar) | A bar of tools along a canvas. |
 | [`KeyboardBar`](layout.md#keyboardbar) | A bottom bar that sticks to the keyboard. |
 | [`FieldGroup`](layout.md#fieldgroup) | A scrollable settings form of titled sections. |

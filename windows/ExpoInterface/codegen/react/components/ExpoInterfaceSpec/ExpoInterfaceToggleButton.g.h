@@ -33,6 +33,7 @@ struct ExpoInterfaceToggleButtonProps : winrt::implements<ExpoInterfaceToggleBut
        offColor = cloneFromProps->offColor;
        label = cloneFromProps->label;
        disabled = cloneFromProps->disabled;
+       hidden = cloneFromProps->hidden;
        accentColor = cloneFromProps->accentColor;
        theme = cloneFromProps->theme;
        onValueChange = cloneFromProps->onValueChange;  
@@ -66,6 +67,9 @@ struct ExpoInterfaceToggleButtonProps : winrt::implements<ExpoInterfaceToggleBut
 
   REACT_FIELD(disabled)
   std::optional<bool> disabled{};
+
+  REACT_FIELD(hidden)
+  std::optional<bool> hidden{};
 
   REACT_FIELD(accentColor)
   std::optional<std::string> accentColor;

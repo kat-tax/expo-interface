@@ -17,6 +17,13 @@ describe('IconToggle (windows)', () => {
     expect(island(TOGGLE).props).toMatchObject({value: true, glyph: 'E734', activeGlyph: 'E734', color: '#FF0000', offColor: '#00FF00', size: 20, disabled: true});
   });
 
+  it('collapses the control while off with offVisibility hidden, and shows it while on', async () => {
+    await render(<IconToggle label="Pin" icon={icons.star} value={false} offVisibility="hidden" onValueChange={vi.fn()}/>);
+    expect(island(TOGGLE).props.hidden).toBe(true);
+    await render(<IconToggle label="Pin" icon={icons.star} value offVisibility="hidden" onValueChange={vi.fn()}/>);
+    expect(island(TOGGLE).props.hidden).toBe(false);
+  });
+
   it('reports the new state', async () => {
     const onValueChange = vi.fn();
     await render(<IconToggle label="Pin" icon={icons.star} value={false} onValueChange={onValueChange}/>);

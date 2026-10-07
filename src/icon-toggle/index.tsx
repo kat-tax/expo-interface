@@ -18,16 +18,20 @@ export function IconToggle({
   offColor,
   size = 24,
   disabled = false,
+  offVisibility = 'visible',
   testID,
 }: IconToggleProps) {
   const tint = useColor('tint');
   const secondary = useColor('secondaryLabel');
   const on = color ?? tint;
   const off = offColor ?? secondary;
+  // `visibility: hidden` keeps the box and takes the button out of the
+  // accessibility tree and the tab order at once.
+  const hidden = offVisibility === 'hidden' && !value;
   return (
     <button
       type="button"
-      className="ui-icon-toggle"
+      className={hidden ? 'ui-icon-toggle ui-icon-toggle--hidden' : 'ui-icon-toggle'}
       style={{'--ui-icon-toggle-size': `${size}px`} as CSSProperties}
       aria-label={label}
       aria-pressed={value}

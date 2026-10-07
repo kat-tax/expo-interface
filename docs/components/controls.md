@@ -103,7 +103,9 @@ platform has a control for it.
 A round icon button with two states, the outline when off and the filled
 glyph when on. Props: `label`, `icon`, `activeIcon` (defaults to `icon`),
 `value`, `onValueChange`, `color`, `offColor`, `size` (24), `disabled`,
-`testID`.
+`offVisibility` (`visible`, or `hidden` for a toggle that is not drawn,
+pressed or announced while it is off: what a `Card` reveals under the
+pointer), `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -113,7 +115,11 @@ glyph when on. Props: `label`, `icon`, `activeIcon` (defaults to `icon`),
 | Windows | WinUI `ToggleButton` holding a `FontIcon`, with the two colors in place of the control's checked fill |
 
 On Windows a token with no Segoe glyph renders nothing. On iOS and Android
-a toggle outside a host mounts one of its own, sized to itself.
+a toggle outside a host mounts one of its own, sized to itself. A hidden
+toggle keeps its box on iOS (SwiftUI's `hidden`), web (`visibility: hidden`)
+and Windows (`Visibility.Collapsed`, in a slot of its own), and gives it up
+on Android, where Compose has nothing that hides a control from TalkBack
+short of leaving it out.
 
 ## Switch
 

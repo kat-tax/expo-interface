@@ -113,6 +113,24 @@ describe(`IconToggle (${Platform.OS})`, () => {
     }
   });
 
+  it('hides itself while off with offVisibility hidden, and shows the star that is set', async () => {
+    await render(
+      <>
+        <IconToggle label="Favourite" icon={icons.star} value={false} offVisibility="hidden" onValueChange={vi.fn()} testID="off"/>
+        <IconToggle label="Starred" icon={icons.star} activeIcon={icons.starFilled} value offVisibility="hidden" onValueChange={vi.fn()} testID="on"/>
+      </>,
+    );
+    if (isIOS) {
+      // SwiftUI's `hidden` keeps the frame and takes the button out of hit testing and VoiceOver.
+      expect(modifier(screen.getByTestId('off').props, 'hidden')).toEqual({$type: 'hidden', hidden: true});
+      expect(modifier(screen.getByTestId('on').props, 'hidden')).toBeUndefined();
+    } else {
+      // Compose has nothing that hides a control from TalkBack, so the off one is left out.
+      expect(nodes().some(n => n.props.contentDescription === 'Favourite')).toBe(false);
+      expect(byComposeTestID('on').props.checked).toBe(true);
+    }
+  });
+
   (isIOS ? it.skip : it)('draws nothing where an icon has no Android drawable', async () => {
     await render(
       <IconToggle label="Pin" icon={{symbol: 'star'}} value={false} onValueChange={vi.fn()}/>,

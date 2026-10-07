@@ -39,6 +39,7 @@ The differences that change what a screen can do, in one place:
 | `TabView` accessory in the strip | Yes | Yes | Yes | Cards only |
 | `List` | SwiftUI `List` | `LazyColumn` | DOM list, `content-visibility` | `FlatList` |
 | `CardGrid` | `FlatList` | `FlatList` | CSS grid | `FlatList` |
+| `Card` star while not set | Always drawn | Always drawn | Under the pointer or the keyboard where a pointer hovers; always drawn on a touch screen | Under the pointer |
 | `Toolbar` overflow decided by the platform | No | No | No | Yes |
 | `EmptyState` native | iOS 17+ | Drawn | Drawn | Drawn |
 | `Collapsible` children | `@expo/ui` | `@expo/ui` | Any | Any |

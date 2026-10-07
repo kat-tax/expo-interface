@@ -78,6 +78,14 @@ export function sourceFiles(roots, cwd = process.cwd()) {
   return files.sort();
 }
 
+/**
+ * The Material names the kit's own controls draw on Android, written whether
+ * or not an app's sources name them: the ellipsis of a `Toolbar`'s overflow
+ * and a `Card`'s menu, and the star of a `Card`'s favorite, filled while set.
+ */
+export const KIT_NAMES = ['more_horiz', 'star'];
+export const KIT_FILLED = ['star'];
+
 /** The names across a set of files, merged. */
 export function scanFiles(files) {
   const names = new Set();
@@ -193,13 +201,13 @@ export async function main(argv = process.argv.slice(2)) {
   }
   const roots = positionals.length > 0 ? positionals : ['src', 'app'];
   const found = scanFiles(sourceFiles(roots));
-  const names = found.names;
-  const filled = [...new Set([...found.filled, ...values.fill])].sort();
-  if (names.length === 0) {
+  if (found.names.length === 0) {
     console.error(`no icon names found under ${roots.join(', ')}`);
     process.exitCode = 1;
     return;
   }
+  const names = [...new Set([...found.names, ...KIT_NAMES])].sort();
+  const filled = [...new Set([...found.filled, ...KIT_FILLED, ...values.fill])].sort();
   const out = path.resolve(values.out);
   mkdirSync(out, {recursive: true});
   const packaged = packagedNames(names);
