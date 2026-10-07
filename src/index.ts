@@ -39,6 +39,7 @@ export {TabStack} from './tab-stack';
 export type {TabStackProps} from './tab-stack';
 export {Tabs} from './tabs';
 export {useTabBarInset} from './tabs/context';
+export {HideTabs} from './tabs/hide';
 export {TabView} from './tab-view';
 export {nextSelection} from './tab-view/shared';
 export {useKeyboardShortcut} from './windows/shortcuts';

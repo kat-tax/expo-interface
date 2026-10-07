@@ -9,6 +9,7 @@ import {HeaderAccessory} from '../header-accessory';
 import {HeaderAction} from '../header-action';
 import {HeaderMenu} from '../header-menu';
 import {HeaderSearch} from '../header-search';
+import {HideTabs} from './hide';
 import {Screen} from '../screen';
 import {colors, inset, spacing, theme} from '../theme';
 import {host, modifier, nodes} from 'expo-vitest/native';
@@ -216,6 +217,60 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).toBe('none');
         expect(dom.getByTestId('tab-bar').contains(dom.getByText('detail'))).toBe(true);
         expect(dom.getByLabelText('Go back')).toBeInTheDocument();
+      });
+
+      it('hides the tabs while a focused screen renders HideTabs, and shows them again when it goes', async () => {
+        await renderApp(await stackApp({}, undefined, <HideTabs/>), '/home');
+        expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).not.toBe('none');
+        await act(async () => router.push('/home/detail'));
+        // The bar stays as the pushed screen's header, without its tabs.
+        expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).toBe('none');
+        expect(dom.getByLabelText('Go back')).toBeInTheDocument();
+        await act(async () => router.back());
+        expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).not.toBe('none');
+      });
+
+      it('lets go of the tabs when HideTabs says so', async () => {
+        await renderApp(await stackApp({}, <HideTabs hidden={false}/>), '/home');
+        expect(getComputedStyle(dom.getByTestId('tab-bar')).display).not.toBe('none');
+      });
+
+      it('puts the logo where the back button goes on a screen reached with nothing under it, as a link to the first tab', async () => {
+        await renderApp(await stackApp({webIcon: icons.share}, undefined, <HideTabs/>), '/home/detail');
+        // Nothing to go back to, but the screen's title, and the bar is kept with the tabs hidden.
+        expect(dom.queryByLabelText('Go back')).toBeNull();
+        const bar = dom.getByTestId('tab-bar');
+        expect(getComputedStyle(bar).display).not.toBe('none');
+        expect(bar.contains(dom.getByText('detail'))).toBe(true);
+        const home = dom.getByTestId('tab-bar-home');
+        expect(home).toHaveAttribute('href', '/home');
+        // Named for the tab it leads to.
+        expect(home).toHaveAttribute('aria-label', 'Home');
+        expect(home.contains(dom.getByTestId('tab-bar-mark'))).toBe(true);
+        // It dims while it is held, like the back button.
+        fireEvent.mouseDown(home);
+        await waitFor(() => expect(getComputedStyle(home).opacity).toBe('0.7'));
+        fireEvent.mouseUp(home);
+        fireEvent.click(home);
+        await waitFor(() => expect(dom.getByText('Home screen')).toBeInTheDocument());
+      });
+
+      it('gives a custom logo\'s place to a pushed screen\'s back button', async () => {
+        await renderApp(await stackApp({webLogo: <Text testID="logo">Logo</Text>}), '/home');
+        expect(dom.getByTestId('logo')).toBeInTheDocument();
+        await act(async () => router.push('/home/detail'));
+        expect(dom.queryByTestId('logo')).toBeNull();
+        expect(dom.getByLabelText('Go back')).toBeInTheDocument();
+      });
+
+      it('makes a custom logo the home link on a screen reached with nothing under it', async () => {
+        await renderApp(await stackApp({webLogo: <Text testID="logo">Logo</Text>}), '/home/detail');
+        expect(dom.getByTestId('tab-bar-home').contains(dom.getByTestId('logo'))).toBe(true);
+      });
+
+      it('draws the app\'s name in the home link where there is no mark', async () => {
+        await renderApp(await stackApp({webLogo: 'text-only'}), '/home/detail');
+        expect(dom.getByTestId('tab-bar-home').textContent).toBe(appName);
       });
 
       it('folds a screen\'s inline search into the bar as a frameless field beside the logo, and after a pushed screen\'s title', async () => {
@@ -695,6 +750,19 @@ describe(`Tabs (${Platform.OS})`, () => {
         }
       });
     }
+
+    it('hides the native tab bar while a focused screen renders HideTabs', async () => {
+      await renderApp({
+        ...(await app()),
+        index: () => (
+          <>
+            <HideTabs/>
+            <Text>Home screen</Text>
+          </>
+        ),
+      });
+      expect(nodes().find(n => n.type === 'RNSTabsHost')!.props.tabBarHidden).toBe(true);
+    });
 
     it('passes hidden to the native tab bar', async () => {
       await renderApp(await app({hidden: true}));

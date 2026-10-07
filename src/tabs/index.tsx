@@ -5,6 +5,7 @@ import {useColor} from '../theme';
 import {AccessoryAction, FloatingAction, TAB_ACTION_LIFT} from './action';
 import {tabBadge} from './badge';
 import {NativeTabsContext, TabActionLiftContext} from './context';
+import {HideTabsContext, useHiddenTabs} from './hide';
 import {routeSymbol} from './icon';
 
 /** Whether UIKit gives the tab bar a bottom accessory, which it does from iOS 26. */
@@ -12,7 +13,9 @@ function hasAccessory(): boolean {
   return Platform.OS === 'ios' && Number.parseInt(String(Platform.Version), 10) >= 26;
 }
 
-export function Tabs({routes, hidden = false, action, badgeMax = 99}: TabBarProps) {
+export function Tabs({routes, hidden: hiddenProp = false, action, badgeMax = 99}: TabBarProps) {
+  // Hidden by the prop, or while a focused screen renders `HideTabs`.
+  const {hider, hidden} = useHiddenTabs(hiddenProp);
   const rippleColor = useColor('pillBackground');
   const indicatorColor = useColor('backgroundElement');
   const labelColor = useColor('label');
@@ -22,6 +25,7 @@ export function Tabs({routes, hidden = false, action, badgeMax = 99}: TabBarProp
   const floating = action != null && !accessory;
   return (
     <NativeTabsContext.Provider value={true}>
+      <HideTabsContext.Provider value={hider}>
       <TabActionLiftContext.Provider value={floating && !hidden ? TAB_ACTION_LIFT : 0}>
       <View style={styles.root}>
       <NativeTabs
@@ -62,6 +66,7 @@ export function Tabs({routes, hidden = false, action, badgeMax = 99}: TabBarProp
       {floating && !hidden ? <FloatingAction action={action}/> : null}
       </View>
       </TabActionLiftContext.Provider>
+      </HideTabsContext.Provider>
     </NativeTabsContext.Provider>
   );
 }

@@ -8,6 +8,7 @@ import {renderApp} from 'expo-vitest/router';
 import * as icons from '../__stories__/icons';
 import {Stack} from '../router/stack.windows';
 import {TabStack} from '../tab-stack';
+import {HideTabs} from './hide';
 import {PANE_BREAKPOINT, PANE_WIDTH, resolvePane, tabItems, Tabs} from './index.windows';
 
 const NAV = 'ExpoInterfaceNavigationView';
@@ -147,6 +148,20 @@ describe('Tabs (windows)', () => {
     // The action's own press, with a menu, opens the menu natively and runs nothing here.
     await fireIsland(island(NAV), 'itemInvoked', {index: routes.length});
     expect(document).not.toHaveBeenCalled();
+    expect(screen.getByText('Home screen')).toBeOnTheScreen();
+  });
+
+  it('drops the NavigationView while a focused screen renders HideTabs', async () => {
+    await renderApp({
+      ...app(),
+      index: () => (
+        <>
+          <HideTabs/>
+          <Text>Home screen</Text>
+        </>
+      ),
+    });
+    expect(() => island(NAV)).toThrow();
     expect(screen.getByText('Home screen')).toBeOnTheScreen();
   });
 

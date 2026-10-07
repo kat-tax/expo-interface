@@ -1,9 +1,12 @@
+import type {Href} from 'expo-router';
+import type {PressableProps} from 'react-native';
 import type {TabTriggerSlotProps, TabListProps} from 'expo-router/ui';
 import type {ReactNode} from 'react';
 import type {SheetMaterial} from '../sheet/types';
 import type {HeaderSlot} from './context';
 import type {TabBarProps, TabRoute, WebLogo} from './types';
 
+import {Link} from 'expo-router';
 import {Tabs as WebTabs, TabSlot, TabList, TabTrigger} from 'expo-router/ui';
 import {View, Pressable, StyleSheet} from 'react-native';
 import {useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
@@ -20,6 +23,7 @@ import {HeaderMenu} from '../header-menu';
 import {Icon} from '../symbol';
 import {BarRowsContext, HeaderSlotContext, InBarContext, NarrowBarContext, TabBarContext, createHeaderSlot, noSubscription, useNarrowBar} from './context';
 import {tabBadge} from './badge';
+import {HideTabsContext, useHiddenTabs} from './hide';
 import {routeToken} from './icon';
 import {Headline, Label} from '../typography';
 
@@ -32,7 +36,7 @@ export const FOLDED_SEARCH_INSET = 56;
 
 export function Tabs({
   routes,
-  hidden = false,
+  hidden: hiddenProp = false,
   action,
   badgeMax = 99,
   webLogo = 'icon-and-text',
@@ -42,6 +46,8 @@ export function Tabs({
   webFoldHeader = true,
   webMaterial = 'none',
 }: TabBarProps) {
+  // Hidden by the prop, or while a focused screen renders `HideTabs`.
+  const {hider, hidden} = useHiddenTabs(hiddenProp);
   // One slot per bar, built once: the headers below publish into it.
   const [store] = useState(createHeaderSlot);
   const slot = webFoldHeader ? store : null;
@@ -59,6 +65,7 @@ export function Tabs({
   // search, its accessory), which the screens pay for.
   const [rows, setRows] = useState(0);
   return (
+    <HideTabsContext.Provider value={hider}>
     <HeaderSlotContext.Provider value={slot}>
       {/* The bar floats over the screens; what is under it leaves its space clear. */}
       <TabBarContext.Provider value={shown}>
@@ -67,7 +74,7 @@ export function Tabs({
             <TabSlot style={styles.slot}/>
             {/* The triggers stay in the list even while the bar is hidden: that is where the router looks for the routes. */}
             <TabList asChild>
-              <WebTabList logo={webLogo} icon={webIcon} slot={slot} hidden={hidden} shown={shown} actions={webActions} actionsPlacement={webActionsPlacement} material={webMaterial} action={action} onRows={setRows}>
+              <WebTabList logo={webLogo} icon={webIcon} slot={slot} hidden={hidden} shown={shown} actions={webActions} actionsPlacement={webActionsPlacement} material={webMaterial} action={action} home={routes[0]} onRows={setRows}>
                 {routes.map(route => (
                   <TabTrigger key={route.name} name={route.name} href={route.href} asChild>
                     <TabLink icon={route.icon} badge={tabBadge(route.badge, badgeMax) ?? undefined}>{route.label}</TabLink>
@@ -79,6 +86,7 @@ export function Tabs({
         </BarRowsContext.Provider>
       </TabBarContext.Provider>
     </HeaderSlotContext.Provider>
+    </HideTabsContext.Provider>
   );
 }
 
@@ -97,6 +105,8 @@ interface WebTabListProps extends TabListProps {
   material?: SheetMaterial;
   /** The app's action (`Tabs action`), a header control among the actions. */
   action?: TabBarProps['action'];
+  /** Where the logo leads when it stands in for a back button: the first tab, named for it. */
+  home?: Pick<TabRoute, 'href' | 'label'>;
   /**
    * Told the height of the rows the bar draws under itself for a folded
    * header, its stacked search and its accessory, with the gaps to the bar.
@@ -104,7 +114,7 @@ interface WebTabListProps extends TabListProps {
   onRows?: (height: number) => void;
 }
 
-export function WebTabList({logo, icon, slot, hidden = false, shown = true, actions, actionsPlacement = 'before', material = 'none', action, onRows, ...props}: WebTabListProps) {
+export function WebTabList({logo, icon, slot, hidden = false, shown = true, actions, actionsPlacement = 'before', material = 'none', action, home, onRows, ...props}: WebTabListProps) {
   // As in `Tabs`: one reader for the live bar and for a static render, which
   // has no published header either way.
   const read = () => (slot ? slot.get() : null);
@@ -122,13 +132,22 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
   // The app's mark: an image, or one of the app's own icon tokens drawn as
   // the kit's glyph in the label color, so a mark can be an icon the app
   // already names.
-  const mark = isPreset
+  const appMark = isPreset
     ? !isTextOnly && icon != null && (
       typeof icon === 'object' && 'symbol' in icon
         ? <Icon icon={icon} size={24} tone="label" testID="tab-bar-mark"/>
         : <Image style={styles.icon} source={icon} contentFit="contain"/>
     )
-    : title == null && logo;
+    : logo;
+  const mark = isPreset || title == null ? appMark : null;
+  // A pushed screen reached with nothing under it (a deep link) has no back
+  // button: the logo stands in for it as the way home, a link to the first
+  // tab, named for it, the app's name drawn where there is no mark.
+  const homeLink = title != null && !header?.onBack && home != null ? (
+    <HomeLink href={home.href} label={home.label}>
+      {appMark || <Headline color="label" level={false}>{app.expoConfig?.name}</Headline>}
+    </HomeLink>
+  ) : null;
   const {row, logo: logoSlot, narrow} = useFit();
   // The folded header's search. An inline field goes in the logo slot, after
   // the mark and the name or a pushed screen's title, where a site's search
@@ -170,7 +189,7 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
         {/* A material paints the row through the stylesheet, so the row's own fill stays off then. */}
         <View ref={row} testID="tab-bar-row" style={[styles.inner, fill]} {...materialProps(material, 'element', 'all')}>
           <View ref={logoSlot} testID="tab-bar-logo" style={styles.logo}>
-            {header?.onBack ? <BackButton onPress={header.onBack}/> : mark}
+            {header?.onBack ? <BackButton onPress={header.onBack}/> : homeLink ?? mark}
             {title != null ? (
               // The pushed screen's title is the page's heading, so it is the
               // one h1 on it.
@@ -307,6 +326,28 @@ function BackButton({onPress}: {onPress: () => void}) {
   );
 }
 
+/** The logo as a link to the first tab, standing in for a back button there is no screen behind. */
+function HomeLink({href, label, children}: {href: Href; label: string; children: ReactNode}) {
+  return (
+    <Link href={href} asChild>
+      <HomeAnchor label={label}>{children}</HomeAnchor>
+    </Link>
+  );
+}
+
+/**
+ * The link's pressable, taking what `Link` hands its child (the href, the
+ * press). A component of its own, as `TabLink` is: `Link` merges the
+ * child's style with its own, which would drop a style function.
+ */
+function HomeAnchor({label, children, style: _style, ...props}: PressableProps & {label: string; children: ReactNode}) {
+  return (
+    <Pressable {...props} role="link" accessibilityLabel={label} style={({pressed}) => [styles.home, pressed && styles.pressed]} testID="tab-bar-home">
+      {children}
+    </Pressable>
+  );
+}
+
 export function TabLink({children, isFocused, icon, badge, ...props}: TabTriggerSlotProps & {icon: TabRoute['icon']; badge?: TabRoute['badge']}) {
   // In a bar too narrow for its labels the icon stands alone, and the name
   // becomes the link's accessible name instead.
@@ -426,6 +467,11 @@ const styles = StyleSheet.create({
     height: 24,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  home: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 0,
   },
   title: {
     flexShrink: 1,

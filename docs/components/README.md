@@ -38,6 +38,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`Stack`](navigation.md#stack) | Expo Router's native stack, and a stack of the kit's own on Windows. |
 | [`Tabs`](navigation.md#tabs) | The app's section tabs. |
 | [`TabStack`](navigation.md#tabstack) | The stack inside a tab, with the platform's header. |
+| [`HideTabs`](navigation.md#tabs) | Hides the tabs while the screen it is in is focused. |
 | [`ConstrainedStackHeader`](navigation.md#constrainedstackheader) | The web stack header, matched to the content's width. |
 | [`TabView`](navigation.md#tabview) | Document tabs the user opens and closes. |
 | [`Pager`](navigation.md#pager) | Full-width pages that snap, with an indicator. |

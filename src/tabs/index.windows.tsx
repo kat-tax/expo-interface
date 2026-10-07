@@ -14,6 +14,7 @@ import {windowsGlyph} from '../symbol/segoe';
 import {menuEntries, useMenuShortcuts} from '../menu/windows';
 import {useColor} from '../theme';
 import {tabBadgeValue} from './badge';
+import {HideTabsContext, useHiddenTabs} from './hide';
 import {routeToken} from './icon';
 import {BackStoreContext, PaneToggleContext, ShellCardsContext, ShellHostContext, createBackStore} from './shell';
 
@@ -65,11 +66,15 @@ export function resolvePane(pane: WindowsPane, width: number): ResolvedPane {
  * the root. A selection in the pane leaves the drilled-in screens for the
  * tab. Hidden tabs are no frame: a stack draws its own back button then.
  */
-export function Tabs({routes, hidden = false, action, badgeMax = 99, windowsPane = 'top'}: TabBarProps) {
+export function Tabs({routes, hidden: hiddenProp = false, action, badgeMax = 99, windowsPane = 'top'}: TabBarProps) {
+  // Hidden by the prop, or while a focused screen renders `HideTabs`.
+  const {hider, hidden} = useHiddenTabs(hiddenProp);
   return (
-    <Navigator router={TabRouter} initialRouteName={routes[0]?.name}>
-      <TabsBody routes={routes} hidden={hidden} action={action} badgeMax={badgeMax} pane={windowsPane}/>
-    </Navigator>
+    <HideTabsContext.Provider value={hider}>
+      <Navigator router={TabRouter} initialRouteName={routes[0]?.name}>
+        <TabsBody routes={routes} hidden={hidden} action={action} badgeMax={badgeMax} pane={windowsPane}/>
+      </Navigator>
+    </HideTabsContext.Provider>
   );
 }
 

@@ -50,12 +50,15 @@ function StackHeader({navigation, route, back, options}: StackHeaderProps) {
   // here. Only a pushed screen hands over its title, which the bar shows
   // beside the back button in the logo slot; a tab's own screen keeps its
   // title — the tab next to it in the bar already says it — and folds in its
-  // trailing slot and its search alone.
+  // trailing slot and its search alone. A screen other than its stack's
+  // `index` with nothing under it was reached by a deep link: it is still a
+  // pushed screen, and the bar puts the logo where its back button would be.
+  const pushed = onBack != null || route.name !== 'index';
   if (slot) {
     return (
       <FoldedHeader
         slot={slot}
-        title={onBack ? title : undefined}
+        title={pushed ? title : undefined}
         onBack={onBack}
         trailing={trailing}
         search={search}

@@ -94,7 +94,16 @@ hands over `headerRight` alone and keeps its title, since the tab beside it in
 the bar already says it. The bar keeps the height of its tabs, and a header
 control folded into it drops to their size. `hidden` hides the tabs rather
 than the bar while a pushed screen's header is folded in;
-`webFoldHeader={false}` keeps the two rows.
+`webFoldHeader={false}` keeps the two rows. A screen reached with nothing
+under it, a deep link to a screen other than its stack's `index`, has no
+back button: the bar folds in its title all the same and puts the logo in
+the back button's place, a link to the first tab named for it (the app's
+name stands in for a mark the logo does not have).
+
+A screen hides the tabs for itself by rendering `HideTabs` in its content:
+the tabs go while the screen is focused and come back when it loses the
+focus or goes, as `hidden` would hide them, decided by the screen rather than
+by the URL. `<HideTabs hidden={false}/>` lets go without unmounting.
 
 On web the bar is a `navigation` landmark of links, not a `tablist`, since the
 tabs move between routes rather than panels; the active one carries
