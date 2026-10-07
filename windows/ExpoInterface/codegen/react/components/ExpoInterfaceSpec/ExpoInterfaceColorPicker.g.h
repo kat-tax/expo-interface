@@ -29,6 +29,7 @@ struct ExpoInterfaceColorPickerProps : winrt::implements<ExpoInterfaceColorPicke
        alpha = cloneFromProps->alpha;
        disabled = cloneFromProps->disabled;
        label = cloneFromProps->label;
+       inPlace = cloneFromProps->inPlace;
        accentColor = cloneFromProps->accentColor;
        theme = cloneFromProps->theme;
        onValueChange = cloneFromProps->onValueChange;  
@@ -50,6 +51,9 @@ struct ExpoInterfaceColorPickerProps : winrt::implements<ExpoInterfaceColorPicke
 
   REACT_FIELD(label)
   std::optional<std::string> label;
+
+  REACT_FIELD(inPlace)
+  std::optional<bool> inPlace{};
 
   REACT_FIELD(accentColor)
   std::optional<std::string> accentColor;

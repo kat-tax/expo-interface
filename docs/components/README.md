@@ -66,7 +66,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`Slider`](controls.md#slider) | A thumb along a continuous or stepped range. |
 | [`Stepper`](controls.md#stepper) | A number with increment and decrement buttons. |
 | [`DateTimePicker`](controls.md#datetimepicker) | A date, a time or both, as a row or presented from a chip. |
-| [`ColorPicker`](controls.md#colorpicker) | A color well that opens a picker, with swatches. |
+| [`ColorPicker`](controls.md#colorpicker) | A color well that opens a picker, inline, in a popover or a menu, with swatches and no color. |
 
 ## Indicators
 

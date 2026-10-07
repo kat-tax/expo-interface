@@ -758,10 +758,12 @@ struct ColorPickerView : winrt::implements<ColorPickerView, winrt::IInspectable>
         }
       }
     });
-    controls::Flyout flyout;
-    flyout.Content(m_picker);
-    m_well.Flyout(flyout);
-    Attach(islandView, m_well);
+    m_flyout = controls::Flyout{};
+    m_well.Flyout(m_flyout);
+    // The island holds the well, whose flyout holds the picker, or the picker itself (`inPlace`).
+    m_root = controls::Grid{};
+    Place();
+    Attach(islandView, m_root);
   }
 
   void UpdateProps(
@@ -780,7 +782,15 @@ struct ColorPickerView : winrt::implements<ColorPickerView, winrt::IInspectable>
       m_swatch.Fill(Brush(color));
     }
     m_well.IsEnabled(!props->disabled.value_or(false));
+    m_picker.IsEnabled(!props->disabled.value_or(false));
     SetIdentity(m_well, props->label, props->ViewProps);
+    const bool inPlace = props->inPlace.value_or(false);
+    if (inPlace != m_inPlace) {
+      m_inPlace = inPlace;
+      Place();
+      // The island takes the picker's size, or the well's again, in this turn.
+      Remeasure();
+    }
     m_applying = false;
   }
 
@@ -789,9 +799,24 @@ struct ColorPickerView : winrt::implements<ColorPickerView, winrt::IInspectable>
   }
 
  private:
+  /** Puts the picker where it belongs: in the island in place of the well, or in the well's flyout. */
+  void Place() noexcept {
+    m_root.Children().Clear();
+    if (m_inPlace) {
+      m_flyout.Content(nullptr);
+      m_root.Children().Append(m_picker);
+    } else {
+      m_root.Children().Append(m_well);
+      m_flyout.Content(m_picker);
+    }
+  }
+
+  controls::Grid m_root{nullptr};
   controls::Button m_well{nullptr};
+  controls::Flyout m_flyout{nullptr};
   winrt::Microsoft::UI::Xaml::Shapes::Ellipse m_swatch{nullptr};
   controls::ColorPicker m_picker{nullptr};
+  bool m_inPlace{false};
   bool m_applying{false};
 };
 

@@ -348,9 +348,11 @@ is called when it closes, picked or not, after `onChange`. A day picked in
 ## ColorPicker
 
 A label with a color well that opens a color picker, optionally with preset
-swatches. Props: `label`, `value` (`#RRGGBB` or `#RRGGBBAA`),
-`onValueChange`, `supportsOpacity` (default true), `swatches`, `disabled`,
-`style`, `testID`.
+swatches. Props: `label`, `value` (`#RRGGBB` or `#RRGGBBAA`, or an empty
+string for no color), `onValueChange`, `supportsOpacity` (default true),
+`swatches` (colors, or `system` for the platform's own palette),
+`presentation` (`automatic`, `inline`, `popover`, `menu`), `allowsNone`,
+`disabled`, `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -361,3 +363,22 @@ swatches. Props: `label`, `value` (`#RRGGBB` or `#RRGGBBAA`),
 
 Swatches are round on every platform, the selected one ringed, wrapping onto
 further lines when they overflow. Tapping a swatch keeps the current opacity.
+`swatches="system"` is the platform's own palette of twelve: Apple's system
+colors on iOS and web, Material's on Android, the Windows accent colors on
+Windows, each named for a screen reader and a menu.
+
+`allowsNone` adds a "No color" choice, a crossed-out circle before the
+swatches and the first entry of a menu, reported as an empty string. An
+empty `value` draws the well crossed out.
+
+`presentation` says how a color is chosen, so it is chosen once from wherever
+it is asked:
+
+| `presentation` | iOS | Android | Web | Windows |
+| --- | --- | --- | --- | --- |
+| `automatic` | The row, the system picker from the well | The row, the picker in a bottom sheet | The row, the picker in a `Sheet` | The row, the picker in a flyout |
+| `inline` | The row: SwiftUI cannot draw its picker in place, and presents it its own way | The picker drawn in place, the swatches over it, for a sheet of the app's own that would otherwise open a second sheet | The same | The WinUI `ColorPicker` itself in place, under the label |
+| `popover` | The row: the system picker is a popover on an iPad and a sheet on a phone | The picker in a Material dialog, over a sheet the row is in: Material has no popover | The picker in a native popover placed against the well | The row: the flyout is a popover already |
+| `menu` | SwiftUI's `Menu` of the swatches from a well | A Material `DropdownMenu` of the swatches from the well | The kit's menu popover from the well | A `MenuFlyout` of the swatches from a drawn well |
+
+A swatch picked from a menu is opaque.

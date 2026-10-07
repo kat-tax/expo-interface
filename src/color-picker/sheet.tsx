@@ -36,8 +36,8 @@ export interface ColorPickerSheetProps {
   supportsOpacity: boolean;
   /** Called with the new hex whenever the user picks a color. */
   onValueChange: (hex: string) => void;
-  /** Called from the close button. */
-  onClose: () => void;
+  /** Called from the close button; without it there is none, as when the picker is drawn in place. */
+  onClose?: () => void;
   /** Fixed content width (Android sizes the hosted React Native tree from its content). */
   width?: number;
   /** Identifier used to locate the sheet in end-to-end tests. */
@@ -91,13 +91,15 @@ export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, 
     <View style={[styles.sheet, width != null ? {width} : styles.fill]} testID={testID}>
       <View style={styles.header}>
         <Text style={[styles.title, {color: label}]} numberOfLines={1} role="heading" accessible>{title}</Text>
-        <Pressable
-          role="button"
-          aria-label="Close"
-          onPress={onClose}
-          style={[styles.close, {backgroundColor: fill}]}>
-          <Text style={[styles.closeGlyph, {color: secondary}]}>✕</Text>
-        </Pressable>
+        {onClose ? (
+          <Pressable
+            role="button"
+            aria-label="Close"
+            onPress={onClose}
+            style={[styles.close, {backgroundColor: fill}]}>
+            <Text style={[styles.closeGlyph, {color: secondary}]}>✕</Text>
+          </Pressable>
+        ) : null}
       </View>
       <Tabs value={tab} onChange={setTab}/>
       <View style={styles.section}>

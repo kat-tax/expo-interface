@@ -212,7 +212,7 @@ describe(`ColorPicker (${Platform.OS})`, () => {
     expect(onValueChange).toHaveBeenLastCalledWith('#FFFFFF80');
     expect(wellColor('cp')).toBe('rgba(255, 255, 255, 0.502)');
     expect(sheetProps?.value).toBe('#FFFFFF80');
-    await act(async () => sheetProps?.onClose());
+    await act(async () => sheetProps?.onClose?.());
     expect(sheets()).toHaveLength(1);
     await act(async () => finishHide?.());
     expect(sheets()).toHaveLength(0);
@@ -230,7 +230,7 @@ describe(`ColorPicker (${Platform.OS})`, () => {
     await render(<ColorPicker value="#FF6347" onValueChange={vi.fn()} testID="cp"/>, options);
     await tap(byComposeTestID('cp'));
     // Reopened while hide() is still animating: its completion must not unmount the sheet.
-    await act(async () => sheetProps?.onClose());
+    await act(async () => sheetProps?.onClose?.());
     await tap(byComposeTestID('cp'));
     await act(async () => finishHide?.());
     expect(sheets()).toHaveLength(1);

@@ -4,8 +4,10 @@ import type {ModifierConfig} from '@expo/ui/jetpack-compose/modifiers';
 import {useEffect, useRef, useState} from 'react';
 import {useWindowDimensions} from 'react-native';
 import {
+  BasicAlertDialog,
   Box,
   Column,
+  DropdownMenu,
   FlowRow,
   ModalBottomSheet,
   RNHostView,
@@ -15,8 +17,10 @@ import {
   useMaterialColors,
   type ModalBottomSheetRef,
 } from '@expo/ui/jetpack-compose';
-import {alpha, background, clickable, clip, fillMaxWidth, padding, Shapes, size, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {alpha, background, clickable, clip, fillMaxWidth, padding, rotate, Shapes, size, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {MenuItems} from '../menu/index.android';
 import {useColor} from '../theme';
+import {NO_COLOR, sameColor, swatchMenu, swatchesOf} from './choices';
 import {ColorPickerSheet} from './sheet';
 import {parseColor, toCss, toHex, useColorValue, well} from './shared';
 
@@ -27,6 +31,8 @@ const SWATCH = 30;
 const SWATCH_INNER = 28;
 const SWATCH_SELECTED = 22;
 const NONE = '#00000000';
+/** The width of the dialog the picker opens in (`presentation="popover"`), Material's for a dialog of this kind. */
+const DIALOG_WIDTH = 328;
 
 /**
  * Android redraws the iOS row in Compose through and through: a `Row` with
@@ -37,6 +43,10 @@ const NONE = '#00000000';
  * across the spectrum and sliders stays with the picker; the sheet lives in
  * its own window, so the row is a plain Compose child of its host and hosts
  * no React Native view of its own (which a recomposing list would re-add).
+ * Material has no popover: `popover` opens the picker in a dialog, which
+ * also lives in a window of its own, over a sheet the row is in. `menu`
+ * opens a Material `DropdownMenu` of the swatches from the well, and
+ * `inline` draws the picker in the row's place.
  */
 export function ColorPicker({
   label,
@@ -44,6 +54,8 @@ export function ColorPicker({
   onValueChange,
   supportsOpacity = true,
   swatches,
+  presentation = 'automatic',
+  allowsNone = false,
   disabled,
   testID,
 }: ColorPickerProps) {
@@ -51,12 +63,90 @@ export function ColorPicker({
   const {width} = useWindowDimensions();
   const ring = useColor('separator');
   const labelColor = useColor('label');
+  const backdrop = useColor('background');
+  const stroke = useColor('destructive');
+  const fill = useColor('backgroundElement');
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useColorValue(value, onValueChange, supportsOpacity);
+  const none = value === NO_COLOR;
+  const presets = swatchesOf(swatches);
+  const menu = presentation === 'menu';
   const modifiers: ModifierConfig[] = [fillMaxWidth()];
   if (!disabled) modifiers.push(clickable(() => setOpen(true)));
   if (testID) modifiers.push(testIDModifier(testID));
-  const currentHex = toHex({...current, a: 1}, false);
+
+  /** A crossed-out circle: the well and the preset for no color. */
+  const crossed = (diameter: number) => (
+    <Box contentAlignment="center" modifiers={[size(diameter, diameter), clip(Shapes.Circle), background(backdrop)]}>
+      <Box modifiers={[size(2, diameter), rotate(45), background(stroke)]}/>
+    </Box>
+  );
+  const preset = (key: string, selected: boolean, onPress: () => void, inner: React.ReactNode) => (
+    // The ring is a circle behind a smaller circle: a border modifier would be square.
+    <Box
+      key={key}
+      contentAlignment="center"
+      modifiers={[
+        size(SWATCH, SWATCH),
+        clip(Shapes.Circle),
+        background(selected ? labelColor : NONE),
+        ...(disabled ? [] : [clickable(onPress)]),
+        ...(testID ? [testIDModifier(`${testID}-swatch-${key}`)] : []),
+      ]}>
+      {inner}
+    </Box>
+  );
+  const presetBoxes = [
+    ...(allowsNone ? [preset('none', none, () => onValueChange(NO_COLOR), crossed(none ? SWATCH_SELECTED : SWATCH_INNER))] : []),
+    ...presets.map(({color}) => {
+      // The ring follows the color held here, which a pick changes at once.
+      const selected = !none && sameColor(color, toHex(current, false));
+      const inner = selected ? SWATCH_SELECTED : SWATCH_INNER;
+      return preset(color, selected, () => setCurrent({...parseColor(color), a: current.a}), (
+        <Box modifiers={[size(inner, inner), clip(Shapes.Circle), background(color)]}/>
+      ));
+    }),
+  ];
+  const wellBox = (
+    <Box
+      contentAlignment="center"
+      modifiers={[
+        size(well.size, well.size),
+        clip(Shapes.Circle),
+        background(ring),
+        ...(testID ? [testIDModifier(`${testID}-well`)] : []),
+      ]}>
+      {none ? crossed(well.size - 2 * well.ring) : (
+        <Box
+          modifiers={[
+            size(well.size - 2 * well.ring, well.size - 2 * well.ring),
+            clip(Shapes.Circle),
+            background(toCss(current)),
+          ]}
+        />
+      )}
+    </Box>
+  );
+  const panel = (panelWidth: number, onClose?: () => void) => (
+    <ColorPickerSheet
+      title={label ?? 'Colors'}
+      value={toHex(current, true)}
+      supportsOpacity={supportsOpacity}
+      onValueChange={hex => setCurrent(parseColor(hex))}
+      onClose={onClose}
+      width={panelWidth}
+      testID={testID ? `${testID}-sheet` : undefined}
+    />
+  );
+
+  if (presentation === 'inline') {
+    return (
+      <Column verticalArrangement={{spacedBy: 12}} modifiers={[fillMaxWidth(), ...(testID ? [testIDModifier(testID)] : [])]}>
+        {presetBoxes.length > 0 ? <FlowRow verticalArrangement={{spacedBy: 8}} horizontalArrangement={{spacedBy: 8}}>{presetBoxes}</FlowRow> : null}
+        <RNHostView matchContents>{panel(width - SHEET_INSET * 2)}</RNHostView>
+      </Column>
+    );
+  }
 
   return (
     <Row verticalAlignment="center" horizontalArrangement="spaceBetween" modifiers={modifiers}>
@@ -68,52 +158,26 @@ export function ColorPicker({
         verticalArrangement={{spacedBy: 8}}
         horizontalArrangement={{spacedBy: 8}}
         modifiers={disabled ? [alpha(0.4)] : []}>
-        {swatches?.map(seed => {
-          const selected = toHex(parseColor(seed), false) === currentHex;
-          const inner = selected ? SWATCH_SELECTED : SWATCH_INNER;
-          return (
-            // The ring is a circle behind a smaller circle: a border modifier would be square.
-            <Box
-              key={seed}
-              contentAlignment="center"
-              modifiers={[
-                size(SWATCH, SWATCH),
-                clip(Shapes.Circle),
-                background(selected ? labelColor : NONE),
-                ...(disabled ? [] : [clickable(() => setCurrent({...parseColor(seed), a: current.a}))]),
-                ...(testID ? [testIDModifier(`${testID}-swatch-${seed}`)] : []),
-              ]}>
-              <Box modifiers={[size(inner, inner), clip(Shapes.Circle), background(seed)]}/>
-            </Box>
-          );
-        })}
-        <Box
-          contentAlignment="center"
-          modifiers={[
-            size(well.size, well.size),
-            clip(Shapes.Circle),
-            background(ring),
-            ...(testID ? [testIDModifier(`${testID}-well`)] : []),
-          ]}>
-          <Box
-            modifiers={[
-              size(well.size - 2 * well.ring, well.size - 2 * well.ring),
-              clip(Shapes.Circle),
-              background(toCss(current)),
-            ]}
-          />
-        </Box>
-        <PickerSheet open={open} onClose={() => setOpen(false)}>
-          <ColorPickerSheet
-            title={label ?? 'Colors'}
-            value={toHex(current, true)}
-            supportsOpacity={supportsOpacity}
-            onValueChange={hex => setCurrent(parseColor(hex))}
-            onClose={() => setOpen(false)}
-            width={width - SHEET_INSET * 2}
-            testID={testID ? `${testID}-sheet` : undefined}
-          />
-        </PickerSheet>
+        {menu ? null : presetBoxes}
+        {menu ? (
+          <DropdownMenu expanded={open} onDismissRequest={() => setOpen(false)}>
+            <DropdownMenu.Trigger>{wellBox}</DropdownMenu.Trigger>
+            <MenuItems items={swatchMenu(presets, value, allowsNone, supportsOpacity, onValueChange)} onClose={() => setOpen(false)}/>
+          </DropdownMenu>
+        ) : wellBox}
+        {presentation === 'popover' ? (
+          open ? (
+            <BasicAlertDialog onDismissRequest={() => setOpen(false)}>
+              <Column modifiers={[clip(Shapes.RoundedCorner(28)), background(fill), padding(SHEET_INSET, SHEET_INSET, SHEET_INSET, SHEET_INSET)]}>
+                <RNHostView matchContents>{panel(DIALOG_WIDTH - SHEET_INSET * 2, () => setOpen(false))}</RNHostView>
+              </Column>
+            </BasicAlertDialog>
+          ) : null
+        ) : menu ? null : (
+          <PickerSheet open={open} onClose={() => setOpen(false)}>
+            {panel(width - SHEET_INSET * 2, () => setOpen(false))}
+          </PickerSheet>
+        )}
       </FlowRow>
     </Row>
   );

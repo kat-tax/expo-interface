@@ -1,6 +1,13 @@
 import type {StyleProp, ViewStyle} from 'react-native';
 
 /**
+ * How the picker opens: `automatic` is the row with a well that opens the
+ * platform's picker; `inline` draws the picker itself in place; `popover`
+ * opens it beside the well; `menu` opens a menu of the swatches.
+ */
+export type ColorPickerPresentation = 'automatic' | 'inline' | 'popover' | 'menu';
+
+/**
  * Cross-platform color picker: a row with a label and a color well that
  * opens the system color picker.
  *
@@ -13,7 +20,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 export interface ColorPickerProps {
   /** Label rendered at the leading edge of the row, and the title of the picker. */
   label?: string;
-  /** Selected color as `#RRGGBB` or `#RRGGBBAA`. */
+  /** Selected color as `#RRGGBB` or `#RRGGBBAA`, or an empty string for no color (`allowsNone`). */
   value: string;
   /**
    * Called with the new color whenever the user picks one, as `#RRGGBBAA`
@@ -31,9 +38,24 @@ export interface ColorPickerProps {
    * The well still opens the full picker for any other color. More swatches
    * than the row's width holds wrap onto further lines rather than squeeze
    * (a Compose `FlowRow`, a wrapping flex row, lines of their own under the
-   * label on iOS).
+   * label on iOS). `system` is the platform's own palette: Apple's system
+   * colors on iOS and web, Material's on Android, the Windows accent colors
+   * on Windows.
    */
-  swatches?: string[];
+  swatches?: string[] | 'system';
+  /**
+   * How the picker opens (see `ColorPickerPresentation`), so a color is
+   * chosen once from wherever it is asked: `inline` inside a sheet of the
+   * app's own rather than a second sheet over it, `popover` from a toolbar,
+   * `menu` from a palette of the swatches alone.
+   * @default 'automatic'
+   */
+  presentation?: ColorPickerPresentation;
+  /**
+   * A "No color" choice, beside the swatches and first in the menu, reported
+   * as an empty string. An empty `value` draws the well crossed out.
+   */
+  allowsNone?: boolean;
   /** Disables interaction. */
   disabled?: boolean;
   /** Identifier used to locate the component in end-to-end tests. */
