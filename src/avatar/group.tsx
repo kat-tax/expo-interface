@@ -24,6 +24,10 @@ export function AvatarGroup({people, max = 3, size = 24, ring = 'background', on
   return (
     <View style={styles.row} testID={testID}>
       {shown.map((person, index) => {
+        // TODO(windows): a PersonPicture island per face, as `Avatar` draws
+        // one, once the island can take the press itself (a XAML Button
+        // around the picture, reporting a press and a press and hold): an
+        // island takes the pointer before a Pressable around it does.
         const face = <DrawnAvatar {...person} size={size} ring={person.ring ?? ring}/>;
         return (
           <View key={person.key ?? `${person.name}-${index}`} style={index > 0 ? {marginLeft: -overlap} : null}>
