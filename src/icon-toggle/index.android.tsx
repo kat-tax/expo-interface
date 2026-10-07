@@ -2,6 +2,7 @@ import type {IconToggleProps} from './types';
 import {Icon, IconToggleButton} from '@expo/ui/jetpack-compose';
 import {alpha, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {SelfHosted} from '../host';
+import {drawableOf} from '../icons';
 import {useColor} from '../theme';
 
 /**
@@ -32,7 +33,7 @@ function NativeIconToggle({
 }: IconToggleProps) {
   const tint = useColor('tint');
   const secondary = useColor('secondaryLabel');
-  const shown = value ? activeIcon ?? icon : icon;
+  const shown = drawableOf(value ? activeIcon ?? icon : icon);
   const modifiers = [];
   if (disabled) modifiers.push(alpha(0.4));
   if (testID) modifiers.push(testIDModifier(testID));
@@ -43,8 +44,8 @@ function NativeIconToggle({
       onCheckedChange={onValueChange}
       colors={{contentColor: offColor ?? secondary, checkedContentColor: color ?? tint}}
       modifiers={modifiers}>
-      {shown.drawable ? (
-        <Icon source={shown.drawable} size={size} tint={value ? color ?? tint : offColor ?? secondary} contentDescription={label}/>
+      {shown ? (
+        <Icon source={shown} size={size} tint={value ? color ?? tint : offColor ?? secondary} contentDescription={label}/>
       ) : null}
     </IconToggleButton>
   );

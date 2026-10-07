@@ -95,7 +95,74 @@ export const drop = icon({ios: 'shippingbox', android: 'inventory_2', web: 'inve
 
 ## The `Icon` component
 
-The kit's `Icon` draws a token as a font glyph on web (a `<span>` holding the
-ligature, `aria-hidden`) and on Windows (a `Text` in Segoe Fluent Icons,
-hidden from accessibility). It exists for those two platforms only; on iOS and
-Android the kit uses `SymbolView` directly.
+`Icon` draws a token on its own, on every platform: `SymbolView`'s SF Symbol
+on iOS and Material Symbol on Android, a `<span>` holding the Material
+ligature on web, a `Text` in Segoe Fluent Icons on Windows. Props: `icon`,
+`size` (24), `tone` (`label`, `secondary`, `tertiary`, `accent`, `success`,
+`destructive`; the color's role, `label` by default), `tintColor` (a color
+of its own, over the tone), `testID`.
+
+```tsx
+<Icon icon={icons.check} tone="success" size={16}/>
+```
+
+The glyph is hidden from assistive technology on every platform: an icon on
+its own says nothing, and the control or row around it carries the name. On
+iOS and Android it is a React Native view, so it goes in a React Native
+layout; inside a host the controls draw their own icons. A filled token
+draws its outline on Android here, as `SymbolView` draws from the static
+font; the controls draw the filled vector.
+
+## Resolving names
+
+`symbolName(token, platform)` answers what a token draws on `ios` (the
+`.fill` form for a filled token), `android`, `web` or `windows` (the Segoe
+code point), or `undefined` where it draws nothing. `materialName(token)`
+is the Material name, Android's then the web's.
+
+A tab route takes a token too: `Tabs routes` accept an `IconToken` in place
+of the per-platform names, and `webIcon` takes one for the app's mark,
+drawn as the kit's glyph in the label color.
+
+## Drawables without a list
+
+Instead of passing a drawable to every token, register them once by their
+Material names and let each token find its own:
+
+```ts
+import {registerDrawables} from 'expo-interface';
+import {drawables, filledDrawables} from './symbols/drawables';
+
+registerDrawables(drawables, filledDrawables);
+export const share = icon({ios: 'square.and.arrow.up', android: 'share', web: 'share'});
+```
+
+`expo-interface-symbols` writes that module from the names an app's sources
+use, and the filled vectors beside it:
+
+```sh
+npx expo-interface-symbols            # reads src and app, writes src/symbols
+npx expo-interface-symbols app --out app/symbols --font
+```
+
+It imports each outlined vector from `@expo/material-symbols` where the
+package ships it and downloads the rest from Google Fonts, downloads the
+`fill` form of every token that asks for one, and writes
+`drawables.android.ts` with the two maps and a `drawables.ts` stub for the
+other platforms. A token's own `drawable` still wins. `drawableOf(token)`
+is the lookup the kit's Android controls use.
+
+## The web font
+
+`--font` also writes `MaterialSymbolsOutlined.woff2`: the variable Material
+Symbols font cut down to the names found, with the `FILL` axis kept and the
+other axes pinned, through `subset-font` (`npm i -D subset-font`). Serve it
+from the app's bundle and register it beside the palette:
+
+```tsx
+// app/+html.tsx
+<style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2')}}/>
+```
+
+`getSymbolFontCSS(url, family?)` is the `@font-face` the stylesheet draws
+with; a family of the app's own goes in `--ui-symbol-font` as well.

@@ -2,11 +2,15 @@ import type {MenuItem, MenuProps} from './types';
 import type {ViewModifier} from '@expo/ui/swift-ui/modifiers';
 
 import {Fragment} from 'react';
-import {Button, Divider, Image, Menu as SwiftUIMenu, Toggle} from '@expo/ui/swift-ui';
+import {Button, Divider, HStack, Image, Menu as SwiftUIMenu, Text, Toggle} from '@expo/ui/swift-ui';
 import {accessibilityLabel, buttonBorderShape, buttonStyle, controlSize, disabled as disabledMod, labelStyle, tint} from '@expo/ui/swift-ui/modifiers';
 import {iosSymbol, swiftBorderShape, swiftControlSize} from '../button/shared';
 import {SelfHosted} from '../host';
 import {useColor} from '../theme';
+import {swatchImage} from './swatch-file';
+
+/** The dot's size in points, the one `swatch.ts` draws at 3x. */
+const SWATCH_SIZE = 16;
 
 const VARIANT_STYLE = {
   filled: 'borderedProminent',
@@ -77,14 +81,23 @@ function NativeMenu({
   );
 }
 
-/** SwiftUI menu entries shared by `Menu`, `ContextMenu` and `Fab`. */
+/**
+ * SwiftUI menu entries shared by `Menu`, `ContextMenu` and `Fab`. A `swatch`
+ * entry draws its dot as an image file (`swatch-file.ios.ts`): `UIMenu`
+ * draws a symbol in the menu's tint, but keeps the colors of an image, so
+ * a palette's entries show their colors. Without the file (no
+ * `expo-file-system`) the dot is a symbol in the color, which the menu
+ * draws monochrome.
+ */
 export function MenuItems({items}: {items: MenuItem[]}) {
   return (
     <>
       {items.map((item, index) => (
         <Fragment key={index}>
           {item.separator && index > 0 ? <Divider/> : null}
-          {item.active ? (
+          {item.swatch ? (
+            <SwatchEntry item={item}/>
+          ) : item.active ? (
             // A checked toggle is how a SwiftUI menu shows the current state.
             <Toggle
               isOn
@@ -105,5 +118,24 @@ export function MenuItems({items}: {items: MenuItem[]}) {
         </Fragment>
       ))}
     </>
+  );
+}
+
+/** An entry with a color dot before its label, and the check after it when it is the current one. */
+function SwatchEntry({item}: {item: MenuItem}) {
+  const file = swatchImage(item.swatch!);
+  return (
+    <Button
+      role={item.role === 'destructive' ? 'destructive' : 'default'}
+      onPress={item.onPress}
+      modifiers={item.disabled ? [disabledMod(true)] : undefined}>
+      <HStack spacing={8}>
+        {file
+          ? <Image uiImage={file} size={SWATCH_SIZE}/>
+          : <Image systemName="circle.fill" color={item.swatch} size={SWATCH_SIZE - 2}/>}
+        <Text>{item.label}</Text>
+        {item.active ? <Image systemName="checkmark" size={SWATCH_SIZE}/> : null}
+      </HStack>
+    </Button>
   );
 }

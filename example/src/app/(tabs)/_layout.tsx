@@ -1,27 +1,11 @@
 import {type TabRoute, Tabs} from 'expo-interface';
+import * as icons from '@/icons';
 import {usePane} from '@/profile/pane';
 
+// The sections' icons are the app's own tokens, as every other icon in it is.
 export const routes: TabRoute[] = [
-  {
-    href: '/',
-    name: '(drops)',
-    label: 'Drops',
-    icon: {
-      ios: 'arrow.down.square',
-      android: 'download',
-      web: 'download',
-    },
-  },
-  {
-    href: '/settings',
-    name: 'settings',
-    label: 'Settings',
-    icon: {
-      ios: 'gearshape',
-      android: 'settings',
-      web: 'settings',
-    },
-  },
+  {href: '/', name: '(drops)', label: 'Drops', icon: icons.home},
+  {href: '/settings', name: 'settings', label: 'Settings', icon: icons.settings},
 ];
 
 export default function TabsLayout() {

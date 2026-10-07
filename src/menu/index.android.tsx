@@ -5,6 +5,7 @@ import {Box, DropdownMenu, DropdownMenuItem, HorizontalDivider, Icon, Text, useM
 import {background, clip, Shapes, size as sizeModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {Button} from '../button';
 import {SelfHosted} from '../host';
+import {drawableOf} from '../icons';
 import {useColor} from '../theme';
 
 const ICON_SIZE = 20;
@@ -60,6 +61,7 @@ export function MenuItems({items, onClose}: {items: MenuItem[]; onClose: () => v
       {items.map((item, index) => {
         const color = item.role === 'destructive' ? destructive : colors.onSurface;
         const contentColor = item.disabled ? colors.onSurfaceVariant : color;
+        const drawable = drawableOf(item.icon);
         return (
           <Fragment key={index}>
             {item.separator && index > 0 ? <HorizontalDivider color={separator}/> : null}
@@ -74,9 +76,9 @@ export function MenuItems({items, onClose}: {items: MenuItem[]; onClose: () => v
                 <DropdownMenuItem.LeadingIcon>
                   <Box modifiers={[sizeModifier(SWATCH_SIZE, SWATCH_SIZE), clip(Shapes.Circle), background(item.swatch)]}/>
                 </DropdownMenuItem.LeadingIcon>
-              ) : item.icon?.drawable ? (
+              ) : drawable ? (
                 <DropdownMenuItem.LeadingIcon>
-                  <Icon source={item.icon.drawable} size={ICON_SIZE} tint={contentColor}/>
+                  <Icon source={drawable} size={ICON_SIZE} tint={contentColor}/>
                 </DropdownMenuItem.LeadingIcon>
               ) : null}
               <DropdownMenuItem.Text>

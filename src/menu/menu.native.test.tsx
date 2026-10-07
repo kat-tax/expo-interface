@@ -9,6 +9,12 @@ import {HOST, hostFit, hosts} from '../__tests__/hosts';
 import {NativeHostContext} from '../host';
 import {Menu} from '.';
 
+vi.mock('./swatch-file', () => ({
+  // The dot written for red; nothing for the other colors, as without a file system.
+  swatchImage: (hex: string) => (hex === '#FF0000' ? 'file:///cache/expo-interface/swatch-ff0000@3x.png' : undefined),
+  forgetSwatches: () => {},
+}));
+
 const isIOS = Platform.OS === 'ios';
 const trigger = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
 const children = (node: HostNode) => (node.children ?? []).filter((c): c is HostNode => typeof c === 'object');
@@ -191,6 +197,34 @@ describe(`Menu (${Platform.OS})`, () => {
     expect(name.props.systemImage).toBeUndefined();
     expect(name.props.modifiers).toBeUndefined();
     expect(modifier(size.props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
+  });
+
+  (isIOS ? it : it.skip)('draws a swatch entry as an image that keeps its color, or a symbol in the color without one', async () => {
+    const onRed = vi.fn();
+    await render(
+      <Menu
+        label="Ink"
+        items={[
+          {label: 'Red', swatch: '#FF0000', active: true, onPress: onRed},
+          {label: 'Blue', swatch: '#0000FF', role: 'destructive', disabled: true},
+        ]}
+        testID="ink"
+      />,
+    );
+    const [red, blue] = entries();
+    // A button composed by hand, so the image goes before the label.
+    expect(red.props.label).toBeUndefined();
+    const file = host(p => typeof p.uiImage === 'string', red);
+    expect(file.props.uiImage).toBe('file:///cache/expo-interface/swatch-ff0000@3x.png');
+    expect(host(p => p.text === 'Red', red)).toBeTruthy();
+    expect(host(p => p.systemName === 'checkmark', red)).toBeTruthy();
+    await fireEvent(screen.container.queryAll(i => typeof i.props.onButtonPress === 'function')[0], 'buttonPress');
+    expect(onRed).toHaveBeenCalledTimes(1);
+    // No file for blue: the symbol in the color, which the menu draws monochrome.
+    expect(modifier(host(p => p.systemName === 'circle.fill', blue).props, 'foregroundStyle')?.style.color).toBe('#0000FF');
+    expect(blue.props.role).toBe('destructive');
+    expect(modifier(blue.props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
+    expect(nodes(blue).some(n => n.props.systemName === 'checkmark')).toBe(false);
   });
 
   (isIOS ? it.skip : it)('draws a color dot for a swatch entry', async () => {

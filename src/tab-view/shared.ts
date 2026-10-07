@@ -1,4 +1,3 @@
-import type {IconToken} from '../icons';
 import type {TabViewLayout, TabViewTab} from './types';
 
 /**
@@ -74,10 +73,3 @@ export function closeLabel(tab: TabViewTab): string {
 
 /** What the add button is called, wherever it is drawn. */
 export const ADD_LABEL = 'New tab';
-
-/** One glyph, drawn by whichever icon component the platform has — see `glyph.tsx`. */
-export interface GlyphProps {
-  icon: IconToken;
-  size: number;
-  tintColor?: string;
-}

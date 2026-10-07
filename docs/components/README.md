@@ -71,6 +71,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`Badge`](indicators.md#badge) | A count or a dot. |
 | [`Avatar`](indicators.md#avatar) | A person as a colored circle with initials. |
 | [`Typography`](indicators.md#typography) | Text in the platform's type scale, and its variants as components. |
+| [`Icon`](../icons.md#the-icon-component) | A token drawn on its own, in a tone. |
 
 ## Overlays
 
@@ -94,7 +95,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | `theme`, `useColor`, `usePalette`, `useNavTheme`, `colors`, `getThemeCSS`, `getThemeBootScript` | Reading colors. | [Theming](../theming.md#reading-colors) |
 | `spacing`, `bound`, `inset`, `fonts`, `fontWeights`, `variants` | Constants. | [Theming](../theming.md#constants) |
 | `useHighContrast`, `highContrastPalette` | Windows high contrast. | [Theming](../theming.md#high-contrast) |
-| `icon`, `SEGOE_GLYPHS`, `windowsGlyph` | Icon tokens. | [Icons](../icons.md) |
+| `icon`, `symbolName`, `materialName`, `registerDrawables`, `drawableOf`, `getSymbolFontCSS`, `SEGOE_GLYPHS`, `windowsGlyph` | Icon tokens, their names per platform, the Android drawables and the web font. | [Icons](../icons.md) |
 | `useNativeHost`, `hostAccentProps`, `fillWidth` | Native hosts. | [Native hosts](../hosts.md) |
 | `useWindowChrome` | Content in the Windows title bar. | [Windows](../platforms/windows.md#the-window) |
 | `useKeyboardShortcut` | A keyboard shortcut on Windows. | [Windows](../platforms/windows.md#keyboard) |

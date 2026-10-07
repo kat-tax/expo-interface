@@ -15,7 +15,9 @@ import {theme, spacing, bound} from '../theme';
 import {useSearchSite} from '../header-search/site';
 import {materialProps} from '../material';
 import {hasMaterial} from '../sheet/shared';
+import {Icon} from '../symbol';
 import {FoldedSearchContext, HeaderSlotContext, InBarContext, NarrowBarContext, TabBarContext, createHeaderSlot, noSubscription, useNarrowBar} from './context';
+import {routeToken} from './icon';
 import {Headline, Label} from '../typography';
 
 /**
@@ -107,13 +109,14 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
   // tab beside it is already its title.
   const title = header?.title;
   const trailing = header?.trailing ?? actions;
+  // The app's mark: an image, or one of the app's own icon tokens drawn as
+  // the kit's glyph in the label color, so a mark can be an icon the app
+  // already names.
   const mark = isPreset
     ? !isTextOnly && icon != null && (
-      <Image
-        style={styles.icon}
-        source={icon}
-        contentFit="contain"
-      />
+      typeof icon === 'object' && 'symbol' in icon
+        ? <Icon icon={icon} size={24} tone="label" testID="tab-bar-mark"/>
+        : <Image style={styles.icon} source={icon} contentFit="contain"/>
     )
     : title == null && logo;
   const {row, logo: logoSlot, narrow} = useFit();
@@ -252,6 +255,7 @@ export function TabLink({children, isFocused, icon, badge, ...props}: TabTrigger
   // In a bar too narrow for its labels the icon stands alone, and the name
   // becomes the link's accessible name instead.
   const narrow = useNarrowBar();
+  const token = routeToken(icon);
   return (
     // The tab standing for the route being shown is the current page, which is
     // what a screen reader announces to say where you are. Nothing else in the
@@ -262,7 +266,7 @@ export function TabLink({children, isFocused, icon, badge, ...props}: TabTrigger
       aria-label={narrow && typeof children === 'string' ? children : undefined}
       style={({pressed}) => pressed && styles.pressed}>
       <View style={styles.link}>
-        <SymbolView name={icon} size={18} tintColor={isFocused ? theme.label : theme.secondaryLabel}/>
+        <Icon icon={token} size={18} tone={isFocused ? 'label' : 'secondary'}/>
         {narrow ? null : <Label color={isFocused ? 'label' : 'secondaryLabel'}>{children}</Label>}
         {badge ? (
           <View style={styles.badge} testID="tab-badge">

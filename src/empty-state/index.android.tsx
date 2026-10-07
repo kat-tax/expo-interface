@@ -3,6 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import {CircularProgressIndicator, Column, Icon, RNHostView, Text} from '@expo/ui/jetpack-compose';
 import {fillMaxWidth, padding, size} from '@expo/ui/jetpack-compose/modifiers';
 import {NativeHost} from '../host';
+import {drawableOf} from '../icons';
 import {spacing, useColor} from '../theme';
 import {EMPTY_ICON, EmptyStateAction} from './shared';
 import {isActionData} from './types';
@@ -21,14 +22,15 @@ export function EmptyState({title, description, icon, action, loading = false, t
   const label = useColor('label');
   const muted = useColor('secondaryLabel');
   const tint = useColor('tint');
+  const drawable = drawableOf(icon);
   return (
     <View style={[styles.column, style]} testID={testID}>
       <NativeHost>
         <Column horizontalAlignment="center" verticalArrangement={{spacedBy: spacing.two}} modifiers={[fillMaxWidth(), padding(spacing.five, spacing.five, spacing.five, spacing.five)]}>
           {loading ? (
             <CircularProgressIndicator color={tint} modifiers={[size(EMPTY_ICON, EMPTY_ICON)]}/>
-          ) : icon?.drawable ? (
-            <Icon source={icon.drawable} size={EMPTY_ICON} tint={muted}/>
+          ) : drawable ? (
+            <Icon source={drawable} size={EMPTY_ICON} tint={muted}/>
           ) : null}
           <Text color={label} style={{typography: 'titleLarge', textAlign: 'center'}} modifiers={[fillMaxWidth()]}>{title}</Text>
           {description ? (

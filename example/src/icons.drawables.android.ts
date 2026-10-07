@@ -7,6 +7,7 @@ import chevron_right from '@expo/material-symbols/chevron_right.xml';
 import cloud_upload from '@expo/material-symbols/cloud_upload.xml';
 import delete_icon from '@expo/material-symbols/delete.xml';
 import description from '@expo/material-symbols/description.xml';
+import download from '@expo/material-symbols/download.xml';
 import draft from '@expo/material-symbols/draft.xml';
 import settings from '@expo/material-symbols/settings.xml';
 import error from '@expo/material-symbols/error.xml';
@@ -20,6 +21,7 @@ import refresh from '@expo/material-symbols/refresh.xml';
 import share from '@expo/material-symbols/share.xml';
 import video_file from '@expo/material-symbols/video_file.xml';
 
+/** The Android vectors by Material name, which `icons.ts` registers once. */
 export const drawables: Record<string, ImageSourcePropType> = {
   audio_file,
   calendar_month,
@@ -28,6 +30,7 @@ export const drawables: Record<string, ImageSourcePropType> = {
   cloud_upload,
   delete: delete_icon,
   description,
+  download,
   draft,
   settings,
   error,

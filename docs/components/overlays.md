@@ -32,8 +32,11 @@ Differences:
 
 - `onOpenChange` is reported on Android, web and Windows. SwiftUI's `Menu`
   has no presentation binding, so iOS never reports it.
-- `swatch` is drawn on Android, web and Windows. iOS menus render images
-  monochrome, so the dot is not shown there.
+- `swatch` is a color dot on Android, web and Windows. On iOS it is an
+  image the kit writes once per color into the app's cache through
+  `expo-file-system`, since a `UIMenu` draws a symbol in the menu's tint
+  but keeps an image's colors; without the module the dot is a symbol, which
+  the menu draws monochrome.
 - `shortcut` is drawn beside the label and bound wherever the focus is while
   the menu is mounted on Windows, as WinUI draws an accelerator. The other
   platforms ignore it.

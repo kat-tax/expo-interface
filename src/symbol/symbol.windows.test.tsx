@@ -12,6 +12,17 @@ describe('Icon (windows)', () => {
     expect(glyph.props.accessible).toBe(false);
   });
 
+  it('draws in a tone, the label color by default', async () => {
+    await render(
+      <>
+        <Icon icon={icons.share} testID="plain"/>
+        <Icon icon={icons.share} tone="accent" testID="accent"/>
+      </>,
+    );
+    expect(screen.getByTestId('plain')).toHaveStyle({color: '#000000'});
+    expect(screen.getByTestId('accent')).toHaveStyle({color: '#007AFF'});
+  });
+
   it('draws nothing for a token without a glyph', async () => {
     await render(<Icon icon={icon('questionmark')}/>);
     expect(screen.toJSON()).toBeNull();

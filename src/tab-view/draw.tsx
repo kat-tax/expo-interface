@@ -5,7 +5,7 @@ import type {ResolvedLayout} from './shared';
 import type {TabViewLayout, TabViewTab} from './types';
 import {useState} from 'react';
 import {Pressable, ScrollView, StyleSheet, View, useWindowDimensions} from 'react-native';
-import {Glyph} from './glyph';
+import {Icon as Glyph} from '../symbol';
 import {inSet} from '../a11y/set';
 import {Body, Caption} from '../typography';
 import {spacing, useColor} from '../theme';

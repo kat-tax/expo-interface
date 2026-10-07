@@ -14,6 +14,7 @@ import {
 import {alpha, clip, Shapes, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {NativeHost} from '../host';
 import {MenuItems} from '../menu/index.android';
+import {drawableOf} from '../icons';
 import {useColor} from '../theme';
 import {FAB_ICON, FAB_SIZE} from './shared';
 
@@ -49,12 +50,13 @@ export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rou
     onOpenChange?.(open);
   };
   const press = items ? () => setOpen(true) : onPress;
+  const drawable = drawableOf(icon);
 
   const button = (
     <Component containerColor={tint} onClick={disabled ? undefined : press} modifiers={modifiers}>
       <FloatingActionButton.Icon>
-        {icon.drawable ? (
-          <Icon source={icon.drawable} size={FAB_ICON[size]} tint={onTint} contentDescription={label}/>
+        {drawable ? (
+          <Icon source={drawable} size={FAB_ICON[size]} tint={onTint} contentDescription={label}/>
         ) : (
           // No drawable registered for this icon (see `icon()`): the label stands in.
           <Text color={onTint}>{label.slice(0, 1)}</Text>

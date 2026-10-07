@@ -35,7 +35,11 @@
     "src/screen/index.tsx",
     "src/symbol/index.tsx"
   ],
+  "bin": {
+    "expo-interface-symbols": "./bin/symbols.mjs"
+  },
   "files": [
+    "bin",
     "src",
     "!src/__stories__",
     "!src/__tests__",
@@ -96,6 +100,7 @@
     "expo": "^57.0.0",
     "expo-asset": "*",
     "expo-constants": "*",
+    "expo-file-system": "*",
     "expo-image": "*",
     "expo-router": "^57.0.0",
     "expo-status-bar": "*",
@@ -109,6 +114,9 @@
   },
   "peerDependenciesMeta": {
     "@expo/material-symbols": {
+      "optional": true
+    },
+    "expo-file-system": {
       "optional": true
     },
     "react-native-keyboard-controller": {

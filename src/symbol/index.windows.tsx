@@ -1,5 +1,7 @@
-import type {IconProps} from './index';
+import type {IconProps} from './types';
 import {StyleSheet, Text} from 'react-native';
+import {TONE_TOKEN} from '../icons';
+import {useColor} from '../theme';
 import {glyphChar, windowsGlyph} from './segoe';
 
 /**
@@ -17,14 +19,16 @@ export const SYMBOL_FONT = 'Segoe Fluent Icons';
  * that would be read as nothing useful, and the control around it carries
  * the name.
  */
-export function Icon({icon, size = 24, tintColor}: IconProps) {
+export function Icon({icon, size = 24, tone = 'label', tintColor, testID}: IconProps) {
+  const toned = useColor(TONE_TOKEN[tone]);
   const glyph = windowsGlyph(icon);
   if (!glyph) return null;
   return (
     <Text
       accessible={false}
       importantForAccessibility="no"
-      style={[styles.glyph, {fontSize: size, lineHeight: size, color: tintColor}]}>
+      style={[styles.glyph, {fontSize: size, lineHeight: size, color: tintColor ?? toned}]}
+      testID={testID}>
       {glyphChar(glyph)}
     </Text>
   );
@@ -40,4 +44,4 @@ const styles = StyleSheet.create({
 });
 
 export {windowsGlyph} from './segoe';
-export type {IconProps} from './index';
+export type {IconProps} from './types';

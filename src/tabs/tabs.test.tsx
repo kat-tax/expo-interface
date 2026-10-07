@@ -11,6 +11,7 @@ import {HeaderSearch} from '../header-search';
 import {Screen} from '../screen';
 import {colors, inset, theme} from '../theme';
 import {nodes} from 'expo-vitest/native';
+import {visibleText} from '../a11y/roving';
 import {renderApp} from 'expo-vitest/router';
 
 const routes: TabRoute[] = [
@@ -69,7 +70,9 @@ describe(`Tabs (${Platform.OS})`, () => {
         await renderApp(await app());
         const links = dom.getAllByRole('link');
         expect(links.map(l => l.getAttribute('href'))).toEqual(['/', '/settings']);
-        expect(links.map(l => l.textContent)).toEqual(['Home', 'Settings']);
+        // The visible text: the icon beside a label is a ligature, the glyph's name hidden from the reader.
+        expect(links.map(l => visibleText(l))).toEqual(['Home', 'Settings']);
+        expect(links[0].querySelector('.ui-symbol')!.textContent).toBe('home');
         expect(dom.getByText('Home screen')).toBeInTheDocument();
         expect(dom.queryByText('Settings screen')).toBeNull();
       });
@@ -283,6 +286,21 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(dom.getByText(appName)).toBeInTheDocument();
       });
 
+      it('draws a route\'s icon from a token, filled where it asks, and a mark from one too', async () => {
+        await renderApp(await app({
+          routes: [{...routes[0], icon: icons.starFilled}, {...routes[1], icon: icons.settings}],
+          webLogo: 'icon-only',
+          webIcon: icons.share,
+        }));
+        const [home, settings] = dom.getAllByRole('link');
+        expect(home.querySelector('.ui-symbol')!.classList.contains('ui-symbol--filled')).toBe(true);
+        expect(home.querySelector('.ui-symbol')!.textContent).toBe('star');
+        expect(settings.querySelector('.ui-symbol')!.textContent).toBe('settings');
+        // The app's mark as the kit's glyph in the label color, no image.
+        expect(dom.getByTestId('tab-bar-mark').textContent).toBe('share');
+        expect(document.querySelector('img')).toBeNull();
+      });
+
       it('shows a badge beside a tab\'s label, and none for nothing', async () => {
         await renderApp(await app({routes: [{...routes[0], badge: 3}, {...routes[1], badge: 0}]}));
         expect(dom.getAllByTestId('tab-badge')).toHaveLength(1);
@@ -372,13 +390,13 @@ describe(`Tabs (${Platform.OS})`, () => {
           // The names stay as the links' accessible names.
           expect(home).toHaveAttribute('aria-label', 'Home');
           expect(settings).toHaveAttribute('aria-label', 'Settings');
-          expect(home.textContent).toBe('');
+          expect(home.querySelector('span:not(.ui-symbol)')).toBeNull();
           expect(dom.getByText('Home screen')).toBeInTheDocument();
 
           // Wide enough for what the labelled row needed: the labels return.
           widths.scroll = 390;
           await resize(456);
-          expect(home.textContent).toBe('Home');
+          expect(visibleText(home)).toBe('Home');
           expect(home).not.toHaveAttribute('aria-label');
         });
 
@@ -417,9 +435,9 @@ describe(`Tabs (${Platform.OS})`, () => {
           widths.scroll = 456;
           await renderApp(await app());
           const [home] = dom.getAllByRole('link');
-          expect(home.textContent).toBe('Home');
+          expect(visibleText(home)).toBe('Home');
           await resize(700);
-          expect(home.textContent).toBe('Home');
+          expect(visibleText(home)).toBe('Home');
           // What the row cannot hold is cut, never a sideways scroll of the page.
           const style = getComputedStyle(dom.getByTestId('tab-bar-row'));
           expect(style.overflowX).toBe('hidden');
@@ -491,6 +509,17 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(tabs.map(t => t.props.icon)).toEqual([{sf: 'house'}, {sf: 'gearshape'}]);
       }
       expect(screen.getByText('Home screen')).toBeOnTheScreen();
+    });
+
+    it('takes a route\'s icon as a token, the solid form where it asks for it', async () => {
+      await renderApp(await app({routes: [{...routes[0], icon: icons.starFilled}, {...routes[1], icon: icons.settings}]}));
+      const tabs = triggers();
+      if (isIOS) {
+        expect(tabs.map(t => t.props.icon)).toEqual([{sf: 'star.fill'}, {sf: 'gearshape'}]);
+      } else {
+        // Expo Router turns the Material name into a drawable source for Android's bar.
+        expect(tabs.map(t => 'src' in t.props.icon)).toEqual([true, true]);
+      }
     });
 
     it('gives a tab the native badge, and none for nothing', async () => {

@@ -44,17 +44,29 @@ export const share = icon(
 );
 ```
 
+Or register the drawables once, by their Material names, and leave the
+tokens to find their own: `expo-interface-symbols` writes that module from
+the names the app's sources use, filled vectors included.
+
+```ts
+import {icon, registerDrawables} from 'expo-interface';
+import {drawables, filledDrawables} from './symbols/drawables';
+
+registerDrawables(drawables, filledDrawables);
+export const share = icon({ios: 'square.and.arrow.up', android: 'share', web: 'share'});
+```
+
 ## Using tokens
 
 Pass the token to any icon prop, for example on a button, list item or menu
-item:
+item, or draw it on its own with `Icon`, in a tone:
 
 ```tsx
-import {Button, ListItem} from 'expo-interface';
+import {Button, Icon, ListItem} from 'expo-interface';
 import * as icons from './icons';
 
 <Button label="Share" prefixIcon={icons.share} onPress={share}/>
-<ListItem title="Settings" leading={icons.settings}/>
+<ListItem leading={<Icon icon={icons.settings} tone="secondary"/>}>Settings</ListItem>
 ```
 
 ## Filled icons
@@ -98,6 +110,8 @@ Each platform draws it from what it has:
   }
   ```
 
+  `expo-interface-symbols --font` writes that family cut down to the names
+  the app uses, and `getSymbolFontCSS(url)` is the rule for `+html.tsx`.
   Serve it from the app's own bundle rather than a CDN so an offline web build
   still draws. Without the family a filled token quietly draws its outline,
   which is what this site does, since it ships only the static instance.

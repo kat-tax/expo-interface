@@ -2,6 +2,7 @@ import type {ChipProps} from './types';
 import {AssistChip, FilterChip, Icon, SuggestionChip, Text} from '@expo/ui/jetpack-compose';
 import {testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {SIZE_ICON} from '../button/shared';
+import {drawableOf} from '../icons';
 import {useColor} from '../theme';
 import {chipKind, nextSelected} from './shared';
 
@@ -22,23 +23,24 @@ const ICON = SIZE_ICON.small;
 export function Chip(props: ChipProps) {
   const {label, onPress, selected, icon, disabled, testID} = props;
   const ink = useColor('label');
+  const drawable = drawableOf(icon);
   const modifiers = testID ? [testIDModifier(testID)] : undefined;
   const press = () => onPress?.(nextSelected(props));
   if (chipKind(props) === 'filter') {
     return (
       <FilterChip selected={selected!} enabled={!disabled} onClick={press} modifiers={modifiers}>
         <FilterChip.Label><Text>{label}</Text></FilterChip.Label>
-        {icon?.drawable ? (
-          <FilterChip.LeadingIcon><Icon source={icon.drawable} size={ICON} tint={ink}/></FilterChip.LeadingIcon>
+        {drawable ? (
+          <FilterChip.LeadingIcon><Icon source={drawable} size={ICON} tint={ink}/></FilterChip.LeadingIcon>
         ) : null}
       </FilterChip>
     );
   }
-  if (icon?.drawable) {
+  if (drawable) {
     return (
       <AssistChip enabled={!disabled} onClick={press} modifiers={modifiers}>
         <AssistChip.Label><Text>{label}</Text></AssistChip.Label>
-        <AssistChip.LeadingIcon><Icon source={icon.drawable} size={ICON} tint={ink}/></AssistChip.LeadingIcon>
+        <AssistChip.LeadingIcon><Icon source={drawable} size={ICON} tint={ink}/></AssistChip.LeadingIcon>
       </AssistChip>
     );
   }

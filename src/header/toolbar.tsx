@@ -9,6 +9,7 @@ import {Platform} from 'react-native';
 import {Stack} from 'expo-router';
 import {Button} from '../button';
 import {iosSymbol} from '../button/shared';
+import {drawableOf} from '../icons';
 import {Menu} from '../menu';
 import {useColor} from '../theme';
 import {HeaderHost, InHeaderContext, useHeaderTrigger} from './shared';
@@ -105,7 +106,7 @@ function tint(tone: ButtonTone | undefined, tints: Tints): string {
  */
 function barIcon(icon: IconToken | undefined) {
   if (!icon) return undefined;
-  return Platform.OS === 'ios' ? iosSymbol(icon) : icon.drawable;
+  return Platform.OS === 'ios' ? iosSymbol(icon) : drawableOf(icon);
 }
 
 /**

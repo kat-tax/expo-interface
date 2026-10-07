@@ -11,6 +11,7 @@ import {useLayerDismiss} from '../windows/layer';
 import {useArrival} from '../windows/motion';
 import {windowsGlyph} from '../symbol/segoe';
 import {useColor} from '../theme';
+import {routeToken} from './icon';
 import {BackStoreContext, PaneToggleContext, ShellCardsContext, ShellHostContext, createBackStore} from './shell';
 
 /** The pane a tab bar resolves to: the row along the top, or the side pane, expanded, compact or minimal. */
@@ -77,7 +78,7 @@ export function Tabs({routes, hidden = false, windowsPane = 'top'}: TabBarProps)
 export function tabItems(routes: readonly TabRoute[]): string {
   return jsonProp(routes.map(route => ({
     label: route.label,
-    glyph: windowsGlyph({symbol: route.icon}) ?? null,
+    glyph: windowsGlyph(routeToken(route.icon)) ?? null,
     ...(route.badge ? {badge: route.badge} : {}),
     ...(route.windowsPlacement && route.windowsPlacement !== 'menu' ? {placement: route.windowsPlacement} : {}),
   })));

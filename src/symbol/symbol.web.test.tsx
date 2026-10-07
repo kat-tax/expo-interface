@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
-import {Icon, registerSymbolFont} from '.';
+import {Icon, registerSymbolFont} from './index.web';
 
 /** The glyph the kit drew, or `null` when it drew nothing. */
 function glyph(container: HTMLElement) {
@@ -30,6 +30,22 @@ describe('Icon (web)', () => {
     const span = glyph(container);
     expect(span?.style.fontSize).toBe('16px');
     expect(span?.style.color).toBe('rgb(137, 89, 234)');
+  });
+
+  it('draws in a tone, the label color by default, and carries a testID', () => {
+    const {container} = render(
+      <>
+        <Icon icon={icons.star} testID="plain"/>
+        <Icon icon={icons.star} tone="secondary"/>
+        <Icon icon={icons.star} tone="destructive" tintColor="#123456"/>
+      </>,
+    );
+    const [plain, secondary, own] = container.querySelectorAll<HTMLElement>('.ui-symbol');
+    expect(plain.style.color).toBe('var(--color-label)');
+    expect(plain).toHaveAttribute('data-testid', 'plain');
+    expect(secondary.style.color).toBe('var(--color-secondary-label)');
+    // A color of its own wins over the tone.
+    expect(own.style.color).toBe('rgb(18, 52, 86)');
   });
 
   it('draws nothing for a symbol with no Material name', () => {

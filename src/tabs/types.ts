@@ -2,6 +2,7 @@ import type {Href} from 'expo-router';
 import type {SFSymbol, AndroidSymbol} from 'expo-symbols';
 import type {ReactNode} from 'react';
 import type {ImageSource} from 'expo-image';
+import type {IconToken} from '../icons';
 import type {SheetMaterial} from '../sheet/types';
 
 /**
@@ -49,9 +50,10 @@ export interface TabBarProps {
   webLogo?: WebLogo;
   /**
    * App icon rendered by the `icon-only` and `icon-and-text` web logo presets,
-   * e.g. `require('./assets/icon.png')`. When omitted only the name is shown.
+   * e.g. `require('./assets/icon.png')`, or an `IconToken` drawn as the
+   * kit's glyph in the label color. When omitted only the name is shown.
    */
-  webIcon?: ImageSource | number;
+  webIcon?: ImageSource | number | IconToken;
   /**
    * Content rendered in the web tab bar beside the tabs: a `Menu` with a
    * `link` trigger, a button. See `webActionsPlacement`.
@@ -105,6 +107,13 @@ export interface TabBarProps {
 
 export type WindowsPane = 'top' | 'left' | 'compact' | 'minimal' | 'auto';
 
+/** A tab's icon as the symbol names per platform, the shape a route carried before tokens were taken. */
+export interface TabIcon {
+  ios: SFSymbol;
+  android: AndroidSymbol;
+  web: AndroidSymbol;
+}
+
 export type WebLogo =
   | 'icon-only'
   | 'text-only'
@@ -118,12 +127,12 @@ export interface TabRoute {
   href: Href;
   /** Visible tab label. */
   label: string;
-  /** Symbol name per platform. */
-  icon: {
-    ios: SFSymbol;
-    android: AndroidSymbol;
-    web: AndroidSymbol;
-  };
+  /**
+   * The tab's icon: one of the app's `IconToken`s, or the symbol names per
+   * platform. A token is what the rest of the app names its icons by, and
+   * a filled one draws its solid form on the platforms that have one.
+   */
+  icon: TabIcon | IconToken;
   /**
    * A badge on the tab: a count, or short text. Nothing for `0` or an empty
    * string. Windows draws a count in an `InfoBadge` and any other text as

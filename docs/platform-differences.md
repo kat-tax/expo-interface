@@ -11,7 +11,7 @@ The differences that change what a screen can do, in one place:
 | `Sheet` material | Yes | No | Yes | No |
 | `Alert` action sheet | Yes | Actions stacked | Anchored to the bottom | A dialog |
 | Menu `shortcut` | Ignored | Ignored | Ignored | Drawn and bound |
-| Menu `swatch` | Not shown | Yes | Yes | Yes |
+| Menu `swatch` | An image, with `expo-file-system` | Yes | Yes | Yes |
 | `onOpenChange` on menus | Not reported | Yes | Yes | Yes |
 | `ContextMenu` `at` | Ignored | Yes | Yes | Yes |
 | `PopupMenu` match highlighting | No | No | Yes | No |

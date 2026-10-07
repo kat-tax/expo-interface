@@ -69,9 +69,11 @@ drill-in and the back button with nothing added:
 
 The app's section tabs for Expo Router.
 
-Props: `routes` (`name`, `href`, `label`, `icon`, `badge`,
-`windowsPlacement`), `hidden`, and per platform: `webLogo` (`icon-only`,
-`text-only`, `icon-and-text` or a node), `webIcon`, `webActions`,
+Props: `routes` (`name`, `href`, `label`, `icon` as one of the app's
+`IconToken`s or the symbol names per platform, `badge`, `windowsPlacement`),
+`hidden`, and per platform: `webLogo` (`icon-only`, `text-only`,
+`icon-and-text` or a node), `webIcon` (an image, or an `IconToken` drawn as
+the kit's glyph in the label color), `webActions`,
 `webActionsPlacement`, `webFoldHeader`, `webMaterial` (`none`, `thin`,
 `regular`, `thick`), `windowsPane` (`top`, `left`, `compact`, `minimal`,
 `auto`).

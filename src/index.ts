@@ -4,6 +4,9 @@ export * from './theme';
 export * from './accent';
 export * from './icons';
 export {fillWidth} from './fill';
+export {Icon} from './symbol';
+export type {IconProps} from './symbol/types';
+export {SYMBOL_FONT_FAMILY, getSymbolFontCSS} from './symbol/font';
 export {SEGOE_GLYPHS, windowsGlyph} from './symbol/segoe';
 export {
   SCHEME_STORAGE_KEY,
@@ -41,7 +44,7 @@ export type {WindowChrome, WindowChromeOptions} from './windows/chrome';
 export {useHighContrast} from './windows/contrast';
 export {highContrastPalette} from './windows/contrast-palette';
 export type {HighContrast, HighContrastColors} from './windows/contrast-palette';
-export type {TabBarProps, TabRoute, WebLogo, WindowsPane} from './tabs/types';
+export type {TabBarProps, TabIcon, TabRoute, WebLogo, WindowsPane} from './tabs/types';
 export type {TabViewLayout, TabViewProps, TabViewTab} from './tab-view/types';
 export {KeyboardBar} from './keyboard';
 export type {KeyboardBarProps, KeyboardLibrary, KeyboardState} from './keyboard';

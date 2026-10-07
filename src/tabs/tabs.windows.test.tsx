@@ -5,6 +5,7 @@ import {Animated, Dimensions, StyleSheet, Text} from 'react-native';
 import {router} from 'expo-router';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {renderApp} from 'expo-vitest/router';
+import * as icons from '../__stories__/icons';
 import {Stack} from '../router/stack.windows';
 import {TabStack} from '../tab-stack';
 import {PANE_BREAKPOINT, PANE_WIDTH, resolvePane, tabItems, Tabs} from './index.windows';
@@ -54,6 +55,8 @@ describe('Tabs (windows)', () => {
     await renderApp(app());
     const bar = island(NAV);
     expect(JSON.parse(bar.props.items)).toEqual([{label: 'Home', glyph: 'E80F'}, {label: 'Settings', glyph: 'E713'}]);
+    // A route may name its icon by one of the app's tokens; a filled one takes the solid glyph.
+    expect(JSON.parse(tabItems([{...routes[0], icon: icons.starFilled}]))).toEqual([{label: 'Home', glyph: 'E735'}]);
     expect(bar.props.selectedIndex).toBe(0);
     expect(bar.props.paneMode).toBe('top');
     expect(bar.props.background).toEqual(expect.any(String));

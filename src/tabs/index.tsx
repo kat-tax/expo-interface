@@ -2,6 +2,7 @@ import type {TabBarProps} from './types';
 import {NativeTabs} from 'expo-router/unstable-native-tabs';
 import {useColor} from '../theme';
 import {NativeTabsContext} from './context';
+import {routeSymbol} from './icon';
 
 export function Tabs({routes, hidden = false}: TabBarProps) {
   const rippleColor = useColor('pillBackground');
@@ -19,7 +20,9 @@ export function Tabs({routes, hidden = false}: TabBarProps) {
         // Monochrome selected icon to match the label (and the web tab bar);
         // without it iOS falls back to the default system tint.
         iconColor={{selected: labelColor}}>
-        {routes.map(route => (
+        {routes.map(route => {
+          const symbol = routeSymbol(route.icon);
+          return (
           <NativeTabs.Trigger
             key={route.name}
             name={route.name}>
@@ -27,14 +30,15 @@ export function Tabs({routes, hidden = false}: TabBarProps) {
               {route.label}
             </NativeTabs.Trigger.Label>
             <NativeTabs.Trigger.Icon
-              sf={route.icon.ios}
-              md={route.icon.android}
+              sf={symbol.ios}
+              md={symbol.android}
             />
             {route.badge ? (
               <NativeTabs.Trigger.Badge>{String(route.badge)}</NativeTabs.Trigger.Badge>
             ) : null}
           </NativeTabs.Trigger>
-        ))}
+          );
+        })}
       </NativeTabs>
     </NativeTabsContext.Provider>
   );

@@ -4,6 +4,7 @@ import {Button as ComposeButton, CircularProgressIndicator, OutlinedButton, Text
 import {SIZE_ICON, SIZE_TEXT, androidContentPadding} from './shared';
 import {onAccent as contrastOf} from '../accent';
 import {SelfHosted} from '../host';
+import {drawableOf} from '../icons';
 import {useColor} from '../theme';
 
 const VARIANT_COMPONENT: Record<ButtonVariant, typeof ComposeButton | typeof OutlinedButton | typeof TextButton> = {
@@ -100,7 +101,9 @@ function NativeButton({
     wrapContentHeight('top'),
   ];
   if (testID) modifiers.push(testIDModifier(testID));
-  const iconOnly = hideLabel && !!prefixIcon?.drawable;
+  const prefix = drawableOf(prefixIcon);
+  const suffix = drawableOf(suffixIcon);
+  const iconOnly = hideLabel && !!prefix;
 
   // The spinner in the icon's place, in the content's color.
   const spinner = loading ? (
@@ -111,9 +114,9 @@ function NativeButton({
       modifiers={[sizeModifier(iconSize, iconSize)]}
     />
   ) : null;
-  const leading = spinner ?? (prefixIcon?.drawable ? (
+  const leading = spinner ?? (prefix ? (
     <Icon
-      source={prefixIcon.drawable}
+      source={prefix}
       size={iconSize}
       tint={textColor}
       contentDescription={iconOnly ? label : undefined}
@@ -132,10 +135,10 @@ function NativeButton({
         </>
       ) : null}
       {iconOnly ? null : <Text color={textColor} style={{fontSize: textSize}}>{label}</Text>}
-      {suffixIcon?.drawable && !iconOnly ? (
+      {suffix && !iconOnly ? (
         <>
           <Spacer modifiers={[width(8)]}/>
-          <Icon source={suffixIcon.drawable} size={iconSize} tint={textColor}/>
+          <Icon source={suffix} size={iconSize} tint={textColor}/>
         </>
       ) : null}
     </>
@@ -172,7 +175,7 @@ function NativeButton({
   }
 
   const Component = VARIANT_COMPONENT[variant];
-  const pad = androidContentPadding(size, !!(leading || suffixIcon?.drawable));
+  const pad = androidContentPadding(size, !!(leading || suffix));
 
   return (
     <Component
