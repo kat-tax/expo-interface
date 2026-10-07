@@ -112,3 +112,5 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | `useTabBarInset` | The space the bar floating over the screen takes at its top, with the rows under it. | [HeaderAccessory](navigation.md#headeraccessory) |
 | `caretPoint` | Where the caret is in a text field, on web. | [PopupMenu](overlays.md#popupmenu) |
 | `haptic` | The feel of a touch, by what it means. | [Platform services](../services.md#haptics) |
+| `saveFile` | Saves a file where the user chooses. | [Platform services](../services.md#saving-a-file) |
+| `DropZone`, `useDrop` | Takes files dropped on a view, on the web. | [Platform services](../services.md#dropping-files) |

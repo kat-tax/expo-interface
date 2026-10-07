@@ -21,7 +21,7 @@ You can also see every component live, with its props, in the
 | [Theming](theming.md) | The accent seed, the light and dark scheme, color tokens, reading colors, high contrast, constants. |
 | [Icons](icons.md) | Icon tokens, `Icon`, filled icons, the drawables and web font `expo-interface-symbols` writes, Windows glyphs. |
 | [Native hosts](hosts.md) | `Screen native` and `NativeHost`: where native controls live on iOS and Android. |
-| [Platform services](services.md) | `haptic`, and the other platform calls the kit makes once for every app. |
+| [Platform services](services.md) | `haptic`, `saveFile`, `DropZone`: platform calls the kit makes once for every app. |
 
 ## Components
 
