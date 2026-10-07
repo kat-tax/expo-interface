@@ -281,7 +281,8 @@ export default function Documents() {
 ```
 
 Props: `placement` (`automatic`, `stacked`, `integrated`, `action`,
-`inline`), `placeholder`, `autoFocus`, `autoCapitalize`, `inputType` (the
+`inline`), `placeholder` (a string, or a function of the search's state),
+`autoFocus`, `autoCapitalize`, `inputType` (the
 keyboard Android's field opens with: `text`, `phone`, `number`, `email`),
 `hideWhenScrolling` (iOS `stacked`: the field collapses as the content
 scrolls, default true), `integration` (`field`, `button`, `centered`, iOS
@@ -298,18 +299,34 @@ for Android's hint. `onOpen` and `onClose` report an `action` expanding and
 collapsing, a field taking and giving up the focus (iOS's controller, the
 drawn fields), and Android's `SearchView` opening and closing.
 
+A `placeholder` function is called with the search's state, `{size}`:
+`short` while the web bar is too narrow for its labels and its inline field
+is at its floor, `full` everywhere else, the native placements included. It
+is how a search says less where it has less room, without the app measuring
+the bar:
+
+```tsx
+<HeaderSearch
+  placeholder={state => (state.size === 'short' ? 'Search docs' : 'Search documents')}
+  onChangeText={setQuery}
+/>
+```
+
+The field's accessible name is always the answer for `{size: 'full'}`, so
+the short text never becomes its name.
+
 | `placement` | iOS | Android | Web | Windows |
 | --- | --- | --- | --- | --- |
 | `stacked` | Native: `UISearchController` under the title, collapsing as the content scrolls (`hideWhenScrolling`) | Drawn: a row under the app bar in the header's fill with its hairline, the `SearchField` box the width of the content | Drawn: a row under the header row at the content's width, in the header's fill. Under a `Tabs` bar that folds the header, a second pill under the bar, in the bar's material, which the screens pay for through `useTabBarInset()`. | Drawn: the same row, with the `AutoSuggestBox` |
 | `integrated` | Native on iOS 26: the bottom toolbar's search, as a field, a button or centred (`integration`); on iOS 16 to 18 UIKit's own fallback, `inline` | Drawn: a bottom `Toolbar` with the field in its field slot | The same | The same, with the `AutoSuggestBox` |
 | `action` | Native on iOS 26: the bar's own search button, which expands into the field and stays in the navigation bar rather than the toolbar; on iOS 16 to 18 UIKit's own fallback, `inline` | Native: the toolbar's `SearchView`, a magnifier among the actions that opens across the bar and is iconified again on close | Drawn: a magnifier among the header's controls that expands into a field across the row and takes the focus; the title goes while it is open. It collapses on Escape, through `cancel`, or when it loses the focus with nothing in it. | The same, with the `AutoSuggestBox` |
-| `inline` | Native on iOS 16 to 18: a field beside the title; on iOS 26 UIKit's own fallback | Drawn as the `SearchView` open from the start, and opened again when it is closed: the one open form the toolbar has | Drawn: a frameless field after the title, the magnifier and the placeholder on the header's own fill, with no box of its own. It takes the row's spare width up to a desktop search box's and shrinks with the row to a short field, so it stays in the row at every width. Under a `Tabs` bar that folds the header, beside the logo. | Drawn: the `AutoSuggestBox` in the header row beside the title |
+| `inline` | Native on iOS 16 to 18: a field beside the title; on iOS 26 UIKit's own fallback | Drawn as the `SearchView` open from the start, and opened again when it is closed: the one open form the toolbar has | Drawn: a frameless field after the title, the placeholder on the header's own fill with no glyph and no box of its own: the placeholder is the affordance. Focus is the caret and the typed text, with no ring; a focus from the keyboard draws a hairline under the field in the tint. It takes the row's spare width up to a desktop search box's and shrinks with the row to a short field, so it stays in the row at every width. Under a `Tabs` bar that folds the header, beside the logo. | Drawn: the `AutoSuggestBox` in the header row beside the title |
 | `automatic` | Native: the system's choice | `action` | `inline` | `inline` |
 
 The drawn placements are drawn with what the kit has: `SearchField`'s box at
-the header's metrics for the rows and the bottom bar, a frameless field for
-the web's `inline` (the header is its frame), a `HeaderAction` for the
-magnifier, `Toolbar` for the bottom bar, the header's fill and material, and
+the header's metrics for the rows and the bottom bar, with its focus ring,
+since there a frame belongs; a frameless field for the web's `inline` (the
+header is its frame); a `HeaderAction` for the magnifier; `Toolbar` for the bottom bar, the header's fill and material, and
 the same events and commands as the native search, so an app writes one
 search and reads one table.
 

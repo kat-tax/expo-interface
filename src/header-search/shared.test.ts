@@ -1,5 +1,5 @@
 import {Platform} from 'react-native';
-import {drawnPlacement, iosPlacement} from './shared';
+import {FULL, SHORT, drawnPlacement, iosPlacement, placeholderFor} from './shared';
 
 describe(`HeaderSearch placements (${Platform.OS})`, () => {
   it('names the placements in UIKit\'s words, with the three integrated looks', () => {
@@ -20,5 +20,17 @@ describe(`HeaderSearch placements (${Platform.OS})`, () => {
     expect(drawnPlacement('stacked')).toBe('stacked');
     expect(drawnPlacement('action')).toBe('action');
     expect(drawnPlacement('inline')).toBe('inline');
+  });
+});
+
+describe('placeholderFor', () => {
+  it('takes a string as it is, asks a function for the state, and says nothing for nothing', () => {
+    const placeholder = (state: {size: 'full' | 'short'}) => (state.size === 'short' ? 'Search docs' : 'Search documents');
+    expect(placeholderFor('Find a drop')).toBe('Find a drop');
+    expect(placeholderFor('Find a drop', SHORT)).toBe('Find a drop');
+    expect(placeholderFor(placeholder)).toBe('Search documents');
+    expect(placeholderFor(placeholder, FULL)).toBe('Search documents');
+    expect(placeholderFor(placeholder, SHORT)).toBe('Search docs');
+    expect(placeholderFor(undefined)).toBeUndefined();
   });
 });

@@ -7,7 +7,7 @@ import {useHeaderTints} from '../header/toolbar';
 import {ScreenBar} from '../screen/bars';
 import {useColor} from '../theme';
 import {SearchBottomBar, StackedSearchRow} from './drawn';
-import {iosPlacement} from './shared';
+import {iosPlacement, placeholderFor} from './shared';
 
 /**
  * iOS and Android: the platform's own header search, through Expo Router's
@@ -67,7 +67,7 @@ function NativeSearch({
   return (
     <Stack.SearchBar
       ref={bar}
-      placeholder={placeholder}
+      placeholder={placeholderFor(placeholder)}
       // Android's field opens from the start for `inline`, the one open form the toolbar has.
       autoFocus={autoFocus || (!ios && placement === 'inline')}
       autoCapitalize={autoCapitalize}

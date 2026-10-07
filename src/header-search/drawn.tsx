@@ -9,7 +9,7 @@ import {Surface} from '../surface';
 import {bound, spacing} from '../theme';
 import {Toolbar} from '../toolbar';
 import {InlineField} from './inline';
-import {DrawnSearchContext, SEARCH_ICON, drawnPlacement} from './shared';
+import {DrawnSearchContext, SEARCH_ICON, SHORT, drawnPlacement, placeholderFor} from './shared';
 
 /** What the field is drawn as: one of the header's placements, or the bottom bar's field across the bar. */
 export type DrawnSearchMode = DrawnSearchPlacement | 'bar';
@@ -39,6 +39,8 @@ export function DrawnSearch({mode, placeholder, autoFocus = false, autoCapitaliz
   const field = useRef<SearchFieldCommands>(null);
   const action = mode === 'action';
   const expanded = !action || open;
+  // The full placeholder everywhere; the short one only where a narrow web bar asks for it.
+  const full = placeholderFor(placeholder);
   // The header is told whether the action has the row, from the start (an
   // action that opens on mount) and on every change.
   useEffect(() => {
@@ -81,7 +83,7 @@ export function DrawnSearch({mode, placeholder, autoFocus = false, autoCapitaliz
   if (!expanded) {
     return (
       <HeaderAction
-        label={placeholder ?? SEARCH_LABEL}
+        label={full ?? SEARCH_LABEL}
         icon={SEARCH_ICON}
         hideLabel
         tone="label"
@@ -94,7 +96,7 @@ export function DrawnSearch({mode, placeholder, autoFocus = false, autoCapitaliz
   const fieldProps = {
     ref: field,
     value: text,
-    placeholder,
+    placeholder: full,
     autoCapitalize,
     // An action's field was just opened, by a press or a command, and takes the focus.
     autoFocus: action || autoFocus,
@@ -118,7 +120,7 @@ export function DrawnSearch({mode, placeholder, autoFocus = false, autoCapitaliz
     testID,
   };
 
-  if (mode === 'inline') return <InlineField {...fieldProps}/>;
+  if (mode === 'inline') return <InlineField {...fieldProps} shortPlaceholder={placeholderFor(placeholder, SHORT)}/>;
   return (
     <View style={styles[mode]}>
       <SearchField {...fieldProps}/>

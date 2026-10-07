@@ -164,7 +164,12 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
                 {app.expoConfig?.name}
               </Headline>
             ) : null}
-            {inline ? <InBarContext.Provider value={true}>{inline}</InBarContext.Provider> : null}
+            {inline ? (
+              <InBarContext.Provider value={true}>
+                {/* The field shows its short placeholder while the bar is narrow. */}
+                <NarrowBarContext.Provider value={narrow}>{inline}</NarrowBarContext.Provider>
+              </InBarContext.Provider>
+            ) : null}
           </View>
           <InBarContext.Provider value={true}>
             <NarrowBarContext.Provider value={narrow}>

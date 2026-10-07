@@ -48,6 +48,18 @@ export interface HeaderSearchCommands {
   cancel(): void;
 }
 
+/**
+ * What a search's placeholder can depend on. `size` is `short` while the web
+ * bar is too narrow for its labels and its inline field is at its floor, and
+ * `full` everywhere else, the native placements included.
+ */
+export interface HeaderSearchState {
+  size: 'full' | 'short';
+}
+
+/** A placeholder: a string, or what to say for the search's state. */
+export type HeaderSearchPlaceholder = string | ((state: HeaderSearchState) => string);
+
 export interface HeaderSearchProps {
   /**
    * Where the search goes. See {@link HeaderSearchPlacement} for what each
@@ -55,8 +67,13 @@ export interface HeaderSearchProps {
    * @default 'automatic'
    */
   placement?: HeaderSearchPlacement;
-  /** Shown while the field is empty, and its accessible name. */
-  placeholder?: string;
+  /**
+   * Shown while the field is empty, and its accessible name: a string, or a
+   * function of the search's state, which a narrow web bar asks for a short
+   * one (`'Search docs'` where `'Search documents'` would be cut). The
+   * accessible name is always the answer for `{size: 'full'}`.
+   */
+  placeholder?: HeaderSearchPlaceholder;
   /** Focuses the field once it is mounted, opening it where the placement keeps it closed. */
   autoFocus?: boolean;
   /** Automatic capitalization while typing; the platform's default when omitted. */

@@ -48,3 +48,12 @@ export const Inline: Story = {
 export const Integrated: Story = {
   args: {placement: 'integrated'},
 };
+
+/**
+ * A placeholder that says less where it has less room: in a web bar too
+ * narrow for its labels the inline field shows the short one, and keeps the
+ * full one as its name. Everywhere else it is the full one.
+ */
+export const ShortPlaceholder: Story = {
+  args: {placement: 'inline', placeholder: state => (state.size === 'short' ? 'Search' : 'Search photos and files')},
+};

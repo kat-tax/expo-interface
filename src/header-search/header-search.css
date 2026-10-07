@@ -1,9 +1,9 @@
 /*
  * The web header's inline search: a frameless field beside the title. The
- * magnifier and the placeholder sit on the bar's own fill, with no border,
- * box or fill of their own, since the bar is the frame. The input is the
- * browser's search input, so the clear button is the engine's, and the focus
- * shows as the kit's inputs show it.
+ * placeholder sits on the bar's own fill, with no glyph, border, box or fill
+ * of its own, since the bar is the frame. The input is the browser's search
+ * input, so the clear button is the engine's. Focus is the caret and the
+ * typed text; a focus from the keyboard adds a hairline under the field.
  *
  * The field takes the row's spare width and shrinks with the row; its bounds
  * (a desktop search box's width, and the short field it shrinks to) are
@@ -40,7 +40,13 @@
   text-overflow: ellipsis;
 }
 
+/* No ring: a search input matches :focus-visible on a click too. */
+.ui-header-search__input:focus,
 .ui-header-search__input:focus-visible {
-  outline: 2px solid var(--color-tint);
-  outline-offset: 2px;
+  outline: none;
+}
+
+/* A focus that came from the keyboard: a hairline under the field, not a frame. */
+.ui-header-search--keyboard {
+  box-shadow: 0 1px 0 var(--color-tint);
 }

@@ -85,14 +85,14 @@ describe(`HeaderSearch (${Platform.OS})`, () => {
       const title = dom.getByText('Drops');
       expect(title.parentElement!.contains(input)).toBe(true);
       expect(title.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-      // Not `SearchField`'s box: the magnifier and the input on the bar's own fill.
+      // Not `SearchField`'s box, and no magnifier: the input alone on the bar's own fill.
       expect(input).toHaveClass('ui-header-search__input');
       expect(input).toHaveAttribute('type', 'search');
       expect(input).toHaveAttribute('data-testid', 'q');
       const field = input.parentElement!;
       expect(field).toHaveClass('ui-header-search');
       expect(field).toHaveAttribute('data-testid', 'q-row');
-      expect(field.querySelector('.ui-symbol')!.textContent).toBe('search');
+      expect(field.querySelector('.ui-symbol')).toBeNull();
       // A desktop search box's width at most, a short field at least: the rest is the row's.
       expect(getComputedStyle(field).minWidth).toBe(`${INLINE_MIN_WIDTH}px`);
       expect(getComputedStyle(field).maxWidth).toBe(`${INLINE_WIDTH}px`);
@@ -413,6 +413,11 @@ describe(`HeaderSearch (${Platform.OS})`, () => {
       </HeaderActions>,
     ));
     expect(barItems('Drops').map(item => item.accessibilityLabel)).toEqual(['Copy']);
+    expect(searchBar('Drops')!.placeholder).toBe('Find a drop');
+  });
+
+  it('asks a placeholder function for the full text, which is all the native search shows', async () => {
+    await renderApp(app(<HeaderSearch placeholder={state => (state.size === 'short' ? 'Find' : 'Find a drop')}/>));
     expect(searchBar('Drops')!.placeholder).toBe('Find a drop');
   });
 

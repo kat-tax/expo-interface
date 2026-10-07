@@ -1,4 +1,4 @@
-import type {SearchFieldProps} from '../search-field/types';
+import type {InlineFieldProps} from './shared';
 import {StyleSheet, View} from 'react-native';
 import {SearchField} from '../search-field';
 import {INLINE_WIDTH} from './shared';
@@ -8,7 +8,7 @@ import {INLINE_WIDTH} from './shared';
  * look: Windows' `AutoSuggestBox`, at a desktop search box's width. The web
  * draws its own in `inline.web.tsx`.
  */
-export function InlineField(props: SearchFieldProps) {
+export function InlineField({shortPlaceholder: _short, ...props}: InlineFieldProps) {
   return (
     <View style={styles.inline}>
       <SearchField {...props}/>

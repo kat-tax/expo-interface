@@ -1,9 +1,27 @@
-import type {DrawnSearchPlacement, HeaderSearchIntegration, HeaderSearchPlacement} from './types';
+import type {SearchFieldProps} from '../search-field/types';
+import type {DrawnSearchPlacement, HeaderSearchIntegration, HeaderSearchPlaceholder, HeaderSearchPlacement, HeaderSearchState} from './types';
 import {createContext} from 'react';
 import {icon} from '../icons';
 
 /** The magnifier, where the kit draws the search's own button. */
 export const SEARCH_ICON = icon({ios: 'magnifyingglass', android: 'search', web: 'search'});
+
+/** What the inline field takes: the search field's props, and the placeholder for a narrow web bar. */
+export interface InlineFieldProps extends SearchFieldProps {
+  /** Shown instead of `placeholder` while the web bar is too narrow for its labels. */
+  shortPlaceholder?: string;
+}
+
+/** The search's state everywhere but a narrow web bar. */
+export const FULL: HeaderSearchState = {size: 'full'};
+
+/** A narrow web bar's inline field, at its floor. */
+export const SHORT: HeaderSearchState = {size: 'short'};
+
+/** The placeholder to show for a state: the string as it is, or the function's answer. */
+export function placeholderFor(placeholder: HeaderSearchPlaceholder | undefined, state: HeaderSearchState = FULL): string | undefined {
+  return typeof placeholder === 'function' ? placeholder(state) : placeholder;
+}
 
 /** A field in the bar beside the title: a desktop search box's width. */
 export const INLINE_WIDTH = 240;

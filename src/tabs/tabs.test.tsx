@@ -406,12 +406,16 @@ describe(`Tabs (${Platform.OS})`, () => {
           widths.scroll = 600;
           slotWidths.client = 200;
           slotWidths.scroll = 260;
-          await renderApp(await stackApp({webIcon: {uri: 'https://example.com/icon.png'}}, <HeaderSearch placement="inline" placeholder="Find a drop"/>), '/home');
+          const placeholder = (state: {size: 'full' | 'short'}) => (state.size === 'short' ? 'Find' : 'Find a drop');
+          await renderApp(await stackApp({webIcon: {uri: 'https://example.com/icon.png'}}, <HeaderSearch placement="inline" placeholder={placeholder}/>), '/home');
           const [home] = dom.getAllByRole('link');
           expect(home).toHaveAttribute('aria-label', 'Home');
           expect(dom.queryByText(appName)).toBeNull();
           expect(dom.getByRole('img')).toBeInTheDocument();
-          expect(dom.getByTestId('tab-bar-logo').contains(dom.getByRole('searchbox', {name: 'Find a drop'}))).toBe(true);
+          const field = dom.getByRole('searchbox', {name: 'Find a drop'});
+          expect(dom.getByTestId('tab-bar-logo').contains(field)).toBe(true);
+          // The narrow bar's field shows the short placeholder; its name stays the full one.
+          expect(field).toHaveAttribute('placeholder', 'Find');
 
           // The row's width plus the slot's deficit is what the labels wait for.
           slotWidths.client = 260;
@@ -420,6 +424,7 @@ describe(`Tabs (${Platform.OS})`, () => {
           await resize(660);
           expect(home).not.toHaveAttribute('aria-label');
           expect(dom.getByText(appName)).toBeInTheDocument();
+          expect(field).toHaveAttribute('placeholder', 'Find a drop');
         });
 
         it('keeps the name beside the mark in a narrow bar without a search', async () => {
