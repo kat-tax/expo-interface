@@ -1,9 +1,13 @@
 import {render, screen} from '@testing-library/react';
 import {ListItem} from '../list-item';
+import {ScrollInsetsContext} from '../screen/insets';
 import {FieldGroup} from '.';
 
+/** The group's own scroll view, two levels above a section drawn as one of its children. */
+const sectionOfGroup = (element: HTMLElement) => element.parentElement!.parentElement;
+
 describe('FieldGroup (web)', () => {
-  it('wraps the universal group in the CSS hook and clears its background', () => {
+  it('draws the group in the CSS hook, with no background of its own', () => {
     render(
       <FieldGroup testID="group">
         <FieldGroup.Section title="General">
@@ -13,7 +17,70 @@ describe('FieldGroup (web)', () => {
     );
     const group = screen.getByTestId('group');
     expect(group.closest('.field-group')).not.toBeNull();
-    expect(['transparent', 'rgba(0, 0, 0, 0)']).toContain(group.style.backgroundColor);
+    expect(['', 'transparent', 'rgba(0, 0, 0, 0)']).toContain(group.style.backgroundColor);
+  });
+
+  it('takes a section an app component renders as a section, beside the implicit ones', () => {
+    function Appearance() {
+      return (
+        <FieldGroup.Section title="Appearance" testID="appearance">
+          <span>Dark</span>
+        </FieldGroup.Section>
+      );
+    }
+    render(
+      <FieldGroup testID="group">
+        <span>Loose</span>
+        <Appearance/>
+        <>
+          <span>Also loose</span>
+        </>
+      </FieldGroup>,
+    );
+    expect(sectionOfGroup(screen.getByTestId('appearance'))).toBe(screen.getByTestId('group'));
+    expect(screen.getByTestId('appearance').contains(screen.getByText('Loose'))).toBe(false);
+    expect(screen.getByTestId('appearance').contains(screen.getByText('Also loose'))).toBe(false);
+  });
+
+  it('takes a child back as a row once it renders no section, and counts each section it renders', () => {
+    function Maybe({sections}: {sections: number}) {
+      if (sections === 0) return <span>Row</span>;
+      return (
+        <>
+          <FieldGroup.Section title="First" testID="first"><span>One</span></FieldGroup.Section>
+          {sections > 1 ? <FieldGroup.Section title="Second" testID="second"><span>Two</span></FieldGroup.Section> : null}
+        </>
+      );
+    }
+    const {rerender} = render(<FieldGroup testID="group"><Maybe sections={2}/></FieldGroup>);
+    expect(sectionOfGroup(screen.getByTestId('second'))).toBe(screen.getByTestId('group'));
+    // One of the two goes: the child is still a section.
+    rerender(<FieldGroup testID="group"><Maybe sections={1}/></FieldGroup>);
+    expect(sectionOfGroup(screen.getByTestId('first'))).toBe(screen.getByTestId('group'));
+    // None left: the child is a row again, in an implicit section's card.
+    rerender(<FieldGroup testID="group"><Maybe sections={0}/></FieldGroup>);
+    const row = screen.getByText('Row');
+    expect(row.parentElement!.parentElement!.parentElement!.parentElement!.parentElement).toBe(screen.getByTestId('group'));
+  });
+
+  it('pads the content by the bar it passes under, and keeps the universal group\'s lifecycle and hidden', () => {
+    const onAppear = vi.fn();
+    const onDisappear = vi.fn();
+    const {unmount} = render(
+      <ScrollInsetsContext.Provider value={{top: 80, bottom: 20, automatic: false}}>
+        <FieldGroup testID="group" onAppear={onAppear} onDisappear={onDisappear}>
+          <span>Row</span>
+        </FieldGroup>
+      </ScrollInsetsContext.Provider>,
+    );
+    const content = screen.getByTestId('group').firstElementChild as HTMLElement;
+    expect(getComputedStyle(content).paddingTop).toBe('96px');
+    expect(getComputedStyle(content).paddingBottom).toBe('36px');
+    expect(onAppear).toHaveBeenCalledTimes(1);
+    unmount();
+    expect(onDisappear).toHaveBeenCalledTimes(1);
+    render(<FieldGroup testID="hidden" hidden><span>Row</span></FieldGroup>);
+    expect(getComputedStyle(screen.getByTestId('hidden')).display).toBe('none');
   });
 
   it('keeps user styles while forcing the transparent background', () => {

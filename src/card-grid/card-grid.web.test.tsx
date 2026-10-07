@@ -67,7 +67,7 @@ describe('CardGrid (web)', () => {
 
   it('pads its content by the screen\'s bar and its own insets', () => {
     render(
-      <ScrollInsetsContext.Provider value={{top: 80, bottom: 0}}>
+      <ScrollInsetsContext.Provider value={{top: 80, bottom: 0, automatic: false}}>
         <CardGrid data={items} renderItem={item => <p>{item}</p>} contentInset={{top: 8, bottom: 20}} style={{marginTop: 4}} testID="grid"/>
       </ScrollInsetsContext.Provider>,
     );

@@ -6,6 +6,7 @@ import {Stack} from 'expo-router';
 import {useHeaderTints} from '../header/toolbar';
 import {ScreenBar} from '../screen/bars';
 import {useColor} from '../theme';
+import {useClearOnUnmount} from './clear';
 import {SearchBottomBar, StackedSearchRow} from './drawn';
 import {iosPlacement, placeholderFor} from './shared';
 
@@ -27,6 +28,7 @@ import {iosPlacement, placeholderFor} from './shared';
  */
 export const HeaderSearch = Object.assign(
   function HeaderSearch(props: HeaderSearchProps) {
+    useClearOnUnmount(props.onChangeText);
     if (Platform.OS === 'android') {
       if (props.placement === 'stacked') return <ScreenBar edge="top"><StackedSearchRow {...props}/></ScreenBar>;
       if (props.placement === 'integrated') return <ScreenBar edge="bottom"><SearchBottomBar {...props}/></ScreenBar>;

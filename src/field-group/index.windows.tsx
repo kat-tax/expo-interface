@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 import type {FieldGroupProps, FieldGroupSectionProps} from './types';
 import {Children, isValidElement} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
+import {useScrollInsets} from '../screen/insets';
 import {Surface} from '../surface';
 import {Footnote, Headline} from '../typography';
 import {spacing, useColor} from '../theme';
@@ -51,8 +52,12 @@ function Section({title, titleUppercase, footer, footerColor = 'secondaryLabel',
 }
 
 function FieldGroupBase({children, style, testID}: FieldGroupProps) {
+  const insets = useScrollInsets();
   return (
-    <ScrollView style={[styles.group, style]} contentContainerStyle={styles.content} testID={testID}>
+    <ScrollView
+      style={[styles.group, style]}
+      contentContainerStyle={[styles.content, {paddingTop: spacing.three + insets.top, paddingBottom: spacing.three + insets.bottom}]}
+      testID={testID}>
       {children}
     </ScrollView>
   );

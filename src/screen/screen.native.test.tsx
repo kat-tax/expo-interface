@@ -160,11 +160,12 @@ describe(`Screen (${Platform.OS})`, () => {
       expect(StyleSheet.flatten(parts().root.props.style).paddingTop).toBe(47 + inset.header + 40);
       expect(seen.bar).toBe(47 + inset.header + 40);
 
-      // Content passing under the header passes under the row too, and its scroll view pads both.
+      // Content passing under the header passes under the row too, and a kit scroll view pads both: on iOS
+      // the platform insets it by the header itself, so the kit adds the row alone.
       await render(floating(<Screen underBar>{strip}<Probe/></Screen>));
       await fireEvent(screen.getByTestId('screen-header-rows'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 40}}});
       expect(StyleSheet.flatten(parts().root.props.style).paddingTop).toBe(0);
-      expect(seen.scroll).toBe(47 + inset.header + 40);
+      expect(seen.scroll).toBe(isIOS ? 40 : 47 + inset.header + 40);
       if (isIOS) {
         // A header with no material of its own named gets the regular one.
         const shape = nodes().find(n => n.type.includes('RoundedRectangle'))!;

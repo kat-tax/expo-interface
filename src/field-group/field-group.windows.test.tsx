@@ -3,6 +3,7 @@ import {StyleSheet, Text} from 'react-native';
 import {colors} from '../theme';
 import {ListItem} from '../list-item';
 import {Switch} from '../switch';
+import {ScrollInsetsContext} from '../screen/insets';
 import {FieldGroup} from '.';
 
 describe('FieldGroup (windows)', () => {
@@ -67,5 +68,18 @@ describe('FieldGroup (windows)', () => {
     expect(screen.queryByText('Ignored')).toBeNull();
     expect(screen.queryByText('Ignored too')).toBeNull();
     expect(screen.getByText('Untitled row')).toBeOnTheScreen();
+  });
+
+  it('pads the form by the bar it passes under', async () => {
+    await render(
+      <ScrollInsetsContext.Provider value={{top: 30, bottom: 10, automatic: false}}>
+        <FieldGroup testID="group">
+          <FieldGroup.Section title="General">
+            <Text>Row</Text>
+          </FieldGroup.Section>
+        </FieldGroup>
+      </ScrollInsetsContext.Provider>,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId('group').props.contentContainerStyle)).toMatchObject({paddingTop: 16 + 30, paddingBottom: 16 + 10});
   });
 });

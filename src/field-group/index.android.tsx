@@ -14,7 +14,9 @@ import {
   verticalScroll,
   type ModifierConfig,
 } from '@expo/ui/jetpack-compose/modifiers';
+import {useScrollInsets} from '../screen/insets';
 import {useColor} from '../theme';
+import {SectionGroups, useReportSection} from './collect';
 import {flushRow} from './rows';
 
 /**
@@ -36,13 +38,14 @@ import {flushRow} from './rows';
  *   72dp, taller than their text-row siblings.
  */
 function FieldGroupBase({children, style, hidden, testID}: FieldGroupProps) {
+  const insets = useScrollInsets();
   if (hidden) return null;
-  const modifiers: ModifierConfig[] = [fillMaxWidth(), verticalScroll(), padding(16, 16, 16, 16)];
+  const modifiers: ModifierConfig[] = [fillMaxWidth(), verticalScroll(), padding(16, 16 + insets.top, 16, 16 + insets.bottom)];
   if (style?.backgroundColor) modifiers.push(background(String(style.backgroundColor)));
   if (testID) modifiers.push(testIDModifier(testID));
   return (
     <Column verticalArrangement={{spacedBy: 24}} modifiers={modifiers}>
-      {groupChildren(children)}
+      <SectionGroups isSection={isSection} implicit={implicit}>{children}</SectionGroups>
     </Column>
   );
 }
@@ -58,6 +61,7 @@ function SectionFooter(props: FieldSectionFooterProps) {
 }
 
 function Section({children, title, titleUppercase = false, hidden, footer: footerText, footerColor = 'secondaryLabel'}: FieldGroupSectionProps) {
+  useReportSection();
   const card = useColor('backgroundElement');
   const subtle = useColor('secondaryLabel');
   const danger = useColor('destructive');
@@ -159,42 +163,5 @@ function extractSlots(children: ReactNode, textColor: string) {
   return {header, footer, rows};
 }
 
-/**
- * Mirrors SwiftUI `Form`'s behavior of wrapping consecutive non-`Section`
- * children in an implicit section, like the universal `FieldGroup` does.
- */
-function groupChildren(children: ReactNode): ReactNode[] {
-  const result: ReactNode[] = [];
-  let buffered: ReactNode[] = [];
-
-  const flush = () => {
-    if (buffered.length === 0) return;
-    result.push(<Section key={`__implicit-section-${result.length}__`}>{buffered}</Section>);
-    buffered = [];
-  };
-
-  const isSection = (child: ReactNode): child is ReactElement =>
-    isValidElement(child) && child.type === Section;
-
-  Children.forEach(children, child => {
-    if (isSection(child)) {
-      flush();
-      result.push(child);
-      return;
-    }
-    if (isValidElement(child) && child.type === Fragment) {
-      // The recursion yields sections only (loose rows come back wrapped in
-      // their own implicit section), so they close any open implicit section.
-      const nested = groupChildren((child.props as {children?: ReactNode}).children);
-      if (nested.length > 0) {
-        flush();
-        result.push(...nested);
-      }
-      return;
-    }
-    buffered.push(child);
-  });
-
-  flush();
-  return result;
-}
+const isSection = (child: ReactElement) => child.type === Section;
+const implicit = (rows: ReactNode[], key: string) => <Section key={key}>{rows}</Section>;

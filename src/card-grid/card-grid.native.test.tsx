@@ -55,13 +55,26 @@ describe(`CardGrid (${Platform.OS})`, () => {
 
   it('pads its content and its scroll indicators by the screen\'s bar and its own insets', async () => {
     await render(
-      <ScrollInsetsContext.Provider value={{top: 100, bottom: 0}}>
+      <ScrollInsetsContext.Provider value={{top: 100, bottom: 0, automatic: false}}>
         <CardGrid data={items} renderItem={item => <Text>{item}</Text>} contentInset={{top: 8, bottom: 20}} estimatedItemHeight={100} gap={0} testID="grid"/>
       </ScrollInsetsContext.Provider>,
     );
     const grid = screen.getByTestId('grid');
     expect(StyleSheet.flatten(grid.props.contentContainerStyle)).toEqual({paddingTop: 108, paddingBottom: 20});
     expect(grid.props.scrollIndicatorInsets).toEqual({top: 108, bottom: 20});
+    expect(grid.props.contentInsetAdjustmentBehavior).toBeUndefined();
     expect(grid.props.getItemLayout(null, 1)).toEqual({length: 100, offset: 100, index: 1});
+  });
+
+  it('takes UIKit\'s own inset where the platform insets the content under the header itself', async () => {
+    await render(
+      <ScrollInsetsContext.Provider value={{top: 40, bottom: 0, automatic: true}}>
+        <CardGrid data={items} renderItem={item => <Text>{item}</Text>} testID="grid"/>
+      </ScrollInsetsContext.Provider>,
+    );
+    const grid = screen.getByTestId('grid');
+    expect(grid.props.contentInsetAdjustmentBehavior).toBe('automatic');
+    // What UIKit does not know of, a row floating under the header, is the grid's own.
+    expect(StyleSheet.flatten(grid.props.contentContainerStyle)).toMatchObject({paddingTop: 40});
   });
 });

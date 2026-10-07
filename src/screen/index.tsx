@@ -111,7 +111,12 @@ export function Screen({
   const barRows = useContext(BarRowsContext);
   // What the content under a bar pads itself by, handed to the kit's scrolling components.
   const barInset = useTabBarInset() + rows;
-  const scrollInsets = useMemo(() => ({top: underBar ? barInset : 0, bottom: 0}), [underBar, barInset]);
+  // iOS insets scroll content by a header the screen runs under itself, and
+  // follows a native search bar as it grows and collapses: the kit's
+  // scrolling components add only the rows floating under the header, which
+  // the platform does not know of.
+  const automatic = Platform.OS === 'ios' && floating && underBar;
+  const scrollInsets = useMemo(() => ({top: !underBar ? 0 : automatic ? rows : barInset, bottom: 0, automatic}), [underBar, automatic, rows, barInset]);
   // The bottom bars' height, measured, which the fab sits above.
   const [barHeight, setBarHeight] = useState(0);
   const onBarsLayout = (event: LayoutChangeEvent) => setBarHeight(event.nativeEvent.layout.height);

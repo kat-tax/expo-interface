@@ -310,6 +310,10 @@ for Android's hint. `onOpen` and `onClose` report an `action` expanding and
 collapsing, a field taking and giving up the focus (iOS's controller, the
 drawn fields), and Android's `SearchView` opening and closing.
 
+When the search goes (its screen unmounts, or the app stops rendering it),
+`onChangeText` is called with an empty query, so whatever it filtered is
+whole again without the app clearing it by hand.
+
 A `placeholder` function is called with the search's state, `{size}`:
 `short` while the web bar is too narrow for its labels and its inline field
 is at its floor, `full` everywhere else, the native placements included. It

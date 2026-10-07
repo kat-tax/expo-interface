@@ -60,6 +60,8 @@ export function CardGrid<T>({
       getItemLayout={(_, index) => ({length: rowHeight, offset: rowHeight * index, index})}
       contentContainerStyle={{paddingTop: insets.top, paddingBottom: insets.bottom}}
       scrollIndicatorInsets={{top: insets.top, bottom: insets.bottom}}
+      // iOS under a header the screen runs under: UIKit's own inset, which follows a native search bar.
+      contentInsetAdjustmentBehavior={insets.automatic ? 'automatic' : undefined}
       onLayout={onLayout}
       style={[styles.grid, style]}
       testID={testID}

@@ -10,9 +10,18 @@ import {createContext, useContext} from 'react';
 export interface ScrollInsets {
   top: number;
   bottom: number;
+  /**
+   * iOS under a header the screen runs under: the platform insets scroll
+   * content by the header itself, and follows it as a native search bar
+   * grows and collapses (UIKit's content inset adjustment, which a scroll
+   * view takes with `contentInsetAdjustmentBehavior="automatic"`, and
+   * SwiftUI's safe area). `top` is then what the platform does not know of,
+   * a `HeaderAccessory` floating under the header.
+   */
+  automatic: boolean;
 }
 
-export const ScrollInsetsContext = createContext<ScrollInsets>({top: 0, bottom: 0});
+export const ScrollInsetsContext = createContext<ScrollInsets>({top: 0, bottom: 0, automatic: false});
 
 /**
  * The insets a scrolling kit component pads its content by: the screen's
@@ -20,5 +29,5 @@ export const ScrollInsetsContext = createContext<ScrollInsets>({top: 0, bottom: 
  */
 export function useScrollInsets(own?: {top?: number; bottom?: number}): ScrollInsets {
   const screen = useContext(ScrollInsetsContext);
-  return {top: screen.top + (own?.top ?? 0), bottom: screen.bottom + (own?.bottom ?? 0)};
+  return {top: screen.top + (own?.top ?? 0), bottom: screen.bottom + (own?.bottom ?? 0), automatic: screen.automatic};
 }

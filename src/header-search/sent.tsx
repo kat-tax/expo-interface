@@ -4,6 +4,7 @@ import {useMemo} from 'react';
 import {useInHeader} from '../header/shared';
 import {Stack} from '../router/stack';
 import {ScreenBar} from '../screen/bars';
+import {useClearOnUnmount} from './clear';
 import {SearchBottomBar, SiteSearch} from './drawn';
 
 /**
@@ -26,6 +27,7 @@ import {SearchBottomBar, SiteSearch} from './drawn';
 export const HeaderSearch = Object.assign(
   function HeaderSearch(props: HeaderSearchProps) {
     const inHeader = useInHeader();
+    useClearOnUnmount(props.onChangeText);
     const {placement = 'automatic'} = props;
     if (placement === 'integrated') return <ScreenBar edge="bottom"><SearchBottomBar {...props}/></ScreenBar>;
     if (inHeader) return <SiteSearch {...props} placement={placement}/>;

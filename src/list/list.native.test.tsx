@@ -86,7 +86,7 @@ describe(`List (${Platform.OS})`, () => {
   it('pads its content by the screen\'s bar and its own insets', async () => {
     await render(
       <NativeHostContext.Provider value={true}>
-        <ScrollInsetsContext.Provider value={{top: 100, bottom: 0}}>
+        <ScrollInsetsContext.Provider value={{top: 100, bottom: 0, automatic: false}}>
           <List data={rows} renderItem={title => <ListItem>{title}</ListItem>} contentInset={{top: 8, bottom: 20}}/>
         </ScrollInsetsContext.Provider>
       </NativeHostContext.Provider>,

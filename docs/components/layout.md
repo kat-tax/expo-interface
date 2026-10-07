@@ -21,9 +21,11 @@ Props: `native` (mount an `@expo/ui` host around the screen), `header`
 under the bar floating over the screen's top rather than below it, for a
 scrolling screen that passes under a material bar: the web tab bar, or on
 iOS the header of a `TabStack` with a `material`; the kit's `List` and
-`CardGrid` pad their first row by the bar themselves, and other scroll
-content reads `useScrollInsets()`, which is the bar's inset under such a
-screen and nothing elsewhere, with any insets passed to it added), `fab` (a
+`CardGrid` pad their first row by the bar themselves, as `FieldGroup` pads
+its content, and other scroll content reads `useScrollInsets()`, which is
+the bar's inset under such a screen and nothing elsewhere, with any insets
+passed to it added; on iOS its `automatic` says the platform insets the
+content itself, and `top` is then only what floats under the header), `fab` (a
 node placed at the bottom
 trailing corner, above the safe area and the tab bar, lifted above a `Toast`
 while one shows and above a bar the screen draws at its bottom).
@@ -261,7 +263,7 @@ Section props: `title`, `titleUppercase`, `footer` (a note under the rows),
 | --- | --- |
 | iOS | SwiftUI `Form` sections through `@expo/ui` |
 | Android | The Material 3 grouped list drawn in Compose: a scrolling column of sections with the per-row corner radii of a grouped list. Not a lazy list, which would re-add hosted React Native rows to the view tree as it scrolls. |
-| Web | `@expo/ui`'s universal `FieldGroup`, recolored to the kit's tokens |
+| Web | `@expo/ui`'s universal sections in the universal group's scroll view, recolored to the kit's tokens |
 | Windows | The Settings app's layout, drawn: a body-strong heading over a card of rows divided by hairlines, with the note under it |
 
 Differences:
@@ -270,6 +272,13 @@ Differences:
   case.
 - A kit `ListItem` inside a section is rendered flush, since the section
   already insets its rows. A row that asks for `inset` explicitly keeps it.
+- Rows outside a section are grouped into an implicit one, as a SwiftUI
+  `Form` groups them. A section can be rendered by a component of the
+  app's own, so a long form splits into components: the section tells the
+  group it is one, and the group lays it out as a section rather than a row.
+- Under a `Screen underBar` the form pads its content by the bar through
+  `useScrollInsets()`. On iOS the `Form` is inset by the bar through its
+  safe area, which follows a native search bar as it grows and collapses.
 
 A `Sheet` full of one is how the kit does a form: the question is the
 section's title and the note under it is the footer.
@@ -357,7 +366,10 @@ Differences:
 - Outside a host the list mounts one that fills the screen (`NativeHost
   fit="fill"`); under `Screen native` it uses the screen's.
 - Under a `Screen underBar` the list pads its first row by the bar through
-  `useScrollInsets()`, with `contentInset` added to that.
+  `useScrollInsets()`, with `contentInset` added to that. On iOS SwiftUI
+  insets the list by a header the screen runs under through its safe area,
+  following a native search bar, so the list adds only a `HeaderAccessory`
+  floating under the header and `contentInset`.
 
 ## CardGrid
 
@@ -383,7 +395,11 @@ Differences:
   holds what is not native: a preview, a thumbnail. A list of rows is
   `List`.
 - Under a `Screen underBar` the grid pads its first row by the bar through
-  `useScrollInsets()`, and on iOS its scroll indicators with it.
+  `useScrollInsets()`, and on iOS its scroll indicators with it. Under an
+  iOS header the screen runs under, the grid takes UIKit's own inset
+  (`contentInsetAdjustmentBehavior="automatic"`), which follows a native
+  search bar, and pads only for a `HeaderAccessory` floating under the
+  header and `contentInset`.
 
 ## Collapsible
 

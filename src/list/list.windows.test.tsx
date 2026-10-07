@@ -40,7 +40,7 @@ describe('List (windows)', () => {
   it('hands the end to the list, and pads its content by the screen\'s bar and its own insets', async () => {
     const onEndReached = vi.fn();
     await render(
-      <ScrollInsetsContext.Provider value={{top: 100, bottom: 0}}>
+      <ScrollInsetsContext.Provider value={{top: 100, bottom: 0, automatic: false}}>
         <List data={rows} renderItem={title => <ListItem>{title}</ListItem>} onEndReached={onEndReached} contentInset={{top: 8, bottom: 20}} testID="list"/>
       </ScrollInsetsContext.Provider>,
     );

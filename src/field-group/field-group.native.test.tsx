@@ -4,6 +4,7 @@ import {colors} from '../theme';
 import {Typography} from '../typography';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {ListItem} from '../list-item';
+import {ScrollInsetsContext} from '../screen/insets';
 import {FieldGroup} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -239,6 +240,38 @@ describe(`FieldGroup (${Platform.OS})`, () => {
       expect(radii(boxes[1].props)).toMatchObject({topStart: 4, bottomStart: 20});
       expect(radii(boxes[2].props)).toMatchObject({topStart: 20, bottomStart: 20});
     }
+  });
+
+  (isIOS ? it.skip : it)('takes a section an app component renders as a section, not as a row of an implicit one', async () => {
+    function Appearance() {
+      return (
+        <FieldGroup.Section title="Appearance">
+          <Typography>Dark</Typography>
+        </FieldGroup.Section>
+      );
+    }
+    await render(
+      <FieldGroup>
+        <Typography>Alpha</Typography>
+        <Appearance/>
+      </FieldGroup>,
+    );
+    // Alpha alone in its implicit section, Dark alone in its own: each rounded all round.
+    const boxes = rows();
+    expect(boxes).toHaveLength(2);
+    expect(radii(boxes[0].props)).toMatchObject({topStart: 20, bottomStart: 20});
+    expect(radii(boxes[1].props)).toMatchObject({topStart: 20, bottomStart: 20});
+  });
+
+  (isIOS ? it.skip : it)('pads the form by the bar it passes under', async () => {
+    await render(
+      <ScrollInsetsContext.Provider value={{top: 30, bottom: 10, automatic: false}}>
+        <FieldGroup testID="group">
+          <Typography>Alpha</Typography>
+        </FieldGroup>
+      </ScrollInsetsContext.Provider>,
+    );
+    expect(modifier(byComposeTestID('group').props, 'padding')).toEqual({$type: 'padding', start: 16, top: 46, end: 16, bottom: 26});
   });
 
   (isIOS ? it.skip : it)('takes the inset off the ListItem rows it is given, unless one asks for it', async () => {
