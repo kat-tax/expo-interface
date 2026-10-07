@@ -4,7 +4,7 @@ import {DropSettings} from '@/drop/settings';
 
 export default function DropEditScreen() {
   return (
-    <Sheet isPresented onDismiss={() => router.back()}>
+    <Sheet isPresented title="Edit drop" onClose={() => router.back()} onDismiss={() => router.back()}>
       <DropSettings/>
     </Sheet>
   );

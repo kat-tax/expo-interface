@@ -57,6 +57,11 @@ type Story = StoryObj<typeof meta>;
 
 export const On: Story = {};
 
+/** A second line under the label: what the setting does. */
+export const Supporting: Story = {
+  args: {label: 'Notifications', supporting: 'For every new drop and comment'},
+};
+
 export const Off: Story = {
   args: {value: false},
 };

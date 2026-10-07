@@ -93,6 +93,44 @@ describe('Alert (web)', () => {
     expect(buttons[2]).not.toHaveClass('ui-button--destructive');
   });
 
+  it('draws a field under the message, and Enter in it presses the first action that is not the cancel', () => {
+    const onRename = vi.fn();
+    const onChangeText = vi.fn();
+    render(
+      <Alert
+        title="Rename"
+        message="A name for the document."
+        visible
+        testID="alert"
+        input={{placeholder: 'Name', value: 'Essay', onChangeText, autoFocus: false, testID: 'name'}}
+        actions={[{label: 'Cancel', role: 'cancel'}, {label: 'Rename', onPress: onRename}]}
+      />,
+    );
+    const field = within(dialog()).getByRole('textbox', {name: 'Name'});
+    expect(field).toHaveValue('Essay');
+    expect(field.parentElement).toHaveClass('ui-alert__field');
+    expect(document.activeElement).not.toBe(field);
+    fireEvent.change(field, {target: {value: 'Essay 2'}});
+    expect(onChangeText).toHaveBeenCalledWith('Essay 2');
+    fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
+    expect(onRename).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalled();
+  });
+
+  it('focuses the field as the alert opens, and does nothing on Enter with only a cancel', () => {
+    render(<Alert title="Open by id" visible testID="alert" input={{placeholder: 'Identifier'}} actions={[{label: 'Cancel', role: 'cancel'}]}/>);
+    const field = within(dialog()).getByRole('textbox', {name: 'Identifier'});
+    expect(document.activeElement).toBe(field);
+    const closes = close.mock.calls.length;
+    fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
+    expect(close).toHaveBeenCalledTimes(closes);
+  });
+
+  it('holds no field as an action sheet', () => {
+    render(<Alert title="Share" visible sheet testID="alert" input={{placeholder: 'Name'}}/>);
+    expect(within(dialog()).queryByRole('textbox')).toBeNull();
+  });
+
   it('renders the sheet variant anchored at the bottom with stacked outlined actions', () => {
     render(<Alert title="Share drop" visible sheet testID="alert" actions={confirm}/>);
     expect(dialog()).toHaveClass('ui-alert', 'ui-alert--sheet');

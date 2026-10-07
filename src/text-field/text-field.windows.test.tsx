@@ -1,3 +1,4 @@
+import {StyleSheet} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {inputScopeFor} from './index.windows';
@@ -67,6 +68,12 @@ describe('TextField (windows)', () => {
     await render(<TextField/>);
     expect(island(BOX).props.onSubmit).toBeUndefined();
     expect(island(BOX).props.onKeyPress).toBeUndefined();
+  });
+
+  it('renders the bare variant as the inline input without padding of its own', async () => {
+    await render(<TextField variant="bare" placeholder="Write" testID="bare"/>);
+    expect(islands(BOX)).toHaveLength(0);
+    expect(StyleSheet.flatten(screen.getByTestId('bare').props.style)).toMatchObject({paddingVertical: 0, paddingHorizontal: 0});
   });
 
   it('renders the inline variant as a React Native input', async () => {

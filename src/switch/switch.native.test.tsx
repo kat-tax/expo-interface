@@ -89,6 +89,22 @@ describe(`Switch (${Platform.OS})`, () => {
     }
   });
 
+  it('draws a supporting line under the label, as the toggle\'s own subtitle', async () => {
+    await render(<Switch label="Notifications" supporting="For every new drop" value onValueChange={vi.fn()} testID="sw"/>, options);
+    if (isIOS) {
+      // Two texts as the label are SwiftUI's title and subtitle for a toggle.
+      const {props} = toggle('sw');
+      expect(props.label).toBeUndefined();
+      expect(host(p => p.text === 'Notifications')).toBeTruthy();
+      expect(host(p => p.text === 'For every new drop')).toBeTruthy();
+      await render(<Switch supporting="Alone" value onValueChange={vi.fn()} testID="bare"/>, options);
+      expect(host(p => p.text === '')).toBeTruthy();
+    } else {
+      expect(host(p => p.text === 'Notifications').props.color).toBe(palette.onSurface);
+      expect(host(p => p.text === 'For every new drop').props).toMatchObject({color: palette.onSurfaceVariant, typography: 'bodySmall'});
+    }
+  });
+
   it('renders only the toggle without a label or testID', async () => {
     await render(<Switch value={false} onValueChange={vi.fn()}/>, options);
     expect(bare()).toHaveLength(1);

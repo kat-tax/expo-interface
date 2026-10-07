@@ -12,7 +12,7 @@ import {keyboardTypeFor, useAutoFocus, useTextValue} from './shared';
  * for a React Native layout (the same `TextInput`, sized to its room).
  */
 export function TextField(props: TextFieldProps) {
-  if (props.variant === 'inline') return <InlineTextField {...props}/>;
+  if (props.variant === 'inline' || props.variant === 'bare') return <InlineTextField {...props}/>;
   return <RowTextField {...props}/>;
 }
 

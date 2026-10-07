@@ -49,6 +49,45 @@ describe('Alert (windows)', () => {
     expect(onDismiss).toHaveBeenCalledTimes(2);
   });
 
+  it('puts a field in the dialog\'s body through a portal, and Enter in it presses the first action that is not the cancel', async () => {
+    const onRename = vi.fn();
+    const onDismiss = vi.fn();
+    const onChangeText = vi.fn();
+    await render(
+      <Alert
+        title="Rename"
+        visible
+        onDismiss={onDismiss}
+        input={{placeholder: 'Name', value: 'Essay', onChangeText, testID: 'name'}}
+        actions={[{label: 'Cancel', role: 'cancel'}, {label: 'Rename', onPress: onRename}]}
+      />,
+    );
+    const dialog = island(DIALOG);
+    expect(typeof dialog.props.slot).toBe('string');
+    const portal = island('ExpoInterfacePortal');
+    expect(portal.props.slot).toBe(dialog.props.slot);
+    // The field mounts once the portal's island is connected.
+    expect(screen.queryAllByTestId('name')).toHaveLength(0);
+    await fireIsland(portal, 'ready', {connected: true});
+    const box = island('ExpoInterfaceTextBox');
+    expect(box.props).toMatchObject({placeholder: 'Name', value: 'Essay', testID: 'name'});
+    await fireIsland(box, 'changeText', {text: 'Essay 2'});
+    expect(onChangeText).toHaveBeenCalledWith('Essay 2');
+    await fireIsland(box, 'submit', {text: 'Essay 2'});
+    expect(onRename).toHaveBeenCalledTimes(1);
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('does nothing on Enter with only a cancel, and holds no field as an action sheet', async () => {
+    const onDismiss = vi.fn();
+    await render(<Alert title="Open by id" visible onDismiss={onDismiss} input={{placeholder: 'Identifier'}} actions={[{label: 'Cancel', role: 'cancel'}]}/>);
+    await fireIsland(island('ExpoInterfacePortal'), 'ready', {connected: true});
+    await fireIsland(island('ExpoInterfaceTextBox'), 'submit', {text: 'x'});
+    expect(onDismiss).not.toHaveBeenCalled();
+    await render(<Alert title="Share" visible sheet input={{placeholder: 'Name'}}/>);
+    expect(island(DIALOG).props.slot).toBeUndefined();
+  });
+
   it('survives a close with nothing to call', async () => {
     await render(<Alert title="Saved" visible/>);
     await fireIsland(island(DIALOG), 'close', {index: 0});

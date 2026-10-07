@@ -23,7 +23,16 @@ describe('Switch (web)', () => {
   it('disables the control and dims the label', () => {
     render(<Switch label="Bluetooth" value onValueChange={vi.fn()} disabled/>);
     expect(screen.getByRole('switch')).toBeDisabled();
-    expect(screen.getByText('Bluetooth')).toHaveStyle({opacity: 0.4});
+    // The dim is the label column's, so a supporting line dims with it.
+    expect(screen.getByText('Bluetooth').parentElement).toHaveStyle({opacity: 0.4});
+  });
+
+  it('draws a supporting line under the label', () => {
+    render(<Switch label="Notifications" supporting="For every new drop" value onValueChange={vi.fn()} testID="row"/>);
+    const row = screen.getByTestId('row');
+    expect(row).toHaveTextContent('Notifications');
+    expect(row).toHaveTextContent('For every new drop');
+    expect(screen.getByText('For every new drop').parentElement).toBe(screen.getByText('Notifications').parentElement);
   });
 
   it('renders the bare switch carrying the testID without a label', () => {

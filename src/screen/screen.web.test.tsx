@@ -56,7 +56,8 @@ describe('Screen (web)', () => {
         <Switch label="Wi-Fi" value onValueChange={() => {}}/>
       </Screen>,
     );
-    const row = screen.getByText('Wi-Fi').parentElement!;
+    // The label sits in its column, in the switch's row, in the host.
+    const row = screen.getByText('Wi-Fi').parentElement!.parentElement!;
     const hostView = row.parentElement!;
     // The web Host carries the Expo UI palette as custom properties.
     expect(hostView.style.getPropertyValue('--expo-ui-primary-500')).not.toBe('');

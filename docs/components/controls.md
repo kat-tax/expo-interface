@@ -123,12 +123,14 @@ short of leaving it out.
 
 ## Switch
 
-An on/off toggle with a leading label. Props: `label`, `value`,
-`onValueChange`, `disabled`, `accentColor` (the on track), `style`, `testID`.
+An on/off toggle with a leading label. Props: `label`, `supporting` (a
+second line under the label in the secondary color: what the setting does),
+`value`, `onValueChange`, `disabled`, `accentColor` (the on track), `style`,
+`testID`.
 
 | Platform | Renders |
 | --- | --- |
-| iOS | SwiftUI `Toggle`, whose label is the row |
+| iOS | SwiftUI `Toggle`, whose label is the row; with `supporting`, the toggle's own title and subtitle |
 | Android | Material 3 `Switch` at the trailing edge of a Compose row, with a white thumb as on iOS |
 | Web | react-native-web's switch in a drawn row |
 | Windows | WinUI `ToggleSwitch` at the trailing edge of a drawn row |
@@ -156,10 +158,15 @@ label), `value`, `onChangeText`, `onSubmit`, `onKeyPress`, `onFocus`,
 `number`, `phone`, `decimal`, `url`), `autoCapitalize`, `autoCorrect`,
 `multiline`, `autoFocus`, `returnKeyType` (`done`, `go`, `next`, `search`,
 `send`), `submitBehavior` (`blurAndSubmit`, `submit`), `variant` (`row`,
-`inline`), `maxLength`, `accentColor`, `style`, `testID`, and a `ref` with
-`focus` and `blur`.
+`inline`, `bare`), `maxLength`, `accentColor`, `style`, `testID`, and a
+`ref` with `focus` and `blur`.
 
 The `row` variant is the platform's field with a form row's borderless look.
+The `bare` variant is `inline` without the field's own padding and, on web,
+without the browser's focus ring, for a field inside a box that draws both:
+a `Composer`'s capsule, an `Alert`'s field. A multi-line field that submits
+(`submitBehavior="submit"`) sends on Enter and breaks the line on Shift+Enter
+on web, keeping the focus.
 The `inline` variant is a React Native input for a field inside a React
 Native layout on every platform; it focuses on mount with `autoFocus` and
 makes sure the keyboard came on Android.
@@ -182,6 +189,27 @@ Differences:
   and take no commands.
 - `onSubmit` on web fires for Enter but not Shift+Enter.
 - `style` applies to the text on web and in `inline`.
+
+## Composer
+
+A capsule to write a message in, with a send button that is a stop button
+while something runs: the bottom of a conversation, a comment thread, an
+assistant's prompt.
+
+Props: `value` and `onChangeText` (controlled; left out, the composer keeps
+its own text and clears it on send), `placeholder` (`Message`), `onSend`
+(called with the trimmed text from the button or the keyboard's send key;
+nothing is sent while the text is blank), `onStop` (the stop button while
+`busy`; without it the button waits), `busy`, `notice` (a line under the
+capsule in the secondary color: a hint, an error, who else is typing),
+`disabled`, `autoFocus`, `maxLength`, `style`, `testID`.
+
+Drawn in React Native on every platform: a `Surface` capsule holding a
+`bare` `TextField` and the kit's circle `Button` in a host of its own, so
+it sits in a `Sheet`'s footer or at the bottom of a screen. Enter sends and
+Shift+Enter breaks the line on web and a desktop keyboard; the keyboard's
+send key sends on a phone. The button is the platform's: a SwiftUI button, a
+Material button, a `<button>`, a WinUI button.
 
 ## SearchField
 

@@ -2,6 +2,7 @@ import type {SheetProps} from './types';
 import {BottomSheet} from '@expo/ui';
 import {NativeHostContext} from '../host';
 import {useEffect} from 'react';
+import {sheetChildren, sheetOwnProps} from './compose';
 import {BLUR_RADIUS, MATERIAL_OPACITY, hasMaterial} from './shared';
 
 /**
@@ -15,8 +16,13 @@ import {BLUR_RADIUS, MATERIAL_OPACITY, hasMaterial} from './shared';
  *   palette so `useMaterialColors()` consumers match the seeded `Screen` Host.
  * - Web (this file): accent flows through CSS custom properties; vaul sheet
  *   width is constrained via `global.css`.
+ * The bar, the accessory, the body, the footer and the actions are drawn by
+ * the kit inside the drawer.
  */
-export function Sheet({children, material, containerColor, ...props}: SheetProps) {
+export function Sheet(props: SheetProps) {
+  const {own, rest} = sheetOwnProps(props);
+  const {containerColor, ...sheet} = rest;
+  const material = own.material;
   const blurred = hasMaterial(material);
   // The blur reaches the sheet through a custom property on the root, because
   // `@expo/ui`'s web sheet renders vaul in a portal outside this tree and
@@ -37,9 +43,9 @@ export function Sheet({children, material, containerColor, ...props}: SheetProps
       {/* A material is a blur and a fill over it, so the sheet's own colour
           has to let some of the blur through. */}
       <BottomSheet
-        {...props}
+        {...sheet}
         containerColor={containerColor ?? (blurred ? translucent(MATERIAL_OPACITY[material]) : undefined)}>
-        {children}
+        {sheetChildren(props)}
       </BottomSheet>
     </NativeHostContext.Provider>
   );
@@ -49,3 +55,5 @@ export function Sheet({children, material, containerColor, ...props}: SheetProps
 function translucent(opacity: number): string {
   return `color-mix(in srgb, var(--color-background) ${Math.round(opacity * 100)}%, transparent)`;
 }
+
+export type {SheetAction, SheetMaterial, SheetProps} from './types';

@@ -106,6 +106,43 @@ export const ThreeActions: Story = {
   },
 };
 
+/** The one-field prompt: a name for a new thing, in the platform's own alert with a field. */
+function Rename({onDismiss}: Pick<AlertProps, 'onDismiss'>) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('Holiday photos');
+  const [draft, setDraft] = useState(name);
+  return (
+    <Column modifiers={fillWidth} spacing={12}>
+      <Footnote color="secondaryLabel">{`The drop is called ${name}.`}</Footnote>
+      <Alert
+        title="Rename drop"
+        visible={open}
+        input={{placeholder: 'Name', value: draft, onChangeText: setDraft, autoCapitalize: 'words'}}
+        onDismiss={() => {
+          setOpen(false);
+          onDismiss?.();
+        }}
+        actions={[
+          {label: 'Cancel', role: 'cancel'},
+          {label: 'Rename', onPress: () => setName(draft.trim() || name)},
+        ]}>
+        <Button
+          label="Rename"
+          variant="outlined"
+          onPress={() => {
+            setDraft(name);
+            setOpen(true);
+          }}
+        />
+      </Alert>
+    </Column>
+  );
+}
+
+export const Prompt: Story = {
+  render: args => <Rename onDismiss={args.onDismiss}/>,
+};
+
 export const NoCancel: Story = {
   args: {
     title: 'Choose a layout',

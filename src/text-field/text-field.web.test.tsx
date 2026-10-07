@@ -127,6 +127,14 @@ describe('TextField (web)', () => {
     expect(onSubmit).toHaveBeenCalledWith('hello');
   });
 
+  it('renders the bare variant with no padding and no focus ring of its own', () => {
+    render(<TextField variant="bare" placeholder="Write" testID="bare"/>);
+    const style = getComputedStyle(screen.getByTestId('bare'));
+    expect(style.paddingLeft).toBe('0px');
+    expect(style.paddingTop).toBe('0px');
+    expect(style.outlineWidth).toBe('0px');
+  });
+
   it('dims and locks the inline variant when disabled', () => {
     render(<TextField variant="inline" value="Locked" disabled testID="field"/>);
     const input = screen.getByTestId('field');

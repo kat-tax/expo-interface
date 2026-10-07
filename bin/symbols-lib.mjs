@@ -80,10 +80,12 @@ export function sourceFiles(roots, cwd = process.cwd()) {
 
 /**
  * The Material names the kit's own controls draw on Android, written whether
- * or not an app's sources name them: the ellipsis of a `Toolbar`'s overflow
- * and a `Card`'s menu, and the star of a `Card`'s favorite, filled while set.
+ * or not an app's sources name them: a `Sheet` bar's back and close buttons,
+ * a `Composer`'s send and stop buttons, the ellipsis of a `Toolbar`'s
+ * overflow, a `Card`'s and a `Sheet`'s menus, and the star of a `Card`'s
+ * favorite, filled while set.
  */
-export const KIT_NAMES = ['more_horiz', 'star'];
+export const KIT_NAMES = ['arrow_back', 'arrow_upward', 'close', 'more_horiz', 'star', 'stop'];
 export const KIT_FILLED = ['star'];
 
 /** The names across a set of files, merged. */

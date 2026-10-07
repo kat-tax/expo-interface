@@ -1,5 +1,13 @@
 import type {AlertAction} from './types';
-import {DEFAULT_ACTIONS, splitActions} from './shared';
+import {DEFAULT_ACTIONS, defaultAction, splitActions} from './shared';
+
+describe('defaultAction', () => {
+  it('is the first action that is not the cancel, and nothing when there is only a cancel', () => {
+    expect(defaultAction()).toBeUndefined();
+    expect(defaultAction([{label: 'Cancel', role: 'cancel'}, {label: 'Rename'}, {label: 'Delete', role: 'destructive'}])).toEqual({label: 'Rename'});
+    expect(defaultAction([{label: 'Cancel', role: 'cancel'}])).toBeUndefined();
+  });
+});
 
 describe('splitActions', () => {
   it('defaults to a single cancel-style OK action', () => {

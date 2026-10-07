@@ -1,6 +1,6 @@
 import type {SwitchProps} from './types';
 import {Switch as RNSwitch, StyleSheet, View} from 'react-native';
-import {Label} from '../typography';
+import {Footnote, Label} from '../typography';
 import {theme} from '../theme';
 
 /** iOS switches use a white thumb in both states; web defaults to a green thumb. */
@@ -14,6 +14,7 @@ const THUMB = '#ffffff';
  */
 export function Switch({
   label,
+  supporting,
   value,
   onValueChange,
   disabled,
@@ -39,9 +40,10 @@ export function Switch({
 
   return label != null ? (
     <View style={[styles.row, style]} testID={testID}>
-      <Label color="label" style={[styles.label, disabled && styles.disabled]}>
-        {label}
-      </Label>
+      <View style={[styles.label, disabled && styles.disabled]}>
+        <Label color="label">{label}</Label>
+        {supporting !== undefined ? <Footnote color="secondaryLabel">{supporting}</Footnote> : null}
+      </View>
       {toggle}
     </View>
   ) : toggle;

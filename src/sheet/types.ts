@@ -1,4 +1,6 @@
+import type {ReactNode} from 'react';
 import type {BottomSheetProps} from '@expo/ui';
+import type {MenuItem} from '../menu/types';
 
 /**
  * How much of what is behind the sheet shows through it.
@@ -10,8 +12,29 @@ import type {BottomSheetProps} from '@expo/ui';
  */
 export type SheetMaterial = 'none' | 'thin' | 'regular' | 'thick';
 
+/** One of the buttons along a sheet's bottom edge: Cancel, Save, Delete. */
+export interface SheetAction {
+  label: string;
+  onPress?: () => void;
+  /**
+   * `destructive` draws the button in the danger color.
+   * @default 'default'
+   */
+  role?: 'default' | 'destructive';
+  /**
+   * The button's look; the last action is `filled` and the rest `outlined`
+   * when left out.
+   */
+  variant?: 'filled' | 'outlined' | 'text';
+  disabled?: boolean;
+  /** Draws a spinner in place of the button's icon while something runs. */
+  loading?: boolean;
+}
+
 /**
- * The kit's bottom sheet.
+ * The kit's bottom sheet: `@expo/ui`'s `BottomSheet` with a material, a
+ * title bar, a cap on its height, and the rows a sheet of a form or a
+ * conversation ends in.
  *
  * `material` is honoured where the platform has one of its own:
  *
@@ -29,7 +52,51 @@ export type SheetMaterial = 'none' | 'thin' | 'regular' | 'thick';
  * Where it is not honoured the sheet is opaque, which is the same thing it was
  * before — a material that quietly does nothing is worse than one that is
  * documented as absent.
+ *
+ * Without `snapPoints` the sheet fits its content on every platform:
+ * SwiftUI's fitted detent, Compose's intrinsic height, the drawer's own on
+ * web. `maxHeight` caps that, and the body scrolls inside the cap.
  */
 export interface SheetProps extends BottomSheetProps {
   material?: SheetMaterial;
+  /**
+   * The sheet's name, in a bar along its top: native text on iOS and
+   * Android, the kit's on web and Windows. The bar holds the back button,
+   * the menu and the close button too, and is drawn as soon as any of them
+   * is given.
+   */
+  title?: string;
+  /** A second line under the title, in the secondary color. */
+  subtitle?: string;
+  /** A back button at the bar's leading edge, for a sheet with pages in it. */
+  onBack?: () => void;
+  /**
+   * A close button at the bar's trailing edge. The sheet does not dismiss
+   * itself from it: the app does, as it does from `onDismiss`.
+   */
+  onClose?: () => void;
+  /** The sheet's own actions, as the platform's menu behind an ellipsis in the bar, before the close button. */
+  menu?: MenuItem[];
+  /**
+   * A row under the bar and above the body: a `SegmentedControl` that picks
+   * what the body shows, a search field. Native content on iOS and Android,
+   * as the bar is.
+   */
+  accessory?: ReactNode;
+  /**
+   * The row along the bottom edge, under the body: a `Composer`, a notice.
+   * React Native content on every platform.
+   */
+  footer?: ReactNode;
+  /**
+   * Buttons along the bottom edge, after the footer, trailing-aligned: the
+   * last one filled, the rest outlined.
+   */
+  actions?: SheetAction[];
+  /**
+   * The most the body grows to, in points. A sheet without `snapPoints`
+   * fits its content; past this height the body scrolls inside the sheet
+   * instead, as React Native content the width of the sheet.
+   */
+  maxHeight?: number;
 }

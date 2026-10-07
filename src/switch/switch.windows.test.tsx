@@ -28,7 +28,14 @@ describe('Switch (windows)', () => {
   it('disables the control and dims the label', async () => {
     await render(<Switch label="Bluetooth" value onValueChange={vi.fn()} disabled/>);
     expect(island(TOGGLE).props.disabled).toBe(true);
-    expect(screen.getByText('Bluetooth')).toHaveStyle({opacity: 0.4});
+    // The dim is the label column's, so a supporting line dims with it.
+    expect(screen.getByText('Bluetooth').parent).toHaveStyle({opacity: 0.4});
+  });
+
+  it('draws a supporting line under the label', async () => {
+    await render(<Switch label="Notifications" supporting="For every new drop" value onValueChange={vi.fn()} testID="row"/>);
+    expect(screen.getByText('For every new drop')).toBeOnTheScreen();
+    expect(screen.getByText('For every new drop').parent).toBe(screen.getByText('Notifications').parent);
   });
 
   it('renders the bare switch carrying the testID without a label', async () => {

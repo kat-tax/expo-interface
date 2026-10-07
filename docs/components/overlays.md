@@ -136,34 +136,65 @@ announced sets `accessibilityHint` on the control itself.
 
 ## Alert
 
-A modal dialog, or an action sheet, with a title, a message and actions.
-Props: `title`, `message`, `visible`, `onDismiss`, `actions` (`label`,
-`role` `default`, `cancel` or `destructive`, `onPress`; defaults to one OK),
-`sheet`, `children` (an optional trigger rendered in place), `testID`. It
-mounts its own host where there is none, so it can be rendered anywhere.
+A modal dialog, or an action sheet, with a title, a message, a field and
+actions. Props: `title`, `message`, `visible`, `onDismiss`, `actions`
+(`label`, `role` `default`, `cancel` or `destructive`, `onPress`; defaults
+to one OK), `input` (a text field for the one-field prompts, a name for a
+new thing or a rename: `placeholder`, `value`, `onChangeText`,
+`secureTextEntry`, `keyboardType`, `autoCapitalize`, `autoFocus`, default
+true, `testID`), `sheet`, `children` (an optional trigger rendered in place),
+`testID`. It mounts its own host where there is none, so it can be rendered
+anywhere.
 
 | Platform | Renders |
 | --- | --- |
-| iOS | SwiftUI `Alert`, or `ConfirmationDialog` with `sheet` |
-| Android | Material 3 `AlertDialog`, with the actions in a column for `sheet` |
-| Web | A real `<dialog>` opened with `showModal()`: the top layer, a backdrop, a focus trap and Escape. `sheet` anchors it to the bottom. |
-| Windows | A dialog in `ContentDialog`'s arrangement, smoke over the whole window and the card with the title, message and actions, drawn in a windowed popup, since a `ContentDialog` can only cover its own island. Up to three actions take the dialog's own buttons; more are stacked in the body. |
+| iOS | SwiftUI `Alert`, or `ConfirmationDialog` with `sheet`. The field is a SwiftUI `TextField` among the alert's actions, which is where SwiftUI takes one. |
+| Android | Material 3 `AlertDialog`, with the actions in a column for `sheet`. The field is the kit's Compose field under the message. |
+| Web | A real `<dialog>` opened with `showModal()`: the top layer, a backdrop, a focus trap and Escape. `sheet` anchors it to the bottom. The field is a box under the message. |
+| Windows | A dialog in `ContentDialog`'s arrangement, smoke over the whole window and the card with the title, message and actions, drawn in a windowed popup, since a `ContentDialog` can only cover its own island. Up to three actions take the dialog's own buttons; more are stacked in the body. The field is a WinUI `TextBox` in the dialog's body, placed there through a portal. |
 
-`sheet` has no Windows form; a dialog is drawn either way.
+`sheet` has no Windows form; a dialog is drawn either way, and an action
+sheet holds no field on any platform. The field is controlled through
+`value` and `onChangeText`, so the action that reads it has it; on web and
+Windows the keyboard's action key presses the first action that is not
+`cancel`.
 
 ## Sheet
 
 A bottom sheet that inherits the accent, over `@expo/ui`'s `BottomSheet`
-props plus `material` (`none`, `thin`, `regular`, `thick`).
+props, with a title bar, a cap on its height and the rows a sheet ends in.
+
+Props: `@expo/ui`'s (`isPresented`, `onDismiss`, `snapPoints`,
+`showDragIndicator`, `contentPadding`, `containerColor` and the rest),
+`material` (`none`, `thin`, `regular`, `thick`), `title` and `subtitle`
+(the bar along the top), `onBack` (a back button at the bar's leading
+edge), `onClose` (a close button at its trailing edge; the app dismisses the
+sheet from it, as from `onDismiss`), `menu` (the sheet's own actions behind
+an ellipsis in the bar, before the close button), `accessory` (a row under
+the bar: a `SegmentedControl` that picks what the body shows), `footer`
+(the row under the body: a `Composer`), `actions` (buttons along the bottom
+edge, trailing-aligned, the last one filled and the rest outlined; `label`,
+`onPress`, `role`, `variant`, `disabled`, `loading` each), `maxHeight` (the
+most the body grows to), `testID`.
+
+The bar is drawn as soon as a title or any of its buttons is given. Without
+`snapPoints` the sheet fits its content on every platform; `maxHeight` caps
+that, and the body then scrolls inside the cap as React Native content the
+width of the sheet.
 
 | Platform | Renders |
 | --- | --- |
-| iOS | SwiftUI's sheet, with a real material through `presentationBackground` |
-| Android | Compose's `ModalBottomSheet`. It takes a container color and nothing else, so the sheet is opaque. |
-| Web | `@expo/ui`'s drawer with `backdrop-filter` for the material |
-| Windows | A layer drawn in React Native: WinUI's smoke and a centered card, the content scrolling inside, covering the whole window under the kit's `Stack` and the nearest ancestor elsewhere. A sheet's content is React Native's, which no XAML flyout or dialog can hold, and React Native's `Modal` cannot hold a XAML island on react-native-windows 0.84. No material. |
+| iOS | SwiftUI's sheet, with a real material through `presentationBackground`. The bar, the accessory and the actions are SwiftUI content beside the React Native body: the title in the headline font, the kit's buttons at the ends. |
+| Android | Compose's `ModalBottomSheet`. It takes a container color and nothing else, so the sheet is opaque. The bar, the accessory and the actions are Compose content: Compose has no app bar in `@expo/ui`, so the bar is a row in the sheet's palette with the kit's buttons at the ends. |
+| Web | `@expo/ui`'s drawer with `backdrop-filter` for the material. The bar is the kit's, in the `ScreenHeader` look. |
+| Windows | A layer drawn in React Native: WinUI's smoke and a centered card, the content scrolling inside, covering the whole window under the kit's `Stack` and the nearest ancestor elsewhere. A sheet's content is React Native's, which no XAML flyout or dialog can hold, and React Native's `Modal` cannot hold a XAML island on react-native-windows 0.84. No material. The bar, the accessory, the footer and the actions stay put while the body scrolls. |
 
-The sheet's content counts as hosted: controls inside it render bare.
+The sheet's content counts as hosted: controls inside it render bare. A
+React Native box inside the sheet (a footer, a `Composer`) mounts a
+`NativeHost` for the controls it holds, as the kit's own do. On iOS and
+Android a capped body is told the sheet's width, since a React Native view
+inside the platform's sheet has no width of its own to fill: the window's,
+or a form sheet's on an iPad, less the sheet's padding.
 
 ## Toast
 

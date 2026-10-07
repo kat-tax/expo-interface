@@ -1,6 +1,6 @@
 import type {SwitchProps} from './types';
 
-import {Row, Switch as ComposeSwitch, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
+import {Column, Row, Switch as ComposeSwitch, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
 import {fillMaxWidth, graphicsLayer, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {SelfHosted} from '../host';
 import {useColor} from '../theme';
@@ -35,6 +35,7 @@ export function Switch(props: SwitchProps) {
  */
 function NativeSwitch({
   label,
+  supporting,
   value,
   onValueChange,
   disabled,
@@ -61,12 +62,18 @@ function NativeSwitch({
 
   if (label == null) return toggle;
 
+  const title = <Text color={disabled ? colors.onSurfaceVariant : colors.onSurface}>{label}</Text>;
   return (
     <Row
       verticalAlignment="center"
       horizontalArrangement="spaceBetween"
       modifiers={[fillMaxWidth()]}>
-      <Text color={disabled ? colors.onSurfaceVariant : colors.onSurface}>{label}</Text>
+      {supporting !== undefined ? (
+        <Column>
+          {title}
+          <Text color={colors.onSurfaceVariant} style={{typography: 'bodySmall'}}>{supporting}</Text>
+        </Column>
+      ) : title}
       {toggle}
     </Row>
   );

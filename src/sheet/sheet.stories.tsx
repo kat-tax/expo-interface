@@ -1,21 +1,25 @@
 import type {Meta, StoryObj} from '@storybook/react-native';
-import type {BottomSheetProps} from '@expo/ui';
+import type {SheetProps} from './types';
 import {fn} from 'storybook/test';
 import {useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 import {Column, Host, Row, Text} from '@expo/ui';
 import {useAccentSeed} from '../accent';
 import {hostAccentProps} from '../screen/host-accent';
 import {fillWidth} from '../fill';
 import {Button} from '../button';
+import {Composer} from '../composer';
+import {SegmentedControl} from '../segmented';
 import {Switch} from '../switch';
 import {TextField} from '../text-field';
+import {Footnote} from '../typography';
 import {Sheet} from '.';
 
 /**
  * The sheet mounts its own `Host`, so the story opts out of the decorator's
  * Host (`native: false`) and hosts only the trigger button itself.
  */
-function Demo({isPresented, onDismiss, children, ...props}: BottomSheetProps) {
+function Demo({isPresented, onDismiss, children, ...props}: SheetProps) {
   const seed = useAccentSeed();
   const [open, setOpen] = useState(isPresented);
   return (
@@ -107,3 +111,89 @@ export const Material: Story = {
 export const ThinMaterial: Story = {
   args: {material: 'thin'},
 };
+
+/**
+ * The bar along the top: the title over the subtitle, a back button at the
+ * leading edge, the sheet's menu and a close button at the trailing edge.
+ * SwiftUI content on iOS, Compose content on Android, the kit's on web and
+ * Windows.
+ */
+export const TitleBar: Story = {
+  args: {
+    title: 'Comments',
+    subtitle: '12 unresolved',
+    onBack: fn(),
+    onClose: fn(),
+    menu: [{label: 'Resolve all'}, {label: 'Copy link'}],
+    children: <FormContent/>,
+  },
+};
+
+/** Buttons along the bottom edge: the last one filled, the rest outlined. */
+export const WithActions: Story = {
+  args: {
+    title: 'New drop',
+    onClose: fn(),
+    actions: [{label: 'Cancel', onPress: fn()}, {label: 'Create', onPress: fn()}],
+    children: <FormContent/>,
+  },
+};
+
+/** Forty rows, which a cap on the body's height scrolls inside the sheet. */
+function Rows() {
+  return (
+    <View style={styles.rows}>
+      {Array.from({length: 40}, (_, index) => (
+        <Footnote key={index} color={index % 2 === 0 ? 'label' : 'secondaryLabel'}>{`Version ${40 - index}`}</Footnote>
+      ))}
+    </View>
+  );
+}
+
+/**
+ * A sheet that fits its content stops at `maxHeight`, and the body scrolls
+ * inside, as React Native content the width of the sheet.
+ */
+export const Capped: Story = {
+  args: {
+    title: 'History',
+    onClose: fn(),
+    maxHeight: 320,
+    children: <Rows/>,
+  },
+};
+
+/** The comment thread: a filter under the bar, the thread, and a composer pinned under it. */
+function Thread() {
+  const [filter, setFilter] = useState('open');
+  return (
+    <Sheet
+      isPresented
+      onDismiss={fn()}
+      title="Comments"
+      subtitle="12 unresolved"
+      onClose={fn()}
+      accessory={
+        <SegmentedControl label="Show" selectedValue={filter} onValueChange={setFilter}>
+          <SegmentedControl.Item label="Open" value="open"/>
+          <SegmentedControl.Item label="Resolved" value="resolved"/>
+        </SegmentedControl>
+      }
+      footer={<Composer placeholder="Reply" onSend={fn()}/>}
+      maxHeight={360}>
+      <Rows/>
+    </Sheet>
+  );
+}
+
+export const Conversation: Story = {
+  render: () => <Thread/>,
+};
+
+const styles = StyleSheet.create({
+  rows: {
+    width: '100%',
+    gap: 8,
+    paddingVertical: 8,
+  },
+});

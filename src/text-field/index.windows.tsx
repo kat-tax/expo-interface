@@ -30,7 +30,7 @@ export function inputScopeFor(type: TextFieldKeyboard | undefined): 'default' | 
  * focus).
  */
 export function TextField(props: TextFieldProps) {
-  if (props.variant === 'inline') return <InlineTextField {...props}/>;
+  if (props.variant === 'inline' || props.variant === 'bare') return <InlineTextField {...props}/>;
   return <RowTextField {...props}/>;
 }
 

@@ -40,6 +40,9 @@ The differences that change what a screen can do, in one place:
 | `List` | SwiftUI `List` | `LazyColumn` | DOM list, `content-visibility` | `FlatList` |
 | `CardGrid` | `FlatList` | `FlatList` | CSS grid | `FlatList` |
 | `Card` star while not set | Always drawn | Always drawn | Under the pointer or the keyboard where a pointer hovers; always drawn on a touch screen | Under the pointer |
+| `Sheet` bar | SwiftUI content | Compose content | Drawn | Drawn |
+| `Alert` field | Among the actions | Under the message | Under the message | In the dialog's body, through a portal |
+| `Alert` field's action key | Nothing | Nothing | The first action that is not the cancel | The first action that is not the cancel |
 | `Toolbar` overflow decided by the platform | No | No | No | Yes |
 | `EmptyState` native | iOS 17+ | Drawn | Drawn | Drawn |
 | `Collapsible` children | `@expo/ui` | `@expo/ui` | Any | Any |

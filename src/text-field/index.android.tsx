@@ -24,7 +24,7 @@ const CONTENT_PADDING = 16;
  * `TextInput` for fields inside a React Native layout.
  */
 export function TextField(props: TextFieldProps) {
-  if (props.variant === 'inline') return <InlineTextField {...props}/>;
+  if (props.variant === 'inline' || props.variant === 'bare') return <InlineTextField {...props}/>;
   return <RowTextField {...props}/>;
 }
 

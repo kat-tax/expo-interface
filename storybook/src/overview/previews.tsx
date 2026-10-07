@@ -12,6 +12,7 @@ import {
   Chip,
   Collapsible,
   ColorPicker,
+  Composer,
   ConstrainedStackHeader,
   DateTimePicker,
   Divider,
@@ -772,6 +773,7 @@ export const controls: CardEntry[] = [
       </>
     ),
   },
+  {name: 'Composer', href: docs('controls-composer'), preview: <Composer placeholder="Ask anything" notice="Enter sends, Shift+Enter starts a new line." onSend={noop}/>},
   {name: 'SearchField', href: docs('controls-searchfield'), preview: <SearchFieldPreview/>},
   {
     name: 'Picker',

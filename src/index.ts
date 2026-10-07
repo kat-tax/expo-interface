@@ -29,7 +29,7 @@ export type {SurfaceBorder, SurfaceColor, SurfaceProps} from './surface/types';
 export {Toolbar} from './toolbar';
 export type {ToolbarCommand, ToolbarDensity, ToolbarPlacement, ToolbarProps} from './toolbar/types';
 export {Sheet} from './sheet';
-export type {SheetMaterial} from './sheet/types';
+export type {SheetAction, SheetMaterial} from './sheet/types';
 export {ConstrainedStackHeader} from './stack-header';
 export {Stack} from './router/stack';
 export {TabStack} from './tab-stack';
@@ -51,7 +51,7 @@ export type {KeyboardBarProps, KeyboardLibrary, KeyboardState} from './keyboard'
 
 // Components
 export {Alert} from './alert';
-export type {AlertAction, AlertActionRole, AlertProps} from './alert/types';
+export type {AlertAction, AlertActionRole, AlertInput, AlertProps} from './alert/types';
 export {Avatar} from './avatar';
 export type {AvatarProps} from './avatar/types';
 export {Badge} from './badge';
@@ -141,6 +141,8 @@ export type {
   TextFieldSubmitBehavior,
   TextFieldVariant,
 } from './text-field/types';
+export {Composer} from './composer';
+export type {ComposerProps} from './composer/types';
 export {ExternalLink} from './router/external-link';
 
 // Typography

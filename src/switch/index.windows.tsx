@@ -2,7 +2,7 @@ import type {SwitchProps} from './types';
 import {StyleSheet, View} from 'react-native';
 import XamlToggleSwitch from '../windows/specs/ExpoInterfaceToggleSwitchNativeComponent';
 import {useXamlProps} from '../windows';
-import {Label} from '../typography';
+import {Footnote, Label} from '../typography';
 
 /**
  * Windows renders a WinUI 3 `ToggleSwitch` in a XAML island, pinned to the
@@ -10,7 +10,7 @@ import {Label} from '../typography';
  * `Toggle` is and the other platforms mirror. The on state takes the accent
  * seed rather than the system accent, so the switch reads like its twins.
  */
-export function Switch({label, value, onValueChange, disabled, accentColor, testID, style}: SwitchProps) {
+export function Switch({label, supporting, value, onValueChange, disabled, accentColor, testID, style}: SwitchProps) {
   const xaml = useXamlProps();
   const toggle = (
     <XamlToggleSwitch
@@ -28,9 +28,10 @@ export function Switch({label, value, onValueChange, disabled, accentColor, test
 
   return (
     <View style={[styles.row, style]} testID={testID}>
-      <Label color="label" style={[styles.label, disabled && styles.disabled]}>
-        {label}
-      </Label>
+      <View style={[styles.label, disabled && styles.disabled]}>
+        <Label color="label">{label}</Label>
+        {supporting !== undefined ? <Footnote color="secondaryLabel">{supporting}</Footnote> : null}
+      </View>
       {toggle}
     </View>
   );

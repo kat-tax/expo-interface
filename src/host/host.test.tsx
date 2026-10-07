@@ -16,7 +16,8 @@ describe(`NativeHost (${Platform.OS})`, () => {
           <Switch label="Wi-Fi" value onValueChange={() => {}}/>
         </NativeHost>,
       );
-      const hostView = dom.getByText('Wi-Fi').parentElement!.parentElement!;
+      // The label sits in its column, in the switch's row, in the host.
+      const hostView = dom.getByText('Wi-Fi').parentElement!.parentElement!.parentElement!;
       expect(hostView.style.getPropertyValue('--expo-ui-primary-500')).not.toBe('');
       expect(dom.getByRole('switch')).toBeTruthy();
     });

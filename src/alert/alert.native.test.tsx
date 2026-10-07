@@ -186,6 +186,44 @@ describe(`Alert (${Platform.OS})`, () => {
     }
   });
 
+  it('puts a field where the platform\'s alert takes one: among the actions on iOS, under the message on Android', async () => {
+    const onChangeText = vi.fn();
+    await render(
+      <Alert
+        title="Rename"
+        message="A name for the document."
+        visible
+        testID="alert"
+        input={{placeholder: 'Name', value: 'Essay', onChangeText, autoCapitalize: 'words', testID: 'name'}}
+        actions={[{label: 'Cancel', role: 'cancel'}, {label: 'Rename'}]}
+      />,
+    );
+    if (isIOS) {
+      const field = host(p => p.placeholder === 'Name', slot('actions'));
+      expect(field.props.autoFocus).toBe(true);
+      expect(field.props.testID).toBe('name');
+      expect(children(slot('actions')).map(b => b.props.label ?? b.props.placeholder)).toEqual(['Name', 'Cancel', 'Rename']);
+    } else {
+      const field = host(p => p.autoFocus === true, slot('text'));
+      expect(modifier(field.props, 'testID')?.testID).toBe('name');
+      expect(host(p => p.text === 'Name', field)).toBeTruthy();
+      expect(host(p => p.text === 'A name for the document.', slot('text'))).toBeTruthy();
+      // The kit's field shifts itself back to line up in a form; here a box undoes that.
+      expect(modifier(host(p => modifier(p, 'padding')?.start === 16, slot('text')).props, 'padding')).toMatchObject({start: 16});
+    }
+  });
+
+  it('draws the field without a message, not as an action sheet, and leaves the focus alone when asked', async () => {
+    await render(<Alert title="Open by id" visible testID="alert" input={{placeholder: 'Identifier', autoFocus: false}}/>);
+    if (isIOS) {
+      expect(host(p => p.placeholder === 'Identifier', slot('actions')).props.autoFocus).toBe(false);
+    } else {
+      expect(host(p => p.autoFocus === false, slot('text'))).toBeTruthy();
+    }
+    await render(<Alert title="Share" visible sheet testID="alert" input={{placeholder: 'Name'}}/>);
+    expect(nodes().some(n => n.props.placeholder === 'Name' || n.props.text === 'Name')).toBe(false);
+  });
+
   it('renders only the confirm actions without a cancel action', async () => {
     await render(<Alert title="Saved" visible testID="alert" actions={[{label: 'Undo'}, {label: 'Got it'}]}/>);
     if (isIOS) {

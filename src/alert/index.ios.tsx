@@ -4,6 +4,7 @@ import {StyleSheet} from 'react-native';
 import {Alert as SwiftUIAlert, Button, ConfirmationDialog, Spacer, Text} from '@expo/ui/swift-ui';
 import {frame} from '@expo/ui/swift-ui/modifiers';
 import {NativeHost, useNativeHost} from '../host';
+import {TextField} from '../text-field';
 import {DEFAULT_ACTIONS} from './shared';
 
 /**
@@ -35,9 +36,10 @@ const styles = StyleSheet.create({
  * slot holds `children` or, when none is given, a zero-size `Spacer` anchor.
  * Action buttons carry their SwiftUI role (`cancel` bold / `destructive` red)
  * and dismiss automatically; the presented-state change then reports
- * `onDismiss`.
+ * `onDismiss`. A field goes among the actions, which is where SwiftUI's
+ * alert takes one.
  */
-function SwiftUIAlertView({title, message, visible, onDismiss, actions = DEFAULT_ACTIONS, sheet, children, testID}: AlertProps) {
+function SwiftUIAlertView({title, message, visible, onDismiss, actions = DEFAULT_ACTIONS, sheet, input, children, testID}: AlertProps) {
   const Component = sheet ? ConfirmationDialog : SwiftUIAlert;
   const onPresentedChange = (presented: boolean) => {
     if (!presented) onDismiss?.();
@@ -58,6 +60,18 @@ function SwiftUIAlertView({title, message, visible, onDismiss, actions = DEFAULT
         </Component.Message>
       ) : null}
       <Component.Actions>
+        {input && !sheet ? (
+          <TextField
+            placeholder={input.placeholder}
+            value={input.value}
+            onChangeText={input.onChangeText}
+            secureTextEntry={input.secureTextEntry}
+            keyboardType={input.keyboardType}
+            autoCapitalize={input.autoCapitalize}
+            autoFocus={input.autoFocus ?? true}
+            testID={input.testID}
+          />
+        ) : null}
         {actions.map((action, index) => (
           <Button
             key={index}

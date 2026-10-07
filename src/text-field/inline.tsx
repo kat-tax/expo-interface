@@ -1,7 +1,7 @@
 import type {NativeSyntheticEvent, TextInputKeyPressEventData} from 'react-native';
 import type {TextFieldProps} from './types';
 import {useImperativeHandle, useRef} from 'react';
-import {StyleSheet, TextInput} from 'react-native';
+import {Platform, StyleSheet, TextInput} from 'react-native';
 import {fonts, fontWeights, spacing, useColor} from '../theme';
 import {keyboardTypeFor, useAutoFocus, useTextValue} from './shared';
 
@@ -34,6 +34,7 @@ export function InlineTextField({
   submitBehavior,
   maxLength,
   accentColor,
+  variant,
   testID,
   style,
 }: TextFieldProps) {
@@ -48,6 +49,22 @@ export function InlineTextField({
     focus: () => input.current?.focus(),
     blur: () => input.current?.blur(),
   }));
+
+  // A multi-line field that submits keeps the focus on web: react-native-web
+  // submits a multi-line field on Enter only when it may blur it afterwards,
+  // so the key is taken here instead, before the browser inserts the line.
+  const entersSubmit = Platform.OS === 'web' && multiline === true && submitBehavior === 'submit' && !disabled && onSubmit !== undefined;
+  const onKey = onKeyPress || entersSubmit
+    ? (event: NativeSyntheticEvent<TextInputKeyPressEventData & {shiftKey?: boolean}>) => {
+      const shift = event.nativeEvent.shiftKey === true;
+      if (entersSubmit && event.nativeEvent.key === 'Enter' && !shift) {
+        event.preventDefault();
+        onSubmit(current);
+        return;
+      }
+      onKeyPress?.(event.nativeEvent.key, shift);
+    }
+    : undefined;
 
   return (
     <TextInput
@@ -68,18 +85,24 @@ export function InlineTextField({
       returnKeyType={returnKeyType}
       submitBehavior={submitBehavior}
       onSubmitEditing={onSubmit ? event => onSubmit(event.nativeEvent.text) : undefined}
-      onKeyPress={onKeyPress ? (event: NativeSyntheticEvent<TextInputKeyPressEventData & {shiftKey?: boolean}>) =>
-        onKeyPress(event.nativeEvent.key, event.nativeEvent.shiftKey === true) : undefined}
+      onKeyPress={onKey}
       onFocus={onFocus}
       onBlur={onBlur}
       aria-label={placeholder}
       testID={testID}
-      style={[styles.input, {color: label}, disabled && styles.disabled, style]}
+      style={[styles.input, variant === 'bare' && styles.bare, {color: label}, disabled && styles.disabled, style]}
     />
   );
 }
 
 const styles = StyleSheet.create({
+  // The box around a bare field draws the padding and the focus ring; the
+  // outline width is what react-native-web turns the browser's ring off with.
+  bare: {
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    outlineWidth: 0,
+  },
   input: {
     flexGrow: 1,
     flexShrink: 1,

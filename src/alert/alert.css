@@ -28,6 +28,21 @@
   text-align: left;
 }
 
+/* The prompt's field: a box of its own, since the bare field draws none. */
+.ui-alert__field {
+  display: flex;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-separator);
+  border-radius: 10px;
+  background: var(--color-background);
+}
+
+.ui-alert__field:focus-within {
+  border-color: var(--color-tint);
+}
+
 .ui-alert__actions {
   display: flex;
   flex-direction: row;

@@ -8,6 +8,11 @@ import type {StyleProp, ViewStyle} from 'react-native';
 export interface SwitchProps {
   /** Label rendered at the leading edge of the row, mirroring an iOS Form row. */
   label?: string;
+  /**
+   * A second line under the label in the secondary color: what the setting
+   * does, what is on while it is on. Needs a `label`.
+   */
+  supporting?: string;
   /** Whether the switch is on. */
   value: boolean;
   /** Called when the user toggles the switch. */

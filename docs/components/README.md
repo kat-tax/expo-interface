@@ -55,6 +55,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`Switch`](controls.md#switch) | An on/off toggle with a label. |
 | [`Checkbox`](controls.md#checkbox) | A checked or unchecked box with a label. |
 | [`TextField`](controls.md#textfield) | A single or multi-line text input. |
+| [`Composer`](controls.md#composer) | A capsule to write a message in, with a send button that stops while something runs. |
 | [`SearchField`](controls.md#searchfield) | A query box with a clear button and completions. |
 | [`Picker`](controls.md#picker) | A dropdown that selects one option. |
 | [`SegmentedControl`](controls.md#segmentedcontrol) | A row of segments that selects one option. |
@@ -84,8 +85,8 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`PopupMenu`](overlays.md#popupmenu) | The platform's menu at a point, over content the kit did not draw. |
 | [`Popover`](overlays.md#popover) | A card pointing at a rectangle. |
 | [`Tooltip`](overlays.md#tooltip) | A short hint attached to a piece of content. |
-| [`Alert`](overlays.md#alert) | A modal dialog or an action sheet. |
-| [`Sheet`](overlays.md#sheet) | A bottom sheet that inherits the accent. |
+| [`Alert`](overlays.md#alert) | A modal dialog or an action sheet, with a field for a prompt. |
+| [`Sheet`](overlays.md#sheet) | A bottom sheet with a title bar, a cap on its height, a footer and actions. |
 | [`Toast`](overlays.md#toast) | A brief message over the screen. |
 
 ## Hooks and functions

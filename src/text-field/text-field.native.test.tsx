@@ -1,6 +1,6 @@
 import type {TextFieldCommands} from './types';
 import {createRef} from 'react';
-import {Platform} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 import {useNativeState} from '@expo/ui';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
@@ -238,6 +238,13 @@ describe(`TextField (${Platform.OS})`, () => {
     expect(onKeyPress).toHaveBeenCalledWith('Enter', true);
     await fireEvent(input, 'keyPress', {nativeEvent: {key: 'Escape'}});
     expect(onKeyPress).toHaveBeenLastCalledWith('Escape', false);
+  });
+
+  it('renders the bare variant as the inline input without padding of its own', async () => {
+    await render(<TextField variant="bare" placeholder="Write" testID="bare"/>);
+    const input = screen.getByTestId('bare');
+    expect(StyleSheet.flatten(input.props.style)).toMatchObject({paddingVertical: 0, paddingHorizontal: 0, outlineWidth: 0});
+    expect(nodes().some(n => n.type.startsWith('ViewManagerAdapter_ExpoUI'))).toBe(false);
   });
 
   it('keeps the inline variant controlled and tinted', async () => {

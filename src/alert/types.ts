@@ -1,4 +1,25 @@
 import type {ReactNode} from 'react';
+import type {TextFieldCapitalize, TextFieldKeyboard} from '../text-field/types';
+
+/**
+ * A text field in an alert, for the one-field prompts: a name for a new
+ * thing, a rename, an identifier to open. Controlled through `value` and
+ * `onChangeText`, so the action that reads it has it.
+ */
+export interface AlertInput {
+  placeholder?: string;
+  value?: string;
+  onChangeText?: (text: string) => void;
+  secureTextEntry?: boolean;
+  keyboardType?: TextFieldKeyboard;
+  autoCapitalize?: TextFieldCapitalize;
+  /**
+   * Focuses the field as the alert opens.
+   * @default true
+   */
+  autoFocus?: boolean;
+  testID?: string;
+}
 
 /**
  * Semantic role of an alert action. `cancel` is the dismissive action (bold
@@ -47,6 +68,15 @@ export interface AlertProps {
    * web) with actions stacked vertically, instead of a centered alert.
    */
   sheet?: boolean;
+  /**
+   * A text field in the alert, for the one-field prompts: SwiftUI's alert
+   * with a `TextField` among its actions, Compose's `AlertDialog` with one
+   * under the message, a field in the web dialog and one in the WinUI
+   * dialog's body. On web and Windows the keyboard's action key presses the
+   * first action that is not `cancel`. An action sheet (`sheet`) holds no
+   * field.
+   */
+  input?: AlertInput;
   /**
    * Optional trigger rendered in place (for example the `Button` that opens
    * the alert). SwiftUI presents alerts from a view in the hierarchy, so on
