@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {StyleSheet, Text} from 'react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {Popover} from '.';
@@ -44,13 +44,15 @@ describe('Popover (windows)', () => {
     await render(<Popover at={{x: 0, y: 0}} actions={[{label: 'Replace', onPress: onReplace}]} onDismiss={onDismiss}/>);
     await fireIsland(island(TIP), 'action', {index: 0});
     expect(onReplace).toHaveBeenCalledTimes(1);
-    expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(onDismiss).toHaveBeenLastCalledWith('action');
     await fireIsland(island(TIP), 'action', {index: 3});
     expect(onDismiss).toHaveBeenCalledTimes(2);
     await fireIsland(island(TIP), 'openChange', {open: true});
     expect(onDismiss).toHaveBeenCalledTimes(2);
     await fireIsland(island(TIP), 'openChange', {open: false});
     expect(onDismiss).toHaveBeenCalledTimes(3);
+    // A click outside the tip is the platform's own backdrop.
+    expect(onDismiss).toHaveBeenLastCalledWith('backdrop');
   });
 
   describe('with children', () => {
@@ -129,6 +131,44 @@ describe('Popover (windows)', () => {
       );
       expect(screen.queryByText('Extra')).toBeNull();
     });
+  });
+});
+
+describe('modal and hover (windows)', () => {
+  it('draws a modal popover as the kit\'s card over a backdrop, since the tip has no modal form', async () => {
+    const onDismiss = vi.fn();
+    await render(<Popover at={{x: 10, y: 20}} title="Option" modal insets={{top: 40}} onDismiss={onDismiss} testID="pop"/>);
+    expect(islands(TIP)).toHaveLength(0);
+    expect(screen.getByTestId('pop-bounds')).toHaveStyle({pointerEvents: 'auto'});
+    expect(screen.getByTestId('pop').props.role).toBe('dialog');
+    await fireEvent.press(screen.getByTestId('pop-backdrop', {includeHiddenElements: true}));
+    expect(onDismiss).toHaveBeenCalledWith('backdrop');
+  });
+
+  it('draws a hover popover as the kit\'s card, which lingers once the rectangle clears and goes after the grace', async () => {
+    vi.useFakeTimers();
+    try {
+      const onDismiss = vi.fn();
+      const {rerender} = await render(<Popover at={{x: 10, y: 20}} title="Spelling" trigger="hover" grace={100} onDismiss={onDismiss} testID="pop"/>);
+      expect(islands(TIP)).toHaveLength(0);
+      await rerender(<Popover at={null} title="Spelling" trigger="hover" grace={100} onDismiss={onDismiss} testID="pop"/>);
+      await fireEvent(screen.getByTestId('pop'), 'pointerEnter', {nativeEvent: {pointerType: 'mouse'}});
+      await act(async () => vi.advanceTimersByTimeAsync(500));
+      expect(screen.getByTestId('pop')).toBeOnTheScreen();
+      await fireEvent(screen.getByTestId('pop'), 'pointerLeave', {nativeEvent: {pointerType: 'mouse'}});
+      await act(async () => vi.advanceTimersByTimeAsync(100));
+      expect(screen.queryByTestId('pop')).toBeNull();
+      expect(onDismiss).toHaveBeenCalledWith('leave');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('takes an action of the drawn card as an action', async () => {
+    const onDismiss = vi.fn();
+    await render(<Popover at={{x: 0, y: 0}} modal actions={[{label: 'Save', onPress: vi.fn()}]} onDismiss={onDismiss}/>);
+    await fireEvent(island(BUTTON), 'press');
+    expect(onDismiss).toHaveBeenCalledWith('action');
   });
 });
 

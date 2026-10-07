@@ -83,7 +83,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`Menu`](overlays.md#menu) | A dropdown menu of actions opened from a button. |
 | [`ContextMenu`](overlays.md#contextmenu) | A menu opened by a long press or a right click. |
 | [`PopupMenu`](overlays.md#popupmenu) | The platform's menu at a point, over content the kit did not draw. |
-| [`Popover`](overlays.md#popover) | A card pointing at a rectangle. |
+| [`Popover`](overlays.md#popover) | A card pointing at a rectangle: modal, or kept up by the pointer. |
 | [`Tooltip`](overlays.md#tooltip) | A short hint attached to a piece of content. |
 | [`Alert`](overlays.md#alert) | A modal dialog or an action sheet, with a field for a prompt. |
 | [`Sheet`](overlays.md#sheet) | A bottom sheet with a title bar, a cap on its height, a footer and actions. |

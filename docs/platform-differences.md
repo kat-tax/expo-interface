@@ -43,6 +43,7 @@ The differences that change what a screen can do, in one place:
 | `Sheet` bar | SwiftUI content | Compose content | Drawn | Drawn |
 | `Alert` field | Among the actions | Under the message | Under the message | In the dialog's body, through a portal |
 | `Alert` field's action key | Nothing | Nothing | The first action that is not the cancel | The first action that is not the cancel |
+| `Popover` dismissed by Escape | VoiceOver's escape gesture, modal cards | No | Yes, wherever the focus is | No |
 | `Toolbar` overflow decided by the platform | No | No | No | Yes |
 | `EmptyState` native | iOS 17+ | Drawn | Drawn | Drawn |
 | `Collapsible` children | `@expo/ui` | `@expo/ui` | Any | Any |

@@ -67,7 +67,7 @@ describe(`Popover (${Platform.OS})`, () => {
       : screen.container.queryAll(i => typeof i.props.onButtonPressed === 'function');
     await fireEvent(fix, isIOS ? 'buttonPress' : 'buttonPressed');
     expect(onPress).toHaveBeenCalledTimes(1);
-    expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(onDismiss).toHaveBeenCalledWith('action');
   });
 
   it('needs no testID, and ignores a layout that changes nothing', async () => {

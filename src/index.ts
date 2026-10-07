@@ -108,7 +108,7 @@ export type {PagerProps} from './pager/types';
 export {Picker} from './picker';
 export type {PickerItemProps, PickerOption, PickerProps, PickerValue} from './picker/types';
 export {Popover} from './popover';
-export type {PopoverAction, PopoverProps, PopoverRect} from './popover/types';
+export type {PopoverAction, PopoverDismissReason, PopoverInsets, PopoverProps, PopoverRect} from './popover/types';
 export {PopupMenu} from './popup-menu';
 export type {PopupMenuProps} from './popup-menu/types';
 export {Progress} from './progress';

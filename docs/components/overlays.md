@@ -102,19 +102,39 @@ answers `null`, and a caller anchors the menu under the field instead.
 ## Popover
 
 A card pointing at a rectangle on a canvas: a spelling suggestion, a note on
-a block, a warning about a link. Props: `at` (`{x, y, width, height}` or
-`null`), `title`, `message`, `actions` (`label`, `onPress`, `role`),
-`onDismiss`, `preferredEdge` (`auto`, `top`, `bottom`), `width` (280),
-`children`, `testID`.
+a block, a warning about a link, the editor of an option. Props: `at`
+(`{x, y, width, height}` or `null`), `title`, `message`, `actions` (`label`,
+`onPress`, `role`), `onDismiss(reason)`, `preferredEdge` (`auto`, `top`,
+`bottom`), `width` (280), `modal`, `insets` (`top`, `bottom`, `left`,
+`right`), `trigger` (`manual` or `hover`), `grace` (300 ms), `children`,
+`testID`.
 
 | Platform | Renders |
 | --- | --- |
 | iOS, Android, Web | A drawn `Surface` card placed below the rectangle and flipped above when there is no room, with native buttons for the actions |
-| Windows | A WinUI `TeachingTip` with a tail that points at its target. A popover with `children` is drawn as on the other platforms, since its content is React Native's. |
+| Windows | A WinUI `TeachingTip` with a tail that points at its target. A popover with `children`, a `modal` one and a `hover` one are drawn as on the other platforms, since the tip holds no React Native content and has no modal or hover form. |
 
 `preferredEdge` offers the two vertical edges only, since the drawn card
 cannot reach a side, and it is a preference: with no room on the edge asked
-for, the card goes to the other.
+for, the card goes to the other. `insets` are what the card keeps clear of at
+its parent's edges, a header over the canvas or a bar under it.
+
+`onDismiss` says why the card asks to close: `action` (one of its actions
+was taken), `backdrop` (the backdrop of a modal card was pressed, or on
+Windows a click landed outside the tip), `escape` (Escape on web, wherever
+the focus is, or VoiceOver's escape gesture on a modal card) or `leave` (a
+hover card's pointer stayed away for its grace).
+
+A `modal` card takes the presses around it as its backdrop, so nothing under
+it is pressed by mistake, and says it is a dialog: VoiceOver keeps its focus
+inside, a browser announces it as modal.
+
+A `hover` card is about what is under the pointer. The app sets `at` while
+the pointer is over the thing and clears it when the pointer leaves; the
+card lingers on the last rectangle for `grace`, and stays while the pointer
+is over it, so the pointer can cross onto it. Once the pointer has been away
+from both for the grace, the card goes and reports `leave`. A touch is not a
+hover, so a finger on the card neither keeps it nor counts as leaving.
 
 ## Tooltip
 
