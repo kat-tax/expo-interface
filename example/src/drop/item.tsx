@@ -28,7 +28,8 @@ export function DropItem({drop, onPress, onShare, onDelete}: DropItemProps) {
       ]}>
       <ListItem
         leading={<DropIcon size={32}/>}
-        supporting={`${count} · ${drop.size}`}
+        supporting={count}
+        value={drop.size}
         trailing={(
           <>
             {/* The platform's own badge: an InfoBadge on Windows, the Material

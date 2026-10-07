@@ -1,5 +1,8 @@
+import type {MenuItem, MenuPoint} from '../menu/types';
 import type {TabViewProps, TabViewTab} from './types';
+import {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
+import {PopupMenu} from '../popup-menu';
 import XamlTabView from '../windows/specs/ExpoInterfaceTabViewNativeComponent';
 import {glyphOf, jsonProp, useXamlProps} from '../windows';
 import {useColor} from '../theme';
@@ -49,6 +52,9 @@ export function TabView({
   const xaml = useXamlProps();
   const background = useColor('backgroundElement');
   const index = Math.max(0, tabs.findIndex(tab => tab.id === selected));
+  // A tab's menu, open where the island said the right click or the Menu
+  // key landed, in the island's coordinates, which are the root's.
+  const [menu, setMenu] = useState<{items: MenuItem[]; at: MenuPoint} | null>(null);
   return (
     <View style={[styles.root, style]} onLayout={onLayout} testID={testID}>
       {resolved === 'strip' ? (
@@ -68,11 +74,16 @@ export function TabView({
               if (tab) onClose?.(tab.id);
             }}
             onAddTab={() => onAdd?.()}
+            onTabMenu={event => {
+              const tab = tabs[event.nativeEvent.index];
+              if (tab?.menu) setMenu({items: tab.menu, at: {x: event.nativeEvent.x, y: event.nativeEvent.y}});
+            }}
             style={styles.strip}
             testID={testID ? `${testID}-strip` : undefined}
             {...xaml}
           />
           <View style={styles.content}>{children}</View>
+          <PopupMenu items={menu?.items ?? []} at={menu?.at ?? null} onDismiss={() => setMenu(null)} testID={testID ? `${testID}-menu` : undefined}/>
         </>
       ) : (
         <TabSwitcher
@@ -92,14 +103,18 @@ export function TabView({
 
 /**
  * The tabs as the island's JSON: each one's title, its Fluent glyph where the
- * icon has one, and whether it closes. A pinned tab keeps its place in the
- * array — the index is how a selection comes back — and simply shows no cross.
+ * icon has one, whether it closes, how deep it is nested and whether it has
+ * a menu to ask for. A pinned tab keeps its place in the array — the index
+ * is how a selection comes back — and simply shows no cross. An accessory
+ * has no place in a `TabViewItem`'s header, which holds text and a glyph.
  */
 export function tabItems(tabs: readonly TabViewTab[], closable: boolean): string {
   return jsonProp(tabs.map(tab => ({
     title: tab.title,
     glyph: glyphOf(tab.icon) ?? null,
     closable: closable && !tab.pinned,
+    depth: tab.depth ?? 0,
+    menu: !!tab.menu?.length,
   })));
 }
 

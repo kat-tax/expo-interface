@@ -35,6 +35,10 @@ The differences that change what a screen can do, in one place:
 | `FieldGroup` `titleUppercase` | Ignored | Yes | Yes | Yes |
 | `TabView` reordering | No | No | No | Off |
 | `TabView` close on the keyboard | Button | Button | Delete | The control's cross |
+| `TabView` tab menu | Long press | Long press | Right click, Menu key | Right click, Menu key |
+| `TabView` accessory in the strip | Yes | Yes | Yes | Cards only |
+| `List` | SwiftUI `List` | `LazyColumn` | DOM list, `content-visibility` | `FlatList` |
+| `CardGrid` | `FlatList` | `FlatList` | CSS grid | `FlatList` |
 | `Toolbar` overflow decided by the platform | No | No | No | Yes |
 | `EmptyState` native | iOS 17+ | Drawn | Drawn | Drawn |
 | `Collapsible` children | `@expo/ui` | `@expo/ui` | Any | Any |

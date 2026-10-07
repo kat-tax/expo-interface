@@ -54,6 +54,14 @@ describe(`NativeHost (${Platform.OS})`, () => {
       expect(style.alignSelf).toBe('stretch');
     });
 
+    it('takes the size its layout gives on both axes with fit="fill", for content that scrolls', () => {
+      const {container} = renderDom(<NativeHost fit="fill"/>);
+      const style = getComputedStyle(container.firstElementChild!);
+      expect(style.flexGrow).toBe('1');
+      expect(style.alignSelf).toBe('stretch');
+      expect(style.width).not.toBe('fit-content');
+    });
+
     it('lays its children out as one row or column when asked', () => {
       const {container} = renderDom(
         <NativeHost direction="row" spacing={8}>
@@ -82,7 +90,7 @@ describe(`NativeHost (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(hostView.props.style)).toEqual({alignSelf: 'stretch', margin: 4});
     // Both native hosts split `matchContents` into one prop per axis.
     expect(hostView.props.matchContentsVertical).toBe(true);
-    expect(hostView.props.matchContentsHorizontal).toBeUndefined();
+    expect(hostView.props.matchContentsHorizontal).toBeFalsy();
     if (Platform.OS === 'ios') {
       expect(modifier(hostView.props, 'tint')?.tint.color).toBe('#8959EA');
       expect(host(p => p.label === 'Wi-Fi')).toBeTruthy();
@@ -111,8 +119,20 @@ describe(`NativeHost (${Platform.OS})`, () => {
     );
     const hostView = nodes().find(n => n.type === HOST)!;
     expect(hostView.props.matchContentsHorizontal).toBe(true);
-    expect(hostView.props.matchContentsVertical).toBeUndefined();
+    expect(hostView.props.matchContentsVertical).toBeFalsy();
     expect(StyleSheet.flatten(hostView.props.style)).toEqual({alignSelf: 'stretch'});
+  });
+
+  it('matches nothing with fit="fill", taking the size its layout gives, for content that scrolls', async () => {
+    await render(
+      <NativeHost fit="fill">
+        <Switch value onValueChange={() => {}}/>
+      </NativeHost>,
+    );
+    const hostView = nodes().find(n => n.type === HOST)!;
+    expect(hostView.props.matchContentsHorizontal).toBeFalsy();
+    expect(hostView.props.matchContentsVertical).toBeFalsy();
+    expect(StyleSheet.flatten(hostView.props.style)).toEqual({flex: 1, alignSelf: 'stretch'});
   });
 
   it('lays its children out as one native row or column when asked', async () => {

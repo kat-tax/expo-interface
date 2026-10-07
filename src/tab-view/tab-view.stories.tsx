@@ -105,6 +105,30 @@ export const Switcher: Story = {args: {layout: 'switcher', onClose: () => {}, on
 /** Left to measure for itself, which is how it is meant to be used: the strip above 640 points, the switcher below. */
 export const Adaptive: Story = {args: {onClose: () => {}, onAdd: () => {}}};
 
+/** A presence dot after a title: content of the app's own in the tab. */
+function Presence() {
+  const color = useColor('success');
+  return <View style={[styles.presence, {backgroundColor: color}]}/>;
+}
+
+/**
+ * Tabs that belong to one another, each with its own menu: a long press on
+ * iOS and Android, a right click or the Menu key on web and Windows opens
+ * it, under the tab or at the pointer. The nested tabs are indented by
+ * their depth, and the second one carries a presence dot after its title.
+ */
+export const Nested: Story = {
+  args: {
+    layout: 'strip',
+    onClose: () => {},
+    tabs: [
+      {...OPEN[0]!, menu: [{label: 'Rename'}, {label: 'Duplicate'}, {label: 'Close others', separator: true}]},
+      {...OPEN[1]!, depth: 1, accessory: <Presence/>, menu: [{label: 'Rename'}, {label: 'Move up'}]},
+      {...OPEN[2]!, depth: 2},
+    ],
+  },
+};
+
 const styles = StyleSheet.create({
   frame: {
     height: 260,
@@ -115,5 +139,10 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     gap: spacing.two,
     padding: spacing.four,
+  },
+  presence: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });

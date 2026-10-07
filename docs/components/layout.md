@@ -20,8 +20,11 @@ Props: `native` (mount an `@expo/ui` host around the screen), `header`
 `TabStack`), `gutter` (horizontal padding), `underBar` (the content starts
 under the bar floating over the screen's top rather than below it, for a
 scrolling screen that passes under a material bar: the web tab bar, or on
-iOS the header of a `TabStack` with a `material`; its scroll content pads
-its top by `useTabBarInset()`), `fab` (a node placed at the bottom
+iOS the header of a `TabStack` with a `material`; the kit's `List` and
+`CardGrid` pad their first row by the bar themselves, and other scroll
+content reads `useScrollInsets()`, which is the bar's inset under such a
+screen and nothing elsewhere, with any insets passed to it added), `fab` (a
+node placed at the bottom
 trailing corner, above the safe area and the tab bar, lifted above a `Toast`
 while one shows and above a bar the screen draws at its bottom).
 
@@ -180,13 +183,24 @@ section's title and the note under it is the footer.
 
 ## ListItem
 
-A settings-style row with leading and trailing slots, supporting text, a
-trailing action and the row's own actions.
+A settings-style row with an icon, leading and trailing slots, supporting
+text, a value, a badge, a trailing action and the row's own actions.
 
-Props: `children` (the headline), `leading`, `trailing`, `supporting`,
-`action` (`label`, `onPress`, `disabled`, `loading`, `role`, `variant` `text`
-or `filled`), `swipeActions` (`label`, `onPress`, `icon`, `role`, `disabled`
-per action), `inset` (default true), `onPress`, `testID`.
+Props: `children` (the headline), `icon` (an `IconToken` at the start,
+drawn by the kit at the row's size in `iconTone`, default `secondary`,
+before any `leading` content), `leading`, `trailing`, `supporting`, `value`
+(text at the trailing edge in the secondary color, before `trailing`: a
+setting's value, a file's size), `badge` (`true` for a dot, a number for a
+count, as the kit's `Badge` at the trailing edge), `selected` (the current
+row, in the selected fill and announced as selected), `action` (`label`,
+`onPress`, `disabled`, `loading`, `role`, `variant` `text` or `filled`),
+`swipeActions` (`label`, `onPress`, `icon`, `role`, `disabled` per action),
+`inset` (default true), `onPress`, `testID`.
+
+A row whose headline is a string is named from its slots on every platform:
+"Essay, Edited, 2 KB, 3 new" for a headline, supporting text, value and
+badge, so a screen reader hears the row as one thing. A headline of the
+app's own content keeps whatever name that content has.
 
 | Platform | Renders |
 | --- | --- |
@@ -206,6 +220,66 @@ Differences:
 - On iOS and Android a row outside a host (a React Native `ScrollView` of
   rows) mounts a host of its own, so it draws there too. See
   [Native hosts](../hosts.md).
+
+## List
+
+A list of rows that grows: the inbox, the versions of a document, the
+members of a space. The rows are `ListItem`s and the list is the platform's
+own lazy one, so three thousand rows cost what the screen shows.
+
+Props: `data`, `renderItem(item, index)`, `keyExtractor` (the index when
+left out), `separators` (default true), `header`, `footer`, `empty` (what
+shows in place of the rows when there are none, usually an `EmptyState`),
+`onEndReached` (called once the last row has been drawn, for a list that
+loads more), `estimatedItemHeight` (default 56: what the web lays out for a
+row before it comes into view, and what Windows jumps by), `contentInset`
+(`top`, `bottom`, the space inside the list before the first row and after
+the last), `style`, `testID`.
+
+| Platform | Renders |
+| --- | --- |
+| iOS | SwiftUI `List` in the plain style: it recycles its rows, draws its own separators and scrolls under a translucent bar |
+| Android | Compose `LazyColumn`, with a Material `HorizontalDivider` between the rows |
+| Web | A DOM list whose rows the browser lays out as they come into view (`content-visibility: auto`), with hairlines between them |
+| Windows | React Native's `FlatList`, windowed |
+
+Differences:
+
+- On iOS and Android a row is native content, as a row in a `FieldGroup`
+  is: the kit's `ListItem`, or `@expo/ui` content. A React Native view
+  inside a row is hosted a second time each time the list recycles it, so a
+  row that needs one belongs in a `CardGrid`, which is drawn in React
+  Native. The `header`, `footer` and `empty` content are native there too.
+- Outside a host the list mounts one that fills the screen (`NativeHost
+  fit="fill"`); under `Screen native` it uses the screen's.
+- Under a `Screen underBar` the list pads its first row by the bar through
+  `useScrollInsets()`, with `contentInset` added to that.
+
+## CardGrid
+
+A grid of cards that grows: the documents of a workspace, the photos of a
+drop, the spaces on a dashboard. The columns come from the width: as many
+cards of at least `minItemWidth` as fit, up to `maxColumns`, so a phone
+holds two and a desk four without the app measuring anything.
+
+Props: `data`, `renderItem(item, index)` (one cell, usually a `Card`, which
+fills the cell's width), `keyExtractor`, `minItemWidth` (default 150),
+`maxColumns` (default 4), `gap` (default 12, on both axes), `header`,
+`footer`, `empty`, `onEndReached`, `estimatedItemHeight` (default 180),
+`contentInset`, `style`, `testID`.
+
+| Platform | Renders |
+| --- | --- |
+| iOS, Android, Windows | React Native's `FlatList` of rows, windowed, with the column count worked out from the measured width; a short last row keeps its cells the width of the others |
+| Web | A CSS grid, each cell laid out as it comes into view (`content-visibility: auto`) |
+
+Differences:
+
+- Drawn in React Native on every platform, like `Card`, because a card
+  holds what is not native: a preview, a thumbnail. A list of rows is
+  `List`.
+- Under a `Screen underBar` the grid pads its first row by the bar through
+  `useScrollInsets()`, and on iOS its scroll indicators with it.
 
 ## Collapsible
 

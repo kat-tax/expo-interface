@@ -3,7 +3,7 @@ import type {Edge} from 'react-native-safe-area-context';
 import type {PropsWithChildren, ReactNode} from 'react';
 
 import {Host} from '@expo/ui';
-import {useContext, useEffect, useState} from 'react';
+import {useContext, useEffect, useMemo, useState} from 'react';
 import {StatusBar} from 'expo-status-bar';
 import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Animated, Appearance, Platform, StyleSheet, View} from 'react-native';
@@ -12,12 +12,13 @@ import {useAccentSeed} from '../accent';
 import {NativeHostContext} from '../host';
 import {useFloatingHeader, useStackHeader} from '../stack-header/context';
 import {useColorScheme} from '../scheme';
-import {FoldedSearchContext, useNativeTabs} from '../tabs/context';
+import {FoldedSearchContext, useNativeTabs, useTabBarInset} from '../tabs/context';
 import {ToastInsetContext} from '../toast/context';
 import * as theme from '../theme';
 
 import {ScreenBarsContext, useScreenBars} from './bars';
 import {hostAccentProps} from './host-accent';
+import {ScrollInsetsContext} from './insets';
 import {useToastLift} from './lift';
 
 const BG_COLOR: Record<ColorSchemeName, ColorValue> = {
@@ -53,10 +54,12 @@ export interface ScreenProps extends PropsWithChildren {
    * The content starts under the bar floating over the screen's top rather
    * than below it, for a scrolling screen whose content should pass under a
    * material bar and show through it: the web tab bar (`Tabs webMaterial`),
-   * or on iOS the stack header of a `TabStack` with a `material`. Pad the
-   * scroll content's top by `useTabBarInset()` so its first row starts clear
-   * of the bar. Under an opaque header (Android's always is) the top inset is
-   * already nothing, so this changes nothing.
+   * or on iOS the stack header of a `TabStack` with a `material`. A kit
+   * `List` or `CardGrid` in the content pads its own content and its
+   * scroll indicators by the bar's inset (`useScrollInsets()`), so its first
+   * row starts clear of the bar; a scroll view of the app's own pads its
+   * content by `useTabBarInset()`. Under an opaque header (Android's always
+   * is) the top inset is already nothing, so this changes nothing.
    * @default false
    */
   underBar?: boolean;
@@ -94,6 +97,9 @@ export function Screen({
   const backgroundColor = background(scheme);
   const lift = useToastLift();
   const {bars, top, bottom, hasBottom} = useScreenBars();
+  // What the content under a bar pads itself by, handed to the kit's scrolling components.
+  const barInset = useTabBarInset();
+  const scrollInsets = useMemo(() => ({top: underBar ? barInset : 0, bottom: 0}), [underBar, barInset]);
   // The bottom bars' height, measured, which the fab sits above.
   const [barHeight, setBarHeight] = useState(0);
   const onBarsLayout = (event: LayoutChangeEvent) => setBarHeight(event.nativeEvent.layout.height);
@@ -126,13 +132,15 @@ export function Screen({
         <View style={[styles.content, gutter ? styles.gutter : undefined]}>
           <ToastInsetContext.Provider value={lift.report}>
             <ScreenBarsContext.Provider value={bars}>
-              {!native ? children : (
-                <NativeHostContext.Provider value={true}>
-                  <Host style={{flex: 1}} {...hostAccentProps(seed)}>
-                    {children}
-                  </Host>
-                </NativeHostContext.Provider>
-              )}
+              <ScrollInsetsContext.Provider value={scrollInsets}>
+                {!native ? children : (
+                  <NativeHostContext.Provider value={true}>
+                    <Host style={{flex: 1}} {...hostAccentProps(seed)}>
+                      {children}
+                    </Host>
+                  </NativeHostContext.Provider>
+                )}
+              </ScrollInsetsContext.Provider>
             </ScreenBarsContext.Provider>
           </ToastInsetContext.Provider>
         </View>

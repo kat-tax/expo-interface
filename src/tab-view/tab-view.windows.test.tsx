@@ -40,11 +40,11 @@ describe('TabView (windows)', () => {
 
   it('hands the tabs over as JSON, with a Fluent glyph and the crosses that apply', () => {
     expect(JSON.parse(tabItems(TABS, true))).toEqual([
-      {title: 'Notes', glyph: 'E8A5', closable: true},
-      {title: 'Sketch', glyph: null, closable: true},
+      {title: 'Notes', glyph: 'E8A5', closable: true, depth: 0, menu: false},
+      {title: 'Sketch', glyph: null, closable: true, depth: 0, menu: false},
       // Pinned keeps its place — the index is how a selection comes back —
       // and simply shows no cross.
-      {title: 'Readme', glyph: null, closable: false},
+      {title: 'Readme', glyph: null, closable: false, depth: 0, menu: false},
     ]);
     expect(JSON.parse(tabItems(TABS, false)).every((tab: {closable: boolean}) => !tab.closable)).toBe(true);
   });

@@ -18,7 +18,7 @@ export function NativeHost({children, style, fit = false, direction, spacing, on
     <NativeHostContext.Provider value={true}>
       <View
         style={[
-          fit === true ? styles.fit : fit === 'width' ? styles.fitWidth : styles.fill,
+          fit === true ? styles.fit : fit === 'width' ? styles.fitWidth : fit === 'fill' ? styles.fillBoth : styles.fill,
           direction === 'row' ? styles.row : direction === 'column' ? styles.column : null,
           direction && spacing != null ? {gap: spacing} : null,
           style,
@@ -45,6 +45,7 @@ export function SelfHosted({children}: PropsWithChildren<{fit?: NativeHostFit; s
 
 const styles = StyleSheet.create({
   fill: {alignSelf: 'stretch'},
+  fillBoth: {flex: 1, alignSelf: 'stretch'},
   fit: {alignSelf: 'flex-start'},
   fitWidth: {alignSelf: 'stretch'},
   row: {flexDirection: 'row', alignItems: 'center'},

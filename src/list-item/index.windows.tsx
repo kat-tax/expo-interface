@@ -1,12 +1,13 @@
 import type {ListItemProps} from './types';
-import {WithRowMenu} from './shared';
+import {ROW_ICON, WithRowMenu, rowLabel, textOf} from './shared';
 import {StyleSheet, View} from 'react-native';
+import {Badge} from '../badge';
 import {Button} from '../button';
 import {StatePressable} from '../surface/pressable';
 import {pressFeedback} from '../surface/shared';
+import {Icon} from '../symbol';
 import {Footnote, Label} from '../typography';
-import {spacing} from '../theme';
-
+import {spacing, useColor} from '../theme';
 
 /**
  * The row, plus the platform's context menu when it has actions of its own.
@@ -30,16 +31,23 @@ export function ListItem({swipeActions, ...props}: ListItemProps) {
  * button (a XAML island). The row is a pressable when it has an `onPress`:
  * WinUI's subtle fill under the pointer and while pressed, focusable with
  * the platform's focus ring, Enter and Space pressing it, and named for
- * assistive technology after a text headline. Its metrics are a WinUI
- * settings card's: 48 points tall at least, 16 of padding at the ends,
- * which a `FieldGroup.Section` supplies instead.
+ * assistive technology after its text. A selected row takes the selected
+ * fill. Its metrics are a WinUI settings card's: 48 points tall at least,
+ * 16 of padding at the ends, which a `FieldGroup.Section` supplies instead.
  */
-function ListItemRow({children, leading, trailing, action, supporting, inset = true, onPress, testID}: ListItemProps) {
+function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
+  const selectedFill = useColor('backgroundSelected');
   const filled = action?.variant === 'filled';
-  const headline = typeof children === 'string' || typeof children === 'number' ? String(children) : undefined;
+  const headline = textOf(children);
+  const label = rowLabel({children, supporting, value, badge});
   const content = (
     <>
-      {leading != null ? <View style={styles.slot}>{leading}</View> : null}
+      {icon || leading != null ? (
+        <View style={styles.slot}>
+          {icon ? <Icon icon={icon} size={ROW_ICON} tone={iconTone}/> : null}
+          {leading}
+        </View>
+      ) : null}
       <View style={styles.main}>
         {headline !== undefined ? <Label color="label">{headline}</Label> : children}
         {supporting != null ? (
@@ -48,7 +56,13 @@ function ListItemRow({children, leading, trailing, action, supporting, inset = t
             : supporting
         ) : null}
       </View>
-      {trailing != null ? <View style={styles.slot}>{trailing}</View> : null}
+      {value != null || badge || trailing != null ? (
+        <View style={styles.slot}>
+          {value != null ? <Footnote color="secondaryLabel">{value}</Footnote> : null}
+          {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true}/> : null}
+          {trailing}
+        </View>
+      ) : null}
       {action ? (
         <Button
           label={action.label}
@@ -63,12 +77,13 @@ function ListItemRow({children, leading, trailing, action, supporting, inset = t
       ) : null}
     </>
   );
-  const row = [styles.row, inset && styles.inset];
+  const row = [styles.row, inset && styles.inset, selected && {backgroundColor: selectedFill}];
   if (onPress) {
     return (
       <StatePressable
         role="button"
-        accessibilityLabel={headline}
+        accessibilityLabel={label}
+        accessibilityState={selected ? {selected: true} : undefined}
         onPress={onPress}
         style={state => [row, pressFeedback(state, 'subtle')]}
         testID={testID}>
@@ -76,7 +91,11 @@ function ListItemRow({children, leading, trailing, action, supporting, inset = t
       </StatePressable>
     );
   }
-  return <View style={row} testID={testID}>{content}</View>;
+  return (
+    <View style={row} accessibilityLabel={label} accessibilityState={selected ? {selected: true} : undefined} testID={testID}>
+      {content}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -94,6 +113,7 @@ const styles = StyleSheet.create({
   slot: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.two,
     flexShrink: 0,
   },
   main: {

@@ -29,11 +29,13 @@ describe('NativeHost (windows)', () => {
     await render(
       <>
         <NativeHost fit="width"><Hosted/></NativeHost>
+        <NativeHost fit="fill"><Text>fill</Text></NativeHost>
         <NativeHost direction="row" spacing={8}><Text>row</Text></NativeHost>
         <NativeHost direction="column" spacing={4}><Text>column</Text></NativeHost>
       </>,
     );
     expect(screen.getByText('hosted').parent).toHaveStyle({alignSelf: 'stretch'});
+    expect(screen.getByText('fill').parent).toHaveStyle({flex: 1, alignSelf: 'stretch'});
     expect(screen.getByText('row').parent).toHaveStyle({flexDirection: 'row', alignItems: 'center', gap: 8});
     expect(screen.getByText('column').parent).toHaveStyle({flexDirection: 'column', gap: 4});
   });

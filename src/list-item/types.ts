@@ -1,11 +1,6 @@
-import type {IconToken} from '../icons';
+import type {IconToken, IconTone} from '../icons';
 import type {ReactNode} from 'react';
 
-/**
- * A text action at the trailing edge of a `ListItem` (sign in, sign out,
- * clear cache): a Compose `TextButton`, a borderless SwiftUI `Button`, a DOM
- * button. The row itself stays inert unless it also has an `onPress`.
- */
 /**
  * One of a row's own actions. Shaped to suit both ends of the split: a
  * SwiftUI button behind a swipe, and an entry in the platform's context menu.
@@ -20,6 +15,11 @@ export interface ListItemSwipeAction {
   disabled?: boolean;
 }
 
+/**
+ * A text action at the trailing edge of a `ListItem` (sign in, sign out,
+ * clear cache): a Compose `TextButton`, a borderless SwiftUI `Button`, a DOM
+ * button. The row itself stays inert unless it also has an `onPress`.
+ */
 export interface ListItemAction {
   /** The action's text. */
   label: string;
@@ -52,8 +52,30 @@ export interface ListItemAction {
 export interface ListItemProps {
   /** Headline content; strings are wrapped in default label styling. */
   children?: ReactNode;
+  /**
+   * An icon at the start of the row, drawn by the kit at the row's size in
+   * `iconTone`, before any `leading` content: a message's kind, a file's
+   * type, a setting's symbol.
+   */
+  icon?: IconToken;
+  /**
+   * The color's role for `icon`.
+   * @default 'secondary'
+   */
+  iconTone?: IconTone;
   /** Leading (start) slot — icon, avatar, etc. */
   leading?: ReactNode;
+  /**
+   * Text at the trailing edge in the secondary color, before `trailing`: a
+   * setting's value, a message's time, a file's size.
+   */
+  value?: string;
+  /**
+   * A mark at the trailing edge: `true` for a dot (something unread, something
+   * changed), a number for a count. The kit's `Badge`, and part of the row's
+   * accessible name.
+   */
+  badge?: boolean | number;
   /** Trailing (end) slot — chevron, value, control, etc. */
   trailing?: ReactNode;
   /** A text action rendered natively at the trailing edge, after `trailing`. */
@@ -77,6 +99,12 @@ export interface ListItemProps {
   swipeActions?: ListItemSwipeAction[];
   /** Secondary content below the headline; strings get subtle styling. */
   supporting?: string | ReactNode;
+  /**
+   * The row is the current one: the open document, the chosen version. Drawn
+   * in the selected fill and announced as selected.
+   * @default false
+   */
+  selected?: boolean;
   /**
    * Whether the row draws its own padding. A `FieldGroup.Section` insets and
    * sizes every row it holds, and turns this off for the rows it is given —

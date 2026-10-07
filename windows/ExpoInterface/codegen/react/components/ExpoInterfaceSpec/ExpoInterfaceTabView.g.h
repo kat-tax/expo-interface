@@ -34,7 +34,8 @@ struct ExpoInterfaceTabViewProps : winrt::implements<ExpoInterfaceTabViewProps, 
        theme = cloneFromProps->theme;
        onSelectionChange = cloneFromProps->onSelectionChange;
        onTabClose = cloneFromProps->onTabClose;
-       onAddTab = cloneFromProps->onAddTab;  
+       onAddTab = cloneFromProps->onAddTab;
+       onTabMenu = cloneFromProps->onTabMenu;  
      }
   }
 
@@ -73,7 +74,22 @@ struct ExpoInterfaceTabViewProps : winrt::implements<ExpoInterfaceTabViewProps, 
   REACT_FIELD(onAddTab)
   bool onAddTab{false};
 
+  REACT_FIELD(onTabMenu)
+  bool onTabMenu{false};
+
   const winrt::Microsoft::ReactNative::ViewProps ViewProps;
+};
+
+REACT_STRUCT(ExpoInterfaceTabViewSpec_onTabMenu)
+struct ExpoInterfaceTabViewSpec_onTabMenu {
+  REACT_FIELD(index)
+  int32_t index{};
+
+  REACT_FIELD(x)
+  double x{};
+
+  REACT_FIELD(y)
+  double y{};
 };
 
 REACT_STRUCT(ExpoInterfaceTabViewSpec_onAddTab)
@@ -99,6 +115,7 @@ struct ExpoInterfaceTabViewEventEmitter {
   using OnSelectionChange = ExpoInterfaceTabViewSpec_onSelectionChange;
   using OnTabClose = ExpoInterfaceTabViewSpec_onTabClose;
   using OnAddTab = ExpoInterfaceTabViewSpec_onAddTab;
+  using OnTabMenu = ExpoInterfaceTabViewSpec_onTabMenu;
 
   void onSelectionChange(OnSelectionChange &&value) const {
     m_eventEmitter.DispatchEvent(L"selectionChange", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
@@ -114,6 +131,12 @@ struct ExpoInterfaceTabViewEventEmitter {
 
   void onAddTab(OnAddTab &&value) const {
     m_eventEmitter.DispatchEvent(L"addTab", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
+      winrt::Microsoft::ReactNative::WriteValue(writer, value);
+    });
+  }
+
+  void onTabMenu(OnTabMenu &&value) const {
+    m_eventEmitter.DispatchEvent(L"tabMenu", [value = std::move(value)](const winrt::Microsoft::ReactNative::IJSValueWriter writer) {
       winrt::Microsoft::ReactNative::WriteValue(writer, value);
     });
   }

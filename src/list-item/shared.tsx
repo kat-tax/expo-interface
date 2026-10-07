@@ -1,7 +1,10 @@
 import type {ReactNode} from 'react';
 import type {MenuItem} from '../menu/types';
-import type {ListItemSwipeAction} from './types';
+import type {ListItemProps, ListItemSwipeAction} from './types';
 import {ContextMenu} from '../context-menu';
+
+/** The size the kit draws a row's `icon` at. */
+export const ROW_ICON = 24;
 
 /** The row's actions as menu entries, for the platforms that reveal them that way. */
 export function asMenuItems(actions: readonly ListItemSwipeAction[]): MenuItem[] {
@@ -12,6 +15,30 @@ export function asMenuItems(actions: readonly ListItemSwipeAction[]): MenuItem[]
     disabled: action.disabled,
     onPress: action.onPress,
   }));
+}
+
+/** The text a node is, where it is one, for the row's name. */
+export function textOf(node: ReactNode): string | undefined {
+  return typeof node === 'string' || typeof node === 'number' ? String(node) : undefined;
+}
+
+/** What a badge says: a count of new things, or that there is something. */
+export function badgeWords(badge: boolean | number | undefined): string | undefined {
+  if (badge === undefined || badge === false || badge === 0) return undefined;
+  return typeof badge === 'number' ? `${badge} new` : 'new';
+}
+
+/**
+ * The row's accessible name, composed from its slots: the headline, the
+ * supporting text, the value and what the badge says, so a screen reader
+ * says "Essay, edited yesterday, 2 KB, 3 new" as one thing rather than
+ * four loose ones. Only for a row whose headline is text; a row whose
+ * headline is content of the app's own names itself through that content.
+ */
+export function rowLabel({children, supporting, value, badge}: Pick<ListItemProps, 'children' | 'supporting' | 'value' | 'badge'>): string | undefined {
+  const headline = textOf(children);
+  if (headline === undefined) return undefined;
+  return [headline, textOf(supporting), value, badgeWords(badge)].filter(Boolean).join(', ');
 }
 
 /**

@@ -22,7 +22,9 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`Toolbar`](layout.md#toolbar) | A bar of tools along a canvas. |
 | [`KeyboardBar`](layout.md#keyboardbar) | A bottom bar that sticks to the keyboard. |
 | [`FieldGroup`](layout.md#fieldgroup) | A scrollable settings form of titled sections. |
-| [`ListItem`](layout.md#listitem) | A settings-style row with slots, an action and swipe actions. |
+| [`ListItem`](layout.md#listitem) | A settings-style row with an icon, slots, a value, a badge, an action and swipe actions. |
+| [`List`](layout.md#list) | A list of rows that grows: the platform's own lazy list. |
+| [`CardGrid`](layout.md#cardgrid) | A grid of cards that grows, its columns from the width. |
 | [`Collapsible`](layout.md#collapsible) | A header that shows or hides its content. |
 | [`Divider`](layout.md#divider) | A hairline separator. |
 | [`EmptyState`](layout.md#emptystate) | What a screen shows when it has nothing to show. |
@@ -100,4 +102,5 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | `useWindowChrome` | Content in the Windows title bar. | [Windows](../platforms/windows.md#the-window) |
 | `useKeyboardShortcut` | A keyboard shortcut on Windows. | [Windows](../platforms/windows.md#keyboard) |
 | `nextSelection` | Which tab to select when one closes. | [TabView](navigation.md#tabview) |
+| `useScrollInsets` | The insets a screen's scroll content pays for a bar it passes under, plus its own. | [Screen](layout.md#screen) |
 | `caretPoint` | Where the caret is in a text field, on web. | [PopupMenu](overlays.md#popupmenu) |

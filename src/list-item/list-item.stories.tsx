@@ -99,6 +99,27 @@ export const NotPressable: Story = {
   args: {onPress: undefined, supporting: 'Read-only row'},
 };
 
+/**
+ * The row's own slots: an icon the kit draws at the start in a tone, a value
+ * at the trailing edge, and a badge. A screen reader hears the row as one
+ * thing, "Essay, Edited yesterday, 2 KB, 3 new".
+ */
+export const Slots: Story = {
+  args: {
+    children: 'Essay',
+    icon: icons.star,
+    iconTone: 'accent',
+    supporting: 'Edited yesterday',
+    value: '2 KB',
+    badge: 3,
+  },
+};
+
+/** The current row: the open document, the chosen version. */
+export const Selected: Story = {
+  args: {children: 'Essay', icon: icons.info, value: '2 KB', badge: true, selected: true},
+};
+
 export const List: Story = {
   render: args => (
     <Column modifiers={fillWidth}>

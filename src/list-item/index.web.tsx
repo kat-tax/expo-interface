@@ -1,8 +1,9 @@
 import './list-item.css';
 import type {ListItemProps} from './types';
-import {WithRowMenu} from './shared';
+import {ROW_ICON, WithRowMenu, rowLabel} from './shared';
+import {Badge} from '../badge';
 import {Button} from '../button';
-
+import {Icon} from '../symbol';
 
 /**
  * The row, plus the platform's context menu when it has actions of its own.
@@ -26,13 +27,27 @@ export function ListItem({swipeActions, ...props}: ListItemProps) {
  * disagrees with a forced scheme, and it offers no place for an `action` —
  * the action's `<button>` has to sit beside the row's own control rather
  * than inside it, since nested buttons are not valid HTML and a click on the
- * action would also press the row.
+ * action would also press the row. A selected row carries `aria-current`,
+ * which is what the kit's menus say of their current entry too.
  */
-function ListItemRow({children, leading, trailing, action, supporting, inset = true, onPress, testID}: ListItemProps) {
-  const rowClass = inset ? 'ui-list-item' : 'ui-list-item ui-list-item--flush';
+function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
+  const rowClass = ['ui-list-item', !inset && 'ui-list-item--flush', selected && 'ui-list-item--selected'].filter(Boolean).join(' ');
+  const label = rowLabel({children, supporting, value, badge});
+  const current = selected ? ('true' as const) : undefined;
+  const marks = value != null || badge ? (
+    <>
+      {value != null ? <span className="ui-list-item__value">{value}</span> : null}
+      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true}/> : null}
+    </>
+  ) : null;
   const content = (
     <>
-      {leading != null ? <span className="ui-list-item__slot">{leading}</span> : null}
+      {icon || leading != null ? (
+        <span className="ui-list-item__slot">
+          {icon ? <Icon icon={icon} size={ROW_ICON} tone={iconTone}/> : null}
+          {leading}
+        </span>
+      ) : null}
       <span className="ui-list-item__main">
         <span className="ui-list-item__headline">{children}</span>
         {supporting != null ? (
@@ -41,24 +56,29 @@ function ListItemRow({children, leading, trailing, action, supporting, inset = t
             : supporting
         ) : null}
       </span>
-      {trailing != null ? <span className="ui-list-item__slot">{trailing}</span> : null}
+      {marks || trailing != null ? (
+        <span className="ui-list-item__slot">
+          {marks}
+          {trailing}
+        </span>
+      ) : null}
     </>
   );
   // Without an action the row is the control: a `<button>` when it presses.
   if (!action) {
     return onPress ? (
-      <button type="button" className={rowClass} data-testid={testID} onClick={onPress}>{content}</button>
+      <button type="button" className={rowClass} aria-label={label} aria-current={current} data-testid={testID} onClick={onPress}>{content}</button>
     ) : (
-      <div className={rowClass} data-testid={testID}>{content}</div>
+      <div className={rowClass} aria-label={label} aria-current={current} data-testid={testID}>{content}</div>
     );
   }
   const filled = action.variant === 'filled';
   return (
-    <div className={rowClass} data-testid={testID}>
+    <div className={rowClass} aria-current={current} data-testid={testID}>
       {onPress ? (
-        <button type="button" className="ui-list-item__row ui-list-item__row--pressable" onClick={onPress}>{content}</button>
+        <button type="button" className="ui-list-item__row ui-list-item__row--pressable" aria-label={label} onClick={onPress}>{content}</button>
       ) : (
-        <div className="ui-list-item__row">{content}</div>
+        <div className="ui-list-item__row" aria-label={label}>{content}</div>
       )}
       <Button
         label={action.label}

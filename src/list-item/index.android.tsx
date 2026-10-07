@@ -1,10 +1,12 @@
 import type {ReactNode} from 'react';
 import type {ListItemProps} from './types';
-import {WithRowMenu} from './shared';
-import {Button, CircularProgressIndicator, Column, ListItem as ComposeListItem, Row, Shape, Spacer, Text, TextButton} from '@expo/ui/jetpack-compose';
-import {clickable, fillMaxWidth, size, testID as testIDModifier, weight, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
+import {ROW_ICON, WithRowMenu} from './shared';
+import {Button, CircularProgressIndicator, Column, Icon, ListItem as ComposeListItem, Row, Shape, Spacer, Text, TextButton} from '@expo/ui/jetpack-compose';
+import {background, clickable, fillMaxWidth, size, testID as testIDModifier, weight, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
+import {Badge} from '../badge';
 import {androidContentPadding} from '../button/shared';
 import {NativeHost, useNativeHost} from '../host';
+import {TONE_TOKEN, drawableOf} from '../icons';
 import {useColor} from '../theme';
 
 /** The `rounded` button shape, as the kit's own `Button` draws it. */
@@ -13,6 +15,7 @@ const ROUNDED = Shape.RoundedCorner({cornerRadii: {topStart: 12, topEnd: 12, bot
 /** The spinner before a loading action's label, the small button's icon size. */
 const ACTION_SPINNER = 16;
 
+const TRANSPARENT = '#00000000';
 
 /**
  * The row, plus the platform's context menu when it has actions of its own.
@@ -41,21 +44,24 @@ export function ListItem({swipeActions, ...props}: ListItemProps) {
  * Android uses the Material 3 Compose `ListItem` directly so the container
  * can be made transparent — the M3 default paints the Host palette's
  * `surface`, which reads as a grey panel over the app's screen background
- * (web/iOS rows are transparent). An `action` is a `TextButton` (a filled
- * `Button` for the `filled` variant) in the trailing slot, after any
- * `trailing` content. Without its own inset the row is a plain `Row`
- * instead: the M3 `ListItem`'s 16dp is baked in and no modifier can take it
- * back off, so it would double the inset its container already drew. The
- * `Row` carries no padding of its own either — its container hands down a
- * minimum height and centers the row within it, so padding would not fill
- * that height but add to it, standing the row taller than its siblings.
+ * (web/iOS rows are transparent) — and the selected fill when the row is
+ * the current one. An `action` is a `TextButton` (a filled `Button` for the
+ * `filled` variant) in the trailing slot, after any `trailing` content; a
+ * `value` and a `badge` go before it. Without its own inset the row is a
+ * plain `Row` instead: the M3 `ListItem`'s 16dp is baked in and no modifier
+ * can take it back off, so it would double the inset its container already
+ * drew. The `Row` carries no padding of its own either — its container hands
+ * down a minimum height and centers the row within it, so padding would not
+ * fill that height but add to it, standing the row taller than its siblings.
  */
-function ListItemRow({children, leading, trailing, action, supporting, inset = true, onPress, testID}: ListItemProps) {
+function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
   const label = useColor('label');
   const subtle = useColor('secondaryLabel');
   const tint = useColor('tint');
   const destructive = useColor('destructive');
   const muted = useColor('tertiaryLabel');
+  const toned = useColor(TONE_TOKEN[iconTone]);
+  const selectedFill = useColor('backgroundSelected');
   const onAction = useColor(action?.role === 'destructive' ? 'onDestructive' : 'onTint');
   const modifiers = [
     ...(onPress ? [clickable(onPress)] : []),
@@ -67,24 +73,40 @@ function ListItemRow({children, leading, trailing, action, supporting, inset = t
   const ActionButton = filled ? Button : TextButton;
   const inactive = !!action?.disabled || !!action?.loading;
   const actionTextColor = action?.disabled ? muted : filled ? onAction : actionColor;
-  const trailingContent = action ? (
+  const drawable = drawableOf(icon);
+  const leadingContent = drawable ? (
+    <>
+      <Icon source={drawable} size={ROW_ICON} tint={toned}/>
+      {leading}
+    </>
+  ) : leading;
+  const marks = value != null || badge ? (
+    <>
+      {value != null ? <Text color={subtle} style={{fontSize: 14}}>{value}</Text> : null}
+      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true}/> : null}
+    </>
+  ) : null;
+  const trailingContent = marks || action ? (
     <Row verticalAlignment="center" horizontalArrangement={{spacedBy: 8}}>
+      {marks}
       {trailing}
-      <ActionButton
-        onClick={inactive ? undefined : action.onPress}
-        enabled={!inactive}
-        colors={filled ? {containerColor: actionColor, contentColor: onAction} : {contentColor: actionColor}}
-        shape={filled ? ROUNDED : undefined}
-        contentPadding={filled ? androidContentPadding('small') : undefined}
-        modifiers={[wrapContentWidth('end'), wrapContentHeight('centerVertically')]}>
-        {action.loading ? (
-          <>
-            <CircularProgressIndicator color={actionTextColor} trackColor="#00000000" strokeWidth={2} modifiers={[size(ACTION_SPINNER, ACTION_SPINNER)]}/>
-            <Spacer modifiers={[width(8)]}/>
-          </>
-        ) : null}
-        <Text color={actionTextColor}>{action.label}</Text>
-      </ActionButton>
+      {action ? (
+        <ActionButton
+          onClick={inactive ? undefined : action.onPress}
+          enabled={!inactive}
+          colors={filled ? {containerColor: actionColor, contentColor: onAction} : {contentColor: actionColor}}
+          shape={filled ? ROUNDED : undefined}
+          contentPadding={filled ? androidContentPadding('small') : undefined}
+          modifiers={[wrapContentWidth('end'), wrapContentHeight('centerVertically')]}>
+          {action.loading ? (
+            <>
+              <CircularProgressIndicator color={actionTextColor} trackColor={TRANSPARENT} strokeWidth={2} modifiers={[size(ACTION_SPINNER, ACTION_SPINNER)]}/>
+              <Spacer modifiers={[width(8)]}/>
+            </>
+          ) : null}
+          <Text color={actionTextColor}>{action.label}</Text>
+        </ActionButton>
+      ) : null}
     </Row>
   ) : trailing;
   const headline = wrapText(children, label);
@@ -101,8 +123,8 @@ function ListItemRow({children, leading, trailing, action, supporting, inset = t
       <Row
         verticalAlignment="center"
         horizontalArrangement={{spacedBy: 12}}
-        modifiers={[fillMaxWidth(), ...modifiers]}>
-        {leading}
+        modifiers={[fillMaxWidth(), ...(selected ? [background(selectedFill)] : []), ...modifiers]}>
+        {leadingContent}
         <Column verticalArrangement={{spacedBy: 2}} modifiers={[weight(1)]}>
           {headline}
           {supportingContent}
@@ -113,12 +135,12 @@ function ListItemRow({children, leading, trailing, action, supporting, inset = t
   }
 
   return (
-    <ComposeListItem colors={{containerColor: '#00000000'}} modifiers={modifiers}>
+    <ComposeListItem colors={{containerColor: selected ? selectedFill : TRANSPARENT}} modifiers={modifiers}>
       <ComposeListItem.HeadlineContent>
         {headline}
       </ComposeListItem.HeadlineContent>
-      {leading != null ? (
-        <ComposeListItem.LeadingContent>{leading}</ComposeListItem.LeadingContent>
+      {leadingContent != null ? (
+        <ComposeListItem.LeadingContent>{leadingContent}</ComposeListItem.LeadingContent>
       ) : null}
       {supportingContent != null ? (
         <ComposeListItem.SupportingContent>{supportingContent}</ComposeListItem.SupportingContent>

@@ -7,6 +7,7 @@ import {
   Body,
   Button,
   Card,
+  CardGrid,
   Checkbox,
   Chip,
   Collapsible,
@@ -27,6 +28,7 @@ import {
   Headline,
   IconToggle,
   KeyboardBar,
+  List,
   ListItem,
   Pager,
   Picker,
@@ -303,6 +305,43 @@ function ListItemPreview() {
         About
       </ListItem>
     </div>
+  );
+}
+
+/** Three rows of the platform's lazy list, with the row's own icon, value and badge. */
+function ListPreview() {
+  return (
+    <View style={styles.listStage}>
+      <List
+        data={[{title: 'Essay', value: '2 KB', badge: 3}, {title: 'Notes', value: '8 KB'}, {title: 'Sketch', value: '1 MB', badge: true}]}
+        keyExtractor={row => row.title}
+        renderItem={row => (
+          <ListItem icon={icons.info} value={row.value} badge={row.badge} onPress={noop}>
+            {row.title}
+          </ListItem>
+        )}
+      />
+    </View>
+  );
+}
+
+/** Four cards in the columns the width holds. */
+function CardGridPreview() {
+  return (
+    <CardGrid
+      data={['Holiday photos', 'Essay', 'Sketches', 'Receipts']}
+      keyExtractor={title => title}
+      minItemWidth={100}
+      maxColumns={2}
+      gap={8}
+      renderItem={title => (
+        <Card label={title} onPress={noop} footer={<Footnote color="label">{title}</Footnote>}>
+          <View style={styles.cardPreview}>
+            <Footnote color="tertiaryLabel">Preview</Footnote>
+          </View>
+        </Card>
+      )}
+    />
   );
 }
 
@@ -634,6 +673,8 @@ export const layout: CardEntry[] = [
   {name: 'KeyboardBar', href: docs('layout-keyboardbar'), stage: 'device', preview: <KeyboardBarPreview/>},
   {name: 'FieldGroup', href: docs('layout-fieldgroup'), preview: <FieldGroupPreview/>},
   {name: 'ListItem', href: docs('layout-listitem'), preview: <ListItemPreview/>},
+  {name: 'List', href: docs('layout-list'), preview: <ListPreview/>},
+  {name: 'CardGrid', href: docs('layout-cardgrid'), preview: <CardGridPreview/>},
   {
     name: 'Collapsible',
     href: docs('layout-collapsible'),
@@ -860,6 +901,7 @@ const styles = {
     sheetContent: {gap: 12, padding: 20},
     page: {height: 96, justifyContent: 'center'},
     tabPage: {padding: 12, minHeight: 72},
+    listStage: {height: 168, alignSelf: 'stretch', overflow: 'hidden', borderRadius: 12},
     navScreen: {flex: 1, gap: 4, padding: 12},
     half: {flex: 1, alignItems: 'center'},
     popoverStage: {height: 150},

@@ -15,14 +15,16 @@ export {NativeHostContext, useNativeHost} from './context';
  * the width and fills the height, for a vertical rule in a row; `false` is
  * the default, the height of the content and the width of the container.
  */
-export type NativeHostFit = boolean | 'width';
+export type NativeHostFit = boolean | 'width' | 'fill';
 
 export interface NativeHostProps extends PropsWithChildren {
   style?: StyleProp<ViewStyle>;
   /**
    * Size the host to its content on both axes (a group of buttons in a row),
    * or on the width alone (`'width'`, a vertical rule); by default only
-   * vertically, the width filling its container.
+   * vertically, the width filling its container. `'fill'` takes the size the
+   * layout gives on both axes, for content that scrolls inside the host (a
+   * `List`), which has no height of its own to match.
    * @default false
    */
   fit?: NativeHostFit;
@@ -51,6 +53,7 @@ export interface NativeHostProps extends PropsWithChildren {
 export function matchContentsFor(fit: NativeHostFit): boolean | {vertical?: boolean; horizontal?: boolean} {
   if (fit === true) return true;
   if (fit === 'width') return {horizontal: true};
+  if (fit === 'fill') return false;
   return {vertical: true};
 }
 
@@ -74,7 +77,7 @@ export function NativeHost({children, style, fit = false, direction, spacing, on
         // Touch handling goes in the style, where React Native has taken it
         // since 0.71; as a prop it warns on every render on web. Last, so an
         // explicit `pointerEvents` beats one the caller's own style carries.
-        style={[fit === true ? styles.fit : fit === 'width' ? styles.fitWidth : styles.fill, style, pointerEvents ? {pointerEvents} : null]}
+        style={[fit === true ? styles.fit : fit === 'width' ? styles.fitWidth : fit === 'fill' ? styles.fillBoth : styles.fill, style, pointerEvents ? {pointerEvents} : null]}
         onLayoutContent={onLayoutContent}
         {...hostAccentProps(seed)}>
         {arranged(direction, spacing, children)}
@@ -106,6 +109,8 @@ export function SelfHosted({fit = true, style, children}: PropsWithChildren<{fit
 
 const styles = StyleSheet.create({
   fill: {alignSelf: 'stretch'},
+  /** The size the layout gives, on both axes: nothing matches the content. */
+  fillBoth: {flex: 1, alignSelf: 'stretch'},
   /**
    * Hugging the content is `align-self: flex-start` in the universal host,
    * which also decides where the host sits: a row that centres its children

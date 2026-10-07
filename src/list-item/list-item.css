@@ -80,3 +80,22 @@ button.ui-list-item,
   align-items: center;
   flex-shrink: 0;
 }
+
+/* A slot holds the row's icon beside what the app put there, and its marks before the trailing content. */
+.ui-list-item__slot {
+  gap: 8px;
+}
+
+/* A setting's value, a message's time: trailing text in the secondary color. */
+.ui-list-item__value {
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--color-secondary-label);
+  white-space: nowrap;
+}
+
+/* The current row: the open document, the chosen version. */
+.ui-list-item--selected {
+  background: var(--color-background-selected);
+}

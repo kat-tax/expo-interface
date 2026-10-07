@@ -57,7 +57,7 @@ way.
 
 | Prop | What it does |
 | --- | --- |
-| `fit` | Size the host to its content on both axes, or on the width alone (`'width'`, for a vertical rule in a row). By default only the height fits and the width fills the container. |
+| `fit` | Size the host to its content on both axes, or on the width alone (`'width'`, for a vertical rule in a row). By default only the height fits and the width fills the container. `'fill'` takes the size the layout gives on both axes, for content that scrolls inside the host (`List` mounts one). |
 | `direction` | Lay the children out as one native `row` or `column`, with `spacing` between them. Without it the children are placed as they are. |
 | `spacing` | The space between the children of a `direction`, in points. |
 | `onLayoutContent` | Reports the content's laid-out size, for a parent that lays out before the platform has measured (a stack header). |

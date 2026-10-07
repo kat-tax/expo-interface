@@ -1,12 +1,14 @@
-import type {LayoutChangeEvent} from 'react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {ReactNode} from 'react';
 import type {IconToken} from '../icons';
+import type {MenuItem, MenuPoint} from '../menu/types';
 import type {ResolvedLayout} from './shared';
 import type {TabViewLayout, TabViewTab} from './types';
-import {useState} from 'react';
+import {useRef, useState} from 'react';
 import {Pressable, ScrollView, StyleSheet, View, useWindowDimensions} from 'react-native';
-import {Icon as Glyph} from '../symbol';
 import {inSet} from '../a11y/set';
+import {PopupMenu} from '../popup-menu';
+import {Icon as Glyph} from '../symbol';
 import {Body, Caption} from '../typography';
 import {spacing, useColor} from '../theme';
 import {ADD_LABEL, closeLabel, resolveLayout, switcherLabel, tabIndex} from './shared';
@@ -19,6 +21,9 @@ const GRID: IconToken = {symbol: {ios: 'square.grid.2x2', android: 'grid_view', 
 /** Glyph sizes: a tab's own icon beside its text, and the cross, which sits inside it. */
 const ICON = 16;
 const CROSS = 14;
+
+/** How far each level of `depth` moves a tab in. */
+export const DEPTH_INDENT = 12;
 
 /**
  * The shape the tabs come out as, and the measurement that decides it.
@@ -57,6 +62,45 @@ export interface TabDrawProps {
   testID?: string;
 }
 
+/** A tab's menu, open at a point in the strip's own coordinates. */
+interface OpenMenu {
+  items: MenuItem[];
+  at: MenuPoint;
+}
+
+/**
+ * The menus of the tabs that have one, as one `PopupMenu` over the strip or
+ * the cards: a long press on a tab opens its menu under the tab, from the
+ * tab's own layout in the strip less the strip's scroll, so one native menu
+ * serves every tab rather than one per tab.
+ */
+export function useTabMenus(testID: string | undefined): {
+  menu: ReactNode;
+  /** Remembers where a tab is, from its layout. */
+  onLayout: (id: string, event: LayoutChangeEvent) => void;
+  /** Follows the strip's scroll, which moves the tabs under the menu's coordinates. */
+  onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  open: (tab: TabViewTab) => void;
+} {
+  const [open, setOpen] = useState<OpenMenu | null>(null);
+  const layouts = useRef(new Map<string, {x: number; y: number; height: number}>());
+  const scrollX = useRef(0);
+  return {
+    onLayout: (id, event) => {
+      layouts.current.set(id, event.nativeEvent.layout);
+    },
+    onScroll: event => {
+      scrollX.current = event.nativeEvent.contentOffset.x;
+    },
+    open: tab => {
+      const layout = layouts.current.get(tab.id);
+      if (!tab.menu || !layout) return;
+      setOpen({items: tab.menu, at: {x: layout.x - scrollX.current, y: layout.y + layout.height}});
+    },
+    menu: <PopupMenu items={open?.items ?? []} at={open?.at ?? null} onDismiss={() => setOpen(null)} testID={sub(testID, 'menu')}/>,
+  };
+}
+
 /**
  * The strip iOS and Android draw: a scrolling row of tabs, each with its close
  * cross, and the add button at the end.
@@ -71,6 +115,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testI
   const open = useColor('background');
   const labelColor = useColor('label');
   const secondary = useColor('secondaryLabel');
+  const menus = useTabMenus(testID);
   return (
     <View style={[styles.strip, {backgroundColor: surface}]}>
       <ScrollView
@@ -79,11 +124,16 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testI
         accessibilityRole="tablist"
         accessibilityLabel={label}
         contentContainerStyle={styles.stripRow}
+        onScroll={menus.onScroll}
+        scrollEventThrottle={16}
         testID={sub(testID, 'strip')}>
         {tabs.map((tab, index) => {
           const on = tab.id === selected;
           return (
-            <View key={tab.id} style={[styles.tab, on && {backgroundColor: open}]}>
+            <View
+              key={tab.id}
+              style={[styles.tab, on && {backgroundColor: open}, tab.depth ? {paddingLeft: spacing.three + tab.depth * DEPTH_INDENT} : null]}
+              onLayout={event => menus.onLayout(tab.id, event)}>
               <Pressable
                 accessibilityRole="tab"
                 // Named explicitly rather than left to the text inside it:
@@ -94,6 +144,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testI
                 accessibilityLabel={tab.title}
                 accessibilityState={{selected: on}}
                 onPress={() => onSelect(tab.id)}
+                onLongPress={tab.menu ? () => menus.open(tab) : undefined}
                 style={styles.tabBody}
                 testID={sub(testID, `tab-${tab.id}`)}
                 {...inSet(index + 1, tabs.length)}>
@@ -101,6 +152,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testI
                 <Body numberOfLines={1} color={on ? 'label' : 'secondaryLabel'} style={styles.title}>
                   {tab.title}
                 </Body>
+                {tab.accessory}
               </Pressable>
               {onClose && !tab.pinned ? (
                 <Pressable
@@ -126,6 +178,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testI
           <Glyph icon={ADD} size={ICON} tintColor={labelColor}/>
         </Pressable>
       ) : null}
+      {menus.menu}
     </View>
   );
 }
@@ -155,6 +208,7 @@ export function TabSwitcher({
   const labelColor = useColor('label');
   const secondary = useColor('secondaryLabel');
   const current = tabs[tabIndex(tabs, selected)];
+  const menus = useTabMenus(testID);
   return (
     <>
       <View style={[styles.bar, {backgroundColor: surface}]}>
@@ -186,43 +240,51 @@ export function TabSwitcher({
         ) : null}
       </View>
       {open ? (
-        <ScrollView
-          accessibilityRole="tablist"
-          accessibilityLabel={label}
-          contentContainerStyle={styles.grid}
-          testID={sub(testID, 'cards')}>
-          {tabs.map((tab, index) => {
-            const on = tab.id === selected;
-            return (
-              <View key={tab.id} style={[styles.card, {backgroundColor: card}, on && {borderColor: labelColor}]}>
-                <Pressable
-                  accessibilityRole="tab"
-                  accessibilityLabel={tab.title}
-                  accessibilityState={{selected: on}}
-                  onPress={() => {
-                    setOpen(false);
-                    onSelect(tab.id);
-                  }}
-                  style={styles.cardBody}
-                  testID={sub(testID, `card-${tab.id}`)}
-                  {...inSet(index + 1, tabs.length)}>
-                  {tab.icon ? <Glyph icon={tab.icon} size={ICON} tintColor={secondary}/> : null}
-                  <Body numberOfLines={2}>{tab.title}</Body>
-                </Pressable>
-                {onClose && !tab.pinned ? (
+        <View style={styles.cardsRoot}>
+          <ScrollView
+            accessibilityRole="tablist"
+            accessibilityLabel={label}
+            contentContainerStyle={styles.grid}
+            testID={sub(testID, 'cards')}>
+            {tabs.map((tab, index) => {
+              const on = tab.id === selected;
+              return (
+                <View
+                  key={tab.id}
+                  style={[styles.card, {backgroundColor: card}, on && {borderColor: labelColor}]}
+                  onLayout={event => menus.onLayout(tab.id, event)}>
                   <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={closeLabel(tab)}
-                    onPress={() => onClose(tab.id)}
-                    style={styles.cardCross}
-                    testID={sub(testID, `close-${tab.id}`)}>
-                    <Glyph icon={CLOSE} size={CROSS} tintColor={secondary}/>
+                    accessibilityRole="tab"
+                    accessibilityLabel={tab.title}
+                    accessibilityState={{selected: on}}
+                    onPress={() => {
+                      setOpen(false);
+                      onSelect(tab.id);
+                    }}
+                    onLongPress={tab.menu ? () => menus.open(tab) : undefined}
+                    style={[styles.cardBody, tab.depth ? {paddingLeft: spacing.three + tab.depth * DEPTH_INDENT} : null]}
+                    testID={sub(testID, `card-${tab.id}`)}
+                    {...inSet(index + 1, tabs.length)}>
+                    {tab.icon ? <Glyph icon={tab.icon} size={ICON} tintColor={secondary}/> : null}
+                    <Body numberOfLines={2}>{tab.title}</Body>
+                    {tab.accessory}
                   </Pressable>
-                ) : null}
-              </View>
-            );
-          })}
-        </ScrollView>
+                  {onClose && !tab.pinned ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={closeLabel(tab)}
+                      onPress={() => onClose(tab.id)}
+                      style={styles.cardCross}
+                      testID={sub(testID, `close-${tab.id}`)}>
+                      <Glyph icon={CLOSE} size={CROSS} tintColor={secondary}/>
+                    </Pressable>
+                  ) : null}
+                </View>
+              );
+            })}
+          </ScrollView>
+          {menus.menu}
+        </View>
       ) : (
         children
       )}
@@ -287,6 +349,11 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
     paddingHorizontal: spacing.one,
+  },
+  /** The cards and the menu over them: the menu is placed against this box. */
+  cardsRoot: {
+    flexGrow: 1,
+    flexShrink: 1,
   },
   grid: {
     flexDirection: 'row',

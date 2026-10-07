@@ -1,11 +1,14 @@
 import './tab-view.css';
-import type {CSSProperties, RefObject} from 'react';
+import type {CSSProperties, MouseEvent, RefObject} from 'react';
 import type {TabViewProps} from './types';
+import type {MenuItem, MenuPoint} from '../menu/types';
 import {useEffect, useId, useRef, useState} from 'react';
 import {StyleSheet, type TextStyle} from 'react-native';
 import {useRovingFocus} from '../a11y/roving';
+import {PopupMenu} from '../popup-menu';
 import {Icon} from '../symbol';
 import {flatten} from '../theme';
+import {DEPTH_INDENT} from './draw';
 import {ADD_LABEL, closeLabel, resolveLayout, switcherLabel, tabIndex} from './shared';
 
 /** The glyphs, as Material Symbols names — the family `Icon` draws with on web. */
@@ -84,6 +87,19 @@ export function TabView({
   const root = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  // A tab's menu, open at the pointer in the root's own coordinates: one
+  // popup serves every tab, as the right click and the Menu key open it.
+  const [menu, setMenu] = useState<{items: MenuItem[]; at: MenuPoint} | null>(null);
+  const openMenu = (tab: {menu?: MenuItem[]}, event: MouseEvent<HTMLElement>) => {
+    if (!tab.menu) return;
+    event.preventDefault();
+    const bounds = root.current!.getBoundingClientRect();
+    const target = event.currentTarget.getBoundingClientRect();
+    // The pointer's point, or the tab's own corner for the Menu key, which reports no point.
+    const x = event.clientX || target.left;
+    const y = event.clientY || target.bottom;
+    setMenu({items: tab.menu, at: {x: x - bounds.left, y: y - bounds.top}});
+  };
   const resolved = resolveLayout(layout, useContainerWidth(root));
   const current = tabIndex(tabs, selected);
   const roving = useRovingFocus(list, {
@@ -162,18 +178,20 @@ export function TabView({
             {tabs.map((tab, index) => {
               const cross = close(tab);
               return (
-              <div key={tab.id} className="ui-tab-view__tab" data-selected={index === current}>
+              <div key={tab.id} className="ui-tab-view__tab" data-selected={index === current} style={tab.depth ? {paddingLeft: 12 + tab.depth * DEPTH_INDENT} : undefined}>
                 <div
                   role="tab"
                   id={tabId(tab)}
                   className="ui-tab-view__tab-body"
                   aria-selected={index === current}
                   aria-controls={panelId}
+                  aria-haspopup={tab.menu ? 'menu' : undefined}
                   // How the keyboard closes it, said out loud: without this the
                   // cross is the only hint, and the cross is pointer-only.
                   aria-keyshortcuts={cross ? 'Delete' : undefined}
                   data-testid={testID ? `${testID}-tab-${tab.id}` : undefined}
                   onClick={() => onSelect(tab.id)}
+                  onContextMenu={event => openMenu(tab, event)}
                   onKeyDown={event => {
                     if (event.key !== 'Delete' || !onClose || tab.pinned) return;
                     event.preventDefault();
@@ -184,6 +202,7 @@ export function TabView({
                   <span className="ui-tab-view__title" id={index === current ? openId : undefined}>
                     {tab.title}
                   </span>
+                  {tab.accessory}
                 </div>
                 {cross}
               </div>
@@ -226,12 +245,15 @@ export function TabView({
                 className="ui-tab-view__card-body"
                 aria-selected={index === current}
                 aria-controls={panelId}
+                aria-haspopup={tab.menu ? 'menu' : undefined}
                 aria-keyshortcuts={cross ? 'Delete' : undefined}
                 data-testid={testID ? `${testID}-card-${tab.id}` : undefined}
+                style={tab.depth ? {paddingLeft: 16 + tab.depth * DEPTH_INDENT} : undefined}
                 onClick={() => {
                   setOpen(false);
                   onSelect(tab.id);
                 }}
+                onContextMenu={event => openMenu(tab, event)}
                 onKeyDown={event => {
                   if (event.key !== 'Delete' || !onClose || tab.pinned) return;
                   event.preventDefault();
@@ -240,6 +262,7 @@ export function TabView({
                 {...roving.itemProps(index)}>
                 {tab.icon ? <Icon icon={tab.icon} size={ICON}/> : null}
                 <span className="ui-tab-view__card-title">{tab.title}</span>
+                {tab.accessory}
               </div>
               {cross}
             </div>
@@ -255,6 +278,7 @@ export function TabView({
           {children}
         </div>
       )}
+      <PopupMenu items={menu?.items ?? []} at={menu?.at ?? null} onDismiss={() => setMenu(null)} testID={testID ? `${testID}-menu` : undefined}/>
     </div>
   );
 }

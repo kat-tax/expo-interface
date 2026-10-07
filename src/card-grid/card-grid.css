@@ -1,0 +1,38 @@
+/*
+ * A grid of cards on the web: the columns come from the width, as many cells
+ * of at least the minimum as fit, and never more than the cap, which is said
+ * as the share of the row a cell takes at that many columns. Each cell is
+ * laid out as it comes into view and kept at its estimated height until
+ * then (`content-visibility: auto`), the browser's own lazy grid.
+ */
+.ui-card-grid {
+  --ui-card-grid-min: 150px;
+  --ui-card-grid-gap: 12px;
+  --ui-card-grid-cell: 180px;
+  --ui-card-grid-share: 25%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-card-grid-gap);
+  width: 100%;
+  min-width: 0;
+}
+
+.ui-card-grid__cells {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(max(var(--ui-card-grid-min), var(--ui-card-grid-share)), 1fr));
+  gap: var(--ui-card-grid-gap);
+  width: 100%;
+}
+
+.ui-card-grid__cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--ui-card-grid-cell);
+}
+
+/* A card fills its cell. */
+.ui-card-grid__cell > * {
+  flex: 1 1 auto;
+}

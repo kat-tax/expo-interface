@@ -1,0 +1,29 @@
+/*
+ * A list of rows on the web. Each row is laid out as it comes into view and
+ * kept at its estimated height until then (`content-visibility: auto`), which
+ * is the browser's own lazy list: three thousand rows cost what the window
+ * shows. The hairline between rows is the separator color, as the platforms'
+ * own lists draw it.
+ */
+.ui-list {
+  --ui-list-row: 56px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+}
+
+.ui-list__rows {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.ui-list__row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--ui-list-row);
+}
+
+.ui-list--separated .ui-list__row + .ui-list__row {
+  border-top: 1px solid var(--color-separator);
+}

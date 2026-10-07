@@ -3,6 +3,7 @@ import {codegenNativeComponent} from 'react-native';
 
 type SelectionEvent = Readonly<{index: CodegenTypes.Int32}>;
 type CloseEvent = Readonly<{index: CodegenTypes.Int32}>;
+type MenuEvent = Readonly<{index: CodegenTypes.Int32; x: CodegenTypes.Double; y: CodegenTypes.Double}>;
 
 /**
  * A WinUI 3 `TabView` hosted in a XAML island, as **the strip alone**: the row
@@ -18,8 +19,10 @@ type CloseEvent = Readonly<{index: CodegenTypes.Int32}>;
  * control's own — so the strip is the platform's even though the pages are
  * not.
  *
- * `items` is a JSON array of `{title, glyph?, closable}`; the selection and
- * the close are both reported by the item's index in it.
+ * `items` is a JSON array of `{title, glyph?, closable, depth, menu}`; the
+ * selection and the close are both reported by the item's index in it, and
+ * so is a right click or the Menu key on a tab that has a menu, with the
+ * point in the island's coordinates for the kit's own menu to open at.
  */
 export interface NativeProps extends ViewProps {
   /** JSON array of the tabs. */
@@ -46,6 +49,8 @@ export interface NativeProps extends ViewProps {
   onTabClose?: CodegenTypes.DirectEventHandler<CloseEvent>;
   /** The add button was pressed. */
   onAddTab?: CodegenTypes.DirectEventHandler<Readonly<{}>>;
+  /** A right click or the Menu key on a tab with a menu, at a point in the island's coordinates. */
+  onTabMenu?: CodegenTypes.DirectEventHandler<MenuEvent>;
 }
 
 export default codegenNativeComponent<NativeProps>('ExpoInterfaceTabView');

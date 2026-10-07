@@ -1211,6 +1211,29 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
           item.IconSource(icon);
         }
         item.IsClosable(entry.GetNamedBoolean(L"closable", false));
+        // A nested tab sits further in, by its depth.
+        const auto depth = entry.GetNamedNumber(L"depth", 0);
+        if (depth > 0) item.Margin(xaml::Thickness{depth * 12, 0, 0, 0});
+        // A tab with a menu reports the right click and the Menu key with the
+        // point, in the island's coordinates, for the kit's menu to open at.
+        if (entry.GetNamedBoolean(L"menu", false)) {
+          item.RightTapped([weak = get_weak()](const winrt::IInspectable &sender, const xaml::Input::RightTappedRoutedEventArgs &args) {
+            if (auto strong = weak.get()) strong->TabMenu(sender.as<controls::TabViewItem>(), args.GetPosition(strong->Root()));
+          });
+          item.ContextRequested([weak = get_weak()](const xaml::UIElement &sender, const xaml::Input::ContextRequestedEventArgs &args) {
+            if (auto strong = weak.get()) {
+              winrt::Windows::Foundation::Point point{0, 0};
+              if (!args.TryGetPosition(strong->Root(), point)) {
+                // The Menu key reports no point: the tab's own bottom corner.
+                const auto transform = sender.TransformToVisual(strong->Root());
+                const auto size = sender.as<xaml::FrameworkElement>().ActualSize();
+                point = transform.TransformPoint(winrt::Windows::Foundation::Point{0, size.y});
+              }
+              strong->TabMenu(sender.as<controls::TabViewItem>(), point);
+              args.Handled(true);
+            }
+          });
+        }
         m_view.TabItems().Append(item);
       }
     }
@@ -1226,6 +1249,18 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
   }
 
  private:
+  void TabMenu(const controls::TabViewItem &item, const winrt::Windows::Foundation::Point &point) noexcept {
+    uint32_t index = 0;
+    if (!m_view.TabItems().IndexOf(item, index)) return;
+    if (auto emitter = EventEmitter()) {
+      Codegen::ExpoInterfaceTabViewEventEmitter::OnTabMenu event;
+      event.index = static_cast<int32_t>(index);
+      event.x = point.X;
+      event.y = point.Y;
+      emitter->onTabMenu(std::move(event));
+    }
+  }
+
   controls::TabView m_view{nullptr};
   std::string m_items;
   bool m_applying{false};

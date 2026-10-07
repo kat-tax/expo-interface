@@ -1,8 +1,14 @@
 import type {ListItemProps} from './types';
+import type {ViewModifier} from '@expo/ui/swift-ui/modifiers';
 import {ListItem as UIListItem} from '@expo/ui';
-import {SwipeActions} from '@expo/ui/swift-ui';
+import {Image, SwipeActions, Text} from '@expo/ui/swift-ui';
+import {accessibilityAddTraits, accessibilityLabel, background, foregroundStyle} from '@expo/ui/swift-ui/modifiers';
+import {Badge} from '../badge';
 import {Button} from '../button';
 import {NativeHost, useNativeHost} from '../host';
+import {TONE_TOKEN, symbolName} from '../icons';
+import {useColor} from '../theme';
+import {ROW_ICON, rowLabel} from './shared';
 
 /**
  * iOS renders the universal `@expo/ui` `ListItem` (a SwiftUI list row)
@@ -27,29 +33,54 @@ export function ListItem(props: ListItemProps) {
   return hosted ? row : <NativeHost>{row}</NativeHost>;
 }
 
-function ListItemRow({children, leading, trailing, action, supporting, swipeActions, onPress, testID}: ListItemProps) {
+function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, trailing, action, supporting, selected = false, swipeActions, onPress, testID}: ListItemProps) {
+  const toned = useColor(TONE_TOKEN[iconTone]);
+  const subtle = useColor('secondaryLabel');
+  const selectedFill = useColor('backgroundSelected');
   const filled = action?.variant === 'filled';
-  const trailingContent = action ? (
+  // The row's name, composed from its slots, and its state.
+  const modifiers: ViewModifier[] = [];
+  const label = rowLabel({children, supporting, value, badge});
+  if (label) modifiers.push(accessibilityLabel(label));
+  if (selected) modifiers.push(background({type: 'color', color: selectedFill}), accessibilityAddTraits(['isSelected']));
+  const symbol = icon ? symbolName(icon, 'ios') : undefined;
+  const leadingContent = symbol ? (
     <>
+      <Image systemName={symbol as never} color={toned} size={ROW_ICON}/>
+      {leading}
+    </>
+  ) : leading;
+  const marks = value != null || badge ? (
+    <>
+      {value != null ? <Text modifiers={[foregroundStyle({type: 'color', color: subtle})]}>{value}</Text> : null}
+      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true}/> : null}
+    </>
+  ) : null;
+  const trailingContent = marks || action ? (
+    <>
+      {marks}
       {trailing}
-      <Button
-        label={action.label}
-        variant={filled ? 'filled' : 'text'}
-        shape={filled ? 'rounded' : undefined}
-        size="small"
-        role={action.role === 'destructive' ? 'destructive' : 'default'}
-        disabled={action.disabled}
-        loading={action.loading}
-        onPress={action.onPress}
-      />
+      {action ? (
+        <Button
+          label={action.label}
+          variant={filled ? 'filled' : 'text'}
+          shape={filled ? 'rounded' : undefined}
+          size="small"
+          role={action.role === 'destructive' ? 'destructive' : 'default'}
+          disabled={action.disabled}
+          loading={action.loading}
+          onPress={action.onPress}
+        />
+      ) : null}
     </>
   ) : trailing;
   const row = (
     <UIListItem
       onPress={onPress}
-      leading={leading}
+      leading={leadingContent}
       trailing={trailingContent}
       supportingText={supporting}
+      modifiers={modifiers.length > 0 ? modifiers : undefined}
       testID={testID}>
       {children}
     </UIListItem>

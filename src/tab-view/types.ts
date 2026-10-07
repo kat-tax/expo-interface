@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {IconToken} from '../icons';
+import type {MenuItem} from '../menu/types';
 
 /**
  * Document tabs: a strip of open things the user opened and can close, with
@@ -88,6 +89,24 @@ export interface TabViewTab {
    * @default false
    */
   pinned?: boolean;
+  /**
+   * The tab's own actions (rename, duplicate, close others), in the
+   * platform's menu at the tab: a long press on iOS and Android, a right
+   * click or the Menu key on web and Windows, with the kit's `PopupMenu`.
+   */
+  menu?: MenuItem[];
+  /**
+   * How far the tab is nested, for a strip of documents that belong to one
+   * another: each level indents the tab a little further.
+   * @default 0
+   */
+  depth?: number;
+  /**
+   * Content of the app's own after the title: a presence dot, a count, an
+   * unsaved mark. Drawn on the strips the kit draws and on the switcher's
+   * cards; the WinUI strip holds text and a glyph alone.
+   */
+  accessory?: ReactNode;
 }
 
 /** What {@link TabViewProps.layout} asks for, before a width has decided it. */

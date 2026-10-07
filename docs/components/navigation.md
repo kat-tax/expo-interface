@@ -107,7 +107,8 @@ colors. `regular` and `thick` keep the labels legible over any content in
 both schemes; `thin` lets more through than that in the dark scheme, so use
 it over the app's own background. A screen's content passes under the bar
 only on a `Screen underBar`, whose scroll content pads its top by
-`useTabBarInset()`; otherwise the bar sits over the screen's background
+`useScrollInsets()` (the kit's `List` and `CardGrid` do so themselves);
+otherwise the bar sits over the screen's background
 alone.
 
 The Windows pane width is measured rather than read from the window, since
@@ -134,7 +135,7 @@ slot.
 takes (`thin`, `regular`, `thick`), with the screens running under it: on
 iOS the system's material behind a translucent bar. A `Screen` under it
 leaves the header's height clear at the top, and one that is `underBar` lets
-its content pass under the bar, padding that content by `useTabBarInset()`,
+its content pass under the bar, padding that content by `useScrollInsets()`,
 as it does under the web tab bar's material. Android has no bar material of
 its own, and its bar's items and menus take the header's colour (Expo Router
 paints its icon buttons and the dropdown's surface with it), so its header
@@ -154,7 +155,8 @@ header is used.
 Document tabs: a strip of things the user opened and can close, with the
 selected one's content under it. These are not the tabs `Tabs` draws.
 
-Props: `tabs` (`id`, `title`, `icon`, `pinned`), `selected`, `onSelect`,
+Props: `tabs` (`id`, `title`, `icon`, `pinned`, `menu`, `depth`,
+`accessory`), `selected`, `onSelect`,
 `onClose` (leaving it out takes the crosses away), `onAdd` (leaving it out
 takes the add button away), `children` (the selected tab's content), `label`
 ("Tabs"), `layout` (`auto`, `strip`, `switcher`), `style`, `testID`.
@@ -184,6 +186,18 @@ Differences:
   while the kit's array stayed as it was, so the control is told not to offer
   it.
 - The cards are a title, an icon and a cross, not live previews.
+- A tab's `menu` (rename, duplicate, close others) opens with the gesture
+  the platform uses for a context menu: a long press on iOS and Android, a
+  right click or the Menu key on web and Windows. It is the kit's
+  `PopupMenu`, under the tab on iOS and Android and at the pointer on web
+  and Windows, and one popup serves the whole strip. On web the tab says it
+  has one through `aria-haspopup`.
+- `depth` indents a tab by 12 points a level, on every strip and on the
+  cards, for documents that belong to one another.
+- `accessory` (a presence dot, a count, an unsaved mark) is drawn after the
+  title on the strips the kit draws and on the switcher's cards. The WinUI
+  strip holds text and a glyph alone, so on Windows it shows on the cards
+  only.
 
 ## Pager
 
