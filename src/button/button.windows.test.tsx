@@ -26,6 +26,13 @@ describe(`Button (${Platform.OS})`, () => {
     expect(props.iconOnly).toBe(false);
   });
 
+  it('hands the island the loading state, which it draws as a ring', async () => {
+    await render(<Button label="Saving" loading testID="busy"/>);
+    expect(button('busy').props.loading).toBe(true);
+    await render(<Button label="Idle" testID="idle"/>);
+    expect(button('idle').props.loading).toBe(false);
+  });
+
   it('calls onPress from the island event', async () => {
     const onPress = vi.fn();
     await render(<Button label="Save" onPress={onPress} testID="save"/>);

@@ -74,6 +74,13 @@ describe('ListItem (web)', () => {
     expect(screen.getAllByRole('button')).toHaveLength(1);
   });
 
+  it('marks a loading action busy', () => {
+    render(<ListItem action={{label: 'Signing in', onPress: vi.fn(), loading: true}} testID="row">Account</ListItem>);
+    const action = screen.getByRole('button', {name: 'Signing in'});
+    expect(action).toHaveAttribute('aria-busy', 'true');
+    expect(action).toBeDisabled();
+  });
+
   it('keeps the row pressable beside the action, without the action pressing it', () => {
     const onPress = vi.fn();
     const onSignOut = vi.fn();

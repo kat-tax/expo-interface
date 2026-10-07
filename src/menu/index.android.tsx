@@ -4,18 +4,31 @@ import {Fragment, useState} from 'react';
 import {Box, DropdownMenu, DropdownMenuItem, HorizontalDivider, Icon, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
 import {background, clip, Shapes, size as sizeModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {Button} from '../button';
+import {SelfHosted} from '../host';
 import {useColor} from '../theme';
 
 const ICON_SIZE = 20;
 const SWATCH_SIZE = 16;
 
 /**
- * Android anchors a Material 3 `DropdownMenu` to the kit's `Button`. Entries
- * are `DropdownMenuItem`s with an optional drawable leading icon (or a color
- * dot), a trailing check when active; destructive items use the theme
- * danger color.
+ * Android anchors a Material 3 `DropdownMenu` to the kit's `Button`, in a
+ * host of its own where there is none above it, so a menu can be placed in
+ * a React Native layout like any element.
  */
-export function Menu({label, icon, items, testID, trigger: _trigger, onOpenChange, ...button}: MenuProps) {
+export function Menu(props: MenuProps) {
+  return (
+    <SelfHosted>
+      <NativeMenu {...props}/>
+    </SelfHosted>
+  );
+}
+
+/**
+ * The `DropdownMenu` and its trigger. Entries are `DropdownMenuItem`s with
+ * an optional drawable leading icon (or a color dot), a trailing check when
+ * active; destructive items use the theme danger color.
+ */
+function NativeMenu({label, icon, items, testID, trigger: _trigger, onOpenChange, ...button}: MenuProps) {
   const [expanded, setExpanded] = useState(false);
   const setOpen = (open: boolean) => {
     setExpanded(open);

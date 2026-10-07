@@ -67,6 +67,7 @@ function ListItemRow({children, leading, trailing, action, supporting, inset = t
         size="small"
         role={action.role === 'destructive' ? 'destructive' : 'default'}
         disabled={action.disabled}
+        loading={action.loading}
         onPress={action.onPress}
       />
     </div>

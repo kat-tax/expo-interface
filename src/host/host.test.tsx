@@ -46,6 +46,25 @@ describe(`NativeHost (${Platform.OS})`, () => {
       const {container} = renderDom(<NativeHost fit style={{alignSelf: 'flex-end'}}/>);
       expect(getComputedStyle(container.firstElementChild!).alignSelf).toBe('flex-end');
     });
+
+    it('hugs its width alone with fit="width", the height being the row\'s', () => {
+      const {container} = renderDom(<NativeHost fit="width"/>);
+      const style = getComputedStyle(container.firstElementChild!);
+      expect(style.width).toBe('fit-content');
+      expect(style.alignSelf).toBe('stretch');
+    });
+
+    it('lays its children out as one row or column when asked', () => {
+      const {container} = renderDom(
+        <NativeHost direction="row" spacing={8}>
+          <span>A</span>
+          <span>B</span>
+        </NativeHost>,
+      );
+      const row = container.querySelector('span')!.parentElement!;
+      expect(getComputedStyle(row).flexDirection).toBe('row');
+      expect(getComputedStyle(row).gap).toBe('8px');
+    });
     return;
   }
 
@@ -82,5 +101,38 @@ describe(`NativeHost (${Platform.OS})`, () => {
     const hostView = nodes().find(n => n.type === HOST)!;
     expect(hostView.props.matchContentsVertical).toBe(true);
     expect(hostView.props.matchContentsHorizontal).toBe(true);
+  });
+
+  it('sizes to its width alone with fit="width", for a rule that stands in a row', async () => {
+    await render(
+      <NativeHost fit="width">
+        <Switch value onValueChange={() => {}}/>
+      </NativeHost>,
+    );
+    const hostView = nodes().find(n => n.type === HOST)!;
+    expect(hostView.props.matchContentsHorizontal).toBe(true);
+    expect(hostView.props.matchContentsVertical).toBeUndefined();
+    expect(StyleSheet.flatten(hostView.props.style)).toEqual({alignSelf: 'stretch'});
+  });
+
+  it('lays its children out as one native row or column when asked', async () => {
+    await render(
+      <>
+        <NativeHost fit direction="row" spacing={8}>
+          <Switch value onValueChange={() => {}}/>
+          <Switch value={false} onValueChange={() => {}}/>
+        </NativeHost>
+        <NativeHost direction="column" spacing={4}>
+          <Switch value onValueChange={() => {}}/>
+        </NativeHost>
+      </>,
+    );
+    if (Platform.OS === 'ios') {
+      expect(host(p => p.spacing === 8 && p.alignment === 'center')).toBeTruthy();
+      expect(host(p => p.spacing === 4)).toBeTruthy();
+    } else {
+      expect(host(p => p.horizontalArrangement?.spacedBy === 8 && p.verticalAlignment === 'center')).toBeTruthy();
+      expect(host(p => p.verticalArrangement?.spacedBy === 4)).toBeTruthy();
+    }
   });
 });

@@ -33,6 +33,8 @@ export interface NativeProps extends ViewProps {
   /** Stretch to the width Yoga gives, rather than hugging the content. */
   fillWidth?: boolean;
   disabled?: boolean;
+  /** A `ProgressRing` in the glyph's place, and no presses: something the button started is on its way. */
+  loading?: boolean;
   /** The kit's accent seed (`#RRGGBB`). */
   accentColor?: string;
   /** The scheme the control is drawn in; `system` follows the OS. */

@@ -78,10 +78,25 @@ struct ButtonView : winrt::implements<ButtonView, winrt::IInspectable>,
     Color accentColor = ColorOr(accent, SystemAccent());
     if (destructive && !props->color) accentColor = Critical(dark);
     const Color onAccent = IsLight(accentColor) ? Color{255, 0, 0, 0} : Color{255, 255, 255, 255};
+    // What the content is drawn in: the contrast color on a filled button,
+    // the label color for a tool, the accent otherwise.
+    const Color contentColor = variant == "filled" ? onAccent : labelTone ? (dark ? Color{255, 255, 255, 255} : Color{255, 0, 0, 0}) : accentColor;
+    const bool loading = props->loading.value_or(false);
 
-    // Content: glyph, label, glyph.
+    // Content: glyph, label, glyph. While loading, WinUI's ring turns in the
+    // glyph's place, in the content's color, as Fluent's busy buttons do.
     m_row.Children().Clear();
-    if (props->glyph && !props->glyph->empty()) {
+    if (loading) {
+      controls::ProgressRing ring;
+      ring.IsActive(true);
+      ring.Width(glyphSize);
+      ring.Height(glyphSize);
+      ring.MinWidth(glyphSize);
+      ring.MinHeight(glyphSize);
+      ring.Foreground(Brush(contentColor));
+      ring.VerticalAlignment(xaml::VerticalAlignment::Center);
+      m_row.Children().Append(ring);
+    } else if (props->glyph && !props->glyph->empty()) {
       m_row.Children().Append(MakeGlyph(*props->glyph, glyphSize));
     }
     if (!iconOnly) {
@@ -109,8 +124,7 @@ struct ButtonView : winrt::implements<ButtonView, winrt::IInspectable>,
       }
     } else {
       m_button.ClearValue(xaml::FrameworkElement::StyleProperty());
-      const Color content = labelTone ? (dark ? Color{255, 255, 255, 255} : Color{255, 0, 0, 0}) : accentColor;
-      OverrideBrushes(m_button, {L"ButtonForeground", L"ButtonForegroundPointerOver", L"ButtonForegroundPressed"}, content);
+      OverrideBrushes(m_button, {L"ButtonForeground", L"ButtonForegroundPointerOver", L"ButtonForegroundPressed"}, contentColor);
       if (variant == "text") {
         OverrideBrushes(m_button, {L"ButtonBackground", L"ButtonBorderBrush", L"ButtonBorderBrushPointerOver", L"ButtonBorderBrushPressed"}, kTransparent);
       } else {
@@ -161,7 +175,8 @@ struct ButtonView : winrt::implements<ButtonView, winrt::IInspectable>,
     }
 
     m_button.HorizontalAlignment(props->fillWidth.value_or(false) ? xaml::HorizontalAlignment::Stretch : xaml::HorizontalAlignment::Left);
-    m_button.IsEnabled(!props->disabled.value_or(false));
+    // No presses while something is on its way, as none while disabled.
+    m_button.IsEnabled(!props->disabled.value_or(false) && !loading);
     // The content changed under the island: Yoga hears the new size now,
     // not at a layout pass the island's unchanged size may never start.
     Remeasure();

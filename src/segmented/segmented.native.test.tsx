@@ -3,6 +3,8 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import {colors} from '../theme';
 import {byComposeTestID, host, modifier, nodes, type HostNode} from 'expo-vitest/native';
+import {HOST, hostFit, hosts} from '../__tests__/hosts';
+import {NativeHostContext} from '../host';
 import {SegmentedControl} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -227,7 +229,22 @@ describe(`SegmentedControl (${Platform.OS})`, () => {
 
   (isIOS ? it.skip : it)('carries no testID modifier without a testID', async () => {
     await render(<SegmentedControl selectedValue="day">{items}</SegmentedControl>);
-    expect(modifier(nodes()[0].props, 'testID')).toBeUndefined();
-    expect(modifier(nodes()[0].props, 'fillMaxWidth')).toBeDefined();
+    const row = nodes().find(n => n.type !== HOST)!;
+    expect(modifier(row.props, 'testID')).toBeUndefined();
+    expect(modifier(row.props, 'fillMaxWidth')).toBeDefined();
+  });
+
+  it('mounts a host of its own outside one: the row\'s width with a label, the segments\' without', async () => {
+    await render(<SegmentedControl label="Range" selectedValue="day" testID="sg">{items}</SegmentedControl>);
+    expect(hosts()).toHaveLength(1);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true});
+    await render(<SegmentedControl selectedValue="day" testID="bare">{items}</SegmentedControl>);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true, horizontal: true});
+    await render(
+      <NativeHostContext.Provider value={true}>
+        <SegmentedControl selectedValue="day" testID="inside">{items}</SegmentedControl>
+      </NativeHostContext.Provider>,
+    );
+    expect(hosts()).toHaveLength(0);
   });
 });

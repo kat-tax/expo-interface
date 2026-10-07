@@ -39,6 +39,7 @@ function ListItemRow({children, leading, trailing, action, supporting, swipeActi
         size="small"
         role={action.role === 'destructive' ? 'destructive' : 'default'}
         disabled={action.disabled}
+        loading={action.loading}
         onPress={action.onPress}
       />
     </>

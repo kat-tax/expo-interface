@@ -17,6 +17,7 @@ export function Typography({
   align,
   style,
   numberOfLines,
+  selectable,
   level,
   testID,
 }: TypographyProps) {
@@ -28,6 +29,7 @@ export function Typography({
   return (
     <Text
       numberOfLines={numberOfLines}
+      selectable={selectable}
       accessibilityRole={heading ? 'header' : undefined}
       testID={testID}
       style={[

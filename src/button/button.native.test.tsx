@@ -3,12 +3,76 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import * as icons from '../__stories__/icons';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {hostFit, hosts} from '../__tests__/hosts';
+import {NativeHostContext} from '../host';
 import {Button} from '.';
 
 const isIOS = Platform.OS === 'ios';
 const button = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
+/** The spinner the platform draws while loading: SwiftUI's `ProgressView`, Compose's `CircularProgressIndicator`. */
+const spinner = () => nodes().find(n => n.type.includes(isIOS ? 'ProgressView' : 'CircularProgressIndicator'));
 
 describe(`Button (${Platform.OS})`, () => {
+  it('mounts a host of its own outside one, sized to itself, and none inside', async () => {
+    await render(<Button label="Continue" testID="cta"/>);
+    expect(hosts()).toHaveLength(1);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true, horizontal: true});
+    expect(button('cta')).toBeTruthy();
+    // A button that fills its width takes the container's; only the height is its own.
+    await render(<Button label="Continue" fillWidth testID="wide"/>);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true});
+    await render(
+      <NativeHostContext.Provider value={true}>
+        <Button label="Continue" testID="inside"/>
+      </NativeHostContext.Provider>,
+    );
+    expect(hosts()).toHaveLength(0);
+    expect(button('inside')).toBeTruthy();
+  });
+
+  it('spins in the icon\'s place and takes no presses while loading', async () => {
+    const onPress = vi.fn();
+    await render(<Button label="Saving" prefixIcon={icons.share} loading onPress={onPress} testID="busy"/>);
+    const {props} = button('busy');
+    const ring = spinner()!;
+    expect(ring).toBeTruthy();
+    if (isIOS) {
+      expect(modifier(props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
+      expect(modifier(ring.props, 'progressViewStyle')?.style).toBe('circular');
+      // The spinner takes the icon's place, in the content's color; the label stays.
+      expect(modifier(ring.props, 'tint')?.tint.color).toBe('#FFFFFF');
+      expect(nodes().some(n => n.props.systemName === 'square.and.arrow.up')).toBe(false);
+      expect(host(p => p.text === 'Saving')).toBeTruthy();
+    } else {
+      expect(props.enabled).toBe(false);
+      expect(props.onClick).toBeUndefined();
+      expect(ring.props.color).toBe('#FFFFFF');
+      expect(ring.props.strokeWidth).toBe(2);
+      expect(modifier(ring.props, 'size')).toMatchObject({width: 18, height: 18});
+      expect(nodes().some(n => n.type.endsWith('IconView'))).toBe(false);
+      expect(host(p => p.text === 'Saving')).toBeTruthy();
+    }
+  });
+
+  it('spins alone in an icon-only button, and dims an inline one', async () => {
+    await render(
+      <>
+        <Button label="Sync" prefixIcon={icons.share} hideLabel loading testID="icon"/>
+        <Button label="Sync" size="inline" loading testID="inline"/>
+      </>,
+    );
+    expect(nodes().filter(n => n.type.includes(isIOS ? 'ProgressView' : 'CircularProgressIndicator'))).toHaveLength(2);
+    if (isIOS) {
+      expect(modifier(button('icon').props, 'accessibilityLabel')?.label).toBe('Sync');
+      expect(modifier(button('icon').props, 'labelStyle')).toBeUndefined();
+      expect(modifier(button('inline').props, 'disabled')).toBeDefined();
+    } else {
+      expect(button('icon').props.enabled).toBe(false);
+      expect(modifier(button('inline').props, 'alpha')).toEqual({$type: 'alpha', alpha: 0.45});
+      expect(modifier(button('inline').props, 'clickable')).toBeUndefined();
+    }
+  });
+
   it('renders the native button with its label', async () => {
     await render(<Button label="Continue" testID="cta"/>);
     const {props} = button('cta');

@@ -226,9 +226,10 @@ npx expo install react-native-keyboard-controller
 
 ## Troubleshooting
 
-**A native control does not appear on iOS or Android.** It is outside a host.
-Put it under `<Screen native>` or wrap the group in `NativeHost`. See
-[Native hosts](hosts.md).
+**Native content of your own does not appear on iOS or Android.** It is
+outside a host. The kit's controls mount one of their own where there is
+none; `@expo/ui` content you write yourself goes under `<Screen native>` or
+in a `NativeHost`. See [Native hosts](hosts.md).
 
 **The app crashes at render with `Symbol.for is not a function`.** Something
 at module scope is named `Symbol`, which shadows the global the React Compiler

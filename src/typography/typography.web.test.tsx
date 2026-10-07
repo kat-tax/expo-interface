@@ -104,6 +104,14 @@ describe('Typography (web)', () => {
 });
 
 describe('headings', () => {
+  it('can be made selectable, with the text cursor to say so', () => {
+    render(<Body selectable testID="licence">MIT</Body>);
+    expect(screen.getByTestId('licence').style.userSelect).toBe('text');
+    expect(screen.getByTestId('licence').style.cursor).toBe('text');
+    render(<Body testID="plain">MIT</Body>);
+    expect(screen.getByTestId('plain').style.userSelect).toBe('');
+  });
+
   it('makes a title something a screen reader can navigate to', () => {
     render(
       <>

@@ -4,10 +4,14 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose';
 import {AccentProvider} from '../accent';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {HOST, hostFit, hosts} from '../__tests__/hosts';
+import {NativeHostContext} from '../host';
 import {Switch} from '.';
 
 const isIOS = Platform.OS === 'ios';
 const toggle = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
+/** The native nodes under the host the switch mounts for itself. */
+const bare = () => nodes().filter(n => n.type !== HOST);
 
 /** Android reads the Material palette from the Host; no native module runs under Jest, so seed one. */
 const palette: Partial<MaterialColors> = {
@@ -15,9 +19,14 @@ const palette: Partial<MaterialColors> = {
   onSurfaceVariant: '#45464FFF',
 };
 
+/** Inside a host, which carries the palette; outside one the switch mounts a host of its own, with the host's. */
 function Material({children}: PropsWithChildren) {
-  if (isIOS) return <>{children}</>;
-  return <HostPaletteContext.Provider value={palette as MaterialColors}>{children}</HostPaletteContext.Provider>;
+  if (isIOS) return <NativeHostContext.Provider value={true}>{children}</NativeHostContext.Provider>;
+  return (
+    <NativeHostContext.Provider value={true}>
+      <HostPaletteContext.Provider value={palette as MaterialColors}>{children}</HostPaletteContext.Provider>
+    </NativeHostContext.Provider>
+  );
 }
 
 const options = {wrapper: Material};
@@ -35,7 +44,7 @@ describe(`Switch (${Platform.OS})`, () => {
       expect(props.enabled).toBe(true);
       expect(props.colors).toEqual({checkedTrackColor: '#007AFF', checkedThumbColor: '#FFFFFF'});
       expect(modifier(props, 'graphicsLayer')).toMatchObject({scaleX: 0.8, scaleY: 0.8, transformOriginX: 1});
-      const row = nodes()[0];
+      const row = bare()[0];
       expect(row.props.horizontalArrangement).toBe('spaceBetween');
       expect(modifier(row.props, 'fillMaxWidth')).toBeDefined();
       expect(host(p => p.text === 'Wi-Fi').props.color).toBe(palette.onSurface);
@@ -82,11 +91,22 @@ describe(`Switch (${Platform.OS})`, () => {
 
   it('renders only the toggle without a label or testID', async () => {
     await render(<Switch value={false} onValueChange={vi.fn()}/>, options);
-    expect(nodes()).toHaveLength(1);
+    expect(bare()).toHaveLength(1);
     if (!isIOS) {
-      expect(modifier(nodes()[0].props, 'testID')).toBeUndefined();
-      expect(modifier(nodes()[0].props, 'graphicsLayer')).toBeDefined();
+      expect(modifier(bare()[0].props, 'testID')).toBeUndefined();
+      expect(modifier(bare()[0].props, 'graphicsLayer')).toBeDefined();
     }
+  });
+
+  it('mounts a host of its own outside one: the row\'s width with a label, the switch\'s without', async () => {
+    await render(<Switch label="Wi-Fi" value onValueChange={vi.fn()} testID="sw"/>);
+    expect(hosts()).toHaveLength(1);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true});
+    await render(<Switch value onValueChange={vi.fn()} testID="bare"/>);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true, horizontal: true});
+    await render(<Switch label="Wi-Fi" value onValueChange={vi.fn()} testID="inside"/>, options);
+    expect(hosts()).toHaveLength(0);
+    expect(toggle('inside')).toBeTruthy();
   });
 
   it('reports the toggled value', async () => {

@@ -60,6 +60,11 @@ export const Disabled: Story = {
   args: {disabled: true},
 };
 
+/** The platform's spinner in the icon's place, and no presses, while something the button started is on its way. */
+export const Loading: Story = {
+  args: {label: 'Saving', prefixIcon: icons.share, loading: true},
+};
+
 export const FillWidth: Story = {
   args: {fillWidth: true},
 };

@@ -38,6 +38,7 @@ struct ExpoInterfaceButtonProps : winrt::implements<ExpoInterfaceButtonProps, wi
        glyphSize = cloneFromProps->glyphSize;
        fillWidth = cloneFromProps->fillWidth;
        disabled = cloneFromProps->disabled;
+       loading = cloneFromProps->loading;
        accentColor = cloneFromProps->accentColor;
        theme = cloneFromProps->theme;
        onPress = cloneFromProps->onPress;  
@@ -86,6 +87,9 @@ struct ExpoInterfaceButtonProps : winrt::implements<ExpoInterfaceButtonProps, wi
 
   REACT_FIELD(disabled)
   std::optional<bool> disabled{};
+
+  REACT_FIELD(loading)
+  std::optional<bool> loading{};
 
   REACT_FIELD(accentColor)
   std::optional<std::string> accentColor;

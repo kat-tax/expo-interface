@@ -26,28 +26,40 @@ for a screen made of kit controls, such as a settings form.
 </Screen>
 ```
 
-**A group of controls.** Where a screen cannot be native as a whole (a canvas,
-an editor, a list of React Native rows), `NativeHost` mounts a host around a
-group of controls.
+**One control.** Where a screen cannot be native as a whole (a canvas, an
+editor, a list of React Native rows), a kit control placed in the React
+Native layout mounts a host of its own: a `Button` in a row of the app's
+own, a `Switch` beside drawn text, a `Divider` between two views.
 
 ```tsx
 <Screen>
   <Canvas/>
-  <NativeHost fit>
-    <Button label="Undo" onPress={undo}/>
-  </NativeHost>
+  <Button label="Undo" onPress={undo}/>
 </Screen>
 ```
 
-`fit` sizes the host to the button. Without it the host fills the width. For
-a row of several controls, `Toolbar` and `HeaderActions` share one host among
-them.
+**A group of controls.** `NativeHost` mounts one host around several, so a
+row of them is one native view rather than one host each. `direction` lays
+them out as a native row or column.
+
+```tsx
+<NativeHost fit direction="row" spacing={8}>
+  <Button label="Undo" onPress={undo}/>
+  <Button label="Redo" onPress={redo}/>
+</NativeHost>
+```
+
+`fit` sizes the host to its content. Without it the host fills the width.
+`Toolbar` and `HeaderActions` share one host among their controls the same
+way.
 
 ## NativeHost
 
 | Prop | What it does |
 | --- | --- |
-| `fit` | Size the host to its content on both axes. By default only the height fits and the width fills the container. |
+| `fit` | Size the host to its content on both axes, or on the width alone (`'width'`, for a vertical rule in a row). By default only the height fits and the width fills the container. |
+| `direction` | Lay the children out as one native `row` or `column`, with `spacing` between them. Without it the children are placed as they are. |
+| `spacing` | The space between the children of a `direction`, in points. |
 | `onLayoutContent` | Reports the content's laid-out size, for a parent that lays out before the platform has measured (a stack header). |
 | `pointerEvents` | `none` for a host that only presents something and should not take presses. |
 
@@ -56,12 +68,16 @@ them.
 `useNativeHost()` answers whether there is a host above. Components that
 present natively mount a host of their own only when there is none:
 
-- `Alert`, `Spinner` and `ListItem` check, so they can be rendered anywhere.
-  A `ListItem` in a React Native `ScrollView` gets a host as wide as its
-  container and as tall as the row; inside a `FieldGroup`, a `Screen native`
-  or a `Sheet` it renders bare.
+- `Button`, `Menu`, `IconToggle`, `Switch`, `SegmentedControl`, `Divider`,
+  `ListItem`, `Alert` and `Spinner` check, so they can be rendered anywhere.
+  A control sized to itself (a button, a switch with no label) gets a host
+  of its own size; one that fills its width (a row with a label, a
+  horizontal divider, a list row) gets a host as wide as its container and
+  as tall as itself; a vertical divider gets one as tall as its row. Inside
+  a `FieldGroup`, a `Screen native`, a `NativeHost` or a `Sheet` they render
+  bare.
 - `PopupMenu`, `Fab` (iOS and Android), `ShareLink` (iOS) and `EmptyState`
-  (iOS 17 and later) mount one where they need it.
+  mount one where they need it.
 - `Toast` and `Toolbar` do the same for their native parts.
 - A `Sheet`'s content counts as hosted, so controls inside it render bare.
 

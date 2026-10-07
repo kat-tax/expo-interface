@@ -1,6 +1,29 @@
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {ButtonVariant} from '../button/types';
 import type {IconToken} from '../icons';
+import {isValidElement} from 'react';
+
+/**
+ * The one thing to do about an empty screen, as data: the kit draws it as
+ * its own `Button` inside the state's native view, so on iOS and Android the
+ * action is native beside native text rather than a React Native hop between
+ * the two.
+ */
+export interface EmptyStateAction {
+  /** The button's text. */
+  label: string;
+  onPress?: () => void;
+  /**
+   * The button's emphasis.
+   * @default 'filled'
+   */
+  variant?: ButtonVariant;
+  icon?: IconToken;
+  disabled?: boolean;
+  /** The action is on its way: the button's spinner, and no presses. */
+  loading?: boolean;
+}
 
 /**
  * What a screen shows when it has nothing to show: no drops yet, no results for
@@ -10,22 +33,43 @@ import type {IconToken} from '../icons';
  * - iOS: `ContentUnavailableView`, the system's own — so it takes Apple's
  *   layout, its metrics and its Dynamic Type behaviour rather than an
  *   approximation of them. It needs iOS 17; below that the kit draws it.
- * - Android, Windows, web: composed from the kit's own icon and typography.
- *   None of those platforms has a single control for this.
+ * - Android: a Compose column in one host, so the icon, the text and the
+ *   action are one native view.
+ * - Windows, web: composed from the kit's own icon and typography. Neither
+ *   platform has a single control for this.
  */
 export interface EmptyStateProps {
   /** One line: what is not here. */
   title: string;
-  /** A sentence under it: why, or what to do. */
+  /** A sentence under it: why, or what to do. It wraps, and can be selected. */
   description?: string;
   /** The icon above the title. */
   icon?: IconToken;
   /**
-   * One thing to do about it, usually a `Button`. Drawn below the description
-   * on every platform.
+   * One thing to do about it: the kit's `Button`, from data, drawn inside the
+   * platform's own view. A node of the app's own is drawn below it in React
+   * Native instead.
    */
-  action?: ReactNode;
+  action?: EmptyStateAction | ReactNode;
+  /**
+   * What is missing is on its way: the platform's spinner in the icon's
+   * place, so a screen waiting for its record is the same empty state as one
+   * that has none.
+   * @default false
+   */
+  loading?: boolean;
+  /**
+   * Whether the description can be selected and copied: the reason a
+   * document failed to open is worth pasting somewhere.
+   * @default true
+   */
+  selectable?: boolean;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
   style?: StyleProp<ViewStyle>;
+}
+
+/** Whether an `action` is the kit's data rather than a node of the app's own. */
+export function isActionData(action: EmptyStateProps['action']): action is EmptyStateAction {
+  return typeof action === 'object' && action !== null && !isValidElement(action) && 'label' in action;
 }

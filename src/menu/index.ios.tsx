@@ -5,6 +5,7 @@ import {Fragment} from 'react';
 import {Button, Divider, Image, Menu as SwiftUIMenu, Toggle} from '@expo/ui/swift-ui';
 import {accessibilityLabel, buttonBorderShape, buttonStyle, controlSize, disabled as disabledMod, labelStyle, tint} from '@expo/ui/swift-ui/modifiers';
 import {iosSymbol, swiftBorderShape, swiftControlSize} from '../button/shared';
+import {SelfHosted} from '../host';
 import {useColor} from '../theme';
 
 const VARIANT_STYLE = {
@@ -14,12 +15,25 @@ const VARIANT_STYLE = {
 } as const;
 
 /**
- * iOS renders SwiftUI's `Menu`, styled with the same `buttonStyle` / `tint`
- * mapping as the kit's `Button` so the trigger matches. Entries are SwiftUI
- * `Button`s (with SF Symbol and `destructive` role), checked `Toggle`s for
- * active entries, and `Divider`s.
+ * iOS renders SwiftUI's `Menu`, in a host of its own where there is none
+ * above it, so a menu can be placed in a React Native layout like any
+ * element.
  */
-export function Menu({
+export function Menu(props: MenuProps) {
+  return (
+    <SelfHosted>
+      <NativeMenu {...props}/>
+    </SelfHosted>
+  );
+}
+
+/**
+ * The SwiftUI `Menu`, styled with the same `buttonStyle` / `tint` mapping as
+ * the kit's `Button` so the trigger matches. Entries are SwiftUI `Button`s
+ * (with SF Symbol and `destructive` role), checked `Toggle`s for active
+ * entries, and `Divider`s.
+ */
+function NativeMenu({
   label,
   icon,
   items,

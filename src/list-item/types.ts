@@ -27,6 +27,8 @@ export interface ListItemAction {
   onPress: () => void;
   /** Greys the action out and ignores presses. */
   disabled?: boolean;
+  /** The action is on its way: a spinner before its label, and no presses until it is done. */
+  loading?: boolean;
   /**
    * `destructive` renders the action in the danger color.
    * @default 'default'

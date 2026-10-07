@@ -3,6 +3,7 @@ import type {CSSProperties} from 'react';
 import type {ButtonProps} from './types';
 import {Icon} from '../symbol';
 import {onAccent as contrastOf} from '../accent';
+import {Progress} from '../progress';
 import {useColor} from '../theme';
 import {SIZE_ICON} from './shared';
 
@@ -22,6 +23,8 @@ interface WebButtonProps extends ButtonProps {
  * On web the button is a real `<button>` element styled via `button.css`, so it
  * reads as a native web control rather than a ported Android/Material button.
  * The accent color is passed through the `--ui-button-accent` custom property.
+ * While `loading` the button is `aria-busy`, disabled, and the kit's ring
+ * spins in the icon's place.
  */
 export function Button({
   label,
@@ -37,6 +40,7 @@ export function Button({
   suffixIcon,
   hideLabel = false,
   disabled = false,
+  loading = false,
   fillWidth = false,
   testID,
   popoverTarget,
@@ -53,6 +57,7 @@ export function Button({
   const onAccent = color ? contrastOf(color) : themeOnAccent;
   const iconOnly = hideLabel && !!prefixIcon;
   const iconSize = iconSizeProp ?? SIZE_ICON[size];
+  const iconColor = variant === 'filled' ? onAccent : accent;
   const style = color
     ? ({'--ui-button-accent': color, '--ui-button-on-accent': onAccent} as CSSProperties)
     : undefined;
@@ -66,6 +71,7 @@ export function Button({
     role === 'destructive' && 'ui-button--destructive',
     labelTone && !color && 'ui-button--label',
     fillWidth && 'ui-button--fill',
+    loading && 'ui-button--loading',
   ].filter(Boolean).join(' ');
 
   return (
@@ -73,17 +79,20 @@ export function Button({
       type="button"
       style={style}
       className={className}
-      disabled={disabled}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       onClick={onPress}
       popoverTarget={popoverTarget}
       popoverTargetAction={popoverTarget ? popoverTargetAction : undefined}
       data-testid={testID}
       aria-label={iconOnly ? label : undefined}>
-      {prefixIcon ? (
+      {loading ? (
+        <Progress variant="circular" size={iconSize} color={iconColor} trackColor="transparent"/>
+      ) : prefixIcon ? (
         <Icon
           icon={prefixIcon}
           size={iconSize}
-          tintColor={variant === 'filled' ? onAccent : accent}
+          tintColor={iconColor}
         />
       ) : null}
       {!iconOnly ? <span className="ui-button__label">{label}</span> : null}
@@ -91,7 +100,7 @@ export function Button({
         <Icon
           icon={suffixIcon}
           size={iconSize}
-          tintColor={variant === 'filled' ? onAccent : accent}
+          tintColor={iconColor}
         />
       ) : null}
     </button>

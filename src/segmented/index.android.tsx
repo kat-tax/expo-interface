@@ -18,9 +18,22 @@ import {
   testID as testIDModifier,
 } from '@expo/ui/jetpack-compose/modifiers';
 import {onAccent} from '../accent';
+import {SelfHosted} from '../host';
 import {useColor} from '../theme';
 import {metrics, TRACK_INSET} from './shared';
 import {extractItems, PickerItem, useSelectedValue} from '../picker/shared';
+
+/**
+ * The segmented control, in a host of its own where there is none above it:
+ * the width of its container with a label, of the segments without.
+ */
+function SegmentedControlComponent<T extends PickerValue>(props: SegmentedControlProps<T>) {
+  return (
+    <SelfHosted fit={props.label == null}>
+      <NativeSegmentedControl {...props}/>
+    </SelfHosted>
+  );
+}
 
 /**
  * Android composes the iOS segmented control out of Compose primitives: a
@@ -33,7 +46,7 @@ import {extractItems, PickerItem, useSelectedValue} from '../picker/shared';
  * selected segment, none of which the other two platforms do. The row still
  * pins the control to the trailing edge, mirroring the iOS Form row.
  */
-function SegmentedControlComponent<T extends PickerValue>({
+function NativeSegmentedControl<T extends PickerValue>({
   label,
   children,
   selectedValue,

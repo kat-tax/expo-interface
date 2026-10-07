@@ -45,6 +45,11 @@ describe('Typography (windows)', () => {
 });
 
 describe('headings', () => {
+  it('can be made selectable, for text worth copying', async () => {
+    await render(<Body selectable testID="licence">MIT</Body>);
+    expect(screen.getByTestId('licence').props.selectable).toBe(true);
+  });
+
   it('marks a title as a header, which is how Narrator navigates a screen', async () => {
     await render(
       <>

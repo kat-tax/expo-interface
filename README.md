@@ -151,7 +151,7 @@ props, what each platform renders, and where the platforms differ.
 | Light and dark | Every component follows the system. `setColorScheme` forces one, and on web the choice survives a reload without a flash. | [Theming](docs/theming.md#color-scheme) |
 | Color tokens | `theme.label`, `theme.background` and the rest resolve to values the OS keeps current, with no re-render. `useColor` and `usePalette` give plain strings. | [Theming](docs/theming.md#tokens) |
 | Icons | One token names the icon in SF Symbols, Material Symbols and Segoe Fluent Icons. `fill: true` asks for the solid form. | [Icons](docs/icons.md) |
-| Native hosts | `Screen native` hosts a whole screen. `NativeHost` hosts a group of controls beside a canvas or an editor. | [Native hosts](docs/hosts.md) |
+| Native hosts | `Screen native` hosts a whole screen. A kit control outside one mounts a host of its own, and `NativeHost` groups several beside a canvas or an editor into one. | [Native hosts](docs/hosts.md) |
 | Navigation | `Stack`, `Tabs` and `TabStack` over Expo Router: the native stack and tab bar, a floating bar on web, a `NavigationView` on Windows. | [Navigation](docs/components/navigation.md) |
 | Web platform primitives | Popovers, anchor positioning, `<dialog>`, `<select>` and `<datalist>` rather than portals and z-index, with the ARIA keyboard patterns. | [Web](docs/platforms/web.md) |
 | Windows | WinUI 3 controls in XAML islands, content in the title bar, keyboard shortcuts, high contrast, right to left and scaling. | [Windows](docs/platforms/windows.md) |

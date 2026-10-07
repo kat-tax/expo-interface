@@ -16,17 +16,23 @@ Props: `label` (required, the accessible name even with `hideLabel`),
 `destructive`), `color`, `tone` (`accent`, `label`; filled and outlined
 buttons ignore it), `size` (`inline`, `small`, `medium`, `large`), `shape`
 (`rounded`, `pill`, `circle`; each platform's default when omitted),
-`iconSize`, `prefixIcon`, `suffixIcon`, `hideLabel`, `disabled`, `fillWidth`,
+`iconSize`, `prefixIcon`, `suffixIcon`, `hideLabel`, `disabled`, `loading`
+(the platform's spinner in the icon's place, and no presses until it is
+done; the label stays, so the button keeps its width), `fillWidth`,
 `testID`. Web only: `popoverTarget` and `popoverTargetAction`, so the browser
 manages a popover's open state, `aria-expanded` and light dismiss without
 JavaScript.
 
 | Platform | Renders |
 | --- | --- |
-| iOS | SwiftUI `Button` in the bordered-prominent, bordered or plain style |
-| Android | Material 3 `Button`, `OutlinedButton` or `TextButton`, or the icon buttons when icon-only. `size: 'inline'` is a clickable row, since Material's buttons keep a minimum height no modifier can shrink. |
-| Web | A real `<button>` |
-| Windows | WinUI `Button`: the accent style for `filled`, the standard one for `outlined`, transparent for `text`, with Segoe glyphs |
+| iOS | SwiftUI `Button` in the bordered-prominent, bordered or plain style, with a `ProgressView` while loading |
+| Android | Material 3 `Button`, `OutlinedButton` or `TextButton`, or the icon buttons when icon-only, with a `CircularProgressIndicator` in the content slot while loading. `size: 'inline'` is a clickable row, since Material's buttons keep a minimum height no modifier can shrink. |
+| Web | A real `<button>`, `aria-busy` with the kit's ring while loading |
+| Windows | WinUI `Button`: the accent style for `filled`, the standard one for `outlined`, transparent for `text`, with Segoe glyphs and a `ProgressRing` while loading |
+
+On iOS and Android a button outside a host mounts one of its own, sized to
+itself, so it can be placed in a React Native layout like any element. See
+[Native hosts](../hosts.md).
 
 Differences:
 
@@ -106,7 +112,8 @@ glyph when on. Props: `label`, `icon`, `activeIcon` (defaults to `icon`),
 | Web | `<button aria-pressed>` |
 | Windows | WinUI `ToggleButton` holding a `FontIcon`, with the two colors in place of the control's checked fill |
 
-On Windows a token with no Segoe glyph renders nothing.
+On Windows a token with no Segoe glyph renders nothing. On iOS and Android
+a toggle outside a host mounts one of its own, sized to itself.
 
 ## Switch
 
@@ -119,6 +126,9 @@ An on/off toggle with a leading label. Props: `label`, `value`,
 | Android | Material 3 `Switch` at the trailing edge of a Compose row, with a white thumb as on iOS |
 | Web | react-native-web's switch in a drawn row |
 | Windows | WinUI `ToggleSwitch` at the trailing edge of a drawn row |
+
+On iOS and Android a switch outside a host mounts one of its own: the width
+of its container with a label, of the switch without.
 
 ## Checkbox
 
@@ -218,7 +228,9 @@ children. Props: `label`, `selectedValue`, `onValueChange`, `disabled`,
 
 On Windows `size` and `shape` are not applied, since the control has one of
 each, and `accentColor` colors the underline. On iOS `shape` matters for
-`pill` only, since `rounded` is the system's own corner.
+`pill` only, since `rounded` is the system's own corner. On iOS and Android
+a control outside a host mounts one of its own: the width of its container
+with a label, of the segments without.
 
 ## Slider
 

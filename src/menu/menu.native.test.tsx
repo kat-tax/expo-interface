@@ -5,15 +5,18 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import * as icons from '../__stories__/icons';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {HOST, hostFit, hosts} from '../__tests__/hosts';
+import {NativeHostContext} from '../host';
 import {Menu} from '.';
-
 
 const isIOS = Platform.OS === 'ios';
 const trigger = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
 const children = (node: HostNode) => (node.children ?? []).filter((c): c is HostNode => typeof c === 'object');
+/** The menu itself: the first native node under the host it mounts for itself. */
+const root = () => nodes().find(n => n.type !== HOST)!;
 /** Host nodes for the menu entries: SwiftUI `Button`s / `Divider`s or Compose `DropdownMenuItem`s / dividers. */
 const entries = () => isIOS
-  ? children(nodes()[0])
+  ? children(root())
   : children(host(p => p.slotName === 'items'));
 
 const items: MenuItem[] = [
@@ -36,8 +39,22 @@ describe(`Menu (${Platform.OS})`, () => {
     } else {
       expect(host(p => p.text === 'Export')).toBeTruthy();
       expect(props.enabled).toBe(true);
-      expect(nodes()[0].props.expanded).toBe(false);
+      expect(root().props.expanded).toBe(false);
     }
+  });
+
+  it('mounts a host of its own outside one, and none inside', async () => {
+    await render(<Menu label="Export" items={items} testID="export"/>);
+    expect(hosts()).toHaveLength(1);
+    // Sized to the trigger, as a button in a row of the app's own is.
+    expect(hostFit(hosts()[0])).toEqual({vertical: true, horizontal: true});
+    await render(
+      <NativeHostContext.Provider value={true}>
+        <Menu label="Export" items={items} testID="inside"/>
+      </NativeHostContext.Provider>,
+    );
+    expect(hosts()).toHaveLength(0);
+    expect(trigger('inside')).toBeTruthy();
   });
 
   it('maps variant, size, shape and color onto the trigger', async () => {
@@ -211,7 +228,7 @@ describe(`Menu (${Platform.OS})`, () => {
     await render(<Menu label="Export" items={items} testID="export"/>);
     const [button] = screen.container.queryAll(i => typeof i.props.onButtonPressed === 'function');
     await fireEvent(button, 'buttonPressed');
-    expect(nodes()[0].props.expanded).toBe(true);
+    expect(root().props.expanded).toBe(true);
   });
 
   (isIOS ? it.skip : it)('reports the dropdown opening and closing', async () => {
@@ -229,7 +246,7 @@ describe(`Menu (${Platform.OS})`, () => {
   (isIOS ? it.skip : it)('closes the dropdown when an entry is picked or it is dismissed', async () => {
     const onShare = vi.fn();
     await render(<Menu label="Export" items={[{label: 'Share', onPress: onShare}]} testID="export"/>);
-    const expanded = () => nodes()[0].props.expanded;
+    const expanded = () => root().props.expanded;
     const open = async () => {
       const [button] = screen.container.queryAll(i => typeof i.props.onButtonPressed === 'function');
       await fireEvent(button, 'buttonPressed');

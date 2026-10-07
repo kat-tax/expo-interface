@@ -2,6 +2,7 @@ import type {SwitchProps} from './types';
 
 import {Row, Switch as ComposeSwitch, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
 import {fillMaxWidth, graphicsLayer, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {SelfHosted} from '../host';
 import {useColor} from '../theme';
 
 // Material 3's Switch has a fixed size; scale it down visually while keeping it
@@ -12,6 +13,18 @@ const SCALE = 0.80;
 const THUMB_ON = '#FFFFFF';
 
 /**
+ * The Material 3 `Switch`, in a host of its own where there is none above
+ * it: the width of its container with a label, of the switch without.
+ */
+export function Switch(props: SwitchProps) {
+  return (
+    <SelfHosted fit={props.label == null}>
+      <NativeSwitch {...props}/>
+    </SelfHosted>
+  );
+}
+
+/**
  * The stock universal switch packs the label and toggle tightly together. Here
  * the row fills the available width and pushes the Material switch to the
  * trailing edge, mirroring the iOS Form row. The "on" state is colored with
@@ -20,7 +33,7 @@ const THUMB_ON = '#FFFFFF';
  * switch reads identically across platforms — including inside sheets whose
  * native host is not seeded.
  */
-export function Switch({
+function NativeSwitch({
   label,
   value,
   onValueChange,

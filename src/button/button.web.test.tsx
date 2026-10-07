@@ -22,6 +22,21 @@ describe('Button (web)', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
+  it('is busy, disabled and spinning in the icon\'s place while loading', () => {
+    const onPress = vi.fn();
+    render(<Button label="Saving" prefixIcon={icons.share} loading onPress={onPress} testID="busy"/>);
+    const button = screen.getByRole('button', {name: 'Saving'});
+    expect(button).toHaveAttribute('aria-busy', 'true');
+    expect(button).toBeDisabled();
+    expect(button).toHaveClass('ui-button--loading');
+    expect(button.querySelector('.ui-progress-ring--indeterminate')).toBeTruthy();
+    // The spinner stands in the icon's place; the label stays, so the button keeps its width.
+    expect(button.querySelector('.ui-symbol')).toBeNull();
+    expect(button).toHaveTextContent('Saving');
+    fireEvent.click(button);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
   it('maps variant, size, shape and role to modifier classes', () => {
     render(<Button label="Delete" variant="text" size="large" shape="circle" role="destructive"/>);
     expect(screen.getByRole('button')).toHaveClass(

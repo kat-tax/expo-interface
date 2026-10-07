@@ -1,14 +1,17 @@
 import type {ReactNode} from 'react';
 import type {ListItemProps} from './types';
 import {WithRowMenu} from './shared';
-import {Button, Column, ListItem as ComposeListItem, Row, Shape, Text, TextButton} from '@expo/ui/jetpack-compose';
-import {clickable, fillMaxWidth, testID as testIDModifier, weight, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
+import {Button, CircularProgressIndicator, Column, ListItem as ComposeListItem, Row, Shape, Spacer, Text, TextButton} from '@expo/ui/jetpack-compose';
+import {clickable, fillMaxWidth, size, testID as testIDModifier, weight, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
 import {androidContentPadding} from '../button/shared';
 import {NativeHost, useNativeHost} from '../host';
 import {useColor} from '../theme';
 
 /** The `rounded` button shape, as the kit's own `Button` draws it. */
 const ROUNDED = Shape.RoundedCorner({cornerRadii: {topStart: 12, topEnd: 12, bottomStart: 12, bottomEnd: 12}});
+
+/** The spinner before a loading action's label, the small button's icon size. */
+const ACTION_SPINNER = 16;
 
 
 /**
@@ -62,17 +65,24 @@ function ListItemRow({children, leading, trailing, action, supporting, inset = t
   const filled = action?.variant === 'filled';
   // The filled control carries the accent, so its label takes the contrast.
   const ActionButton = filled ? Button : TextButton;
+  const inactive = !!action?.disabled || !!action?.loading;
   const actionTextColor = action?.disabled ? muted : filled ? onAction : actionColor;
   const trailingContent = action ? (
     <Row verticalAlignment="center" horizontalArrangement={{spacedBy: 8}}>
       {trailing}
       <ActionButton
-        onClick={action.disabled ? undefined : action.onPress}
-        enabled={!action.disabled}
+        onClick={inactive ? undefined : action.onPress}
+        enabled={!inactive}
         colors={filled ? {containerColor: actionColor, contentColor: onAction} : {contentColor: actionColor}}
         shape={filled ? ROUNDED : undefined}
         contentPadding={filled ? androidContentPadding('small') : undefined}
         modifiers={[wrapContentWidth('end'), wrapContentHeight('centerVertically')]}>
+        {action.loading ? (
+          <>
+            <CircularProgressIndicator color={actionTextColor} trackColor="#00000000" strokeWidth={2} modifiers={[size(ACTION_SPINNER, ACTION_SPINNER)]}/>
+            <Spacer modifiers={[width(8)]}/>
+          </>
+        ) : null}
         <Text color={actionTextColor}>{action.label}</Text>
       </ActionButton>
     </Row>

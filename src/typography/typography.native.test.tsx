@@ -101,6 +101,17 @@ describe(`Typography (${Platform.OS})`, () => {
 });
 
 describe('headings', () => {
+  it('can be made selectable, for text worth copying', async () => {
+    await render(
+      <>
+        <Body selectable testID="licence">MIT</Body>
+        <Body testID="plain">MIT</Body>
+      </>,
+    );
+    expect(screen.getByTestId('licence').props.selectable).toBe(true);
+    expect(screen.getByTestId('plain').props.selectable).toBeUndefined();
+  });
+
   it('marks a title as a header, so it can be jumped to', async () => {
     await render(
       <>

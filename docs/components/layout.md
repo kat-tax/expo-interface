@@ -184,8 +184,8 @@ A settings-style row with leading and trailing slots, supporting text, a
 trailing action and the row's own actions.
 
 Props: `children` (the headline), `leading`, `trailing`, `supporting`,
-`action` (`label`, `onPress`, `disabled`, `role`, `variant` `text` or
-`filled`), `swipeActions` (`label`, `onPress`, `icon`, `role`, `disabled`
+`action` (`label`, `onPress`, `disabled`, `loading`, `role`, `variant` `text`
+or `filled`), `swipeActions` (`label`, `onPress`, `icon`, `role`, `disabled`
 per action), `inset` (default true), `onPress`, `testID`.
 
 | Platform | Renders |
@@ -232,17 +232,33 @@ A hairline separator. Props: `vertical`, `color`, `inset`, `testID`.
 | Web | A real `<hr>` |
 | Windows | A hairline view in the separator color, the stroke WinUI's dividers use |
 
+On iOS and Android a rule outside a host mounts one of its own, so it draws
+between React Native views too: as wide as its container, or, vertical, as
+tall as its row. See [Native hosts](../hosts.md).
+
 ## EmptyState
 
 What a screen shows when it has nothing to show: no drops yet, no results, no
-connection. Props: `title`, `description`, `icon`, `action` (usually a
-`Button`, drawn below the description), `style`, `testID`.
+connection. Props: `title`, `description`, `icon`, `action`, `loading`,
+`selectable`, `style`, `testID`.
+
+`action` is the one thing to do about it, as data: `label`, `onPress`,
+`variant` (`filled` by default), `icon`, `disabled`, `loading`. The kit draws
+it as its own `Button` inside the platform's view, so natively the action is
+native beside native text rather than a React Native hop between the two. A
+node of the app's own is drawn below the view in React Native instead.
+`loading` puts the platform's spinner in the icon's place, so a screen waiting
+for its record is the same empty state as one that has none. The description
+wraps at the screen's width and can be selected and copied, unless
+`selectable` is off.
 
 | Platform | Renders |
 | --- | --- |
-| iOS 17 and later | The system's `ContentUnavailableView`, with the `action` under it as React Native |
-| Older iOS, Android, Web | A drawn column with the icon through `SymbolView` |
-| Windows | The same column with a Segoe glyph |
+| iOS 17 and later | The system's `ContentUnavailableView` and the action in one host that fills the width. While `loading` the same layout is composed in SwiftUI, with a `ProgressView` where the symbol goes. |
+| Older iOS, Web | A drawn column with the icon through `SymbolView`, the kit's `Spinner` while loading |
+| Android | A Compose column in one host: the token's drawable, the title and the description in the Material scale, the `CircularProgressIndicator` while loading, and the action as the Material button. A node of the app's own rides in the column as hosted React Native content. |
+| Windows | The drawn column with a Segoe glyph, the WinUI `ProgressRing` while loading |
 
 The drawn layout is one accessibility element that reads the title and the
-description together.
+description together. The Compose column reads them as the two texts they
+are, since `@expo/ui`'s Compose layer sets no description on a column.

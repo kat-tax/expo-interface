@@ -74,6 +74,12 @@ describe('ListItem (windows)', () => {
     expect(upgrade.props).toMatchObject({label: 'Upgrade', variant: 'filled', shape: 'rounded', disabled: true, buttonRole: 'default'});
     await fireEvent(island(BUTTON), 'press');
     expect(onSignOut).toHaveBeenCalledTimes(1);
+    expect(signOut.props.loading).toBe(false);
+  });
+
+  it('hands a loading action\'s state to the button island', async () => {
+    await render(<ListItem action={{label: 'Signing in', onPress: vi.fn(), loading: true}}>Account</ListItem>);
+    expect(island(BUTTON).props.loading).toBe(true);
   });
 });
 

@@ -81,8 +81,10 @@ Text in the platform's type scale. `Typography` with a `variant`, and the
 variants as components: `LargeTitle`, `Title`, `Title2`, `Title3`,
 `Headline`, `Body`, `Callout`, `Subheadline`, `Footnote`, `Caption`,
 `Label`. Props: `variant`, `weight`, `align`, `color` (a token),
-`numberOfLines`, `level` (the heading level, overriding the one the variant
-implies; `false` for a large line that is not a heading), `style`, `testID`.
+`numberOfLines`, `selectable` (the text can be selected and copied: a
+licence, a reason, an address; off by default, as the platforms' own labels
+are), `level` (the heading level, overriding the one the variant implies;
+`false` for a large line that is not a heading), `style`, `testID`.
 
 The title variants are headings: `largeTitle` is level 1, `title` 2, `title2`
 3, `title3` 4, `headline` 5. On web they carry `role="heading"` with

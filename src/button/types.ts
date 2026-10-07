@@ -91,6 +91,14 @@ export interface ButtonProps {
   /** Disables interaction and dims the button. */
   disabled?: boolean;
   /**
+   * Something the button started is on its way: the platform's activity
+   * indicator takes the icon's place before the label, and the button takes
+   * no presses until it is done. The label stays, so the button keeps its
+   * width and its name.
+   * @default false
+   */
+  loading?: boolean;
+  /**
    * Stretch the button to its container's full width. By default the button
    * hugs its content, even when the parent would stretch it (a flex column on
    * web, a `Host` on Android).

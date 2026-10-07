@@ -2,12 +2,29 @@ import {Platform, StyleSheet} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {colors} from '../theme';
 import {byComposeTestID, host, modifier} from 'expo-vitest/native';
+import {hostFit, hosts} from '../__tests__/hosts';
+import {NativeHostContext} from '../host';
 import {Divider} from '.';
 
 const isIOS = Platform.OS === 'ios';
 const divider = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
 
 describe(`Divider (${Platform.OS})`, () => {
+  it('mounts a host of its own outside one: the container\'s width, or the row\'s height for a vertical rule', async () => {
+    await render(<Divider testID="rule"/>);
+    expect(hosts()).toHaveLength(1);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true});
+    await render(<Divider vertical testID="upright"/>);
+    expect(hostFit(hosts()[0])).toEqual({horizontal: true});
+    await render(
+      <NativeHostContext.Provider value={true}>
+        <Divider testID="inside"/>
+      </NativeHostContext.Provider>,
+    );
+    expect(hosts()).toHaveLength(0);
+    expect(divider('inside')).toBeTruthy();
+  });
+
   it('renders the native divider with the theme separator color', async () => {
     await render(<Divider testID="rule"/>);
     const {props} = divider('rule');
@@ -23,7 +40,7 @@ describe(`Divider (${Platform.OS})`, () => {
   it('renders without a testID', async () => {
     await render(<Divider/>);
     if (isIOS) {
-      const {props} = host(p => Array.isArray(p.modifiers) && p.testID === undefined);
+      const {props} = host(p => Array.isArray(p.modifiers) && p.testID === undefined && !p.matchContentsVertical);
       expect(props.modifiers).toEqual([]);
     } else {
       const {props} = host(p => p.thickness === StyleSheet.hairlineWidth);

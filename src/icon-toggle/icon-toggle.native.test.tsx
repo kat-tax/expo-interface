@@ -3,11 +3,26 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
 import {colors} from '../theme';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {hostFit, hosts} from '../__tests__/hosts';
+import {NativeHostContext} from '../host';
 import {IconToggle} from '.';
 
 const isIOS = Platform.OS === 'ios';
 
 describe(`IconToggle (${Platform.OS})`, () => {
+  it('mounts a host of its own outside one, sized to itself, and none inside', async () => {
+    await render(<IconToggle label="Favourite" icon={icons.star} value={false} onValueChange={vi.fn()} testID="star"/>);
+    expect(hosts()).toHaveLength(1);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true, horizontal: true});
+    await render(
+      <NativeHostContext.Provider value={true}>
+        <IconToggle label="Favourite" icon={icons.star} value={false} onValueChange={vi.fn()} testID="inside"/>
+      </NativeHostContext.Provider>,
+    );
+    expect(hosts()).toHaveLength(0);
+    expect(isIOS ? screen.getByTestId('inside') : byComposeTestID('inside')).toBeTruthy();
+  });
+
   it('draws the off icon in the secondary color and reports the press', async () => {
     const onValueChange = vi.fn();
     await render(

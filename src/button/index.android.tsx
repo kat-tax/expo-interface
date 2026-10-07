@@ -1,8 +1,9 @@
 import type {ButtonProps, ButtonShape, ButtonVariant} from './types';
-import {alpha, clickable, fillMaxWidth, testID as testIDModifier, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
-import {Button as ComposeButton, OutlinedButton, TextButton, Icon, IconButton, FilledIconButton, OutlinedIconButton, Row, Spacer, Shape, Text} from '@expo/ui/jetpack-compose';
+import {alpha, clickable, fillMaxWidth, size as sizeModifier, testID as testIDModifier, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
+import {Button as ComposeButton, CircularProgressIndicator, OutlinedButton, TextButton, Icon, IconButton, FilledIconButton, OutlinedIconButton, Row, Spacer, Shape, Text} from '@expo/ui/jetpack-compose';
 import {SIZE_ICON, SIZE_TEXT, androidContentPadding} from './shared';
 import {onAccent as contrastOf} from '../accent';
+import {SelfHosted} from '../host';
 import {useColor} from '../theme';
 
 const VARIANT_COMPONENT: Record<ButtonVariant, typeof ComposeButton | typeof OutlinedButton | typeof TextButton> = {
@@ -16,6 +17,9 @@ const ICON_ONLY_COMPONENT: Record<ButtonVariant, typeof FilledIconButton | typeo
   outlined: OutlinedIconButton,
   text: IconButton,
 };
+
+/** The spinner's stroke, finer than the kit's ring, since it sits in a line of text. */
+const SPINNER_STROKE = 2;
 
 function resolveShape(shape?: ButtonShape) {
   if (!shape) return undefined;
@@ -33,12 +37,27 @@ function resolveShape(shape?: ButtonShape) {
 }
 
 /**
- * Android renders the matching Material 3 button component for each variant.
- * The accent defaults to the theme tint (red for the destructive role) and is
- * applied as the container color (filled) or content color (outlined/text), so
- * the button is branded instead of falling back to the device's Material theme.
+ * Android renders the matching Material 3 button, in a host of its own where
+ * there is none above it, so a button can be placed in a React Native layout
+ * like any element.
  */
-export function Button({
+export function Button(props: ButtonProps) {
+  return (
+    <SelfHosted fit={!props.fillWidth}>
+      <NativeButton {...props}/>
+    </SelfHosted>
+  );
+}
+
+/**
+ * The Material 3 button component for each variant. The accent defaults to
+ * the theme tint (red for the destructive role) and is applied as the
+ * container color (filled) or content color (outlined/text), so the button
+ * is branded instead of falling back to the device's Material theme. While
+ * `loading` a `CircularProgressIndicator` stands in the icon's place in the
+ * content slot, as Material's busy buttons do, and the button is disabled.
+ */
+function NativeButton({
   label,
   onPress,
   variant = 'filled',
@@ -52,6 +71,7 @@ export function Button({
   suffixIcon,
   hideLabel = false,
   disabled,
+  loading = false,
   fillWidth = false,
   testID,
 }: ButtonProps) {
@@ -72,6 +92,7 @@ export function Button({
   const iconSize = iconSizeProp ?? SIZE_ICON[size];
   const textSize = SIZE_TEXT[size];
   const resolvedShape = resolveShape(shape);
+  const inactive = disabled || loading;
   // A `Host` measures a direct child with its own (tight) constraints, which
   // a Compose button would fill on both axes; wrap to the content instead.
   const modifiers = [
@@ -81,19 +102,32 @@ export function Button({
   if (testID) modifiers.push(testIDModifier(testID));
   const iconOnly = hideLabel && !!prefixIcon?.drawable;
 
+  // The spinner in the icon's place, in the content's color.
+  const spinner = loading ? (
+    <CircularProgressIndicator
+      color={textColor}
+      trackColor="#00000000"
+      strokeWidth={SPINNER_STROKE}
+      modifiers={[sizeModifier(iconSize, iconSize)]}
+    />
+  ) : null;
+  const leading = spinner ?? (prefixIcon?.drawable ? (
+    <Icon
+      source={prefixIcon.drawable}
+      size={iconSize}
+      tint={textColor}
+      contentDescription={iconOnly ? label : undefined}
+    />
+  ) : null);
+
   // Shared by the Material buttons and the inline row. The label is dropped
   // only when there is an icon to stand in for it (`iconOnly`), so a
   // `hideLabel` without a drawable still reads.
   const content = (
     <>
-      {prefixIcon?.drawable ? (
+      {leading ? (
         <>
-          <Icon
-            source={prefixIcon.drawable}
-            size={iconSize}
-            tint={textColor}
-            contentDescription={iconOnly ? label : undefined}
-          />
+          {leading}
           {iconOnly ? null : <Spacer modifiers={[width(8)]}/>}
         </>
       ) : null}
@@ -116,7 +150,7 @@ export function Button({
         verticalAlignment="center"
         modifiers={[
           ...modifiers,
-          ...(disabled ? [alpha(0.45)] : onPress ? [clickable(onPress)] : []),
+          ...(inactive ? [alpha(0.45)] : onPress ? [clickable(onPress)] : []),
         ]}>
         {content}
       </Row>
@@ -127,28 +161,23 @@ export function Button({
     const IconComponent = ICON_ONLY_COMPONENT[variant];
     return (
       <IconComponent
-        onClick={disabled ? undefined : onPress}
-        enabled={!disabled}
+        onClick={inactive ? undefined : onPress}
+        enabled={!inactive}
         colors={colors}
         shape={resolvedShape}
         modifiers={modifiers}>
-        <Icon
-          source={prefixIcon!.drawable!}
-          size={iconSize}
-          tint={textColor}
-          contentDescription={label}
-        />
+        {leading}
       </IconComponent>
     );
   }
 
   const Component = VARIANT_COMPONENT[variant];
-  const pad = androidContentPadding(size, !!(prefixIcon?.drawable || suffixIcon?.drawable));
+  const pad = androidContentPadding(size, !!(leading || suffixIcon?.drawable));
 
   return (
     <Component
-      onClick={disabled ? undefined : onPress}
-      enabled={!disabled}
+      onClick={inactive ? undefined : onPress}
+      enabled={!inactive}
       colors={colors}
       shape={resolvedShape}
       contentPadding={pad}

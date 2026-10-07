@@ -148,6 +148,22 @@ describe(`ListItem (${Platform.OS})`, () => {
     }
   });
 
+  it('spins before a loading action\'s label and takes no presses', async () => {
+    const onPress = vi.fn();
+    await render(<ListItem action={{label: 'Signing in', onPress, loading: true}} testID="row">Account</ListItem>);
+    if (isIOS) {
+      const button = nodes().find(n => n.type.endsWith('_Button') && modifier(n.props, 'disabled') !== undefined)!;
+      expect(modifier(button.props, 'buttonStyle')?.style).toBe('plain');
+      expect(nodes().some(n => n.type.includes('ProgressView'))).toBe(true);
+      expect(host(p => p.text === 'Signing in')).toBeTruthy();
+    } else {
+      const button = host(p => p.enabled === false);
+      expect(button.props.onClick).toBeUndefined();
+      expect(nodes().some(n => n.type.includes('CircularProgressIndicator'))).toBe(true);
+      expect(host(p => p.text === 'Signing in', button).props.color).toBe(colors.light.tint);
+    }
+  });
+
   it('greys out a disabled action and colors a destructive one', async () => {
     const onPress = vi.fn();
     await render(

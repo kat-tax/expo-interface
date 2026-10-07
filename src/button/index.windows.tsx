@@ -13,7 +13,9 @@ import {SIZE_ICON} from './shared';
  * resources, so the button is branded like its iOS and Android twins.
  *
  * The island measures the control, so the button hugs its content unless
- * `fillWidth` stretches it. Icons are Segoe Fluent Icons glyphs.
+ * `fillWidth` stretches it. Icons are Segoe Fluent Icons glyphs. While
+ * `loading` a WinUI `ProgressRing` turns in the glyph's place and the button
+ * is disabled.
  */
 export function Button({
   label,
@@ -29,6 +31,7 @@ export function Button({
   suffixIcon,
   hideLabel = false,
   disabled,
+  loading = false,
   fillWidth = false,
   testID,
 }: ButtonProps) {
@@ -52,6 +55,7 @@ export function Button({
       glyphSize={iconSize ?? SIZE_ICON[size]}
       fillWidth={fillWidth}
       disabled={disabled}
+      loading={loading}
       onPress={onPress ? () => onPress() : undefined}
       style={fillWidth ? styles.fill : styles.hug}
       testID={testID}

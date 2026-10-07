@@ -10,6 +10,7 @@ export function Typography({
   weight,
   align,
   numberOfLines,
+  selectable,
   level,
   style,
   testID,
@@ -35,6 +36,9 @@ export function Typography({
         fontFamily: fonts?.sans,
         display: flat?.flexShrink != null ? 'block' : undefined,
         color: c,
+        // react-native-web's root leaves text selectable; a span of the
+        // kit's own says so for itself, with the text cursor to match.
+        ...(selectable ? {userSelect: 'text' as const, cursor: 'text'} : null),
         ...flatten(flat),
         ...clamp(numberOfLines),
       }}>

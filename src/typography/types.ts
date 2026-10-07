@@ -70,6 +70,12 @@ export interface TypographyProps {
   color?: ColorTokens;
   numberOfLines?: number;
   /**
+   * Whether the text can be selected and copied: a licence, a reason, an
+   * address. Off by default, as the platforms' own labels are.
+   * @default false
+   */
+  selectable?: boolean;
+  /**
    * The heading level this text stands at, overriding the one its variant
    * implies. Pass `false` for a title-sized line that is not a heading — a
    * number in a stat tile, a word set large for emphasis.

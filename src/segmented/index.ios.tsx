@@ -5,7 +5,20 @@ import type {ViewModifier} from '@expo/ui/swift-ui/modifiers';
 import {Picker as SwiftUIPicker, Text} from '@expo/ui/swift-ui';
 import {clipShape, controlSize, pickerStyle, tag, tint, disabled as disabledMod} from '@expo/ui/swift-ui/modifiers';
 import {swiftControlSize} from './shared';
+import {SelfHosted} from '../host';
 import {extractItems, PickerItem, useSelectedValue} from '../picker/shared';
+
+/**
+ * The segmented picker, in a host of its own where there is none above it:
+ * the width of its container with a label, of the segments without.
+ */
+function SegmentedControlComponent<T extends PickerValue>(props: SegmentedControlProps<T>) {
+  return (
+    <SelfHosted fit={props.label == null}>
+      <NativeSegmentedControl {...props}/>
+    </SelfHosted>
+  );
+}
 
 /**
  * iOS renders SwiftUI's `Picker` in the `segmented` style — the system
@@ -17,7 +30,7 @@ import {extractItems, PickerItem, useSelectedValue} from '../picker/shared';
  * `rounded` already *is* the system corner and clipping it again would fight
  * the control's own rounding.
  */
-function SegmentedControlComponent<T extends PickerValue>({
+function NativeSegmentedControl<T extends PickerValue>({
   label,
   children,
   selectedValue,

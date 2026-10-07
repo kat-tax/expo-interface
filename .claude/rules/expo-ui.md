@@ -34,8 +34,11 @@ backgrounds addon, and why stories must not wrap Compose controls in views.
 
 ## Both
 
-- A control that sits inside a React Native layout needs its own host; the kit's
-  `NativeHost` is that, seeded with the accent.
+- A control that sits inside a React Native layout needs a host. The kit's own
+  controls mount one of their own where there is none (`SelfHosted` in
+  `src/host`); `NativeHost` groups several into one, seeded with the accent.
+  A new native control follows the pattern: the component checks
+  `useNativeHost()` and wraps itself.
 - What a platform has no counterpart for should say so honestly rather than be
   faked: render nothing and warn once in development, the way `elsewhere()` does
   in the Windows aliases.

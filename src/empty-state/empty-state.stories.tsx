@@ -1,5 +1,5 @@
 import type {Meta, StoryObj} from '@storybook/react-native';
-import {Button} from '../button';
+import {fn} from 'storybook/test';
 import * as icons from '../__stories__/icons';
 import {EmptyState} from '.';
 
@@ -31,9 +31,14 @@ export const NoResults: Story = {
   args: {title: 'No results', description: 'Try a shorter word.', icon: icons.info},
 };
 
-/** Usually there is one thing to do about it. */
+/** Usually there is one thing to do about it: the kit's button, drawn inside the platform's own view. */
 export const WithAction: Story = {
-  args: {action: <Button label="New drop" variant="filled"/>},
+  args: {action: {label: 'New drop', icon: icons.add, onPress: fn()}},
+};
+
+/** What is missing is on its way: the platform's spinner where the icon goes. */
+export const Loading: Story = {
+  args: {title: 'Opening', description: 'One moment.', loading: true, action: {label: 'Cancel', variant: 'text', onPress: fn()}},
 };
 
 export const TitleOnly: Story = {

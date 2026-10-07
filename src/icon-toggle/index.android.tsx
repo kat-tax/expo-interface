@@ -1,14 +1,24 @@
 import type {IconToggleProps} from './types';
 import {Icon, IconToggleButton} from '@expo/ui/jetpack-compose';
 import {alpha, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {SelfHosted} from '../host';
 import {useColor} from '../theme';
 
 /**
  * Android renders the Material 3 `IconToggleButton`, which carries the
  * checked state into the semantics tree (and so into TalkBack) and gives the
- * press its ripple.
+ * press its ripple. In a host of its own where there is none above it, so
+ * the toggle can sit in a React Native layout.
  */
-export function IconToggle({
+export function IconToggle(props: IconToggleProps) {
+  return (
+    <SelfHosted>
+      <NativeIconToggle {...props}/>
+    </SelfHosted>
+  );
+}
+
+function NativeIconToggle({
   label,
   icon,
   activeIcon,
