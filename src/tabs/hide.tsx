@@ -46,8 +46,10 @@ export function HideTabs({hidden = true}: {hidden?: boolean}) {
 
 /**
  * Whether the screen is focused, read from its navigation object and its
- * focus and blur events rather than from the focus context, so it answers
- * the same under the kit's own navigators.
+ * focus and blur events rather than from `useIsFocused`. expo-router's
+ * custom `Navigator`, which the kit's Windows tabs are built on, renders no
+ * `NavigationContent`, so nothing under it provides the focused route, and
+ * `useIsFocused` answers false in every screen it holds.
  */
 function useFocused(): boolean {
   const navigation = useNavigation();
