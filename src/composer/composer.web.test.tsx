@@ -1,4 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react';
+import * as icons from '../__stories__/icons';
 import {Composer} from '.';
 
 describe('Composer (web)', () => {
@@ -54,6 +55,14 @@ describe('Composer (web)', () => {
     expect(screen.getByRole('textbox', {name: 'Message'})).not.toHaveAttribute('data-testid');
     rerender(<Composer onSend={onSend}/>);
     expect(screen.getByRole('button', {name: 'Send'})).not.toHaveAttribute('data-testid');
+  });
+
+  it('takes a menu at the leading edge of the capsule, which a disabled composer disables', () => {
+    const {rerender} = render(<Composer onSend={() => {}} menu={{label: 'Send to', icon: icons.share, items: [{label: 'Everyone'}]}}/>);
+    expect(screen.getByRole('button', {name: 'Send to'})).toBeEnabled();
+    expect(screen.getByRole('menuitem', {name: 'Everyone', hidden: true})).toBeInTheDocument();
+    rerender(<Composer onSend={() => {}} disabled menu={{label: 'Send to', icon: icons.share, items: [{label: 'Everyone'}]}}/>);
+    expect(screen.getByRole('button', {name: 'Send to'})).toBeDisabled();
   });
 
   it('disables writing and sending', () => {

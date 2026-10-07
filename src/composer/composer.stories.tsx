@@ -4,6 +4,7 @@ import {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {fn} from 'storybook/test';
 import {Footnote} from '../typography';
+import * as icons from '../__stories__/icons';
 import {Composer} from '.';
 
 /** A thread that answers each message after a moment, which is when the send button is a stop button. */
@@ -62,6 +63,16 @@ export const Conversation: Story = {};
 /** The capsule alone, with nothing under it. */
 export const Bare: Story = {
   args: {notice: undefined, placeholder: 'Reply'},
+  render: args => <Composer {...args}/>,
+};
+
+/** An assistant's prompt, with a menu at the leading edge for what the message goes to. */
+export const WithAMenu: Story = {
+  args: {
+    notice: undefined,
+    placeholder: 'Ask about this document',
+    menu: {label: 'Ask', icon: icons.info, items: [{label: 'This page', active: true}, {label: 'The whole document'}, {label: 'The web'}]},
+  },
   render: args => <Composer {...args}/>,
 };
 

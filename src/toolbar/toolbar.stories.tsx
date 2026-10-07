@@ -149,6 +149,29 @@ export const AtASelection: Story = {
   },
 };
 
+/**
+ * An editor's status bar with a find field open: the field's commands stay
+ * beside it, and on a phone's width the bar folds its other commands behind
+ * the overflow, leaving the field the room.
+ */
+export const FoldingAroundAField: Story = {
+  render: args => (
+    <View style={styles.stage}>
+      <Footnote color="tertiaryLabel">A canvas above the bar</Footnote>
+      <Toolbar
+        {...args}
+        commands={TOOLS.map(tool => ({...tool, hideLabel: true, tone: 'label' as const, onPress: fn()}))}
+        field={<TextField placeholder="Find in document" variant="inline"/>}
+        fieldCommands={[
+          {label: 'Previous match', icon: icons.chevron, hideLabel: true, tone: 'label', onPress: fn()},
+          {label: 'Close', icon: icons.trash, hideLabel: true, tone: 'label', onPress: fn()},
+        ]}
+        foldCommands
+      />
+    </View>
+  ),
+};
+
 const styles = StyleSheet.create({
   stage: {gap: 24},
   canvas: {height: 220, alignSelf: 'stretch'},

@@ -128,9 +128,12 @@ Props: `commands` (the bar described as data: `label`, `icon`, `hideLabel`,
 `testID` per command), or `leading` and `trailing` nodes; `field` (a `TextField variant="inline"` that
 grows into the space the controls leave); `placement` (`top` or `bottom`;
 the rule goes on the side facing the content); `density` (`regular` or
-`compact`); `children` (a second row under the controls); `floating`; `at`,
-`preferredEdge` (`top` by default) and `insets`, for a bar floating beside a
-rectangle; `style`, `testID`.
+`compact`); `children` (a second row under the controls); `fieldCommands`
+(commands beside the field, at its trailing edge, in the trailing group's
+host); `foldCommands` (puts the `commands` behind the overflow while the bar
+is in the compact size class); `floating`; `at`, `preferredEdge` (`top` by
+default) and `insets`, for a bar floating beside a rectangle; `style`,
+`testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -157,6 +160,14 @@ Differences:
   icon toggle button on Android); the Windows `CommandBar` makes it an
   `AppBarToggleButton`.
 
+`fieldCommands` are the field's own: a find bar's previous and next, an
+assistant's send. They share the trailing group's host, so a bar with a
+field is still two hosts, and they stay on the bar when it folds.
+`foldCommands` folds the bar's `commands` behind its overflow menu while the
+bar, measured, is narrower than 640 points, the kit's compact size class
+(`COMPACT_WIDTH`, where `TabView` shows its switcher): an editor's status bar
+gives its field the room while a find or assistant field is open on a phone.
+
 A `floating` bar floats over the content rather than running along an edge:
 raised and rounded, the width of its controls, as the strip of tools over a
 selection or a block. On Android it is Material 3's
@@ -169,6 +180,27 @@ it unless there is no room (`preferredEdge` says which side to try first),
 and kept inside the parent less `insets`. The bar is laid over the parent
 as an overlay that takes no presses but the bar's, is drawn only once it has
 been measured and placed, and goes when `at` is `null`.
+
+## FindBar
+
+A bar to find text in what a screen shows: an editor, a document, a web
+page. The finding itself is the app's, which hands back where it has got to.
+
+Props: `value` and `onChangeText` (the text to find; left out, the bar keeps
+its own), `placeholder` (`Find`), `matches` (`{current, total}`: drawn as "3
+of 12", or "No matches" when there are none for the text, and nothing before
+the app has looked), `onNext` (the next button, the keyboard's search key,
+Enter), `onPrevious` (the previous button, Shift+Enter), `onClose` (the close
+button, Escape), `autoFocus` (default true), `placement` (`top` by default),
+`style`, `testID` (the field is `${testID}-field`).
+
+Drawn on every platform as the kit's `Toolbar` with an inline field, the
+count beside it, and previous, next and close as the field's commands in
+the bar's one trailing host. Previous and next are disabled with no matches.
+The count is a polite live region, so TalkBack and a browser's screen reader
+hear it change. iOS has a system find bar, `UIFindInteraction`, but it
+belongs to a `UITextView` or a `WKWebView`, which React Native content is
+not, and no module the kit stands on reaches it.
 
 ## KeyboardBar
 

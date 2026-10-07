@@ -1,12 +1,18 @@
 import type {ReactNode} from 'react';
-import type {ToolbarProps} from './types';
+import type {LayoutChangeEvent} from 'react-native';
+import type {ToolbarCommand, ToolbarProps} from './types';
+import {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import XamlCommandBar from '../windows/specs/ExpoInterfaceCommandBarNativeComponent';
 import {glyphOf, jsonProp, useXamlProps} from '../windows';
 import {Surface} from '../surface';
 import {useAnchored} from '../anchored';
+import {Button} from '../button';
+import {Menu} from '../menu';
+import {isCompact} from '../size-class';
 import {spacing} from '../theme';
-import {anchoredStyles, hasCommands} from './shared';
+import {MORE} from '../glyphs';
+import {anchoredStyles, hasCommands, splitCommands} from './shared';
 
 const DENSITY = {
   regular: {gap: spacing.two, edge: spacing.three},
@@ -110,20 +116,80 @@ function NativeToolbar({commands = [], placement = 'bottom', density = 'regular'
  * rows — every kit control is a XAML island of its own here, so there is no
  * single native row to gather them in, and a `field` needs no host either side.
  */
-function DrawnToolbar({leading, trailing, field, placement = 'bottom', density = 'regular', floating = false, children, style, testID}: ToolbarProps) {
+function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], placement = 'bottom', density = 'regular', floating = false, foldCommands = false, children, style, testID}: ToolbarProps) {
   const {gap, edge} = DENSITY[density];
+  // Measured only for a bar that folds: what it has decides whether it does.
+  const [width, setWidth] = useState(0);
+  const folded = foldCommands && isCompact(width);
+  // Commands drawn by the kit, as the other platforms draw them: a field
+  // keeps them out of the CommandBar, which cannot hold one.
+  const described = hasCommands(commands);
+  const {primary, secondary} = described
+    ? folded ? {primary: [], secondary: commands} : splitCommands(commands)
+    : {primary: [], secondary: []};
   return (
     <Surface
       {...barSurface(floating, placement)}
+      onLayout={foldCommands ? (event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width) : undefined}
       style={[floating ? styles.floatingDrawn : styles.bar, {paddingHorizontal: edge}, style]}
       testID={testID}>
       <View style={[styles.row, {gap}]}>
-        <Group gap={gap}>{leading}</Group>
+        <Group gap={gap}>{described ? <CommandButtons commands={primary}/> : leading}</Group>
         {field != null ? <View style={styles.field}>{field}</View> : floating ? null : <View style={styles.spacer}/>}
-        <Group gap={gap}>{trailing}</Group>
+        <Group gap={gap}>
+          {fieldCommands.length > 0 ? <CommandButtons commands={fieldCommands}/> : null}
+          {described ? <Overflow commands={secondary}/> : trailing}
+        </Group>
       </View>
       {children}
     </Surface>
+  );
+}
+
+/** Commands as the kit's own buttons, each an island of its own. */
+function CommandButtons({commands}: {commands: ToolbarCommand[]}) {
+  if (commands.length === 0) return null;
+  return (
+    <>
+      {commands.map((command, index) => (
+        <Button
+          key={index}
+          variant="text"
+          size="small"
+          pressed={command.active}
+          label={command.label}
+          prefixIcon={command.icon}
+          hideLabel={command.hideLabel}
+          tone={command.tone}
+          role={command.role}
+          disabled={command.disabled}
+          onPress={command.onPress}
+          testID={command.testID}
+        />
+      ))}
+    </>
+  );
+}
+
+/** The commands that asked to live behind the ellipsis, or were folded there. */
+function Overflow({commands}: {commands: ToolbarCommand[]}) {
+  if (commands.length === 0) return null;
+  return (
+    <Menu
+      label="More"
+      hideLabel
+      icon={MORE}
+      variant="text"
+      size="small"
+      items={commands.map(command => ({
+        label: command.label,
+        icon: command.icon,
+        role: command.role,
+        disabled: command.disabled,
+        separator: command.separator,
+        onPress: command.onPress,
+      }))}
+    />
   );
 }
 

@@ -1,13 +1,16 @@
 import type {ReactNode} from 'react';
 import type {ToolbarCommand, ToolbarProps} from './types';
+import type {LayoutChangeEvent} from 'react-native';
+import {useState} from 'react';
 import {Platform, StyleSheet, View} from 'react-native';
 import {Row, Spacer} from '@expo/ui';
 import {Button} from '../button';
 import {NativeHost} from '../host';
 import {Menu} from '../menu';
 import {Surface} from '../surface';
-import {icon as iconToken} from '../icons';
 import {useAnchored} from '../anchored';
+import {MORE} from '../glyphs';
+import {isCompact} from '../size-class';
 import {spacing} from '../theme';
 import {FloatingSurface} from './floating';
 import {anchoredStyles, hasCommands, splitCommands} from './shared';
@@ -63,13 +66,18 @@ export function Toolbar(props: ToolbarProps) {
   return <EdgeToolbar {...props}/>;
 }
 
-/** The controls a bar holds: its commands and their overflow, or its two slots. */
-function controlsOf({commands, leading, trailing}: ToolbarProps, gap: number) {
+/**
+ * The controls a bar holds: its commands and their overflow, or its two
+ * slots, with the field's commands first in the trailing group. A folded bar
+ * puts every command behind the overflow.
+ */
+function controlsOf({commands, leading, trailing, fieldCommands = []}: ToolbarProps, gap: number, folded = false) {
+  const besideField = fieldCommands.length > 0 ? <Commands commands={fieldCommands} gap={gap}/> : null;
   // Commands replace the two slots: a bar is described either way round, not
   // both. Here the kit draws them; on Windows the platform's own bar does.
-  if (!hasCommands(commands)) return {start: leading, end: trailing};
-  const {primary, secondary} = splitCommands(commands);
-  return {start: <Commands commands={primary} gap={gap}/>, end: <Overflow commands={secondary}/>};
+  if (!hasCommands(commands)) return {start: leading, end: besideField ? <>{besideField}{trailing}</> : trailing};
+  const {primary, secondary} = folded ? {primary: [], secondary: commands} : splitCommands(commands);
+  return {start: <Commands commands={primary} gap={gap}/>, end: <>{besideField}<Overflow commands={secondary}/></>};
 }
 
 /** A floating bar where it is laid out. */
@@ -107,14 +115,17 @@ function AnchoredToolbar(props: ToolbarProps) {
 
 /** The bar along an edge of its content. */
 function EdgeToolbar(props: ToolbarProps) {
-  const {field, placement = 'bottom', density = 'regular', children, style, testID} = props;
+  const {field, placement = 'bottom', density = 'regular', foldCommands = false, children, style, testID} = props;
   const {gap, edge} = DENSITY[density];
-  const {start, end} = controlsOf(props, gap);
+  // Measured only for a bar that folds: what it has decides whether it does.
+  const [width, setWidth] = useState(0);
+  const {start, end} = controlsOf(props, gap, foldCommands && isCompact(width));
   return (
     <Surface
       color="background"
       radius={0}
       border={placement === 'bottom' ? 'top' : 'bottom'}
+      onLayout={foldCommands ? (event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width) : undefined}
       style={[styles.bar, {paddingHorizontal: edge, paddingVertical: PADDING_VERTICAL}, style]}
       testID={testID}>
       {field == null ? (
@@ -164,9 +175,7 @@ function Commands({commands, gap}: {commands: ToolbarCommand[]; gap: number}) {
   );
 }
 
-/** The ellipsis, and the commands that asked to live behind it. */
-const MORE = iconToken({ios: 'ellipsis', android: 'more_horiz', web: 'more_horiz', windows: 'E712'});
-
+/** The commands that asked to live behind the ellipsis, or were folded there. */
 function Overflow({commands}: {commands: ToolbarCommand[]}) {
   if (commands.length === 0) return null;
   return (

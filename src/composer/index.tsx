@@ -1,6 +1,7 @@
 import type {ComposerProps} from './types';
 import {StyleSheet, View} from 'react-native';
 import {Button} from '../button';
+import {Menu} from '../menu';
 import {SEND, STOP} from '../glyphs';
 import {NativeHost} from '../host';
 import {Surface} from '../surface';
@@ -27,6 +28,7 @@ export function Composer({
   onStop,
   busy = false,
   notice,
+  menu,
   disabled = false,
   autoFocus,
   maxLength,
@@ -43,7 +45,22 @@ export function Composer({
   };
   return (
     <View style={[styles.root, style]} testID={testID}>
-      <Surface color="element" radius="pill" style={styles.capsule}>
+      <Surface color="element" radius="pill" style={[styles.capsule, menu ? styles.withMenu : null]}>
+        {menu ? (
+          <NativeHost fit style={styles.button}>
+            <Menu
+              label={menu.label}
+              icon={menu.icon}
+              hideLabel
+              variant="text"
+              tone="label"
+              size="small"
+              items={menu.items}
+              disabled={disabled}
+              testID={testID ? `${testID}-menu` : undefined}
+            />
+          </NativeHost>
+        ) : null}
         <TextField
           variant="bare"
           value={text}
@@ -103,6 +120,10 @@ const styles = StyleSheet.create({
     paddingRight: 4,
     paddingVertical: 4,
     gap: 8,
+  },
+  // The menu's button sits where the field's leading padding would.
+  withMenu: {
+    paddingLeft: 4,
   },
   field: {
     flex: 1,

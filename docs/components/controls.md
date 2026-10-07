@@ -212,7 +212,9 @@ its own text and clears it on send), `placeholder` (`Message`), `onSend`
 nothing is sent while the text is blank), `onStop` (the stop button while
 `busy`; without it the button waits), `busy`, `notice` (a line under the
 capsule in the secondary color: a hint, an error, who else is typing),
-`disabled`, `autoFocus`, `maxLength`, `style`, `testID`.
+`menu` (`label`, `icon`, `items`: the platform's menu behind an icon button
+at the capsule's leading edge, for what the message goes to), `disabled`,
+`autoFocus`, `maxLength`, `style`, `testID`.
 
 Drawn in React Native on every platform: a `Surface` capsule holding a
 `bare` `TextField` and the kit's circle `Button` in a host of its own, so

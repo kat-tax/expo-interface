@@ -1,4 +1,5 @@
 import type {TabViewLayout, TabViewTab} from './types';
+import {COMPACT_WIDTH} from '../size-class';
 
 /**
  * The width below which there is no strip, in points.
@@ -8,7 +9,7 @@ import type {TabViewLayout, TabViewTab} from './types';
  * on a tablet. One threshold rather than the three `Tabs` uses for its
  * navigation pane: a strip either fits or it does not.
  */
-export const TAB_BREAKPOINT = 640;
+export const TAB_BREAKPOINT = COMPACT_WIDTH;
 
 /** The shape a `TabView` has settled on, once a width has decided it. */
 export type ResolvedLayout = 'strip' | 'switcher';

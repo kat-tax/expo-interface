@@ -1,6 +1,7 @@
 import {StyleSheet} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {island} from 'expo-vitest/windows';
+import * as icons from '../__stories__/icons';
 import {Composer} from '.';
 
 const BUTTON = 'ExpoInterfaceButton';
@@ -22,6 +23,12 @@ describe('Composer (windows)', () => {
     await fireEvent.changeText(screen.getByTestId('c-field'), 'again');
     await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'again'}});
     expect(onSend).toHaveBeenLastCalledWith('again');
+  });
+
+  it('takes a menu at the leading edge of the capsule', async () => {
+    await render(<Composer onSend={() => {}} menu={{label: 'Send to', icon: icons.share, items: [{label: 'Everyone'}]}} testID="c"/>);
+    expect(JSON.parse(island('ExpoInterfaceMenuFlyout').props.items).map((item: {label: string}) => item.label)).toEqual(['Everyone']);
+    expect(island(BUTTON, 0).props.label).toBe('Send to');
   });
 
   it('is a stop button while busy, waiting with nothing to stop, and shows the notice', async () => {

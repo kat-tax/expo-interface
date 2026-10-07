@@ -11,3 +11,5 @@ export const CLOSE = icon({ios: 'xmark', android: 'close', web: 'close', windows
 export const MORE = icon({ios: 'ellipsis', android: 'more_horiz', web: 'more_horiz', windows: 'E712'});
 export const SEND = icon({ios: 'arrow.up', android: 'arrow_upward', web: 'arrow_upward', windows: 'E74A'});
 export const STOP = icon({ios: 'stop.fill', android: 'stop', web: 'stop', windows: 'E71A'});
+export const PREVIOUS = icon({ios: 'chevron.up', android: 'keyboard_arrow_up', web: 'keyboard_arrow_up', windows: 'E70E'});
+export const NEXT = icon({ios: 'chevron.down', android: 'keyboard_arrow_down', web: 'keyboard_arrow_down', windows: 'E70D'});

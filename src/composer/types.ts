@@ -1,4 +1,15 @@
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {IconToken} from '../icons';
+import type {MenuItem} from '../menu/types';
+
+/** The menu at a composer's leading edge: what the message goes to, a model, an attachment. */
+export interface ComposerMenu {
+  /** The menu's accessible name. */
+  label: string;
+  /** The icon the menu's button shows. */
+  icon: IconToken;
+  items: MenuItem[];
+}
 
 /**
  * A capsule to write a message in, with a send button that is a stop button
@@ -31,6 +42,11 @@ export interface ComposerProps {
   busy?: boolean;
   /** A line under the capsule in the secondary color: a hint, an error, who else is typing. */
   notice?: string;
+  /**
+   * A menu at the capsule's leading edge: what the message goes to, a
+   * model, an attachment. The platform's menu behind an icon button.
+   */
+  menu?: ComposerMenu;
   /** Disables writing and sending. */
   disabled?: boolean;
   /** Focuses the field once it is mounted. */

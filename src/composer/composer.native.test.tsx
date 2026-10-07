@@ -2,7 +2,10 @@ import {Platform, StyleSheet} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, modifier} from 'expo-vitest/native';
 import {hosts} from '../__tests__/hosts';
+import * as icons from '../__stories__/icons';
 import {Composer} from '.';
+
+const SEND_TO = icons.share;
 
 const isIOS = Platform.OS === 'ios';
 
@@ -69,6 +72,18 @@ describe(`Composer (${Platform.OS})`, () => {
     expect(screen.getByText('Shift+Enter for a new line')).toBeOnTheScreen();
     expect(screen.getByPlaceholderText('Reply')).toBeOnTheScreen();
     expect(host(p => p.label === 'Stop' || p.text === 'Stop' || p.contentDescription === 'Stop')).toBeTruthy();
+  });
+
+  it('takes a menu at the leading edge of the capsule, in a second host', async () => {
+    const onPick = vi.fn();
+    await render(<Composer onSend={() => {}} menu={{label: 'Send to', icon: SEND_TO, items: [{label: 'Everyone', onPress: onPick}]}} testID="c"/>);
+    expect(hosts()).toHaveLength(2);
+    expect(host(p => p.text === 'Everyone' || p.label === 'Everyone')).toBeTruthy();
+    if (isIOS) {
+      expect(screen.getByTestId('c-menu').props.label).toBe('Send to');
+    } else {
+      expect(byComposeTestID('c-menu')).toBeTruthy();
+    }
   });
 
   it('disables writing and sending', async () => {

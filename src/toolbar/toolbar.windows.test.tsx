@@ -88,6 +88,35 @@ describe('commands (windows)', () => {
     expect(islands(BAR)).toHaveLength(0);
   });
 
+  it('draws its commands as the kit\'s buttons beside a field, with the field\'s commands and the overflow trailing', async () => {
+    const onBold = vi.fn();
+    await render(
+      <Toolbar
+        commands={[{label: 'Bold', active: true, onPress: onBold, testID: 'bold'}, {label: 'Export', secondary: true}]}
+        field={<Text>Find</Text>}
+        fieldCommands={[{label: 'Next match', testID: 'next'}]}
+        testID="bar"
+      />,
+    );
+    expect(islands(BAR)).toHaveLength(0);
+    expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Bold', 'Next match', 'More']);
+    // A toggle that is on is drawn filled.
+    expect(island('ExpoInterfaceButton', 0).props.variant).toBe('filled');
+    await fireEvent(screen.getByTestId('bold'), 'press');
+    expect(onBold).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(island('ExpoInterfaceMenuFlyout').props.items).map((item: {label: string}) => item.label)).toEqual(['Export']);
+  });
+
+  it('folds its commands behind the overflow in the compact size class, keeping the field\'s', async () => {
+    await render(
+      <Toolbar commands={[{label: 'Bold'}, {label: 'Italic'}]} field={<Text>Find</Text>} fieldCommands={[{label: 'Close'}]} foldCommands testID="bar"/>,
+    );
+    expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Bold', 'Italic', 'Close']);
+    await fireEvent(screen.getByTestId('bar'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 400, height: 48}}});
+    expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Close', 'More']);
+    expect(JSON.parse(island('ExpoInterfaceMenuFlyout').props.items).map((item: {label: string}) => item.label)).toEqual(['Bold', 'Italic']);
+  });
+
   it('floats a drawn bar with no spacer between its slots', async () => {
     await render(<Toolbar floating leading={<Text>Undo</Text>} trailing={<Text>Redo</Text>} testID="bar"/>);
     expect(screen.getByText('Undo')).toBeOnTheScreen();

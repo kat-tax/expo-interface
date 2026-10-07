@@ -92,6 +92,22 @@ export interface ToolbarProps extends PropsWithChildren {
    */
   field?: ReactNode;
   /**
+   * Commands beside the field, at its trailing edge: a find bar's previous
+   * and next, an assistant's send. They share the trailing group's host, so
+   * a bar with a field is still two hosts, and they stay on the bar when it
+   * folds its other commands.
+   */
+  fieldCommands?: ToolbarCommand[];
+  /**
+   * Folds the bar's `commands` behind its overflow menu while the bar is in
+   * the kit's compact size class (narrower than 640 points, where `TabView`
+   * shows its switcher), leaving the field and its commands the room: an
+   * editor's status bar while a find or assistant field is open on a phone.
+   * The width is the bar's own, measured.
+   * @default false
+   */
+  foldCommands?: boolean;
+  /**
    * Which edge the bar sits on: the rule goes on the side facing the
    * content.
    * @default 'bottom'

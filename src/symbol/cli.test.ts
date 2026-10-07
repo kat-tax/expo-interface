@@ -39,7 +39,7 @@ describe('expo-interface-symbols', () => {
   });
 
   it('always writes the names the kit\'s own controls draw: the bar and composer buttons, the ellipsis and the star, filled too', () => {
-    expect(KIT_NAMES).toEqual(['arrow_back', 'arrow_upward', 'close', 'more_horiz', 'star', 'stop']);
+    expect(KIT_NAMES).toEqual(['arrow_back', 'arrow_upward', 'close', 'keyboard_arrow_down', 'keyboard_arrow_up', 'more_horiz', 'star', 'stop']);
     expect(KIT_FILLED).toEqual(['star']);
   });
 
