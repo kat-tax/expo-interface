@@ -78,6 +78,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`Badge`](indicators.md#badge) | A count or a dot. |
 | [`Avatar`](indicators.md#avatar) | A person as a colored circle with initials. |
 | [`Typography`](indicators.md#typography) | Text in the platform's type scale, and its variants as components. |
+| [`RelativeTime`](indicators.md#relativetime) | A moment as the time since it, kept current. |
 | [`Icon`](../icons.md#the-icon-component) | A token drawn on its own, in a tone. |
 
 ## Overlays
@@ -110,3 +111,4 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | `useScrollInsets` | The insets a screen's scroll content pays for a bar it passes under, plus its own. | [Screen](layout.md#screen) |
 | `useTabBarInset` | The space the bar floating over the screen takes at its top, with the rows under it. | [HeaderAccessory](navigation.md#headeraccessory) |
 | `caretPoint` | Where the caret is in a text field, on web. | [PopupMenu](overlays.md#popupmenu) |
+| `haptic` | The feel of a touch, by what it means. | [Platform services](../services.md#haptics) |

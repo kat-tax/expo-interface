@@ -101,6 +101,7 @@
     "expo-asset": "*",
     "expo-constants": "*",
     "expo-file-system": "*",
+    "expo-haptics": "*",
     "expo-image": "*",
     "expo-router": "^57.0.0",
     "expo-status-bar": "*",
@@ -117,6 +118,9 @@
       "optional": true
     },
     "expo-file-system": {
+      "optional": true
+    },
+    "expo-haptics": {
       "optional": true
     },
     "react-native-keyboard-controller": {

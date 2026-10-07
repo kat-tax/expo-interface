@@ -178,3 +178,9 @@ export type {
   TypographyVariant,
   TypographyWeight,
 } from './typography/types';
+export {RelativeTime} from './relative-time';
+export type {RelativeTimeProps} from './relative-time/types';
+
+// Platform services
+export {haptic} from './haptic';
+export type {HapticKind} from './haptic';

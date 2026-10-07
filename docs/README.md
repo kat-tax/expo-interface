@@ -21,6 +21,7 @@ You can also see every component live, with its props, in the
 | [Theming](theming.md) | The accent seed, the light and dark scheme, color tokens, reading colors, high contrast, constants. |
 | [Icons](icons.md) | Icon tokens, `Icon`, filled icons, the drawables and web font `expo-interface-symbols` writes, Windows glyphs. |
 | [Native hosts](hosts.md) | `Screen native` and `NativeHost`: where native controls live on iOS and Android. |
+| [Platform services](services.md) | `haptic`, and the other platform calls the kit makes once for every app. |
 
 ## Components
 
@@ -30,7 +31,7 @@ You can also see every component live, with its props, in the
 | [Layout](components/layout.md) | `Screen`, `ScreenHeader`, `NativeHost`, `Surface`, `Card`, `Toolbar`, `FindBar`, `KeyboardBar`, `FieldGroup`, `ListItem`, `List`, `CardGrid`, `Collapsible`, `Divider`, `EmptyState` |
 | [Navigation](components/navigation.md) | `Stack`, `Tabs`, `TabStack`, `ConstrainedStackHeader`, `TabView`, `Pager`, `HeaderMenu`, `HeaderAction`, `HeaderActions`, `ExternalLink`, `ShareLink` |
 | [Controls](components/controls.md) | `Button`, `Fab`, `Chip`, `IconToggle`, `Switch`, `Checkbox`, `TextField`, `Composer`, `SearchField`, `Picker`, `SegmentedControl`, `Slider`, `Stepper`, `DateTimePicker`, `ColorPicker` |
-| [Indicators](components/indicators.md) | `Progress`, `Spinner`, `Gauge`, `Badge`, `Avatar`, `Typography` and its variants |
+| [Indicators](components/indicators.md) | `Progress`, `Spinner`, `Gauge`, `Badge`, `Avatar`, `Typography` and its variants, `RelativeTime` |
 | [Overlays](components/overlays.md) | `Menu`, `ContextMenu`, `PopupMenu`, `Popover`, `Tooltip`, `Alert`, `Sheet`, `Toast` |
 
 ## Platforms

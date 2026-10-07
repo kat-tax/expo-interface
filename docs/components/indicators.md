@@ -96,3 +96,27 @@ reader can navigate by heading.
 | iOS, Web | The iOS type scale, in `system-ui` on iOS and the CSS font variables on web |
 | Android | The Material scale |
 | Windows | The Fluent ramp in Segoe UI Variable: `largeTitle` is Fluent's Title Large, `title` its Title, `body` its Body, `caption` its Caption |
+
+## RelativeTime
+
+A moment as the time since or until it: "now", "5 minutes ago", "yesterday",
+"in 2 hours". It keeps itself current, rendering again when what it says
+changes (at 45 seconds for "now", then every half unit), and nothing around
+it renders with it.
+
+Props: `date` (a `Date` or milliseconds), `variant` (a `Typography` style,
+`footnote` by default), `color` (a token, `secondaryLabel` by default),
+`numeric` (`auto` says "now" and "yesterday" where the language has the
+words; `always` says "1 day ago"), `numberOfLines`, `testID`.
+
+```tsx
+<RelativeTime date={document.editedAt}/>
+```
+
+The units round as a person does: under 45 seconds is "now", then minutes
+up to 45, hours up to 22, days up to 26, months up to 11, and years.
+
+| Platform | Words |
+| --- | --- |
+| Web | The locale's, through `Intl.RelativeTimeFormat` |
+| iOS, Android, Windows | English: Hermes has no `Intl.RelativeTimeFormat`. An engine that gains it is used without a change. |
