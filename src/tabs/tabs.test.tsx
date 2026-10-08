@@ -1,5 +1,8 @@
 import type {TabRoute} from './types';
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
 import {useEffect} from 'react';
+import {Asset} from 'expo-asset';
 import {Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, screen as dom, waitFor} from '@testing-library/react';
 import {fireEvent as fireNative, render, screen} from '@testing-library/react-native';
@@ -103,6 +106,50 @@ describe(`Tabs (${Platform.OS})`, () => {
         await renderApp(await app({webLogo: 'text-only', webIcon: {uri: 'https://example.com/icon.png'}}));
         expect(document.querySelector('img')).toBeNull();
         expect(dom.getByText(appName)).toBeInTheDocument();
+      });
+
+      it('draws an image mark in the label color on request, from its uri or the asset a require names', async () => {
+        await renderApp(await app({webLogo: 'icon-only', webIcon: {uri: 'https://example.com/icon.png'}, webTintIcon: true}));
+        const mark = dom.getByTestId('tab-bar-mark');
+        expect(mark.tagName).toBe('SPAN');
+        expect(mark).toHaveClass('ui-tab-bar-mark');
+        expect(mark).toHaveAttribute('aria-hidden', 'true');
+        expect(mark.style.getPropertyValue('--ui-tab-bar-mark')).toBe('url("https://example.com/icon.png")');
+        expect(document.querySelector('img')).toBeNull();
+      });
+
+      it('reads a required mark\'s uri from its asset', async () => {
+        const fromModule = vi.spyOn(Asset, 'fromModule').mockReturnValue({uri: '/assets/icon.png'} as never);
+        try {
+          await renderApp(await app({webLogo: 'icon-only', webIcon: 7, webTintIcon: true}));
+          expect(fromModule).toHaveBeenCalledWith(7);
+          expect(dom.getByTestId('tab-bar-mark').style.getPropertyValue('--ui-tab-bar-mark')).toBe('url("/assets/icon.png")');
+        } finally {
+          fromModule.mockRestore();
+        }
+      });
+
+      it('draws a mark with no uri to read as it is', async () => {
+        await renderApp(await app({webLogo: 'icon-only', webIcon: {width: 24, height: 24}, webTintIcon: true}));
+        expect(document.querySelector('.ui-tab-bar-mark')).toBeNull();
+        expect(document.querySelector('img')).not.toBeNull();
+      });
+
+      it('tints the mark in the home link too', async () => {
+        await renderApp(await stackApp({webIcon: {uri: 'https://example.com/icon.png'}, webTintIcon: true}, undefined, <HideTabs/>), '/home/detail');
+        expect(dom.getByTestId('tab-bar-home').contains(dom.getByTestId('tab-bar-mark'))).toBe(true);
+        expect(dom.getByTestId('tab-bar-mark')).toHaveClass('ui-tab-bar-mark');
+      });
+
+      it('fills the mask with the label color, and with the text color in forced colors', () => {
+        const css = readFileSync(path.join(__dirname, 'tabs.css'), 'utf8');
+        const base = css.slice(css.indexOf('.ui-tab-bar-mark {'));
+        expect(base).toContain('background-color: var(--color-label);');
+        expect(base).toContain('-webkit-mask: var(--ui-tab-bar-mark) center / contain no-repeat;');
+        expect(base).toContain('\n  mask: var(--ui-tab-bar-mark) center / contain no-repeat;');
+        const forced = css.slice(css.indexOf('@media (forced-colors: active)'));
+        expect(forced).toContain('forced-color-adjust: none;');
+        expect(forced).toContain('background-color: CanvasText;');
       });
 
       it('replaces the presets with a custom logo node', async () => {

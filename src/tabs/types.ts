@@ -74,9 +74,21 @@ export interface TabBarProps {
   /**
    * App icon rendered by the `icon-only` and `icon-and-text` web logo presets,
    * e.g. `require('./assets/icon.png')`, or an `IconToken` drawn as the
-   * kit's glyph in the label color. When omitted only the name is shown.
+   * kit's glyph in the label color. An image is drawn as it is, or in the
+   * label color with `webTintIcon`. When omitted only the name is shown.
    */
   webIcon?: ImageSource | number | IconToken;
+  /**
+   * Web only: draws an image `webIcon` in the label color, as a token is
+   * drawn: its shape filled with the color through a CSS mask, so a mark that
+   * is not a symbol follows the scheme, a forced one included, before any
+   * JavaScript runs, and takes the text color in forced colors. The image is
+   * read from its `uri` (a `require` resolves to one), so it must be one the
+   * page may load as a mask: the same origin, or served with CORS. A source
+   * without a `uri` is drawn as it is.
+   * @default false
+   */
+  webTintIcon?: boolean;
   /**
    * Content rendered in the web tab bar beside the tabs: a `Menu` with a
    * `link` trigger, a button. See `webActionsPlacement`.

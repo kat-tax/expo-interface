@@ -76,7 +76,8 @@ Props: `routes` (`name`, `href`, `label`, `icon` as one of the app's
 and `onPress` or menu `items`), `badgeMax` (a count above it is drawn as
 `99+`; 99 by default), and per platform: `webLogo` (`icon-only`, `text-only`,
 `icon-and-text` or a node), `webIcon` (an image, or an `IconToken` drawn as
-the kit's glyph in the label color), `webActions`,
+the kit's glyph in the label color), `webTintIcon` (an image `webIcon` drawn
+in the label color too, through a CSS mask), `webActions`,
 `webActionsPlacement`, `webFoldHeader`, `webMaterial` (`none`, `thin`,
 `regular`, `thick`), `windowsPane` (`top`, `left`, `compact`, `minimal`,
 `auto`).

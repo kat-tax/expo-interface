@@ -122,7 +122,8 @@ is the Material name, Android's then the web's.
 
 A tab route takes a token too: `Tabs routes` accept an `IconToken` in place
 of the per-platform names, and `webIcon` takes one for the app's mark,
-drawn as the kit's glyph in the label color.
+drawn as the kit's glyph in the label color; an image mark is drawn as it
+is, or in the label color with `webTintIcon`.
 
 ## Drawables without a list
 
