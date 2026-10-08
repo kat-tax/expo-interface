@@ -1,6 +1,6 @@
 import type {PropsWithChildren, ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import type {AnchorInsets, AnchorRect} from '../anchored';
+import type {AnchorAlign, AnchorInsets, AnchorRect} from '../anchored';
 import type {ButtonTone} from '../button/types';
 import type {IconToken} from '../icons';
 
@@ -139,12 +139,21 @@ export interface ToolbarProps extends PropsWithChildren {
   floating?: boolean;
   /**
    * Floats the bar over its parent beside this rectangle (a selection, a
-   * block): centred on it, over it unless there is no room, and kept inside
-   * the parent less `insets`. `null` hides it. The bar is laid over the
-   * parent as an overlay that takes no presses but the bar's, and is drawn
-   * only once it has been measured and placed. Implies `floating`.
+   * block): lined up with it by `align`, over it unless there is no room,
+   * and kept inside the parent less `insets`. `null` hides it. The bar is
+   * laid over the parent as an overlay that takes no presses but the bar's,
+   * and is drawn only once it has been measured and placed. Implies
+   * `floating`.
    */
   at?: AnchorRect | null;
+  /**
+   * How a bar at `at` lines up with the rectangle across: centred on it,
+   * from its leading edge (`start`), or to its trailing edge (`end`), for
+   * tools that hang from a block's trailing corner. Kept inside the parent
+   * less `insets` either way. Read only with `at`.
+   * @default 'center'
+   */
+  align?: AnchorAlign;
   /**
    * Which side of `at` the bar prefers; it moves to the other when there is
    * no room.

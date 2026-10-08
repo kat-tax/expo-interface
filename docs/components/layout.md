@@ -166,9 +166,9 @@ the rule goes on the side facing the content); `density` (`regular` or
 `compact`); `children` (a second row under the controls); `fieldCommands`
 (commands beside the field, at its trailing edge, in the trailing group's
 host); `foldCommands` (puts the `commands` behind the overflow while the bar
-is in the compact size class); `floating`; `at`, `preferredEdge` (`top` by
-default) and `insets`, for a bar floating beside a rectangle; `style`,
-`testID`.
+is in the compact size class); `floating`; `at`, `align` (`center` by
+default, `start` or `end`), `preferredEdge` (`top` by default) and `insets`,
+for a bar floating beside a rectangle; `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -217,9 +217,11 @@ selection or a block. On Android it is Material 3's
 one native row; on Windows the same raised card around the `CommandBar`,
 its labels left to the overflow.
 
-`at` floats the bar over its parent beside a rectangle: centred on it, over
-it unless there is no room (`preferredEdge` says which side to try first),
-and kept inside the parent less `insets`. The bar is laid over the parent
+`at` floats the bar over its parent beside a rectangle: lined up with it by
+`align` (centred on it by default, from its leading edge with `start`, or to
+its trailing edge with `end`, for tools that hang from a block's trailing
+corner), over it unless there is no room (`preferredEdge` says which side to
+try first), and kept inside the parent less `insets`. The bar is laid over the parent
 as an overlay that takes no presses but the bar's, is drawn only once it has
 been measured and placed, and goes when `at` is `null`.
 

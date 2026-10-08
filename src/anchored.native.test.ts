@@ -20,6 +20,23 @@ describe('useAnchored', () => {
     expect(result.current.left).toBe(before.left);
   });
 
+  it('lines the card up with the rectangle\'s trailing edge for end, still kept inside the parent', async () => {
+    let at: {x: number; y: number; width?: number; height?: number} = {x: 100, y: 200, width: 80, height: 20};
+    const {result, rerender} = await renderHook(() => useAnchored({at, align: 'end'}));
+    await act(async () => result.current.onBounds(layout(400, 600)));
+    await act(async () => result.current.onCard(layout(120, 44)));
+    // Its trailing edge on the rectangle's: 100 + 80 - 120.
+    expect(result.current.left).toBe(60);
+    // A rectangle near the leading edge: clamped to the gap.
+    at = {x: 0, y: 200, width: 50};
+    await rerender({});
+    expect(result.current.left).toBe(8);
+    // A point: the card ends at it.
+    at = {x: 300, y: 200};
+    await rerender({});
+    expect(result.current.left).toBe(180);
+  });
+
   it('places nothing without a rectangle', async () => {
     const {result} = await renderHook(() => useAnchored({at: null, width: 200}));
     expect(result.current).toMatchObject({left: 0, top: 0, above: false});

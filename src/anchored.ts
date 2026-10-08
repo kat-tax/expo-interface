@@ -14,6 +14,9 @@ export interface AnchorRect {
 /** Which side of the rectangle an anchored card prefers. */
 export type AnchorEdge = 'auto' | 'top' | 'bottom';
 
+/** How an anchored card lines up with its rectangle across: from its leading edge, centred on it, or to its trailing edge. */
+export type AnchorAlign = 'start' | 'center' | 'end';
+
 /** What an anchored card keeps clear of at its parent's edges: a header over the canvas, a bar under it. */
 export interface AnchorInsets {
   top?: number;
@@ -43,10 +46,11 @@ interface AnchoredOptions {
   gap?: number;
   /**
    * How the card lines up with the rectangle across: from its leading edge,
-   * or centred on it, as a bar of tools over a selection is.
+   * centred on it, as a bar of tools over a selection is, or to its
+   * trailing edge, as tools hanging from a block's trailing corner are.
    * @default 'start'
    */
-  align?: 'start' | 'center';
+  align?: AnchorAlign;
 }
 
 interface Anchored {
@@ -101,7 +105,9 @@ export function useAnchored({at, preferredEdge = 'auto', width, insets, gap = 8,
   const top = at ? (above ? Math.max(top0, at.y - card.height - gap) : below) : 0;
   // Until the parent has been measured there is nothing to clamp against.
   const rightMost = bounds.width > 0 ? Math.max(left0, rightEdge - card.width) : Infinity;
-  const from = at && align === 'center' ? at.x + (at.width ?? 0) / 2 - card.width / 2 : at?.x ?? 0;
+  const x = at?.x ?? 0;
+  const span = at?.width ?? 0;
+  const from = align === 'center' ? x + span / 2 - card.width / 2 : align === 'end' ? x + span - card.width : x;
   const left = at ? Math.max(left0, Math.min(from, rightMost)) : 0;
 
   return {onBounds, onCard, left, top, above, placed: bounds.height > 0 && card.height > 0};

@@ -94,13 +94,14 @@ function FloatingToolbar(props: ToolbarProps) {
 }
 
 /**
- * A floating bar beside a rectangle, laid over its parent: centred on the
- * rectangle, over it unless there is no room, inside the parent less its
- * insets, and drawn only once it has been measured and placed.
+ * A floating bar beside a rectangle, laid over its parent: lined up with the
+ * rectangle by `align` (centred on it unless asked otherwise), over it unless
+ * there is no room, inside the parent less its insets, and drawn only once it
+ * has been measured and placed.
  */
 function AnchoredToolbar(props: ToolbarProps) {
-  const {at = null, preferredEdge = 'top', insets, testID} = props;
-  const anchored = useAnchored({at, preferredEdge, insets, align: 'center'});
+  const {at = null, align = 'center', preferredEdge = 'top', insets, testID} = props;
+  const anchored = useAnchored({at, preferredEdge, insets, align});
   return (
     <View style={anchoredStyles.bounds} onLayout={anchored.onBounds} testID={testID ? `${testID}-bounds` : undefined}>
       {at ? (

@@ -117,6 +117,7 @@ export type {PickerItemProps, PickerOption, PickerProps, PickerValue} from './pi
 export {Popover} from './popover';
 export type {PopoverAction, PopoverDismissReason, PopoverInsets, PopoverProps, PopoverRect} from './popover/types';
 export type {AnchorEdge, AnchorInsets, AnchorRect} from './anchored';
+export type {AnchorAlign} from './anchored';
 export {PopupMenu} from './popup-menu';
 export {popupOptionId} from './popup-menu/types';
 export type {MenuRect, PopupMenuDismissReason, PopupMenuProps} from './popup-menu/types';

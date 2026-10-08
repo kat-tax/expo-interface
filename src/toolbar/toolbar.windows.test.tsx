@@ -81,6 +81,9 @@ describe('commands (windows)', () => {
     await fireEvent(screen.getByTestId('bar-bounds'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 400, height: 600}}});
     await act(async () => placed().props.onLayout({nativeEvent: {layout: {x: 0, y: 0, width: 120, height: 48}}}));
     expect(style()).toMatchObject({left: 80, top: 144});
+    // To the rectangle's trailing edge: 100 + 80 - 120.
+    await rerender(<Toolbar at={{x: 100, y: 200, width: 80, height: 20}} align="end" commands={commands} testID="bar"/>);
+    expect(style()).toMatchObject({left: 60});
     await rerender(<Toolbar at={{x: 0, y: 0}} field={<Text>Link</Text>} leading={<Text>Edit</Text>} testID="drawn"/>);
     expect(screen.getByText('Link')).toBeOnTheScreen();
     expect(StyleSheet.flatten(screen.getByTestId('drawn').props.style)).toMatchObject({borderRadius: 12, alignSelf: 'flex-start'});
