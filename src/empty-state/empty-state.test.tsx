@@ -173,6 +173,8 @@ describe(`EmptyState (${Platform.OS})`, () => {
       expect(host(p => p.text === 'No drops yet')).toBeTruthy();
       // Native through and through: one host, and no React Native drawn inside it.
       expect(hosts()).toHaveLength(1);
+      expect(screen.queryByText('No drops yet')).toBeNull();
+      expect(screen.queryByText('Nothing shared.')).toBeNull();
       expect(screen.getByTestId('old')).toBeOnTheScreen();
       await render(<Old title="Nothing here"/>);
       expect(nodes().some(n => n.type.endsWith('ImageView'))).toBe(false);
@@ -212,7 +214,10 @@ describe(`EmptyState (${Platform.OS})`, () => {
     // React Native content rides in the column through an RNHostView.
     expect(host(p => p.matchContents === true)).toBeTruthy();
     expect(screen.getByText('Cancel')).toBeOnTheScreen();
-    // Outside the host's context, so a kit control in the node mounts a host of its own.
+    // Outside the host's context, so a kit control in the node mounts a host of
+    // its own: in the column's own host, and in one the column renders bare in.
+    await render(<EmptyState title="Opening" action={<Hosted/>}/>);
+    expect(screen.getByText('bare')).toBeOnTheScreen();
     await render(<NativeHost><EmptyState title="Opening" action={<Hosted/>}/></NativeHost>);
     expect(screen.getByText('bare')).toBeOnTheScreen();
   });
@@ -228,6 +233,9 @@ describe(`EmptyState (${Platform.OS})`, () => {
     // Until Compose has measured the column: the window's width less the column's padding.
     expect(width()).toBe(Dimensions.get('window').width - spacing.five * 2);
     const box = nodes().find(n => n.type.endsWith('BoxView') && modifier(n.props, 'onSizeChanged'))!;
+    // Hosted, since React Native text straight in a Compose box would draw nothing.
+    const hostView = host(p => p.matchContents === true, box);
+    expect(nodes(hostView).some(n => n.children?.includes('The file is gone.'))).toBe(true);
     await act(async () => modifier(box.props, 'onSizeChanged')!.eventListener({width: 280, height: 40}));
     expect(width()).toBe(280);
     // Not selectable: the Compose text, with no React Native text beside it.
