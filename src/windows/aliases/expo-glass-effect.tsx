@@ -1,6 +1,7 @@
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
 import {useId} from 'react';
-import {processColor, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
+import {hexColor} from '../../hex-color';
 import XamlMaterial from '../specs/ExpoInterfaceMaterialNativeComponent';
 import {useXamlProps} from '../index';
 import {Portal} from '../portal';
@@ -57,14 +58,6 @@ export function splitPadding(style: StyleProp<ViewStyle>): [ViewStyle, ViewStyle
     (PADDING.includes(key) ? content : box)[key as 'padding'] = value as number;
   }
   return [box, content];
-}
-
-/** A color in any form React Native accepts as `#RRGGBBAA`, which is what the island parses. */
-export function hexColor(color: string | undefined): string | undefined {
-  const argb = color == null ? null : processColor(color);
-  if (typeof argb !== 'number') return undefined;
-  const rgba = ((argb << 8) | (argb >>> 24)) >>> 0;
-  return `#${rgba.toString(16).padStart(8, '0').toUpperCase()}`;
 }
 
 export function GlassView({glassEffectStyle = 'regular', tintColor, colorScheme = 'auto', isInteractive: _interactive, style, children, ...rest}: GlassViewProps) {

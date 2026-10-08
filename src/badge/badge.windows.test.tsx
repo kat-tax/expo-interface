@@ -30,17 +30,28 @@ describe('Badge (windows)', () => {
     expect(StyleSheet.flatten(island(BADGE).props.style)).toMatchObject({minWidth: 8, height: 8});
   });
 
-  it('passes its colors straight through, and leaves them to the control when there are none', async () => {
-    await render(<Badge count={1} color="#0A84FF" textColor="#000000"/>);
-    expect(island(BADGE).props).toMatchObject({color: '#0A84FF', textColor: '#000000'});
+  it('hands its colors to the island as the hex it parses, and leaves them to the control when there are none', async () => {
+    await render(<Badge count={1} color="#0A84FF" textColor="black"/>);
+    expect(island(BADGE).props).toMatchObject({color: '#0A84FFFF', textColor: '#000000FF'});
     await render(<Badge count={1}/>);
     expect(island(BADGE).props.color).toBeUndefined();
+    expect(island(BADGE).props.textColor).toBeUndefined();
   });
 
-  it('resolves a palette token for its fill, and leaves the number\'s color to the control', async () => {
+  it('writes a color that is not hex as hex, rather than letting the island fall back to its red', async () => {
+    await render(<Badge count={1} color="rgb(0, 122, 255)"/>);
+    expect(island(BADGE).props.color).toBe('#007AFFFF');
+    await render(<Badge count={1} color="rebeccapurple"/>);
+    expect(island(BADGE).props.color).toBe('#663399FF');
+  });
+
+  it('resolves a palette token for its fill, translucent ones included, and leaves the number\'s color to the control', async () => {
     await render(<Badge count={1} color="highlight"/>);
-    expect(island(BADGE).props.color).toBe(colors.light.highlight);
+    expect(island(BADGE).props.color).toBe(`${colors.light.highlight}FF`);
     expect(island(BADGE).props.textColor).toBeUndefined();
+    // rgba(60, 60, 67, 0.29)
+    await render(<Badge count={1} color="separator"/>);
+    expect(island(BADGE).props.color).toBe('#3C3C434A');
   });
 
   it('draws nothing for a count of zero', async () => {

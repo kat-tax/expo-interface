@@ -407,10 +407,8 @@ Differences:
   inset.
 - On iOS a selected row in a `List` or a `FieldGroup` fills the whole row,
   through SwiftUI's row background.
-- On Windows `badgeColor` is read as hex and nothing else: a named color,
-  `rgb()`, `hsl()` or a translucent token (`separator`, `pillBackground`)
-  draws the badge in Fluent's critical red, which is also its fill without
-  one.
+- Without a `badgeColor` the badge on Windows is Fluent's critical red, the
+  `InfoBadge`'s own fill, where the other three draw `destructive`.
 - On Android TalkBack reads the row's own texts: a badge's count is its
   number and a dot says nothing, since `@expo/ui`'s Compose layer has no
   modifier that sets a description. `selected` is

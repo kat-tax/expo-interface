@@ -83,10 +83,6 @@ export interface ListItemProps {
    * accent), which follows the scheme, or a hex color (`#RRGGBB`). A count
    * on it is drawn in black or white, whichever reads. Without one, the
    * `Badge`'s own red: `destructive`, and Fluent's critical fill on Windows.
-   *
-   * Windows reads a hex fill and nothing else: a named color, `rgb()`,
-   * `hsl()` or a translucent token (`separator`, `pillBackground`) draws the
-   * `Badge`'s own red there.
    */
   badgeColor?: ColorTokens | (string & {});
   /** Trailing (end) slot — chevron, value, control, etc. */

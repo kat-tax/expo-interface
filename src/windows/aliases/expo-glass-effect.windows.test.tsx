@@ -1,7 +1,7 @@
 import {render, screen} from '@testing-library/react-native';
 import {Text} from 'react-native';
 import {fireIsland, island} from 'expo-vitest/windows';
-import {GlassContainer, GlassView, hexColor, isGlassEffectAPIAvailable, isLiquidGlassAvailable, splitPadding} from './expo-glass-effect';
+import {GlassContainer, GlassView, isGlassEffectAPIAvailable, isLiquidGlassAvailable, splitPadding} from './expo-glass-effect';
 
 const MATERIAL = 'ExpoInterfaceMaterial';
 const PORTAL = 'ExpoInterfacePortal';
@@ -57,11 +57,7 @@ describe('expo-glass-effect (windows)', () => {
     expect(isGlassEffectAPIAvailable()).toBe(true);
   });
 
-  it('converts colors to the hex the island parses, splits the padding off, and nothing for none', () => {
-    expect(hexColor('#F00')).toBe('#FF0000FF');
-    expect(hexColor('rgba(0, 0, 255, 0.25)')).toBe('#0000FF40');
-    expect(hexColor(undefined)).toBeUndefined();
-    expect(hexColor('not a color')).toBeUndefined();
+  it('splits the padding off, and nothing for none', () => {
     expect(splitPadding(undefined)).toEqual([{}, {}]);
     expect(splitPadding([{margin: 2}, {paddingHorizontal: 6}])).toEqual([{margin: 2}, {paddingHorizontal: 6}]);
   });

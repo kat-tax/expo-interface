@@ -16,9 +16,12 @@ export interface NativeProps extends ViewProps {
    * draw `99+`; `label` carries the true wording for a screen reader.
    */
   value?: CodegenTypes.WithDefault<CodegenTypes.Int32, -1>;
-  /** Fill color (`#RRGGBB`); defaults to Fluent's critical fill. */
+  /**
+   * Fill color as hex (`#RRGGBB` or `#RRGGBBAA`; the kit writes any color it
+   * is given this way); defaults to Fluent's critical fill.
+   */
   color?: string;
-  /** Color of the number; defaults to whichever of black or white reads on `color`. */
+  /** Color of the number as hex; defaults to whichever of black or white reads on `color`. */
   textColor?: string;
   /** What a screen reader says, which is better than the bare number. */
   label?: string;
