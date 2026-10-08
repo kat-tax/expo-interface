@@ -59,6 +59,9 @@ describe(`Composer (${Platform.OS})`, () => {
     expect(screen.queryByTestId('c-send')).toBeNull();
     await press('c-stop');
     expect(onStop).toHaveBeenCalledTimes(1);
+    // The keyboard's send key waits while busy.
+    await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'draft'}});
+    expect(onSend).not.toHaveBeenCalled();
     await rerender(<Composer value="draft" onChangeText={onChangeText} onSend={onSend} testID="c"/>);
     await press('c-send');
     expect(onSend).toHaveBeenCalledWith('draft');

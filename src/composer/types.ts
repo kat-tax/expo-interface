@@ -29,14 +29,16 @@ export interface ComposerProps {
   placeholder?: string;
   /**
    * Called with the trimmed text when the send button is pressed or the
-   * keyboard's send key is used. Nothing is sent while the text is blank.
+   * keyboard's send key is used. Nothing is sent while the text is blank or
+   * while `busy`.
    */
   onSend: (text: string) => void;
   /** Called when the stop button is pressed while `busy`. Without it the button is disabled while busy. */
   onStop?: () => void;
   /**
    * Something is running on what was sent: the send button is a stop
-   * button, and the text can be written on meanwhile.
+   * button, and the text can be written on meanwhile. Enter and the
+   * keyboard's send key wait until it is done; the text stays.
    * @default false
    */
   busy?: boolean;

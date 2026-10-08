@@ -209,7 +209,7 @@ assistant's prompt.
 Props: `value` and `onChangeText` (controlled; left out, the composer keeps
 its own text and clears it on send), `placeholder` (`Message`), `onSend`
 (called with the trimmed text from the button or the keyboard's send key;
-nothing is sent while the text is blank), `onStop` (the stop button while
+nothing is sent while the text is blank or while `busy`), `onStop` (the stop button while
 `busy`; without it the button waits), `busy`, `notice` (a line under the
 capsule in the secondary color: a hint, an error, who else is typing),
 `menu` (`label`, `icon`, `items`: the platform's menu behind an icon button
@@ -220,7 +220,8 @@ Drawn in React Native on every platform: a `Surface` capsule holding a
 `bare` `TextField` and the kit's circle `Button` in a host of its own, so
 it sits in a `Sheet`'s footer or at the bottom of a screen. Enter sends and
 Shift+Enter breaks the line on web and a desktop keyboard; the keyboard's
-send key sends on a phone. The button is the platform's: a SwiftUI button, a
+send key sends on a phone. While `busy` neither sends, and the text stays.
+The button is the platform's: a SwiftUI button, a
 Material button, a `<button>`, a WinUI button.
 
 ## SearchField

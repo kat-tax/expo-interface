@@ -34,9 +34,16 @@ describe('Composer (web)', () => {
     expect(screen.queryByRole('button', {name: 'Send'})).toBeNull();
     fireEvent.click(screen.getByRole('button', {name: 'Stop'}));
     expect(onStop).toHaveBeenCalledTimes(1);
+    // Enter waits while busy, and the text stays to be sent later.
+    const field = screen.getByRole('textbox', {name: 'Message'});
+    fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
+    expect(onSend).not.toHaveBeenCalled();
+    expect(field).toHaveValue('draft');
     rerender(<Composer value="draft" onChangeText={onChangeText} onSend={onSend} testID="c"/>);
-    fireEvent.click(screen.getByRole('button', {name: 'Send'}));
+    fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
     expect(onSend).toHaveBeenCalledWith('draft');
+    fireEvent.click(screen.getByRole('button', {name: 'Send'}));
+    expect(onSend).toHaveBeenCalledTimes(2);
     expect(onChangeText).not.toHaveBeenCalled();
     expect(screen.getByRole('textbox', {name: 'Message'})).toHaveValue('draft');
   });

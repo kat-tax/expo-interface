@@ -16,7 +16,8 @@ const MIN_HEIGHT = 44;
  * A capsule holding a bare field and a circle button, see
  * {@link ComposerProps}. Enter sends on web and a desktop keyboard and
  * Shift+Enter breaks the line, as the inline field reports them; the
- * keyboard's send key sends on a phone. The button is in a host of its own,
+ * keyboard's send key sends on a phone. While busy neither Enter nor the send
+ * key sends, and the text stays. The button is in a host of its own,
  * since it sits in a React Native box wherever the composer is, inside a
  * sheet or not.
  */
@@ -39,7 +40,7 @@ export function Composer({
   const ready = text.trim().length > 0;
   const send = () => {
     const trimmed = text.trim();
-    if (!trimmed || disabled) return;
+    if (!trimmed || disabled || busy) return;
     onSend(trimmed);
     if (value === undefined) setText('');
   };

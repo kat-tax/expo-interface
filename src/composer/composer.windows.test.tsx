@@ -33,10 +33,14 @@ describe('Composer (windows)', () => {
 
   it('is a stop button while busy, waiting with nothing to stop, and shows the notice', async () => {
     const onStop = vi.fn();
-    const {rerender} = await render(<Composer onSend={() => {}} onStop={onStop} busy notice="Replying" testID="c"/>);
+    const onSend = vi.fn();
+    const {rerender} = await render(<Composer value="draft" onSend={onSend} onStop={onStop} busy notice="Replying" testID="c"/>);
     expect(island(BUTTON).props).toMatchObject({label: 'Stop', disabled: false});
     await fireEvent(screen.getByTestId('c-stop'), 'press');
     expect(onStop).toHaveBeenCalledTimes(1);
+    // Enter waits while busy.
+    await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'draft'}});
+    expect(onSend).not.toHaveBeenCalled();
     expect(screen.getByText('Replying')).toBeOnTheScreen();
     await rerender(<Composer onSend={() => {}} busy testID="c"/>);
     expect(island(BUTTON).props.disabled).toBe(true);
