@@ -312,7 +312,8 @@ inset sheet, and follow a rotation. Until the column has reported, they
 take the window's width, at most a form sheet's on an iPad or 640 points on
 Android (Material's limit for a sheet), less the sheet's padding. A
 `Pressable` in them takes presses, and a control in them mounts a host of
-its own. Give a React Native body a `maxHeight`.
+its own. `@expo/ui` content of the app's own draws nothing in them without
+a host: wrap it in a `NativeHost`. Give a React Native body a `maxHeight`.
 
 On web and Windows the sheet's content counts as hosted: controls inside it
 render bare, and a React Native box inside it (a `Composer`) mounts a

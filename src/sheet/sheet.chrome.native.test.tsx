@@ -3,7 +3,7 @@ import {Dimensions, Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {Button} from '../button';
-import {useNativeHost} from '../host';
+import {NativeHost, useNativeHost} from '../host';
 import {BAR_HEIGHT, BAR_SIDE} from './shared';
 import {Sheet} from '.';
 
@@ -190,6 +190,17 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
     );
     expect(nodes().some(n => n.type.endsWith('RNHostView'))).toBe(false);
     expect(screen.queryByTestId('sheet-footer')).toBeNull();
+  });
+
+  it('gives `@expo/ui` content of the app\'s own in the footer a host of its own inside a NativeHost', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} footer={<NativeHost><Hosted name="notice"/></NativeHost>}>
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    // The footer is React Native content with no host above it, so the NativeHost mounts one beside the sheet's.
+    expect(screen.getByText('notice hosted')).toBeOnTheScreen();
+    expect(nodes().filter(n => n.type === 'ViewManagerAdapter_ExpoUI_HostView')).toHaveLength(2);
   });
 
   it('takes the sheet\'s own padding off the body\'s width', async () => {
