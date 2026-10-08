@@ -63,17 +63,20 @@ std::string DateToString(DateTime date) noexcept {
 }
 
 /**
- * A bound the kit sent as `YYYY-MM-DD`. One in a year `SYSTEMTIME` does not
- * hold moves to the nearest day it does, so a bound before 1601 opens the
- * calendar as far as Windows goes rather than falling back to the default
- * range. The first day is the 2nd of January 1601, the first whose local noon
- * every zone can hold. Empty when no bound was sent.
+ * A bound the kit sent as `YYYY-MM-DD`. One on a day whose local noon
+ * `SYSTEMTIME` cannot hold in every zone moves to the nearest day it can,
+ * so a bound before 1601 opens the calendar as far as Windows goes rather
+ * than falling back to the default range. The first such day is the 2nd of
+ * January 1601 (noon on the 1st is still 1600 in UTC east of UTC+12) and the
+ * last the 30th of December 30827 (noon on the 31st is 30828 in UTC west of
+ * UTC-12), so the clamp goes by the whole day, not the year. Empty when no
+ * bound was sent.
  */
 std::optional<DateTime> BoundFromString(const std::string &text) noexcept {
   int year = 0, month = 0, day = 0;
   if (sscanf_s(text.c_str(), "%d-%d-%d", &year, &month, &day) != 3) return std::nullopt;
-  if (year < 1601) return DateFromString("1601-01-02");
-  if (year > 30827) return DateFromString("30827-12-30");
+  if (year < 1601 || (year == 1601 && month == 1 && day < 2)) return DateFromString("1601-01-02");
+  if (year > 30827 || (year == 30827 && month == 12 && day > 30)) return DateFromString("30827-12-30");
   return DateFromString(text);
 }
 
