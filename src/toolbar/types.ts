@@ -80,8 +80,9 @@ export interface ToolbarCommand {
   role?: 'default' | 'destructive';
   /**
    * A rule before this command, to group the ones after it: a vertical
-   * `Divider` on the bar (none before the first command of a row), a rule
-   * in the overflow menu, an `AppBarSeparator` in the Windows `CommandBar`.
+   * `Divider` on the bar, a rule in the overflow menu, an `AppBarSeparator`
+   * in the Windows `CommandBar`. None is drawn before the first command of
+   * a row or of the overflow.
    */
   separator?: boolean;
   testID?: string;

@@ -197,8 +197,9 @@ Differences:
   with the menu's check; a menu has no off state, so one that is off is a
   plain entry.
 - A command's `separator` is a vertical `Divider` before it on the drawn
-  bars, none before the first command of a row, a rule in the overflow
-  menu, and an `AppBarSeparator` in the Windows `CommandBar`.
+  bars, a rule in the overflow menu, and an `AppBarSeparator` in the
+  Windows `CommandBar`. None is drawn before the first command of a row or
+  of the overflow.
 - A command with `items` is a menu, opened from the command, as `Tabs`
   `action` takes one; it takes no `onPress`, `active` or `role`. The kit's
   menus do not nest, so behind the overflow, on iOS, Android, web and a

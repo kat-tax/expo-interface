@@ -657,13 +657,12 @@ struct CommandBarView : winrt::implements<CommandBarView, winrt::IInspectable>,
       if (value.ValueType() != JsonValueType::Object) continue;
       auto entry = value.GetObject();
       const bool secondary = JsonBool(entry, L"secondary");
-      if (JsonBool(entry, L"separator")) {
+      // A rule before the command, none before the first of the row or of the
+      // overflow, as the kit's drawn bars and FillMenu's flyouts have.
+      const auto target = secondary ? m_bar.SecondaryCommands() : m_bar.PrimaryCommands();
+      if (JsonBool(entry, L"separator") && target.Size() > 0) {
         controls::AppBarSeparator separator;
-        if (secondary) {
-          m_bar.SecondaryCommands().Append(separator);
-        } else {
-          m_bar.PrimaryCommands().Append(separator);
-        }
+        target.Append(separator);
       }
       // A menu command opens its entries as the button's flyout: a chevron on
       // the bar, a submenu in the overflow. A pick is reported with the
