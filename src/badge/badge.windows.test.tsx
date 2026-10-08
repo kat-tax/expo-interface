@@ -36,22 +36,28 @@ describe('Badge (windows)', () => {
     await render(<Badge count={1}/>);
     expect(island(BADGE).props.color).toBeUndefined();
     expect(island(BADGE).props.textColor).toBeUndefined();
+    // Fluent's own fill, with the caller's number color on it.
+    await render(<Badge count={1} textColor="black"/>);
+    expect(island(BADGE).props.color).toBeUndefined();
+    expect(island(BADGE).props.textColor).toBe('#000000FF');
   });
 
   it('writes a color that is not hex as hex, rather than letting the island fall back to its red', async () => {
     await render(<Badge count={1} color="rgb(0, 122, 255)"/>);
-    expect(island(BADGE).props.color).toBe('#007AFFFF');
+    expect(island(BADGE).props).toMatchObject({color: '#007AFFFF', textColor: '#FFFFFFFF'});
     await render(<Badge count={1} color="rebeccapurple"/>);
-    expect(island(BADGE).props.color).toBe('#663399FF');
+    expect(island(BADGE).props).toMatchObject({color: '#663399FF', textColor: '#FFFFFFFF'});
   });
 
-  it('resolves a palette token for its fill, translucent ones included, and leaves the number\'s color to the control', async () => {
+  it('resolves a palette token for its fill, translucent ones included, with a number that reads on it', async () => {
     await render(<Badge count={1} color="highlight"/>);
-    expect(island(BADGE).props.color).toBe(`${colors.light.highlight}FF`);
-    expect(island(BADGE).props.textColor).toBeUndefined();
-    // rgba(60, 60, 67, 0.29)
+    expect(island(BADGE).props).toMatchObject({color: `${colors.light.highlight}FF`, textColor: '#000000FF'});
+    // rgba(60, 60, 67, 0.29): dark without its alpha, pale as it shows over the
+    // screen, so the number is black, where the island would pick white.
     await render(<Badge count={1} color="separator"/>);
-    expect(island(BADGE).props.color).toBe('#3C3C434A');
+    expect(island(BADGE).props).toMatchObject({color: '#3C3C434A', textColor: '#000000FF'});
+    await render(<Badge count={1} color="pillBackground"/>);
+    expect(island(BADGE).props).toMatchObject({color: '#7676801F', textColor: '#000000FF'});
   });
 
   it('draws nothing for a count of zero', async () => {

@@ -1,7 +1,8 @@
 import type {ReactNode} from 'react';
 import type {HostNode} from 'expo-vitest/native';
 import {Platform, StyleSheet} from 'react-native';
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
+import {setColorScheme} from 'vitest-native/helpers';
 import {colors} from '../theme';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {hosts} from '../__tests__/hosts';
@@ -74,6 +75,23 @@ describe(`Badge (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(screen.getByText('5').props.style)).toMatchObject({color: '#000000'});
     await render(<Badge count={6} color="rgb(0, 0, 139)" testID="rgb"/>);
     expect(StyleSheet.flatten(screen.getByText('6').props.style)).toMatchObject({color: '#FFFFFF'});
+  });
+
+  it('judges a translucent fill as it shows over the screen\'s background', async () => {
+    // pillBackground is a dark gray at 12%: near white over the light screen,
+    // so its number is black, though the gray alone would pick white.
+    await render(<Badge count={7} color="pillBackground" testID="pill"/>);
+    expect(StyleSheet.flatten(screen.getByText('7').props.style)).toMatchObject({color: '#000000'});
+    await render(<Badge count={8} color="rgba(0, 0, 0, 0.1)" testID="raw"/>);
+    expect(StyleSheet.flatten(screen.getByText('8').props.style)).toMatchObject({color: '#000000'});
+    // Over the dark screen the same token is near black.
+    await act(() => setColorScheme('dark'));
+    try {
+      await render(<Badge count={9} color="pillBackground" testID="dark"/>);
+      expect(StyleSheet.flatten(screen.getByText('9').props.style)).toMatchObject({color: '#FFFFFF'});
+    } finally {
+      await act(() => setColorScheme('light'));
+    }
   });
 
   it('stops at the cap, and draws nothing for a count of nothing', async () => {
@@ -174,6 +192,11 @@ describe(`Badge (${Platform.OS})`, () => {
     it('reads a color that is not hex to pick the number\'s black or white', async () => {
       await render(inHost(<Badge count={5} color="hsl(60, 100%, 50%)" testID="hsl"/>));
       expect(byComposeTestID('hsl').props).toMatchObject({containerColor: 'hsl(60, 100%, 50%)', contentColor: '#000000'});
+    });
+
+    it('judges a translucent fill as it shows over the screen\'s background', async () => {
+      await render(inHost(<Badge count={7} color="pillBackground" testID="pill"/>));
+      expect(byComposeTestID('pill').props).toMatchObject({containerColor: colors.light.pillBackground, contentColor: '#000000'});
     });
 
     it('stops at the cap, and draws nothing for a count of nothing', async () => {

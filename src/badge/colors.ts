@@ -1,6 +1,6 @@
 import type {BadgeProps} from './types';
 import {onAccent} from '../accent';
-import {hexColor} from '../hex-color';
+import {hexOver} from '../hex-color';
 import {isColorToken, useColor, usePalette} from '../theme';
 
 /** What a badge is drawn in. */
@@ -20,12 +20,15 @@ export interface BadgeColors {
  * than by the fill, which on web is a CSS variable that cannot be read. Any
  * other color is read as React Native reads it, so a name or an `rgb()`
  * picks black or white as a hex color does; one that cannot be read (a CSS
- * variable of the app's own) takes white.
+ * variable of the app's own) takes white. A translucent fill (`separator`,
+ * `pillBackground`, an `rgba()`) is judged as it shows over the screen's
+ * background, since its own color without its alpha is far darker than what
+ * the eye sees.
  */
 export function useBadgeColors({color = 'destructive', textColor}: Pick<BadgeProps, 'color' | 'textColor'>): BadgeColors {
   const token = isColorToken(color) ? color : undefined;
   const resolved = useColor(token ?? 'destructive');
   const palette = usePalette();
   const value = token ? palette[token] : color;
-  return {fill: token ? resolved : color, content: textColor ?? onAccent(hexColor(value) ?? '')};
+  return {fill: token ? resolved : color, content: textColor ?? onAccent(hexOver(value, palette.background) ?? '')};
 }

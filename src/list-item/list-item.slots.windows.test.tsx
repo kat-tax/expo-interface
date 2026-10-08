@@ -30,24 +30,24 @@ describe('ListItem slots (windows)', () => {
     await render(<ListItem badge={3} badgeColor="tint" testID="row">Essay</ListItem>);
     const {props} = island('ExpoInterfaceInfoBadge');
     expect(props.color).toBe(`${colors.light.tint}FF`);
-    // The island picks the count's black or white for the fill, as the others do.
-    expect(props.textColor).toBeUndefined();
+    // The count's black or white for the fill, picked as the others pick it.
+    expect(props.textColor).toBe(`${colors.light.onTint}FF`);
   });
 
-  it('hands any badge color to the island as hex, for the island to pick the count color', async () => {
+  it('hands any badge color to the island as hex, with the count color that reads on it', async () => {
     await render(
       <>
         <ListItem badge={3} badgeColor="#123456" testID="hex">Essay</ListItem>
         <ListItem badge={3} badgeColor="rgb(0, 122, 255)" testID="rgb">Notes</ListItem>
-        <ListItem badge badgeColor="pillBackground" testID="translucent">Drafts</ListItem>
+        <ListItem badge={2} badgeColor="pillBackground" testID="translucent">Drafts</ListItem>
       </>,
     );
     const [hex, rgb, translucent] = islands('ExpoInterfaceInfoBadge').map(node => node.props);
-    expect(hex).toMatchObject({color: '#123456FF'});
-    expect(hex.textColor).toBeUndefined();
-    expect(rgb.color).toBe('#007AFFFF');
-    // rgba(118, 118, 128, 0.12)
-    expect(translucent.color).toBe('#7676801F');
+    expect(hex).toMatchObject({color: '#123456FF', textColor: '#FFFFFFFF'});
+    expect(rgb).toMatchObject({color: '#007AFFFF', textColor: '#FFFFFFFF'});
+    // rgba(118, 118, 128, 0.12): near white over the screen, so a black count,
+    // where the island, leaving out the alpha, would pick white.
+    expect(translucent).toMatchObject({color: '#7676801F', textColor: '#000000FF'});
   });
 
   it('leaves the island its own critical red without a badge color', async () => {

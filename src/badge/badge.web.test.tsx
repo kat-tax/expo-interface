@@ -72,6 +72,16 @@ describe('Badge (web)', () => {
     expect(screen.getByTestId('plain').style.getPropertyValue('--ui-badge-on-fill')).toBe('#FFFFFF');
   });
 
+  it('judges a translucent fill as it shows over the screen\'s background', () => {
+    // pillBackground is a dark gray at 12%, near white over the light screen.
+    render(<Badge count={7} color="pillBackground" testID="pill"/>);
+    const pill = screen.getByTestId('pill');
+    expect(pill.style.getPropertyValue('--ui-badge-fill')).toBe('var(--color-pill-background)');
+    expect(pill.style.getPropertyValue('--ui-badge-on-fill')).toBe('#000000');
+    render(<Badge count={8} color="rgba(0, 0, 0, 0.1)" testID="raw"/>);
+    expect(screen.getByTestId('raw').style.getPropertyValue('--ui-badge-on-fill')).toBe('#000000');
+  });
+
   it('reads a color that is not hex for the number, and draws white on one it cannot read', () => {
     render(<Badge count={5} color="yellow" testID="named"/>);
     expect(screen.getByTestId('named').style.getPropertyValue('--ui-badge-on-fill')).toBe('#000000');

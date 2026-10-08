@@ -21,7 +21,11 @@ export interface NativeProps extends ViewProps {
    * is given this way); defaults to Fluent's critical fill.
    */
   color?: string;
-  /** Color of the number as hex; defaults to whichever of black or white reads on `color`. */
+  /**
+   * Color of the number as hex; defaults to black or white by `color`'s own
+   * color, its alpha left out. The kit sends one with every `color`, worked
+   * out from the fill as it shows over the screen.
+   */
   textColor?: string;
   /** What a screen reader says, which is better than the bare number. */
   label?: string;

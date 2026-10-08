@@ -49,9 +49,9 @@ nothing), `max` (99; counts above draw as `99+`), `showZero`, `dot`, `label`
 (the fill, a palette token such as `tint`, which follows the scheme, or any
 color React Native reads; the destructive red without one, Fluent's
 critical fill on Windows), `textColor` (without one, black or white,
-whichever reads on the fill; white on a fill that cannot be read, such as a
-CSS variable on web),
-`pulse` (the badge's opacity goes down and back up every 900 ms: someone
+whichever reads on the fill, a translucent fill judged as it shows over the
+screen's background; white on a fill that cannot be read, such as a CSS
+variable on web), `pulse` (the badge's opacity goes down and back up every 900 ms: someone
 typing, a sync in flight; still while the user asks for less motion),
 `style`, `testID`.
 

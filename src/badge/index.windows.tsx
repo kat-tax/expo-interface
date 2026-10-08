@@ -25,20 +25,22 @@ import {BADGE_SIZE, badgeLabel, badgeText, badgeValue} from './shared';
 export function Badge(props: BadgeProps) {
   const text = badgeText(props);
   const xaml = useXamlProps();
-  const {fill} = useBadgeColors(props);
+  const {fill, content} = useBadgeColors(props);
   const opacity = usePulseOpacity(props.pulse === true);
   if (text === null) return null;
   const {dot, color, textColor, testID, style} = props;
   const height = dot ? BADGE_SIZE.dot : BADGE_SIZE.count;
   // The island parses hex alone, so a name, `rgb()` or a translucent token is
   // written as hex for it. Without a color of the caller's the control keeps
-  // Fluent's critical fill, and without a text color it picks black or white
-  // for the fill.
+  // Fluent's critical fill and picks black or white for it, unless told a text
+  // color. With one, the number's color is worked out here as on the other
+  // platforms, a translucent fill as it shows over the screen's background:
+  // the island would judge the fill without its alpha.
   const badge = (
     <XamlInfoBadge
       value={badgeValue(props)}
       color={color === undefined ? undefined : hexColor(fill)}
-      textColor={hexColor(textColor)}
+      textColor={hexColor(color === undefined ? textColor : content)}
       label={badgeLabel(props, text)}
       style={[{minWidth: height, height}, style]}
       testID={testID}

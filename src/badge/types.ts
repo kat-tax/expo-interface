@@ -70,8 +70,9 @@ export interface BadgeProps {
   color?: ColorTokens | (string & {});
   /**
    * Color of the number. Defaults to whichever of black or white reads on
-   * `color`, and white on a fill that cannot be read for it, such as a CSS
-   * variable on web.
+   * `color`, a translucent one judged as it shows over the screen's
+   * background, and white on a fill that cannot be read for it, such as a
+   * CSS variable on web.
    */
   textColor?: string;
   /** Identifier used to locate the component in end-to-end tests. */
