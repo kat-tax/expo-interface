@@ -11,9 +11,10 @@ export type DateTimeMode = 'date' | 'time' | 'datetime';
 /**
  * A value the picker takes: a `Date`, or a calendar day written `YYYY-MM-DD`,
  * which is a day in no time zone (a due date, a birthday) and reads the same
- * wherever the app runs. The year takes four digits, so the year 50 is
- * `0050`. A string that names no day the calendar has, such as `2026-02-30`,
- * is no value.
+ * wherever the app runs. The year takes at least four digits, so the year 50
+ * is `0050` and the year 12026 is `12026`, and a year before 0 takes a minus
+ * sign (`-0005`). A string that names no day the calendar has, such as
+ * `2026-02-30`, is no value.
  */
 export type DateTimeValue = Date | string;
 

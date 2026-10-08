@@ -82,6 +82,8 @@ describe('date strings (windows)', () => {
   it('formats and parses local days and times', () => {
     expect(toTimeString(new Date(2026, 0, 5, 7, 9))).toBe('07:09');
     expect(parseDateString('2026-03-09', noon)).toEqual(new Date(2026, 2, 9, 12, 30));
+    // The calendar goes to the year 30827, which the island writes in five digits.
+    expect(parseDateString('12026-03-09', noon)?.getFullYear()).toBe(12026);
     expect(parseTimeString('23:59', noon)).toEqual(new Date(2026, 5, 15, 23, 59));
   });
 

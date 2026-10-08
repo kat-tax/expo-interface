@@ -59,21 +59,28 @@ export function useDateValue(
   return [current, setValue];
 }
 
-/** A date's local calendar day, as `YYYY-MM-DD`, the year in four digits. */
+/**
+ * A date's local calendar day, as `YYYY-MM-DD`: the year in at least four
+ * digits (`0050`, `12026`), with a minus sign before a year before 0
+ * (`-0005`), as HTML writes a year. `parseDay` reads every one back.
+ */
 export function dayOf(date: Date): string {
-  return `${String(date.getFullYear()).padStart(4, '0')}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  const year = date.getFullYear();
+  const digits = String(Math.abs(year)).padStart(4, '0');
+  return `${year < 0 ? '-' : ''}${digits}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 /**
- * A `YYYY-MM-DD` day as its local midnight; `undefined` for anything else, a
- * day the calendar does not have (`2026-02-30`) among them.
+ * A `YYYY-MM-DD` day, written as `dayOf` writes one, as its local midnight;
+ * `undefined` for anything else, a day the calendar does not have
+ * (`2026-02-30`) among them.
  */
 export function parseDay(day: string): Date | undefined {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);
+  const match = /^(-?\d{4,})-(\d{2})-(\d{2})$/.exec(day);
   if (!match) return undefined;
   const midnight = localMidnight(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
   // A day the calendar does not have rolls into another (2026-02-30 is
-  // 2 March), so it is no day.
+  // 2 March), so it is no day; nor is a year written another way (`02026`).
   return dayOf(midnight) === day ? midnight : undefined;
 }
 

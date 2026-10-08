@@ -356,8 +356,10 @@ Material's date dialog keeps its days in UTC; the kit hands it each day as
 midnight UTC and reads its answer back the same way, so the day picked is the
 day reported in every zone.
 
-The year takes four digits, so the year 50 is `0050`. A string that names no
-day the calendar has, such as `2026-02-30`, is no day: as a `value` the picker
+The year takes at least four digits, so the year 50 is `0050` and the year
+12026 is `12026`, and a year before 0 takes a minus sign (`-0005`). The day
+`onChange` hands back is written the same way, so it always reads back as a
+`value`. A string that names no day the calendar has, such as `2026-02-30`, is no day: as a `value` the picker
 keeps its own, and as a bound it bounds nothing. The browser's date input
 takes no year before 1, so on web a day in the year `0000` leaves the input
 empty. Where the bounds leave it open, Material's calendar on Android runs
