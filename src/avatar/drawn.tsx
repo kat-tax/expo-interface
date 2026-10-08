@@ -26,8 +26,10 @@ interface FaceAnnouncement {
  * A person as a colored circle with their initials, drawn in React Native:
  * `Avatar` on iOS, Android and web (see {@link AvatarProps}).
  */
-export function DrawnAvatar(props: AvatarProps) {
-  return <AvatarFace {...props}/>;
+export function DrawnAvatar({name, initials, color, size, ring, dimmed, testID}: AvatarProps) {
+  // Named, not spread: whatever else reaches `Avatar` at run time would be
+  // taken for an announcement and land on the circle's view.
+  return <AvatarFace name={name} initials={initials} color={color} size={size} ring={ring} dimmed={dimmed} testID={testID}/>;
 }
 
 /**
