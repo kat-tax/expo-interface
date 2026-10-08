@@ -182,6 +182,24 @@ describe('TabView (web)', () => {
     expect(screen.getByTestId('t')).toHaveClass('ui-tab-view--no-fill');
   });
 
+  it('clears the bar with none and marks the open tab with a pill instead', async () => {
+    const {readFileSync} = await import('node:fs');
+    const {join} = await import('node:path');
+    const css = readFileSync(join(__dirname, 'tab-view.css'), 'utf8');
+    // The body of a rule by its exact selector; each of these is one class
+    // more specific than the rule it overrides, so order does not matter.
+    const rule = (selector: string) => {
+      const at = css.indexOf(`\n${selector} {`);
+      expect(at).toBeGreaterThan(-1);
+      return css.slice(at, css.indexOf('}', at));
+    };
+    expect(rule('.ui-tab-view__bar')).toContain('background: var(--color-background-element);');
+    expect(rule('.ui-tab-view--no-fill .ui-tab-view__bar')).toContain('background: transparent;');
+    const pill = rule(".ui-tab-view--no-fill .ui-tab-view__tab[data-selected='true']");
+    expect(pill).toContain('background: var(--color-pill-background);');
+    expect(pill).toContain('border-radius: 8px;');
+  });
+
   it('calls the add button what it is asked to', () => {
     render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document"/>);
     expect(screen.getByRole('button', {name: 'New document'})).toBeInTheDocument();
