@@ -173,6 +173,16 @@ describe('commands (windows)', () => {
     expect(islands('ExpoInterfaceButton').map(button => [button.props.label, button.props.disabled])).toEqual([['Recent', true], ['Sort', false]]);
   });
 
+  it('keeps a secondary menu command with no entries in the CommandBar, greyed out', async () => {
+    await render(<Toolbar commands={[{label: 'Undo'}, {label: 'Recent', secondary: true, items: []}]}/>);
+    const sent = JSON.parse(island(BAR).props.commands) as {label: string; secondary: boolean; disabled: boolean; menu?: unknown[]}[];
+    expect(sent.map(({label, secondary, disabled}) => ({label, secondary, disabled}))).toEqual([
+      {label: 'Undo', secondary: false, disabled: false},
+      {label: 'Recent', secondary: true, disabled: true},
+    ]);
+    expect(sent[1]!.menu).toEqual([]);
+  });
+
   it('draws no overflow on the drawn bar when the commands behind it are only menus with no entries', async () => {
     await render(<Toolbar commands={[{label: 'Undo'}, {label: 'Recent', secondary: true, items: []}]} field={<Text>Find</Text>}/>);
     expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Undo']);

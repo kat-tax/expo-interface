@@ -251,9 +251,11 @@ Differences:
   the command's own label, and greyed out with it when it is `disabled`.
   The Windows `CommandBar` opens them as a submenu. On Windows, either bar
   binds the entries' `shortcut`s while it is mounted, and a `disabled`
-  command binds none of them. A menu command with no entries is greyed out
-  on the bar, since it would open on nothing, and puts nothing behind the
-  overflow; with nothing else behind it, the bar draws no overflow menu.
+  command binds none of them. A menu command with no entries is greyed out,
+  since it would open on nothing. Behind the kit's overflow (iOS, Android,
+  web and a drawn Windows bar) it puts nothing, and with nothing else
+  behind it the bar draws no overflow menu. The Windows `CommandBar` keeps
+  it as a greyed-out button wherever it goes, its own overflow included.
 
 `fieldCommands` are the field's own: a find bar's previous and next, an
 assistant's send. They share the trailing group's host, so a bar with a
