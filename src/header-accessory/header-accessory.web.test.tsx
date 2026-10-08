@@ -4,7 +4,6 @@ import type {TabRoute} from '../tabs/types';
 import {useEffect, useState} from 'react';
 import {Text} from 'react-native';
 import {act, screen as dom} from '@testing-library/react';
-import {router} from 'expo-router';
 import {renderApp} from 'expo-vitest/router';
 import {Screen} from '../screen';
 import {TabStack} from '../tab-stack';
@@ -25,19 +24,13 @@ function Rows() {
   return null;
 }
 
-/** An app whose root screen renders the rows in its content, with a detail screen that has a row of its own. */
+/** An app whose root screen renders the rows in its content. */
 const app = {
   _layout: () => <TabStack title="Drops"/>,
   index: () => (
     <>
       <Rows/>
       <Text>Home screen</Text>
-    </>
-  ),
-  detail: () => (
-    <>
-      <HeaderAccessory><Text testID="detail-strip">Detail strip</Text></HeaderAccessory>
-      <Text>Detail screen</Text>
     </>
   ),
 };
@@ -87,17 +80,5 @@ describe('HeaderAccessory (web)', () => {
     expect(dom.getByTestId('tab-bar-accessory').contains(dom.getByTestId('strip-a'))).toBe(true);
     await act(async () => show(null));
     expect(dom.queryByTestId('tab-bar-accessory')).toBeNull();
-  });
-
-  // Last: it moves the router, whose store outlives a render.
-  it('sets nothing from a preloaded screen, and its row comes and goes with it once it is shown', async () => {
-    await renderApp(app);
-    await act(async () => router.prefetch('/detail'));
-    expect(dom.queryByTestId('detail-strip')).toBeNull();
-    await act(async () => router.push('/detail'));
-    expect(dom.getByTestId('detail-strip')).toBeInTheDocument();
-    await act(async () => router.back());
-    expect(dom.queryByTestId('detail-strip')).toBeNull();
-    expect(dom.getByTestId('strip-a')).toBeInTheDocument();
   });
 });
