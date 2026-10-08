@@ -5,6 +5,8 @@ import {Popover} from '.';
 
 const TIP = 'ExpoInterfaceTeachingTip';
 const BUTTON = 'ExpoInterfaceButton';
+/** Lays out the drawn card, which takes no presses until it has been measured. */
+const measureCard = (testID = 'pop') => fireEvent(screen.getByTestId(testID), 'layout', {nativeEvent: {layout: {height: 100}}});
 
 describe('Popover (windows)', () => {
   it('renders nothing but the bounds while there is no rectangle', async () => {
@@ -75,6 +77,7 @@ describe('Popover (windows)', () => {
       expect(screen.getByText('A note on this block')).toBeOnTheScreen();
       expect(screen.getByText('Extra')).toBeOnTheScreen();
       // Until the bounds are measured the card sits below the rectangle, unclamped.
+      await measureCard();
       expect(screen.getByTestId('pop')).toHaveStyle({left: 10, top: 58, width: 280});
       await fireEvent(island(BUTTON), 'press');
       expect(onReplace).toHaveBeenCalledTimes(1);
@@ -170,6 +173,7 @@ describe('modal and hover (windows)', () => {
       <Popover at={at} title="Spelling" actions={[{label: 'Fix', onPress: vi.fn()}]} trigger="hover" onDismiss={onDismiss} testID="pop"/>
     );
     const {rerender} = await render(hover({x: 10, y: 20}));
+    await measureCard();
     await fireEvent(island(BUTTON), 'press');
     expect(onDismiss).toHaveBeenCalledWith('action');
     await rerender(hover(null));
@@ -178,9 +182,35 @@ describe('modal and hover (windows)', () => {
 
   it('takes an action of the drawn card as an action', async () => {
     const onDismiss = vi.fn();
-    await render(<Popover at={{x: 0, y: 0}} modal actions={[{label: 'Save', onPress: vi.fn()}]} onDismiss={onDismiss}/>);
+    await render(<Popover at={{x: 0, y: 0}} modal actions={[{label: 'Save', onPress: vi.fn()}]} onDismiss={onDismiss} testID="pop"/>);
+    await measureCard();
     await fireEvent(island(BUTTON), 'press');
     expect(onDismiss).toHaveBeenCalledWith('action');
+  });
+
+  it('needs no testID for the drawn card\'s backdrop', async () => {
+    const onDismiss = vi.fn();
+    await render(<Popover at={{x: 0, y: 0}} title="Option" modal onDismiss={onDismiss}/>);
+    const backdrop = screen.getByLabelText('Dismiss', {includeHiddenElements: true});
+    expect(backdrop.props.testID).toBeUndefined();
+    await fireEvent.press(backdrop);
+    expect(onDismiss).toHaveBeenCalledWith('backdrop');
+  });
+
+  it('draws the drawn card only once it has been measured, each time it comes up', async () => {
+    const card = (at: {x: number; y: number} | null) => (
+      <Popover at={at} modal title="Option" actions={[{label: 'Save', onPress: vi.fn()}]} testID="pop"/>
+    );
+    const opacity = () => StyleSheet.flatten(screen.getByTestId('pop').props.style).opacity;
+    const {rerender} = await render(card({x: 0, y: 0}));
+    expect(screen.getByTestId('pop')).toHaveStyle({opacity: 0, pointerEvents: 'none'});
+    await measureCard();
+    expect(opacity()).toBeUndefined();
+    await rerender(card(null));
+    await rerender(card({x: 0, y: 0}));
+    expect(opacity()).toBe(0);
+    await measureCard();
+    expect(opacity()).toBeUndefined();
   });
 });
 

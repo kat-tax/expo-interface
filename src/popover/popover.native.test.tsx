@@ -41,6 +41,26 @@ describe(`Popover (${Platform.OS})`, () => {
     expect(style()).toMatchObject({left: 32, top: 292});
   });
 
+  it('draws the card only once it has been measured, each time it comes up', async () => {
+    const popover = (to: PopoverRect | null) => <Popover at={to} title="Spelling" testID="lint"/>;
+    const {rerender} = await render(popover({x: 300, y: 400}));
+    expect(style()).toMatchObject({opacity: 0, pointerEvents: 'none'});
+    await bounds(320, 480);
+    expect(style().opacity).toBe(0);
+    await card(100);
+    expect(style()).toMatchObject({left: 32, top: 292});
+    expect(style().opacity).toBeUndefined();
+    expect(style().pointerEvents).toBeUndefined();
+    // Up again with less in it: unseen until its own height places it, not the last card's.
+    await rerender(popover(null));
+    await rerender(popover({x: 300, y: 400}));
+    expect(style().opacity).toBe(0);
+    await card(40);
+    // 400 + 8 + 40 fits above the bottom's 480 - 8: below, where the last card could not go.
+    expect(style()).toMatchObject({top: 408});
+    expect(style().opacity).toBeUndefined();
+  });
+
   it('leaves a card that fits below where it is', async () => {
     await render(<Popover at={at} title="Spelling" testID="lint"/>);
     await bounds(320, 480);

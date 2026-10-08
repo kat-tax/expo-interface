@@ -7,14 +7,16 @@ import {NativeHost} from '../host';
 import {Surface} from '../surface';
 import {Footnote, Subheadline} from '../typography';
 import {spacing} from '../theme';
+import {PlacedCard} from './placed';
 import {MODAL_CARD, useEscape, useLinger} from './shared';
 
 /**
  * A card pointing at a rectangle on a canvas (see {@link PopoverProps}). It
  * fills its parent as a `box-none` overlay, measures it, and places the card
  * inside those bounds, clear of the insets: below the rectangle, or above it
- * when the bottom is too close. A modal one takes the presses on the rest of
- * the parent as its backdrop; a hover one lingers once the pointer has gone.
+ * when the bottom is too close. The card is drawn once it has been measured,
+ * each time it comes up. A modal one takes the presses on the rest of the
+ * parent as its backdrop; a hover one lingers once the pointer has gone.
  */
 export function Popover({at, title, message, actions, onDismiss, width = 280, preferredEdge = 'auto', modal = false, insets, trigger = 'manual', grace, children, testID}: PopoverProps) {
   const linger = useLinger(at, trigger === 'hover', grace, () => onDismiss?.('leave'));
@@ -47,9 +49,9 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
         // itself; the surface inside it is the card. On web the modal card is
         // a dialog element, named by its title; iOS and Android read the
         // title in the card itself.
-        <View
-          onLayout={anchored.onCard}
-          style={[styles.card, {width, left: anchored.left, top: anchored.top}]}
+        <PlacedCard
+          anchored={anchored}
+          width={width}
           testID={testID}
           {...linger.props}
           {...(modal ? {...MODAL_CARD, 'aria-label': Platform.OS === 'web' ? title : undefined, onAccessibilityEscape: () => dismiss('escape')} : null)}>
@@ -77,7 +79,7 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
               </NativeHost>
             ) : null}
           </Surface>
-        </View>
+        </PlacedCard>
       ) : null}
     </View>
   );
@@ -97,9 +99,6 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     ...StyleSheet.absoluteFill,
-  },
-  card: {
-    position: 'absolute',
   },
   body: {
     gap: spacing.one,

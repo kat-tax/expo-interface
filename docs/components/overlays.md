@@ -156,6 +156,11 @@ cannot reach a side, and it is a preference: with no room on the edge asked
 for, the card goes to the other. `insets` are what the card keeps clear of at
 its parent's edges, a header over the canvas or a bar under it.
 
+The card is drawn once it has been measured, each time it comes up, so where
+it shows is worked out from its own height: a card that goes above the
+rectangle is never seen below it first. Until then it is invisible and takes
+no presses.
+
 `onDismiss` says why the card asks to close: `action` (one of its actions
 was taken), `backdrop` (the backdrop of a modal card was pressed, or on
 Windows a click landed outside the tip), `escape` (Escape on web, wherever

@@ -7,6 +7,7 @@ import {Button} from '../button';
 import {Surface} from '../surface';
 import {Footnote, Subheadline} from '../typography';
 import {spacing} from '../theme';
+import {PlacedCard} from './placed';
 import {MODAL_CARD, useLinger} from './shared';
 
 /**
@@ -76,9 +77,9 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
         />
       ) : null}
       {shown ? (
-        <View
-          onLayout={anchored.onCard}
-          style={[styles.card, {width, left: anchored.left, top: anchored.top}]}
+        <PlacedCard
+          anchored={anchored}
+          width={width}
           testID={testID}
           {...linger.props}
           {...(modal ? MODAL_CARD : null)}>
@@ -104,7 +105,7 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
               </View>
             ) : null}
           </Surface>
-        </View>
+        </PlacedCard>
       ) : null}
     </View>
   );
@@ -124,9 +125,6 @@ const styles = StyleSheet.create({
   target: {
     position: 'absolute',
     pointerEvents: 'none',
-  },
-  card: {
-    position: 'absolute',
   },
   body: {
     gap: spacing.one,

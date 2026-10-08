@@ -59,6 +59,13 @@ describe('Popover (web)', () => {
     expect(screen.queryByTestId('pop')).toBeNull();
   });
 
+  it('is not seen until it has been measured', () => {
+    // jsdom has no ResizeObserver, so react-native-web never lays the card
+    // out here; the native and Windows projects measure it.
+    render(<Popover at={{x: 10, y: 10}} title="Spelling" testID="pop"/>);
+    expect(getComputedStyle(screen.getByTestId('pop')).opacity).toBe('0');
+  });
+
   it('works without anything to call', () => {
     render(<Popover at={{x: 0, y: 0}} title="Spelling" modal testID="pop"/>);
     fireEvent.keyDown(document.body, {key: 'Escape'});
