@@ -489,5 +489,6 @@ itself, and the container places it. See [Native hosts](../hosts.md).
 | Windows | The drawn column with a Segoe glyph, the WinUI `ProgressRing` while loading |
 
 The drawn layout (web, Windows) is one accessibility element that reads the
-title and the description together. The Compose column reads them as the two texts they
-are, since `@expo/ui`'s Compose layer sets no description on a column.
+title and the description together. The SwiftUI layout composed on older iOS
+and while loading, and the Compose column, read them as the separate texts
+they are; `@expo/ui`'s Compose layer sets no description on a column.

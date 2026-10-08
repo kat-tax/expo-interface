@@ -34,8 +34,10 @@ export interface EmptyStateAction {
  *   layout, its metrics and its Dynamic Type behaviour rather than an
  *   approximation of them. It needs iOS 17; below that the same layout is
  *   composed in SwiftUI.
- * - Android: a Compose column in one host, so the icon, the text and the
- *   action are one native view.
+ * - Android: a Compose column, so the icon, the title and an action given
+ *   as data are native beside native. While `selectable`, the description
+ *   is React Native text hosted in the column, since Compose text cannot be
+ *   selected here.
  * - Windows, web: composed from the kit's own icon and typography. Neither
  *   platform has a single control for this.
  *
