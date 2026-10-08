@@ -1,5 +1,6 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
+import type {ReactElement} from 'react';
 import type {MenuItem} from './types';
 import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
@@ -230,6 +231,33 @@ describe('Menu (web)', () => {
       expect(errors).not.toHaveBeenCalled();
       expect(popover()).toHaveClass('ui-menu__list--anchored');
       expect(popover().style.getPropertyValue('position-anchor')).toBe('--ui-menu-new');
+      unmount();
+    } finally {
+      errors.mockRestore();
+      container.remove();
+    }
+  });
+
+  it('hydrates a static page\'s Menu without a difference, and anchors its popup to its own trigger', async () => {
+    // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
+    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
+    const tree = <Menu label="New" items={[{label: 'Blank document'}, {label: 'Import files'}]} testID="new"/>;
+    // What a static export writes: the server's render, with the server's answer for the anchor.
+    const container = document.body.appendChild(document.createElement('div'));
+    container.innerHTML = renderToString(tree);
+    const popover = () => container.querySelector('[popover]') as HTMLElement;
+    const wrapper = () => container.querySelector('.ui-menu') as HTMLElement;
+    expect(popover()).not.toHaveClass('ui-menu__list--anchored');
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const {unmount} = render(tree, {container, hydrate: true});
+      expect(errors).not.toHaveBeenCalled();
+      expect(popover()).toHaveClass('ui-menu__list--anchored');
+      // The ids `useId` gave the server are the ones hydration keeps, so the
+      // trigger opens this popup and the popup is placed against this trigger.
+      expect(screen.getByTestId('new')).toHaveAttribute('popovertarget', popover().id);
+      expect(popover().style.getPropertyValue('position-anchor')).toBe(wrapper().style.getPropertyValue('anchor-name'));
+      expect(popover().style.getPropertyValue('position-anchor')).toMatch(/^--ui-menu-/);
       unmount();
     } finally {
       errors.mockRestore();

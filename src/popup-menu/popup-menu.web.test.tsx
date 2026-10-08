@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import type {ReactElement} from 'react';
 import type {MenuItem} from '../menu/types';
 import {render, screen} from '@testing-library/react';
 import {PopupMenu} from '.';
@@ -54,6 +55,30 @@ describe('PopupMenu (web)', () => {
     expect(anchor.style.left).toBe('0px');
     expect(showPopover).not.toHaveBeenCalled();
     expect(screen.getAllByRole('menuitem', {hidden: true})).toHaveLength(3);
+  });
+
+  it('hydrates a static page\'s menu without a difference, and anchors the popup to its point', async () => {
+    // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
+    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
+    const tree = <PopupMenu items={items} at={null} testID="popup"/>;
+    // What a static export writes: the server's render, with the server's answer for the anchor.
+    const container = document.body.appendChild(document.createElement('div'));
+    container.innerHTML = renderToString(tree);
+    const popover = () => container.querySelector('[popover]') as HTMLElement;
+    expect(popover()).not.toHaveClass('ui-menu__list--anchored');
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const {unmount} = render(tree, {container, hydrate: true});
+      expect(errors).not.toHaveBeenCalled();
+      expect(popover()).toHaveClass('ui-menu__list--anchored', 'ui-menu__list--point');
+      const anchor = screen.getByTestId('popup');
+      expect(popover().style.getPropertyValue('position-anchor')).toBe(anchor.style.getPropertyValue('anchor-name'));
+      expect(popover().style.getPropertyValue('position-anchor')).toMatch(/^--ui-menu-/);
+      unmount();
+    } finally {
+      errors.mockRestore();
+      container.remove();
+    }
   });
 
   it('opens the popup at the point and anchors it there', () => {
