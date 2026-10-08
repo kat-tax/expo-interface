@@ -2,15 +2,16 @@ import type {ListProps} from './types';
 import {FlatList, StyleSheet, View} from 'react-native';
 import {useScrollInsets} from '../screen/insets';
 import {useColor} from '../theme';
-import {ESTIMATED_ROW, keyOf} from './shared';
+import {keyOf} from './shared';
 
 /**
- * Windows renders React Native's `FlatList`: windowed, so the rows off
- * screen are not drawn, with a hairline in the separator color between the
- * rows. The rows are the kit's `ListItem`s, drawn in React Native here, so
- * a row may hold anything.
+ * Windows renders React Native's `FlatList`: windowed and measured as it
+ * draws, so the rows off screen are not drawn and the rows it draws are the
+ * rows on screen whatever their height, with a hairline in the separator
+ * color between the rows. The rows are the kit's `ListItem`s, drawn in React
+ * Native here, so a row may hold anything.
  */
-export function List<T>({data, renderItem, keyExtractor, separators = true, header, footer, empty, onEndReached, estimatedItemHeight = ESTIMATED_ROW, contentInset, testID, style}: ListProps<T>) {
+export function List<T>({data, renderItem, keyExtractor, separators = true, header, footer, empty, onEndReached, contentInset, testID, style}: ListProps<T>) {
   const separator = useColor('separator');
   const insets = useScrollInsets(contentInset);
   return (
@@ -23,7 +24,6 @@ export function List<T>({data, renderItem, keyExtractor, separators = true, head
       ListFooterComponent={footer ? <>{footer}</> : undefined}
       ListEmptyComponent={empty ? <>{empty}</> : undefined}
       onEndReached={onEndReached}
-      getItemLayout={(_, index) => ({length: estimatedItemHeight, offset: estimatedItemHeight * index, index})}
       contentContainerStyle={{paddingTop: insets.top, paddingBottom: insets.bottom}}
       style={[styles.list, style]}
       testID={testID}

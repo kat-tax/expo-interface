@@ -3,15 +3,16 @@ import type {CardGridProps} from './types';
 import {useState} from 'react';
 import {FlatList, StyleSheet, View, useWindowDimensions} from 'react-native';
 import {useScrollInsets} from '../screen/insets';
-import {ESTIMATED_CELL, GAP, MAX_COLUMNS, MIN_ITEM_WIDTH, columnsFor, rowsOf} from './shared';
+import {GAP, MAX_COLUMNS, MIN_ITEM_WIDTH, columnsFor, rowsOf} from './shared';
 
 /**
  * iOS, Android and Windows render React Native's `FlatList` a row of cells
- * at a time: windowed, so the rows off screen are not drawn, with the column
- * count worked out from the grid's measured width (the window's until the
- * first layout). A row is a flex row of equal cells with the gap between
- * them, and a last row short of cells keeps its cells the width of the
- * others.
+ * at a time: windowed and measured as it draws, so the rows off screen are
+ * not drawn and the rows it draws are the rows on screen whatever the cards'
+ * height, with the column count worked out from the grid's measured width
+ * (the window's until the first layout). A row is a flex row of equal cells
+ * with the gap between them, and a last row short of cells keeps its cells
+ * the width of the others.
  */
 export function CardGrid<T>({
   data,
@@ -24,7 +25,6 @@ export function CardGrid<T>({
   footer,
   empty,
   onEndReached,
-  estimatedItemHeight = ESTIMATED_CELL,
   contentInset,
   testID,
   style,
@@ -35,7 +35,6 @@ export function CardGrid<T>({
   const columns = columnsFor(measured ?? windowWidth, minItemWidth, maxColumns, gap);
   const rows = rowsOf(data, columns);
   const onLayout = (event: LayoutChangeEvent) => setMeasured(event.nativeEvent.layout.width);
-  const rowHeight = estimatedItemHeight + gap;
   return (
     <FlatList
       // The rows are cut again when the columns change, which a FlatList only takes as a new list.
@@ -57,7 +56,6 @@ export function CardGrid<T>({
       ListFooterComponent={footer ? <>{footer}</> : undefined}
       ListEmptyComponent={empty ? <>{empty}</> : undefined}
       onEndReached={onEndReached}
-      getItemLayout={(_, index) => ({length: rowHeight, offset: rowHeight * index, index})}
       contentContainerStyle={{paddingTop: insets.top, paddingBottom: insets.bottom}}
       scrollIndicatorInsets={{top: insets.top, bottom: insets.bottom}}
       // iOS under a header the screen runs under: UIKit's own inset, which follows a native search bar.

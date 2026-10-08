@@ -44,8 +44,9 @@ export interface ListProps<T> {
   /** Called once the last row has been drawn, for a list that loads more. */
   onEndReached?: () => void;
   /**
-   * A row's height, in points, where the rows are alike: what the web lays
-   * out for a row before it has come into view, and what Windows jumps by.
+   * A row's height, in points, before the web has measured it: what the web
+   * lays out for a row before it has come into view. iOS, Android and
+   * Windows measure their rows.
    * @default 56
    */
   estimatedItemHeight?: number;

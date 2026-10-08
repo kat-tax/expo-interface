@@ -8,21 +8,22 @@ import {List} from '.';
 const rows = ['Essay', 'Notes', 'Sketch'];
 
 describe('List (windows)', () => {
-  it('is a windowed FlatList of the rows with hairlines between them', async () => {
+  it('is a windowed FlatList of the rows, measured as it draws, with hairlines between them', async () => {
     await render(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} keyExtractor={title => title} testID="list"/>);
     for (const title of rows) expect(screen.getByText(title)).toBeOnTheScreen();
     const list = screen.getByTestId('list');
-    expect(list.props.getItemLayout(null, 2)).toEqual({length: 56, offset: 112, index: 2});
+    // No row height given to the list: rows with a supporting line are taller than the estimate.
+    expect(list.props.getItemLayout).toBeUndefined();
     // A hairline in the separator color between the rows.
     const separator = list.props.ItemSeparatorComponent();
     expect(StyleSheet.flatten(separator.props.style)).toMatchObject({height: StyleSheet.hairlineWidth, backgroundColor: colors.light.separator});
   });
 
-  it('drops the hairlines when asked, and takes a row height of the app\'s own', async () => {
+  it('drops the hairlines when asked, and measures its rows whatever the estimate', async () => {
     await render(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} separators={false} estimatedItemHeight={72} testID="list"/>);
     const list = screen.getByTestId('list');
     expect(list.props.ItemSeparatorComponent).toBeUndefined();
-    expect(list.props.getItemLayout(null, 1)).toEqual({length: 72, offset: 72, index: 1});
+    expect(list.props.getItemLayout).toBeUndefined();
   });
 
   it('puts the header before the rows and the footer after, and the empty state in place of no rows', async () => {

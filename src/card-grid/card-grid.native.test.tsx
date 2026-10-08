@@ -29,14 +29,15 @@ describe(`CardGrid (${Platform.OS})`, () => {
     expect(screen.getByTestId('grid').props.data).toEqual([['A', 'B', 'C', 'D'], ['E']]);
   });
 
-  it('keys its rows by the first cell, or by the row index, and hands the end to the list', async () => {
+  it('keys its rows by the first cell, or by the row index, and hands the end to the list, which measures its rows', async () => {
     const onEndReached = vi.fn();
-    await render(<CardGrid data={items} renderItem={item => <Text>{item}</Text>} keyExtractor={item => `item-${item}`} maxColumns={2} onEndReached={onEndReached} testID="grid"/>);
+    await render(<CardGrid data={items} renderItem={item => <Text>{item}</Text>} keyExtractor={item => `item-${item}`} maxColumns={2} onEndReached={onEndReached} estimatedItemHeight={100} testID="grid"/>);
     await layout(600);
     const grid = screen.getByTestId('grid');
     expect(grid.props.keyExtractor(['C', 'D'], 1)).toBe('item-C');
     expect(grid.props.onEndReached).toBe(onEndReached);
-    expect(grid.props.getItemLayout(null, 2)).toEqual({length: 192, offset: 384, index: 2});
+    // No row height given to the list: the web's estimate is not the cards' height.
+    expect(grid.props.getItemLayout).toBeUndefined();
     await render(<CardGrid data={items} renderItem={item => <Text>{item}</Text>} testID="plain"/>);
     expect(screen.getByTestId('plain').props.keyExtractor(['A'], 0)).toBe('0');
   });
@@ -56,14 +57,13 @@ describe(`CardGrid (${Platform.OS})`, () => {
   it('pads its content and its scroll indicators by the screen\'s bar and its own insets', async () => {
     await render(
       <ScrollInsetsContext.Provider value={{top: 100, bottom: 0, automatic: false}}>
-        <CardGrid data={items} renderItem={item => <Text>{item}</Text>} contentInset={{top: 8, bottom: 20}} estimatedItemHeight={100} gap={0} testID="grid"/>
+        <CardGrid data={items} renderItem={item => <Text>{item}</Text>} contentInset={{top: 8, bottom: 20}} gap={0} testID="grid"/>
       </ScrollInsetsContext.Provider>,
     );
     const grid = screen.getByTestId('grid');
     expect(StyleSheet.flatten(grid.props.contentContainerStyle)).toEqual({paddingTop: 108, paddingBottom: 20});
     expect(grid.props.scrollIndicatorInsets).toEqual({top: 108, bottom: 20});
     expect(grid.props.contentInsetAdjustmentBehavior).toBeUndefined();
-    expect(grid.props.getItemLayout(null, 1)).toEqual({length: 100, offset: 100, index: 1});
   });
 
   it('takes UIKit\'s own inset where the platform insets the content under the header itself', async () => {

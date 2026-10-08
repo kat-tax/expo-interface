@@ -48,8 +48,9 @@ export interface CardGridProps<T> {
   /** Called once the last cells have been drawn, for a grid that loads more. */
   onEndReached?: () => void;
   /**
-   * A cell's height, in points, where the cells are alike: what the web lays
-   * out for a cell before it has come into view.
+   * A cell's height, in points, before the web has measured it: what the web
+   * lays out for a cell before it has come into view. The native `FlatList`
+   * measures its rows.
    * @default 180
    */
   estimatedItemHeight?: number;

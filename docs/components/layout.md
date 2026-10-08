@@ -382,7 +382,7 @@ left out), `separators` (default true), `header`, `footer`, `empty` (what
 shows in place of the rows when there are none, usually an `EmptyState`),
 `onEndReached` (called once the last row has been drawn, for a list that
 loads more), `estimatedItemHeight` (default 56: what the web lays out for a
-row before it comes into view, and what Windows jumps by), `contentInset`
+row before it comes into view; the other platforms measure their rows), `contentInset`
 (`top`, `bottom`, the space inside the list before the first row and after
 the last), `style`, `testID`.
 
@@ -391,7 +391,7 @@ the last), `style`, `testID`.
 | iOS | SwiftUI `List` in the plain style: it recycles its rows, draws its own separators and scrolls under a translucent bar |
 | Android | Compose `LazyColumn`, with a Material `HorizontalDivider` between the rows |
 | Web | A DOM list whose rows the browser lays out as they come into view (`content-visibility: auto`), with hairlines between them |
-| Windows | React Native's `FlatList`, windowed |
+| Windows | React Native's `FlatList`, windowed, measuring its rows |
 
 Differences:
 
@@ -418,12 +418,13 @@ holds two and a desk four without the app measuring anything.
 Props: `data`, `renderItem(item, index)` (one cell, usually a `Card`, which
 fills the cell's width), `keyExtractor`, `minItemWidth` (default 150),
 `maxColumns` (default 4), `gap` (default 12, on both axes), `header`,
-`footer`, `empty`, `onEndReached`, `estimatedItemHeight` (default 180),
-`contentInset`, `style`, `testID`.
+`footer`, `empty`, `onEndReached`, `estimatedItemHeight` (default 180: what
+the web lays out for a cell before it comes into view; the `FlatList`
+measures its rows), `contentInset`, `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
-| iOS, Android, Windows | React Native's `FlatList` of rows, windowed, with the column count worked out from the measured width; a short last row keeps its cells the width of the others |
+| iOS, Android, Windows | React Native's `FlatList` of rows, windowed, measuring its rows, with the column count worked out from the measured width; a short last row keeps its cells the width of the others |
 | Web | A CSS grid, each cell laid out as it comes into view (`content-visibility: auto`) |
 
 Differences:
