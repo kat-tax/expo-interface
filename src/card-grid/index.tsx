@@ -7,7 +7,7 @@ import {keyOf, showsEmpty} from '../list/shared';
 import {useWindowed} from '../list/windowed';
 import {useScrollInsets} from '../screen/insets';
 import {flatten} from '../theme';
-import {ESTIMATED_CELL, GAP, MAX_COLUMNS, MIN_ITEM_WIDTH, columnsFor, rowsOf} from './shared';
+import {ESTIMATED_CELL, GAP, MAX_COLUMNS, MIN_ITEM_WIDTH, capOf, columnsFor, rowsOf} from './shared';
 
 /**
  * The width the cells have inside the grid: its content box, without the
@@ -60,8 +60,9 @@ export function CardGrid<T>({
   const insets = useScrollInsets(contentInset);
   const scroller = useRef<HTMLDivElement>(null);
   const width = useContentWidth(scroller);
-  const columns = width == null ? null : columnsFor(width, minItemWidth, maxColumns, gap);
-  const cut = columns ?? maxColumns;
+  const cap = capOf(maxColumns);
+  const columns = width == null ? null : columnsFor(width, minItemWidth, cap, gap);
+  const cut = columns ?? cap;
   const rows = rowsOf(data, cut);
   // A row's height is kept per column count: other columns are other rows.
   const keys = rows.map((row, index) => `${cut}:${keyOf({keyExtractor}, row[0]!, index * cut)}`);
@@ -79,7 +80,7 @@ export function CardGrid<T>({
     '--ui-card-grid-gap': `${gap}px`,
     // The cap: a cell can never be narrower than its share of the row at the
     // most columns, so the grid never fits more than that many.
-    '--ui-card-grid-share': `calc((100% - ${maxColumns - 1} * ${gap}px) / ${maxColumns})`,
+    '--ui-card-grid-share': `calc((100% - ${cap - 1} * ${gap}px) / ${cap})`,
     // The insets are inside the scroller: the first row starts below the bar,
     // and a card the keyboard focus brings into view stops clear of it.
     paddingTop: top,

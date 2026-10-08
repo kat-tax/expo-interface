@@ -35,6 +35,18 @@ describe('CardGrid (web)', () => {
     expect(grid.style.getPropertyValue('--ui-card-grid-share')).toBe('calc((100% - 3 * 12px) / 4)');
   });
 
+  it('takes a cap of whole columns, and at least one, before the width is measured too', () => {
+    // A cap worked out from a narrow width: one cell to a row, each the first of its own.
+    const {unmount} = render(<CardGrid data={items} renderItem={item => <p>{item}</p>} keyExtractor={item => item} maxColumns={0} testID="grid"/>);
+    expect(screen.getByTestId('grid').style.getPropertyValue('--ui-card-grid-share')).toBe('calc((100% - 0 * 12px) / 1)');
+    expect(screen.getAllByRole('listitem').map(cell => cell.dataset.windowKey)).toEqual(['1:A', '1:B', '1:C']);
+    unmount();
+    // A fraction counts down: two to a row.
+    render(<CardGrid data={items} renderItem={item => <p>{item}</p>} keyExtractor={item => item} maxColumns={2.5} testID="grid"/>);
+    expect(screen.getByTestId('grid').style.getPropertyValue('--ui-card-grid-share')).toBe('calc((100% - 1 * 12px) / 2)');
+    expect(screen.getAllByRole('listitem').map(cell => cell.dataset.windowKey)).toEqual(['2:A', undefined, '2:C']);
+  });
+
   it('puts the header before the cells and the footer after, and the empty state in place of none', () => {
     const {unmount} = render(<CardGrid data={[]} renderItem={() => null} header={<p>Header</p>} footer={<p>Footer</p>} empty={<p>Nothing yet</p>} testID="grid"/>);
     expect(screen.getByTestId('grid').textContent).toBe('HeaderNothing yetFooter');

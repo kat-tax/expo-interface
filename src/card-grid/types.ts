@@ -37,7 +37,8 @@ export interface CardGridProps<T> {
    */
   minItemWidth?: number;
   /**
-   * The most columns the grid takes, however wide it is.
+   * The most columns the grid takes, however wide it is. A fraction counts
+   * down to a whole number, and anything under one is one.
    * @default 4
    */
   maxColumns?: number;

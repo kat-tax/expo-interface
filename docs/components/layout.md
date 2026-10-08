@@ -447,7 +447,8 @@ holds two and a desk four without the app measuring anything.
 
 Props: `data`, `renderItem(item, index)` (one cell, usually a `Card`, which
 fills the cell's width), `keyExtractor`, `minItemWidth` (default 150),
-`maxColumns` (default 4), `gap` (default 12, on both axes), `header`,
+`maxColumns` (default 4; a fraction counts down to a whole number and
+anything under 1 is 1), `gap` (default 12, on both axes), `header`,
 `footer`, `empty`, `onEndReached`, `estimatedItemHeight` (default 180: what
 the web counts a row of cells it has not drawn yet as; the `FlatList`
 measures its rows), `contentInset`, `style`, `testID`.
