@@ -6,7 +6,7 @@ import {NativeHostContext} from '../host';
 import {ListItem} from '../list-item';
 import {ScrollInsetsContext} from '../screen/insets';
 import {colors} from '../theme';
-import {host, modifier, nodes} from 'expo-vitest/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {List} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -49,15 +49,20 @@ describe(`List (${Platform.OS})`, () => {
         renderItem={() => null}
         header={<ListItem testID="header">Header</ListItem>}
         empty={<ListItem testID="empty">Nothing yet</ListItem>}
+        testID="list"
       />,
     );
     expect(host(p => p.text === 'Nothing yet')).toBeTruthy();
     expect(nodes().some(n => n.props.text === 'Header')).toBe(false);
     expect(list()).toBeUndefined();
     if (!isIOS) {
-      // Centred in a box the size of the list, as the rows would fill it.
-      const box = host(p => p.contentAlignment === 'center');
+      // Centred in a box the size of the list, as the rows would fill it, and
+      // found by the list's testID while it is empty.
+      const box = byComposeTestID('list');
+      expect(box.type).toContain('BoxView');
+      expect(box.props.contentAlignment).toBe('center');
       expect(modifier(box.props, 'fillMaxSize')).toBeTruthy();
+      expect(host(p => p.text === 'Nothing yet', box)).toBeTruthy();
     }
     await render_(
       <List
