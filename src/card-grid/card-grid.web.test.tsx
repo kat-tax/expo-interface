@@ -88,4 +88,10 @@ describe('CardGrid (web)', () => {
     // A cell skipped by the browser would report the estimate as its height.
     expect(css).not.toContain('content-visibility');
   });
+
+  it('grows to its cells in a parent with a height when its style stops it shrinking', () => {
+    render(<CardGrid data={items} renderItem={item => <p>{item}</p>} style={{flexShrink: 0}} testID="grid"/>);
+    // Over the stylesheet's `flex: 1 1 auto`: the parent scrolls the grid.
+    expect(screen.getByTestId('grid').style.flexShrink).toBe('0');
+  });
 });

@@ -79,4 +79,10 @@ describe('List (web)', () => {
     // A row skipped by the browser would report the estimate as its height.
     expect(css).not.toContain('content-visibility');
   });
+
+  it('grows to its rows in a parent with a height when its style stops it shrinking', () => {
+    render(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} style={{flexShrink: 0}} testID="list"/>);
+    // Over the stylesheet's `flex: 1 1 auto`: the parent scrolls the list.
+    expect(screen.getByTestId('list').style.flexShrink).toBe('0');
+  });
 });
