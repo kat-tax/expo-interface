@@ -203,14 +203,20 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).width).toBe(sheet - 16);
   });
 
-  it('caps the body at a fraction of the window\'s height', async () => {
-    await render(
-      <Sheet isPresented onDismiss={() => {}} maxHeight={{fraction: 0.5}} testID="sheet">
-        <Text>Body</Text>
-      </Sheet>,
-    );
-    const height = Dimensions.get('window').height;
-    expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).maxHeight).toBe(height * 0.5);
+  it('caps the body at a fraction of the window\'s height, and follows the window', async () => {
+    const phone = Dimensions.get('window');
+    try {
+      await render(
+        <Sheet isPresented onDismiss={() => {}} maxHeight={{fraction: 0.5}} testID="sheet">
+          <Text>Body</Text>
+        </Sheet>,
+      );
+      expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).maxHeight).toBe(phone.height * 0.5);
+      await act(async () => Dimensions.set({window: {...phone, height: 1000}}));
+      expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).maxHeight).toBe(500);
+    } finally {
+      await act(async () => Dimensions.set({window: phone}));
+    }
   });
 
   it('tells the body and the footer the width the sheet\'s column measures, through a rotation, and keeps it through a pass with none', async () => {
