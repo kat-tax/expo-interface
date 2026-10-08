@@ -12,8 +12,10 @@ import {ESTIMATED_ROW, keyOf} from './shared';
  * with `content-visibility: auto`, so the browser lays a row out only as it
  * comes into view and keeps the rest at their estimated height, which is
  * the platform's own lazy list. A hairline between the rows comes from the
- * stylesheet. The end is watched with an `IntersectionObserver` on the last
- * row, for a list that loads more.
+ * stylesheet. The list is its own scroller, filling the room its parent
+ * gives it, with the screen's insets as padding inside. The end is watched
+ * with an `IntersectionObserver` on the last row, for a list that loads
+ * more.
  */
 export function List<T>({data, renderItem, keyExtractor, separators = true, header, footer, empty, onEndReached, estimatedItemHeight = ESTIMATED_ROW, contentInset, testID, style}: ListProps<T>) {
   const insets = useScrollInsets(contentInset);
@@ -27,10 +29,16 @@ export function List<T>({data, renderItem, keyExtractor, separators = true, head
     observer.observe(target);
     return () => observer.disconnect();
   }, [onEndReached, data.length]);
+  const top = insets.top || undefined;
+  const bottom = insets.bottom || undefined;
   const vars = {
     '--ui-list-row': `${estimatedItemHeight}px`,
-    paddingTop: insets.top || undefined,
-    paddingBottom: insets.bottom || undefined,
+    // The insets are inside the scroller: the first row starts below the bar,
+    // and a row the keyboard focus brings into view stops clear of it.
+    paddingTop: top,
+    paddingBottom: bottom,
+    scrollPaddingTop: top,
+    scrollPaddingBottom: bottom,
     ...flatten(StyleSheet.flatten(style) as TextStyle),
   } as CSSProperties;
   return (

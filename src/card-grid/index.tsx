@@ -12,8 +12,9 @@ import {ESTIMATED_CELL, GAP, MAX_COLUMNS, MIN_ITEM_WIDTH} from './shared';
  * width holds (`repeat(auto-fill, minmax(...))`), capped at `maxColumns`
  * through the cell's own minimum, and each cell laid out as it comes into
  * view (`content-visibility: auto`), which is the browser's own lazy grid.
- * The end is watched with an `IntersectionObserver` on the last cell, for a
- * grid that loads more.
+ * The grid is its own scroller, filling the room its parent gives it, with
+ * the screen's insets as padding inside. The end is watched with an
+ * `IntersectionObserver` on the last cell, for a grid that loads more.
  */
 export function CardGrid<T>({
   data,
@@ -42,6 +43,8 @@ export function CardGrid<T>({
     observer.observe(target);
     return () => observer.disconnect();
   }, [onEndReached, data.length]);
+  const top = insets.top || undefined;
+  const bottom = insets.bottom || undefined;
   const vars = {
     '--ui-card-grid-min': `${minItemWidth}px`,
     '--ui-card-grid-gap': `${gap}px`,
@@ -49,8 +52,12 @@ export function CardGrid<T>({
     // The cap: a cell can never be narrower than its share of the row at the
     // most columns, so the grid never fits more than that many.
     '--ui-card-grid-share': `calc((100% - ${maxColumns - 1} * ${gap}px) / ${maxColumns})`,
-    paddingTop: insets.top || undefined,
-    paddingBottom: insets.bottom || undefined,
+    // The insets are inside the scroller: the first row starts below the bar,
+    // and a card the keyboard focus brings into view stops clear of it.
+    paddingTop: top,
+    paddingBottom: bottom,
+    scrollPaddingTop: top,
+    scrollPaddingBottom: bottom,
     ...flatten(StyleSheet.flatten(style) as TextStyle),
   } as CSSProperties;
   return (

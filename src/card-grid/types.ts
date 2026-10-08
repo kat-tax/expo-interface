@@ -14,6 +14,11 @@ import type {StyleProp, ViewStyle} from 'react-native';
  * - Web: a CSS grid, each cell laid out as it comes into view
  *   (`content-visibility: auto`).
  *
+ * Every platform's grid scrolls itself and fills the space its parent gives
+ * it (a `Screen`'s content, a view with `flex: 1`). On the web, in a parent
+ * with no height of its own, it grows to its cells and the parent scrolls
+ * it; `style={{flexShrink: 0}}` does the same in a parent that has a height.
+ *
  * Drawn in React Native on every platform, like `Card`, because a card holds
  * what is not native: a preview, a thumbnail. A list of rows is `List`.
  */
@@ -43,7 +48,7 @@ export interface CardGridProps<T> {
   /** Content above the first row of cells and below the last. */
   header?: ReactNode;
   footer?: ReactNode;
-  /** What the grid shows in place of its cells when `data` is empty: usually an `EmptyState`. */
+  /** What the grid shows in place of its cells when `data` is empty: usually an `EmptyState`, which fills the grid. */
   empty?: ReactNode;
   /** Called once the last cells have been drawn, for a grid that loads more. */
   onEndReached?: () => void;

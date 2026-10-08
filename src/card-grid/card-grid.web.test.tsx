@@ -65,7 +65,7 @@ describe('CardGrid (web)', () => {
     expect(observe).toBeNull();
   });
 
-  it('pads its content by the screen\'s bar and its own insets', () => {
+  it('pads its content by the screen\'s bar and its own insets, inside the scroller', () => {
     render(
       <ScrollInsetsContext.Provider value={{top: 80, bottom: 0, automatic: false}}>
         <CardGrid data={items} renderItem={item => <p>{item}</p>} contentInset={{top: 8, bottom: 20}} style={{marginTop: 4}} testID="grid"/>
@@ -74,6 +74,21 @@ describe('CardGrid (web)', () => {
     const grid = screen.getByTestId('grid');
     expect(grid.style.paddingTop).toBe('88px');
     expect(grid.style.paddingBottom).toBe('20px');
+    // A card the keyboard focus scrolls into view stops clear of the bar.
+    expect(grid.style.scrollPaddingTop).toBe('88px');
+    expect(grid.style.scrollPaddingBottom).toBe('20px');
     expect(grid.style.marginTop).toBe('4px');
+  });
+
+  it('scrolls itself, filling the space its parent gives it', async () => {
+    const {readFileSync} = await import('node:fs');
+    const {join} = await import('node:path');
+    const css = readFileSync(join(__dirname, 'card-grid.css'), 'utf8');
+    const root = /\.ui-card-grid \{([^}]*)\}/.exec(css)![1];
+    expect(root).toContain('overflow-y: auto;');
+    // A basis of auto: in a parent with no height of its own the grid grows to its cells.
+    expect(root).toContain('flex: 1 1 auto;');
+    expect(root).toContain('min-height: 0;');
+    expect(/\.ui-card-grid__cells \{([^}]*)\}/.exec(css)![1]).toContain('flex: none;');
   });
 });

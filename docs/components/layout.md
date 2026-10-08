@@ -416,6 +416,15 @@ Differences:
 - On Windows a tap on a row while a field has the touch keyboard goes to the
   row and leaves the keyboard up (`keyboardShouldPersistTaps="handled"`); a
   tap past the rows closes it.
+- The list scrolls itself and fills the space its parent gives it, so a
+  view wrapped around it needs `flex: 1`. On the web the list is its own
+  scroller (`overflow-y: auto`, `flex: 1 1 auto`), so it scrolls under the
+  fixed body that `ScrollViewStyleReset` sets. In a parent with no height of
+  its own (a scroll view of the app's own, a page that scrolls) it grows to
+  its rows and the parent scrolls it; `style={{flexShrink: 0}}` does the
+  same in a parent that has a height. Its padding by `useScrollInsets()` is
+  inside the scroller, and so is its scroll padding, so a row the keyboard
+  focus brings into view stops clear of the bar.
 
 ## CardGrid
 
@@ -453,6 +462,14 @@ Differences:
   it.
 - An `empty` fills the grid's height under the header, as an `EmptyState`
   centres itself in the room it is given.
+- The grid scrolls itself and fills the space its parent gives it, so a
+  view wrapped around it needs `flex: 1`. On the web the grid is its own
+  scroller (`overflow-y: auto`, `flex: 1 1 auto`), so it scrolls under the
+  fixed body that `ScrollViewStyleReset` sets. In a parent with no height of
+  its own (a scroll view of the app's own, a page that scrolls) it grows to
+  its cells and the parent scrolls it; `style={{flexShrink: 0}}` does the
+  same in a parent that has a height. Its padding by `useScrollInsets()` is
+  inside the scroller, and so is its scroll padding.
 
 ## Collapsible
 

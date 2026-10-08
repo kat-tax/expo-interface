@@ -73,7 +73,7 @@ describe('List (web)', () => {
     expect(observe).toBeNull();
   });
 
-  it('pads its content by the screen\'s bar and its own insets', () => {
+  it('pads its content by the screen\'s bar and its own insets, inside the scroller', () => {
     render(
       <ScrollInsetsContext.Provider value={{top: 80, bottom: 0, automatic: false}}>
         <List data={rows} renderItem={title => <ListItem>{title}</ListItem>} contentInset={{top: 8, bottom: 20}} style={{marginTop: 4}} testID="list"/>
@@ -82,6 +82,21 @@ describe('List (web)', () => {
     const list = screen.getByTestId('list');
     expect(list.style.paddingTop).toBe('88px');
     expect(list.style.paddingBottom).toBe('20px');
+    // A row the keyboard focus scrolls into view stops clear of the bar.
+    expect(list.style.scrollPaddingTop).toBe('88px');
+    expect(list.style.scrollPaddingBottom).toBe('20px');
     expect(list.style.marginTop).toBe('4px');
+  });
+
+  it('scrolls itself, filling the space its parent gives it', async () => {
+    const {readFileSync} = await import('node:fs');
+    const {join} = await import('node:path');
+    const css = readFileSync(join(__dirname, 'list.css'), 'utf8');
+    const root = /\.ui-list \{([^}]*)\}/.exec(css)![1];
+    expect(root).toContain('overflow-y: auto;');
+    // A basis of auto: in a parent with no height of its own the list grows to its rows.
+    expect(root).toContain('flex: 1 1 auto;');
+    expect(root).toContain('min-height: 0;');
+    expect(/\.ui-list__rows \{([^}]*)\}/.exec(css)![1]).toContain('flex: none;');
   });
 });
