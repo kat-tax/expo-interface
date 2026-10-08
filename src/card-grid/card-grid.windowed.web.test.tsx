@@ -4,12 +4,13 @@ import {CardGrid} from '.';
 
 const CARDS = Array.from({length: 200}, (_, index) => `Card ${index}`);
 
-/** How far the grid has scrolled: what the page's layout answers. */
+/** How far the grid has scrolled, and how tall it is: what the page's layout answers. */
 let scrolled = 0;
+let boxHeight = 600;
 
 const cells = () => screen.getAllByRole('listitem');
 const spacers = () => [...screen.getByTestId('grid').querySelectorAll<HTMLElement>('.ui-card-grid__spacer')];
-const width = (value: number) => act(() => reportSizes([{target: screen.getByTestId('grid'), width: value, height: 600}]));
+const width = (value: number) => act(() => reportSizes([{target: screen.getByTestId('grid'), width: value, height: boxHeight}]));
 const scrollTo = (offset: number) => {
   scrolled = offset;
   fireEvent.scroll(screen.getByTestId('grid'));
@@ -26,11 +27,12 @@ function renderGrid(props: Partial<React.ComponentProps<typeof CardGrid<string>>
 describe('CardGrid (web), windowed', () => {
   beforeEach(() => {
     scrolled = 0;
+    boxHeight = 600;
     TestResizeObserver.all = [];
     vi.stubGlobal('ResizeObserver', TestResizeObserver);
     // A grid 600 px tall at the top of the window; the spacer before the cells moves up as it scrolls.
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
-      if (this.classList.contains('ui-card-grid')) return rectAt(0, 600);
+      if (this.classList.contains('ui-card-grid')) return rectAt(0, boxHeight);
       if (this.classList.contains('ui-card-grid__spacer')) return rectAt(-scrolled, 0);
       return rectAt(0, 0);
     });
@@ -113,8 +115,23 @@ describe('CardGrid (web), windowed', () => {
     expect(onEndReached).toHaveBeenCalledTimes(2);
   });
 
+  it('reaches no end from the rows it draws before it is laid out', () => {
+    // A frame 480 px tall: six rows of four fit the first 1200 px, but not the view and a viewport below it.
+    boxHeight = 480;
+    const onEndReached = vi.fn();
+    renderGrid({data: CARDS.slice(0, 24), onEndReached});
+    expect(cells()).toHaveLength(24);
+    expect(onEndReached).not.toHaveBeenCalled();
+    width(636);
+    expect(cells()).toHaveLength(20);
+    expect(onEndReached).not.toHaveBeenCalled();
+    scrollTo(192);
+    expect(onEndReached).toHaveBeenCalledTimes(1);
+  });
+
   it('reaches no end without a handler, or with no cards', () => {
     renderGrid({data: CARDS.slice(0, 3)});
+    width(636);
     expect(cells()).toHaveLength(3);
     const onEndReached = vi.fn();
     render(<CardGrid data={[]} renderItem={() => null} onEndReached={onEndReached}/>);

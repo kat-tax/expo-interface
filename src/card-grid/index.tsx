@@ -37,9 +37,10 @@ function useContentWidth(scroller: RefObject<HTMLElement | null>): number | null
  * paint) the stylesheet's own `repeat(auto-fill, minmax(...))` counts the
  * same columns. Each cell says where it stands in the whole (`aria-posinset`,
  * `aria-setsize`). The grid fills the room its parent gives it, with the
- * screen's insets as padding inside. The end is reached once the window
- * draws the last row, for a grid that loads more, and again when more cells
- * arrive while it is still drawn.
+ * screen's insets as padding inside. The end is reached once the grid is
+ * laid out and its window draws the last row, for a grid that loads more,
+ * and again when more cells arrive while it is still drawn; a hidden grid
+ * reaches none.
  */
 export function CardGrid<T>({
   data,
@@ -66,9 +67,10 @@ export function CardGrid<T>({
   const rows = rowsOf(data, cut);
   // A row's height is kept per column count: other columns are other rows.
   const keys = rows.map((row, index) => `${cut}:${keyOf({keyExtractor}, row[0]!, index * cut)}`);
-  const {range, start, measure} = useWindowed(scroller, {keys, estimate: estimatedItemHeight, gap});
+  const {range, measured, start, measure} = useWindowed(scroller, {keys, estimate: estimatedItemHeight, gap});
   const reachEnd = useEffectEvent(() => onEndReached?.());
-  const atEnd = rows.length > 0 && range.end === rows.length;
+  // Only from the grid as laid out: the first rows drawn before then are not the view.
+  const atEnd = measured && rows.length > 0 && range.end === rows.length;
   // Keyed on the cells, not the rows: a page that only fills the last row is more cells too.
   useEffect(() => {
     if (atEnd) reachEnd();

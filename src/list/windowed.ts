@@ -68,6 +68,14 @@ export interface WindowOptions {
 export interface Windowed {
   /** The units to draw, and the room of the rest. */
   range: WindowRange;
+  /**
+   * Whether `range` comes from the list as the page lays it out: false
+   * before the page has been read and while the list is hidden, when the
+   * first units are drawn whatever shows. Where there is no
+   * `ResizeObserver` the first units count as read, since nothing reads the
+   * page before a scroll.
+   */
+  measured: boolean;
   /** The spacer before the drawn units, where the first unit's top would be. */
   start: RefObject<HTMLDivElement | null>;
   /**
@@ -77,10 +85,14 @@ export interface Windowed {
   measure: (element: HTMLElement | null) => () => void;
 }
 
-/** The part of the list the window shows, from the first unit's top, and every height measured so far. */
+/**
+ * The part of the list the window shows, from the first unit's top, whether
+ * it was read from the list as laid out, and every height measured so far.
+ */
 interface View {
   from: number;
   to: number;
+  measured: boolean;
   heights: ReadonlyMap<string, number>;
 }
 
@@ -114,12 +126,14 @@ function same(a: WindowRange, b: WindowRange): boolean {
  * are drawn at once. That part is read from the page on any scroll (the
  * list's own or an ancestor's, so a list the page scrolls is windowed too),
  * on a resize of the window or of the list, and whenever a drawn unit changes
- * height; it is kept only when it changes which units are drawn. The spacers
- * are never scroll anchors, so the browser keeps the drawn units still while
- * a spacer changes.
+ * height; it is kept only when it changes which units are drawn. Until the
+ * page has been read, and while the list is hidden, the first units are
+ * drawn and the range is not `measured`, so a list does not take its end
+ * from them. The spacers are never scroll anchors, so the browser keeps the
+ * drawn units still while a spacer changes.
  */
 export function useWindowed(scroller: RefObject<HTMLElement | null>, {keys, estimate, gap}: WindowOptions): Windowed {
-  const [view, setView] = useState<View>(() => ({from: 0, to: INITIAL_SPAN, heights: new Map()}));
+  const [view, setView] = useState<View>(() => ({from: 0, to: INITIAL_SPAN, measured: typeof ResizeObserver === 'undefined', heights: new Map()}));
   const start = useRef<HTMLDivElement>(null);
   const observer = useRef<ResizeObserver | null>(null);
   const mounted = useRef(new Set<HTMLElement>());
@@ -133,9 +147,10 @@ export function useWindowed(scroller: RefObject<HTMLElement | null>, {keys, esti
     const box = scroller.current!.getBoundingClientRect();
     const startTop = start.current?.getBoundingClientRect().top;
     // Hidden, not laid out, or showing its empty content: the first units.
+    const measured = box.height > 0 && startTop != null;
     let from = 0;
     let to = INITIAL_SPAN;
-    if (box.height > 0 && startTop != null) {
+    if (measured) {
       // What shows of the list: its box, clipped by the window.
       const clipTop = Math.max(box.top, 0);
       const clipBottom = Math.min(box.bottom, globalThis.innerHeight);
@@ -145,8 +160,9 @@ export function useWindowed(scroller: RefObject<HTMLElement | null>, {keys, esti
     }
     setView(current => {
       const heights = withSizes(current.heights, entries);
-      if (heights === current.heights && same(rangeIn(heights, from, to), rangeIn(heights, current.from, current.to))) return current;
-      return {from, to, heights};
+      const unchanged = heights === current.heights && measured === current.measured;
+      if (unchanged && same(rangeIn(heights, from, to), rangeIn(heights, current.from, current.to))) return current;
+      return {from, to, measured, heights};
     });
   });
 
@@ -182,5 +198,5 @@ export function useWindowed(scroller: RefObject<HTMLElement | null>, {keys, esti
     };
   }, []);
 
-  return {range, start, measure};
+  return {range, measured: view.measured, start, measure};
 }

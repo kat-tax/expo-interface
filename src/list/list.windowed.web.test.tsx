@@ -14,9 +14,15 @@ const scrollTo = (offset: number) => {
   scrolled = offset;
   fireEvent.scroll(screen.getByTestId('list'));
 };
+/** The observer's report of the list's own box, as the browser sends once the list is laid out. */
+const laidOut = () => act(() => reportSizes([{target: screen.getByTestId('list'), height: boxHeight}]));
+
+function list(props: Partial<React.ComponentProps<typeof List<string>>> = {}) {
+  return <List data={ROWS} renderItem={title => <p>{title}</p>} keyExtractor={title => title} testID="list" {...props}/>;
+}
 
 function renderList(props: Partial<React.ComponentProps<typeof List<string>>> = {}) {
-  return render(<List data={ROWS} renderItem={title => <p>{title}</p>} keyExtractor={title => title} testID="list" {...props}/>);
+  return render(list(props));
 }
 
 describe('List (web), windowed', () => {
@@ -109,6 +115,27 @@ describe('List (web), windowed', () => {
     expect(items()[0]).toHaveTextContent('Row 44');
   });
 
+  it('takes its end from the first rows where there is no ResizeObserver, since nothing reads the page before a scroll', () => {
+    vi.stubGlobal('ResizeObserver', undefined);
+    const onEndReached = vi.fn();
+    renderList({data: ROWS.slice(0, 3), onEndReached});
+    expect(onEndReached).toHaveBeenCalledTimes(1);
+  });
+
+  it('reaches no end before it is laid out, or while it is hidden', () => {
+    const onEndReached = vi.fn();
+    renderList({data: ROWS.slice(0, 3), onEndReached});
+    // Three rows are inside the first 1200 px, but the page has not been read.
+    expect(items()).toHaveLength(3);
+    expect(onEndReached).not.toHaveBeenCalled();
+    boxHeight = 0;
+    laidOut();
+    expect(onEndReached).not.toHaveBeenCalled();
+    boxHeight = 600;
+    laidOut();
+    expect(onEndReached).toHaveBeenCalledTimes(1);
+  });
+
   it('reaches the end once the window draws the last row, and once only', () => {
     const onEndReached = vi.fn();
     renderList({onEndReached});
@@ -123,16 +150,18 @@ describe('List (web), windowed', () => {
   it('reaches the end again when more rows arrive while it is still drawn, until the view is full', () => {
     const onEndReached = vi.fn();
     const {rerender} = renderList({data: ROWS.slice(0, 3), onEndReached});
+    laidOut();
     expect(onEndReached).toHaveBeenCalledTimes(1);
-    rerender(<List data={ROWS.slice(0, 6)} renderItem={title => <p>{title}</p>} keyExtractor={title => title} onEndReached={onEndReached} testID="list"/>);
+    rerender(list({data: ROWS.slice(0, 6), onEndReached}));
     expect(onEndReached).toHaveBeenCalledTimes(2);
     // Past what the window draws: the end is no longer drawn.
-    rerender(<List data={ROWS} renderItem={title => <p>{title}</p>} keyExtractor={title => title} onEndReached={onEndReached} testID="list"/>);
+    rerender(list({onEndReached}));
     expect(onEndReached).toHaveBeenCalledTimes(2);
   });
 
   it('reaches no end without a handler, or with no rows', () => {
     renderList({data: ROWS.slice(0, 3)});
+    laidOut();
     expect(items()).toHaveLength(3);
     const onEndReached = vi.fn();
     render(<List data={[]} renderItem={() => null} onEndReached={onEndReached}/>);

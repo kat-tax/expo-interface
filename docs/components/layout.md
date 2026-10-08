@@ -431,12 +431,13 @@ Differences:
   `estimatedItemHeight` before, and neither is a scroll anchor, so the drawn
   rows hold still while a spacer changes. Each row says where it stands in
   the whole (`aria-posinset`, `aria-setsize`). `onEndReached` fires once the
-  window draws the last row, and again when more rows arrive while it is
-  still drawn, so a list that loads more fills the view. Safari has no
-  scroll anchoring, so there a scroll up into rows never drawn can move
-  what shows by the difference between their height and the estimate. A
-  row scrolled out of the window is removed, as a native lazy list removes
-  it, and the focus with it.
+  list is laid out and the window draws the last row, and again when more
+  rows arrive while it is still drawn, so a list that loads more fills the
+  view; a hidden list reports no end. Safari has no scroll anchoring, so
+  there a scroll up into rows never drawn can move what shows by the
+  difference between their height and the estimate. A row scrolled out of
+  the window is removed, as a native lazy list removes it, and the focus
+  with it.
 
 ## CardGrid
 
@@ -490,8 +491,9 @@ Differences:
   them into the grid, so a row of cells it draws is one row of the grid;
   until then (a static page, the first paint) the stylesheet counts the
   same columns. Each cell says where it stands in the whole
-  (`aria-posinset`, `aria-setsize`), and `onEndReached` fires once the
-  window draws the last row.
+  (`aria-posinset`, `aria-setsize`), and `onEndReached` fires as the
+  `List`'s does: once the grid is laid out and the window draws the last
+  row, and again when more cards arrive while it is still drawn.
 
 ## Collapsible
 

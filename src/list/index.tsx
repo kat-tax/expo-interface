@@ -16,16 +16,18 @@ import {useWindowed} from './windowed';
  * heights once seen and at `estimatedItemHeight` before. A hairline between
  * the rows comes from the stylesheet. The list fills the room its parent
  * gives it, with the screen's insets as padding inside. The end is reached
- * once the window draws the last row, for a list that loads more, and again
- * when more rows arrive while it is still drawn.
+ * once the list is laid out and its window draws the last row, for a list
+ * that loads more, and again when more rows arrive while it is still drawn;
+ * a hidden list reaches none.
  */
 export function List<T>({data, renderItem, keyExtractor, separators = true, header, footer, empty, onEndReached, estimatedItemHeight = ESTIMATED_ROW, contentInset, testID, style}: ListProps<T>) {
   const insets = useScrollInsets(contentInset);
   const scroller = useRef<HTMLDivElement>(null);
   const keys = data.map((item, index) => keyOf({keyExtractor}, item, index));
-  const {range, start, measure} = useWindowed(scroller, {keys, estimate: estimatedItemHeight, gap: 0});
+  const {range, measured, start, measure} = useWindowed(scroller, {keys, estimate: estimatedItemHeight, gap: 0});
   const reachEnd = useEffectEvent(() => onEndReached?.());
-  const atEnd = data.length > 0 && range.end === data.length;
+  // Only from the list as laid out: the first rows drawn before then are not the view.
+  const atEnd = measured && data.length > 0 && range.end === data.length;
   useEffect(() => {
     if (atEnd) reachEnd();
   }, [atEnd, data.length]);
