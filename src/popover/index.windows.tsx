@@ -4,6 +4,7 @@ import XamlTeachingTip from '../windows/specs/ExpoInterfaceTeachingTipNativeComp
 import {jsonProp, useXamlProps} from '../windows';
 import {useAnchored} from '../anchored';
 import {Button} from '../button';
+import {NO_SCROLL_INSETS, ScrollInsetsContext} from '../screen/insets';
 import {Surface} from '../surface';
 import {Footnote, Subheadline} from '../typography';
 import {spacing} from '../theme';
@@ -93,7 +94,8 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
           <Surface raised border="all" padding={spacing.three} style={styles.body}>
             {title ? <Subheadline color="label" weight="semibold">{title}</Subheadline> : null}
             {message ? <Footnote color="secondaryLabel">{message}</Footnote> : null}
-            {children}
+            {/* The card floats over the screen, under none of its bars: a list or a form in it pads by its own insets alone. */}
+            <ScrollInsetsContext.Provider value={NO_SCROLL_INSETS}>{children}</ScrollInsetsContext.Provider>
             {actions?.length ? (
               <SizedRow style={styles.actions} testID={testID ? `${testID}-actions` : undefined}>
                 {actions.map((action, index) => (

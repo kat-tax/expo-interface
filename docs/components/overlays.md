@@ -178,6 +178,10 @@ jsdom, stub `ResizeObserver`, through which react-native-web reports a
 layout, call its callback with the card and its parent (`<testID>-bounds`),
 and let the timeout react-native-web measures in run.
 
+The card's content is not under a screen's bar: `useScrollInsets()` answers
+zero inside it on every platform, as it does in a `Sheet`, so a `List`,
+`CardGrid` or `FieldGroup` in it pads only by its own insets.
+
 `onDismiss` says why the card asks to close: `action` (one of its actions
 was taken), `backdrop` (the backdrop of a modal card was pressed, or on
 Windows a click landed outside the tip), `escape` (Escape on web, wherever

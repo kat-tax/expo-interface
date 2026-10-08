@@ -116,7 +116,12 @@ export interface PopoverProps extends PropsWithChildren {
    * @default 300
    */
   grace?: number;
-  /** Extra content under the message, above the actions. */
+  /**
+   * Extra content under the message, above the actions. It floats over the
+   * screen rather than under its bars, so `useScrollInsets()` answers zero
+   * in it: a `List`, `CardGrid` or `FieldGroup` there pads by its own insets
+   * alone, as in a `Sheet`.
+   */
   children?: ReactNode;
   /**
    * Identifier used to locate the card in end-to-end tests. The box laid

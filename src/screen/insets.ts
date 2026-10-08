@@ -5,7 +5,8 @@ import {createContext, useContext} from 'react';
  * floating over its top takes, and the space the content should keep at its
  * bottom, so a kit list or grid pads its content (and on iOS the grid's scroll
  * indicators) rather than the app padding by hand. Outside a screen both are
- * zero, and so they are in a `Sheet`'s content, which passes under neither.
+ * zero, and so they are in a `Sheet`'s content and a `Popover`'s, which
+ * float over the screen and pass under neither.
  */
 export interface ScrollInsets {
   /**
@@ -32,7 +33,14 @@ export interface ScrollInsets {
   automatic: boolean;
 }
 
-export const ScrollInsetsContext = createContext<ScrollInsets>({top: 0, bottom: 0, automatic: false});
+/**
+ * No insets: what content that floats over the screen rather than under its
+ * bars (a popover's card) gives the scrollers in it, and what they read
+ * outside a screen.
+ */
+export const NO_SCROLL_INSETS: ScrollInsets = {top: 0, bottom: 0, automatic: false};
+
+export const ScrollInsetsContext = createContext<ScrollInsets>(NO_SCROLL_INSETS);
 
 /**
  * The insets a scrolling kit component pads its content by: the screen's

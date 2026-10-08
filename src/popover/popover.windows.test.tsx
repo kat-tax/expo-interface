@@ -1,7 +1,14 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {StyleSheet, Text} from 'react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
+import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
 import {Popover} from '.';
+
+/** The insets a scroller reads where it is rendered, as text. */
+function Insets({testID}: {testID: string}) {
+  const {top, bottom, automatic} = useScrollInsets();
+  return <Text testID={testID}>{`${top} ${bottom} ${automatic}`}</Text>;
+}
 
 const TIP = 'ExpoInterfaceTeachingTip';
 const BUTTON = 'ExpoInterfaceButton';
@@ -114,6 +121,19 @@ describe('Popover (windows)', () => {
       );
       expect(screen.getByText('Extra')).toBeOnTheScreen();
       expect(islands(BUTTON)).toHaveLength(0);
+    });
+
+    it('gives the content no scroll insets, whatever is around the popover', async () => {
+      await render(
+        <ScrollInsetsContext.Provider value={{top: 40, bottom: 72, automatic: false}}>
+          <Insets testID="around"/>
+          <Popover at={{x: 0, y: 0}} testID="pop">
+            <Insets testID="card"/>
+          </Popover>
+        </ScrollInsetsContext.Provider>,
+      );
+      expect(screen.getByTestId('around')).toHaveTextContent('40 72 false');
+      expect(screen.getByTestId('card')).toHaveTextContent('0 0 false');
     });
 
     it('draws a title alone, or a message alone', async () => {

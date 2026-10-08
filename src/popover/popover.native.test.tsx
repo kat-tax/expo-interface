@@ -1,7 +1,14 @@
 import {Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
 import {PopoverRect, type PopoverProps} from './types';
 import {Popover} from '.';
+
+/** The insets a scroller reads where it is rendered, as text. */
+function Insets({testID}: {testID: string}) {
+  const {top, bottom, automatic} = useScrollInsets();
+  return <Text testID={testID}>{`${top} ${bottom} ${automatic}`}</Text>;
+}
 
 const style = () => StyleSheet.flatten(screen.getByTestId('lint').props.style);
 const bounds = (width: number, height: number) =>
@@ -36,6 +43,20 @@ describe(`Popover (${Platform.OS})`, () => {
     expect(screen.getByText('“teh” is not a word.')).toBeOnTheScreen();
     expect(screen.getByText('Suggestions')).toBeOnTheScreen();
     expect(style()).toMatchObject({position: 'absolute', width: 280, left: 40, top: 128});
+  });
+
+  it('gives its content no scroll insets, whatever the screen under it pads by', async () => {
+    // A screen under a floating header and over the tab bar's floating action.
+    await render(
+      <ScrollInsetsContext.Provider value={{top: 40, bottom: 72, automatic: true}}>
+        <Insets testID="screen"/>
+        <Popover at={at} title="Spelling" testID="lint">
+          <Insets testID="card"/>
+        </Popover>
+      </ScrollInsetsContext.Provider>,
+    );
+    expect(screen.getByTestId('screen')).toHaveTextContent('40 72 true');
+    expect(screen.getByTestId('card')).toHaveTextContent('0 0 false');
   });
 
   it('keeps the card inside its parent, and flips it above a rectangle near the bottom', async () => {
