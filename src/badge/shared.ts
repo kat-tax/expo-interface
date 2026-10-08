@@ -20,6 +20,8 @@ export interface BadgeMetrics {
   fontWeight: '500' | '600';
   /** The number's line height. */
   lineHeight: number;
+  /** Extra space between the number's characters, if its type has any. */
+  letterSpacing?: number;
 }
 
 /** The capsule UIKit draws: an 8 point dot, 16 points high with a number in semibold. */
@@ -33,8 +35,9 @@ export const UIKIT_BADGE: BadgeMetrics = {
 
 /**
  * Material 3's badge: a 6 dp dot, 16 dp high with a number in Label Small
- * (11 sp medium on a 16 sp line), with 4 dp either side of it. The same as
- * the Compose `Badge` draws, so a drawn badge and a hosted one match.
+ * (11 sp medium on a 16 sp line, tracked 0.5 sp), with 4 dp either side of
+ * it. The Compose `Badge` inside a host sets its number in Label Small too,
+ * so a drawn badge and a hosted one match.
  */
 export const MATERIAL_BADGE: BadgeMetrics = {
   dot: 6,
@@ -42,6 +45,7 @@ export const MATERIAL_BADGE: BadgeMetrics = {
   padding: 4,
   fontWeight: '500',
   lineHeight: 16,
+  letterSpacing: 0.5,
 };
 
 /**

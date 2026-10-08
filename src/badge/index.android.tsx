@@ -6,7 +6,7 @@ import {useNativeHost} from '../host';
 import {useColor} from '../theme';
 import {DrawnBadge} from './drawn';
 import {PULSE_HALF, PULSE_LOW, usePulsePhase} from './pulse';
-import {BADGE_FONT_SIZE, MATERIAL_BADGE, badgeText} from './shared';
+import {MATERIAL_BADGE, badgeText} from './shared';
 
 /**
  * Inside a native host (a `ListItem`'s slots, a `NativeHost`, `Screen
@@ -58,8 +58,10 @@ function HostedBadge(props: BadgeProps) {
         ...(props.pulse ? [graphicsLayer({alpha: animated(phase === 'low' ? PULSE_LOW : 1, tween({durationMillis: PULSE_HALF, easing: 'ease'}))})] : []),
         ...(testID ? [testIDModifier(testID)] : []),
       ]}>
-      {/* A dot is a badge with nothing in it, which is how Compose draws one. */}
-      {dot ? null : <Text color={content} style={{fontSize: BADGE_FONT_SIZE}}>{text}</Text>}
+      {/* A dot is a badge with nothing in it, which is how Compose draws one.
+          The number is in Label Small, the type the badge gives its content:
+          @expo/ui's Text passes a style of its own, which would drop it. */}
+      {dot ? null : <Text color={content} style={{typography: 'labelSmall'}}>{text}</Text>}
     </ComposeBadge>
   );
 }

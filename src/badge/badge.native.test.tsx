@@ -34,7 +34,10 @@ describe(`Badge (${Platform.OS})`, () => {
     expect(badge.props.accessibilityLabel).toBe('3 new');
     const number = screen.getByText('3');
     expect(number).toBeOnTheScreen();
-    expect(StyleSheet.flatten(number.props.style)).toMatchObject({fontWeight: drawn.fontWeight, lineHeight: drawn.lineHeight});
+    const type = StyleSheet.flatten(number.props.style);
+    expect(type).toMatchObject({fontWeight: drawn.fontWeight, lineHeight: drawn.lineHeight});
+    // Material's Label Small is tracked; UIKit's number is set as the font has it.
+    expect(type.letterSpacing).toBe(isIOS ? undefined : 0.5);
   });
 
   it('draws a dot with nothing in it, at the dot size', async () => {
@@ -90,6 +93,16 @@ describe(`Badge (${Platform.OS})`, () => {
       });
       // Compose's Text carries its content as a prop, not as an RN text node.
       expect(composeText()).toEqual(['3']);
+    });
+
+    it('sets the number in Label Small, the type the drawn badge copies', async () => {
+      await render(inHost(<Badge count={3} testID="unread"/>));
+      const number = nodes().find(n => n.props.text === '3');
+      // Named outright: @expo/ui's Text passes a style of its own, which drops
+      // the type Compose's Badge provides, so nothing else would set it.
+      expect(number?.props).toMatchObject({typography: 'labelSmall'});
+      expect(number?.props.fontSize).toBeUndefined();
+      expect(number?.props.fontWeight).toBeUndefined();
     });
 
     it('draws a dot as a badge with nothing in it, which is how Compose draws one', async () => {

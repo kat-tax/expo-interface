@@ -61,7 +61,7 @@ CSS animation that `prefers-reduced-motion` stills.
 | Platform | Renders |
 | --- | --- |
 | iOS | Drawn as the UIKit capsule. SwiftUI's `badge` modifier only paints inside a `List`, a `TabView` or a toolbar and is silently ignored anywhere else. |
-| Android | Material 3 `Badge` inside a native host; outside one, drawn in React Native to Material's geometry (a 6 point dot, 16 points high with a number), since a Compose view draws only inside a host. |
+| Android | Material 3 `Badge` inside a native host; outside one, drawn in React Native to Material's geometry (a 6 point dot, 16 points high with a number), since a Compose view draws only inside a host. Both set the number in Material's Label Small. |
 | Web | A `<span role="status">` |
 | Windows | WinUI `InfoBadge`. It holds a number and nothing else, so an overflowing count reads as the cap (`99`) where the others draw `99+`; the accessible name carries the true wording. |
 

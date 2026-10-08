@@ -36,7 +36,7 @@ export function DrawnBadge({metrics, ...props}: BadgeProps & {metrics: BadgeMetr
         <Text
           numberOfLines={1}
           allowFontScaling={false}
-          style={[styles.text, {color: textColor ?? onAccent(fill), fontWeight: metrics.fontWeight, lineHeight: metrics.lineHeight}]}>
+          style={[styles.text, {color: textColor ?? onAccent(fill), fontWeight: metrics.fontWeight, lineHeight: metrics.lineHeight, letterSpacing: metrics.letterSpacing}]}>
           {text}
         </Text>
       )}
