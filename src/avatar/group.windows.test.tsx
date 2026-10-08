@@ -39,4 +39,17 @@ describe('AvatarGroup (windows)', () => {
     expect(onPress).not.toHaveBeenCalled();
     expect(onLongPress).not.toHaveBeenCalled();
   });
+
+  it('names a face that does not press by its label, with its hint as help text and its selected state', async () => {
+    await render(<AvatarGroup people={[{name: 'Ada Lovelace', label: 'Ada, on Notes', hint: 'Editing the outline', selected: true}, {name: 'Alan Turing'}]}/>);
+    expect(islands('ExpoInterfacePersonPicture')).toHaveLength(0);
+    // The circle is the UIA element: its Name, its HelpText and the SelectionItem pattern.
+    const ada = screen.getByLabelText('Ada, on Notes');
+    expect(ada).toBeSelected();
+    expect(ada.props.accessibilityHint).toBe('Editing the outline');
+    expect(ada.props.role).toBeUndefined();
+    expect(screen.queryByLabelText('Ada Lovelace')).toBeNull();
+    expect(screen.getByLabelText('Alan Turing').props.accessibilityState?.selected).toBeUndefined();
+    expect(screen.queryByRole('button')).toBeNull();
+  });
 });
