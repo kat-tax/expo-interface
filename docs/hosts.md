@@ -78,12 +78,12 @@ present natively mount a host of their own only when there is none:
   bare.
 - `PopupMenu`, `Fab` (iOS and Android) and `ShareLink` (iOS)
   mount one where they need it.
-- `Badge` needs no host. On Android it is Compose's Material `Badge` inside
-  one and is drawn in React Native to the same geometry outside one; iOS
-  draws it everywhere. A badge in a row of the app's own measures like any
-  view.
 - `Toast` and `Toolbar` do the same for their native parts.
 - A `Sheet`'s content counts as hosted, so controls inside it render bare.
+
+`Badge` needs no host. On Android it is Compose's Material `Badge` inside one
+and is drawn in React Native to the same geometry outside one; iOS draws it
+everywhere. A badge in a row of the app's own measures like any view.
 
 You rarely call `useNativeHost()` yourself. It is there for a component of
 your own that wraps `@expo/ui` content and has to work both inside and outside
