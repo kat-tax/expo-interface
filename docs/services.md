@@ -146,5 +146,7 @@ palette's `background` is the default.
 | iOS's window | Left to the app. With no `backgroundColor` or `ios.backgroundColor` of the app's own, `expo-system-ui` starts the root view in white or black for the scheme the app launches in, the palette's `background`, and `Screen` paints the scheme's as the app loads. `expo-system-ui` keeps the color `Screen` last painted and starts the next launch in it. A color of the app's own there is one color for both schemes |
 | The launch screen | `expo-splash-screen`'s `backgroundColor` and `dark.backgroundColor`, when the app has `expo-splash-screen` and does not configure it itself |
 
-An app's own `backgroundColor`, `android.backgroundColor` or
-`expo-splash-screen` options win over the plugin's.
+An app's own `backgroundColor` or `android.backgroundColor` replaces the
+light color, and its `expo-splash-screen` options replace the launch
+screen's. Android's night window keeps the plugin's `dark` color, so an app
+that gives its own color and wants another at night passes `dark` too.

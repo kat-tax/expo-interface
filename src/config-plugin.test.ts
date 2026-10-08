@@ -84,7 +84,10 @@ describe('the config plugin', () => {
     const config = withExpoInterface(base({backgroundColor: '#eeeeee', android: {backgroundColor: '#dddddd'}, _internal: {projectRoot: path.parse(projectRoot).root}}));
     expect(config.backgroundColor).toBe('#eeeeee');
     expect(config.android?.backgroundColor).toBe('#dddddd');
-    expect((await android(config)).day).toEqual(['#dddddd']);
+    const own = await android(config);
+    expect(own.day).toEqual(['#dddddd']);
+    // An app's own color is the light one: Android's night window keeps the plugin's dark color.
+    expect(own.night).toEqual([SCHEME_BACKGROUND.dark]);
     expect(config._internal!.pluginHistory ?? {}).not.toHaveProperty('expo-splash-screen');
     // An app's top-level color is Android's window, and iOS's root view through expo-system-ui.
     const top = withSystemUI(withExpoInterface(base({backgroundColor: '#eeeeee'})));
