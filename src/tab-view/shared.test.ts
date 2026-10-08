@@ -72,6 +72,15 @@ describe('isAlone', () => {
     expect(isAlone({...props, children: null})).toBe(false);
     expect(isAlone({...props, children: undefined})).toBe(false);
   });
+
+  it('takes content for what it says, whatever the children are', () => {
+    // A wrapper's `<TabView {...rest}>{children}</TabView>` always has the key.
+    expect(isAlone({...props, children: undefined, content: false})).toBe(true);
+    expect(isAlone({...props, children: 'Page', content: false})).toBe(true);
+    expect(isAlone({...props, content: true})).toBe(false);
+    // Left out, as undefined, the element decides.
+    expect(isAlone({...props, content: undefined})).toBe(true);
+  });
 });
 
 describe('tabLabel', () => {

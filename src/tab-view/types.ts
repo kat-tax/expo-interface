@@ -78,10 +78,19 @@ export interface TabViewProps {
    * under a header the screens run under. Children written
    * but rendering nothing, `null` or the `undefined` of
    * `{current && <Editor/>}`, are a page with nothing in it, which keeps the
-   * view's size when the last document closes. A component that wraps a
-   * `TabView` passes `children` on only when it was given some.
+   * view's size when the last document closes. `content` says it outright,
+   * for a component that wraps a `TabView` and passes `children` on either way.
    */
   children?: ReactNode;
+  /**
+   * Whether the view has a page under the tabs, whatever `children` are:
+   * `false` is the tabs alone, and draws no `children`; `true` is a page,
+   * empty without them. Left out, the element decides: a `TabView` with no
+   * `children` at all is the tabs alone. Set it where the element cannot say,
+   * as in a wrapper that writes `<TabView {...rest}>{children}</TabView>`,
+   * whose `children` are always there, if only as `undefined`.
+   */
+  content?: boolean;
   /**
    * What the strip is called — "Open files", "Documents". Each tab is named
    * by its own `label`, or its title, so this names the group they are in.

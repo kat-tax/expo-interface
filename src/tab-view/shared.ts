@@ -68,16 +68,18 @@ export function switcherLabel(tabs: readonly TabViewTab[], selected: string): st
 }
 
 /**
- * Whether a `TabView` is the tabs alone: its element has no `children` at
- * all, as `<TabView tabs={open} selected={current} onSelect={setCurrent}/>`
- * writes it. Children written and rendering nothing, `null` or the
- * `undefined` of `{current && <Editor/>}`, are a page with nothing in it, so
- * the view keeps its size when the last document closes. JSX puts a
- * `children` key in the props whenever the element has a child expression,
- * whatever it evaluates to, and none when it has none.
+ * Whether a `TabView` is the tabs alone: `content={false}`, or, with no
+ * `content`, an element with no `children` at all, as
+ * `<TabView tabs={open} selected={current} onSelect={setCurrent}/>` writes
+ * it. Children written and rendering nothing, `null` or the `undefined` of
+ * `{current && <Editor/>}`, are a page with nothing in it, so the view keeps
+ * its size when the last document closes. JSX puts a `children` key in the
+ * props whenever the element has a child expression, whatever it evaluates
+ * to, and none when it has none; a wrapper that always writes one says what
+ * it means with `content`.
  */
 export function isAlone(props: TabViewProps): boolean {
-  return !('children' in props);
+  return props.content === undefined ? !('children' in props) : !props.content;
 }
 
 /**

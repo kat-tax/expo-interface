@@ -247,6 +247,19 @@ describe(`TabView (${Platform.OS})`, () => {
       expect(cards().maxHeight).toBeUndefined();
     });
 
+    it('takes content for what it says, as a wrapper that always passes children on needs', async () => {
+      const {rerender} = await render(
+        <TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" content={false} testID="t">
+          {undefined}
+        </TabView>,
+      );
+      expect(grow()).toBe(0);
+      expect(root().children).toHaveLength(1);
+      await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" content testID="t"/>);
+      expect(grow()).toBe(1);
+      expect(root().children).toHaveLength(2);
+    });
+
     it('lets a caller\'s style grow it all the same', async () => {
       await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" style={{flexGrow: 1}} testID="t"/>);
       expect(grow()).toBe(1);

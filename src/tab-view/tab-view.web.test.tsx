@@ -1,5 +1,6 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
+import type {ComponentProps} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {TabView} from '.';
@@ -91,6 +92,25 @@ describe('TabView (web)', () => {
     const panel = screen.getByRole('tabpanel');
     expect(panel).toBeEmptyDOMElement();
     for (const tab of screen.getAllByRole('tab')) expect(tab).toHaveAttribute('aria-controls', panel.id);
+    expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--alone');
+  });
+
+  it('is the tabs alone with content={false}, through a wrapper that always passes children on', () => {
+    function DocTabs({children, ...rest}: ComponentProps<typeof TabView>) {
+      return <TabView {...rest}>{children}</TabView>;
+    }
+    const {rerender} = render(<DocTabs tabs={TABS} selected="b" onSelect={() => {}} testID="t"/>);
+    // The wrapper's element always has children, so without content it is a page.
+    expect(screen.getByRole('tabpanel')).toBeEmptyDOMElement();
+    rerender(<DocTabs tabs={TABS} selected="b" onSelect={() => {}} content={false} testID="t"><p>Ignored</p></DocTabs>);
+    expect(screen.queryByRole('tabpanel')).toBeNull();
+    expect(screen.queryByText('Ignored')).toBeNull();
+    expect(screen.getByTestId('t')).toHaveClass('ui-tab-view--alone');
+  });
+
+  it('keeps a page with content, children or none', () => {
+    render(<TabView tabs={TABS} selected="b" onSelect={() => {}} content testID="t"/>);
+    expect(screen.getByRole('tabpanel')).toBeEmptyDOMElement();
     expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--alone');
   });
 

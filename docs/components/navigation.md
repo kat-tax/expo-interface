@@ -207,7 +207,8 @@ Props: `tabs` (`id`, `title`, `label`, `icon`, `pinned`, `menu`, `depth`,
 takes the add button away), `addLabel` (what the add button is called to a
 screen reader and in Windows' tooltip; "New tab", except on the WinUI strip,
 which keeps WinUI's own words, in the system's language), `children` (the selected
-tab's content; left out, the tabs alone), `label` ("Tabs"), `layout`
+tab's content; left out, the tabs alone), `content` (whether there is a page
+under the tabs, whatever `children` are), `label` ("Tabs"), `layout`
 (`auto`, `strip`, `switcher`), `fill` (`element`, the default, or `none`),
 `style`, `testID`.
 `nextSelection(tabs, closing, selected)` is exported for a caller that closes
@@ -224,8 +225,11 @@ the view taller, at most half the window, and scroll past that: in a
 a header the screens run under. Children written
 but rendering nothing, `null` or the `undefined` of `{current && <Editor/>}`,
 are a page with nothing in it, so a view whose last document closes keeps
-its size. A component that wraps a `TabView` passes `children` on only when
-it was given some.
+its size. `content` says it outright: `false` is the tabs alone, and draws
+no `children`; `true` is a page, empty without them. A component that wraps
+a `TabView` as `<TabView {...rest}>{children}</TabView>` always passes
+`children`, if only as `undefined`, so a strip through it takes
+`content={false}`.
 
 | Platform | Strip (640 points and wider) | Switcher (narrower) |
 | --- | --- | --- |
