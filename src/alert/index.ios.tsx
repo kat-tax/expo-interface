@@ -37,8 +37,8 @@ const styles = StyleSheet.create({
  * Action buttons carry their SwiftUI role (`cancel` bold / `destructive` red)
  * and dismiss automatically; the presented-state change then reports
  * `onDismiss`. A disabled action is greyed out by SwiftUI's `disabled`, and
- * takes no press. A field goes among the actions, which is where SwiftUI's
- * alert takes one.
+ * its `onPress` is not wired. A field goes among the actions, which is where
+ * SwiftUI's alert takes one.
  */
 function SwiftUIAlertView({title, message, visible, onDismiss, actions = DEFAULT_ACTIONS, sheet, input, children, testID}: AlertProps) {
   const Component = sheet ? ConfirmationDialog : SwiftUIAlert;
@@ -74,15 +74,21 @@ function SwiftUIAlertView({title, message, visible, onDismiss, actions = DEFAULT
             testID={input.testID}
           />
         ) : null}
-        {actions.map((action, index) => (
-          <Button
-            key={index}
-            label={action.label}
-            role={action.role ?? 'default'}
-            onPress={action.onPress}
-            modifiers={action.disabled ? [disabledMod(true)] : undefined}
-          />
-        ))}
+        {actions.map((action, index) => {
+          const disabled = action.disabled === true;
+          return (
+            <Button
+              key={index}
+              label={action.label}
+              role={action.role ?? 'default'}
+              // A disabled action calls nothing even if SwiftUI's view of it lags behind.
+              onPress={disabled ? undefined : action.onPress}
+              // Always the modifier, so enabling an action is a value the button
+              // updates rather than a prop taken away.
+              modifiers={[disabledMod(disabled)]}
+            />
+          );
+        })}
       </Component.Actions>
     </Component>
   );

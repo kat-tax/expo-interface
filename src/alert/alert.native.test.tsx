@@ -78,7 +78,7 @@ describe(`Alert (${Platform.OS})`, () => {
   it('defaults to a single OK action', async () => {
     await render(<Alert title="Hi" visible testID="alert"/>);
     if (isIOS) {
-      expect(children(slot('actions')).map(b => b.props)).toEqual([{role: 'cancel', label: 'OK'}]);
+      expect(children(slot('actions')).map(({props: {role, label}}) => ({role, label}))).toEqual([{role: 'cancel', label: 'OK'}]);
       expect(hasSlot('message')).toBe(false);
     } else {
       expect(buttonsIn('dismissButton').map(b => b.label)).toEqual(['OK']);
@@ -101,7 +101,7 @@ describe(`Alert (${Platform.OS})`, () => {
       />,
     );
     if (isIOS) {
-      expect(children(slot('actions')).map(b => b.props)).toEqual([
+      expect(children(slot('actions')).map(({props: {role, label}}) => ({role, label}))).toEqual([
         {role: 'cancel', label: 'Cancel'},
         {role: 'destructive', label: "Don't save"},
         {role: 'default', label: 'Save'},
@@ -187,24 +187,22 @@ describe(`Alert (${Platform.OS})`, () => {
   });
 
   it('greys out a disabled action, which takes no press', async () => {
-    await render(
-      <Alert
-        title="Rename"
-        visible
-        testID="alert"
-        actions={[
-          {label: 'Cancel', role: 'cancel', disabled: true, onPress: vi.fn()},
-          {label: 'Rename', disabled: true, onPress: vi.fn()},
-          {label: 'Keep', onPress: vi.fn()},
-        ]}
-      />,
-    );
+    const onRename = vi.fn();
+    const actions = (disabled: boolean): AlertAction[] => [
+      {label: 'Cancel', role: 'cancel', disabled: true, onPress: vi.fn()},
+      {label: 'Rename', disabled, onPress: onRename},
+      {label: 'Keep', onPress: vi.fn()},
+    ];
+    const {rerender} = await render(<Alert title="Rename" visible testID="alert" actions={actions(true)}/>);
     if (isIOS) {
-      expect(children(slot('actions')).map(b => modifier(b.props, 'disabled'))).toEqual([
-        {$type: 'disabled', disabled: true},
-        {$type: 'disabled', disabled: true},
-        undefined,
-      ]);
+      // Every button carries the modifier, so enabling one changes its value.
+      const state = () => children(slot('actions')).map(b => [modifier(b.props, 'disabled')?.disabled, typeof b.props.onButtonPress]);
+      expect(state()).toEqual([[true, 'undefined'], [true, 'undefined'], [false, 'function']]);
+      await rerender(<Alert title="Rename" visible testID="alert" actions={actions(false)}/>);
+      expect(state()).toEqual([[true, 'undefined'], [false, 'function'], [false, 'function']]);
+      const [rename] = screen.container.queryAll(i => i.props.label === 'Rename' && typeof i.props.onButtonPress === 'function');
+      await fireEvent(rename, 'buttonPress');
+      expect(onRename).toHaveBeenCalledTimes(1);
     } else {
       // A disabled Material button, with no press handler at all.
       const state = (name: string) => buttonsIn(name).map(b => [b.label, b.props.enabled, typeof b.props.onButtonPressed]);
