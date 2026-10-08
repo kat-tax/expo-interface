@@ -54,9 +54,11 @@ export interface EmptyStateProps {
   icon?: IconToken;
   /**
    * One thing to do about it: the kit's `Button`, from data, drawn inside the
-   * platform's own view. A node of the app's own is drawn below it in React
-   * Native instead, or, inside a host on iOS and Android, hosted in the view,
-   * where the kit's controls in it mount hosts of their own.
+   * platform's own view. A node of the app's own is React Native content: on
+   * Android, and on iOS inside a host, it is hosted in the view, where the
+   * kit's controls in it mount hosts of their own; on iOS outside a host it
+   * sits below the view, and the web and Windows draw it under the
+   * description.
    */
   action?: EmptyStateAction | ReactNode;
   /**

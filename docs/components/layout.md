@@ -463,9 +463,10 @@ connection. Props: `title`, `description`, `icon`, `action`, `loading`,
 `variant` (`filled` by default), `icon`, `disabled`, `loading`. The kit draws
 it as its own `Button` inside the platform's view, so natively the action is
 native beside native text rather than a React Native hop between the two. A
-node of the app's own is drawn below the view in React Native instead; inside
-a host it rides in the view as hosted React Native content, where the kit's
-controls mount hosts of their own.
+node of the app's own is React Native content instead: on Android, and on iOS
+inside a host, it rides in the view as hosted React Native content, where the
+kit's controls mount hosts of their own; on iOS outside a host it is drawn
+below the view, and the web and Windows draw it under the description.
 `loading` puts the platform's spinner in the icon's place, so a screen waiting
 for its record is the same empty state as one that has none. The description
 wraps at the screen's width and can be selected and copied, unless
