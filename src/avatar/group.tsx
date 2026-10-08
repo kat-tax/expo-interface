@@ -2,8 +2,14 @@ import type {AvatarGroupProps} from './types';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {pressFeedback} from '../surface/shared';
 import {isColorToken, useColor} from '../theme';
-import {DrawnAvatar} from './drawn';
+import {AvatarFace} from './drawn';
 import {AVATAR_RING} from './shared';
+
+/**
+ * The circle inside a face's button: the button is the accessibility
+ * element, so the circle gets no name and no stop of its own.
+ */
+const SILENT = {accessible: false, accessibilityLabel: undefined};
 
 /**
  * People as overlapping faces, a facepile (see {@link AvatarGroupProps}).
@@ -28,7 +34,17 @@ export function AvatarGroup({people, max = 3, size = 24, ring = 'background', on
         // one, once the island can take the press itself (a XAML Button
         // around the picture, reporting a press and a press and hold): an
         // island takes the pointer before a Pressable around it does.
-        const face = <DrawnAvatar {...person} size={size} ring={person.ring ?? ring}/>;
+        const face = (
+          <AvatarFace
+            name={person.name}
+            initials={person.initials}
+            color={person.color}
+            ring={person.ring ?? ring}
+            dimmed={person.dimmed}
+            size={size}
+            {...(pressable ? SILENT : null)}
+          />
+        );
         return (
           <View key={person.key ?? `${person.name}-${index}`} style={index > 0 ? {marginLeft: -overlap} : null}>
             {pressable ? (

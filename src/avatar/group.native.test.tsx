@@ -48,4 +48,17 @@ describe(`AvatarGroup (${Platform.OS})`, () => {
     expect(screen.getByText('+5')).toBeOnTheScreen();
     expect(StyleSheet.flatten(screen.getByText('+5').parent!.parent!.props.style)).toMatchObject({marginLeft: -0});
   });
+
+  it('makes a pressable face one stop, the button, with the circle inside it silent', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await render(<AvatarGroup people={[{name: 'Ada Lovelace', key: 'ada-1'}, {name: 'Alan Turing'}]} onPress={() => {}}/>);
+    const ada = screen.getByRole('button', {name: 'Ada Lovelace'});
+    expect(screen.getAllByLabelText('Ada Lovelace')).toEqual([ada]);
+    const circle = screen.getByText('AL').parent!;
+    expect(circle.props.accessible).toBe(false);
+    expect(circle.props.accessibilityLabel).toBeUndefined();
+    // A person's key tells the faces apart; it is not spread into the circle.
+    expect(error.mock.calls.some(call => call.join(' ').includes('"key" prop'))).toBe(false);
+    error.mockRestore();
+  });
 });

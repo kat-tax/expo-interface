@@ -9,5 +9,8 @@ describe('AvatarGroup (windows)', () => {
     expect(islands('ExpoInterfacePersonPicture')).toHaveLength(0);
     await fireEvent.press(screen.getAllByRole('button', {name: 'Grace Hopper'})[0]);
     expect(onPress).toHaveBeenCalledWith({name: 'Grace Hopper'}, 1);
+    // One UIA element per face: the button, with the circle inside it silent.
+    expect(screen.getAllByLabelText('Grace Hopper')).toEqual([screen.getByRole('button', {name: 'Grace Hopper'})]);
+    expect(screen.getByText('GH').parent!.props.accessible).toBe(false);
   });
 });
