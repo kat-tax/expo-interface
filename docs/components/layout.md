@@ -333,8 +333,8 @@ row, in the selected fill and announced as selected), `action` (`label`,
 `swipeActions` (`label`, `onPress`, `icon`, `role`, `disabled` per action),
 `inset` (default true), `onPress`, `testID`.
 
-A row whose headline is a string is named from its slots on every platform:
-"Essay, Edited, 2 KB, 3 new" for a headline, supporting text, value and
+A row whose headline is a string is named from its slots on iOS, web and
+Windows: "Essay, Edited, 2 KB, 3 new" for a headline, supporting text, value and
 badge, so a screen reader hears the row as one thing. A headline of the
 app's own content keeps whatever name that content has.
 
@@ -353,6 +353,11 @@ Differences:
   wrap the row in a `ContextMenu` as well.
 - `inset` has nothing to turn off on iOS, where the `Form` supplies every
   inset.
+- On Android TalkBack reads the row's own texts as Compose merges them: a
+  badge's count is its number and a dot says nothing, since `@expo/ui`'s
+  Compose layer has no modifier that sets a description. `selected` is
+  announced on a row that presses by itself; an inert row, or one with
+  `swipeActions`, shows the fill alone.
 - On iOS and Android a row outside a host (a React Native `ScrollView` of
   rows) mounts a host of its own, so it draws there too. See
   [Native hosts](../hosts.md).

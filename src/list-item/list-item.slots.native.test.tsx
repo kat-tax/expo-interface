@@ -1,5 +1,5 @@
 import {Platform, Text} from 'react-native';
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
 import {NativeHostContext} from '../host';
 import {colors} from '../theme';
@@ -105,6 +105,31 @@ describe(`ListItem slots (${Platform.OS})`, () => {
       expect(modifier(row('flush').props, 'background')?.color).toBe(colors.light.backgroundSelected);
       expect(row('plain').props.colors).toEqual({containerColor: '#00000000'});
     }
+  });
+
+  (isIOS ? it.skip : it)('says a row that presses is the current one, through Compose\'s selectable', async () => {
+    const onPress = vi.fn();
+    await render(
+      <>
+        <ListItem selected onPress={onPress} testID="chosen">Chosen</ListItem>
+        <ListItem selected inset={false} onPress={onPress} testID="flush">Flush</ListItem>
+        <ListItem onPress={onPress} testID="other">Other</ListItem>
+        <ListItem selected testID="inert">Inert</ListItem>
+      </>,
+      options,
+    );
+    expect(modifier(row('chosen').props, 'selectable')).toMatchObject({selected: true});
+    expect(modifier(row('chosen').props, 'selectable')?.role).toBeUndefined();
+    expect(modifier(row('chosen').props, 'clickable')).toBeUndefined();
+    expect(modifier(row('flush').props, 'selectable')?.selected).toBe(true);
+    // A row that is not the current one is not "Not selected": it is a plain press.
+    expect(modifier(row('other').props, 'clickable')).toBeDefined();
+    expect(modifier(row('other').props, 'selectable')).toBeUndefined();
+    // An inert row has no press to carry the state, so it shows the fill alone.
+    expect(modifier(row('inert').props, 'selectable')).toBeUndefined();
+    expect(modifier(row('inert').props, 'clickable')).toBeUndefined();
+    await act(async () => modifier(row('chosen').props, 'selectable')!.eventListener());
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 
   it('leaves the name to content of the app\'s own, and the slots empty without any', async () => {

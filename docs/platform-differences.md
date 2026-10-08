@@ -22,6 +22,8 @@ The differences that change what a screen can do, in one place:
 | `Badge` `99+` | Yes | Yes | Yes | Shows the cap |
 | `Badge` announced name | Label | Label; the number only inside a host | Label | Label |
 | `Badge` `style` | Yes | Not applied inside a host | Yes | Yes |
+| `ListItem` named from its slots | Yes | The row's own texts | Yes | Yes |
+| `ListItem` `selected` announced | Yes | On a row that presses, without `swipeActions` | Yes | Yes |
 | `SegmentedControl` `size`, `shape` | `pill` only | Yes | Yes | Not applied |
 | `Stepper` `formatValue` | Yes | Yes | Yes | Not applied |
 | `TextField` `autoCapitalize` | Yes | Yes | Yes | No equivalent |

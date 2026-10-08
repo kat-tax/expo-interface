@@ -2,7 +2,7 @@ import type {ReactNode} from 'react';
 import type {ListItemProps} from './types';
 import {ROW_ICON, WithRowMenu} from './shared';
 import {Button, CircularProgressIndicator, Column, Icon, ListItem as ComposeListItem, Row, Shape, Spacer, Text, TextButton} from '@expo/ui/jetpack-compose';
-import {background, clickable, fillMaxWidth, size, testID as testIDModifier, weight, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
+import {background, clickable, fillMaxWidth, selectable, size, testID as testIDModifier, weight, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
 import {Badge} from '../badge';
 import {androidContentPadding} from '../button/shared';
 import {NativeHost, useNativeHost} from '../host';
@@ -53,6 +53,12 @@ export function ListItem({swipeActions, ...props}: ListItemProps) {
  * drew. The `Row` carries no padding of its own either — its container hands
  * down a minimum height and centers the row within it, so padding would not
  * fill that height but add to it, standing the row taller than its siblings.
+ *
+ * A row that presses is `clickable`, or `selectable` while it is the current
+ * one, which puts the state in its semantics for TalkBack. The name composed
+ * from the slots has nowhere to go: `@expo/ui`'s Compose `semantics` takes
+ * `contentType` alone, so TalkBack reads the row's texts as Compose merges
+ * them.
  */
 function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
   const label = useColor('label');
@@ -63,8 +69,15 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
   const toned = useColor(TONE_TOKEN[iconTone]);
   const selectedFill = useColor('backgroundSelected');
   const onAction = useColor(action?.role === 'destructive' ? 'onDestructive' : 'onTint');
+  // A row that presses says it is the current one: Compose's `selectable` puts
+  // the state in the row's semantics, which TalkBack reads as "Selected". Only
+  // the current row carries it, as only the current one carries iOS's trait and
+  // the web's `aria-current`: a `selectable` row that is not selected is read as
+  // "Not selected", which a settings row is not. No role: each one announces a
+  // control a row is not.
+  const press = onPress ? (selected ? selectable(true, onPress) : clickable(onPress)) : undefined;
   const modifiers = [
-    ...(onPress ? [clickable(onPress)] : []),
+    ...(press ? [press] : []),
     ...(testID ? [testIDModifier(testID)] : []),
   ];
   const actionColor = action?.role === 'destructive' ? destructive : tint;

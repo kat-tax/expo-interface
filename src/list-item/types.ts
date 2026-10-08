@@ -73,7 +73,8 @@ export interface ListItemProps {
   /**
    * A mark at the trailing edge: `true` for a dot (something unread, something
    * changed), a number for a count. The kit's `Badge`, and part of the row's
-   * accessible name.
+   * accessible name on iOS, web and Windows. On Android TalkBack reads the
+   * row's own texts, so a count is its number and a dot says nothing.
    */
   badge?: boolean | number;
   /** Trailing (end) slot — chevron, value, control, etc. */
@@ -101,7 +102,10 @@ export interface ListItemProps {
   supporting?: string | ReactNode;
   /**
    * The row is the current one: the open document, the chosen version. Drawn
-   * in the selected fill and announced as selected.
+   * in the selected fill and announced as selected. On Android it is announced
+   * on a row that presses by itself (Compose's `selectable`); an inert row, or
+   * one whose press goes through its context menu (`swipeActions`), shows the
+   * fill alone.
    * @default false
    */
   selected?: boolean;
