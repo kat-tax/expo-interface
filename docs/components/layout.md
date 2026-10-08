@@ -381,16 +381,16 @@ Props: `data`, `renderItem(item, index)`, `keyExtractor` (the index when
 left out), `separators` (default true), `header`, `footer`, `empty` (what
 shows in place of the rows when there are none, usually an `EmptyState`),
 `onEndReached` (called once the last row has been drawn, for a list that
-loads more), `estimatedItemHeight` (default 56: what the web lays out for a
-row before it comes into view; the other platforms measure their rows), `contentInset`
-(`top`, `bottom`, the space inside the list before the first row and after
-the last), `style`, `testID`.
+loads more), `estimatedItemHeight` (default 56: what the web counts a row
+it has not drawn yet as; the other platforms measure their rows),
+`contentInset` (`top`, `bottom`, the space inside the list before the first
+row and after the last), `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `List` in the plain style: it recycles its rows, draws its own separators and scrolls under a translucent bar |
 | Android | Compose `LazyColumn`, with a Material `HorizontalDivider` between the rows |
-| Web | A DOM list whose rows the browser lays out as they come into view (`content-visibility: auto`), with hairlines between them |
+| Web | A DOM list that scrolls itself and draws only the rows near the view, with hairlines between them |
 | Windows | React Native's `FlatList`, windowed, measuring its rows |
 
 Differences:
@@ -425,6 +425,18 @@ Differences:
   same in a parent that has a height. Its padding by `useScrollInsets()` is
   inside the scroller, and so is its scroll padding, so a row the keyboard
   focus brings into view stops clear of the bar.
+- On the web the list draws the rows inside the part of it the window
+  shows, and a viewport more above and below. Two spacers keep the room of
+  the other rows, at the height each row was measured at once drawn and at
+  `estimatedItemHeight` before, and neither is a scroll anchor, so the drawn
+  rows hold still while a spacer changes. Each row says where it stands in
+  the whole (`aria-posinset`, `aria-setsize`). `onEndReached` fires once the
+  window draws the last row, and again when more rows arrive while it is
+  still drawn, so a list that loads more fills the view. Safari has no
+  scroll anchoring, so there a scroll up into rows never drawn can move
+  what shows by the difference between their height and the estimate. A
+  row scrolled out of the window is removed, as a native lazy list removes
+  it, and the focus with it.
 
 ## CardGrid
 
@@ -437,13 +449,13 @@ Props: `data`, `renderItem(item, index)` (one cell, usually a `Card`, which
 fills the cell's width), `keyExtractor`, `minItemWidth` (default 150),
 `maxColumns` (default 4), `gap` (default 12, on both axes), `header`,
 `footer`, `empty`, `onEndReached`, `estimatedItemHeight` (default 180: what
-the web lays out for a cell before it comes into view; the `FlatList`
+the web counts a row of cells it has not drawn yet as; the `FlatList`
 measures its rows), `contentInset`, `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
 | iOS, Android, Windows | React Native's `FlatList` of rows, windowed, measuring its rows, with the column count worked out from the measured width; a short last row keeps its cells the width of the others |
-| Web | A CSS grid, each cell laid out as it comes into view (`content-visibility: auto`) |
+| Web | A CSS grid that scrolls itself and draws only the rows of cells near the view |
 
 Differences:
 
@@ -470,6 +482,15 @@ Differences:
   its cells and the parent scrolls it; `style={{flexShrink: 0}}` does the
   same in a parent that has a height. Its padding by `useScrollInsets()` is
   inside the scroller, and so is its scroll padding.
+- On the web the grid draws the rows of cells inside the part of it the
+  window shows, and a viewport more above and below, with two spacers for
+  the room of the other rows, as the `List` does. Once its width is
+  measured it counts the columns the way the native grid does and writes
+  them into the grid, so a row of cells it draws is one row of the grid;
+  until then (a static page, the first paint) the stylesheet counts the
+  same columns. Each cell says where it stands in the whole
+  (`aria-posinset`, `aria-setsize`), and `onEndReached` fires once the
+  window draws the last row.
 
 ## Collapsible
 

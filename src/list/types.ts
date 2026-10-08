@@ -10,8 +10,9 @@ import type {StyleProp, ViewStyle} from 'react-native';
  * - iOS: SwiftUI `List`, in the plain style, which draws its separators and
  *   recycles its rows.
  * - Android: Compose `LazyColumn`, with a Material divider between rows.
- * - Web: a DOM list whose rows the browser lays out as they come into view
- *   (`content-visibility: auto`).
+ * - Web: a DOM list that scrolls itself and draws only the rows near the
+ *   view, two spacers keeping the room of the rest at their measured
+ *   heights once seen and at `estimatedItemHeight` before.
  * - Windows: React Native's `FlatList`, windowed.
  *
  * Every platform's list scrolls itself and fills the space its parent gives
@@ -56,8 +57,8 @@ export interface ListProps<T> {
   /** Called once the last row has been drawn, for a list that loads more. */
   onEndReached?: () => void;
   /**
-   * A row's height, in points, before the web has measured it: what the web
-   * lays out for a row before it has come into view. iOS, Android and
+   * A row's height, in points, before the web has measured it: what the
+   * web's window counts a row it has not drawn yet as. iOS, Android and
    * Windows measure their rows.
    * @default 56
    */

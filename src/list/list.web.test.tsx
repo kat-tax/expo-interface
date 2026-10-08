@@ -5,41 +5,36 @@ import {List} from '.';
 
 const rows = ['Essay', 'Notes', 'Sketch'];
 
-/** jsdom has no IntersectionObserver; one that hands its callback out. */
-let observe: ((entries: {isIntersecting: boolean}[]) => void) | null = null;
-const disconnect = vi.fn();
-
 describe('List (web)', () => {
-  beforeAll(() => {
-    vi.stubGlobal('IntersectionObserver', class {
-      constructor(callback: (entries: {isIntersecting: boolean}[]) => void) {
-        observe = callback;
-      }
-      observe() {}
-      disconnect = disconnect;
-    });
-  });
-
-  afterAll(() => {
-    vi.unstubAllGlobals();
-  });
-
-  it('is a DOM list of the rows, each laid out as it comes into view, with hairlines between them', () => {
+  it('is a DOM list of the rows, each saying where it stands, with hairlines between them', () => {
     render(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} keyExtractor={title => title} testID="list"/>);
     const list = screen.getByRole('list');
     const items = screen.getAllByRole('listitem');
     expect(items).toHaveLength(3);
     expect(items.map(item => item.textContent)).toEqual(rows);
+    expect(items.map(item => item.getAttribute('aria-posinset'))).toEqual(['1', '2', '3']);
+    expect(items.every(item => item.getAttribute('aria-setsize') === '3')).toBe(true);
+    expect(items[0]!.dataset.windowKey).toBe('Essay');
+    // The hairline is above every row but the first.
     expect(items[0]).toHaveClass('ui-list__row');
+    expect(items[0]).not.toHaveClass('ui-list__row--ruled');
+    expect(items[1]).toHaveClass('ui-list__row', 'ui-list__row--ruled');
     expect(screen.getByTestId('list')).toHaveClass('ui-list--separated');
-    expect(screen.getByTestId('list').style.getPropertyValue('--ui-list-row')).toBe('56px');
+    // The list owns only its rows: the spacers are beside it, in the scroller.
     expect(list.parentElement).toBe(screen.getByTestId('list'));
+    expect(list.previousElementSibling).toHaveClass('ui-list__spacer');
+    expect(list.nextElementSibling).toHaveClass('ui-list__spacer');
   });
 
-  it('drops the hairlines when asked, and takes a row height of the app\'s own', () => {
-    render(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} separators={false} estimatedItemHeight={72} testID="list"/>);
+  it('drops the hairlines when asked, and keeps the rows it has not drawn at the app\'s own row height', () => {
+    const many = Array.from({length: 300}, (_, index) => `Row ${index}`);
+    render(<List data={many} renderItem={title => <ListItem>{title}</ListItem>} separators={false} estimatedItemHeight={72} testID="list"/>);
     expect(screen.getByTestId('list')).not.toHaveClass('ui-list--separated');
-    expect(screen.getByTestId('list').style.getPropertyValue('--ui-list-row')).toBe('72px');
+    // Nothing is laid out here: the first 1200 px of rows are drawn, and the rest is room.
+    expect(screen.getAllByRole('listitem')).toHaveLength(17);
+    const spacers = screen.getByTestId('list').querySelectorAll<HTMLElement>('.ui-list__spacer');
+    expect(spacers[0]!.style.height).toBe('0px');
+    expect(spacers[1]!.style.height).toBe(`${(300 - 17) * 72}px`);
   });
 
   it('puts the header before the rows and the footer after, and the empty state in place of no rows', () => {
@@ -52,25 +47,6 @@ describe('List (web)', () => {
     unmount();
     render(<List data={['One']} renderItem={title => <ListItem>{title}</ListItem>} header={<p>Header</p>} footer={<p>Footer</p>} empty={<p>Nothing yet</p>} testID="list"/>);
     expect(screen.getByTestId('list').textContent).toBe('HeaderOneFooter');
-  });
-
-  it('reports the end once the last row is in view, and stops watching when it goes', () => {
-    const onEndReached = vi.fn();
-    const {unmount} = render(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} onEndReached={onEndReached}/>);
-    observe!([{isIntersecting: false}]);
-    expect(onEndReached).not.toHaveBeenCalled();
-    observe!([{isIntersecting: true}]);
-    expect(onEndReached).toHaveBeenCalledTimes(1);
-    unmount();
-    expect(disconnect).toHaveBeenCalled();
-  });
-
-  it('watches nothing without a handler, or with nothing to watch', () => {
-    observe = null;
-    render(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>}/>);
-    expect(observe).toBeNull();
-    render(<List data={[]} renderItem={() => null} onEndReached={() => {}}/>);
-    expect(observe).toBeNull();
   });
 
   it('pads its content by the screen\'s bar and its own insets, inside the scroller', () => {
@@ -88,7 +64,7 @@ describe('List (web)', () => {
     expect(list.style.marginTop).toBe('4px');
   });
 
-  it('scrolls itself, filling the space its parent gives it', async () => {
+  it('scrolls itself, filling the space its parent gives it, and leaves the rows to the window', async () => {
     const {readFileSync} = await import('node:fs');
     const {join} = await import('node:path');
     const css = readFileSync(join(__dirname, 'list.css'), 'utf8');
@@ -98,5 +74,9 @@ describe('List (web)', () => {
     expect(root).toContain('flex: 1 1 auto;');
     expect(root).toContain('min-height: 0;');
     expect(/\.ui-list__rows \{([^}]*)\}/.exec(css)![1]).toContain('flex: none;');
+    // Never a scroll anchor, so the drawn rows hold still while a spacer changes.
+    expect(/\.ui-list__spacer \{([^}]*)\}/.exec(css)![1]).toContain('overflow-anchor: none;');
+    // A row skipped by the browser would report the estimate as its height.
+    expect(css).not.toContain('content-visibility');
   });
 });

@@ -2,13 +2,13 @@
  * A list of rows on the web. The list is its own scroller: it fills the room
  * its parent gives it and scrolls its rows inside, with the screen's insets
  * as padding (and scroll padding) inside the scroller. In a parent with no
- * height of its own it grows to its rows and the parent scrolls it. Each row
- * is laid out as it comes into view and kept at its estimated height until
- * then (`content-visibility: auto`). The hairline between rows is the
- * separator color, as the platforms' own lists draw it.
+ * height of its own it grows to its rows and the parent scrolls it. Only the
+ * rows near the view are drawn; a spacer before them and one after keep the
+ * room of the rest, and neither is ever a scroll anchor, so the browser holds
+ * the drawn rows still while a spacer changes. The hairline between rows is
+ * the separator color, as the platforms' own lists draw it.
  */
 .ui-list {
-  --ui-list-row: 56px;
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
@@ -25,11 +25,11 @@
   width: 100%;
 }
 
-.ui-list__row {
-  content-visibility: auto;
-  contain-intrinsic-size: auto var(--ui-list-row);
+.ui-list__spacer {
+  flex: none;
+  overflow-anchor: none;
 }
 
-.ui-list--separated .ui-list__row + .ui-list__row {
+.ui-list--separated .ui-list__row--ruled {
   border-top: 1px solid var(--color-separator);
 }

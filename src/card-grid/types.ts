@@ -11,8 +11,9 @@ import type {StyleProp, ViewStyle} from 'react-native';
  *
  * - iOS, Android, Windows: React Native's `FlatList`, windowed, with the
  *   column count worked out from the measured width.
- * - Web: a CSS grid, each cell laid out as it comes into view
- *   (`content-visibility: auto`).
+ * - Web: a CSS grid that scrolls itself and draws only the rows of cells
+ *   near the view, two spacers keeping the room of the rest at their
+ *   measured heights once seen and at `estimatedItemHeight` before.
  *
  * Every platform's grid scrolls itself and fills the space its parent gives
  * it (a `Screen`'s content, a view with `flex: 1`). On the web, in a parent
@@ -53,9 +54,9 @@ export interface CardGridProps<T> {
   /** Called once the last cells have been drawn, for a grid that loads more. */
   onEndReached?: () => void;
   /**
-   * A cell's height, in points, before the web has measured it: what the web
-   * lays out for a cell before it has come into view. The native `FlatList`
-   * measures its rows.
+   * A cell's height, in points, before the web has measured it: what the
+   * web's window counts a row of cells it has not drawn yet as. The native
+   * `FlatList` measures its rows.
    * @default 180
    */
   estimatedItemHeight?: number;

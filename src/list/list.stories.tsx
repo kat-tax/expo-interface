@@ -30,7 +30,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A list of rows that grows, as the platform's own lazy list: SwiftUI's `List` on iOS, Compose's `LazyColumn` on Android, a DOM list whose rows the browser lays out as they come into view on web, a windowed `FlatList` on Windows. The rows are `ListItem`s.",
+          "A list of rows that grows, as the platform's own lazy list: SwiftUI's `List` on iOS, Compose's `LazyColumn` on Android, a windowed DOM list on web, a windowed `FlatList` on Windows. The rows are `ListItem`s.",
       },
     },
   },
