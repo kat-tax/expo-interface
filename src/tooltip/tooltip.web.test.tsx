@@ -1,12 +1,17 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
-import type {ReactNode} from 'react';
+import type {ReactElement} from 'react';
 import {render, screen} from '@testing-library/react';
 import {Tooltip} from '.';
 
-/** The subset of `react-dom/client` used below (the package ships no types here). */
-interface ReactDOMClient {
-  createRoot(container: Element): {render(element: ReactNode): void; unmount(): void};
+/** Gives jsdom the Interest Invoker API for the length of `run`. */
+async function withInterest(run: () => void | Promise<void>) {
+  Object.defineProperty(HTMLButtonElement.prototype, 'interestForElement', {value: null, configurable: true});
+  try {
+    await run();
+  } finally {
+    delete (HTMLButtonElement.prototype as {interestForElement?: unknown}).interestForElement;
+  }
 }
 
 describe('Tooltip (web)', () => {
@@ -37,38 +42,46 @@ describe('Tooltip (web)', () => {
   });
 
   it('renders a popover="hint" when the Interest Invoker API exists', async () => {
-    // `interestfor` support is detected once at module load, so re-load the
-    // component from a reset module registry (with React and the renderer
-    // imported alongside, so hooks and the renderer agree) after polyfilling
-    // the detection.
-    Object.defineProperty(HTMLButtonElement.prototype, 'interestForElement', {value: null, configurable: true});
-    const container = document.body.appendChild(document.createElement('div'));
-    try {
-      vi.resetModules();
-      const React = await vi.importActual<typeof import('react')>('react');
-      const {createRoot} = await vi.importActual<ReactDOMClient>('react-dom/client');
-      const {Tooltip: InterestTooltip} = await vi.importActual<typeof import('.')>('.');
-      const root = createRoot(container);
-      React.act(() => {
-        root.render(<InterestTooltip text="Hint text" testID="hint">Public</InterestTooltip>);
-      });
+    // Support is asked at render, so the API added here is seen without reloading the module.
+    await withInterest(() => {
+      render(<Tooltip text="Hint text" testID="hint">Public</Tooltip>);
+      const trigger = screen.getByTestId('hint');
+      const hint = screen.getByRole('tooltip', {hidden: true});
+      expect(trigger).not.toHaveAttribute('title');
+      expect(trigger).toHaveAttribute('interestfor', hint.id);
+      expect(hint.id).toMatch(/^ui-tooltip-/);
+      expect(hint).toHaveAttribute('popover', 'hint');
+      expect(hint).toHaveClass('ui-tooltip__hint');
+      expect(hint).toHaveTextContent('Hint text');
+    });
+  });
+
+  it('takes the hint once a static page has hydrated', async () => {
+    // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
+    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
+    await withInterest(() => {
+      const tree = <Tooltip text="Hint text" testID="hint">Public</Tooltip>;
+      // What a static export writes: the server has no browser to ask, so the title fallback.
+      const container = document.body.appendChild(document.createElement('div'));
+      container.innerHTML = renderToString(tree);
+      const trigger = () => container.querySelector('[data-testid="hint"]') as HTMLElement;
+      expect(trigger()).toHaveAttribute('title', 'Hint text');
+      expect(container.querySelector('[role="tooltip"]')).toBeNull();
+      const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
       try {
-        const trigger = container.querySelector('[data-testid="hint"]');
-        const hint = container.querySelector('[role="tooltip"]');
-        expect(trigger).not.toBeNull();
-        expect(hint).not.toBeNull();
-        expect(trigger).not.toHaveAttribute('title');
-        expect(trigger).toHaveAttribute('interestfor', hint?.id);
-        expect(hint?.id).toMatch(/^ui-tooltip-/);
+        const {unmount} = render(tree, {container, hydrate: true});
+        // Hydration matches the HTML, so React reports no difference, and the
+        // render after it takes the hint.
+        expect(errors).not.toHaveBeenCalled();
+        const hint = container.querySelector('[role="tooltip"]') as HTMLElement;
         expect(hint).toHaveAttribute('popover', 'hint');
-        expect(hint).toHaveClass('ui-tooltip__hint');
-        expect(hint).toHaveTextContent('Hint text');
+        expect(trigger()).toHaveAttribute('interestfor', hint.id);
+        expect(trigger()).not.toHaveAttribute('title');
+        unmount();
       } finally {
-        React.act(() => root.unmount());
+        errors.mockRestore();
+        container.remove();
       }
-    } finally {
-      container.remove();
-      delete (HTMLButtonElement.prototype as {interestForElement?: unknown}).interestForElement;
-    }
+    });
   });
 });

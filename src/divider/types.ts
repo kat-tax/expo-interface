@@ -6,7 +6,11 @@
  * element on web.
  */
 export interface DividerProps {
-  /** Draw a vertical rule (for use inside a row) instead of a horizontal one. */
+  /**
+   * Draw a vertical rule (for use inside a row) instead of a horizontal one.
+   * It is as tall as its row, except inside a host on Android, where Compose
+   * gives it no row height to fill and it is 24dp, Material's icon size.
+   */
   vertical?: boolean;
   /** Line color. Defaults to the theme `separator` token. */
   color?: string;

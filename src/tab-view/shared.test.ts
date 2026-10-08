@@ -1,4 +1,4 @@
-import {TAB_BREAKPOINT, closeLabel, nextSelection, resolveLayout, switcherLabel, tabIndex} from './shared';
+import {TAB_BREAKPOINT, closeLabel, isAlone, nextSelection, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
 
 const TABS = [
   {id: 'a', title: 'Notes'},
@@ -58,6 +58,39 @@ describe('switcherLabel', () => {
 
   it('says the count alone when nothing is open', () => {
     expect(switcherLabel(TABS, 'gone')).toBe('3 tabs');
+  });
+});
+
+describe('isAlone', () => {
+  const props = {tabs: TABS, selected: 'a', onSelect: () => {}};
+
+  it('is the tabs alone when the element has no children at all', () => {
+    expect(isAlone(props)).toBe(true);
+  });
+
+  it('is a page for children written but rendering nothing', () => {
+    expect(isAlone({...props, children: null})).toBe(false);
+    expect(isAlone({...props, children: undefined})).toBe(false);
+  });
+
+  it('takes content for what it says, whatever the children are', () => {
+    // A wrapper's `<TabView {...rest}>{children}</TabView>` always has the key.
+    expect(isAlone({...props, children: undefined, content: false})).toBe(true);
+    expect(isAlone({...props, children: 'Page', content: false})).toBe(true);
+    expect(isAlone({...props, content: true})).toBe(false);
+    // Left out, as undefined, the element decides.
+    expect(isAlone({...props, content: undefined})).toBe(true);
+  });
+});
+
+describe('tabLabel', () => {
+  it('names a tab by its label, and by its title without one', () => {
+    expect(tabLabel({id: 'a', title: 'index.tsx', label: 'index.tsx, Ana is here'})).toBe('index.tsx, Ana is here');
+    expect(tabLabel(TABS[0]!)).toBe('Notes');
+  });
+
+  it('names a tab by its title when its label is empty', () => {
+    expect(tabLabel({id: 'a', title: 'index.tsx', label: ''})).toBe('index.tsx');
   });
 });
 

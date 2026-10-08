@@ -28,6 +28,17 @@ describe(`Avatar (${Platform.OS})`, () => {
     expect(screen.getByText('AL')).toBeOnTheScreen();
   });
 
+  it('passes only its own props to the circle', async () => {
+    // A person from an AvatarGroup spread into an Avatar, say: TypeScript does not check a spread's extra props.
+    const extra = {accessibilityLabel: 'Follow Ada', accessibilityHint: 'Hold to go there', label: 'Follow Ada', disabled: true};
+    await render(<Avatar name="Ada Lovelace" testID="peer" {...extra}/>);
+    const circle = screen.getByTestId('peer');
+    expect(circle.props.accessibilityLabel).toBe('Ada Lovelace');
+    expect(circle.props.accessibilityHint).toBeUndefined();
+    expect(circle.props.label).toBeUndefined();
+    expect(circle.props.disabled).toBeUndefined();
+  });
+
   it('takes initials, a color and a size of its own, and contrasts the text', async () => {
     await render(<Avatar name="Ada" initials="A1" color="#FFFFFF" size={40} testID="peer"/>);
     expect(StyleSheet.flatten(screen.getByTestId('peer').props.style)).toMatchObject({

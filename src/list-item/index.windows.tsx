@@ -35,7 +35,7 @@ export function ListItem({swipeActions, ...props}: ListItemProps) {
  * fill. Its metrics are a WinUI settings card's: 48 points tall at least,
  * 16 of padding at the ends, which a `FieldGroup.Section` supplies instead.
  */
-function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
+function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, badgeColor, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
   const selectedFill = useColor('backgroundSelected');
   const filled = action?.variant === 'filled';
   const headline = textOf(children);
@@ -59,7 +59,7 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
       {value != null || badge || trailing != null ? (
         <View style={styles.slot}>
           {value != null ? <Footnote color="secondaryLabel">{value}</Footnote> : null}
-          {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true}/> : null}
+          {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} color={badgeColor}/> : null}
           {trailing}
         </View>
       ) : null}

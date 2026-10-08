@@ -1,8 +1,10 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
+import type {ReactElement} from 'react';
 import type {MenuItem} from './types';
 import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
+import {MenuList} from './list';
 import {Menu} from '.';
 
 const items: MenuItem[] = [
@@ -204,12 +206,68 @@ describe('Menu (web)', () => {
     expect(red.childElementCount).toBe(2);
   });
 
-  it('measures the trigger to place the popup when CSS anchor positioning is missing', async () => {
-    // `MenuList` reads `CSS.supports` once at module load, so reload it.
-    const supports = vi.spyOn(CSS, 'supports').mockReturnValue(false);
-    vi.resetModules();
+  it('takes the anchor once a static page has hydrated', () => {
+    // A fixed id: `useId` writes a client render's ids apart from a hydrated one's.
+    const tree = <MenuList id="ui-menu-new" items={[{label: 'Blank document'}, {label: 'Import files'}]} anchor="--ui-menu-new"/>;
+    // The page as a static export's server draws it: with no `CSS` to ask, so with no anchor.
+    const container = document.createElement('div');
+    vi.stubGlobal('CSS', undefined);
     try {
-      const {MenuList} = await import('./list');
+      const server = render(tree);
+      container.innerHTML = server.container.innerHTML;
+      server.unmount();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    document.body.append(container);
+    const popover = () => container.querySelector('[popover]') as HTMLElement;
+    expect(popover()).not.toHaveClass('ui-menu__list--anchored');
+    expect(popover().style.getPropertyValue('position-anchor')).toBe('');
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const {unmount} = render(tree, {container, hydrate: true});
+      // Hydration matches the HTML, so React reports no difference, and the
+      // render after it takes the anchor, which hydration would not patch in.
+      expect(errors).not.toHaveBeenCalled();
+      expect(popover()).toHaveClass('ui-menu__list--anchored');
+      expect(popover().style.getPropertyValue('position-anchor')).toBe('--ui-menu-new');
+      unmount();
+    } finally {
+      errors.mockRestore();
+      container.remove();
+    }
+  });
+
+  it('hydrates a static page\'s Menu without a difference, and anchors its popup to its own trigger', async () => {
+    // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
+    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
+    const tree = <Menu label="New" items={[{label: 'Blank document'}, {label: 'Import files'}]} testID="new"/>;
+    // What a static export writes: the server's render, with the server's answer for the anchor.
+    const container = document.body.appendChild(document.createElement('div'));
+    container.innerHTML = renderToString(tree);
+    const popover = () => container.querySelector('[popover]') as HTMLElement;
+    const wrapper = () => container.querySelector('.ui-menu') as HTMLElement;
+    expect(popover()).not.toHaveClass('ui-menu__list--anchored');
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const {unmount} = render(tree, {container, hydrate: true});
+      expect(errors).not.toHaveBeenCalled();
+      expect(popover()).toHaveClass('ui-menu__list--anchored');
+      // The ids `useId` gave the server are the ones hydration keeps, so the
+      // trigger opens this popup and the popup is placed against this trigger.
+      expect(screen.getByTestId('new')).toHaveAttribute('popovertarget', popover().id);
+      expect(popover().style.getPropertyValue('position-anchor')).toBe(wrapper().style.getPropertyValue('anchor-name'));
+      expect(popover().style.getPropertyValue('position-anchor')).toMatch(/^--ui-menu-/);
+      unmount();
+    } finally {
+      errors.mockRestore();
+      container.remove();
+    }
+  });
+
+  it('measures the trigger to place the popup when CSS anchor positioning is missing', () => {
+    const supports = vi.spyOn(CSS, 'supports').mockReturnValue(false);
+    try {
       const anchor = document.createElement('button');
       vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue({right: 300, bottom: 40} as DOMRect);
       render(<MenuList id="ui-menu-x" items={items} anchor="--ui-menu-x" anchorRef={{current: anchor}}/>);
@@ -219,16 +277,14 @@ describe('Menu (web)', () => {
       fireEvent(menu, toggleEvent('open'));
       expect(menu.style.left).toBe('300px');
       expect(menu.style.top).toBe('44px');
-
     } finally {
       supports.mockRestore();
     }
   });
-  it('opens from the point, not the trigger, without CSS anchor positioning', async () => {
+
+  it('opens from the point, not the trigger, without CSS anchor positioning', () => {
     const supports = vi.spyOn(CSS, 'supports').mockReturnValue(false);
-    vi.resetModules();
     try {
-      const {MenuList} = await import('./list');
       const point = document.createElement('span');
       vi.spyOn(point, 'getBoundingClientRect').mockReturnValue({left: 120, right: 120, bottom: 60} as DOMRect);
       render(<MenuList id="ui-menu-y" items={items} anchor="--ui-menu-y" atPoint anchorRef={{current: point}}/>);
@@ -241,11 +297,9 @@ describe('Menu (web)', () => {
     }
   });
 
-  it('opens over the point when the top is asked for, without CSS anchor positioning', async () => {
+  it('opens over the point when the top is asked for, without CSS anchor positioning', () => {
     const supports = vi.spyOn(CSS, 'supports').mockReturnValue(false);
-    vi.resetModules();
     try {
-      const {MenuList} = await import('./list');
       const point = document.createElement('span');
       vi.spyOn(point, 'getBoundingClientRect').mockReturnValue({left: 120, right: 200, top: 100, bottom: 124} as DOMRect);
       render(<MenuList id="ui-menu-z" items={items} anchor="--ui-menu-z" atPoint edge="top" anchorRef={{current: point}}/>);

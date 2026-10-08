@@ -1,12 +1,14 @@
-import type {PopoverProps} from './types';
+import type {PopoverDismissReason, PopoverProps} from './types';
 import {Pressable, StyleSheet, View} from 'react-native';
 import XamlTeachingTip from '../windows/specs/ExpoInterfaceTeachingTipNativeComponent';
 import {jsonProp, useXamlProps} from '../windows';
 import {useAnchored} from '../anchored';
 import {Button} from '../button';
+import {NO_SCROLL_INSETS, ScrollInsetsContext} from '../screen/insets';
 import {Surface} from '../surface';
 import {Footnote, Subheadline} from '../typography';
 import {spacing} from '../theme';
+import {PlacedCard, SizedRow} from './placed';
 import {MODAL_CARD, useLinger} from './shared';
 
 /**
@@ -54,10 +56,20 @@ function TipPopover({at, title, message, actions = [], onDismiss, width = 280, p
   );
 }
 
-function DrawnPopover({at, title, message, actions, onDismiss, width = 280, preferredEdge = 'auto', modal = false, insets, trigger = 'manual', grace, children, testID}: PopoverProps) {
+function DrawnPopover({at, title, message, actions, onDismiss, width = 280, preferredEdge = 'auto', modal = false, label, insets, trigger = 'manual', grace, children, testID}: PopoverProps) {
   const linger = useLinger(at, trigger === 'hover', grace, () => onDismiss?.('leave'));
   const shown = linger.shown;
   const anchored = useAnchored({at: shown, preferredEdge, width, insets});
+  // A dismissal of the card's own ends a linger, so the card goes as soon
+  // as the app clears `at`.
+  const dismiss = (reason: PopoverDismissReason) => {
+    linger.end();
+    onDismiss?.(reason);
+  };
+  // react-native-windows composes no name from the text inside a view, so a
+  // modal card is named outright: an accessible view is a group to UI
+  // Automation, with its name and with the buttons inside it still reached.
+  const name = label || title;
 
   return (
     <View testID={testID ? `${testID}-bounds` : undefined} style={[styles.bounds, modal && shown ? styles.modal : null]} onLayout={anchored.onBounds}>
@@ -65,23 +77,27 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
         <Pressable
           accessibilityLabel="Dismiss"
           style={styles.backdrop}
-          onPress={() => onDismiss?.('backdrop')}
+          onPress={() => dismiss('backdrop')}
           testID={testID ? `${testID}-backdrop` : undefined}
         />
       ) : null}
       {shown ? (
-        <View
-          onLayout={anchored.onCard}
-          style={[styles.card, {width, left: anchored.left, top: anchored.top}]}
+        // The button islands are sized by XAML after the card's first layout,
+        // so the card waits for them.
+        <PlacedCard
+          anchored={anchored}
+          width={width}
+          sizedLater={!!actions?.length}
           testID={testID}
           {...linger.props}
-          {...(modal ? MODAL_CARD : null)}>
+          {...(modal ? {...MODAL_CARD, ...(name ? {accessible: true, accessibilityLabel: name} : null)} : null)}>
           <Surface raised border="all" padding={spacing.three} style={styles.body}>
             {title ? <Subheadline color="label" weight="semibold">{title}</Subheadline> : null}
             {message ? <Footnote color="secondaryLabel">{message}</Footnote> : null}
-            {children}
+            {/* The card floats over the screen, under none of its bars: a list or a form in it pads by its own insets alone. */}
+            <ScrollInsetsContext.Provider value={NO_SCROLL_INSETS}>{children}</ScrollInsetsContext.Provider>
             {actions?.length ? (
-              <View style={styles.actions}>
+              <SizedRow style={styles.actions} testID={testID ? `${testID}-actions` : undefined}>
                 {actions.map((action, index) => (
                   <Button
                     key={index}
@@ -91,14 +107,14 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
                     role={action.role}
                     onPress={() => {
                       action.onPress();
-                      onDismiss?.('action');
+                      dismiss('action');
                     }}
                   />
                 ))}
-              </View>
+              </SizedRow>
             ) : null}
           </Surface>
-        </View>
+        </PlacedCard>
       ) : null}
     </View>
   );
@@ -118,9 +134,6 @@ const styles = StyleSheet.create({
   target: {
     position: 'absolute',
     pointerEvents: 'none',
-  },
-  card: {
-    position: 'absolute',
   },
   body: {
     gap: spacing.one,

@@ -1,9 +1,23 @@
-import type {NativeSyntheticEvent, TextInputKeyPressEventData} from 'react-native';
+import type {TextStyle} from 'react-native';
 import type {TextFieldProps} from './types';
 import {useImperativeHandle, useRef} from 'react';
 import {Platform, StyleSheet, TextInput} from 'react-native';
 import {fonts, fontWeights, spacing, useColor} from '../theme';
-import {keyboardTypeFor, useAutoFocus, useTextValue} from './shared';
+import {blurOnSubmitFor, inputModeFor, keyboardTypeFor, keyPressFor, useAutoFocus, useTextValue} from './shared';
+
+/** A key react-native-windows submits a multi-line field on, with the modifiers that must be held. */
+interface WindowsSubmitKey {
+  code: string;
+  shiftKey?: boolean;
+}
+
+/**
+ * The keys react-native-windows submits a multi-line field on: Enter with no
+ * modifier held, so Shift+Enter still breaks the line. Without them it
+ * submits only a one-line field, and Enter in a multi-line one always breaks
+ * the line, whatever `submitBehavior` says.
+ */
+const SUBMIT_KEYS: readonly WindowsSubmitKey[] = [{code: 'Enter'}];
 
 /**
  * The `inline` variant: a borderless React Native `TextInput` on every
@@ -50,21 +64,7 @@ export function InlineTextField({
     blur: () => input.current?.blur(),
   }));
 
-  // A multi-line field that submits keeps the focus on web: react-native-web
-  // submits a multi-line field on Enter only when it may blur it afterwards,
-  // so the key is taken here instead, before the browser inserts the line.
-  const entersSubmit = Platform.OS === 'web' && multiline === true && submitBehavior === 'submit' && !disabled && onSubmit !== undefined;
-  const onKey = onKeyPress || entersSubmit
-    ? (event: NativeSyntheticEvent<TextInputKeyPressEventData & {shiftKey?: boolean}>) => {
-      const shift = event.nativeEvent.shiftKey === true;
-      if (entersSubmit && event.nativeEvent.key === 'Enter' && !shift) {
-        event.preventDefault();
-        onSubmit(current);
-        return;
-      }
-      onKeyPress?.(event.nativeEvent.key, shift);
-    }
-    : undefined;
+  const web = Platform.OS === 'web';
 
   return (
     <TextInput
@@ -76,16 +76,25 @@ export function InlineTextField({
       editable={!disabled}
       secureTextEntry={secureTextEntry}
       keyboardType={keyboardTypeFor(keyboardType)}
+      // On web a `<textarea>` takes the keyboard only through `inputmode`.
+      inputMode={web ? inputModeFor(keyboardType) : undefined}
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
+      // react-native-windows keeps checking the spelling unless `spellCheck`
+      // is off as well as `autoCorrect`. iOS and the web already take
+      // `spellCheck` from `autoCorrect`, so this changes nothing there.
+      spellCheck={autoCorrect}
       multiline={multiline}
       maxLength={maxLength}
       cursorColor={cursor}
       selectionColor={cursor}
       returnKeyType={returnKeyType}
       submitBehavior={submitBehavior}
+      // react-native-web reads `blurOnSubmit`, not `submitBehavior`.
+      blurOnSubmit={web ? blurOnSubmitFor(submitBehavior) : undefined}
+      {...(Platform.OS === 'windows' && multiline === true && submitBehavior !== undefined ? {submitKeyEvents: SUBMIT_KEYS} : null)}
       onSubmitEditing={onSubmit ? event => onSubmit(event.nativeEvent.text) : undefined}
-      onKeyPress={onKey}
+      onKeyPress={keyPressFor({multiline, submitBehavior, disabled, onSubmit, onKeyPress}, current)}
       onFocus={onFocus}
       onBlur={onBlur}
       aria-label={placeholder}
@@ -95,13 +104,19 @@ export function InlineTextField({
   );
 }
 
+/**
+ * The box around a bare field draws the padding and the focus ring. The
+ * browser draws its ring with `outline-style: auto`, which no width turns
+ * off, so on web the style itself is turned off. The native renderers parse
+ * only a solid, dotted or dashed outline, and draw none unless told.
+ */
+const NO_RING = Platform.select<TextStyle>({web: {outlineStyle: 'none'} as unknown as TextStyle, default: {}});
+
 const styles = StyleSheet.create({
-  // The box around a bare field draws the padding and the focus ring; the
-  // outline width is what react-native-web turns the browser's ring off with.
   bare: {
     paddingVertical: 0,
     paddingHorizontal: 0,
-    outlineWidth: 0,
+    ...NO_RING,
   },
   input: {
     flexGrow: 1,

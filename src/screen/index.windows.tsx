@@ -27,14 +27,14 @@ export function Screen({children, native = false, header, gutter = false, fab}: 
   const backgroundColor = theme.colors[scheme].background;
   // The fab lifts above a toast of the screen's own, and above the app's.
   const lift = useToastLift(useContext(AppToastInsetContext));
-  const {bars, top, bottom, hasBottom} = useScreenBars();
+  const {bars, top, bottom, hasTop, hasBottom} = useScreenBars();
   const [barHeight, setBarHeight] = useState(0);
   const onBarsLayout = (event: LayoutChangeEvent) => setBarHeight(event.nativeEvent.layout.height);
 
   return (
     <View style={[styles.screen, {backgroundColor}]}>
       <View style={[styles.root, {paddingTop: underHeader ? 0 : theme.inset.topBar}]}>
-        {top}
+        {hasTop ? <View testID="screen-top-rows" style={styles.topRows}>{top}</View> : null}
         <View style={[styles.content, gutter ? styles.gutter : undefined]}>
           <ToastInsetContext.Provider value={lift.report}>
             <ScreenBarsContext.Provider value={bars}>
@@ -64,7 +64,10 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     alignItems: 'center',
-    gap: theme.spacing.three,
+  },
+  // The rows at the top: the screen's width above the content, at their own height.
+  topRows: {
+    alignSelf: 'stretch',
   },
   content: {
     flex: 1,

@@ -7,6 +7,14 @@ const measure = async (bounds: {width: number; height: number}, card: number) =>
   await fireEvent(screen.getByTestId('pop-bounds'), 'layout', {nativeEvent: {layout: bounds}});
   await fireEvent(screen.getByTestId('pop'), 'layout', {nativeEvent: {layout: {width: 280, height: card}}});
 };
+/** Presses the card's first action: iOS names the button, a Compose text button carries its label as a child. */
+const pressAction = async () => {
+  const isIOS = Platform.OS === 'ios';
+  const [action] = isIOS
+    ? screen.container.queryAll(i => i.props.label === 'Fix')
+    : screen.container.queryAll(i => typeof i.props.onButtonPressed === 'function');
+  await fireEvent(action, isIOS ? 'buttonPress' : 'buttonPressed');
+};
 const mouse = {nativeEvent: {pointerType: 'mouse'}};
 const touch = {nativeEvent: {pointerType: 'touch'}};
 
@@ -14,7 +22,7 @@ describe(`Popover modes (${Platform.OS})`, () => {
   it('takes the presses around a modal card as its backdrop, and says the card is a dialog', async () => {
     const onDismiss = vi.fn();
     await render(
-      <Popover at={{x: 40, y: 100}} modal onDismiss={onDismiss} testID="pop">
+      <Popover at={{x: 40, y: 100}} modal label="Option" onDismiss={onDismiss} testID="pop">
         <Text>Option</Text>
       </Popover>,
     );
@@ -22,6 +30,8 @@ describe(`Popover modes (${Platform.OS})`, () => {
     const card = screen.getByTestId('pop');
     expect(card.props.accessibilityViewIsModal).toBe(true);
     expect(card.props.role).toBe('dialog');
+    // The label names a web dialog; VoiceOver and TalkBack read what the card holds.
+    expect(card.props['aria-label']).toBeUndefined();
     // The modal card hides what is around it from VoiceOver, the backdrop included.
     expect(screen.queryByTestId('pop-backdrop')).toBeNull();
     await fireEvent.press(screen.getByTestId('pop-backdrop', {includeHiddenElements: true}));
@@ -115,6 +125,82 @@ describe(`Popover modes (${Platform.OS})`, () => {
       await act(async () => vi.advanceTimersByTimeAsync(1000));
       expect(style().left).toBe(60);
       expect(onDismiss).not.toHaveBeenCalled();
+    });
+
+    it('goes as soon as the app clears the rectangle after an action, with no leave', async () => {
+      const onPress = vi.fn();
+      const onDismiss = vi.fn();
+      const hover = (at: {x: number; y: number} | null) => (
+        <Popover at={at} title="Spelling" actions={[{label: 'Fix', onPress}]} trigger="hover" onDismiss={onDismiss} testID="pop"/>
+      );
+      const {rerender} = await render(hover({x: 10, y: 10}));
+      await pressAction();
+      expect(onPress).toHaveBeenCalledTimes(1);
+      expect(onDismiss).toHaveBeenCalledWith('action');
+      await rerender(hover(null));
+      expect(screen.queryByTestId('pop')).toBeNull();
+      await act(async () => vi.advanceTimersByTimeAsync(1000));
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps an action from starting a linger when the app passes the same rectangle anew first', async () => {
+      const onDismiss = vi.fn();
+      const hover = (at: {x: number; y: number; width?: number; height?: number} | null) => (
+        <Popover at={at} title="Spelling" actions={[{label: 'Fix', onPress: vi.fn()}]} trigger="hover" onDismiss={onDismiss} testID="pop"/>
+      );
+      const {rerender} = await render(hover({x: 10, y: 10, width: 40, height: 16}));
+      await pressAction();
+      // The app renders again before it clears the rectangle, with a new object for the same one.
+      await rerender(hover({x: 10, y: 10, width: 40, height: 16}));
+      await rerender(hover(null));
+      expect(screen.queryByTestId('pop')).toBeNull();
+      await act(async () => vi.advanceTimersByTimeAsync(1000));
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+      expect(onDismiss).toHaveBeenCalledWith('action');
+    });
+
+    it('forgets the pointer when the card goes from under it', async () => {
+      const onDismiss = vi.fn();
+      const hover = (at: {x: number; y: number} | null) => (
+        <Popover at={at} title="Spelling" actions={[{label: 'Fix', onPress: vi.fn()}]} trigger="hover" onDismiss={onDismiss} testID="pop"/>
+      );
+      const {rerender} = await render(hover({x: 10, y: 10}));
+      await fireEvent(screen.getByTestId('pop'), 'pointerEnter', mouse);
+      await pressAction();
+      await rerender(hover(null));
+      expect(screen.queryByTestId('pop')).toBeNull();
+      // The next card lingers for its grace, with no pointerleave from the last.
+      await rerender(hover({x: 60, y: 10}));
+      await rerender(hover(null));
+      expect(screen.getByTestId('pop')).toBeTruthy();
+      await act(async () => vi.advanceTimersByTimeAsync(300));
+      expect(screen.queryByTestId('pop')).toBeNull();
+      expect(onDismiss).toHaveBeenLastCalledWith('leave');
+    });
+
+    it('ends the linger from the backdrop', async () => {
+      const onDismiss = vi.fn();
+      const {rerender} = await render(<Popover at={{x: 10, y: 10}} title="Option" modal trigger="hover" onDismiss={onDismiss} testID="pop"/>);
+      await fireEvent.press(screen.getByTestId('pop-backdrop', {includeHiddenElements: true}));
+      expect(onDismiss).toHaveBeenCalledWith('backdrop');
+      await rerender(<Popover at={null} title="Option" modal trigger="hover" onDismiss={onDismiss} testID="pop"/>);
+      expect(screen.queryByTestId('pop', {includeHiddenElements: true})).toBeNull();
+    });
+
+    it('lingers again for the next rectangle after an action the app ignored', async () => {
+      const onDismiss = vi.fn();
+      const hover = (at: {x: number; y: number} | null) => (
+        <Popover at={at} title="Spelling" actions={[{label: 'Fix', onPress: vi.fn()}]} trigger="hover" onDismiss={onDismiss} testID="pop"/>
+      );
+      const {rerender} = await render(hover({x: 10, y: 10}));
+      await pressAction();
+      // The app keeps the card up, then the pointer moves to another word and off it.
+      await rerender(hover({x: 60, y: 10}));
+      await rerender(hover(null));
+      expect(style()).toMatchObject({left: 60});
+      await act(async () => vi.advanceTimersByTimeAsync(300));
+      expect(screen.queryByTestId('pop')).toBeNull();
+      expect(onDismiss).toHaveBeenLastCalledWith('leave');
     });
 
     it('goes at once when the app clears the rectangle of a manual card', async () => {

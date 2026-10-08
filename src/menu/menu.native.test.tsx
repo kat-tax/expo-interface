@@ -279,7 +279,8 @@ describe(`Menu (${Platform.OS})`, () => {
 
   (isIOS ? it.skip : it)('closes the dropdown when an entry is picked or it is dismissed', async () => {
     const onShare = vi.fn();
-    await render(<Menu label="Export" items={[{label: 'Share', onPress: onShare}]} testID="export"/>);
+    const onOpenChange = vi.fn();
+    await render(<Menu label="Export" items={[{label: 'Share', onPress: onShare}]} onOpenChange={onOpenChange} testID="export"/>);
     const expanded = () => root().props.expanded;
     const open = async () => {
       const [button] = screen.container.queryAll(i => typeof i.props.onButtonPressed === 'function');
@@ -292,6 +293,9 @@ describe(`Menu (${Platform.OS})`, () => {
     await fireEvent(entry, 'itemPressed');
     expect(onShare).toHaveBeenCalledTimes(1);
     expect(expanded()).toBe(false);
+    // The entry acts first, and the close is reported once it has.
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    expect(onShare.mock.invocationCallOrder[0]).toBeLessThan(onOpenChange.mock.invocationCallOrder.at(-1)!);
 
     await open();
     const [menu] = screen.container.queryAll(i => typeof i.props.onDismissRequest === 'function');

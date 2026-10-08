@@ -81,8 +81,17 @@ describe('TextField (web)', () => {
         <TextField keyboardType="decimal" testID="decimal"/>
         <TextField keyboardType="url" testID="url"/>
         <TextField keyboardType="default" testID="default"/>
+        <TextField multiline keyboardType="email" testID="area"/>
+        <TextField variant="inline" keyboardType="url" testID="inline-url"/>
+        <TextField variant="inline" multiline keyboardType="phone" testID="inline-area"/>
       </>,
     );
+    // A `<textarea>` has no type: the keyboard comes through `inputmode`.
+    expect(screen.getByTestId('area')).toHaveAttribute('inputmode', 'email');
+    expect(screen.getByTestId('inline-url')).toHaveAttribute('inputmode', 'url');
+    expect(screen.getByTestId('inline-url')).toHaveAttribute('type', 'url');
+    expect(screen.getByTestId('inline-area')).toHaveAttribute('inputmode', 'tel');
+    expect(screen.getByTestId('email')).toHaveAttribute('inputmode', 'email');
     expect(screen.getByTestId('email')).toHaveAttribute('type', 'email');
     expect(screen.getByTestId('number')).toHaveAttribute('inputmode', 'numeric');
     expect(screen.getByTestId('phone')).toHaveAttribute('type', 'tel');
@@ -128,11 +137,135 @@ describe('TextField (web)', () => {
   });
 
   it('renders the bare variant with no padding and no focus ring of its own', () => {
-    render(<TextField variant="bare" placeholder="Write" testID="bare"/>);
-    const style = getComputedStyle(screen.getByTestId('bare'));
-    expect(style.paddingLeft).toBe('0px');
-    expect(style.paddingTop).toBe('0px');
-    expect(style.outlineWidth).toBe('0px');
+    // Chrome's focus ring is `outline-style: auto`, which no width turns off.
+    const ring = document.createElement('style');
+    ring.textContent = 'input, textarea { outline-style: auto; }';
+    document.head.append(ring);
+    try {
+      render(
+        <>
+          <TextField variant="bare" placeholder="Write" testID="bare"/>
+          <TextField variant="inline" placeholder="Find" testID="inline"/>
+        </>,
+      );
+      const style = getComputedStyle(screen.getByTestId('bare'));
+      expect(style.paddingLeft).toBe('0px');
+      expect(style.paddingTop).toBe('0px');
+      expect(style.outlineStyle).toBe('none');
+      // The inline field keeps the browser's ring.
+      expect(getComputedStyle(screen.getByTestId('inline')).outlineStyle).toBe('auto');
+    } finally {
+      ring.remove();
+    }
+  });
+
+  describe('the focus through Enter', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    /** Types into the field, focuses it, presses Enter, and lets react-native-web's deferred blur run. */
+    function enter(input: HTMLElement, text: string) {
+      input.focus();
+      fireEvent.change(input, {target: {value: text}});
+      fireEvent.keyDown(input, {key: 'Enter', keyCode: 13});
+      vi.advanceTimersByTime(1);
+    }
+
+    it('keeps a one-line field focused with submitBehavior="submit", inline or the row', () => {
+      const onSubmit = vi.fn();
+      render(
+        <>
+          <TextField variant="inline" submitBehavior="submit" onSubmit={onSubmit} testID="inline"/>
+          <TextField submitBehavior="submit" onSubmit={onSubmit} testID="row"/>
+        </>,
+      );
+      for (const id of ['inline', 'row']) {
+        const input = screen.getByTestId(id);
+        enter(input, id);
+        expect(onSubmit).toHaveBeenLastCalledWith(id);
+        expect(document.activeElement).toBe(input);
+      }
+    });
+
+    it('gives the focus up with blurAndSubmit, and by default', () => {
+      const onSubmit = vi.fn();
+      render(
+        <>
+          <TextField variant="inline" submitBehavior="blurAndSubmit" onSubmit={onSubmit} testID="blurs"/>
+          <TextField variant="inline" onSubmit={onSubmit} testID="default"/>
+          <TextField submitBehavior="blurAndSubmit" onSubmit={onSubmit} testID="row"/>
+        </>,
+      );
+      for (const id of ['blurs', 'default', 'row']) {
+        const input = screen.getByTestId(id);
+        enter(input, id);
+        expect(onSubmit).toHaveBeenLastCalledWith(id);
+        expect(document.activeElement).not.toBe(input);
+      }
+    });
+
+    it('submits a multi-line field with submitBehavior="submit" on Enter and keeps it focused, inline or the row', () => {
+      const onSubmit = vi.fn();
+      const onKeyPress = vi.fn();
+      render(
+        <>
+          <TextField variant="inline" multiline submitBehavior="submit" onSubmit={onSubmit} testID="inline"/>
+          <TextField multiline submitBehavior="submit" onSubmit={onSubmit} onKeyPress={onKeyPress} testID="row"/>
+        </>,
+      );
+      for (const id of ['inline', 'row']) {
+        const area = screen.getByTestId(id);
+        expect(area.tagName).toBe('TEXTAREA');
+        enter(area, id);
+        expect(onSubmit).toHaveBeenLastCalledWith(id);
+        expect(document.activeElement).toBe(area);
+      }
+      // The Enter that submits is the field's; Shift+Enter breaks the line and is reported.
+      expect(onKeyPress).not.toHaveBeenCalled();
+      const shifted = fireEvent.keyDown(screen.getByTestId('row'), {key: 'Enter', keyCode: 13, shiftKey: true});
+      expect(shifted).toBe(true);
+      expect(onSubmit).toHaveBeenCalledTimes(2);
+      expect(onKeyPress).toHaveBeenCalledWith('Enter', true);
+    });
+
+    it('leaves the Enter that commits an input method\'s text to the input method, in a multi-line field that submits', () => {
+      const onSubmit = vi.fn();
+      const onKeyPress = vi.fn();
+      render(
+        <>
+          <TextField variant="bare" multiline submitBehavior="submit" onSubmit={onSubmit} onKeyPress={onKeyPress} testID="bare"/>
+          <TextField multiline submitBehavior="submit" onSubmit={onSubmit} testID="row"/>
+        </>,
+      );
+      for (const id of ['bare', 'row']) {
+        const area = screen.getByTestId(id);
+        area.focus();
+        fireEvent.change(area, {target: {value: 'にほん'}});
+        // Chrome and Firefox mark the committing key; Safari sends the key code 229 alone.
+        expect(fireEvent.keyDown(area, {key: 'Enter', keyCode: 13, isComposing: true})).toBe(true);
+        expect(fireEvent.keyDown(area, {key: 'Enter', keyCode: 229})).toBe(true);
+        vi.advanceTimersByTime(1);
+        expect(onSubmit).not.toHaveBeenCalled();
+        expect(document.activeElement).toBe(area);
+      }
+      // Reported as any other key, and the next Enter submits.
+      expect(onKeyPress).toHaveBeenCalledWith('Enter', false);
+      fireEvent.keyDown(screen.getByTestId('row'), {key: 'Enter', keyCode: 13});
+      expect(onSubmit).toHaveBeenCalledWith('にほん');
+    });
+
+    it('submits a multi-line field with blurAndSubmit on Enter, and gives the focus up', () => {
+      const onSubmit = vi.fn();
+      render(<TextField variant="inline" multiline submitBehavior="blurAndSubmit" onSubmit={onSubmit} testID="area"/>);
+      const area = screen.getByTestId('area');
+      enter(area, 'notes');
+      expect(onSubmit).toHaveBeenCalledWith('notes');
+      expect(document.activeElement).not.toBe(area);
+    });
   });
 
   it('dims and locks the inline variant when disabled', () => {

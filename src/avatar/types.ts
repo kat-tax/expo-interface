@@ -4,7 +4,7 @@ import type {ColorTokens} from '../theme';
  * A person as a colored circle with their initials: the peers on a document,
  * the members of a space.
  *
- * Drawn in React Native on every platform, like `Surface` — an avatar is a
+ * Drawn in React Native on every platform, like `Surface`: an avatar is a
  * picture in a row of them, not a control, and it belongs wherever the row
  * is.
  */
@@ -31,10 +31,44 @@ export interface AvatarProps {
   testID?: string;
 }
 
-/** A person in an `AvatarGroup`. */
+/**
+ * A person in an `AvatarGroup`. Their face is a button when the group
+ * presses and the circle itself when it does not (an image on web); either
+ * one carries the person's label, hint and selected state.
+ */
 export interface AvatarGroupPerson extends Pick<AvatarProps, 'name' | 'initials' | 'color' | 'ring' | 'dimmed'> {
   /** Tells the faces apart when two people share a name. Defaults to the name and place. */
   key?: string;
+  /**
+   * What assistive technology calls the face, when it says more than the
+   * name: "Follow Ada, on Notes". An empty label is the name as well.
+   * @default the name
+   */
+  label?: string;
+  /**
+   * Read after the label: what a press or a press and hold does when the
+   * group presses ("Hold to go there once, without following"), or more
+   * about the person when it does not ("Editing the outline"). The
+   * accessibility hint on iOS and Android, the help text on Windows, the
+   * description on web. An empty hint is none.
+   */
+  hint?: string;
+  /**
+   * The chosen person: the one followed. Announced as selected, or on web
+   * as the current one, since neither a button nor an image can be
+   * selected. It draws nothing; show it with the person's `ring`.
+   * @default false
+   */
+  selected?: boolean;
+  /**
+   * The face takes no press or press and hold and is announced as
+   * unavailable: a person the view cannot be taken to. It is drawn at half
+   * opacity, as a disabled `Surface` or `Card` is. When the group does
+   * not press, the face is a picture rather than a control, and `disabled`
+   * only dims it.
+   * @default false
+   */
+  disabled?: boolean;
 }
 
 /**
@@ -59,9 +93,9 @@ export interface AvatarGroupProps {
    * @default 'background'
    */
   ring?: ColorTokens | (string & {});
-  /** Called when a face is pressed. */
+  /** Called when a face is pressed, never for a `disabled` person. */
   onPress?: (person: AvatarGroupPerson, index: number) => void;
-  /** Called when a face is pressed and held. */
+  /** Called when a face is pressed and held, never for a `disabled` person. */
   onLongPress?: (person: AvatarGroupPerson, index: number) => void;
   /** Called when the `+N` face is pressed. */
   onPressMore?: () => void;

@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import type {MenuItem} from '../menu/types';
 import {fireEvent, render, screen} from '@testing-library/react';
+import {Sheet} from '../sheet';
 import {popupOptionId} from './types';
 import {PopupMenu} from '.';
 
@@ -56,6 +57,7 @@ describe('PopupMenu, steadier (web)', () => {
     open = false;
     toggle(menu(), 'closed');
     expect(onDismiss).toHaveBeenCalledWith('select');
+    expect(onPress.mock.invocationCallOrder[0]).toBeLessThan(onDismiss.mock.invocationCallOrder[0]!);
   });
 
   it('says nothing of a close the app asked for by clearing the point', () => {
@@ -82,6 +84,66 @@ describe('PopupMenu, steadier (web)', () => {
     expect(open).toBe(true);
   });
 
+  it('keeps a menu a press moves open, and shows it at the new place once the press is over', () => {
+    const onDismiss = vi.fn();
+    const {rerender} = render(<PopupMenu items={items} at={{x: 10, y: 10}} onDismiss={onDismiss}/>);
+    expect(open).toBe(true);
+    // The next handle's button goes down, and the app moves the menu to it.
+    document.dispatchEvent(new Event('pointerdown'));
+    rerender(<PopupMenu items={items} at={{x: 40, y: 10}} onDismiss={onDismiss}/>);
+    // Closed for the press, as the app's own close: the release would dismiss it.
+    expect(open).toBe(false);
+    toggle(menu(), 'closed');
+    expect(onDismiss).not.toHaveBeenCalled();
+    document.dispatchEvent(new Event('pointerup'));
+    expect(open).toBe(true);
+    // The next close is the user's again.
+    open = false;
+    toggle(menu(), 'closed');
+    expect(onDismiss).toHaveBeenCalledWith('dismiss');
+  });
+
+  it('reports nothing of the first menu when the point is cleared and set again during a press', () => {
+    const onDismiss = vi.fn();
+    const {rerender} = render(<PopupMenu items={items} at={{x: 10, y: 10}} onDismiss={onDismiss}/>);
+    document.dispatchEvent(new Event('pointerdown'));
+    rerender(<PopupMenu items={items} at={null} onDismiss={onDismiss}/>);
+    expect(open).toBe(false);
+    rerender(<PopupMenu items={items} at={{x: 40, y: 10}} onDismiss={onDismiss}/>);
+    // The first menu's close arrives while the button is still down.
+    toggle(menu(), 'closed');
+    expect(onDismiss).not.toHaveBeenCalled();
+    document.dispatchEvent(new Event('pointerup'));
+    expect(open).toBe(true);
+  });
+
+  it('leaves a press outside a dismissal when the point it is given again has not moved', () => {
+    const onDismiss = vi.fn();
+    const {rerender} = render(<PopupMenu items={items} at={{x: 10, y: 10}} onDismiss={onDismiss}/>);
+    document.dispatchEvent(new Event('pointerdown'));
+    // A parent re-render during the press hands in a new object for the same point.
+    rerender(<PopupMenu items={items} at={{x: 10, y: 10}} onDismiss={onDismiss}/>);
+    expect(open).toBe(true);
+    // The release dismisses it, as the browser's light dismiss would.
+    open = false;
+    document.dispatchEvent(new Event('pointerup'));
+    toggle(menu(), 'closed');
+    expect(onDismiss).toHaveBeenCalledWith('dismiss');
+    expect(open).toBe(false);
+  });
+
+  it('moves a rectangle\'s menu for a press when only its size changes', () => {
+    const onDismiss = vi.fn();
+    const {rerender} = render(<PopupMenu items={items} at={{x: 10, y: 10, width: 80, height: 24}} onDismiss={onDismiss}/>);
+    document.dispatchEvent(new Event('pointerdown'));
+    rerender(<PopupMenu items={items} at={{x: 10, y: 10, width: 120, height: 24}} onDismiss={onDismiss}/>);
+    expect(open).toBe(false);
+    toggle(menu(), 'closed');
+    document.dispatchEvent(new Event('pointerup'));
+    expect(open).toBe(true);
+    expect(onDismiss).not.toHaveBeenCalled();
+  });
+
   it('closes on Escape wherever the focus is, and keeps the key from the editor', () => {
     const onDismiss = vi.fn();
     const editorKey = vi.fn();
@@ -100,6 +162,21 @@ describe('PopupMenu, steadier (web)', () => {
     fireEvent.keyDown(screen.getByTestId('editor'), {key: 'a'});
     fireEvent.keyDown(screen.getByTestId('editor'), {key: 'Escape'});
     expect(editorKey).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps Escape from a web Sheet it is in', () => {
+    const onSheetDismiss = vi.fn();
+    render(
+      <Sheet isPresented onDismiss={onSheetDismiss}>
+        <PopupMenu items={items} at={{x: 10, y: 10}}/>
+      </Sheet>,
+    );
+    fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
+    expect(open).toBe(false);
+    expect(onSheetDismiss).not.toHaveBeenCalled();
+    // Once the menu is down the key is the sheet's.
+    fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
+    expect(onSheetDismiss).toHaveBeenCalledTimes(1);
   });
 
   it('anchors at a rectangle\'s box, and opens over it when the top is asked for', () => {

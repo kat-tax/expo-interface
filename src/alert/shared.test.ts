@@ -7,6 +7,10 @@ describe('defaultAction', () => {
     expect(defaultAction([{label: 'Cancel', role: 'cancel'}, {label: 'Rename'}, {label: 'Delete', role: 'destructive'}])).toEqual({label: 'Rename'});
     expect(defaultAction([{label: 'Cancel', role: 'cancel'}])).toBeUndefined();
   });
+
+  it('is nothing while that action is disabled, rather than the next one', () => {
+    expect(defaultAction([{label: 'Cancel', role: 'cancel'}, {label: 'Rename', disabled: true}, {label: 'Delete', role: 'destructive'}])).toBeUndefined();
+  });
 });
 
 describe('splitActions', () => {

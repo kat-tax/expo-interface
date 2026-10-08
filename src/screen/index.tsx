@@ -58,16 +58,17 @@ export interface ScreenProps extends PropsWithChildren {
    * or on iOS the stack header of a `TabStack` with a `material`. A kit
    * `List` or `CardGrid` in the content pads its own content and its
    * scroll indicators by the bar's inset (`useScrollInsets()`), so its first
-   * row starts clear of the bar; a scroll view of the app's own pads its
-   * content by `useTabBarInset()`. Under an opaque header (Android's always
-   * is) the top inset is already nothing, so this changes nothing.
+   * row starts clear of the bar; a scroll view of the app's own is a
+   * `ScreenScrollView`, which does the same. Under an opaque header
+   * (Android's always is) the top inset is already nothing, so this changes
+   * nothing.
    * @default false
    */
   underBar?: boolean;
   /**
    * A floating action button (`Fab`) the screen places itself: bottom
    * trailing, `spacing.three` from the edges plus the safe-area bottom inset
-   * natively (which includes the tab bar when the screen shows one), fixed
+   * (which natively includes the tab bar when the screen shows one), fixed
    * to the viewport on web. While a `Toast` under the screen shows, the
    * button lifts above it and comes back down as it goes, and it sits above
    * a bar the screen draws at its bottom.
@@ -117,7 +118,15 @@ export function Screen({
   // scrolling components add only the rows floating under the header, which
   // the platform does not know of.
   const automatic = Platform.OS === 'ios' && floating && underBar;
-  const scrollInsets = useMemo(() => ({top: !underBar ? 0 : automatic ? rows : barInset, bottom: 0, automatic}), [underBar, automatic, rows, barInset]);
+  // The tab bar's own floating action, over every screen of the tabs.
+  const tabAction = useContext(TabActionLiftContext);
+  // What the content's scroll views pad by: at the top a bar it passes under
+  // (`underBar`), at the bottom the tab bar's floating action, which floats
+  // over every screen of the tabs, under a bar or not.
+  const scrollInsets = useMemo(
+    () => ({top: !underBar ? 0 : automatic ? rows : barInset, bottom: tabAction, automatic}),
+    [underBar, automatic, rows, barInset, tabAction],
+  );
   // The bottom bars' height, measured, which the fab sits above.
   const [barHeight, setBarHeight] = useState(0);
   const onBarsLayout = (event: LayoutChangeEvent) => setBarHeight(event.nativeEvent.layout.height);
@@ -133,9 +142,11 @@ export function Screen({
   // and its rows stay clear, unless the content passes under them and pads
   // itself (`underBar`).
   const paddingTop = underBar ? 0 : !underHeader ? theme.inset.topBar + barRows : floating ? insets.top + theme.inset.header + rows : 0;
-  // Above a bottom bar the screen draws, and above the tab bar's own floating action.
-  const tabAction = useContext(TabActionLiftContext);
-  const fabBottom = theme.spacing.three + (hasBottom ? barHeight : 0) + tabAction;
+  // Above a bottom bar the screen draws, above the tab bar's own floating
+  // action, and above the bottom safe area, which the screen's content and
+  // the app's toast stand on: on web too, where the fab is fixed to the
+  // viewport and a page that covers the display (`viewport-fit=cover`) has one.
+  const fabBottom = theme.spacing.three + (hasBottom ? barHeight : 0) + tabAction + (bottomPaid ? 0 : insets.bottom);
 
   useEffect(() => {
     setBackgroundColorAsync(backgroundColor);
@@ -147,7 +158,7 @@ export function Screen({
       edges={edges}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'}/>
       <View style={[styles.root, {paddingTop}]}>
-        {floatingRows ? null : top}
+        {hasTop && !floatingRows ? <View testID="screen-top-rows" style={styles.topRows}>{top}</View> : null}
         <View style={[styles.content, gutter ? styles.gutter : undefined]}>
           <ToastInsetContext.Provider value={lift.report}>
             <ScreenBarsContext.Provider value={bars}>
@@ -179,7 +190,7 @@ export function Screen({
             styles.fab,
             Platform.OS === 'web'
               ? [styles.fabFixed, {bottom: fabBottom}]
-              : {right: theme.spacing.three + insets.right, bottom: fabBottom + (bottomPaid ? 0 : insets.bottom)},
+              : {right: theme.spacing.three + insets.right, bottom: fabBottom},
             lift.style,
           ]}>
           {fab}
@@ -193,7 +204,12 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     alignItems: 'center',
-    gap: theme.spacing.three,
+  },
+  // The rows at the top under an opaque header: the screen's width above the
+  // content, as the floating rows are, at their own height. The box does not
+  // grow, so a row in it that would (a `TabView`) has no free space to take.
+  topRows: {
+    alignSelf: 'stretch',
   },
   content: {
     flex: 1,

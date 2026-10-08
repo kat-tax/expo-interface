@@ -61,6 +61,36 @@ describe('Badge (web)', () => {
     expect(screen.getByTestId('told').style.getPropertyValue('--ui-badge-on-fill')).toBe('#FF0000');
   });
 
+  it('fills with a palette token\'s variable, and contrasts the number against the token\'s value', () => {
+    render(<Badge count={4} color="highlight" testID="token"/>);
+    const token = screen.getByTestId('token');
+    // The variable follows the scheme; its value is what the number is read against.
+    expect(token.style.getPropertyValue('--ui-badge-fill')).toBe('var(--color-highlight)');
+    expect(token.style.getPropertyValue('--ui-badge-on-fill')).toBe('#000000');
+    render(<Badge count={4} testID="plain"/>);
+    expect(screen.getByTestId('plain').style.getPropertyValue('--ui-badge-fill')).toBe('var(--color-destructive)');
+    expect(screen.getByTestId('plain').style.getPropertyValue('--ui-badge-on-fill')).toBe('#FFFFFF');
+  });
+
+  it('judges a translucent fill as it shows over the screen\'s background', () => {
+    // pillBackground is a dark gray at 12%, near white over the light screen.
+    render(<Badge count={7} color="pillBackground" testID="pill"/>);
+    const pill = screen.getByTestId('pill');
+    expect(pill.style.getPropertyValue('--ui-badge-fill')).toBe('var(--color-pill-background)');
+    expect(pill.style.getPropertyValue('--ui-badge-on-fill')).toBe('#000000');
+    render(<Badge count={8} color="rgba(0, 0, 0, 0.1)" testID="raw"/>);
+    expect(screen.getByTestId('raw').style.getPropertyValue('--ui-badge-on-fill')).toBe('#000000');
+  });
+
+  it('reads a color that is not hex for the number, and draws white on one it cannot read', () => {
+    render(<Badge count={5} color="yellow" testID="named"/>);
+    expect(screen.getByTestId('named').style.getPropertyValue('--ui-badge-on-fill')).toBe('#000000');
+    render(<Badge count={6} color="var(--brand)" testID="variable"/>);
+    const variable = screen.getByTestId('variable');
+    expect(variable.style.getPropertyValue('--ui-badge-fill')).toBe('var(--brand)');
+    expect(variable.style.getPropertyValue('--ui-badge-on-fill')).toBe('#FFFFFF');
+  });
+
   it('flattens a style into inline CSS, as the other rows do', () => {
     render(<Badge count={1} style={{opacity: 0.5}} testID="styled"/>);
     expect(screen.getByTestId('styled')).toHaveStyle({opacity: 0.5});

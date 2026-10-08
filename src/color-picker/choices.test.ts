@@ -2,8 +2,12 @@ import {Platform} from 'react-native';
 import {NO_COLOR, SYSTEM_SWATCHES, sameColor, swatchMenu, swatchesOf} from './choices';
 
 describe(`the color picker's choices (${Platform.OS})`, () => {
-  it('takes the app\'s swatches named by their hex, the platform\'s palette for system, and none otherwise', () => {
+  it('takes the app\'s swatches named as given or by their hex, the platform\'s palette for system, and none otherwise', () => {
     expect(swatchesOf(['#FF0000'])).toEqual([{color: '#FF0000', name: '#FF0000'}]);
+    expect(swatchesOf([{color: '#1D1D1F', name: 'Ink'}, '#FF0000'])).toEqual([
+      {color: '#1D1D1F', name: 'Ink'},
+      {color: '#FF0000', name: '#FF0000'},
+    ]);
     expect(swatchesOf(undefined)).toEqual([]);
     const palette = Platform.OS === 'android' ? SYSTEM_SWATCHES.material : Platform.OS === 'windows' ? SYSTEM_SWATCHES.fluent : SYSTEM_SWATCHES.apple;
     expect(swatchesOf('system')).toEqual(palette);

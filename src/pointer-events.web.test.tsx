@@ -51,12 +51,14 @@ describe('pointerEvents (web)', () => {
     for (const box of [
       dom.getByTestId('screen-fab'),
       dom.getByTestId('card-overlay'),
-      dom.getByTestId('popover-bounds'),
       dom.getByTestId('toast').parentElement!,
     ]) {
       expect(getComputedStyle(box).pointerEvents).toBe('none');
       expect(getComputedStyle(box.firstElementChild!).pointerEvents).toBe('auto');
     }
+    // The popover's measured box passes presses through too; its card takes
+    // none until it has been measured, which jsdom never does.
+    expect(getComputedStyle(dom.getByTestId('popover-bounds')).pointerEvents).toBe('none');
 
     // A host that only presents takes no presses at all, children included.
     const host = dom.getByTestId('host-slot').firstElementChild!;

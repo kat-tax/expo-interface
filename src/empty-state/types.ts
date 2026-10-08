@@ -30,13 +30,27 @@ export interface EmptyStateAction {
  * a search, no connection. A centred icon, a line saying what is missing, a
  * sentence saying why, and usually one thing to do about it.
  *
- * - iOS: `ContentUnavailableView`, the system's own — so it takes Apple's
+ * - iOS: `ContentUnavailableView`, the system's own, so it takes Apple's
  *   layout, its metrics and its Dynamic Type behaviour rather than an
- *   approximation of them. It needs iOS 17; below that the kit draws it.
- * - Android: a Compose column in one host, so the icon, the text and the
- *   action are one native view.
+ *   approximation of them. It needs iOS 17, so below that the same layout is
+ *   composed in SwiftUI. `@expo/ui`'s view takes only a symbol name above its
+ *   title, so the layout is composed while `loading` on any version too. The
+ *   composed layout is padded by SwiftUI's standard inset.
+ * - Android: a Compose column, so the icon, the title and an action given
+ *   as data are native beside native. While `selectable`, the description
+ *   is React Native text hosted in the column, since Compose text cannot be
+ *   selected here.
  * - Windows, web: composed from the kit's own icon and typography. Neither
  *   platform has a single control for this.
+ *
+ * On iOS and Android the state mounts a host outside one, as wide as its
+ * container; inside one (a `Screen native`, a `NativeHost`, a hosted
+ * `List`'s `empty`, or a `Sheet`'s bar, accessory or body without
+ * `maxHeight`) it renders bare; a `Sheet`'s capped body and its footer are
+ * React Native content, where it mounts its own. A bare state centres itself
+ * and its action as one in the height its container gives it, the whole
+ * screen under a `Screen native`; on Android, where the container leaves the
+ * height open, it is as tall as itself and the container places it.
  */
 export interface EmptyStateProps {
   /** One line: what is not here. */
@@ -47,25 +61,39 @@ export interface EmptyStateProps {
   icon?: IconToken;
   /**
    * One thing to do about it: the kit's `Button`, from data, drawn inside the
-   * platform's own view. A node of the app's own is drawn below it in React
-   * Native instead.
+   * platform's own view. A node of the app's own is React Native content: on
+   * Android, and on iOS inside a host, it is hosted in the view, where the
+   * kit's controls in it mount hosts of their own; on iOS outside a host it
+   * sits below the view, and the web and Windows draw it under the
+   * description.
    */
   action?: EmptyStateAction | ReactNode;
   /**
    * What is missing is on its way: the platform's spinner in the icon's
    * place, so a screen waiting for its record is the same empty state as one
-   * that has none.
+   * that has none. On iOS the state is then composed in SwiftUI rather than
+   * the system view, since `@expo/ui`'s view takes only a symbol name above
+   * its title.
    * @default false
    */
   loading?: boolean;
   /**
    * Whether the description can be selected and copied: the reason a
-   * document failed to open is worth pasting somewhere.
+   * document failed to open is worth pasting somewhere. On Android the
+   * description is then React Native text hosted in the Compose column, since
+   * `@expo/ui`'s Compose layer cannot select text.
    * @default true
    */
   selectable?: boolean;
-  /** Identifier used to locate the component in end-to-end tests. */
+  /**
+   * Identifier used to locate the component in end-to-end tests. Inside a
+   * host on iOS and Android, the native stack's identifier.
+   */
   testID?: string;
+  /**
+   * The view the state is laid out in. Inside a host on iOS and Android the
+   * state is native content with no such view, so it is not applied.
+   */
   style?: StyleProp<ViewStyle>;
 }
 

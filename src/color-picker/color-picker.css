@@ -181,3 +181,8 @@
 .ui-color-picker__presets--inline {
   justify-content: flex-start;
 }
+
+/* A disabled picker in place dims its presets as the panel dims itself. */
+.ui-color-picker__presets--inline .ui-color-picker__preset:disabled {
+  opacity: 0.4;
+}

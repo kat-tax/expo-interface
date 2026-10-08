@@ -28,8 +28,9 @@ export type TextFieldReturnKey = 'done' | 'go' | 'next' | 'search' | 'send';
 
 /**
  * What happens to the focus when the action key is pressed. `blurAndSubmit`
- * closes the keyboard; `submit` keeps the field focused so the next press
- * submits again (an inline search stepping through its matches).
+ * closes the keyboard (on web, gives up the focus); `submit` keeps the field
+ * focused so the next press submits again (an inline search stepping
+ * through its matches).
  */
 export type TextFieldSubmitBehavior = 'blurAndSubmit' | 'submit';
 
@@ -47,7 +48,7 @@ export type TextFieldVariant = 'row' | 'inline' | 'bare';
 
 /**
  * Cross-platform single/multi-line text input with a conformed iOS-style
- * appearance — a borderless field whose placeholder doubles as the row label,
+ * appearance: a borderless field whose placeholder doubles as the row label,
  * exactly the SwiftUI `Form` row look the other platforms emulate. Drop it
  * straight into a `FieldGroup.Section` alongside other rows.
  *
@@ -72,10 +73,14 @@ export interface TextFieldProps {
   /**
    * Called on a key press with the key's name (`Enter`, `Escape`, `a`) and
    * whether Shift was held, for keyboard handling the platform does not
-   * cover. `inline` variant only.
+   * cover. The `inline` variant and the web and Windows rows. In `inline`,
+   * iOS and Android report only the keys that write, Enter and Backspace;
+   * react-native-windows reports only the keys that type a character,
+   * Escape and Backspace among them, never an Enter that submits (in a
+   * one-line field, every Enter), and no Shift.
    */
   onKeyPress?: (key: string, shiftKey: boolean) => void;
-  /** Called when the field takes the focus. `inline` variant and the web row only, as `onKeyPress`. */
+  /** Called when the field takes the focus. `inline` variant and the web row only. */
   onFocus?: () => void;
   /** Called when the field gives up the focus. `inline` variant and the web row only. */
   onBlur?: () => void;
@@ -86,12 +91,15 @@ export interface TextFieldProps {
   /** Masks the input for sensitive values such as passwords. */
   secureTextEntry?: boolean;
   /**
-   * Keyboard variant to display.
+   * Keyboard variant to display. On web it is also the field's `inputmode`,
+   * which a multi-line field takes. In `inline` on Windows it has no
+   * effect: react-native-windows ignores it.
    * @default 'default'
    */
   keyboardType?: TextFieldKeyboard;
   /**
-   * Automatic capitalization behaviour.
+   * Automatic capitalization behaviour. The Windows row has no equivalent,
+   * and in `inline` on Windows only `characters` applies.
    * @default 'sentences'
    */
   autoCapitalize?: TextFieldCapitalize;
@@ -115,8 +123,12 @@ export interface TextFieldProps {
    */
   returnKeyType?: TextFieldReturnKey;
   /**
-   * Whether the action key closes the keyboard.
-   * @default 'blurAndSubmit'
+   * Whether the action key closes the keyboard. Honoured on web and in
+   * `inline` on iOS and Android; there, left out, a one-line field closes
+   * it as it submits and a multi-line field breaks the line. The native
+   * rows keep the platform's own way (the Compose row keeps the focus). On
+   * Windows Enter submits and keeps the focus, and a multi-line `inline`
+   * field given one submits on Enter and breaks the line on Shift+Enter.
    */
   submitBehavior?: TextFieldSubmitBehavior;
   /**

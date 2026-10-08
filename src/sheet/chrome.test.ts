@@ -1,4 +1,4 @@
-import {BAR_HEIGHT, BAR_SIDE, actionVariant, hasBar, horizontalInset, sub} from './shared';
+import {BAR_HEIGHT, BAR_SIDE, actionVariant, bodyCap, capFraction, drawsSomething, hasBar, horizontalInset, sub} from './shared';
 
 describe('the sheet\'s chrome', () => {
   it('has ends the same width and a bar taller than a row', () => {
@@ -26,6 +26,29 @@ describe('the sheet\'s chrome', () => {
     expect(hasBar({onBack: () => {}})).toBe(true);
     expect(hasBar({onClose: () => {}})).toBe(true);
     expect(hasBar({menu: [{label: 'Resolve all'}]})).toBe(true);
+  });
+
+  it('hosts a footer only when React would draw something for it', () => {
+    expect(drawsSomething(undefined)).toBe(false);
+    expect(drawsSomething(null)).toBe(false);
+    expect(drawsSomething(false)).toBe(false);
+    expect(drawsSomething(true)).toBe(false);
+    expect(drawsSomething('')).toBe(false);
+    expect(drawsSomething('Reply')).toBe(true);
+    expect(drawsSomething(0)).toBe(true);
+  });
+
+  it('caps the body at points as given, or at a fraction of a height kept between none and all of it', () => {
+    expect(bodyCap(undefined, 800)).toBeUndefined();
+    expect(bodyCap(300, 800)).toBe(300);
+    expect(bodyCap({fraction: 0.6}, 800)).toBe(480);
+    expect(bodyCap({fraction: 2}, 800)).toBe(800);
+    expect(bodyCap({fraction: -1}, 800)).toBe(0);
+    expect(capFraction(0.5)).toBe(0.5);
+    // A fraction worked out from nothing is no height, not NaN; an endless one is all of it.
+    expect(capFraction(Number.NaN)).toBe(0);
+    expect(bodyCap({fraction: Number.NaN}, 800)).toBe(0);
+    expect(capFraction(Number.POSITIVE_INFINITY)).toBe(1);
   });
 
   it('names a child under the sheet\'s test identifier, or not at all', () => {

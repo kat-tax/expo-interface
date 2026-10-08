@@ -49,7 +49,7 @@ export const starFilled = icon({ios: 'star', android: 'star', web: 'star'}, draw
 | --- | --- | --- |
 | iOS | SF Symbols' own `.fill` name (`star` becomes `star.fill`). A token that already names a solid symbol keeps it. | Nothing |
 | Android | The token's `drawable`, which has to be the filled vector | `npx add-material-symbols --fill star` |
-| Web | The `FILL 1` axis of the Material Symbols variable font | The variable family, registered under `Material Symbols Outlined` or under a name of the app's own in `--ui-symbol-font` |
+| Web | The `FILL 1` axis of the Material Symbols variable font | The variable family, registered under `Material Symbols Outlined` or, for filled icons alone, `Material Symbols Filled`, or under a name of the app's own in `--ui-symbol-font` or `--ui-symbol-fill-font` |
 | Windows | The family's solid glyph, where it has one; otherwise the outline | Nothing |
 
 `expo-symbols` bundles a static Material Symbols font cut at `FILL 0` with no
@@ -66,6 +66,16 @@ variable axes, so filled icons on web need the variable family:
 
 Serve it from the app's own bundle so an offline web build still draws.
 Without the family a filled token draws its outline.
+
+Registered as `Material Symbols Outlined`, the variable family is the one
+every icon draws with first. Registered as `Material Symbols Filled`, it is
+the one a filled token draws with first, and outlined icons keep the static
+instance. The stylesheet's stacks:
+
+| Token | Families, in order |
+| --- | --- |
+| Outlined | `--ui-symbol-font` (`Material Symbols Outlined`), then the static instance |
+| Filled | `--ui-symbol-fill-font` (`Material Symbols Filled`), then `--ui-symbol-font` (`Material Symbols Outlined`), then the static instance |
 
 ## Windows glyphs
 
@@ -122,7 +132,8 @@ is the Material name, Android's then the web's.
 
 A tab route takes a token too: `Tabs routes` accept an `IconToken` in place
 of the per-platform names, and `webIcon` takes one for the app's mark,
-drawn as the kit's glyph in the label color.
+drawn as the kit's glyph in the label color; an image mark is drawn as it
+is, or in the label color with `webTintIcon`.
 
 ## Drawables without a list
 
@@ -150,22 +161,60 @@ package ships it and downloads the rest from Google Fonts, downloads the
 `fill` form of every token that asks for one, and writes
 `drawables.android.ts` with the two maps and a `drawables.ts` stub for the
 other platforms. The names the kit's own controls draw on Android are
-written whether or not the sources name them: `more_horiz`, the ellipsis of
-a `Toolbar`'s overflow and a `Card`'s menu, and `star`, outlined and
-filled, for a `Card`'s favorite. A token's own `drawable` still wins.
-`drawableOf(token)` is the lookup the kit's Android controls use.
+written whether or not the sources name them:
+
+| Name | Drawn by |
+| --- | --- |
+| `arrow_back` | the back button of a `Sheet`'s bar |
+| `close` | the close button of a `Sheet`'s bar and a `FindBar`'s close |
+| `more_horiz` | a `Sheet`'s and a `Card`'s menu, and a `Toolbar`'s overflow |
+| `arrow_upward`, `stop` | a `Composer`'s send and stop buttons |
+| `keyboard_arrow_up`, `keyboard_arrow_down` | a `FindBar`'s previous and next match |
+| `star` | a `Card`'s favorite, outlined and, while set, filled |
+
+A token's own `drawable` still wins. `drawableOf(token)` is the lookup the
+kit's Android controls use.
 
 ## The web font
 
 `--font` also writes `MaterialSymbolsOutlined.woff2`: the variable Material
-Symbols font cut down to the names found, with the `FILL` axis kept and the
-other axes pinned, through `subset-font` (`npm i -D subset-font`). Serve it
-from the app's bundle and register it beside the palette:
+Symbols font cut down to the ligatures of the names found, the `fill` names,
+and the names the kit's own controls draw on the web. Those are the eight
+listed above, plus `add` and `grid_view` for a `TabView` strip and `search`
+for `HeaderSearch`. The font draws most solid icons from a glyph of their
+own, so the cut keeps each name's glyph at `FILL 0` and at `FILL 1`. It
+keeps the `FILL` axis and pins the others. A name the font does not have is
+reported and left out. The cut is done with HarfBuzz, so the CLI needs
+`harfbuzzjs` 1 and `fontverter` in the app (`npm i -D harfbuzzjs fontverter`).
+
+Serve it from the app's bundle and register it beside the palette:
 
 ```tsx
 // app/+html.tsx
 <style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2')}}/>
 ```
 
-`getSymbolFontCSS(url, family?)` is the `@font-face` the stylesheet draws
-with; a family of the app's own goes in `--ui-symbol-font` as well.
+Registered that way, every icon draws from the cut first. The cut maps
+every letter its names use, so a name it does not hold draws as its letters
+rather than falling back to the static instance. A name the app builds at
+run time therefore has to appear in a token in the sources, as Android's
+drawables already require. Registered with `{filled: true}`, the cut is
+`Material Symbols Filled`, which the stylesheet tries first for a filled
+token only. Outlined icons then keep the static instance `expo-symbols`
+ships, which holds every name. A filled token draws from the cut under
+either registration, so its name has to be in the cut as well.
+
+`getSymbolFontCSS(url, options?)` is the `@font-face` that registers the
+cut for the stylesheet. Its options:
+
+| Option | What it does |
+| --- | --- |
+| `filled` | Registers the font as `Material Symbols Filled` (`SYMBOL_FILL_FONT_FAMILY`), which the stylesheet tries first for a filled token only. `false` by default, which registers it as `Material Symbols Outlined` (`SYMBOL_FONT_FAMILY`), the family every icon tries first. |
+| `family` | A family of the app's own to register the font under. The rule also names it on `:root` in `--ui-symbol-font`, or in `--ui-symbol-fill-font` with `filled`, so icons draw with it with nothing more from the app. |
+
+A family name in place of the options is the same as `{family}`.
+
+```tsx
+// for filled icons alone
+<style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2', {filled: true})}}/>
+```

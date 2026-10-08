@@ -1,3 +1,4 @@
+import type {AlertAction} from './types';
 import {render, screen} from '@testing-library/react-native';
 import {Text} from 'react-native';
 import {fireIsland, island} from 'expo-vitest/windows';
@@ -58,7 +59,7 @@ describe('Alert (windows)', () => {
         title="Rename"
         visible
         onDismiss={onDismiss}
-        input={{placeholder: 'Name', value: 'Essay', onChangeText, testID: 'name'}}
+        input={{placeholder: 'Name', value: 'Essay', onChangeText, autoCorrect: false, testID: 'name'}}
         actions={[{label: 'Cancel', role: 'cancel'}, {label: 'Rename', onPress: onRename}]}
       />,
     );
@@ -70,12 +71,40 @@ describe('Alert (windows)', () => {
     expect(screen.queryAllByTestId('name')).toHaveLength(0);
     await fireIsland(portal, 'ready', {connected: true});
     const box = island('ExpoInterfaceTextBox');
-    expect(box.props).toMatchObject({placeholder: 'Name', value: 'Essay', testID: 'name'});
+    expect(box.props).toMatchObject({placeholder: 'Name', value: 'Essay', spellCheck: false, testID: 'name'});
     await fireIsland(box, 'changeText', {text: 'Essay 2'});
     expect(onChangeText).toHaveBeenCalledWith('Essay 2');
     await fireIsland(box, 'submit', {text: 'Essay 2'});
     expect(onRename).toHaveBeenCalledTimes(1);
     expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('marks a disabled action: Enter does not press it, and a close on a disabled cancel only dismisses', async () => {
+    const onCancel = vi.fn();
+    const onRename = vi.fn();
+    const onDismiss = vi.fn();
+    const actions = (disabled: boolean): AlertAction[] => [
+      {label: 'Cancel', role: 'cancel', disabled: true, onPress: onCancel},
+      {label: 'Rename', disabled, onPress: onRename},
+    ];
+    const {rerender} = await render(<Alert title="Rename" visible onDismiss={onDismiss} input={{placeholder: 'Name'}} actions={actions(true)}/>);
+    expect(JSON.parse(island(DIALOG).props.actions)).toEqual([
+      {label: 'Cancel', role: 'cancel', disabled: true},
+      {label: 'Rename', role: 'default', disabled: true},
+    ]);
+    await fireIsland(island('ExpoInterfacePortal'), 'ready', {connected: true});
+    await fireIsland(island('ExpoInterfaceTextBox'), 'submit', {text: ''});
+    expect(onRename).not.toHaveBeenCalled();
+    expect(onDismiss).not.toHaveBeenCalled();
+    // Escape reports the cancel's index; a disabled cancel is not pressed.
+    await fireIsland(island(DIALOG), 'close', {index: 0});
+    expect(onCancel).not.toHaveBeenCalled();
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    await rerender(<Alert title="Rename" visible onDismiss={onDismiss} input={{placeholder: 'Name'}} actions={actions(false)}/>);
+    expect(JSON.parse(island(DIALOG).props.actions)[1]).toEqual({label: 'Rename', role: 'default'});
+    await fireIsland(island('ExpoInterfaceTextBox'), 'submit', {text: 'Essay'});
+    expect(onRename).toHaveBeenCalledTimes(1);
+    expect(onDismiss).toHaveBeenCalledTimes(2);
   });
 
   it('does nothing on Enter with only a cancel, and holds no field as an action sheet', async () => {

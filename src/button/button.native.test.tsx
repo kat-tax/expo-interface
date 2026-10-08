@@ -337,6 +337,18 @@ describe(`Button (${Platform.OS})`, () => {
     expect(button('round').props.shape).toMatchObject({type: 'circle', radius: 1});
   });
 
+  (isIOS ? it.skip : it)('leaves a disabled button\'s label and icons to Compose\'s disabled color', async () => {
+    await render(<Button label="Save" variant="outlined" prefixIcon={icons.add} suffixIcon={icons.share} disabled testID="save"/>);
+    expect(host(p => p.text === 'Save').props.color).toBeUndefined();
+    const drawables = nodes().filter(n => n.type.endsWith('IconView'));
+    expect(drawables).toHaveLength(2);
+    expect(drawables.map(n => n.props.tint)).toEqual([undefined, undefined]);
+    // Enabled, the content is drawn in the accent.
+    await render(<Button label="Save" variant="outlined" prefixIcon={icons.add}/>);
+    expect(host(p => p.text === 'Save').props.color).toBe('#007AFF');
+    expect(host(p => p.size === 18 && p.tint != null).props.tint).toBe('#007AFF');
+  });
+
   (isIOS ? it.skip : it)('disables the icon-only button', async () => {
     await render(<Button label="Share" prefixIcon={icons.share} hideLabel disabled testID="share"/>);
     const {props} = button('share');

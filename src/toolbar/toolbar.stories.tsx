@@ -107,7 +107,7 @@ function useFormatting() {
   return [
     {label: 'Bold', icon: icons.add, hideLabel: true, active: bold, tone: 'label' as const, onPress: () => setBold(on => !on)},
     {label: 'Italic', icon: icons.star, hideLabel: true, active: italic, tone: 'label' as const, onPress: () => setItalic(on => !on)},
-    {label: 'Link', icon: icons.share, hideLabel: true, tone: 'label' as const, onPress: fn()},
+    {label: 'Link', icon: icons.share, hideLabel: true, tone: 'label' as const, separator: true, onPress: fn()},
     {label: 'Clear formatting', secondary: true, onPress: fn()},
   ];
 }
@@ -150,6 +150,37 @@ export const AtASelection: Story = {
 };
 
 /**
+ * Tools hanging from a block's corner: lined up with the block's right edge
+ * (`align="end"`), under it, with a menu among the commands. The menu is the
+ * kit's `Menu` on the bar, an `AppBarButton` with its flyout in the Windows
+ * `CommandBar`.
+ */
+export const AtABlockCorner: Story = {
+  render: function AtABlockCorner(args) {
+    const [kind, setKind] = useState('Quote');
+    const line = useColor('separator');
+    const kinds = ['Heading', 'Quote', 'List'];
+    return (
+      <View style={styles.canvas}>
+        <View style={[styles.block, {borderColor: line}]}>
+          <Footnote color="label">{`A block of kind ${kind}`}</Footnote>
+        </View>
+        <Toolbar
+          {...args}
+          at={{x: 24, y: 40, width: 280, height: 64}}
+          align="end"
+          preferredEdge="bottom"
+          commands={[
+            {label: 'Turn into', icon: icons.chevron, hideLabel: true, tone: 'label', items: kinds.map(label => ({label, active: label === kind, onPress: () => setKind(label)}))},
+            {label: 'Delete', icon: icons.trash, hideLabel: true, tone: 'label', separator: true, onPress: fn()},
+          ]}
+        />
+      </View>
+    );
+  },
+};
+
+/**
  * An editor's status bar with a find field open: the field's commands stay
  * beside it, and on a phone's width the bar folds its other commands behind
  * the overflow, leaving the field the room.
@@ -176,4 +207,5 @@ const styles = StyleSheet.create({
   stage: {gap: 24},
   canvas: {height: 220, alignSelf: 'stretch'},
   selection: {position: 'absolute', left: 60, top: 120, width: 140, height: 22, justifyContent: 'center', paddingHorizontal: 4, borderRadius: 4},
+  block: {position: 'absolute', left: 24, top: 40, width: 280, height: 64, justifyContent: 'center', paddingHorizontal: 12, borderWidth: 1, borderRadius: 8},
 });

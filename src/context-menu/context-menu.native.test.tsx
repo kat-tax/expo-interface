@@ -139,6 +139,8 @@ describe(`ContextMenu (${Platform.OS})`, () => {
     expect(onShare).toHaveBeenCalledTimes(1);
     expect(expanded()).toBe(false);
     expect(onDismiss).toHaveBeenCalledTimes(2);
+    // The entry acts before the close is reported.
+    expect(onShare.mock.invocationCallOrder[0]).toBeLessThan(onDismiss.mock.invocationCallOrder[1]!);
   });
 
   (isIOS ? it.skip : it)('reports the popup opening and closing, including from `at`', async () => {

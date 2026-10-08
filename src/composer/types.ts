@@ -1,6 +1,10 @@
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {IconToken} from '../icons';
 import type {MenuItem} from '../menu/types';
+import type {TextFieldCapitalize, TextFieldKeyboard} from '../text-field/types';
+
+/** The color of the line under a composer: `destructive` for an error. */
+export type ComposerNoticeColor = 'secondaryLabel' | 'destructive';
 
 /** The menu at a composer's leading edge: what the message goes to, a model, an attachment. */
 export interface ComposerMenu {
@@ -29,19 +33,82 @@ export interface ComposerProps {
   placeholder?: string;
   /**
    * Called with the trimmed text when the send button is pressed or the
-   * keyboard's send key is used. Nothing is sent while the text is blank.
+   * keyboard's send key is used. Nothing is sent while the text is blank or
+   * while `busy`.
    */
   onSend: (text: string) => void;
   /** Called when the stop button is pressed while `busy`. Without it the button is disabled while busy. */
   onStop?: () => void;
   /**
    * Something is running on what was sent: the send button is a stop
-   * button, and the text can be written on meanwhile.
+   * button, and the text can be written on meanwhile. Enter and the
+   * keyboard's send key do nothing until it is done, and the text stays for
+   * the next send: nothing goes out by itself when `busy` ends.
    * @default false
    */
   busy?: boolean;
-  /** A line under the capsule in the secondary color: a hint, an error, who else is typing. */
+  /**
+   * A line under the capsule: a hint, an error, who else is typing. Drawn in
+   * `noticeColor`. A screen reader reads a new notice out. On Android and
+   * web the notice is a polite live region, and on iOS an announcement
+   * queued the same way, so the screen reader reads it once it is done
+   * speaking. On Windows it is an announcement Narrator reads at once, and
+   * a newer notice replaces one it has not read yet. The notice the composer
+   * mounts with is not read.
+   */
   notice?: string;
+  /**
+   * The color of the `notice`: `destructive` for an error.
+   * @default 'secondaryLabel'
+   */
+  noticeColor?: ComposerNoticeColor;
+  /**
+   * The send button's accessible name; the button shows its icon alone.
+   * @default 'Send'
+   */
+  sendLabel?: string;
+  /**
+   * The stop button's accessible name; the button shows its icon alone.
+   * @default 'Stop'
+   */
+  stopLabel?: string;
+  /**
+   * The send button's icon. Defaults to the kit's arrow. On Windows a token
+   * with no `windows` glyph shows `sendLabel` in its place.
+   */
+  sendIcon?: IconToken;
+  /**
+   * The stop button's icon. Defaults to the kit's stop square. On Windows a
+   * token with no `windows` glyph shows `stopLabel` in its place.
+   */
+  stopIcon?: IconToken;
+  /**
+   * Called on a key pressed in the field, with the key's name (`Escape`,
+   * `a`) and whether Shift was held, as `TextField`'s: Escape to close an
+   * assistant built on the composer. On web and Windows the Enter that
+   * sends stays the composer's and is not reported. iOS and Android report
+   * only the keys that write, Enter and Backspace, so no Escape;
+   * react-native-windows reports only the keys that type a character,
+   * Escape and Backspace among them, and no Shift.
+   */
+  onKeyPress?: (key: string, shiftKey: boolean) => void;
+  /**
+   * Automatic capitalization of the field, as on a `TextField`. On Windows
+   * only `characters` applies: react-native-windows ignores the others.
+   * @default 'sentences'
+   */
+  autoCapitalize?: TextFieldCapitalize;
+  /**
+   * Autocorrect and spellcheck suggestions in the field, as on a `TextField`.
+   * @default true
+   */
+  autoCorrect?: boolean;
+  /**
+   * The keyboard the field shows, as on a `TextField`. It has no effect on
+   * Windows: react-native-windows ignores it.
+   * @default 'default'
+   */
+  keyboardType?: TextFieldKeyboard;
   /**
    * A menu at the capsule's leading edge: what the message goes to, a
    * model, an attachment. The platform's menu behind an icon button.

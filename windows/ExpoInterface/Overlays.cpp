@@ -32,12 +32,13 @@ controls::Grid MakeAnchor() noexcept {
   return anchor;
 }
 
-/** A button drawn as text alone, in a color: the actions of a flyout. */
+/** A button drawn as text alone, in a color: the actions of a flyout. Disabled, it is still text alone. */
 controls::Button MakeTextButton(const std::string &label, Color color) noexcept {
   controls::Button button;
   button.Content(winrt::box_value(ToHString(label)));
   auto resources = button.Resources();
-  for (auto key : {L"ButtonBackground", L"ButtonBorderBrush", L"ButtonBorderBrushPointerOver", L"ButtonBorderBrushPressed"}) {
+  for (auto key : {L"ButtonBackground", L"ButtonBorderBrush", L"ButtonBorderBrushPointerOver", L"ButtonBorderBrushPressed",
+                   L"ButtonBackgroundDisabled", L"ButtonBorderBrushDisabled"}) {
     resources.Insert(winrt::box_value(key), Brush(Color{0, 0, 0, 0}));
   }
   for (auto key : {L"ButtonForeground", L"ButtonForegroundPointerOver", L"ButtonForegroundPressed"}) {
@@ -236,7 +237,11 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
     if (props->open && !m_popup) {
       Show();
     } else if (!props->open && m_popup) {
+      // Closed by the app, which knows: nothing is reported.
+      m_silent = true;
       Close(-1);
+    } else if (m_popup && props->actions != m_actions) {
+      Refresh(props->actions);
     }
   }
 
@@ -249,7 +254,32 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
     int32_t index;
     std::string label;
     bool destructive;
+    bool disabled;
   };
+
+  /** A button on the open dialog and the index of the action it stands for. */
+  struct Placed {
+    int32_t index;
+    controls::Button button;
+  };
+
+  /**
+   * A change to the actions while the dialog is open: each button takes its
+   * action's new label and whether it takes presses, by index. The
+   * arrangement is fixed when the dialog opens.
+   */
+  void Refresh(const std::string &json) noexcept {
+    m_actions = json;
+    auto entries = ParseArray(json);
+    for (auto &[index, button] : m_buttons) {
+      if (index < 0 || static_cast<uint32_t>(index) >= entries.Size()) continue;
+      auto value = entries.GetAt(static_cast<uint32_t>(index));
+      if (value.ValueType() != JsonValueType::Object) continue;
+      auto entry = value.GetObject();
+      button.Content(winrt::box_value(ToHString(JsonString(entry, L"label"))));
+      button.IsEnabled(!JsonBool(entry, L"disabled"));
+    }
+  }
 
   /** The app window's client area as popup offsets from the anchor and a size, in DIPs. */
   bool WindowFrame(const xaml::XamlRoot &root, double &offsetX, double &offsetY, double &width, double &height) noexcept {
@@ -324,6 +354,9 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
     }
     m_retries = 0;
 
+    m_actions = props->actions;
+    m_buttons.clear();
+    m_silent = false;
     std::vector<Action> others;
     std::optional<Action> cancel;
     int32_t index = 0;
@@ -332,7 +365,7 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       if (value.ValueType() != JsonValueType::Object) continue;
       auto entry = value.GetObject();
       const auto role = JsonString(entry, L"role");
-      Action action{current, JsonString(entry, L"label"), role == "destructive"};
+      Action action{current, JsonString(entry, L"label"), role == "destructive", JsonBool(entry, L"disabled")};
       if (role == "cancel" && !cancel) cancel = action;
       else others.push_back(action);
     }
@@ -386,9 +419,11 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       for (size_t i = 2; i < others.size(); ++i) {
         auto button = MakeTextButton(others[i].label, others[i].destructive ? Critical(dark) : accent);
         const int32_t picked = others[i].index;
+        button.IsEnabled(!others[i].disabled);
         button.Click([weak = get_weak(), picked](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
           if (auto strong = weak.get()) strong->Close(picked);
         });
+        m_buttons.push_back({picked, button});
         extra.Children().Append(button);
       }
       body.Children().Append(extra);
@@ -399,6 +434,7 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
     row.Padding({24, 24, 24, 24});
     row.ColumnSpacing(8);
     controls::Button first{nullptr};
+    controls::Button firstEnabled{nullptr};
     auto place = [&](const controls::Button &button) {
       controls::ColumnDefinition column;
       column.Width(xaml::GridLength{1, xaml::GridUnitType::Star});
@@ -406,6 +442,7 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       controls::Grid::SetColumn(button, static_cast<int32_t>(row.ColumnDefinitions().Size() - 1));
       row.Children().Append(button);
       if (!first) first = button;
+      if (!firstEnabled && button.IsEnabled()) firstEnabled = button;
     };
     for (size_t i = 0; i < others.size() && i < 2; ++i) {
       const bool destructive = others[i].destructive;
@@ -414,17 +451,21 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
         OverrideBrushes(button, {L"ButtonForeground", L"ButtonForegroundPointerOver", L"ButtonForegroundPressed"}, Critical(dark));
       }
       const int32_t picked = others[i].index;
+      button.IsEnabled(!others[i].disabled);
       button.Click([weak = get_weak(), picked](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
         if (auto strong = weak.get()) strong->Close(picked);
       });
+      m_buttons.push_back({picked, button});
       place(button);
     }
     if (cancel) {
       auto button = MakeDialogButton(cancel->label, false, accent, dark);
       const int32_t picked = cancel->index;
+      button.IsEnabled(!cancel->disabled);
       button.Click([weak = get_weak(), picked](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
         if (auto strong = weak.get()) strong->Close(picked);
       });
+      m_buttons.push_back({picked, button});
       place(button);
     }
 
@@ -491,10 +532,14 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       m_popup = nullptr;
       return;
     }
-    if (first) {
+    // The first action is the default button. A disabled one cannot take the
+    // focus, so the React body takes it (the field the action waits on), or
+    // the first button that can, as ContentDialog leaves the focus to its
+    // content when its default button is disabled.
+    if (first && first.IsEnabled()) {
       first.Focus(xaml::FocusState::Programmatic);
     } else if (hasSlot) {
-      // No button of its own: the keyboard goes to the React body, through the
+      // No button to take it: the keyboard goes to the React body, through the
       // portal's tab stop in the slot, once the portal has put it there.
       m_focus = winrt::Microsoft::UI::Dispatching::DispatcherQueue::GetForCurrentThread().CreateTimer();
       m_focus.Interval(std::chrono::milliseconds(150));
@@ -505,6 +550,8 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
         }
       });
       m_focus.Start();
+    } else if (firstEnabled) {
+      firstEnabled.Focus(xaml::FocusState::Programmatic);
     }
   }
 
@@ -521,6 +568,16 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       UnregisterSlot(m_slotName);
       m_slotName.clear();
     }
+    m_buttons.clear();
+    m_actions.clear();
+    if (m_silent) {
+      m_silent = false;
+      // The popup closes a moment after it is asked to. If the app opened the
+      // dialog again in that moment, `open` found it still up and changed
+      // nothing, so it opens now.
+      if (auto props = Props(); props && props->open) Show();
+      return;
+    }
     const int32_t picked = m_picked < 0 ? m_cancel : m_picked;
     if (auto emitter = EventEmitter()) {
       Codegen::ExpoInterfaceContentDialogEventEmitter::OnClose event;
@@ -535,8 +592,13 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
   winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer m_focus{nullptr};
   int m_retries{0};
   std::string m_slotName;
+  // The actions the open dialog was built or last refreshed from, and its buttons.
+  std::string m_actions;
+  std::vector<Placed> m_buttons;
   int32_t m_cancel{-1};
   int32_t m_picked{-1};
+  // Closed through the `open` prop: the close is not reported.
+  bool m_silent{false};
 };
 
 // -- CommandBar (toolbar) ----------------------------------------------------
@@ -595,17 +657,35 @@ struct CommandBarView : winrt::implements<CommandBarView, winrt::IInspectable>,
       if (value.ValueType() != JsonValueType::Object) continue;
       auto entry = value.GetObject();
       const bool secondary = JsonBool(entry, L"secondary");
-      if (JsonBool(entry, L"separator")) {
+      // A rule before the command, none before the first of the row or of the
+      // overflow, as the kit's drawn bars and FillMenu's flyouts have.
+      const auto target = secondary ? m_bar.SecondaryCommands() : m_bar.PrimaryCommands();
+      if (JsonBool(entry, L"separator") && target.Size() > 0) {
         controls::AppBarSeparator separator;
-        if (secondary) {
-          m_bar.SecondaryCommands().Append(separator);
-        } else {
-          m_bar.PrimaryCommands().Append(separator);
-        }
+        target.Append(separator);
       }
-      // A command with an on state is the bar's own toggle button, which
-      // Narrator reads as on or off; the others are plain buttons.
-      if (JsonBool(entry, L"toggle")) {
+      // A menu command opens its entries as the button's flyout: a chevron on
+      // the bar, a submenu in the overflow. A pick is reported with the
+      // command's index and the entry's. A command with an on state is the
+      // bar's own toggle button, which Narrator reads as on or off; the others
+      // are plain buttons.
+      if (entry.HasKey(L"menu") && entry.Lookup(L"menu").ValueType() == JsonValueType::Array) {
+        controls::AppBarButton button;
+        Dress(button, entry, current, dark);
+        controls::MenuFlyout flyout;
+        FillMenu(flyout, entry.GetNamedArray(L"menu"), dark, [weak = get_weak(), current](int32_t picked) {
+          if (auto strong = weak.get()) {
+            if (auto emitter = strong->EventEmitter()) {
+              Codegen::ExpoInterfaceCommandBarEventEmitter::OnPress event;
+              event.index = current;
+              event.item = picked;
+              emitter->onPress(std::move(event));
+            }
+          }
+        });
+        button.Flyout(flyout);
+        Append(button, secondary);
+      } else if (JsonBool(entry, L"toggle")) {
         controls::AppBarToggleButton toggle;
         toggle.IsChecked(JsonBool(entry, L"checked"));
         Dress(toggle, entry, current, dark);
@@ -618,7 +698,11 @@ struct CommandBarView : winrt::implements<CommandBarView, winrt::IInspectable>,
     }
   }
 
-  /** The label, glyph, state and press every command takes, a toggle or not. */
+  /**
+   * The label, glyph, state and press every command takes, a toggle, a menu
+   * or neither. A press is the command's own (`item` -1): for a menu command
+   * it only opens the flyout, and the pick is reported from there.
+   */
   template <typename T>
   void Dress(T &button, const JsonObject &entry, int32_t current, bool dark) noexcept {
     button.Label(ToHString(JsonString(entry, L"label")));
@@ -636,6 +720,7 @@ struct CommandBarView : winrt::implements<CommandBarView, winrt::IInspectable>,
         if (auto emitter = strong->EventEmitter()) {
           Codegen::ExpoInterfaceCommandBarEventEmitter::OnPress event;
           event.index = current;
+          event.item = -1;
           emitter->onPress(std::move(event));
         }
       }
@@ -1261,6 +1346,15 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
         }
       }
     });
+    // The add button is a part of the template, there once it is applied: a
+    // name asked for before then is given now. A load may come with a new
+    // template, and so a new button, so it is named again.
+    m_view.Loaded([weak = get_weak()](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
+      if (auto strong = weak.get()) {
+        strong->m_namedAddLabel.clear();
+        strong->NameAddButton();
+      }
+    });
     Attach(islandView, m_view);
   }
 
@@ -1278,7 +1372,8 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
     // would read out.
     SetName(m_view, props->label);
     Root().as<controls::Panel>().Background(Brush(ColorOr(props->background, Color{0, 0, 0, 0})));
-    if (props->items != m_items) {
+    const bool rebuilt = props->items != m_items;
+    if (rebuilt) {
       m_items = props->items;
       m_view.TabItems().Clear();
       for (auto value : ParseArray(m_items)) {
@@ -1321,10 +1416,18 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
         m_view.TabItems().Append(item);
       }
     }
+    // New items have no names yet; items kept are renamed in place when only
+    // the names changed, since a rebuild would drop the focus on a tab.
+    if (rebuilt || props->labels != m_labels) {
+      m_labels = props->labels;
+      NameItems();
+    }
     const auto count = static_cast<int32_t>(m_view.TabItems().Size());
     const auto selected = std::clamp(props->selectedIndex.value_or(0), 0, std::max(0, count - 1));
     if (count > 0 && m_view.SelectedIndex() != selected) m_view.SelectedIndex(selected);
     m_view.IsAddTabButtonVisible(props->addButton.value_or(false));
+    m_addLabel = props->addLabel.value_or("");
+    NameAddButton();
     m_applying = false;
   }
 
@@ -1333,6 +1436,42 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
   }
 
  private:
+  /**
+   * Names each tab for UI Automation from `labels`, by its index: what the
+   * accessory the strip cannot draw means, or the title. An empty name hands
+   * the tab back to WinUI's own, its header text.
+   */
+  void NameItems() noexcept {
+    const auto names = JsonStrings(ParseArray(m_labels));
+    const auto items = m_view.TabItems();
+    const auto count = std::min(static_cast<uint32_t>(names.size()), items.Size());
+    for (uint32_t index = 0; index < count; ++index) {
+      if (auto item = items.GetAt(index).try_as<controls::TabViewItem>()) {
+        SetName(item, std::optional<std::string>{names[index]});
+      }
+    }
+  }
+
+  /**
+   * Names the add button what the app asked to call it, to UI Automation and
+   * in its tooltip, in place of WinUI's own. WinUI fills both only when they
+   * are empty, as the template is applied, and this runs after that, so the
+   * app's words win either way. With no words of the app's (an empty label)
+   * the button keeps WinUI's, which are in the system's language.
+   *
+   * It runs on every props update, a selection included, and finding the
+   * button walks the control's whole tree, every tab's template first; so a
+   * button already given these words is left alone.
+   */
+  void NameAddButton() noexcept {
+    if (m_addLabel.empty() || m_addLabel == m_namedAddLabel) return;
+    auto button = FindDescendant(m_view, L"AddButton");
+    if (!button) return;
+    SetName(button, std::optional<std::string>{m_addLabel});
+    controls::ToolTipService::SetToolTip(button, winrt::box_value(ToHString(m_addLabel)));
+    m_namedAddLabel = m_addLabel;
+  }
+
   void TabMenu(const controls::TabViewItem &item, const winrt::Windows::Foundation::Point &point) noexcept {
     uint32_t index = 0;
     if (!m_view.TabItems().IndexOf(item, index)) return;
@@ -1347,6 +1486,11 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
 
   controls::TabView m_view{nullptr};
   std::string m_items;
+  std::string m_labels;
+  /** What the add button is called, once its template part exists. */
+  std::string m_addLabel;
+  /** What the add button found last was named; cleared when it may be a new one. */
+  std::string m_namedAddLabel;
   bool m_applying{false};
 };
 

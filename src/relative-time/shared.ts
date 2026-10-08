@@ -23,25 +23,66 @@ const SCALE: readonly [Unit, number, number][] = [
 const MAX_DELAY = 2 ** 31 - 1;
 
 /**
- * What a moment reads as from `now`, and in how many milliseconds that may
- * change: at 45 seconds for "now", and every half unit after, so a minute
- * count is never more than half a minute behind.
+ * What a moment reads as from `now`, in `locale` (the engine's default
+ * without one), and in how many milliseconds that may change: at 45 seconds
+ * for "now", and every half unit after, so a minute count is never more than
+ * half a minute behind.
  */
-export function relative(time: number, now: number, numeric: 'auto' | 'always'): {text: string; next: number} {
+export function relative(time: number, now: number, numeric: 'auto' | 'always', locale?: string): {text: string; next: number} {
   const distance = time - now;
   const span = Math.abs(distance);
-  if (span < 45 * SECOND) return {text: say(0, 'second', 'auto'), next: 45 * SECOND - span + 1};
+  if (span < 45 * SECOND) return {text: say(0, 'second', 'auto', locale), next: 45 * SECOND - span + 1};
   const [unit, size] = SCALE.find(([, , until]) => span < until)!;
   const value = Math.max(1, Math.round(span / size)) * Math.sign(distance);
-  return {text: say(value, unit, numeric), next: Math.min(MAX_DELAY, size / 2)};
+  return {text: say(value, unit, numeric, locale), next: Math.min(MAX_DELAY, size / 2)};
 }
 
-/** The words for a distance: the locale's where the engine has `Intl.RelativeTimeFormat`, English where it does not. */
-function say(value: number, unit: Unit, numeric: 'auto' | 'always'): string {
+/**
+ * The words for a distance: the locale's where the engine has
+ * `Intl.RelativeTimeFormat`, English where it does not. The engine is asked
+ * on every call, so a polyfill the app installs at startup is used.
+ */
+function say(value: number, unit: Unit, numeric: 'auto' | 'always', locale: string | undefined): string {
   if (typeof Intl !== 'undefined' && typeof Intl.RelativeTimeFormat === 'function') {
-    return new Intl.RelativeTimeFormat(undefined, {numeric}).format(value, unit);
+    const format = formatter(Intl.RelativeTimeFormat, locale, numeric);
+    if (format) return format.format(value, unit);
   }
   return english(value, unit, numeric);
+}
+
+/**
+ * One formatter per engine, language and style, so a list of times makes
+ * one rather than one per row per tick; `null` for one the engine could not
+ * make.
+ */
+const formatters = new WeakMap<typeof Intl.RelativeTimeFormat, Map<string, Intl.RelativeTimeFormat | null>>();
+
+/**
+ * The formatter for a language and style. A tag the engine cannot read
+ * (`en_US`) gets the engine's default, and an engine that cannot make even
+ * that, as a polyfill missing the `Intl.PluralRules` it needs, gets none:
+ * the words are English rather than an error during a render.
+ */
+function formatter(Engine: typeof Intl.RelativeTimeFormat, locale: string | undefined, numeric: 'auto' | 'always'): Intl.RelativeTimeFormat | null {
+  let made = formatters.get(Engine);
+  if (!made) {
+    made = new Map();
+    formatters.set(Engine, made);
+  }
+  const key = `${locale ?? ''}|${numeric}`;
+  if (made.has(key)) return made.get(key)!;
+  let format: Intl.RelativeTimeFormat | null;
+  try {
+    format = new Engine(locale, {numeric});
+  } catch {
+    try {
+      format = new Engine(undefined, {numeric});
+    } catch {
+      format = null;
+    }
+  }
+  made.set(key, format);
+  return format;
 }
 
 export function english(value: number, unit: Unit, numeric: 'auto' | 'always'): string {

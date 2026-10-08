@@ -1,14 +1,21 @@
-import {Platform, Text} from 'react-native';
+import {Dimensions, Platform, StyleSheet, Text} from 'react-native';
 import {fireEvent as fireDom, render as renderDom, screen as dom} from '@testing-library/react';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
 import {hostFit, hosts} from '../__tests__/hosts';
 import {iosSymbol} from '../button/shared';
-import {colors} from '../theme';
-import {host, modifier, nodes} from 'expo-vitest/native';
+import {NativeHost, useNativeHost} from '../host';
+import {colors, spacing} from '../theme';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {EMPTY_ICON} from './shared';
 import {EmptyState} from '.';
 
 const isIOS = Platform.OS === 'ios';
+
+/** Says whether it sits below a host, as a kit control placed there would see it. */
+function Hosted() {
+  return <Text>{useNativeHost() ? 'hosted' : 'bare'}</Text>;
+}
 
 describe(`EmptyState (${Platform.OS})`, () => {
   if (Platform.OS === 'web') {
@@ -89,30 +96,83 @@ describe(`EmptyState (${Platform.OS})`, () => {
       expect(modifier(host(p => p.description === 'No reason.').props, 'textSelection')).toEqual({$type: 'textSelection', value: false});
     });
 
-    it('composes the same layout by hand while loading, with the spinner in the symbol\'s place', async () => {
+    it('composes the same layout by hand while loading, padded and filling, with the spinner in the symbol\'s place', async () => {
       await render(<EmptyState title="Opening" description="One moment." icon={icons.add} loading testID="busy"/>);
       expect(nodes().some(n => n.props.title === 'Opening')).toBe(false);
-      expect(nodes().some(n => n.type.includes('ProgressView'))).toBe(true);
-      expect(modifier(host(p => p.text === 'Opening').props, 'font')).toMatchObject({size: 22, weight: 'bold'});
+      // SwiftUI's standard inset, and as greedy as the system view, so
+      // the state does not move when loading ends.
+      const stack = nodes().find(n => n.type.includes('VStack') && modifier(n.props, 'padding'))!;
+      expect(modifier(stack.props, 'padding')).toEqual({$type: 'padding', all: 'default'});
+      expect(modifier(stack.props, 'frame')).toMatchObject({maxWidth: Infinity, maxHeight: Infinity});
+      // And, like the system view, its own height in the stack around it.
+      expect(modifier(stack.props, 'fixedSize')).toEqual({$type: 'fixedSize', vertical: true});
+      const spinner = nodes().find(n => n.type.includes('ProgressView'))!;
+      // The large spinner, since SwiftUI's keeps its own size in the symbol's slot.
+      expect(modifier(spinner.props, 'controlSize')).toEqual({$type: 'controlSize', size: 'large'});
+      expect(modifier(spinner.props, 'frame')).toMatchObject({width: EMPTY_ICON, height: EMPTY_ICON});
+      expect(modifier(host(p => p.text === 'Opening').props, 'font')).toMatchObject({textStyle: 'title2', weight: 'bold'});
       expect(modifier(host(p => p.text === 'One moment.').props, 'foregroundStyle')?.style.color).toBe(colors.light.secondaryLabel);
       await render(<EmptyState title="Opening" loading testID="bare"/>);
       expect(nodes().some(n => n.props.text === 'One moment.')).toBe(false);
     });
 
-    it('draws the column instead on iOS 16, where ContentUnavailableView does not exist', async () => {
-      // SUPPORTED is read once when the module loads, so the version has to be
-      // in place before the import rather than before the render.
-      vi.resetModules();
-      vi.doMock('react-native', async importOriginal => {
-        const actual = await importOriginal<typeof import('react-native')>();
-        return {...actual, Platform: {...actual.Platform, Version: '16.4'}};
-      });
-      const {EmptyState: Old} = await import('.');
-      await render(<Old title="No drops yet" description="Nothing shared." icon={icons.add} testID="old"/>);
-      expect(screen.getByText('No drops yet')).toBeOnTheScreen();
-      expect(screen.getByTestId('old').props.accessibilityLabel).toBe('No drops yet. Nothing shared.');
-      vi.doUnmock('react-native');
-      vi.resetModules();
+    it('renders bare inside a host, the test ID on the native stack', async () => {
+      await render(
+        <NativeHost>
+          <EmptyState title="No drops" description="Nothing shared." action={{label: 'New drop'}} testID="empty"/>
+        </NativeHost>,
+      );
+      // One host: the one around it, not a second nested inside.
+      expect(hosts()).toHaveLength(1);
+      expect(host(p => p.testID === 'empty').type).toContain('VStack');
+      expect(host(p => p.title === 'No drops')).toBeTruthy();
+      expect(host(p => p.label === 'New drop')).toBeTruthy();
+      await render(<NativeHost><EmptyState title="Nothing here"/></NativeHost>);
+      expect(hosts()).toHaveLength(1);
+      expect(host(p => p.title === 'Nothing here')).toBeTruthy();
+    });
+
+    it('centres the view and its action as one inside a host, the view at its own height', async () => {
+      await render(
+        <NativeHost>
+          <EmptyState title="No drops" action={{label: 'New drop'}} testID="empty"/>
+        </NativeHost>,
+      );
+      // The stack fills the host and the view takes its own height, so a host
+      // of a definite size (a `Screen native`) does not push the action to its
+      // bottom edge under a view that took all the rest.
+      expect(modifier(host(p => p.testID === 'empty').props, 'frame')).toEqual({$type: 'frame', maxWidth: Infinity, maxHeight: Infinity});
+      expect(modifier(host(p => p.title === 'No drops').props, 'fixedSize')).toEqual({$type: 'fixedSize', vertical: true});
+      // In a host of its own, which fits the height, the stack fills only the width.
+      await render(<EmptyState title="No drops" action={{label: 'New drop'}} testID="own"/>);
+      const stack = nodes().find(n => n.type.includes('VStack'))!;
+      expect(modifier(stack.props, 'frame')).toEqual({$type: 'frame', maxWidth: Infinity});
+    });
+
+    it('hosts a node of the app\'s own in the stack inside a host, outside the host\'s context', async () => {
+      await render(<NativeHost><EmptyState title="No drops" action={<Hosted/>}/></NativeHost>);
+      expect(hosts()).toHaveLength(1);
+      expect(host(p => p.matchContents === true)).toBeTruthy();
+      // A kit control in the node mounts a host of its own, since it is React Native again.
+      expect(screen.getByText('bare')).toBeOnTheScreen();
+    });
+
+    it('composes the same layout in SwiftUI on iOS 16, where ContentUnavailableView does not exist', async () => {
+      // The version is read at render, so the getter stands in for an iOS 16 device.
+      const version = vi.spyOn(Platform, 'Version', 'get').mockReturnValue('16.4');
+      await render(<EmptyState title="No drops yet" description="Nothing shared." icon={icons.add} testID="old"/>);
+      expect(nodes().some(n => n.type.includes('ContentUnavailableView'))).toBe(false);
+      // The symbol as an SF Symbol image, in the size the other platforms give the icon.
+      expect(modifier(host(p => p.systemName === iosSymbol(icons.add)).props, 'font')).toMatchObject({size: EMPTY_ICON});
+      expect(host(p => p.text === 'No drops yet')).toBeTruthy();
+      // Native through and through: one host, and no React Native drawn inside it.
+      expect(hosts()).toHaveLength(1);
+      expect(screen.queryByText('No drops yet')).toBeNull();
+      expect(screen.queryByText('Nothing shared.')).toBeNull();
+      expect(screen.getByTestId('old')).toBeOnTheScreen();
+      await render(<EmptyState title="Nothing here"/>);
+      expect(nodes().some(n => n.type.endsWith('ImageView'))).toBe(false);
+      version.mockRestore();
     });
     return;
   }
@@ -126,8 +186,10 @@ describe(`EmptyState (${Platform.OS})`, () => {
     const column = nodes().find(n => n.type.includes('Column'))!;
     expect(column.props.horizontalAlignment).toBe('center');
     expect(host(p => p.text === 'No drops yet').props.color).toBe(colors.light.label);
-    expect(host(p => p.text === 'Nothing shared.').props.color).toBe(colors.light.secondaryLabel);
-    expect(host(p => p.text === 'Nothing shared.').props.textAlign).toBe('center');
+    // Selectable by default, so the description is React Native text hosted in the column.
+    const description = screen.getByText('Nothing shared.');
+    expect(description.props.selectable).toBe(true);
+    expect(StyleSheet.flatten(description.props.style)).toMatchObject({textAlign: 'center', color: colors.light.secondaryLabel});
     expect(nodes().some(n => n.type.endsWith('IconView') && n.props.size === 48)).toBe(true);
     const button = host(p => typeof p.onButtonPressed === 'function');
     expect(host(p => p.text === 'New drop', button)).toBeTruthy();
@@ -145,5 +207,43 @@ describe(`EmptyState (${Platform.OS})`, () => {
     // React Native content rides in the column through an RNHostView.
     expect(host(p => p.matchContents === true)).toBeTruthy();
     expect(screen.getByText('Cancel')).toBeOnTheScreen();
+    // Outside the host's context, so a kit control in the node mounts a host of
+    // its own: in the column's own host, and in one the column renders bare in.
+    await render(<EmptyState title="Opening" action={<Hosted/>}/>);
+    expect(screen.getByText('bare')).toBeOnTheScreen();
+    await render(<NativeHost><EmptyState title="Opening" action={<Hosted/>}/></NativeHost>);
+    expect(screen.getByText('bare')).toBeOnTheScreen();
+  });
+
+  it('lets the description be selected as hosted React Native text at the column\'s width, unless told not to', async () => {
+    await render(
+      <>
+        <EmptyState title="Failed" description="The file is gone." testID="a"/>
+        <EmptyState title="Failed" description="No reason." selectable={false} testID="b"/>
+      </>,
+    );
+    const width = () => StyleSheet.flatten(screen.getByText('The file is gone.').props.style).width;
+    // Until Compose has measured the column: the window's width less the column's padding.
+    expect(width()).toBe(Dimensions.get('window').width - spacing.five * 2);
+    const box = nodes().find(n => n.type.endsWith('BoxView') && modifier(n.props, 'onSizeChanged'))!;
+    // Hosted, since React Native text straight in a Compose box would draw nothing.
+    const hostView = host(p => p.matchContents === true, box);
+    expect(nodes(hostView).some(n => n.children?.includes('The file is gone.'))).toBe(true);
+    await act(async () => modifier(box.props, 'onSizeChanged')!.eventListener({width: 280, height: 40}));
+    expect(width()).toBe(280);
+    // Not selectable: the Compose text, with no React Native text beside it.
+    expect(host(p => p.text === 'No reason.').props.textAlign).toBe('center');
+    expect(screen.queryByText('No reason.')).toBeNull();
+  });
+
+  it('renders bare inside a host, the test ID on the column', async () => {
+    await render(<NativeHost><EmptyState title="No drops" testID="empty"/></NativeHost>);
+    // One host: the one around it, not a second nested inside.
+    expect(hosts()).toHaveLength(1);
+    const column = byComposeTestID('empty');
+    expect(column.type).toContain('Column');
+    // Centred in the height the host hands down (a `Screen native`'s host is
+    // the screen's size), where the column alone would lay out from the top.
+    expect(modifier(column.props, 'wrapContentHeight')).toEqual({$type: 'wrapContentHeight', alignment: 'centerVertically'});
   });
 });

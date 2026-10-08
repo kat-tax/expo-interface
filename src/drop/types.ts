@@ -16,7 +16,10 @@ export interface DroppedFile {
 export interface DropOptions {
   /** Called with the files dropped. */
   onDrop: (files: DroppedFile[]) => void;
-  /** Takes no drops while set. */
+  /**
+   * Takes no drops while set. On the web it still keeps a file dropped
+   * beside it from being opened in place of the app.
+   */
   disabled?: boolean;
 }
 
@@ -27,6 +30,11 @@ export interface DropZoneProps extends PropsWithChildren, DropOptions {
    * @default 'Drop files here'
    */
   label?: string;
+  /**
+   * The zone's own view. A zone around a `List` or a `CardGrid` takes
+   * `flex: 1`, as any view around them does, so the list fills the zone and
+   * scrolls inside it.
+   */
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }

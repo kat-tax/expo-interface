@@ -1,4 +1,5 @@
 import type {IconToken, IconTone} from '../icons';
+import type {ColorTokens} from '../theme';
 import type {ReactNode} from 'react';
 
 /**
@@ -73,9 +74,19 @@ export interface ListItemProps {
   /**
    * A mark at the trailing edge: `true` for a dot (something unread, something
    * changed), a number for a count. The kit's `Badge`, and part of the row's
-   * accessible name.
+   * accessible name on iOS, web and Windows. On Android TalkBack reads the
+   * row's own texts, the badge's among them: its number and then unseen text
+   * that says "new", so a count reads "3, new" and a dot "New".
    */
   badge?: boolean | number;
+  /**
+   * The badge's fill, the `Badge`'s `color`: a palette token (`tint` for an
+   * unread dot in the accent), which follows the scheme, or any color React
+   * Native reads. A count on it is drawn in black or white, whichever reads.
+   * Without one, the `Badge`'s own red: `destructive`, and Fluent's critical
+   * fill on Windows.
+   */
+  badgeColor?: ColorTokens | (string & {});
   /** Trailing (end) slot — chevron, value, control, etc. */
   trailing?: ReactNode;
   /** A text action rendered natively at the trailing edge, after `trailing`. */
@@ -97,11 +108,14 @@ export interface ListItemProps {
    * `ContextMenu` as well: it would nest two of them off the same gesture.
    */
   swipeActions?: ListItemSwipeAction[];
-  /** Secondary content below the headline; strings get subtle styling. */
+  /** Secondary content below the headline; strings get subtle styling and keep their line breaks. */
   supporting?: string | ReactNode;
   /**
    * The row is the current one: the open document, the chosen version. Drawn
-   * in the selected fill and announced as selected.
+   * in the selected fill and announced as selected. On Android it is announced
+   * on a row that presses by itself (Compose's `selectable`); an inert row, or
+   * one whose press goes through its context menu (`swipeActions`), shows the
+   * fill alone.
    * @default false
    */
   selected?: boolean;

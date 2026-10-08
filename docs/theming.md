@@ -63,12 +63,30 @@ The rest of this page is the reference.
 schemes, or `{light, dark}` for an accent that reads differently on each
 background. The default seed is `ACCENT_SEED`, `#007AFF`.
 
-`minContrast` asks for a contrast ratio against the scheme's background (4.5
-is WCAG's for text). A seed short of it in a scheme is made darker on the
-light background or lighter on the dark one, keeping its hue, until it
-reaches the ratio; a seed that reaches it is kept as it is. `resolveAccent(seed,
-minContrast)` is the same computation, for code that wants the result without
-a provider.
+`minContrast` asks for a contrast ratio (4.5 is WCAG's for text) against both
+of the scheme's backgrounds: the screen's, `background`, and the raised one
+under cards, menus, dialogs and bars, `backgroundElement`. The stricter of the
+two decides. A seed short of it in a scheme is made darker in the light scheme
+or lighter in the dark one, keeping its hue, until it reaches the ratio on
+both; a seed that reaches it is kept as it is. The ratio is measured against
+the palette's `background` and `backgroundElement` values, the colors
+`useColor`, `usePalette` and the CSS variables hand out for those two tokens.
+`resolveAccent(seed, minContrast)` is the same computation, for code that
+wants the result without a provider.
+
+A deeper fill such as `backgroundSelected`, a system color a `theme` token
+names natively, and a fill the platform draws itself are not measured, and in
+the dark scheme some of those are lighter than `backgroundElement`. What
+`theme.backgroundElement` names inside an iOS sheet and on Windows, and
+SwiftUI's grouped rows in a sheet, are a little lighter: a tint that just
+reaches 4.5:1 on the palette's fill measures about 3.9:1 on them. On Android
+the gap is wider. There `theme.background` and `theme.backgroundElement` name
+the theme's window and floating backgrounds, #303030 and #424242 in
+Material's dark theme, and the same tint measures about 3.7:1 and under 3:1
+on them. Where tinted text sits on one of these, fill the view with
+`useColor('backgroundElement')`, the color the ratio is measured against, or
+ask for a higher ratio. On Android's floating background it takes a ratio of
+about 7 to reach 4.5:1.
 
 | Platform | How the seed is applied |
 | --- | --- |

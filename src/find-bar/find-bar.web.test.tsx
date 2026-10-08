@@ -21,20 +21,29 @@ describe('FindBar (web)', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('goes forward on Enter, back on Shift+Enter, and closes on Escape', () => {
-    const onNext = vi.fn();
-    const onPrevious = vi.fn();
-    const onClose = vi.fn();
-    render(<FindBar onNext={onNext} onPrevious={onPrevious} onClose={onClose}/>);
-    const field = screen.getByRole('textbox', {name: 'Find'});
-    fireEvent.change(field, {target: {value: 'teh'}});
-    fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
-    fireEvent.keyDown(field, {key: 'Enter', keyCode: 13, shiftKey: true});
-    fireEvent.keyDown(field, {key: 'Escape'});
-    expect(onNext).toHaveBeenCalledTimes(1);
-    expect(onPrevious).toHaveBeenCalledTimes(1);
-    expect(onClose).toHaveBeenCalledTimes(1);
-    expect(field).toHaveValue('teh');
+  it('goes forward on Enter, keeping the focus for the next key, back on Shift+Enter, and closes on Escape', () => {
+    vi.useFakeTimers();
+    try {
+      const onNext = vi.fn();
+      const onPrevious = vi.fn();
+      const onClose = vi.fn();
+      render(<FindBar onNext={onNext} onPrevious={onPrevious} onClose={onClose}/>);
+      const field = screen.getByRole('textbox', {name: 'Find'});
+      field.focus();
+      fireEvent.change(field, {target: {value: 'teh'}});
+      fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
+      // react-native-web blurs a one-line field a moment after Enter unless told not to.
+      vi.advanceTimersByTime(1);
+      expect(onNext).toHaveBeenCalledTimes(1);
+      expect(document.activeElement).toBe(field);
+      fireEvent.keyDown(field, {key: 'Enter', keyCode: 13, shiftKey: true});
+      fireEvent.keyDown(field, {key: 'Escape'});
+      expect(onPrevious).toHaveBeenCalledTimes(1);
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(field).toHaveValue('teh');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('disables previous and next with nothing to step through', () => {

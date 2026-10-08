@@ -72,6 +72,8 @@ button.ui-list-item,
   font-size: 13px;
   line-height: 18px;
   color: var(--color-secondary-label);
+  /* The line breaks the app wrote, as SwiftUI's and Compose's text keep them. */
+  white-space: pre-line;
 }
 
 .ui-list-item__slot {

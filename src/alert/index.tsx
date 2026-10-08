@@ -12,11 +12,14 @@ import {DEFAULT_ACTIONS, defaultAction, splitActions} from './shared';
  * in the top layer with a backdrop, traps focus, and closes on Escape.
  * Actions render as the kit's text buttons; `sheet` anchors the dialog to
  * the bottom edge with the actions stacked, like an iOS action sheet. A
- * field goes under the message, and Enter in it presses the first action
- * that is not the cancel.
+ * disabled action is a disabled `<button>`, which the dialog's first focus
+ * passes over. A field goes under the message, and Enter in it presses the
+ * first action that is not the cancel, unless that action is disabled.
  */
 export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACTIONS, sheet, input, children, testID}: AlertProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  // Set while the app closes the dialog by clearing `visible`: that close is not reported.
+  const silent = useRef(false);
   const {cancel, others} = splitActions(actions);
   const submit = () => {
     const action = defaultAction(actions);
@@ -27,9 +30,23 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
 
   useEffect(() => {
     const dialog = ref.current!;
-    if (visible && !dialog.open) dialog.showModal();
-    else if (!visible && dialog.open) dialog.close();
+    if (visible && !dialog.open) {
+      dialog.showModal();
+    } else if (!visible && dialog.open) {
+      silent.current = true;
+      dialog.close();
+    }
   }, [visible]);
+
+  // The dialog's close event, after an action, Escape or a backdrop click,
+  // and after the app's own close, which is not reported.
+  const onClose = () => {
+    if (silent.current) {
+      silent.current = false;
+      return;
+    }
+    onDismiss?.();
+  };
 
   const onBackdrop = (event: SyntheticEvent<HTMLDialogElement, MouseEvent>) => {
     if (event.target === ref.current) ref.current?.close();
@@ -42,7 +59,7 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
         ref={ref}
         className={['ui-alert', sheet && 'ui-alert--sheet'].filter(Boolean).join(' ')}
         aria-label={title}
-        onClose={onDismiss}
+        onClose={onClose}
         onClick={onBackdrop}
         data-testid={testID}>
         <div className="ui-alert__body">
@@ -50,6 +67,7 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
           {message ? <Body color="secondaryLabel">{message}</Body> : null}
           {input && !sheet ? (
             <div className="ui-alert__field">
+              {/* Enter keeps the focus in the field: the alert closes on a press, and a disabled action leaves the user typing. */}
               <TextField
                 variant="bare"
                 placeholder={input.placeholder}
@@ -58,7 +76,9 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
                 secureTextEntry={input.secureTextEntry}
                 keyboardType={input.keyboardType}
                 autoCapitalize={input.autoCapitalize}
+                autoCorrect={input.autoCorrect}
                 autoFocus={input.autoFocus ?? true}
+                submitBehavior="submit"
                 onSubmit={submit}
                 testID={input.testID}
               />
@@ -72,6 +92,7 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
               label={action.label}
               variant={sheet ? 'outlined' : 'text'}
               role={action.role === 'destructive' ? 'destructive' : 'default'}
+              disabled={action.disabled}
               onPress={() => {
                 action.onPress?.();
                 ref.current?.close();

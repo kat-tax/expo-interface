@@ -4,7 +4,7 @@ import type {HostNode} from 'expo-vitest/native';
 import {Platform, processColor} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose';
-import {byComposeTestID, modifier, nodes} from 'expo-vitest/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {ColorPicker} from '.';
 
 /** The picker panel, stubbed: its props are what the tests read and drive (sheet.native.test.tsx covers it). */
@@ -34,6 +34,7 @@ const tap = async (node: HostNode) => {
   });
 };
 const ofType = (name: string) => nodes().filter(n => n.type.includes(name));
+const children = (node: HostNode) => (node.children ?? []).filter((c): c is HostNode => typeof c === 'object');
 
 beforeEach(() => {
   sheetProps = undefined;
@@ -69,6 +70,19 @@ describe(`ColorPicker presentations (${Platform.OS})`, () => {
       expect(nodes().some(n => n.props.testID != null)).toBe(false);
     });
 
+    it('names its own swatches as given, in the row and in the menu', async () => {
+      const onValueChange = vi.fn();
+      const swatches = [{color: '#1D1D1F', name: 'Ink'}, '#FF0000'];
+      const {rerender} = await render(<ColorPicker value="#FF0000" swatches={swatches} onValueChange={onValueChange}/>, options);
+      expect(labelled('Color #FF0000').length).toBeGreaterThan(0);
+      await fireEvent.press(labelled('Color Ink')[0]);
+      expect(onValueChange).toHaveBeenLastCalledWith('#1D1D1FFF');
+      // The menu's entries carry the names, the label aside.
+      await rerender(<ColorPicker label="Pen" value="#FF0000" presentation="menu" swatches={swatches} onValueChange={onValueChange}/>);
+      expect(host(p => p.text === 'Ink')).toBeTruthy();
+      expect(host(p => p.text === '#FF0000')).toBeTruthy();
+    });
+
     it('keeps the row for inline and popover, where SwiftUI presents its picker its own way', async () => {
       await render(<ColorPicker value="#FF0000" presentation="inline" onValueChange={vi.fn()} testID="cp"/>, options);
       expect(screen.getByTestId('cp').props.selection).toBe(processColor('#FF0000'));
@@ -77,14 +91,22 @@ describe(`ColorPicker presentations (${Platform.OS})`, () => {
     return;
   }
 
-  it('draws the picker in place in a hosted view, the presets over it', async () => {
+  it('draws the picker in place in a hosted view, the presets over it, titled only by a label', async () => {
     const {rerender} = await render(<ColorPicker label="Ink" value="#FF0000" presentation="inline" swatches={['#FF0000']} allowsNone onValueChange={vi.fn()} testID="cp"/>, options);
     expect(sheetProps).toMatchObject({title: 'Ink'});
     expect(sheetProps!.onClose).toBeUndefined();
+    expect(sheetProps!.disabled).toBeUndefined();
     expect(byComposeTestID('cp-swatch-none')).toBeTruthy();
     expect(byComposeTestID('cp-swatch-#FF0000')).toBeTruthy();
+    expect(modifier(ofType('FlowRow')[0].props, 'alpha')).toBeUndefined();
+    // A disabled picker disables the picker in place, and dims the presets over it as the row does.
+    await rerender(<ColorPicker label="Ink" value="#FF0000" presentation="inline" swatches={['#FF0000']} allowsNone disabled onValueChange={vi.fn()} testID="cp"/>);
+    expect(sheetProps!.disabled).toBe(true);
+    expect(modifier(ofType('FlowRow')[0].props, 'alpha')?.alpha).toBe(0.4);
     await rerender(<ColorPicker value="#FF0000" presentation="inline" onValueChange={vi.fn()}/>);
     expect(ofType('FlowRow')).toHaveLength(0);
+    // Without a label the picker adds no heading under the sheet it sits in.
+    expect(sheetProps!.title).toBeUndefined();
   });
 
   it('opens the picker in a dialog for popover, and closes it from the picker or the dialog', async () => {
@@ -93,6 +115,8 @@ describe(`ColorPicker presentations (${Platform.OS})`, () => {
     await tap(byComposeTestID('cp'));
     expect(ofType('BasicAlertDialog')).toHaveLength(1);
     expect(ofType('ModalBottomSheet')).toHaveLength(0);
+    // A dialog's picker keeps its title.
+    expect(sheetProps!.title).toBe('Ink');
     await act(async () => sheetProps?.onClose?.());
     expect(ofType('BasicAlertDialog')).toHaveLength(0);
     await tap(byComposeTestID('cp'));
@@ -115,6 +139,25 @@ describe(`ColorPicker presentations (${Platform.OS})`, () => {
     const [menu] = screen.container.queryAll(i => typeof i.props.onDismissRequest === 'function');
     await fireEvent(menu, 'dismissRequest');
     expect(ofType('DropdownMenu')[0].props.expanded).toBe(false);
+  });
+
+  it('names each preset for TalkBack with an unseen text its clickable merges', async () => {
+    const swatches = [{color: '#1D1D1F', name: 'Ink'}, '#FF0000'];
+    const {rerender} = await render(<ColorPicker value="#FF0000" swatches={swatches} allowsNone onValueChange={vi.fn()} testID="cp"/>, options);
+    const name = (testID: string) => children(byComposeTestID(testID))[1].props;
+    // After the inner circle, so the swatch draws as it did; transparent, so nothing shows.
+    expect(name('cp-swatch-#1D1D1F')).toMatchObject({text: 'Color Ink', color: '#00000000', maxLines: 1});
+    expect(name('cp-swatch-#FF0000')).toMatchObject({text: 'Color #FF0000'});
+    expect(name('cp-swatch-none')).toMatchObject({text: 'No color'});
+    expect(modifier(byComposeTestID('cp-swatch-#1D1D1F').props, 'clickable')).toBeTruthy();
+    expect(ofType('TextView')).toHaveLength(3);
+    // A disabled preset has no clickable to merge a name into, so it carries none: only the inner circle.
+    await rerender(<ColorPicker value="#FF0000" swatches={swatches} allowsNone disabled onValueChange={vi.fn()} testID="cp"/>);
+    for (const testID of ['cp-swatch-#1D1D1F', 'cp-swatch-#FF0000', 'cp-swatch-none']) {
+      expect(modifier(byComposeTestID(testID).props, 'clickable')).toBeUndefined();
+      expect(children(byComposeTestID(testID))).toHaveLength(1);
+    }
+    expect(ofType('TextView')).toHaveLength(0);
   });
 
   it('offers No color beside the palette, and crosses out the well for an empty value', async () => {

@@ -78,7 +78,7 @@ describe(`Alert (${Platform.OS})`, () => {
   it('defaults to a single OK action', async () => {
     await render(<Alert title="Hi" visible testID="alert"/>);
     if (isIOS) {
-      expect(children(slot('actions')).map(b => b.props)).toEqual([{role: 'cancel', label: 'OK'}]);
+      expect(children(slot('actions')).map(({props: {role, label}}) => ({role, label}))).toEqual([{role: 'cancel', label: 'OK'}]);
       expect(hasSlot('message')).toBe(false);
     } else {
       expect(buttonsIn('dismissButton').map(b => b.label)).toEqual(['OK']);
@@ -101,7 +101,7 @@ describe(`Alert (${Platform.OS})`, () => {
       />,
     );
     if (isIOS) {
-      expect(children(slot('actions')).map(b => b.props)).toEqual([
+      expect(children(slot('actions')).map(({props: {role, label}}) => ({role, label}))).toEqual([
         {role: 'cancel', label: 'Cancel'},
         {role: 'destructive', label: "Don't save"},
         {role: 'default', label: 'Save'},
@@ -186,6 +186,55 @@ describe(`Alert (${Platform.OS})`, () => {
     }
   });
 
+  (isIOS ? it : it.skip)('reports a sheet closed by a press outside it, with its cancel action disabled', async () => {
+    const onDismiss = vi.fn();
+    const onCancel = vi.fn();
+    await render(
+      <Alert
+        title="Share drop"
+        visible
+        sheet
+        onDismiss={onDismiss}
+        testID="alert"
+        actions={[{label: 'Cancel', role: 'cancel', disabled: true, onPress: onCancel}, {label: 'Delete', role: 'destructive'}]}
+      />,
+    );
+    // SwiftUI closes the action sheet on a press outside it and reports the presented state.
+    await fireEvent(screen.getByTestId('alert'), 'isPresentedChange', {nativeEvent: {isPresented: false}});
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(onCancel).not.toHaveBeenCalled();
+  });
+
+  it('greys out a disabled action, which takes no press', async () => {
+    const onRename = vi.fn();
+    const onDismiss = vi.fn();
+    const actions = (disabled: boolean): AlertAction[] => [
+      {label: 'Cancel', role: 'cancel', disabled: true, onPress: vi.fn()},
+      {label: 'Rename', disabled, onPress: onRename},
+      {label: 'Keep', onPress: vi.fn()},
+    ];
+    const {rerender} = await render(<Alert title="Rename" visible onDismiss={onDismiss} testID="alert" actions={actions(true)}/>);
+    if (isIOS) {
+      // Every button carries the modifier, so enabling one changes its value.
+      const state = () => children(slot('actions')).map(b => [modifier(b.props, 'disabled')?.disabled, typeof b.props.onButtonPress]);
+      expect(state()).toEqual([[true, 'undefined'], [true, 'undefined'], [false, 'function']]);
+      await rerender(<Alert title="Rename" visible onDismiss={onDismiss} testID="alert" actions={actions(false)}/>);
+      expect(state()).toEqual([[true, 'undefined'], [false, 'function'], [false, 'function']]);
+      const [rename] = screen.container.queryAll(i => i.props.label === 'Rename' && typeof i.props.onButtonPress === 'function');
+      await fireEvent(rename, 'buttonPress');
+      expect(onRename).toHaveBeenCalledTimes(1);
+    } else {
+      // A disabled Material button, with no press handler at all.
+      const state = (name: string) => buttonsIn(name).map(b => [b.label, b.props.enabled, typeof b.props.onButtonPressed]);
+      expect(state('confirmButton')).toEqual([['Rename', false, 'undefined'], ['Keep', true, 'function']]);
+      expect(state('dismissButton')).toEqual([['Cancel', false, 'undefined']]);
+      // The back gesture and a press outside still dismiss it.
+      const [dialog] = screen.container.queryAll(i => typeof i.props.onDismissRequest === 'function');
+      await fireEvent(dialog, 'dismissRequest');
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+    }
+  });
+
   it('puts a field where the platform\'s alert takes one: among the actions on iOS, under the message on Android', async () => {
     const onChangeText = vi.fn();
     await render(
@@ -194,7 +243,7 @@ describe(`Alert (${Platform.OS})`, () => {
         message="A name for the document."
         visible
         testID="alert"
-        input={{placeholder: 'Name', value: 'Essay', onChangeText, autoCapitalize: 'words', testID: 'name'}}
+        input={{placeholder: 'Name', value: 'Essay', onChangeText, autoCapitalize: 'words', autoCorrect: false, testID: 'name'}}
         actions={[{label: 'Cancel', role: 'cancel'}, {label: 'Rename'}]}
       />,
     );
@@ -202,10 +251,12 @@ describe(`Alert (${Platform.OS})`, () => {
       const field = host(p => p.placeholder === 'Name', slot('actions'));
       expect(field.props.autoFocus).toBe(true);
       expect(field.props.testID).toBe('name');
+      expect(modifier(field.props, 'autocorrectionDisabled')).toEqual({$type: 'autocorrectionDisabled', disabled: true});
       expect(children(slot('actions')).map(b => b.props.label ?? b.props.placeholder)).toEqual(['Name', 'Cancel', 'Rename']);
     } else {
       const field = host(p => p.autoFocus === true, slot('text'));
       expect(modifier(field.props, 'testID')?.testID).toBe('name');
+      expect(field.props.keyboardOptions.autoCorrectEnabled).toBe(false);
       expect(host(p => p.text === 'Name', field)).toBeTruthy();
       expect(host(p => p.text === 'A name for the document.', slot('text'))).toBeTruthy();
       // The kit's field shifts itself back to line up in a form; here a box undoes that.

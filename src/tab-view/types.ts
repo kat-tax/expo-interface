@@ -43,7 +43,10 @@ import type {MenuItem} from '../menu/types';
 export interface TabViewProps {
   /** The open tabs, in the order they are drawn. */
   tabs: readonly TabViewTab[];
-  /** The open tab, by `id`. Nothing is drawn under the strip when no tab matches. */
+  /**
+   * The open tab, by `id`. When no tab has it, no tab is marked open; the
+   * WinUI strip, which always has one selected, marks the first.
+   */
   selected: string;
   /** A tab was pressed, or the keyboard moved to one. */
   onSelect: (id: string) => void;
@@ -55,11 +58,43 @@ export interface TabViewProps {
   onClose?: (id: string) => void;
   /** The add button at the end of the strip. Leaving this out takes it away. */
   onAdd?: () => void;
-  /** The selected tab's content, drawn under the strip. */
+  /**
+   * What the add button is called, to a screen reader and in Windows'
+   * tooltip: "New document", "New chat". Left out, the WinUI strip keeps
+   * WinUI's own name and tooltip for the button, in the system's language;
+   * everywhere else, the switcher on Windows included, it is "New tab".
+   * Words once given stay on the WinUI strip if `addLabel` is later left out.
+   * @default 'New tab'
+   */
+  addLabel?: string;
+  /**
+   * The selected tab's content, drawn under the strip. Left out of the
+   * element altogether, the view is the tabs alone: as tall as the strip or
+   * the switcher's bar rather than growing into its parent, and on web with
+   * no `tabpanel` for the tabs to control. That is the shape for a strip in a
+   * `HeaderAccessory`, whose pages are the screen's content. The switcher's
+   * cards, having no page to take the place of, then open under its bar and
+   * make the view taller, at most half the window, scrolling past that; in a
+   * `HeaderAccessory` they push the screen's content down, or lie over it
+   * under a header the screens run under. Children written
+   * but rendering nothing, `null` or the `undefined` of
+   * `{current && <Editor/>}`, are a page with nothing in it, which keeps the
+   * view's size when the last document closes. `content` says it outright,
+   * for a component that wraps a `TabView` and passes `children` on either way.
+   */
   children?: ReactNode;
   /**
+   * Whether the view has a page under the tabs, whatever `children` are:
+   * `false` is the tabs alone, and draws no `children`; `true` is a page,
+   * empty without them. Left out, the element decides: a `TabView` with no
+   * `children` at all is the tabs alone. Set it where the element cannot say,
+   * as in a wrapper that writes `<TabView {...rest}>{children}</TabView>`,
+   * whose `children` are always there, if only as `undefined`.
+   */
+  content?: boolean;
+  /**
    * What the strip is called — "Open files", "Documents". Each tab is named
-   * by its own title, so this names the group they are in.
+   * by its own `label`, or its title, so this names the group they are in.
    * @default 'Tabs'
    */
   label?: string;
@@ -70,6 +105,17 @@ export interface TabViewProps {
    * @default 'auto'
    */
   layout?: TabViewLayout;
+  /**
+   * What the strip, or the switcher's bar, is painted with: the raised fill,
+   * against which the open tab is the page's own colour, or nothing, for tabs
+   * on a material (a `HeaderAccessory` under a header the screens run under,
+   * the web bar's pill) that a fill of their own would cover. With `none` the
+   * open tab is a pill in the palette's pill fill. The WinUI strip is an
+   * island, which cannot be see-through, so on Windows `none` paints it in
+   * the screen's background, the fill of the header it sits in there.
+   * @default 'element'
+   */
+  fill?: TabViewFill;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
   style?: StyleProp<ViewStyle>;
@@ -79,8 +125,17 @@ export interface TabViewProps {
 export interface TabViewTab {
   /** Stable identity: what `selected` names, and what the callbacks report. */
   id: string;
-  /** The tab's text, and what a screen reader says. */
+  /** The tab's text, and what a screen reader says unless `label` says otherwise. */
   title: string;
+  /**
+   * What a screen reader calls the tab, where the accessory says something
+   * the title does not: "index.tsx, Ana is here". Start it with the title, so
+   * a voice command can still find the tab by what it shows. On Windows it
+   * names the WinUI tab too, whose strip draws no accessory. An empty label
+   * is the title as well.
+   * @default the title
+   */
+  label?: string;
   /** Drawn before the title, and on the switcher's card. */
   icon?: IconToken;
   /**
@@ -104,10 +159,14 @@ export interface TabViewTab {
   /**
    * Content of the app's own after the title: a presence dot, a count, an
    * unsaved mark. Drawn on the strips the kit draws and on the switcher's
-   * cards; the WinUI strip holds text and a glyph alone.
+   * cards; the WinUI strip holds text and a glyph alone. A screen reader does
+   * not read it: say what it means in `label`.
    */
   accessory?: ReactNode;
 }
 
 /** What {@link TabViewProps.layout} asks for, before a width has decided it. */
 export type TabViewLayout = 'auto' | 'strip' | 'switcher';
+
+/** What {@link TabViewProps.fill} paints behind the tabs: the raised fill, or nothing. */
+export type TabViewFill = 'element' | 'none';

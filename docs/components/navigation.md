@@ -71,19 +71,23 @@ The app's section tabs for Expo Router.
 
 Props: `routes` (`name`, `href`, `label`, `icon` as one of the app's
 `IconToken`s or the symbol names per platform, `badge`, `windowsPlacement`),
-`hidden`, `action` (the app's one action beside its tabs: `label`, `icon`,
+`hidden` (or a function of the route, `({pathname, segments}) => boolean`),
+`action` (the app's one action beside its tabs: `label`, `icon`,
 and `onPress` or menu `items`), `badgeMax` (a count above it is drawn as
 `99+`; 99 by default), and per platform: `webLogo` (`icon-only`, `text-only`,
 `icon-and-text` or a node), `webIcon` (an image, or an `IconToken` drawn as
-the kit's glyph in the label color), `webActions`,
+the kit's glyph in the label color), `webTintIcon` (an image `webIcon` drawn
+in the label color too, through a CSS mask: the image must be one the page
+may load as a mask, from the same origin or served with CORS, or the mark
+is not drawn, and an image with no `uri` is drawn as it is), `webActions`,
 `webActionsPlacement`, `webFoldHeader`, `webMaterial` (`none`, `thin`,
 `regular`, `thick`), `windowsPane` (`top`, `left`, `compact`, `minimal`,
 `auto`).
 
 | Platform | Renders |
 | --- | --- |
-| iOS, Android | Expo Router's native tabs: the platform's own tab bar at the bottom, with `badge` as the bar's badge. On iOS 26 the `action` is a button or a menu in the tab bar's bottom accessory, its icon alone while the accessory is inline in a minimized bar. On Android and on iOS before 26 it is a floating action button above the tab bar at the bottom trailing corner, over every tab's screens, and a `Screen`'s own `fab` sits above it. |
-| Web | A floating bar along the top with the app's logo, the tabs and action slots. A route's `badge` is a pill beside the label. In a window too narrow for the row, a phone's width, the tabs show their icons alone with their names as accessible names, and a `HeaderMenu` or `HeaderAction` in the bar with an icon shows that alone. A folded header's `HeaderSearch` is a frameless field beside the logo, after the app's name or a pushed screen's title, that takes the bar's spare width and shrinks with the bar; in a narrow bar it takes the name's room beside the mark. An `action` placement is a magnifier among the actions, and `stacked` a second pill under the bar. The tabs' own `action` is a `HeaderAction`, or a `HeaderMenu` with `items`, among the bar's actions after whatever a screen folds in. The row clips what it cannot hold, so the page never scrolls sideways. |
+| iOS, Android | Expo Router's native tabs: the platform's own tab bar at the bottom, with `badge` as the bar's badge. On iOS 26 the `action` is a button or a menu in the tab bar's bottom accessory, its icon alone while the accessory is inline in a minimized bar. On Android and on iOS before 26 it is a floating action button above the tab bar at the bottom trailing corner, over every tab's screens, and a `Screen`'s own `fab` sits above it. A `Screen` counts the floating action in `useScrollInsets().bottom`, so the kit's `List`, `CardGrid`, `FieldGroup` and [`ScreenScrollView`](layout.md#screenscrollview) end clear of it. The app's toast (`ToastProvider` around the tabs) stands above the bar, and above its accessory on iOS 26, and the floating action lifts above the toast while it shows. The `action` goes with the tabs while they are hidden, from the accessory as from above the bar. |
+| Web | A floating bar along the top with the app's logo, the tabs and action slots. A route's `badge` is a pill beside the label. In a window too narrow for the row, a phone's width, the tabs show their icons alone with their names as accessible names, and a `HeaderMenu` or `HeaderAction` in the bar with an icon shows that alone. A folded header's `HeaderSearch` is a frameless field beside the logo, after the app's name or a pushed screen's title, that takes the bar's spare width and shrinks with the bar; in a narrow bar it takes the name's room beside the mark. An `action` placement is a magnifier among the actions, and `stacked` a second pill under the bar. The tabs' own `action` is a `HeaderAction`, or a `HeaderMenu` with `items`, among the bar's actions after whatever a screen folds in, and goes with the tabs while they are hidden. The row clips what it cannot hold, so the page never scrolls sideways. |
 | Windows | A WinUI `NavigationView` in any of its pane display modes: the top bar (`top`), or with `windowsPane` the navigation pane down the left side, expanded (`left`), at its glyph-only width (`compact`), or as its toggle button alone (`minimal`); `auto` picks by the window's width at WinUI's own breakpoints, the expanded pane from 1008 points, the compact one from 641 and the minimal one below that. The expanded pane's toggle button collapses it to its glyphs beside the content and back. The compact pane's opens the pane over the content, and so does the minimal pane's, which is drawn at the top start of the content with the screen's header beside it; a selection, a press beside the open pane or Escape closes it. A count `badge` is an `InfoBadge`; other text is its dot. The `InfoBadge` holds a number alone, so a count past `badgeMax` is drawn as the cap. The `action` is the first item, invoked rather than selected, and with `items` it opens a `MenuFlyout`. `windowsPlacement` puts a route at the pane's foot (`footer`) or makes it WinUI's own settings item (`settings`). The control's own back button, at the top of the pane or the start of the top bar, pops a card the stack above pushed over the tabs, or a screen a stack inside a tab pushed; a selection in the pane leaves the drilled-in screens. The button is drawn whenever a stack is around the tabs, disabled at the root as a WinUI app's is, and only while something can pop when the tabs are the root. A press on the selected item returns to its root, as the Settings app does. A selection slides the content along the top bar in the order of the items, or refreshes it in a side pane; back from a card, the content returns as the card leaves. |
 
 On web a screen under `Tabs` has one bar, not two: `ConstrainedStackHeader`
@@ -92,18 +96,49 @@ over all of it (the back button in the mark's place, the title where the
 app's name goes, `headerRight` where `webActions` go). A tab's own screen
 hands over `headerRight` alone and keeps its title, since the tab beside it in
 the bar already says it. The bar keeps the height of its tabs, and a header
-control folded into it drops to their size. `hidden` hides the tabs rather
-than the bar while a pushed screen's header is folded in;
+control folded into it drops to their size. `hidden` hides the tabs and the
+`action` rather than the bar while a pushed screen's header is folded in;
 `webFoldHeader={false}` keeps the two rows. A screen reached with nothing
 under it, a deep link to a screen other than its stack's `index`, has no
 back button: the bar folds in its title all the same and puts the logo in
 the back button's place, a link to the first tab named for it (the app's
 name stands in for a mark the logo does not have).
 
+Natively such a screen has no back button either, and with the tabs hidden
+nothing on it leads home. Export `unstable_settings = {anchor: 'index'}`
+from the tab's stack layout (`app/(tabs)/home/_layout.tsx`): a deep link
+then opens the stack with its index under the screen, and the platform's
+back button leads there. On web the bar then shows that back button in
+place of the home link.
+
+`hidden` as a function of the route decides on every render, by the path or
+the segments, so the tabs go on the routes it names and come back on the
+others. A static export answers it too, and writes a page its route hides
+without the tabs. On a pushed screen that page has no bar until it runs,
+since the screen's header folds into the bar once the screen is mounted.
+
+```tsx
+<Tabs routes={routes} hidden={({segments}) => segments.at(-1) === '[id]'}/>
+```
+
 A screen hides the tabs for itself by rendering `HideTabs` in its content:
 the tabs go while the screen is focused and come back when it loses the
 focus or goes, as `hidden` would hide them, decided by the screen rather than
-by the URL. `<HideTabs hidden={false}/>` lets go without unmounting.
+by the URL. `<HideTabs hidden={false}/>` lets go without unmounting. It acts
+once the screen is mounted, so a static export draws the tabs on its page
+until the page runs; a page its URL decides is `hidden` as a function of the
+route.
+
+```tsx
+export default function Document() {
+  return (
+    <Screen>
+      <HideTabs/>
+      <Editor/>
+    </Screen>
+  );
+}
+```
 
 On web the bar is a `navigation` landmark of links, not a `tablist`, since the
 tabs move between routes rather than panels; the active one carries
@@ -118,9 +153,9 @@ colors. `regular` and `thick` keep the labels legible over any content in
 both schemes; `thin` lets more through than that in the dark scheme, so use
 it over the app's own background. A screen's content passes under the bar
 only on a `Screen underBar`, whose scroll content pads its top by
-`useScrollInsets()` (the kit's `List` and `CardGrid` do so themselves);
-otherwise the bar sits over the screen's background
-alone.
+`useScrollInsets()` (the kit's `List` and `CardGrid` do so themselves, and
+an app's own scroll view is a [`ScreenScrollView`](layout.md#screenscrollview));
+otherwise the bar sits over the screen's background alone.
 
 The Windows pane width is measured rather than read from the window, since
 react-native-windows reports no dimension change when the window is resized.
@@ -166,14 +201,36 @@ header is used.
 Document tabs: a strip of things the user opened and can close, with the
 selected one's content under it. These are not the tabs `Tabs` draws.
 
-Props: `tabs` (`id`, `title`, `icon`, `pinned`, `menu`, `depth`,
+Props: `tabs` (`id`, `title`, `label`, `icon`, `pinned`, `menu`, `depth`,
 `accessory`), `selected`, `onSelect`,
 `onClose` (leaving it out takes the crosses away), `onAdd` (leaving it out
-takes the add button away), `children` (the selected tab's content), `label`
-("Tabs"), `layout` (`auto`, `strip`, `switcher`), `style`, `testID`.
+takes the add button away), `addLabel` (what the add button is called to a
+screen reader and in Windows' tooltip; "New tab", except on the WinUI strip,
+which keeps WinUI's own words, in the system's language; words given once
+stay there if `addLabel` is later left out), `children` (the selected
+tab's content; left out, the tabs alone), `content` (whether there is a page
+under the tabs, whatever `children` are), `label` ("Tabs"), `layout`
+(`auto`, `strip`, `switcher`), `fill` (`element`, the default, or `none`),
+`style`, `testID`.
 `nextSelection(tabs, closing, selected)` is exported for a caller that closes
 the open tab: it moves to the next tab, or the previous one when the last was
 closed.
+
+With no `children` at all the view is the tabs alone: as tall as the strip
+or the switcher's bar rather than growing into its parent, and on web with
+no `tabpanel` for the tabs to control. That is the shape for a strip in a
+`HeaderAccessory`, whose pages are the screen's content. The switcher's
+cards, with no page to take the place of, then open under its bar and make
+the view taller, at most half the window, and scroll past that: in a
+`HeaderAccessory` they push the screen's content down, or lie over it under
+a header the screens run under. Children written
+but rendering nothing, `null` or the `undefined` of `{current && <Editor/>}`,
+are a page with nothing in it, so a view whose last document closes keeps
+its size. `content` says it outright: `false` is the tabs alone, and draws
+no `children`; `true` is a page, empty without them. A component that wraps
+a `TabView` as `<TabView {...rest}>{children}</TabView>` always passes
+`children`, if only as `undefined`, so a strip through it takes
+`content={false}`.
 
 | Platform | Strip (640 points and wider) | Switcher (narrower) |
 | --- | --- | --- |
@@ -205,10 +262,18 @@ Differences:
   has one through `aria-haspopup`.
 - `depth` indents a tab by 12 points a level, on every strip and on the
   cards, for documents that belong to one another.
+- `fill="none"` paints nothing behind the strip or the switcher's bar, for
+  tabs on a material that a fill of their own would cover, and marks the
+  open tab with a pill in the palette's pill fill. The WinUI strip is an
+  island, which cannot be see-through, so on Windows it is painted in the
+  screen's background, the fill of the header row it sits in there.
 - `accessory` (a presence dot, a count, an unsaved mark) is drawn after the
   title on the strips the kit draws and on the switcher's cards. The WinUI
   strip holds text and a glyph alone, so on Windows it shows on the cards
-  only.
+  only. A screen reader does not read it: it reads a tab's `label`, which
+  defaults to the title, on every platform, the WinUI strip included. Say
+  what the accessory means there ("index.tsx, Ana is here"), starting with
+  the title so a voice command still finds the tab by what it shows.
 
 ## Pager
 
@@ -272,13 +337,17 @@ off them, and a component of the app's own between the row and its items
 cannot be. Such a component is a custom view in the bar, and the controls it
 renders draw themselves inside it, each in a host of its own. `testID` names
 the web and Windows triggers; the native items are found by their `label`.
+A native bar's menu draws no `swatch` dot for an entry: the kit gives the
+bar's menu actions none.
 
 ## HeaderSearch
 
 The header's search, in the placements the platforms have. Like the other
 header controls it is rendered in the screen's content and sends itself to
 the header from there; mounting it adds the search and unmounting it takes
-the search away.
+the search away. A screen has one search: on web and Windows two in one
+screen share the route's one `headerSearch` option, and the first to unmount
+takes the search away.
 
 ```tsx
 export default function Documents() {
@@ -376,11 +445,19 @@ filter bar, a breadcrumb. Render it in the screen's content, as a
 ```tsx
 <Screen underBar>
   <HeaderAccessory>
-    <TabView tabs={open} selected={current} onSelect={setCurrent}/>
+    <TabView tabs={open} selected={current} onSelect={setCurrent} fill="none"/>
   </HeaderAccessory>
   <List data={rows} renderItem={renderRow}/>
 </Screen>
 ```
+
+A `TabView` without `children` is the strip alone; the page is the screen's
+content. `fill="none"` lets the header's material show through the strip.
+
+Unmounting it takes the row away, as unmounting a `HeaderSearch` takes the
+search away. On web and Windows the row is the route's one `headerAccessory`
+option, so a screen renders one: two in one screen share it, and the first
+to unmount takes the row away.
 
 Content passing under a bar pays for the row through `useTabBarInset()`, as
 it pays for the bar, so a `Screen underBar` with the kit's `List` or
@@ -388,8 +465,8 @@ it pays for the bar, so a `Screen underBar` with the kit's `List` or
 
 | Platform | Draws |
 | --- | --- |
-| iOS | The row is the `Screen`'s, at its top. Under a header the screens run under (a `TabStack` with a `material`), it floats at the header's bottom edge in the header's material, and its height is added to `useTabBarInset()`. Under an opaque header it sits above the content. |
-| Android | The row above the content, under the app bar, which is opaque. |
+| iOS | The row is the `Screen`'s, at its top. Under a header the screens run under (a `TabStack` with a `material`), it floats at the header's bottom edge in the header's material, and its height is added to `useTabBarInset()`. Under an opaque header it sits above the content, across the screen, with the content right under it. |
+| Android | The row above the content, across the screen, under the app bar, which is opaque. |
 | Web | Under the header's row, in the header's fill. Under a `Tabs` bar that folds the header, a pill under the bar (and under a stacked search), in the bar's material, measured, and added to `useTabBarInset()`. |
 | Windows | Under the header's row, in the header's fill, clear of the caption buttons in the title bar. |
 

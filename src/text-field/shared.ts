@@ -1,7 +1,7 @@
 import type {RefObject} from 'react';
-import type {TextInput} from 'react-native';
+import type {NativeSyntheticEvent, TextInput, TextInputKeyPressEventData} from 'react-native';
 import type {ObservableState} from '@expo/ui';
-import type {TextFieldKeyboard} from './types';
+import type {TextFieldKeyboard, TextFieldProps, TextFieldSubmitBehavior} from './types';
 import {useCallback, useEffect, useState} from 'react';
 import {Keyboard, Platform} from 'react-native';
 
@@ -88,6 +88,105 @@ export function keyboardTypeFor(type: TextFieldKeyboard | undefined): AppleKeybo
     default:
       return 'default';
   }
+}
+
+/** The `inputmode` a browser takes for each keyboard variant. */
+export type WebInputMode = 'email' | 'numeric' | 'tel' | 'decimal' | 'url';
+
+/**
+ * Maps the conformed keyboard variant to the field's `inputmode` on web.
+ * react-native-web drops `type` on a `<textarea>`, so a multi-line field
+ * shows the keyboard asked for only through `inputmode`; on a one-line
+ * `<input>` it also sets the matching `type`.
+ * @param type - The cross-platform keyboard variant.
+ * @returns The `inputmode`, or `undefined` for the default keyboard.
+ */
+export function inputModeFor(type: TextFieldKeyboard | undefined): WebInputMode | undefined {
+  switch (type) {
+    case 'email':
+      return 'email';
+    case 'number':
+      return 'numeric';
+    case 'phone':
+      return 'tel';
+    case 'decimal':
+      return 'decimal';
+    case 'url':
+      return 'url';
+    case 'default':
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Names a key the way every platform names it: react-native-windows reports
+ * a key by the character it types, so Escape arrives as U+001B. Enter and
+ * Backspace it already names.
+ * @param key - The key as the `TextInput` reported it.
+ * @returns The key's name.
+ */
+export function keyNameOf(key: string): string {
+  return key === '\u001b' ? 'Escape' : key;
+}
+
+/**
+ * A key press as React Native reports it, with what a browser's keyboard
+ * event adds on web: the Shift key, and whether an input method is composing.
+ */
+export type KeyPressEvent = NativeSyntheticEvent<TextInputKeyPressEventData & {shiftKey?: boolean; isComposing?: boolean; keyCode?: number}>;
+
+/**
+ * Whether a key arrives while an input method is composing text: the Enter
+ * that commits a Japanese or Chinese word, say. Browsers mark it with
+ * `isComposing`, and Safari with the key code 229 alone, as react-native-web
+ * checks before it submits.
+ */
+function composing(event: KeyPressEvent): boolean {
+  return event.nativeEvent.isComposing === true || event.nativeEvent.keyCode === 229;
+}
+
+/**
+ * The `onKeyPress` handler of the React Native fields (`inline`, `bare` and
+ * the web row): each key goes to `onKeyPress` by its name (`keyNameOf`) with
+ * whether Shift was held. On web a multi-line field that submits takes Enter
+ * itself and submits, keeping the focus: react-native-web submits a
+ * multi-line field on Enter only when it may blur it afterwards, so the key
+ * is taken here, before the browser inserts the line. Shift+Enter still
+ * breaks the line, and an Enter that commits an input method's text commits
+ * it and submits nothing.
+ * @param props - The field's props that decide what a key does.
+ * @param text - The field's current text, which Enter submits.
+ * @returns The handler, or `undefined` when no key needs one.
+ */
+export function keyPressFor(
+  {multiline, submitBehavior, disabled, onSubmit, onKeyPress}: Pick<TextFieldProps, 'multiline' | 'submitBehavior' | 'disabled' | 'onSubmit' | 'onKeyPress'>,
+  text: string,
+): ((event: KeyPressEvent) => void) | undefined {
+  const entersSubmit = Platform.OS === 'web' && multiline === true && submitBehavior === 'submit' && !disabled && onSubmit !== undefined;
+  if (!onKeyPress && !entersSubmit) return undefined;
+  return event => {
+    const shift = event.nativeEvent.shiftKey === true;
+    if (entersSubmit && event.nativeEvent.key === 'Enter' && !shift && !composing(event)) {
+      event.preventDefault();
+      onSubmit(text);
+      return;
+    }
+    onKeyPress?.(keyNameOf(event.nativeEvent.key), shift);
+  };
+}
+
+/**
+ * The `blurOnSubmit` react-native-web reads in place of `submitBehavior`,
+ * which it does not know: `submit` keeps the field focused through Enter,
+ * `blurAndSubmit` gives the focus up. Left unset, it keeps react-native-web's
+ * defaults, which are React Native's: a one-line field blurs as it submits,
+ * a multi-line one breaks the line.
+ * @param behavior - The field's `submitBehavior`.
+ * @returns Whether the field blurs on submit, or `undefined` for the default.
+ */
+export function blurOnSubmitFor(behavior: TextFieldSubmitBehavior | undefined): boolean | undefined {
+  return behavior === undefined ? undefined : behavior === 'blurAndSubmit';
 }
 
 /**

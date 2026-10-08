@@ -6,27 +6,22 @@ import XamlDatePicker from '../windows/specs/ExpoInterfaceDatePickerNativeCompon
 import XamlTimePicker from '../windows/specs/ExpoInterfaceTimePickerNativeComponent';
 import {useXamlProps} from '../windows';
 import {Label} from '../typography';
-import {toDate, useDateValue, withDatePart, withTimePart} from './shared';
+import {dayOf, parseDay, toDate, useDateValue, withDatePart, withTimePart} from './shared';
 
 const pad = (n: number) => String(n).padStart(2, '0');
-
-/** A local calendar day as the `YYYY-MM-DD` the island takes. */
-export function toDateString(date: Date): string {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
 
 /** A local time as the `HH:MM` the island takes. */
 export function toTimeString(date: Date): string {
   return `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-/** Parses the island's `YYYY-MM-DD` onto `base`, keeping the time; `null` for none. */
+/**
+ * Parses the island's `YYYY-MM-DD` onto `base`, keeping the time; `null` for
+ * none, and for what names no day the calendar has.
+ */
 export function parseDateString(raw: string, base: Date): Date | null {
-  const [year, month, day] = raw.split('-').map(Number);
-  if (!raw || Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) return null;
-  const picked = new Date(base);
-  picked.setFullYear(year, month - 1, day);
-  return withDatePart(base, picked);
+  const day = parseDay(raw);
+  return day ? withDatePart(base, day) : null;
 }
 
 /** Parses the island's `HH:MM` onto `base`, keeping the day; `null` for malformed. */
@@ -78,9 +73,9 @@ function RowPicker({
       <View style={styles.controls}>
         {mode !== 'time' ? (
           <XamlDatePicker
-            date={toDateString(current)}
-            minDate={minimum ? toDateString(minimum) : ''}
-            maxDate={maximum ? toDateString(maximum) : ''}
+            date={dayOf(current)}
+            minDate={minimum ? dayOf(minimum) : ''}
+            maxDate={maximum ? dayOf(maximum) : ''}
             onDateChange={event => {
               const next = parseDateString(event.nativeEvent.date, current);
               if (next) setValue(next);
@@ -141,10 +136,10 @@ function PresentedPicker({
     <XamlDateFlyout
       open={presented}
       mode={stage}
-      date={toDateString(shownValue)}
+      date={dayOf(shownValue)}
       time={toTimeString(shownValue)}
-      minDate={minimum ? toDateString(minimum) : ''}
-      maxDate={maximum ? toDateString(maximum) : ''}
+      minDate={minimum ? dayOf(minimum) : ''}
+      maxDate={maximum ? dayOf(maximum) : ''}
       x={at?.x ?? 0}
       y={(at?.y ?? 0) + (at?.height ?? 0)}
       onDateChange={event => {

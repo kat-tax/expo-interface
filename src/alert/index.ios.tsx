@@ -2,7 +2,7 @@ import type {AlertProps} from './types';
 
 import {StyleSheet} from 'react-native';
 import {Alert as SwiftUIAlert, Button, ConfirmationDialog, Spacer, Text} from '@expo/ui/swift-ui';
-import {frame} from '@expo/ui/swift-ui/modifiers';
+import {disabled as disabledMod, frame} from '@expo/ui/swift-ui/modifiers';
 import {NativeHost, useNativeHost} from '../host';
 import {TextField} from '../text-field';
 import {DEFAULT_ACTIONS} from './shared';
@@ -36,8 +36,9 @@ const styles = StyleSheet.create({
  * slot holds `children` or, when none is given, a zero-size `Spacer` anchor.
  * Action buttons carry their SwiftUI role (`cancel` bold / `destructive` red)
  * and dismiss automatically; the presented-state change then reports
- * `onDismiss`. A field goes among the actions, which is where SwiftUI's
- * alert takes one.
+ * `onDismiss`. A disabled action is greyed out by SwiftUI's `disabled`, and
+ * its `onPress` is not wired. A field goes among the actions, which is where
+ * SwiftUI's alert takes one.
  */
 function SwiftUIAlertView({title, message, visible, onDismiss, actions = DEFAULT_ACTIONS, sheet, input, children, testID}: AlertProps) {
   const Component = sheet ? ConfirmationDialog : SwiftUIAlert;
@@ -68,18 +69,26 @@ function SwiftUIAlertView({title, message, visible, onDismiss, actions = DEFAULT
             secureTextEntry={input.secureTextEntry}
             keyboardType={input.keyboardType}
             autoCapitalize={input.autoCapitalize}
+            autoCorrect={input.autoCorrect}
             autoFocus={input.autoFocus ?? true}
             testID={input.testID}
           />
         ) : null}
-        {actions.map((action, index) => (
-          <Button
-            key={index}
-            label={action.label}
-            role={action.role ?? 'default'}
-            onPress={action.onPress}
-          />
-        ))}
+        {actions.map((action, index) => {
+          const disabled = action.disabled === true;
+          return (
+            <Button
+              key={index}
+              label={action.label}
+              role={action.role ?? 'default'}
+              // A disabled action calls nothing even if SwiftUI's view of it lags behind.
+              onPress={disabled ? undefined : action.onPress}
+              // Always the modifier, so enabling an action is a value the button
+              // updates rather than a prop taken away.
+              modifiers={[disabledMod(disabled)]}
+            />
+          );
+        })}
       </Component.Actions>
     </Component>
   );

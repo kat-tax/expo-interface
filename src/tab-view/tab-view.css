@@ -11,6 +11,11 @@
   min-width: 0;
 }
 
+/* The tabs alone, with no panel, have nothing to grow for. */
+.ui-tab-view--alone {
+  flex-grow: 0;
+}
+
 .ui-tab-view__bar {
   display: flex;
   align-items: stretch;
@@ -53,6 +58,20 @@
 .ui-tab-view__tab[data-selected='true'] {
   background: var(--color-background);
   color: var(--color-label);
+}
+
+/*
+ * No fill of its own, for tabs on a material or a header's fill: the page's
+ * colour no longer marks the open tab there, so a pill in the translucent
+ * pill fill does, which reads on either.
+ */
+.ui-tab-view--no-fill .ui-tab-view__bar {
+  background: transparent;
+}
+
+.ui-tab-view--no-fill .ui-tab-view__tab[data-selected='true'] {
+  background: var(--color-pill-background);
+  border-radius: 8px;
 }
 
 .ui-tab-view__tab-body,
@@ -170,6 +189,15 @@
   align-content: start;
   padding: 12px;
   overflow-y: auto;
+}
+
+/*
+ * With the tabs alone the cards replace no content: they open under the bar
+ * and make the view taller, so nothing else stops a long grid at the screen's
+ * edge. Half the window, then they scroll.
+ */
+.ui-tab-view--alone .ui-tab-view__cards {
+  max-height: 50vh;
 }
 
 .ui-tab-view__card {

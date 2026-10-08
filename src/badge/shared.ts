@@ -8,6 +8,46 @@ export const BADGE_PADDING = 5;
 
 export const BADGE_FONT_SIZE = 11;
 
+/** The geometry a drawn badge takes, so it matches its platform's own. */
+export interface BadgeMetrics {
+  /** The dot's diameter. */
+  dot: number;
+  /** The height of a numbered badge, and its width with one digit. */
+  count: number;
+  /** Space either side of the number. */
+  padding: number;
+  /** The weight of the number. */
+  fontWeight: '500' | '600';
+  /** The number's line height. */
+  lineHeight: number;
+  /** Extra space between the number's characters, if its type has any. */
+  letterSpacing?: number;
+}
+
+/** The capsule UIKit draws: an 8 point dot, 16 points high with a number in semibold. */
+export const UIKIT_BADGE: BadgeMetrics = {
+  dot: BADGE_SIZE.dot,
+  count: BADGE_SIZE.count,
+  padding: BADGE_PADDING,
+  fontWeight: '600',
+  lineHeight: BADGE_FONT_SIZE + 1,
+};
+
+/**
+ * Material 3's badge: a 6 dp dot, 16 dp high with a number in Label Small
+ * (11 sp medium on a 16 sp line, tracked 0.5 sp), with 4 dp either side of
+ * it. The Compose `Badge` inside a host sets its number in Label Small too,
+ * so a drawn badge and a hosted one match.
+ */
+export const MATERIAL_BADGE: BadgeMetrics = {
+  dot: 6,
+  count: 16,
+  padding: 4,
+  fontWeight: '500',
+  lineHeight: 16,
+  letterSpacing: 0.5,
+};
+
 /**
  * What the badge draws, or `null` when it draws nothing.
  *
@@ -43,4 +83,14 @@ export function badgeValue(props: BadgeProps): number {
 export function badgeLabel(props: BadgeProps, text: string): string {
   if (props.label) return props.label;
   return props.dot ? 'New' : `${text} new`;
+}
+
+/**
+ * What the label says past the number the badge draws, for a badge whose
+ * number a screen reader reads by itself (the Compose badge on Android):
+ * "new" of "3 new", the whole label of a dot or of a label that does not
+ * start with the number, and nothing when the label is the number alone.
+ */
+export function badgeWordsAfter(label: string, text: string): string {
+  return (label.startsWith(text) ? label.slice(text.length) : label).trim();
 }

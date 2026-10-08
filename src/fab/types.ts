@@ -36,8 +36,8 @@ export interface FabProps {
   /** With items the button opens a menu instead of pressing. */
   items?: MenuItem[];
   /**
-   * Called when the `items` menu opens and closes. Reported on Android and
-   * web; SwiftUI's `Menu` has no presentation binding, so not on iOS.
+   * Called when the `items` menu opens and closes. Reported on Android, web
+   * and Windows; SwiftUI's `Menu` has no presentation binding, so not on iOS.
    */
   onOpenChange?: (open: boolean) => void;
   /**

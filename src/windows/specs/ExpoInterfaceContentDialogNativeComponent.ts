@@ -7,10 +7,14 @@ type ActionEvent = Readonly<{index: CodegenTypes.Int32}>;
  * A WinUI 3 `ContentDialog` presented from a XAML island: the Windows alert.
  * The island is a zero-size anchor; the dialog is modal over the window.
  *
- * `actions` is a JSON array of `{label, role}`. Up to three actions take the
- * dialog's own buttons (the `cancel` one closes it, the others are the
- * primary and secondary buttons); more than that are stacked in the body.
- * A pick is reported by index; closing any other way reports `-1`.
+ * `actions` is a JSON array of `{label, role, disabled}`. Up to three
+ * actions take the dialog's own buttons (the `cancel` one closes it, the
+ * others are the primary and secondary buttons); more than that are stacked
+ * in the body. A disabled action's button takes no press. While the dialog
+ * is open a change to `actions` updates each button's label and whether it
+ * takes presses; the buttons are arranged as it opens. A pick is reported by
+ * index; Escape and a press on the smoke report the cancel's (`-1` without
+ * one); a close the `open` prop asks for reports nothing.
  */
 export interface NativeProps extends ViewProps {
   open: boolean;

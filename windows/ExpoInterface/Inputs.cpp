@@ -22,28 +22,83 @@ namespace {
 using DateTime = winrt::Windows::Foundation::DateTime;
 using TimeSpan = winrt::Windows::Foundation::TimeSpan;
 
-/** `YYYY-MM-DD` in local time, at noon so no zone shifts the day. */
+/** The zone the app runs in, with each year's daylight saving rules where Windows has them. */
+DYNAMIC_TIME_ZONE_INFORMATION LocalZone() noexcept {
+  DYNAMIC_TIME_ZONE_INFORMATION zone{};
+  GetDynamicTimeZoneInformation(&zone);
+  return zone;
+}
+
+/**
+ * `YYYY-MM-DD` in local time, at noon so no zone shifts the day. It goes
+ * through `SYSTEMTIME`, which holds every day from 1601, where `mktime`
+ * refuses every day before 1970.
+ */
 std::optional<DateTime> DateFromString(const std::string &text) noexcept {
   int year = 0, month = 0, day = 0;
   if (sscanf_s(text.c_str(), "%d-%d-%d", &year, &month, &day) != 3) return std::nullopt;
-  std::tm local{};
-  local.tm_year = year - 1900;
-  local.tm_mon = month - 1;
-  local.tm_mday = day;
-  local.tm_hour = 12;
-  local.tm_isdst = -1;
-  const time_t time = mktime(&local);
-  if (time == -1) return std::nullopt;
-  return winrt::clock::from_time_t(time);
+  if (year < 1601 || year > 30827 || month < 1 || month > 12 || day < 1 || day > 31) return std::nullopt;
+  SYSTEMTIME local{};
+  local.wYear = static_cast<WORD>(year);
+  local.wMonth = static_cast<WORD>(month);
+  local.wDay = static_cast<WORD>(day);
+  local.wHour = 12;
+  const auto zone = LocalZone();
+  SYSTEMTIME utc{};
+  FILETIME file{};
+  if (!TzSpecificLocalTimeToSystemTimeEx(&zone, &local, &utc) || !SystemTimeToFileTime(&utc, &file)) return std::nullopt;
+  return winrt::clock::from_file_time(file);
 }
 
+/** A date's local day as `YYYY-MM-DD`; empty for one `SYSTEMTIME` cannot hold, which the kit ignores. */
 std::string DateToString(DateTime date) noexcept {
-  const time_t time = winrt::clock::to_time_t(date);
-  std::tm local{};
-  localtime_s(&local, &time);
+  const FILETIME file = winrt::clock::to_file_time(date);
+  const auto zone = LocalZone();
+  SYSTEMTIME utc{};
+  SYSTEMTIME local{};
+  if (!FileTimeToSystemTime(&file, &utc) || !SystemTimeToTzSpecificLocalTimeEx(&zone, &utc, &local)) return "";
   char buffer[16];
-  snprintf(buffer, sizeof buffer, "%04d-%02d-%02d", local.tm_year + 1900, local.tm_mon + 1, local.tm_mday);
+  snprintf(buffer, sizeof buffer, "%04d-%02d-%02d", local.wYear, local.wMonth, local.wDay);
   return buffer;
+}
+
+/**
+ * A bound the kit sent as `YYYY-MM-DD`. One on a day whose local noon
+ * `SYSTEMTIME` cannot hold in every zone moves to the nearest day it can,
+ * so a bound before 1601 opens the calendar as far as Windows goes rather
+ * than falling back to the default range. The first such day is the 2nd of
+ * January 1601 (noon on the 1st is still 1600 in UTC east of UTC+12) and the
+ * last the 30th of December 30827 (noon on the 31st is 30828 in UTC at
+ * UTC-12), so the clamp goes by the whole day, not the year. Empty when no
+ * bound was sent.
+ */
+std::optional<DateTime> BoundFromString(const std::string &text) noexcept {
+  int year = 0, month = 0, day = 0;
+  if (sscanf_s(text.c_str(), "%d-%d-%d", &year, &month, &day) != 3) return std::nullopt;
+  if (year < 1601 || (year == 1601 && month == 1 && day < 2)) return DateFromString("1601-01-02");
+  if (year > 30827 || (year == 30827 && month == 12 && day > 30)) return DateFromString("30827-12-30");
+  return DateFromString(text);
+}
+
+/**
+ * The calendar's first day: the kit's bound or, where it sent none,
+ * 1900-01-01, or the value when it is earlier. WinUI moves a value outside
+ * the range onto its nearest bound, and the change it raises can reach the
+ * kit as a pick.
+ */
+std::optional<DateTime> FirstDay(const std::string &bound, const std::optional<DateTime> &date) noexcept {
+  if (auto day = BoundFromString(bound)) return day;
+  auto floor = DateFromString("1900-01-01");
+  if (date && floor && *date < *floor) return date;
+  return floor;
+}
+
+/** The calendar's last day: the kit's bound or, where it sent none, 2100-12-31, or the value when it is later. */
+std::optional<DateTime> LastDay(const std::string &bound, const std::optional<DateTime> &date) noexcept {
+  if (auto day = BoundFromString(bound)) return day;
+  auto ceiling = DateFromString("2100-12-31");
+  if (date && ceiling && *ceiling < *date) return date;
+  return ceiling;
 }
 
 std::optional<TimeSpan> TimeFromString(const std::string &text) noexcept {
@@ -356,11 +411,10 @@ struct DatePickerView : winrt::implements<DatePickerView, winrt::IInspectable>,
     if (!props) return;
     m_applying = true;
     ApplyLook(props->ViewProps, props->theme, props->accentColor);
-    if (auto min = DateFromString(props->minDate.value_or(""))) m_picker.MinDate(*min);
-    else if (auto floor = DateFromString("1900-01-01")) m_picker.MinDate(*floor);
-    if (auto max = DateFromString(props->maxDate.value_or(""))) m_picker.MaxDate(*max);
-    else if (auto ceiling = DateFromString("2100-12-31")) m_picker.MaxDate(*ceiling);
-    if (auto date = DateFromString(props->date.value_or(""))) {
+    const auto date = DateFromString(props->date.value_or(""));
+    if (auto first = FirstDay(props->minDate.value_or(""), date)) m_picker.MinDate(*first);
+    if (auto last = LastDay(props->maxDate.value_or(""), date)) m_picker.MaxDate(*last);
+    if (date) {
       auto current = m_picker.Date();
       if (!current || DateToString(current.Value()) != DateToString(*date)) m_picker.Date(*date);
     } else {
@@ -443,11 +497,10 @@ struct DateFlyoutView : winrt::implements<DateFlyoutView, winrt::IInspectable>,
     // scheme and the accent from the island by hand.
     m_calendar.RequestedTheme(Root().RequestedTheme());
     ApplyAccent(m_calendar, props->accentColor);
-    if (auto min = DateFromString(props->minDate.value_or(""))) m_calendar.MinDate(*min);
-    else if (auto floor = DateFromString("1900-01-01")) m_calendar.MinDate(*floor);
-    if (auto max = DateFromString(props->maxDate.value_or(""))) m_calendar.MaxDate(*max);
-    else if (auto ceiling = DateFromString("2100-12-31")) m_calendar.MaxDate(*ceiling);
-    if (auto date = DateFromString(props->date.value_or(""))) {
+    const auto date = DateFromString(props->date.value_or(""));
+    if (auto first = FirstDay(props->minDate.value_or(""), date)) m_calendar.MinDate(*first);
+    if (auto last = LastDay(props->maxDate.value_or(""), date)) m_calendar.MaxDate(*last);
+    if (date) {
       m_calendar.SelectedDates().Clear();
       m_calendar.SelectedDates().Append(*date);
       m_calendar.SetDisplayDate(*date);

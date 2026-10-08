@@ -3,7 +3,7 @@ import type {ReactNode} from 'react';
 import type {IconToken} from '../icons';
 import type {MenuItem, MenuPoint} from '../menu/types';
 import type {ResolvedLayout} from './shared';
-import type {TabViewLayout, TabViewTab} from './types';
+import type {TabViewFill, TabViewLayout, TabViewTab} from './types';
 import {useRef, useState} from 'react';
 import {Pressable, ScrollView, StyleSheet, View, useWindowDimensions} from 'react-native';
 import {inSet} from '../a11y/set';
@@ -11,7 +11,7 @@ import {PopupMenu} from '../popup-menu';
 import {Icon as Glyph} from '../symbol';
 import {Body, Caption} from '../typography';
 import {spacing, useColor} from '../theme';
-import {ADD_LABEL, closeLabel, resolveLayout, switcherLabel, tabIndex} from './shared';
+import {closeLabel, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
 
 /** The cross on a tab, the plus at the end of the strip, and the switcher's own glyph. */
 const CLOSE: IconToken = {symbol: {ios: 'xmark', android: 'close', web: 'close'}};
@@ -58,6 +58,10 @@ export interface TabDrawProps {
   onSelect: (id: string) => void;
   onClose?: (id: string) => void;
   onAdd?: () => void;
+  /** What the add button is called. */
+  addLabel: string;
+  /** What the strip or the bar is painted with. */
+  fill: TabViewFill;
   label: string;
   testID?: string;
 }
@@ -110,14 +114,18 @@ export function useTabMenus(testID: string | undefined): {
  * hands a screen reader a button inside a tab that it cannot reach on its own;
  * two controls in a row is what the platforms draw and what they announce.
  */
-export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testID}: TabDrawProps) {
+export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fill, label, testID}: TabDrawProps) {
+  // With no fill of its own the strip is on a material or a header's fill,
+  // where the page's colour no longer marks the open tab; the translucent
+  // pill fill reads on either.
+  const filled = fill !== 'none';
   const surface = useColor('backgroundElement');
-  const open = useColor('background');
+  const open = useColor(filled ? 'background' : 'pillBackground');
   const labelColor = useColor('label');
   const secondary = useColor('secondaryLabel');
   const menus = useTabMenus(testID);
   return (
-    <View style={[styles.strip, {backgroundColor: surface}]}>
+    <View style={[styles.strip, filled && {backgroundColor: surface}]}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -132,7 +140,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testI
           return (
             <View
               key={tab.id}
-              style={[styles.tab, on && {backgroundColor: open}, tab.depth ? {paddingLeft: spacing.three + tab.depth * DEPTH_INDENT} : null]}
+              style={[styles.tab, on && {backgroundColor: open}, on && !filled && styles.pill, tab.depth ? {paddingLeft: spacing.three + tab.depth * DEPTH_INDENT} : null]}
               onLayout={event => menus.onLayout(tab.id, event)}>
               <Pressable
                 accessibilityRole="tab"
@@ -140,8 +148,9 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testI
                 // react-native-windows composes no name from a view's
                 // children, so on Windows the tab announced its position and
                 // nothing else — "1 of 3, tab". Only the automation tree
-                // showed it.
-                accessibilityLabel={tab.title}
+                // showed it. The label, where given, says what the
+                // accessory shows.
+                accessibilityLabel={tabLabel(tab)}
                 accessibilityState={{selected: on}}
                 onPress={() => onSelect(tab.id)}
                 onLongPress={tab.menu ? () => menus.open(tab) : undefined}
@@ -171,7 +180,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testI
       {onAdd ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={ADD_LABEL}
+          accessibilityLabel={addLabel}
           onPress={onAdd}
           style={styles.add}
           testID={sub(testID, 'add')}>
@@ -184,13 +193,26 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testI
 }
 
 /**
+ * The most of the window's height the cards take with the tabs alone, where
+ * nothing under them bounds the grid: past it, they scroll.
+ */
+export const ALONE_CARDS = 0.5;
+
+/**
  * The switcher every platform falls back to under 640 points: a bar naming the
  * open tab with the count beside it, which opens a grid of cards over the
  * content — Safari's and Chrome's shape on a phone, on iOS and Android alike.
  *
  * The grid replaces the content rather than floating over it, which is both
  * what those browsers do and what keeps the whole thing one flow: nothing is
- * absolutely positioned, so a grid taller than the screen scrolls.
+ * absolutely positioned, so a grid taller than the view scrolls in it.
+ *
+ * With the tabs `alone` there is no content to replace: the grid opens under
+ * the bar and makes the view taller, as far as {@link ALONE_CARDS} of the
+ * window, and scrolls past that. In a `HeaderAccessory` that is the header's
+ * row growing, which pushes the screen's content down, or lies over it where
+ * the row floats under a header the screens run under; nothing under the row
+ * would stop a long grid at the screen's edge.
  */
 export function TabSwitcher({
   tabs,
@@ -198,11 +220,20 @@ export function TabSwitcher({
   onSelect,
   onClose,
   onAdd,
+  addLabel,
+  fill,
   label,
   testID,
+  alone,
   children,
-}: TabDrawProps & {children?: ReactNode}) {
+}: TabDrawProps & {
+  /** The tabs alone, with no content for the cards to take the place of. */
+  alone: boolean;
+  children?: ReactNode;
+}) {
+  const {height: windowHeight} = useWindowDimensions();
   const [open, setOpen] = useState(false);
+  const filled = fill !== 'none';
   const surface = useColor('backgroundElement');
   const card = useColor('background');
   const labelColor = useColor('label');
@@ -211,7 +242,7 @@ export function TabSwitcher({
   const menus = useTabMenus(testID);
   return (
     <>
-      <View style={[styles.bar, {backgroundColor: surface}]}>
+      <View style={[styles.bar, filled && {backgroundColor: surface}]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={switcherLabel(tabs, selected)}
@@ -228,7 +259,7 @@ export function TabSwitcher({
         {onAdd ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={ADD_LABEL}
+            accessibilityLabel={addLabel}
             onPress={() => {
               setOpen(false);
               onAdd();
@@ -244,6 +275,7 @@ export function TabSwitcher({
           <ScrollView
             accessibilityRole="tablist"
             accessibilityLabel={label}
+            style={alone ? {maxHeight: windowHeight * ALONE_CARDS} : undefined}
             contentContainerStyle={styles.grid}
             testID={sub(testID, 'cards')}>
             {tabs.map((tab, index) => {
@@ -255,7 +287,7 @@ export function TabSwitcher({
                   onLayout={event => menus.onLayout(tab.id, event)}>
                   <Pressable
                     accessibilityRole="tab"
-                    accessibilityLabel={tab.title}
+                    accessibilityLabel={tabLabel(tab)}
                     accessibilityState={{selected: on}}
                     onPress={() => {
                       setOpen(false);
@@ -310,6 +342,10 @@ const styles = StyleSheet.create({
     maxWidth: 220,
     paddingLeft: spacing.three,
     paddingRight: spacing.one,
+  },
+  /** The open tab on a strip with no fill of its own, where a pill marks it. */
+  pill: {
+    borderRadius: 8,
   },
   tabBody: {
     flexDirection: 'row',

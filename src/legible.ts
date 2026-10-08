@@ -24,20 +24,24 @@ export function contrastRatio(a: string, b: string): number {
 }
 
 /**
- * An accent made legible on a background: the same hue and saturation, its
- * lightness moved away from the background (lighter on a dark one, darker
- * on a light one) until the contrast reaches `min`. A seed that already
- * reaches it is kept as it is; one that cannot is white or black.
+ * An accent made legible on every one of its backgrounds: the same hue and
+ * saturation, its lightness moved away from them (lighter on dark ones,
+ * darker on light ones) until its contrast with each reaches `min`, so the
+ * stricter background decides. A seed that already reaches it on all of them
+ * is kept as it is; one that cannot is white or black. The first background
+ * decides the direction, and the rest lie on its side of mid-gray, as a
+ * scheme's do.
  */
-export function legibleTint(seed: string, background: string, min: number): string {
+export function legibleTint(seed: string, backgrounds: readonly string[], min: number): string {
   const rgb = parseHex(seed);
-  if (!rgb || contrastRatio(seed, background) >= min) return seed;
-  const lighter = luminance(background) < 0.5;
+  const legible = (color: string) => backgrounds.every(background => contrastRatio(color, background) >= min);
+  if (!rgb || legible(seed)) return seed;
+  const lighter = luminance(backgrounds[0]) < 0.5;
   const [h, s, l] = toHsl(rgb);
   for (let step = 1; step <= 100; step++) {
     const lightness = lighter ? Math.min(1, l + step / 100) : Math.max(0, l - step / 100);
     const candidate = toHex(fromHsl(h, s, lightness));
-    if (contrastRatio(candidate, background) >= min) return candidate;
+    if (legible(candidate)) return candidate;
   }
   return lighter ? '#FFFFFF' : '#000000';
 }

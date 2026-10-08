@@ -1,7 +1,8 @@
 import type {FieldGroupProps, FieldGroupSectionProps, FieldSectionFooterColor} from './types';
 import {FieldGroup as Base} from '@expo/ui';
-import {Text} from '@expo/ui/swift-ui';
-import {font, foregroundStyle} from '@expo/ui/swift-ui/modifiers';
+import {Spacer, Text} from '@expo/ui/swift-ui';
+import {font, foregroundStyle, frame, listRowBackground, listRowSeparator} from '@expo/ui/swift-ui/modifiers';
+import {useScrollInsets} from '../screen/insets';
 import {useColor} from '../theme';
 import {baseSection, mapSections} from './shared';
 
@@ -27,7 +28,16 @@ function Section(props: FieldGroupSectionProps) {
 }
 
 function FieldGroupBase({children, ...props}: FieldGroupProps) {
-  return <Base {...props}>{mapSections(children, Section, renderFooter)}</Base>;
+  // The room the screen keeps at its bottom (the tab bar's floating action):
+  // SwiftUI's `Form` takes no content padding, so a clear row of that height
+  // ends the form, as the iOS `List` pads.
+  const {bottom} = useScrollInsets();
+  return (
+    <Base {...props}>
+      {mapSections(children, Section, renderFooter)}
+      {bottom > 0 ? <Spacer modifiers={[frame({height: bottom}), listRowBackground('clear'), listRowSeparator('hidden')]}/> : null}
+    </Base>
+  );
 }
 
 export const FieldGroup = Object.assign(FieldGroupBase, {

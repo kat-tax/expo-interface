@@ -30,14 +30,14 @@ export function ListItem({swipeActions, ...props}: ListItemProps) {
  * action would also press the row. A selected row carries `aria-current`,
  * which is what the kit's menus say of their current entry too.
  */
-function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
+function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, badgeColor, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
   const rowClass = ['ui-list-item', !inset && 'ui-list-item--flush', selected && 'ui-list-item--selected'].filter(Boolean).join(' ');
   const label = rowLabel({children, supporting, value, badge});
   const current = selected ? ('true' as const) : undefined;
   const marks = value != null || badge ? (
     <>
       {value != null ? <span className="ui-list-item__value">{value}</span> : null}
-      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true}/> : null}
+      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} color={badgeColor}/> : null}
     </>
   ) : null;
   const content = (

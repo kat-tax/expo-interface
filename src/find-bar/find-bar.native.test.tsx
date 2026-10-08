@@ -41,6 +41,8 @@ describe(`FindBar (${Platform.OS})`, () => {
     const count = screen.getByTestId('find-count');
     expect(count).toHaveTextContent('3 of 12');
     expect(count.parent!.props.accessibilityLiveRegion).toBe('polite');
+    // Fabric flattens a view whose only trait is its live region, and TalkBack would have no view to watch.
+    expect(count.parent!.props.collapsable).toBe(false);
     await rerender(<FindBar value="teh" matches={{current: 0, total: 0}} testID="find"/>);
     expect(screen.getByTestId('find-count')).toHaveTextContent('No matches');
     // Nothing before the app has looked, and nothing with no text.

@@ -46,8 +46,35 @@ describe(`Toolbar field commands and folding (${Platform.OS})`, () => {
     expect(onBar('Bold')).toBe(true);
   });
 
-  it('measures nothing when it does not fold', async () => {
-    await render(<Toolbar commands={commands} testID="bar"/>);
-    expect(screen.getByTestId('bar').props.onLayout).toBeUndefined();
+  it('never folds a floating bar, which is the width of its controls', async () => {
+    await render(<Toolbar floating commands={commands} foldCommands/>);
+    expect(onBar('Bold')).toBe(true);
+    expect(onBar('Italic')).toBe(true);
+  });
+
+  it('keeps a folded toggle\'s state as the overflow menu\'s check', async () => {
+    await render(<Toolbar commands={[{label: 'Bold', active: true}, {label: 'Italic', active: false}]} field={<Text>Find</Text>} foldCommands testID="bar"/>);
+    await fireEvent(screen.getByTestId('bar'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 48}}});
+    const menu = nodes().find(node => node.type.includes('Menu'))!;
+    if (isIOS) {
+      expect(nodes(menu).find(node => node.props.label === 'Bold')).toMatchObject({type: expect.stringContaining('Toggle'), props: {isOn: true}});
+      expect(nodes(menu).find(node => node.props.label === 'Italic')?.type).toContain('Button');
+    } else {
+      const entry = (label: string) => nodes(menu).find(node => node.type.endsWith('DropdownMenuItemView') && nodes(node).some(child => child.props.text === label))!;
+      expect(nodes(entry('Bold')).some(node => node.props.text === '✓')).toBe(true);
+      expect(nodes(entry('Italic')).some(node => node.props.text === '✓')).toBe(false);
+    }
+  });
+
+  it('measures the bar whether or not it folds, so a fold turned on once it is narrow takes no new layout', async () => {
+    const bar = (fold: boolean) => <Toolbar commands={commands} field={<Text>Find</Text>} fieldCommands={fieldCommands} foldCommands={fold} testID="bar"/>;
+    const {rerender} = await render(bar(false));
+    await fireEvent(screen.getByTestId('bar'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 48}}});
+    // Narrow, but not folding: the commands stay on the bar.
+    expect(onBar('Bold')).toBe(true);
+    // The fold arrives with no further layout event, as when a field opens in a bar that keeps its frame.
+    await rerender(bar(true));
+    expect(onBar('Bold')).toBe(false);
+    expect(onBar('Next match')).toBe(true);
   });
 });

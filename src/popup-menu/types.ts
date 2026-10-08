@@ -10,7 +10,8 @@ export interface MenuRect extends MenuPoint {
 /**
  * Why a popup menu closed of its own accord: an entry was picked, or it was
  * dismissed by a press outside it, Escape or the platform's back gesture. A
- * close the app asked for, by clearing `at`, is not reported.
+ * close the app asked for, by clearing `at`, is not reported. `select`
+ * follows the picked entry's `onPress`, on every platform.
  */
 export type PopupMenuDismissReason = 'select' | 'dismiss';
 
@@ -36,8 +37,13 @@ export interface PopupMenuProps {
    * Where the menu is open, in the coordinates of the parent the popup is
    * laid over (the canvas's own coordinates): a point, or a rectangle the
    * menu opens beside (a handle, a chip). `null` closes it. While the menu
-   * is open it follows a new value: a menu moved from one handle to the next
-   * stays open, and no dismissal of the first reaches the second.
+   * is open it follows a new point or rectangle: a menu moved from one
+   * handle to the next stays open, and no dismissal of the first reaches the
+   * second. On web that holds for a move made by a press outside the menu
+   * too, as a context menu raised by the next handle's right button is: the
+   * menu is closed while the press is held and shown at the new place once
+   * it is over. On iOS, Android and Windows a press outside the open menu is
+   * the platform's dismissal, reported as `dismiss`.
    */
   at: MenuPoint | MenuRect | null;
   /**
@@ -74,7 +80,10 @@ export interface PopupMenuProps {
    * a menu that does not take the focus.
    */
   id?: string;
-  /** Called when the menu closes of its own accord, with why, so the caller can clear `at`. */
+  /**
+   * Called when the menu closes of its own accord, with why, so the caller
+   * can clear `at`; a `select` comes after the entry's `onPress`.
+   */
   onDismiss?: (reason: PopupMenuDismissReason) => void;
   /** Identifier used to locate the menu in end-to-end tests. */
   testID?: string;

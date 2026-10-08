@@ -1,10 +1,18 @@
 import {Platform, Text} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {AccentProvider, ACCENT_SEED} from '../accent';
+import type {HostNode} from 'expo-vitest/native';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
 import {Sheet} from '.';
 
 const isIOS = Platform.OS === 'ios';
+
+/** Prints the scroll insets a list or a form at this point pads by. */
+function Insets() {
+  const {top, bottom, automatic} = useScrollInsets();
+  return <Text>{`${top} ${bottom} ${automatic}`}</Text>;
+}
 
 /** iOS: the SwiftUI `Group` wrapping the sheet content carries the presentation modifiers. */
 const presentation = () => host(p => modifier(p, 'presentationDragIndicator') != null);
@@ -73,6 +81,41 @@ describe(`Sheet (${Platform.OS})`, () => {
     expect(modifier(presentation().props, 'tint')?.tint.color).toBe('#8959EA');
   });
 
+  (isIOS ? it : it.skip)('stacks the pieces in one SwiftUI column, so the sheet pads and fits them once', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} title="New drop" actions={[{label: 'Create'}]} testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    // The group the presentation modifiers sit on has one member.
+    const group = presentation();
+    expect(group.children).toHaveLength(1);
+    const [stack] = group.children as HostNode[];
+    expect(stack.type).toBe('ViewManagerAdapter_ExpoUI_VStackView');
+    expect(stack.props).toMatchObject({spacing: 0, alignment: 'leading'});
+    // It takes the width offered, not its pieces', and reports it for the hosted pieces.
+    expect((stack.props.modifiers as {$type: string}[]).map(m => m.$type)).toEqual(['frame', 'onGeometryChange']);
+    expect(modifier(stack.props, 'frame')).toEqual({$type: 'frame', minWidth: 0, maxWidth: Infinity, alignment: 'leading'});
+    const [bar, body, actions] = stack.children as HostNode[];
+    expect(stack.children).toHaveLength(3);
+    expect(bar.props.testID).toBe('sheet-bar');
+    expect(JSON.stringify(body)).toContain('"Body"');
+    expect(actions.props.testID).toBe('sheet-actions');
+  });
+
+  (isIOS ? it.skip : it)('stacks the pieces in one Compose column that fills the sheet\'s width', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} title="New drop" actions={[{label: 'Create'}]} testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    const [column] = byComposeTestID('sheet').children as HostNode[];
+    expect(byComposeTestID('sheet').children).toHaveLength(1);
+    expect(column.type).toBe('ViewManagerAdapter_ExpoUI_ColumnView');
+    expect((column.props.modifiers as {$type: string}[]).map(m => m.$type)).toEqual(['fillMaxWidth', 'onSizeChanged']);
+    expect(column.children).toHaveLength(3);
+  });
+
   it('hides the drag indicator on request', async () => {
     await render(
       <Sheet isPresented onDismiss={() => {}} showDragIndicator={false} testID="sheet">
@@ -104,6 +147,20 @@ describe(`Sheet (${Platform.OS})`, () => {
       expect(modal().props.skipPartiallyExpanded).toBe(false);
       expect(modifier(byComposeTestID('sheet').props, 'fillMaxHeight')).toEqual({$type: 'fillMaxHeight'});
     }
+  });
+
+  it('gives its content no scroll insets, whatever screen it opens from', async () => {
+    await render(
+      <ScrollInsetsContext.Provider value={{top: 96, bottom: 24, automatic: true}}>
+        <Insets/>
+        <Sheet isPresented onDismiss={() => {}} accessory={<Insets/>} footer={<Insets/>} maxHeight={300}>
+          <Insets/>
+        </Sheet>
+      </ScrollInsetsContext.Provider>,
+    );
+    // The screen's own content keeps the bar's insets; the accessory, the body and the footer get none.
+    expect(screen.getByText('96 24 true')).toBeOnTheScreen();
+    expect(screen.getAllByText('0 0 false')).toHaveLength(3);
   });
 
   it('renders nothing while dismissed', async () => {

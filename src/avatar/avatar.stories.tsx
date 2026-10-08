@@ -1,6 +1,34 @@
 import type {Meta, StoryObj} from '@storybook/react-native';
+import {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import {Avatar} from '.';
+import {Avatar, AvatarGroup} from '.';
+
+/** The peers on a document, one of whom the view cannot be taken to. */
+const PEERS = [
+  {name: 'Ada Lovelace', place: 'Notes', reachable: true},
+  {name: 'Grace Hopper', place: 'Archive', reachable: false},
+  {name: 'Alan Turing', place: 'Drafts', reachable: true},
+];
+
+/** A facepile that follows the peer pressed: the followed face is selected and ringed in the tint. */
+function Following() {
+  const [following, setFollowing] = useState('Ada Lovelace');
+  return (
+    <AvatarGroup
+      size={32}
+      people={PEERS.map(peer => ({
+        name: peer.name,
+        label: `Follow ${peer.name.split(' ')[0]}, on ${peer.place}`,
+        hint: 'Hold to go there once, without following',
+        selected: peer.name === following,
+        ring: peer.name === following ? 'tint' : undefined,
+        disabled: !peer.reachable,
+      }))}
+      onPress={peer => setFollowing(peer.name)}
+      onLongPress={() => {}}
+    />
+  );
+}
 
 const meta = {
   title: 'Indicators/Avatar',
@@ -38,6 +66,10 @@ export const Peers: Story = {
       ))}
     </View>
   ),
+};
+
+export const Facepile: Story = {
+  render: () => <Following/>,
 };
 
 const styles = StyleSheet.create({

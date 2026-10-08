@@ -2,7 +2,7 @@ import type {ComponentType, PropsWithChildren} from 'react';
 import type {ColorScheme} from './scheme-store';
 import {createContext, Fragment, useContext, useEffect, useMemo, useSyncExternalStore} from 'react';
 import {Platform} from 'react-native';
-import {SCHEME_BACKGROUND} from './backgrounds';
+import {SCHEME_BACKGROUND, SCHEME_BACKGROUND_ELEMENT} from './backgrounds';
 import {loadKeyboardController} from './keyboard/library';
 import {legibleTint} from './legible';
 import {schemeSnapshot, serverScheme, subscribeScheme} from './scheme-store';
@@ -61,14 +61,15 @@ export function onAccent(seed: string): '#000000' | '#FFFFFF' {
 }
 
 /**
- * The tint in each scheme: the seed for that scheme, made legible on the
- * scheme's background when `minContrast` asks for a ratio (4.5 is WCAG's for
- * text), and the color drawn on each.
+ * The tint in each scheme: the seed for that scheme, made legible on both of
+ * the scheme's backgrounds, the screen's and the raised one, when
+ * `minContrast` asks for a ratio (4.5 is WCAG's for text), and the color
+ * drawn on each.
  */
 export function resolveAccent(seed: AccentSeed, minContrast?: number): ResolvedAccent {
   const pick = (scheme: ColorScheme) => {
     const raw = typeof seed === 'string' ? seed : seed[scheme];
-    return minContrast ? legibleTint(raw, SCHEME_BACKGROUND[scheme], minContrast) : raw;
+    return minContrast ? legibleTint(raw, [SCHEME_BACKGROUND[scheme], SCHEME_BACKGROUND_ELEMENT[scheme]], minContrast) : raw;
   };
   const light = pick('light');
   const dark = pick('dark');
@@ -126,10 +127,17 @@ interface AccentProviderProps extends PropsWithChildren {
    */
   seed?: AccentSeed;
   /**
-   * A contrast ratio the tint must reach against the scheme's background
-   * (4.5 is WCAG's for text). A seed short of it in a scheme is made lighter
-   * on dark or darker on light until it reaches it; one that reaches it is
-   * kept as it is.
+   * A contrast ratio the tint must reach against both of the scheme's
+   * backgrounds, the screen's and the raised one under cards, menus and bars
+   * (the palette's `background` and `backgroundElement`); the stricter
+   * decides. 4.5 is WCAG's for text. A seed short of it in a scheme is made
+   * lighter on dark or darker on light until it reaches it on both; one that
+   * reaches it is kept as it is. The system colors `theme` names natively
+   * and the fills a platform draws itself are not measured, and in the dark
+   * scheme some are lighter, much lighter on Android, where
+   * `theme.backgroundElement` is the theme's floating background: where
+   * tinted text sits on them, ask for more or fill the view with
+   * `useColor('backgroundElement')`.
    */
   minContrast?: number;
   /**

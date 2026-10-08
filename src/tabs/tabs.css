@@ -1,0 +1,27 @@
+/*
+ * The web tab bar's image mark in the label color (`Tabs webTintIcon`): a box
+ * filled with the label color, cut to the image's shape by a CSS mask. The
+ * color is the palette's variable, so the mark follows the scheme, a forced
+ * `data-theme` included, before any JavaScript runs. The image comes in
+ * through `--ui-tab-bar-mark`, a `url()` the bar writes on the box.
+ */
+.ui-tab-bar-mark {
+  display: block;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  background-color: var(--color-label);
+  -webkit-mask: var(--ui-tab-bar-mark) center / contain no-repeat;
+  mask: var(--ui-tab-bar-mark) center / contain no-repeat;
+}
+
+/*
+ * Forced colors repaint a background with the canvas color, which would hide
+ * the shape against the bar: the box keeps its own and takes the text color.
+ */
+@media (forced-colors: active) {
+  .ui-tab-bar-mark {
+    forced-color-adjust: none;
+    background-color: CanvasText;
+  }
+}

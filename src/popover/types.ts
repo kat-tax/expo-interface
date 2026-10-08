@@ -35,7 +35,10 @@ export type PopoverDismissReason = 'action' | 'backdrop' | 'escape' | 'leave';
  * `PopupMenu`, which is the platform's own.
  */
 export interface PopoverProps extends PropsWithChildren {
-  /** The rectangle to point at. `null` hides the popover. */
+  /**
+   * The rectangle to point at. `null` hides the popover. A new object for
+   * the same rectangle, passed on every render, changes nothing.
+   */
   at: PopoverRect | null;
   /** Bold first line. */
   title?: string;
@@ -43,7 +46,16 @@ export interface PopoverProps extends PropsWithChildren {
   message?: string;
   /** Buttons under the message. */
   actions?: PopoverAction[];
-  /** Called when the popover closes, with why. */
+  /**
+   * Called when the popover closes, with why. On web the card takes Escape
+   * only when there is an `onDismiss` to report it to or while a `hover`
+   * card lingers. The key then goes no further: neither the focused element
+   * nor an overlay around the card, such as a web `Sheet`, gets it. One
+   * Escape closes one overlay: a card with a menu open in it, or another
+   * card up inside it, leaves the key to that one and takes the next. Of two
+   * cards up side by side, or a card and a `PopupMenu`, the one that came up
+   * last takes it.
+   */
   onDismiss?: (reason: PopoverDismissReason) => void;
   /**
    * Which side of the rectangle the card prefers. It still moves when there
@@ -63,10 +75,18 @@ export interface PopoverProps extends PropsWithChildren {
   /**
    * A backdrop over the parent while the card is up: a press on it reports
    * `backdrop` through `onDismiss`, and nothing under it takes the press.
-   * For a card with controls in it, an option's editor.
+   * For a card with controls in it, an option's editor. The card says it is
+   * a dialog, named by `label` or the title on web; on Windows it is a group
+   * of that name.
    * @default false
    */
   modal?: boolean;
+  /**
+   * What a screen reader calls a `modal` card on web and Windows: for one
+   * without a `title`, or with a title that does not say what it is for.
+   * Defaults to `title`. iOS and Android read what the card holds instead.
+   */
+  label?: string;
   /**
    * What the card keeps clear of at the parent's edges: a header over the
    * canvas, a bar under it.
@@ -81,6 +101,12 @@ export interface PopoverProps extends PropsWithChildren {
    * from both for the grace the card goes, reporting `leave` through
    * `onDismiss`. A touch is not a hover: a finger on the card does not keep
    * it, and lifting one off does not count as leaving.
+   *
+   * An action, the backdrop or Escape ends the linger, so the card goes as
+   * soon as the app clears `at`. While it lingers the card draws the title,
+   * message, actions and children it is given then: clear only `at` when the
+   * pointer leaves, and keep the rest until `onDismiss` says the card has
+   * gone.
    * @default 'manual'
    */
   trigger?: 'manual' | 'hover';
@@ -90,8 +116,18 @@ export interface PopoverProps extends PropsWithChildren {
    * @default 300
    */
   grace?: number;
-  /** Extra content under the message, above the actions. */
+  /**
+   * Extra content under the message, above the actions. It floats over the
+   * screen rather than under its bars, so `useScrollInsets()` answers zero
+   * in it: a `List`, `CardGrid` or `FieldGroup` there pads by its own insets
+   * alone, as in a `Sheet`.
+   */
   children?: ReactNode;
-  /** Identifier used to locate the popover in end-to-end tests. */
+  /**
+   * Identifier used to locate the card in end-to-end tests. The box laid
+   * over the parent is `<testID>-bounds`, a modal card's backdrop
+   * `<testID>-backdrop`, and the drawn card's row of actions
+   * `<testID>-actions`.
+   */
   testID?: string;
 }

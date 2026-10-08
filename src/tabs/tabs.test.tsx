@@ -1,9 +1,13 @@
 import type {TabRoute} from './types';
-import {Platform, StyleSheet, Text} from 'react-native';
-import {act, fireEvent, screen as dom, waitFor} from '@testing-library/react';
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
+import {createElement, useEffect, useState} from 'react';
+import {Asset} from 'expo-asset';
+import {Animated, Platform, StyleSheet, Text} from 'react-native';
+import {act, fireEvent, render as renderDom, screen as dom, waitFor} from '@testing-library/react';
 import {fireEvent as fireNative, render, screen} from '@testing-library/react-native';
 import Constants from 'expo-constants';
-import {router} from 'expo-router';
+import {ExpoRoot, Stack, router} from 'expo-router';
 import * as icons from '../__stories__/icons';
 import {HeaderAccessory} from '../header-accessory';
 import {HeaderAction} from '../header-action';
@@ -11,6 +15,8 @@ import {HeaderMenu} from '../header-menu';
 import {HeaderSearch} from '../header-search';
 import {HideTabs} from './hide';
 import {Screen} from '../screen';
+import {useScrollInsets} from '../screen/insets';
+import {AppToastFloorContext, AppToastInsetContext} from '../toast/context';
 import {colors, inset, spacing, theme} from '../theme';
 import {host, modifier, nodes} from 'expo-vitest/native';
 import {visibleText} from '../a11y/roving';
@@ -101,6 +107,50 @@ describe(`Tabs (${Platform.OS})`, () => {
         await renderApp(await app({webLogo: 'text-only', webIcon: {uri: 'https://example.com/icon.png'}}));
         expect(document.querySelector('img')).toBeNull();
         expect(dom.getByText(appName)).toBeInTheDocument();
+      });
+
+      it('draws an image mark in the label color on request, from its uri or the asset a require names', async () => {
+        await renderApp(await app({webLogo: 'icon-only', webIcon: {uri: 'https://example.com/icon.png'}, webTintIcon: true}));
+        const mark = dom.getByTestId('tab-bar-mark');
+        expect(mark.tagName).toBe('SPAN');
+        expect(mark).toHaveClass('ui-tab-bar-mark');
+        expect(mark).toHaveAttribute('aria-hidden', 'true');
+        expect(mark.style.getPropertyValue('--ui-tab-bar-mark')).toBe('url("https://example.com/icon.png")');
+        expect(document.querySelector('img')).toBeNull();
+      });
+
+      it('reads a required mark\'s uri from its asset', async () => {
+        const fromModule = vi.spyOn(Asset, 'fromModule').mockReturnValue({uri: '/assets/icon.png'} as never);
+        try {
+          await renderApp(await app({webLogo: 'icon-only', webIcon: 7, webTintIcon: true}));
+          expect(fromModule).toHaveBeenCalledWith(7);
+          expect(dom.getByTestId('tab-bar-mark').style.getPropertyValue('--ui-tab-bar-mark')).toBe('url("/assets/icon.png")');
+        } finally {
+          fromModule.mockRestore();
+        }
+      });
+
+      it('draws a mark with no uri to read as it is', async () => {
+        await renderApp(await app({webLogo: 'icon-only', webIcon: {width: 24, height: 24}, webTintIcon: true}));
+        expect(document.querySelector('.ui-tab-bar-mark')).toBeNull();
+        expect(document.querySelector('img')).not.toBeNull();
+      });
+
+      it('tints the mark in the home link too', async () => {
+        await renderApp(await stackApp({webIcon: {uri: 'https://example.com/icon.png'}, webTintIcon: true}, undefined, <HideTabs/>), '/home/detail');
+        expect(dom.getByTestId('tab-bar-home').contains(dom.getByTestId('tab-bar-mark'))).toBe(true);
+        expect(dom.getByTestId('tab-bar-mark')).toHaveClass('ui-tab-bar-mark');
+      });
+
+      it('fills the mask with the label color, and with the text color in forced colors', () => {
+        const css = readFileSync(path.join(__dirname, 'tabs.css'), 'utf8');
+        const base = css.slice(css.indexOf('.ui-tab-bar-mark {'));
+        expect(base).toContain('background-color: var(--color-label);');
+        expect(base).toContain('-webkit-mask: var(--ui-tab-bar-mark) center / contain no-repeat;');
+        expect(base).toContain('\n  mask: var(--ui-tab-bar-mark) center / contain no-repeat;');
+        const forced = css.slice(css.indexOf('@media (forced-colors: active)'));
+        expect(forced).toContain('forced-color-adjust: none;');
+        expect(forced).toContain('background-color: CanvasText;');
       });
 
       it('replaces the presets with a custom logo node', async () => {
@@ -206,8 +256,8 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(dom.getByText('Home screen')).toBeInTheDocument();
       });
 
-      it('keeps the bar as the header while the tabs are hidden', async () => {
-        await renderApp(await stackApp({hidden: true}), '/home');
+      it('keeps the bar as the header while the tabs are hidden, without the app\'s action', async () => {
+        await renderApp(await stackApp({hidden: true, action: {label: 'New', icon: icons.add, onPress: vi.fn()}}), '/home');
         // Nothing is folded in yet, so `hidden` hides the bar outright.
         expect(getComputedStyle(dom.getByTestId('tab-bar')).display).toBe('none');
 
@@ -217,6 +267,18 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).toBe('none');
         expect(dom.getByTestId('tab-bar').contains(dom.getByText('detail'))).toBe(true);
         expect(dom.getByLabelText('Go back')).toBeInTheDocument();
+        // The action goes with the tabs, as it does natively.
+        expect(dom.queryByTestId('tab-action')).toBeNull();
+      });
+
+      it('hides the tabs on the routes a function of the route names, as the route changes', async () => {
+        await renderApp(await stackApp({hidden: ({segments}: {segments: readonly string[]}) => segments.at(-1) === 'detail'}), '/home');
+        expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).not.toBe('none');
+        await act(async () => router.push('/home/detail'));
+        expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).toBe('none');
+        expect(dom.getByLabelText('Go back')).toBeInTheDocument();
+        await act(async () => router.back());
+        expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).not.toBe('none');
       });
 
       it('hides the tabs while a focused screen renders HideTabs, and shows them again when it goes', async () => {
@@ -271,6 +333,24 @@ describe(`Tabs (${Platform.OS})`, () => {
       it('draws the app\'s name in the home link where there is no mark', async () => {
         await renderApp(await stackApp({webLogo: 'text-only'}), '/home/detail');
         expect(dom.getByTestId('tab-bar-home').textContent).toBe(appName);
+      });
+
+      it('shows the back button in place of the home link on a deep link into a stack anchored at its index', async () => {
+        // The tab's stack layout exports `unstable_settings = {anchor: 'index'}`,
+        // so Expo Router opens the stack with its index under the screen.
+        const modules: Record<string, object> = Object.fromEntries(Object.entries(await stackApp()).map(([name, route]) => [name, {default: route}]));
+        modules['home/_layout'] = {...modules['home/_layout'], unstable_settings: {anchor: 'index'}};
+        const context = Object.assign((id: string) => modules[id.replace(/^\.\//, '').replace(/\.\w*$/, '')], {
+          resolve: (key: string) => key,
+          id: '0',
+          keys: () => Object.keys(modules).map(key => `./${key}.js`),
+        }) as unknown as Parameters<typeof ExpoRoot>[0]['context'];
+        renderDom(<ExpoRoot context={context} location="/home/detail"/>);
+        expect(dom.getByText('Detail screen')).toBeInTheDocument();
+        expect(dom.queryByTestId('tab-bar-home')).toBeNull();
+        fireEvent.click(dom.getByLabelText('Go back'));
+        await waitFor(() => expect(dom.getByText('Home screen')).toBeInTheDocument());
+        expect(dom.queryByLabelText('Go back')).toBeNull();
       });
 
       it('folds a screen\'s inline search into the bar as a frameless field beside the logo, and after a pushed screen\'s title', async () => {
@@ -636,6 +716,23 @@ describe(`Tabs (${Platform.OS})`, () => {
   } else {
     const isIOS = Platform.OS === 'ios';
     const triggers = () => nodes().filter(n => n.type === (isIOS ? 'RNSTabsScreenIOS' : 'RNSTabsScreenAndroid'));
+    /** What a screen's scroll content keeps at its bottom, as the last render of `BottomProbe` read it. */
+    const seen = {bottom: -1};
+    function BottomProbe() {
+      const {bottom} = useScrollInsets();
+      useEffect(() => {
+        seen.bottom = bottom;
+      });
+      return null;
+    }
+
+    /** A named host view carrying its props, standing in for a native view. */
+    const el = (name: string) => {
+      const Host = (props: Record<string, any>) =>
+        createElement(name, props, props.children);
+      Host.displayName = name;
+      return Host;
+    };
 
     // vitest-native's react-native-screens mock predates the `Tabs.Host` /
     // `Tabs.Screen` compound API that SDK 57's NativeTabs renders (plus the
@@ -643,14 +740,7 @@ describe(`Tabs (${Platform.OS})`, () => {
     // Android tab content in — subpath requires resolve to the same mock), so
     // model them as named host views carrying the tab payload as props.
     beforeAll(async () => {
-      const {createElement} = await import('react');
       const {extendPresetMock} = await import('vitest-native/helpers');
-      const el = (name: string) => {
-        const Host = (props: Record<string, any>) =>
-          createElement(name, props, props.children);
-        Host.displayName = name;
-        return Host;
-      };
       extendPresetMock('react-native-screens', {
         SafeAreaView: el('RNSSafeAreaView'),
         Tabs: {
@@ -706,8 +796,10 @@ describe(`Tabs (${Platform.OS})`, () => {
       try {
         await renderApp({
           ...(await app({action: {label: 'New', icon: icons.add, onPress}})),
-          index: () => <Screen fab={<Text testID="own">Own</Text>}><Text>Home screen</Text></Screen>,
+          index: () => <Screen fab={<Text testID="own">Own</Text>}><BottomProbe/><Text>Home screen</Text></Screen>,
         });
+        // The screen's scroll content ends clear of the button: the kit's lists and grids pad by it.
+        expect(seen.bottom).toBe(56 + spacing.three);
         const slot = screen.getByTestId('tab-action-slot');
         expect(StyleSheet.flatten(slot.props.style)).toMatchObject({position: 'absolute', right: spacing.three + 8, bottom: inset.bottomTab + 20 + spacing.three});
         if (isIOS) {
@@ -720,13 +812,96 @@ describe(`Tabs (${Platform.OS})`, () => {
         // The screen's own button sits above the tabs' one (natively over the safe area, which Android's tab host pays).
         const own = StyleSheet.flatten(screen.getByTestId('screen-fab').props.style);
         expect(own.bottom).toBe(spacing.three + 56 + spacing.three + (isIOS ? 20 : 0));
-        // Hidden tabs take their action with them.
-        await renderApp(await app({hidden: true, action: {label: 'New', icon: icons.add, onPress}}));
+        // Hidden tabs take their action with them, and the room it took.
+        await renderApp({
+          ...(await app({hidden: true, action: {label: 'New', icon: icons.add, onPress}})),
+          index: () => <Screen><BottomProbe/><Text>Home screen</Text></Screen>,
+        });
         expect(screen.queryByTestId('tab-action-slot')).toBeNull();
+        expect(seen.bottom).toBe(0);
       } finally {
         Object.defineProperty(Platform, 'Version', version);
         await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 0}));
       }
+    });
+
+    it('lifts its floating action above the app\'s toast while one shows, and lowers it as the toast goes', async () => {
+      const version = Object.getOwnPropertyDescriptor(Platform, 'Version')!;
+      Object.defineProperty(Platform, 'Version', {configurable: true, get: () => (isIOS ? '18.0' : 35)});
+      const timing = vi.spyOn(Animated, 'timing');
+      const toast = {cover: (_height: number) => {}};
+      try {
+        const {Tabs} = await import('.');
+        // What a `ToastProvider` around the tabs tells them its toast covers.
+        function Layout() {
+          const [covered, setCovered] = useState(68);
+          useEffect(() => {
+            toast.cover = setCovered;
+          }, []);
+          return (
+            <AppToastInsetContext.Provider value={covered}>
+              <Tabs routes={routes} action={{label: 'New', icon: icons.add, onPress: vi.fn()}}/>
+            </AppToastInsetContext.Provider>
+          );
+        }
+        await renderApp({...(await app()), _layout: Layout});
+        // The slot rides a transform by the toast's height, as a screen's fab does, from where it stands.
+        expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({toValue: -68, useNativeDriver: true}));
+        expect(StyleSheet.flatten(screen.getByTestId('tab-action-slot').props.style)).toMatchObject({
+          right: spacing.three,
+          bottom: inset.bottomTab + spacing.three,
+          transform: [{translateY: expect.anything()}],
+        });
+        await act(async () => toast.cover(0));
+        expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({toValue: -0}));
+      } finally {
+        timing.mockRestore();
+        Object.defineProperty(Platform, 'Version', version);
+      }
+    });
+
+    it('tells the app\'s toast what the tab bar takes of the bottom edge, and nothing while it is hidden', async () => {
+      const report = vi.fn();
+      const {Tabs} = await import('.');
+      // What a `ToastProvider` around the tabs hands them to report on.
+      const layout = () => (
+        <AppToastFloorContext.Provider value={report}>
+          <Tabs routes={routes}/>
+        </AppToastFloorContext.Provider>
+      );
+      await renderApp({...(await app()), _layout: layout});
+      expect(report).toHaveBeenLastCalledWith(inset.bottomTab);
+      // A focused screen hiding the tabs takes the bar from under the toast.
+      await renderApp({
+        ...(await app()),
+        _layout: layout,
+        index: () => <><HideTabs/><Text>Home screen</Text></>,
+      });
+      expect(nodes().find(n => n.type === 'RNSTabsHost')!.props.tabBarHidden).toBe(true);
+      expect(report).toHaveBeenLastCalledWith(0);
+    });
+
+    it('takes the bar from under the app\'s toast while a stack around the tabs shows a screen over them', async () => {
+      const report = vi.fn();
+      const {Tabs} = await import('.');
+      await renderApp({
+        _layout: () => <Stack screenOptions={{headerShown: false}}/>,
+        '(tabs)/_layout': () => (
+          <AppToastFloorContext.Provider value={report}>
+            <Tabs routes={routes}/>
+          </AppToastFloorContext.Provider>
+        ),
+        '(tabs)/index': () => <Text>Home screen</Text>,
+        '(tabs)/settings': () => <Text>Settings screen</Text>,
+        detail: () => <Text>Detail screen</Text>,
+      });
+      expect(report).toHaveBeenLastCalledWith(inset.bottomTab);
+      // The tabs stay mounted under the pushed screen, which has no bar under it.
+      await act(async () => router.push('/detail'));
+      expect(screen.getByText('Detail screen')).toBeOnTheScreen();
+      expect(report).toHaveBeenLastCalledWith(0);
+      await act(async () => router.back());
+      expect(report).toHaveBeenLastCalledWith(inset.bottomTab);
     });
 
     if (isIOS) {
@@ -734,18 +909,75 @@ describe(`Tabs (${Platform.OS})`, () => {
         const version = Object.getOwnPropertyDescriptor(Platform, 'Version')!;
         Object.defineProperty(Platform, 'Version', {configurable: true, get: () => '26.0'});
         try {
-          await renderApp(await app({action: {label: 'New', icon: icons.add, onPress: vi.fn()}}));
+          await renderApp({
+            ...(await app({action: {label: 'New', icon: icons.add, onPress: vi.fn()}})),
+            index: () => <Screen><BottomProbe/><Text>Home screen</Text></Screen>,
+          });
           expect(screen.queryByTestId('tab-action-slot')).toBeNull();
+          // The accessory is the tab bar's own, so the screens keep no room for it.
+          expect(seen.bottom).toBe(0);
           const accessory = nodes().find(n => n.type === 'RNSTabsHost')!.props.ios.bottomAccessory as (placement: string) => React.ReactElement;
           await render(accessory('regular'));
           expect(modifier(host(p => p.label === 'New').props, 'labelStyle')).toBeUndefined();
+          // Outside the tabs, its measured height goes nowhere.
+          await fireNative(screen.getByTestId('tab-accessory'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 48}}});
           await render(accessory('inline'));
           expect(modifier(host(p => p.label === 'New').props, 'labelStyle')).toEqual({$type: 'labelStyle', style: 'iconOnly'});
+          // Only the wide copy reports its height: the inline one sits in the minimized bar, not over it.
+          const {TabAccessoryHeightContext} = await import('./action');
+          const measured = vi.fn();
+          const layout = (height: number) => ({nativeEvent: {layout: {x: 0, y: 0, width: 300, height}}});
+          await render(<TabAccessoryHeightContext.Provider value={measured}>{accessory('inline')}</TabAccessoryHeightContext.Provider>);
+          await fireNative(screen.getByTestId('tab-accessory'), 'layout', layout(30));
+          expect(measured).not.toHaveBeenCalled();
+          await render(<TabAccessoryHeightContext.Provider value={measured}>{accessory('regular')}</TabAccessoryHeightContext.Provider>);
+          await fireNative(screen.getByTestId('tab-accessory'), 'layout', layout(48));
+          expect(measured).toHaveBeenCalledExactlyOnceWith(48);
           await renderApp(await app({action: {label: 'New', icon: icons.add, items: [{label: 'Document', onPress: vi.fn()}]}}));
           const menu = nodes().find(n => n.type === 'RNSTabsHost')!.props.ios.bottomAccessory as (placement: string) => React.ReactElement;
           await render(menu('regular'));
           expect(nodes().some(n => n.props.label === 'New')).toBe(true);
+          // Hidden tabs take the accessory with them, by the prop and by HideTabs.
+          const hostAccessory = () => nodes().find(n => n.type === 'RNSTabsHost')!.props.ios.bottomAccessory;
+          await renderApp(await app({hidden: true, action: {label: 'New', icon: icons.add, onPress: vi.fn()}}));
+          expect(nodes().find(n => n.type === 'RNSTabsHost')!.props.tabBarHidden).toBe(true);
+          expect(hostAccessory()).toBeUndefined();
+          await renderApp({
+            ...(await app({action: {label: 'New', icon: icons.add, onPress: vi.fn()}})),
+            index: () => <><HideTabs/><Text>Home screen</Text></>,
+          });
+          expect(nodes().find(n => n.type === 'RNSTabsHost')!.props.tabBarHidden).toBe(true);
+          expect(hostAccessory()).toBeUndefined();
         } finally {
+          Object.defineProperty(Platform, 'Version', version);
+        }
+      });
+
+      it('stands the app\'s toast above the bottom accessory on iOS 26, by its measured height', async () => {
+        const version = Object.getOwnPropertyDescriptor(Platform, 'Version')!;
+        Object.defineProperty(Platform, 'Version', {configurable: true, get: () => '26.0'});
+        const {extendPresetMock} = await import('vitest-native/helpers');
+        // The host renders the wide accessory inside the tabs, as react-native-screens does.
+        const withAccessory = (props: Record<string, any>) =>
+          createElement('RNSTabsHost', props, props.children, props.ios?.bottomAccessory?.('regular'));
+        extendPresetMock('react-native-screens', {Tabs: {Host: withAccessory, Screen: el('RNSTabsScreenIOS')}});
+        const report = vi.fn();
+        try {
+          const {Tabs} = await import('.');
+          await renderApp({
+            ...(await app()),
+            _layout: () => (
+              <AppToastFloorContext.Provider value={report}>
+                <Tabs routes={routes} action={{label: 'New', icon: icons.add, onPress: vi.fn()}}/>
+              </AppToastFloorContext.Provider>
+            ),
+          });
+          expect(report).toHaveBeenLastCalledWith(inset.bottomTab);
+          // UIKit sizes the accessory's content; the action fills it.
+          await fireNative(screen.getByTestId('tab-accessory'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 48}}});
+          expect(report).toHaveBeenLastCalledWith(inset.bottomTab + 48);
+        } finally {
+          extendPresetMock('react-native-screens', {Tabs: {Host: el('RNSTabsHost'), Screen: el('RNSTabsScreenIOS')}});
           Object.defineProperty(Platform, 'Version', version);
         }
       });
@@ -768,6 +1000,16 @@ describe(`Tabs (${Platform.OS})`, () => {
       await renderApp(await app({hidden: true}));
       expect(triggers()).toHaveLength(2);
       expect(screen.getByText('Home screen')).toBeOnTheScreen();
+      expect(nodes().find(n => n.type === 'RNSTabsHost')!.props.tabBarHidden).toBe(true);
+    });
+
+    it('hides the native tab bar on the routes a function of the route names', async () => {
+      await renderApp(await app({hidden: ({pathname}: {pathname: string}) => pathname === '/settings'}));
+      const tabBarHidden = () => nodes().find(n => n.type === 'RNSTabsHost')!.props.tabBarHidden;
+      expect(tabBarHidden()).toBe(false);
+      await act(async () => router.navigate('/settings'));
+      expect(screen.getByText('Settings screen')).toBeOnTheScreen();
+      expect(tabBarHidden()).toBe(true);
     });
 
     it('themes the tab bar with the palette', async () => {

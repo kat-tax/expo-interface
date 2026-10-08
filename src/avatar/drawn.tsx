@@ -8,11 +8,36 @@ import {AVATAR_RING, colorOf, initialsOf} from './shared';
 const TEXT_RATIO = 0.4;
 
 /**
- * A person as a colored circle with their initials, drawn in React Native:
- * `Avatar` on iOS, Android and web, and each face of an `AvatarGroup`
- * everywhere (see {@link AvatarProps}).
+ * What a face says to assistive technology in place of the bare name, or
+ * nothing at all. Written out rather than picked from `ViewProps`, which
+ * declares no `aria-current` or `aria-describedby`.
  */
-export function DrawnAvatar({name, initials, color, size = 28, ring, dimmed = false, testID}: AvatarProps) {
+interface FaceAnnouncement {
+  accessible?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  'aria-selected'?: boolean;
+  'aria-current'?: boolean;
+  'aria-describedby'?: string;
+  role?: 'img';
+}
+
+/**
+ * A person as a colored circle with their initials, drawn in React Native:
+ * `Avatar` on iOS, Android and web (see {@link AvatarProps}).
+ */
+export function DrawnAvatar({name, initials, color, size, ring, dimmed, testID}: AvatarProps) {
+  // Named, not spread: whatever else reaches `Avatar` at run time would be
+  // taken for an announcement and land on the circle's view.
+  return <AvatarFace name={name} initials={initials} color={color} size={size} ring={ring} dimmed={dimmed} testID={testID}/>;
+}
+
+/**
+ * The drawn circle, which `AvatarGroup` names or silences: each face of a
+ * group on every platform. The circle is its own accessibility element,
+ * named for the person, unless the announcement given says otherwise.
+ */
+export function AvatarFace({name, initials, color, size = 28, ring, dimmed = false, testID, ...announced}: AvatarProps & FaceAnnouncement) {
   const fill = color ?? colorOf(name);
   const token = useColor(ring != null && isColorToken(ring) ? ring : 'background');
   const ringColor = ring == null ? undefined : isColorToken(ring) ? token : ring;
@@ -20,6 +45,7 @@ export function DrawnAvatar({name, initials, color, size = 28, ring, dimmed = fa
     <View
       accessible
       accessibilityLabel={name}
+      {...announced}
       style={[
         styles.circle,
         {backgroundColor: fill, width: size, height: size, borderRadius: size / 2},

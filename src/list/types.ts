@@ -4,15 +4,32 @@ import type {StyleProp, ViewStyle} from 'react-native';
 /**
  * A list of rows that grows: the inbox, the versions of a document, the
  * licences, the members of a space. The rows are `ListItem`s, and the list
- * is the platform's own lazy one, so three thousand rows cost what the
- * screen shows.
+ * is the platform's own lazy one, which draws only the rows on screen. The
+ * web and Windows render only the rows near the view; on iOS and Android
+ * React renders every row and the native list keeps a view for each, so a
+ * very long list there is better loaded a page at a time with
+ * `onEndReached`.
  *
  * - iOS: SwiftUI `List`, in the plain style, which draws its separators and
  *   recycles its rows.
  * - Android: Compose `LazyColumn`, with a Material divider between rows.
- * - Web: a DOM list whose rows the browser lays out as they come into view
- *   (`content-visibility: auto`).
+ * - Web: a DOM list that scrolls itself and draws only the rows near the
+ *   view, two spacers keeping the room of the rest at their measured
+ *   heights once seen and at `estimatedItemHeight` before. A focused row
+ *   scrolled more than a viewport out of view is removed, and the focus
+ *   with it. Only the drawn rows are in the page, so find in page, printing
+ *   and a scroll to a row's element reach only those, and a static page
+ *   holds only the rows that fill 1200 pixels at `estimatedItemHeight`.
  * - Windows: React Native's `FlatList`, windowed.
+ *
+ * Every platform's list scrolls itself and fills the space its parent gives
+ * it (a `Screen`'s content, a view with `flex: 1`). On iOS, Android and
+ * Windows that parent needs a height of its own: inside a scroll view the
+ * iOS and Android list gets no height, and the Windows list grows to its
+ * rows, so it draws every one of them and is no longer windowed. On the web,
+ * in a parent with no height of its own, it grows to its rows and the parent
+ * scrolls it; `style={{flexShrink: 0}}` does the same in a parent that has a
+ * height.
  *
  * On iOS and Android a row is native content, as a row in a `FieldGroup`
  * is: the kit's `ListItem` with its slots, or `@expo/ui` content. A React
@@ -39,13 +56,21 @@ export interface ListProps<T> {
    */
   header?: ReactNode;
   footer?: ReactNode;
-  /** What the list shows in place of its rows when `data` is empty: usually an `EmptyState`. */
+  /**
+   * What the list shows in place of its rows when `data` is empty: usually
+   * an `EmptyState`, which fills the list. On iOS and Android outside a host
+   * it is placed in the list's own view with no host around it, so a control
+   * in it mounts its own; under a host it is native content, as the rows
+   * are. iOS and Android show it without the `header` and `footer`; the web
+   * and Windows keep them around it.
+   */
   empty?: ReactNode;
   /** Called once the last row has been drawn, for a list that loads more. */
   onEndReached?: () => void;
   /**
-   * A row's height, in points, where the rows are alike: what the web lays
-   * out for a row before it has come into view, and what Windows jumps by.
+   * A row's height, in points, before the web has measured it: what the
+   * web's window counts a row it has not drawn yet as. iOS, Android and
+   * Windows measure their rows.
    * @default 56
    */
   estimatedItemHeight?: number;

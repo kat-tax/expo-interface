@@ -18,9 +18,9 @@ import {parseColor, toCss, toHex, useColorValue} from './shared';
  * opens the iOS picker redrawn in the kit's `Sheet`. With `swatches` (or
  * `allowsNone`) the row is a `<div>` instead, so each preset and the well
  * are buttons of their own (buttons cannot nest). `inline` draws the picker
- * in place; `popover` opens it in a native popover placed against the well
- * by CSS anchor positioning; `menu` opens the swatches in the kit's menu
- * popover from the well.
+ * in place, titled only by a `label`; `popover` opens it in a native popover
+ * placed against the well by CSS anchor positioning; `menu` opens the
+ * swatches in the kit's menu popover from the well.
  */
 export function ColorPicker({
   label,
@@ -53,13 +53,16 @@ export function ColorPicker({
       <span className="ui-color-picker__swatch"/>
     </span>
   );
-  const panel = (onClose?: () => void) => (
+  // A picker in a sheet or a popover is titled; one drawn in place only by a label.
+  const title = label ?? 'Colors';
+  const panel = (heading: string | undefined, onClose?: () => void) => (
     <ColorPickerSheet
-      title={label ?? 'Colors'}
+      title={heading}
       value={toHex(current, true)}
       supportsOpacity={supportsOpacity}
       onValueChange={hex => setCurrent(parseColor(hex))}
       onClose={onClose}
+      disabled={disabled}
       testID={testID ? `${testID}-sheet` : undefined}
     />
   );
@@ -98,7 +101,7 @@ export function ColorPicker({
     return (
       <div className="ui-color-picker-inline" style={vars} data-testid={testID}>
         {presetButtons.length > 0 ? <span className="ui-color-picker__presets ui-color-picker__presets--inline">{presetButtons}</span> : null}
-        {panel()}
+        {panel(label)}
       </div>
     );
   }
@@ -125,11 +128,11 @@ export function ColorPicker({
   // The picker: in a sheet, or in a native popover placed against the well.
   const picker = popped ? (
     <div ref={setPopover} id={ident} popover="auto" className="ui-color-picker__popover" style={{positionAnchor: anchor} as CSSProperties}>
-      {panel(() => popover?.hidePopover?.())}
+      {panel(title, () => popover?.hidePopover?.())}
     </div>
   ) : (
     <Sheet isPresented={open} onDismiss={() => setOpen(false)}>
-      {panel(() => setOpen(false))}
+      {panel(title, () => setOpen(false))}
     </Sheet>
   );
   // The well opens the picker: a popover's by its `popovertarget`, a sheet's by a press.

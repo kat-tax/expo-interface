@@ -98,6 +98,10 @@ function NativeButton({
   const onAccent = color ? contrastOf(color) : themeOnAccent;
   const onFilled = shown === 'filled';
   const textColor = onFilled ? onAccent : accent;
+  // A disabled Material button gives its content Compose's disabled color
+  // (onSurface at 38%) through the content color, which a color set on the
+  // label or an icon would override; the inline row dims itself with alpha.
+  const contentColor = disabled && size !== 'inline' ? undefined : textColor;
   const colors = onFilled
     ? {containerColor: accent, contentColor: onAccent}
     : {contentColor: accent};
@@ -129,7 +133,7 @@ function NativeButton({
     <Icon
       source={prefix}
       size={iconSize}
-      tint={textColor}
+      tint={contentColor}
       contentDescription={iconOnly ? label : undefined}
     />
   ) : null);
@@ -145,11 +149,11 @@ function NativeButton({
           {iconOnly ? null : <Spacer modifiers={[width(8)]}/>}
         </>
       ) : null}
-      {iconOnly ? null : <Text color={textColor} style={{fontSize: textSize}}>{label}</Text>}
+      {iconOnly ? null : <Text color={contentColor} style={{fontSize: textSize}}>{label}</Text>}
       {suffix && !iconOnly ? (
         <>
           <Spacer modifiers={[width(8)]}/>
-          <Icon source={suffix} size={iconSize} tint={textColor}/>
+          <Icon source={suffix} size={iconSize} tint={contentColor}/>
         </>
       ) : null}
     </>

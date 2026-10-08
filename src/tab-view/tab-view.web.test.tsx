@@ -1,5 +1,6 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
+import type {ComponentProps} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {TabView} from '.';
@@ -46,6 +47,71 @@ describe('TabView (web)', () => {
     // "descriptionSketch".
     expect(panel).toHaveAccessibleName('Sketch');
     expect(tabs[1]).toHaveAttribute('aria-controls', panel.id);
+  });
+
+  it('names a tab by its label, or by its title, and never by the accessory\'s text', () => {
+    const tabs = [
+      TABS[0],
+      {id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <span>edited</span>},
+      {id: 'c', title: 'Inbox', accessory: <span>3</span>},
+    ];
+    render(<TabView tabs={tabs} selected="a" onSelect={() => {}} testID="t"/>);
+    expect(screen.getByTestId('t-tab-a')).toHaveAccessibleName('Notes');
+    expect(screen.getByTestId('t-tab-b')).toHaveAccessibleName('Sketch, edited');
+    expect(screen.getByTestId('t-tab-c')).toHaveAccessibleName('Inbox');
+  });
+
+  it('draws no panel and controls none without children: the tabs alone', () => {
+    render(<TabView tabs={TABS} selected="b" onSelect={() => {}} testID="t"/>);
+    expect(screen.queryByRole('tabpanel')).toBeNull();
+    for (const tab of screen.getAllByRole('tab')) expect(tab).not.toHaveAttribute('aria-controls');
+    expect(screen.getByTestId('t')).toHaveClass('ui-tab-view', 'ui-tab-view--alone');
+  });
+
+  it('grows into its parent, but not as the tabs alone, whose rule comes after the one that grows', async () => {
+    const {readFileSync} = await import('node:fs');
+    const {join} = await import('node:path');
+    const css = readFileSync(join(__dirname, 'tab-view.css'), 'utf8');
+    const root = /\.ui-tab-view \{([^}]*)\}/.exec(css)!;
+    const alone = /\.ui-tab-view--alone \{([^}]*)\}/.exec(css)!;
+    expect(root[1]).toContain('flex: 1 1 auto;');
+    expect(alone[1]).toContain('flex-grow: 0;');
+    // The same specificity, so the later rule is the one that holds.
+    expect(alone.index).toBeGreaterThan(root.index);
+  });
+
+  it('keeps the panel for null, which is a page with nothing in it', () => {
+    render(<TabView tabs={TABS} selected="b" onSelect={() => {}} testID="t">{null}</TabView>);
+    expect(screen.getByRole('tabpanel')).toBeEmptyDOMElement();
+    expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--alone');
+  });
+
+  it('keeps the panel for children that come out undefined, as when the last document closes', () => {
+    const open = TABS.find(tab => tab.id === 'gone');
+    render(<TabView tabs={TABS} selected="gone" onSelect={() => {}} testID="t">{open && <p>{open.title}</p>}</TabView>);
+    const panel = screen.getByRole('tabpanel');
+    expect(panel).toBeEmptyDOMElement();
+    for (const tab of screen.getAllByRole('tab')) expect(tab).toHaveAttribute('aria-controls', panel.id);
+    expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--alone');
+  });
+
+  it('is the tabs alone with content={false}, through a wrapper that always passes children on', () => {
+    function DocTabs({children, ...rest}: ComponentProps<typeof TabView>) {
+      return <TabView {...rest}>{children}</TabView>;
+    }
+    const {rerender} = render(<DocTabs tabs={TABS} selected="b" onSelect={() => {}} testID="t"/>);
+    // The wrapper's element always has children, so without content it is a page.
+    expect(screen.getByRole('tabpanel')).toBeEmptyDOMElement();
+    rerender(<DocTabs tabs={TABS} selected="b" onSelect={() => {}} content={false} testID="t"><p>Ignored</p></DocTabs>);
+    expect(screen.queryByRole('tabpanel')).toBeNull();
+    expect(screen.queryByText('Ignored')).toBeNull();
+    expect(screen.getByTestId('t')).toHaveClass('ui-tab-view--alone');
+  });
+
+  it('keeps a page with content, children or none', () => {
+    render(<TabView tabs={TABS} selected="b" onSelect={() => {}} content testID="t"/>);
+    expect(screen.getByRole('tabpanel')).toBeEmptyDOMElement();
+    expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--alone');
   });
 
   it('leaves the panel unnamed when no tab is open', () => {
@@ -129,7 +195,44 @@ describe('TabView (web)', () => {
     expect(onAdd).toHaveBeenCalled();
   });
 
+  it('takes no fill of its own with none, and the raised fill by default', () => {
+    const {rerender} = render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
+    expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--no-fill');
+    rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} fill="none" testID="t"/>);
+    expect(screen.getByTestId('t')).toHaveClass('ui-tab-view--no-fill');
+  });
+
+  it('clears the bar with none and marks the open tab with a pill instead', async () => {
+    const {readFileSync} = await import('node:fs');
+    const {join} = await import('node:path');
+    const css = readFileSync(join(__dirname, 'tab-view.css'), 'utf8');
+    // The body of a rule by its exact selector; each of these is one class
+    // more specific than the rule it overrides, so order does not matter.
+    const rule = (selector: string) => {
+      const at = css.indexOf(`\n${selector} {`);
+      expect(at).toBeGreaterThan(-1);
+      return css.slice(at, css.indexOf('}', at));
+    };
+    expect(rule('.ui-tab-view__bar')).toContain('background: var(--color-background-element);');
+    expect(rule('.ui-tab-view--no-fill .ui-tab-view__bar')).toContain('background: transparent;');
+    const pill = rule(".ui-tab-view--no-fill .ui-tab-view__tab[data-selected='true']");
+    expect(pill).toContain('background: var(--color-pill-background);');
+    expect(pill).toContain('border-radius: 8px;');
+  });
+
+  it('calls the add button what it is asked to', () => {
+    render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document"/>);
+    expect(screen.getByRole('button', {name: 'New document'})).toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'New tab'})).toBeNull();
+  });
+
   describe('switcher', () => {
+    it('calls the add button what it is asked to there too', () => {
+      windowWidth(480);
+      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document"/>);
+      expect(screen.getByRole('button', {name: 'New document'})).toBeInTheDocument();
+    });
+
     it('replaces the strip with a disclosure under the breakpoint', async () => {
       const user = userEvent.setup();
       windowWidth(480);
@@ -148,6 +251,36 @@ describe('TabView (web)', () => {
       // reader at either size.
       expect(screen.getAllByRole('tab')).toHaveLength(3);
       expect(screen.queryByRole('tabpanel')).toBeNull();
+    });
+
+    it('is the bar alone without children, and its cards control no panel', async () => {
+      const user = userEvent.setup();
+      windowWidth(480);
+      render(<TabView tabs={TABS} selected="b" onSelect={() => {}} testID="t"/>);
+      expect(screen.queryByRole('tabpanel')).toBeNull();
+      await user.click(screen.getByTestId('t-switcher'));
+      expect(screen.getAllByRole('tab')).toHaveLength(3);
+      for (const tab of screen.getAllByRole('tab')) expect(tab).not.toHaveAttribute('aria-controls');
+      await user.click(screen.getByTestId('t-card-a'));
+      expect(screen.queryByRole('tabpanel')).toBeNull();
+    });
+
+    it('opens the cards of the tabs alone at most half the window tall, and scrolls them past that', async () => {
+      const {readFileSync} = await import('node:fs');
+      const {join} = await import('node:path');
+      const css = readFileSync(join(__dirname, 'tab-view.css'), 'utf8');
+      expect(/\n\.ui-tab-view__cards \{([^}]*)\}/.exec(css)![1]).toContain('overflow-y: auto;');
+      expect(/\n\.ui-tab-view--alone \.ui-tab-view__cards \{([^}]*)\}/.exec(css)![1]).toContain('max-height: 50vh;');
+    });
+
+    it('names a card as the strip names its tab', async () => {
+      const user = userEvent.setup();
+      windowWidth(480);
+      const tabs = [TABS[0], {id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <span>edited</span>}];
+      render(<TabView tabs={tabs} selected="a" onSelect={() => {}} testID="t"/>);
+      await user.click(screen.getByTestId('t-switcher'));
+      expect(screen.getByTestId('t-card-a')).toHaveAccessibleName('Notes');
+      expect(screen.getByTestId('t-card-b')).toHaveAccessibleName('Sketch, edited');
     });
 
     it('names itself after the group when no tab is open', () => {

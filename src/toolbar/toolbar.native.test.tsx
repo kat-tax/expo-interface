@@ -1,5 +1,5 @@
 import {Platform, StyleSheet, Text as RNText} from 'react-native';
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
 import {Button} from '../button';
 import {Divider} from '../divider';
@@ -154,6 +154,96 @@ describe('commands', () => {
     await render(<Toolbar commands={[{label: 'Export', secondary: true}]} testID="bar"/>);
     expect(onBar('Export')).toBe(false);
     expect(nodes().some(node => node.type.includes('Menu'))).toBe(true);
+  });
+
+  it('draws a rule before a command that asks for one, and none before the first', async () => {
+    await render(<Toolbar commands={[{label: 'Bold', separator: true}, {label: 'Italic'}, {label: 'Undo', separator: true}]}/>);
+    const tree = nodes();
+    // iOS: SwiftUI's Divider, vertical in the row's HStack; Android: Material's VerticalDivider.
+    const rules = tree.filter(node => node.type.endsWith(isIOS ? 'DividerView' : 'VerticalDividerView'));
+    expect(rules).toHaveLength(1);
+    const at = (label: string) => tree.findIndex(node => labelOf(node) === label);
+    const rule = tree.indexOf(rules[0]!);
+    expect(at('Italic')).toBeLessThan(rule);
+    expect(rule).toBeLessThan(at('Undo'));
+    // Still one host: the rule draws inside the bar's row.
+    expect(hosts()).toHaveLength(1);
+    // A host sized to its content gives Compose's rule no height to fill, so
+    // on Android it has a length of its own; SwiftUI's takes the row's.
+    if (!isIOS) expect(modifier(rules[0]!.props, 'height')).toEqual({$type: 'height', height: 24});
+  });
+
+  it('keeps a toggle\'s state in the overflow as the menu\'s check', async () => {
+    await render(<Toolbar commands={[{label: 'Undo'}, {label: 'Spellcheck', secondary: true, active: true}, {label: 'Wrap', secondary: true, active: false}]}/>);
+    const menu = nodes().find(node => node.type.includes('Menu'))!;
+    if (isIOS) {
+      // A checked toggle is how a SwiftUI menu shows the current state; one that is off is a plain entry.
+      expect(nodes(menu).find(node => node.props.label === 'Spellcheck')).toMatchObject({type: expect.stringContaining('Toggle'), props: {isOn: true}});
+      expect(nodes(menu).find(node => node.props.label === 'Wrap')?.type).toContain('Button');
+    } else {
+      const entry = (label: string) => nodes(menu).find(node => node.type.endsWith('DropdownMenuItemView') && nodes(node).some(child => child.props.text === label))!;
+      expect(host(p => p.text === '✓', entry('Spellcheck'))).toBeTruthy();
+      expect(nodes(entry('Wrap')).some(node => node.props.text === '✓')).toBe(false);
+    }
+  });
+
+  it('draws a menu command as a menu of its own on the bar, in the same host', async () => {
+    const onHeading = vi.fn();
+    await render(
+      <Toolbar
+        commands={[
+          {label: 'Bold'},
+          {label: 'Turn into', icon: icons.settings, hideLabel: true, items: [{label: 'Heading', onPress: onHeading}, {label: 'Quote'}], testID: 'turn'},
+        ]}
+      />,
+    );
+    expect(hosts()).toHaveLength(1);
+    // iOS: SwiftUI's Menu; Android: Material's DropdownMenu on the kit's button. No overflow.
+    const menus = nodes().filter(node => node.type.endsWith(isIOS ? '_MenuView' : '_DropdownMenuView'));
+    expect(menus).toHaveLength(1);
+    expect(nodes(menus[0]!).map(labelOf)).toEqual(expect.arrayContaining(['Heading', 'Quote']));
+    expect(onBar('Bold')).toBe(true);
+    if (isIOS) {
+      expect(screen.getByTestId('turn').type).toContain('Menu');
+      // The bar's 22pt symbol as the menu's label, named by the command.
+      expect(modifier(screen.getByTestId('turn').props, 'accessibilityLabel')?.label).toBe('Turn into');
+      await fireEvent(screen.container.queryAll(node => node.props.label === 'Heading' && typeof node.props.onButtonPress === 'function')[0]!, 'buttonPress');
+    } else {
+      // The trigger is the kit's button inside the DropdownMenu.
+      expect(byComposeTestID('turn')).toBeTruthy();
+      expect(nodes(menus[0]!).some(node => modifier(node.props, 'testID')?.testID === 'turn')).toBe(true);
+      await fireEvent(screen.container.queryAll(node => typeof node.props.onItemPressed === 'function')[0]!, 'itemPressed');
+    }
+    expect(onHeading).toHaveBeenCalledTimes(1);
+  });
+
+  it('greys out a menu command with no entries, which would open on nothing', async () => {
+    await render(<Toolbar commands={[{label: 'Recent', items: [], testID: 'recent'}, {label: 'Sort', items: [{label: 'Name'}], testID: 'sort'}]}/>);
+    const trigger = (testID: string) => (isIOS ? screen.getByTestId(testID) : byComposeTestID(testID)).props;
+    if (isIOS) {
+      expect(modifier(trigger('recent'), 'disabled')).toEqual({$type: 'disabled', disabled: true});
+      expect(modifier(trigger('sort'), 'disabled')).toBeUndefined();
+    } else {
+      expect(trigger('recent').enabled).toBe(false);
+      expect(trigger('sort').enabled).not.toBe(false);
+    }
+  });
+
+  it('draws no overflow when the commands behind it are only menus with no entries', async () => {
+    await render(<Toolbar commands={[{label: 'Undo'}, {label: 'Recent', secondary: true, items: []}]}/>);
+    // No menu at all: the overflow would open on nothing.
+    expect(nodes().filter(node => node.type.endsWith(isIOS ? '_MenuView' : '_DropdownMenuView'))).toHaveLength(0);
+    expect(onBar('Undo')).toBe(true);
+  });
+
+  it('puts a secondary menu command\'s entries in the overflow, in its place', async () => {
+    await render(<Toolbar commands={[{label: 'Undo'}, {label: 'Export', secondary: true}, {label: 'Sort', secondary: true, items: [{label: 'Name'}, {label: 'Date'}]}]}/>);
+    const menus = nodes().filter(node => node.type.endsWith(isIOS ? '_MenuView' : '_DropdownMenuView'));
+    // One menu: the overflow, with no trigger of the command's own.
+    expect(menus).toHaveLength(1);
+    const labels = nodes(menus[0]!).map(labelOf);
+    expect(labels).toEqual(expect.arrayContaining(['Export', 'Name', 'Date']));
+    expect(labels).not.toContain('Sort');
   });
 
   it('still takes the two slots when it was given no commands', async () => {

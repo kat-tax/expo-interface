@@ -1,7 +1,8 @@
-import {Text} from 'react-native';
+import {Dimensions, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
-import {TabView, tabItems} from './index.windows';
+import {colors} from '../theme';
+import {TabView, tabItems, tabLabels} from './index.windows';
 
 const XAML = 'ExpoInterfaceTabView';
 
@@ -49,6 +50,23 @@ describe('TabView (windows)', () => {
     expect(JSON.parse(tabItems(TABS, false)).every((tab: {closable: boolean}) => !tab.closable)).toBe(true);
   });
 
+  it('names the WinUI tabs by their labels, which say what the accessory it cannot draw means', () => {
+    const tabs = [TABS[0], {id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <Text>edited</Text>}];
+    expect(JSON.parse(tabLabels(tabs))).toEqual(['Notes', 'Sketch, edited']);
+  });
+
+  it('renames the tabs without touching the items when only a label changes', async () => {
+    const tabs = (label?: string) => [TABS[0], {id: 'b', title: 'Sketch', label, accessory: label ? <Text>Ana</Text> : undefined}];
+    const {rerender} = await render(<TabView tabs={tabs()} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
+    const items = island(XAML).props.items;
+    expect(JSON.parse(island(XAML).props.labels)).toEqual(['Notes', 'Sketch']);
+    // A collaborator joins: the name says so, and the items, whose every
+    // change rebuilds the strip, stay as they were.
+    await rerender(<TabView tabs={tabs('Sketch, Ana is here')} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
+    expect(island(XAML).props.items).toBe(items);
+    expect(JSON.parse(island(XAML).props.labels)).toEqual(['Notes', 'Sketch, Ana is here']);
+  });
+
   it('takes the control selection as a request for that tab, and ignores the one already open', async () => {
     const onSelect = vi.fn();
     await render(<TabView tabs={TABS} selected="a" onSelect={onSelect} layout="strip" testID="t"/>);
@@ -86,6 +104,34 @@ describe('TabView (windows)', () => {
     expect(onAdd).toHaveBeenCalled();
   });
 
+  it('names the add button for UI Automation and its tooltip when asked, and leaves WinUI its own words otherwise', async () => {
+    const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} layout="strip" testID="t"/>);
+    // Nothing of the kit's: WinUI's name and tooltip are in the system's language.
+    expect(island(XAML).props.addLabel).toBeUndefined();
+    await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document" layout="strip" testID="t"/>);
+    expect(island(XAML).props.addLabel).toBe('New document');
+    // The drawn switcher says the same words, and "New tab" when there are none.
+    await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document" layout="switcher" testID="t"/>);
+    expect(screen.getByTestId('t-add').props.accessibilityLabel).toBe('New document');
+    await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} layout="switcher" testID="t"/>);
+    expect(screen.getByTestId('t-add').props.accessibilityLabel).toBe('New tab');
+  });
+
+  it('paints the island in the raised fill, or in the screen\'s background with none, since an island cannot be see-through', async () => {
+    const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
+    expect(island(XAML).props.background).toBe(colors.light.backgroundElement);
+    await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" fill="none" testID="t"/>);
+    expect(island(XAML).props.background).toBe(colors.light.background);
+  });
+
+  it('leaves the drawn switcher\'s bar bare with none', async () => {
+    const bar = () => StyleSheet.flatten(screen.getByTestId('t-switcher').parent!.props.style);
+    const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
+    expect(bar().backgroundColor).toBe(colors.light.backgroundElement);
+    await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" fill="none" testID="t"/>);
+    expect(bar().backgroundColor).toBeUndefined();
+  });
+
   it('puts the first tab at the front when the selected id names none', async () => {
     await render(<TabView tabs={TABS} selected="gone" onSelect={() => {}} layout="strip" testID="t"/>);
     expect(island(XAML).props.selectedIndex).toBe(0);
@@ -118,6 +164,53 @@ describe('TabView (windows)', () => {
       // Named explicitly: react-native-windows composes no name from the text
       // inside a view, so without this the tab announces its position alone.
       accessibilityLabel: 'Sketch',
+    });
+  });
+
+  it('names a drawn card by its tab\'s label', async () => {
+    const tabs = [TABS[0], {id: 'b', title: 'Sketch', label: 'Sketch, edited'}];
+    await render(<TabView tabs={tabs} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
+    await fireEvent.press(screen.getByTestId('t-switcher'));
+    expect(screen.getByTestId('t-card-b').props.accessibilityLabel).toBe('Sketch, edited');
+  });
+
+  describe('without children', () => {
+    const root = () => screen.getByTestId('t');
+    const grow = () => StyleSheet.flatten(root().props.style).flexGrow;
+    /** The view the page is drawn in: the one child that grows. */
+    const page = () => root().children.some(child => typeof child !== 'string' && StyleSheet.flatten(child.props.style)?.flexGrow === 1);
+
+    it('is the island alone: no growth and no page under it', async () => {
+      const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
+      expect(islands(XAML)).toHaveLength(1);
+      expect(grow()).toBe(0);
+      expect(page()).toBe(false);
+      await rerender(
+        <TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" testID="t">
+          <Text>Page of A</Text>
+        </TabView>,
+      );
+      expect(grow()).toBe(1);
+      expect(page()).toBe(true);
+    });
+
+    it('keeps the page for children that come out undefined, as when the last document closes', async () => {
+      const open = TABS.find(tab => tab.id === 'gone');
+      await render(
+        <TabView tabs={TABS} selected="gone" onSelect={() => {}} layout="strip" testID="t">
+          {open && <Text>{open.title}</Text>}
+        </TabView>,
+      );
+      expect(grow()).toBe(1);
+      expect(page()).toBe(true);
+    });
+
+    it('is the switcher\'s bar alone, whose cards open at most half the window tall', async () => {
+      await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
+      expect(grow()).toBe(0);
+      expect(root().children).toHaveLength(1);
+      await fireEvent.press(screen.getByTestId('t-switcher'));
+      expect(StyleSheet.flatten(screen.getByTestId('t-cards').props.style).maxHeight).toBe(Dimensions.get('window').height / 2);
     });
   });
 

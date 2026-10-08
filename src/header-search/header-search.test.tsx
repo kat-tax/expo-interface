@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import type {HeaderSearchCommands} from './types';
-import {createRef} from 'react';
+import {createRef, useEffect, useState} from 'react';
 import {Platform, Text, View} from 'react-native';
 import {act as actDom, fireEvent as fireDom, render as renderDom, screen as dom} from '@testing-library/react';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
@@ -32,6 +32,18 @@ function app(control: ReactNode) {
       </>
     ),
   };
+}
+
+/** Changes what the screen renders for its search, from the test. */
+let setSearch: (search: ReactNode) => void = () => {};
+
+/** A screen's search, which the test changes or takes away, as an app renders one conditionally. */
+function Search({initial}: {initial: ReactNode}) {
+  const [search, setState] = useState(initial);
+  useEffect(() => {
+    setSearch = next => setState(next);
+  });
+  return search;
 }
 
 /**
@@ -235,6 +247,26 @@ describe(`HeaderSearch (${Platform.OS})`, () => {
       actDom(() => ref.current!.cancel());
       expect(input).toHaveValue('');
       expect(document.activeElement).not.toBe(input);
+    });
+
+    it('takes the search out of the header when the screen stops rendering it', async () => {
+      await renderApp(app(<Search initial={<HeaderSearch placement="stacked" placeholder="Find a drop"/>}/>));
+      expect(dom.getByRole('searchbox', {name: 'Find a drop'})).toBeInTheDocument();
+      await actDom(async () => setSearch(null));
+      expect(dom.queryByRole('searchbox')).toBeNull();
+      // And back again.
+      await actDom(async () => setSearch(<HeaderSearch placement="stacked" placeholder="Find a drop"/>));
+      expect(dom.getByRole('searchbox', {name: 'Find a drop'})).toBeInTheDocument();
+    });
+
+    it('moves the search when its placement changes, leaving none behind in the header', async () => {
+      await renderApp(app(<Search initial={<HeaderSearch placement="stacked" placeholder="Find a drop"/>}/>));
+      await actDom(async () => setSearch(<HeaderSearch placement="integrated" placeholder="Find a drop" testID="q"/>));
+      const fields = dom.getAllByRole('searchbox');
+      expect(fields).toHaveLength(1);
+      // The bottom bar's field, not one under the header's title.
+      expect(dom.getByTestId('q-bar').contains(fields[0]!)).toBe(true);
+      expect(dom.getByText('Drops').parentElement!.parentElement!.contains(fields[0]!)).toBe(false);
     });
 
     it('keeps a HeaderActions beside it, in the header\'s own slot', async () => {
@@ -472,9 +504,13 @@ describe(`HeaderSearch (${Platform.OS})`, () => {
     );
     const row = screen.getByTestId('q-stacked');
     expect(row).toHaveStyle({borderBottomWidth: expect.any(Number), borderRadius: 0});
-    // Above the content, in the screen's root, not in its content box.
+    // Above the content, in the screen's top rows, not in its content box.
     const content = screen.getByTestId('kid').parent!;
-    expect(content.parent!.children.indexOf(row)).toBeLessThan(content.parent!.children.indexOf(content));
+    const rows = screen.getByTestId('screen-top-rows');
+    expect(rows).toContainElement(row);
+    expect(content).not.toContainElement(row);
+    expect(content.parent!.children.indexOf(rows)).toBe(0);
+    expect(content.parent!.children.indexOf(content)).toBe(1);
     const input = screen.getByPlaceholderText('Find a drop');
     await fireEvent.changeText(input, 'dem');
     expect(onChangeText).toHaveBeenCalledWith('dem');

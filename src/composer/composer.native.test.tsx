@@ -1,8 +1,9 @@
-import {Platform, StyleSheet} from 'react-native';
+import {AccessibilityInfo, Platform, StyleSheet} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, modifier} from 'expo-vitest/native';
 import {hosts} from '../__tests__/hosts';
 import * as icons from '../__stories__/icons';
+import {colors} from '../theme';
 import {Composer} from '.';
 
 const SEND_TO = icons.share;
@@ -34,6 +35,12 @@ describe(`Composer (${Platform.OS})`, () => {
     expect(field.props.multiline).toBe(true);
     // The bare field: no padding of its own, the capsule draws it.
     expect(StyleSheet.flatten(field.props.style)).toMatchObject({paddingHorizontal: 0, fontSize: 15});
+    // A focused field draws no ring on the capsule here: that is web's.
+    await fireEvent(field, 'focus');
+    let capsule = field.parent;
+    while (capsule && StyleSheet.flatten(capsule.props.style)?.minHeight !== 44) capsule = capsule.parent;
+    expect(StyleSheet.flatten(capsule!.props.style)).not.toHaveProperty('outlineStyle');
+    await fireEvent(field, 'blur');
     // The button is in a host of its own, inside the React Native capsule.
     expect(hosts()).toHaveLength(1);
     // Nothing to send yet.
@@ -59,11 +66,29 @@ describe(`Composer (${Platform.OS})`, () => {
     expect(screen.queryByTestId('c-send')).toBeNull();
     await press('c-stop');
     expect(onStop).toHaveBeenCalledTimes(1);
+    // The keyboard's send key does nothing while busy.
+    await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'draft'}});
+    expect(onSend).not.toHaveBeenCalled();
     await rerender(<Composer value="draft" onChangeText={onChangeText} onSend={onSend} testID="c"/>);
     await press('c-send');
     expect(onSend).toHaveBeenCalledWith('draft');
     expect(onChangeText).not.toHaveBeenCalled();
     expect(screen.getByTestId('c-field').props.value).toBe('draft');
+  });
+
+  it('keeps the text it holds itself while busy, for the next send', async () => {
+    const onSend = vi.fn();
+    const {rerender} = await render(<Composer onSend={onSend} onStop={() => {}} testID="c"/>);
+    await fireEvent.changeText(screen.getByTestId('c-field'), 'draft');
+    await rerender(<Composer onSend={onSend} onStop={() => {}} busy testID="c"/>);
+    await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'draft'}});
+    expect(onSend).not.toHaveBeenCalled();
+    expect(screen.getByTestId('c-field').props.value).toBe('draft');
+    await rerender(<Composer onSend={onSend} onStop={() => {}} testID="c"/>);
+    expect(onSend).not.toHaveBeenCalled();
+    await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'draft'}});
+    expect(onSend).toHaveBeenCalledWith('draft');
+    expect(screen.getByTestId('c-field').props.value).toBe('');
   });
 
   it('waits while busy with nothing to stop, and shows the notice under the capsule', async () => {
@@ -72,6 +97,67 @@ describe(`Composer (${Platform.OS})`, () => {
     expect(screen.getByText('Shift+Enter for a new line')).toBeOnTheScreen();
     expect(screen.getByPlaceholderText('Reply')).toBeOnTheScreen();
     expect(host(p => p.label === 'Stop' || p.text === 'Stop' || p.contentDescription === 'Stop')).toBeTruthy();
+  });
+
+  it('has a screen reader read a new notice out, but not the one it mounts with', async () => {
+    const announce = vi.spyOn(AccessibilityInfo, 'announceForAccessibilityWithOptions').mockImplementation(() => {});
+    try {
+      const {rerender} = await render(<Composer onSend={() => {}} notice="Shift+Enter for a new line" testID="c"/>);
+      const live = () => screen.container.queryAll(node => node.props.accessibilityLiveRegion === 'polite');
+      const notice = (text: string) => screen.getByText(text).parent!;
+      if (isIOS) {
+        // iOS has no live regions: the composer announces the line itself.
+        expect(live()).toHaveLength(0);
+      } else {
+        expect(notice('Shift+Enter for a new line').props.accessibilityLiveRegion).toBe('polite');
+      }
+      await rerender(<Composer onSend={() => {}} testID="c"/>);
+      // The region stays mounted with nothing in it, so the next notice appears inside it. It is not collapsable,
+      // or Fabric flattens a view whose only trait is its live region and TalkBack has nothing to watch.
+      if (!isIOS) {
+        expect(live()).toHaveLength(1);
+        expect(live()[0].props.collapsable).toBe(false);
+      }
+      await rerender(<Composer onSend={() => {}} notice="Could not send." noticeColor="destructive" testID="c"/>);
+      if (!isIOS) expect(notice('Could not send.').props.accessibilityLiveRegion).toBe('polite');
+      await rerender(<Composer onSend={() => {}} notice="Could not send." noticeColor="destructive" busy testID="c"/>);
+      await rerender(<Composer onSend={() => {}} notice="Ada is typing" testID="c"/>);
+      expect(announce.mock.calls).toEqual(isIOS ? [['Could not send.', {queue: true}], ['Ada is typing', {queue: true}]] : []);
+    } finally {
+      announce.mockRestore();
+    }
+  });
+
+  it('takes its own labels, icons and keys, colors an error notice, and passes the field its traits', async () => {
+    const onKeyPress = vi.fn();
+    const props = {
+      onSend: () => {},
+      onStop: () => {},
+      sendLabel: 'Ask',
+      stopLabel: 'Cancel',
+      sendIcon: icons.star,
+      stopIcon: icons.trash,
+      notice: 'Could not send.',
+      noticeColor: 'destructive' as const,
+      autoCapitalize: 'none' as const,
+      autoCorrect: false,
+      keyboardType: 'email' as const,
+      onKeyPress,
+      testID: 'c',
+    };
+    const {rerender} = await render(<Composer {...props}/>);
+    const field = screen.getByTestId('c-field');
+    expect(field.props).toMatchObject({autoCapitalize: 'none', autoCorrect: false, spellCheck: false, keyboardType: 'email-address'});
+    // `inputmode` is web's.
+    expect(field.props.inputMode).toBeUndefined();
+    await fireEvent(field, 'keyPress', {nativeEvent: {key: 'Escape'}});
+    expect(onKeyPress).toHaveBeenLastCalledWith('Escape', false);
+    expect(host(p => p.label === 'Ask' || p.text === 'Ask' || p.contentDescription === 'Ask')).toBeTruthy();
+    if (isIOS) expect(screen.getByTestId('c-send').props.systemImage).toBe('star');
+    expect(screen.getByText('Could not send.')).toHaveStyle({color: colors.light.destructive});
+    await rerender(<Composer {...props} busy/>);
+    expect(host(p => p.label === 'Cancel' || p.text === 'Cancel' || p.contentDescription === 'Cancel')).toBeTruthy();
+    if (isIOS) expect(screen.getByTestId('c-stop').props.systemImage).toBe('trash');
   });
 
   it('takes a menu at the leading edge of the capsule, in a second host', async () => {

@@ -47,7 +47,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A grid of cards that grows. The columns come from the width: as many cards of at least `minItemWidth` as fit, up to `maxColumns`, so a phone holds two and a desk four. The cells are drawn only as they come into view: a windowed `FlatList` of rows natively, a CSS grid on web.',
+          'A grid of cards that grows. The columns come from the width: as many cards of at least `minItemWidth` as fit, up to `maxColumns`, so a phone holds two and a desk four. The cells are drawn only as they come into view: a windowed `FlatList` of rows natively, a windowed CSS grid on web.',
       },
     },
   },

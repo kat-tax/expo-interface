@@ -1,7 +1,9 @@
+import './tabs.css';
 import type {Href} from 'expo-router';
 import type {PressableProps} from 'react-native';
 import type {TabTriggerSlotProps, TabListProps} from 'expo-router/ui';
-import type {ReactNode} from 'react';
+import type {CSSProperties, ReactNode} from 'react';
+import type {ImageSource} from 'expo-image';
 import type {SheetMaterial} from '../sheet/types';
 import type {HeaderSlot} from './context';
 import type {TabBarProps, TabRoute, WebLogo} from './types';
@@ -12,6 +14,7 @@ import {View, Pressable, StyleSheet} from 'react-native';
 import {useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {SymbolView} from 'expo-symbols';
 import {Image} from 'expo-image';
+import {Asset} from 'expo-asset';
 import app from 'expo-constants';
 
 import {theme, spacing, bound} from '../theme';
@@ -41,6 +44,7 @@ export function Tabs({
   badgeMax = 99,
   webLogo = 'icon-and-text',
   webIcon,
+  webTintIcon = false,
   webActions,
   webActionsPlacement = 'before',
   webFoldHeader = true,
@@ -74,7 +78,7 @@ export function Tabs({
             <TabSlot style={styles.slot}/>
             {/* The triggers stay in the list even while the bar is hidden: that is where the router looks for the routes. */}
             <TabList asChild>
-              <WebTabList logo={webLogo} icon={webIcon} slot={slot} hidden={hidden} shown={shown} actions={webActions} actionsPlacement={webActionsPlacement} material={webMaterial} action={action} home={routes[0]} onRows={setRows}>
+              <WebTabList logo={webLogo} icon={webIcon} tintIcon={webTintIcon} slot={slot} hidden={hidden} shown={shown} actions={webActions} actionsPlacement={webActionsPlacement} material={webMaterial} action={action} home={routes[0]} onRows={setRows}>
                 {routes.map(route => (
                   <TabTrigger key={route.name} name={route.name} href={route.href} asChild>
                     <TabLink icon={route.icon} badge={tabBadge(route.badge, badgeMax) ?? undefined}>{route.label}</TabLink>
@@ -93,6 +97,8 @@ export function Tabs({
 interface WebTabListProps extends TabListProps {
   logo: WebLogo;
   icon?: TabBarProps['webIcon'];
+  /** An image `icon` is drawn in the label color (`Tabs webTintIcon`). */
+  tintIcon?: boolean;
   /** The slot a screen's header publishes into, when the bar takes one. */
   slot?: HeaderSlot | null;
   /** The tabs are hidden (`Tabs hidden`). */
@@ -114,7 +120,7 @@ interface WebTabListProps extends TabListProps {
   onRows?: (height: number) => void;
 }
 
-export function WebTabList({logo, icon, slot, hidden = false, shown = true, actions, actionsPlacement = 'before', material = 'none', action, home, onRows, ...props}: WebTabListProps) {
+export function WebTabList({logo, icon, tintIcon = false, slot, hidden = false, shown = true, actions, actionsPlacement = 'before', material = 'none', action, home, onRows, ...props}: WebTabListProps) {
   // As in `Tabs`: one reader for the live bar and for a static render, which
   // has no published header either way.
   const read = () => (slot ? slot.get() : null);
@@ -129,14 +135,14 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
   // tab beside it is already its title.
   const title = header?.title;
   const trailing = header?.trailing ?? actions;
-  // The app's mark: an image, or one of the app's own icon tokens drawn as
-  // the kit's glyph in the label color, so a mark can be an icon the app
-  // already names.
+  // The app's mark: an image, drawn as it is or in the label color, or one of
+  // the app's own icon tokens drawn as the kit's glyph in the label color, so
+  // a mark can be an icon the app already names.
   const appMark = isPreset
     ? !isTextOnly && icon != null && (
       typeof icon === 'object' && 'symbol' in icon
         ? <Icon icon={icon} size={24} tone="label" testID="tab-bar-mark"/>
-        : <Image style={styles.icon} source={icon} contentFit="contain"/>
+        : tintIcon ? <TintedMark source={icon}/> : <Image style={styles.icon} source={icon} contentFit="contain"/>
     )
     : logo;
   const mark = isPreset || title == null ? appMark : null;
@@ -164,8 +170,10 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
     onRows?.(rows);
   }, [onRows, rows]);
   const fill = hasMaterial(material) ? null : styles.solid;
-  // The app's action stays whatever the screen folds in: it is the app's, not the screen's.
-  const appAction = action == null ? null : action.items ? (
+  // The app's action stays whatever the screen folds in, since it is the
+  // app's, not the screen's; it goes with the tabs while they are hidden, as
+  // it does natively.
+  const appAction = action == null || hidden ? null : action.items ? (
     <HeaderMenu label={action.label} icon={action.icon} items={action.items} testID="tab-action"/>
   ) : (
     <HeaderAction label={action.label} icon={action.icon} onPress={action.onPress ?? noop} testID="tab-action"/>
@@ -345,6 +353,25 @@ function HomeAnchor({label, children, style: _style, ...props}: PressableProps &
     <Pressable {...props} role="link" accessibilityLabel={label} style={({pressed}) => [styles.home, pressed && styles.pressed]} testID="tab-bar-home">
       {children}
     </Pressable>
+  );
+}
+
+/**
+ * An image mark in the label color: its shape filled with the palette's
+ * variable through a CSS mask (`tabs.css`), read from its `uri` or from the
+ * asset a `require` names. A source with neither is drawn as it is.
+ */
+function TintedMark({source}: {source: ImageSource | number}) {
+  const uri = typeof source === 'number' ? Asset.fromModule(source).uri : source.uri;
+  if (!uri) return <Image style={styles.icon} source={source} contentFit="contain"/>;
+  return (
+    // Hidden from the reader, as the token mark's glyph is: the bar is named, and the app's name follows.
+    <span
+      aria-hidden="true"
+      className="ui-tab-bar-mark"
+      data-testid="tab-bar-mark"
+      style={{'--ui-tab-bar-mark': `url(${JSON.stringify(uri)})`} as CSSProperties}
+    />
   );
 }
 

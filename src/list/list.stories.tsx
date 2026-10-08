@@ -14,7 +14,7 @@ interface Version {
   unread: boolean;
 }
 
-/** Three hundred versions of one document, which cost what the screen shows. */
+/** Three hundred versions of one document, more than a screen holds. */
 const VERSIONS: Version[] = Array.from({length: 300}, (_, index) => ({
   id: `v${300 - index}`,
   title: `Version ${300 - index}`,
@@ -30,7 +30,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "A list of rows that grows, as the platform's own lazy list: SwiftUI's `List` on iOS, Compose's `LazyColumn` on Android, a DOM list whose rows the browser lays out as they come into view on web, a windowed `FlatList` on Windows. The rows are `ListItem`s.",
+          "A list of rows that grows, as the platform's own lazy list: SwiftUI's `List` on iOS, Compose's `LazyColumn` on Android, a windowed DOM list on web, a windowed `FlatList` on Windows. The rows are `ListItem`s.",
       },
     },
   },

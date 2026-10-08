@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 import {Text} from 'react-native';
-import {island} from 'expo-vitest/windows';
+import {island, islands} from 'expo-vitest/windows';
 import * as icons from '../__stories__/icons';
 import {glyphChar, windowsGlyph} from '../symbol/segoe';
 import {colors} from '../theme';
@@ -24,6 +24,37 @@ describe('ListItem slots (windows)', () => {
     expect(screen.getByText('2 KB')).toBeOnTheScreen();
     expect(island('ExpoInterfaceInfoBadge').props.value).toBe(3);
     expect(screen.getByText('T')).toBeOnTheScreen();
+  });
+
+  it('draws the badge in the color it is given, a token resolved for the scheme', async () => {
+    await render(<ListItem badge={3} badgeColor="tint" testID="row">Essay</ListItem>);
+    const {props} = island('ExpoInterfaceInfoBadge');
+    expect(props.color).toBe(`${colors.light.tint}FF`);
+    // The count's black or white for the fill, picked as the others pick it.
+    expect(props.textColor).toBe(`${colors.light.onTint}FF`);
+  });
+
+  it('hands any badge color to the island as hex, with the count color that reads on it', async () => {
+    await render(
+      <>
+        <ListItem badge={3} badgeColor="#123456" testID="hex">Essay</ListItem>
+        <ListItem badge={3} badgeColor="rgb(0, 122, 255)" testID="rgb">Notes</ListItem>
+        <ListItem badge={2} badgeColor="pillBackground" testID="translucent">Drafts</ListItem>
+      </>,
+    );
+    const [hex, rgb, translucent] = islands('ExpoInterfaceInfoBadge').map(node => node.props);
+    expect(hex).toMatchObject({color: '#123456FF', textColor: '#FFFFFFFF'});
+    expect(rgb).toMatchObject({color: '#007AFFFF', textColor: '#FFFFFFFF'});
+    // rgba(118, 118, 128, 0.12): near white over the screen, so a black count,
+    // where the island, leaving out the alpha, would pick white.
+    expect(translucent).toMatchObject({color: '#7676801F', textColor: '#000000FF'});
+  });
+
+  it('leaves the island its own critical red without a badge color', async () => {
+    await render(<ListItem badge={3} testID="row">Essay</ListItem>);
+    const {props} = island('ExpoInterfaceInfoBadge');
+    expect(props.color).toBeUndefined();
+    expect(props.textColor).toBeUndefined();
   });
 
   it('takes the selected fill and says so, pressable or not', async () => {

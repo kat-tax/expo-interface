@@ -1,7 +1,14 @@
 import {Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
 import {PopoverRect, type PopoverProps} from './types';
 import {Popover} from '.';
+
+/** The insets a scroller reads where it is rendered, as text. */
+function Insets({testID}: {testID: string}) {
+  const {top, bottom, automatic} = useScrollInsets();
+  return <Text testID={testID}>{`${top} ${bottom} ${automatic}`}</Text>;
+}
 
 const style = () => StyleSheet.flatten(screen.getByTestId('lint').props.style);
 const bounds = (width: number, height: number) =>
@@ -11,6 +18,11 @@ const bounds = (width: number, height: number) =>
 const card = (height: number) =>
   act(async () => {
     fireEvent(screen.getByTestId('lint'), 'layout', {nativeEvent: {layout: {height}}});
+  });
+/** Lays out the row the actions' host sits in, which the toolkit sizes after the card. */
+const row = (height: number) =>
+  act(async () => {
+    fireEvent(screen.getByTestId('lint-actions'), 'layout', {nativeEvent: {layout: {height}}});
   });
 const at: PopoverRect = {x: 40, y: 100, width: 60, height: 20};
 
@@ -33,12 +45,79 @@ describe(`Popover (${Platform.OS})`, () => {
     expect(style()).toMatchObject({position: 'absolute', width: 280, left: 40, top: 128});
   });
 
+  it('gives its content no scroll insets, whatever the screen under it pads by', async () => {
+    // A screen under a floating header and over the tab bar's floating action.
+    await render(
+      <ScrollInsetsContext.Provider value={{top: 40, bottom: 72, automatic: true}}>
+        <Insets testID="screen"/>
+        <Popover at={at} title="Spelling" testID="lint">
+          <Insets testID="card"/>
+        </Popover>
+      </ScrollInsetsContext.Provider>,
+    );
+    expect(screen.getByTestId('screen')).toHaveTextContent('40 72 true');
+    expect(screen.getByTestId('card')).toHaveTextContent('0 0 false');
+  });
+
   it('keeps the card inside its parent, and flips it above a rectangle near the bottom', async () => {
     await render(<Popover at={{x: 300, y: 400}} title="Spelling" testID="lint"/>);
     await bounds(320, 480);
     await card(100);
     // Clamped to the parent's trailing edge, and flipped above the rectangle.
     expect(style()).toMatchObject({left: 32, top: 292});
+  });
+
+  it('draws the card only once it has been measured, each time it comes up', async () => {
+    const popover = (to: PopoverRect | null) => <Popover at={to} title="Spelling" testID="lint"/>;
+    const {rerender} = await render(popover({x: 300, y: 400}));
+    expect(style()).toMatchObject({opacity: 0, pointerEvents: 'none'});
+    await bounds(320, 480);
+    expect(style().opacity).toBe(0);
+    await card(100);
+    expect(style()).toMatchObject({left: 32, top: 292});
+    expect(style().opacity).toBeUndefined();
+    expect(style().pointerEvents).toBeUndefined();
+    // Up again with less in it: unseen until its own height places it, not the last card's.
+    await rerender(popover(null));
+    await rerender(popover({x: 300, y: 400}));
+    expect(style().opacity).toBe(0);
+    await card(40);
+    // 400 + 8 + 40 fits above the bottom's 480 - 8: below, where the last card could not go.
+    expect(style()).toMatchObject({top: 408});
+    expect(style().opacity).toBeUndefined();
+  });
+
+  it('waits for the host its actions sit in, which the platform sizes after the card', async () => {
+    await render(<Popover at={{x: 300, y: 400}} title="Spelling" actions={[{label: 'Fix', onPress: vi.fn()}]} testID="lint"/>);
+    await bounds(320, 480);
+    // The card's first layout has the host at no height: 400 + 8 + 60 fits
+    // below, where the whole card does not.
+    await card(60);
+    expect(style().opacity).toBe(0);
+    await row(0);
+    expect(style().opacity).toBe(0);
+    // The toolkit sizes the host: the card is laid out again with it, then the row.
+    await card(100);
+    await row(40);
+    expect(style()).toMatchObject({left: 32, top: 292});
+    expect(style().opacity).toBeUndefined();
+    expect(style().pointerEvents).toBeUndefined();
+  });
+
+  it('stays seen when it gains actions while it is up, and stops waiting when it loses them', async () => {
+    const popover = (actions?: {label: string; onPress: () => void}[]) => <Popover at={at} title="Spelling" actions={actions} testID="lint"/>;
+    const {rerender} = await render(popover());
+    await card(60);
+    expect(style().opacity).toBeUndefined();
+    await rerender(popover([{label: 'Fix', onPress: vi.fn()}]));
+    expect(style().opacity).toBeUndefined();
+    // Up again with actions, which go before their host has been sized.
+    await rerender(<Popover at={null} testID="lint"/>);
+    await rerender(popover([{label: 'Fix', onPress: vi.fn()}]));
+    await card(100);
+    expect(style().opacity).toBe(0);
+    await rerender(popover());
+    expect(style().opacity).toBeUndefined();
   });
 
   it('leaves a card that fits below where it is', async () => {
@@ -68,6 +147,14 @@ describe(`Popover (${Platform.OS})`, () => {
     await fireEvent(fix, isIOS ? 'buttonPress' : 'buttonPressed');
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(onDismiss).toHaveBeenCalledWith('action');
+  });
+
+  it('names the row of actions after its testID, for a test to lay out', async () => {
+    const popover = (testID?: string) => <Popover at={at} title="Spelling" actions={[{label: 'Fix', onPress: vi.fn()}]} testID={testID}/>;
+    const {rerender} = await render(popover('lint'));
+    expect(screen.getByTestId('lint-actions')).toBeOnTheScreen();
+    await rerender(popover());
+    expect(screen.queryByTestId('lint-actions')).toBeNull();
   });
 
   it('needs no testID, and ignores a layout that changes nothing', async () => {

@@ -25,8 +25,15 @@ type MenuEvent = Readonly<{index: CodegenTypes.Int32; x: CodegenTypes.Double; y:
  * point in the island's coordinates for the kit's own menu to open at.
  */
 export interface NativeProps extends ViewProps {
-  /** JSON array of the tabs. */
+  /** JSON array of the tabs. A change rebuilds every item. */
   items: string;
+  /**
+   * JSON array of each tab's UI Automation name, in the order of `items`.
+   * Apart from `items` because a name follows what an accessory says (a
+   * collaborator joining, an unsaved mark): a change renames the items in
+   * place, keeping the strip, its focus and Narrator's place in it.
+   */
+  labels: string;
   selectedIndex?: CodegenTypes.WithDefault<CodegenTypes.Int32, 0>;
   /**
    * What the strip is called to UI Automation. An island names its own
@@ -37,9 +44,18 @@ export interface NativeProps extends ViewProps {
   /** Show the add button at the end of the strip. */
   addButton?: CodegenTypes.WithDefault<boolean, false>;
   /**
-   * The colour painted behind the strip: the kit's own element background. An
-   * island's root is white wherever its content is transparent, and a
-   * `TabView` is transparent by design — its fills are for a Mica window.
+   * What the add button is called to UI Automation and in its tooltip, in
+   * place of WinUI's own name and tooltip for it. Left out or empty, the
+   * button keeps WinUI's, which are in the system's language. Words once
+   * given stay when the prop is taken away again: WinUI's are gone from the
+   * button by then, and only a new template brings them back.
+   */
+  addLabel?: string;
+  /**
+   * The colour painted behind the strip: the kit's element background, or the
+   * screen's background for the kit's `fill="none"`. An island's root is
+   * white wherever its content is transparent, and a `TabView` is
+   * transparent by design — its fills are for a Mica window.
    */
   background?: string;
   accentColor?: string;

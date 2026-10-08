@@ -53,4 +53,29 @@ describe('saveFile (web)', () => {
     await expect(saveFile({name: 'data.bin', content: ''})).resolves.toBe(false);
     expect(written).toHaveLength(1);
   });
+
+  it('downloads the file when the save picker will not open, and takes only a dismissal as a cancel', async () => {
+    vi.useFakeTimers();
+    const createObjectURL = vi.fn(() => 'blob:notes');
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal('URL', Object.assign(URL, {createObjectURL, revokeObjectURL}));
+    const clicked: HTMLAnchorElement[] = [];
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      clicked.push(this);
+    });
+    // The picker needs the press that asked for it to be recent: an export that awaited its content has outlasted it.
+    const picker = vi.fn(() => Promise.reject(new DOMException('Must be handling a user gesture to show a file picker.', 'SecurityError')));
+    Object.assign(window, {showSaveFilePicker: picker});
+    await expect(saveFile({name: 'notes.md', content: '# Notes'})).resolves.toBe(true);
+    expect(picker).toHaveBeenCalledWith({suggestedName: 'notes.md'});
+    expect(clicked).toHaveLength(1);
+    expect(clicked[0].download).toBe('notes.md');
+    // Any other failure to open it downloads too.
+    picker.mockImplementationOnce(() => Promise.reject(new TypeError('bad')));
+    await expect(saveFile({name: 'notes.md', content: '# Notes'})).resolves.toBe(true);
+    expect(clicked).toHaveLength(2);
+    vi.runAllTimers();
+    expect(revokeObjectURL).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
+  });
 });

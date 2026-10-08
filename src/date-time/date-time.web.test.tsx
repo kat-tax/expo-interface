@@ -55,6 +55,35 @@ describe('DateTimePicker (web)', () => {
     expect(picker()).toHaveAttribute('max', '2026-06-30');
   });
 
+  it('writes a year before 1000 in four digits, which the input keeps', () => {
+    render(<DateTimePicker mode="date" value="0999-01-05" minimumDate="0999-01-01"/>);
+    expect(picker()).toHaveValue('0999-01-05');
+    expect(picker()).toHaveAttribute('min', '0999-01-01');
+  });
+
+  it('hands back a year past 9999 as a day it takes back as its value', () => {
+    // The browser's date input takes a year of up to six digits.
+    const onChange = vi.fn();
+    const {rerender} = render(<DateTimePicker mode="date" value="2026-06-15" onChange={onChange}/>);
+    fireEvent.change(picker(), {target: {value: '12026-06-15'}});
+    const day: string = onChange.mock.calls[0][1];
+    expect(day).toBe('12026-06-15');
+    rerender(<DateTimePicker mode="date" value={day} onChange={onChange}/>);
+    expect(picker()).toHaveValue('12026-06-15');
+  });
+
+  it('takes a day the calendar does not have as no value and no bound', () => {
+    vi.useFakeTimers({now: new Date(2026, 5, 15, 9), toFake: ['Date']});
+    try {
+      render(<DateTimePicker mode="date" value="2026-02-30" minimumDate="2026-02-30"/>);
+      // The picker keeps its own value, today, rather than rolling into 2 March.
+      expect(picker()).toHaveValue('2026-06-15');
+      expect(picker()).not.toHaveAttribute('min');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('omits min and max without a range', () => {
     render(<DateTimePicker value={JUNE_15}/>);
     expect(picker()).not.toHaveAttribute('min');

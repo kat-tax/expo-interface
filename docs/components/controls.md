@@ -176,7 +176,8 @@ The `bare` variant is `inline` without the field's own padding and, on web,
 without the browser's focus ring, for a field inside a box that draws both:
 a `Composer`'s capsule, an `Alert`'s field. A multi-line field that submits
 (`submitBehavior="submit"`) sends on Enter and breaks the line on Shift+Enter
-on web, keeping the focus.
+on web, keeping the focus; an Enter that commits an input method's text, a
+Japanese or Chinese word, commits it and sends nothing.
 The `inline` variant is a React Native input for a field inside a React
 Native layout on every platform; it focuses on mount with `autoFocus` and
 makes sure the keyboard came on Android.
@@ -190,10 +191,21 @@ makes sure the keyboard came on Android.
 
 Differences:
 
-- `autoCapitalize` has no Windows equivalent.
-- `submitBehavior` is honoured on web and in `inline`. Compose keeps the field
-  focused after a submit, and on Windows Enter submits and keeps the focus.
-- `onKeyPress` reaches `inline` and the web and Windows rows.
+- `autoCapitalize` has no equivalent in the Windows row.
+- In `inline` on Windows, `keyboardType` has no effect and `autoCapitalize`
+  honours only `characters`: react-native-windows ignores the rest.
+- `submitBehavior` is honoured on web and in `inline` on iOS and Android.
+  Compose keeps the field focused after a submit, and on Windows Enter
+  submits and keeps the focus whatever `submitBehavior` says.
+  On Windows a multi-line `inline` field that submits sends on Enter and
+  breaks the line on Shift+Enter.
+- `onKeyPress` reaches `inline` and the web and Windows rows. In `inline`,
+  iOS and Android report only the keys that write, Enter and Backspace;
+  react-native-windows reports only the keys that type a character, Escape
+  and Backspace among them, never an Enter that submits (in a one-line
+  field, every Enter), and no Shift.
+- `keyboardType` on web is also the field's `inputmode`, which a multi-line
+  field takes.
 - `onFocus`, `onBlur` and the `ref` reach `inline` and the web row, the
   React Native inputs. The SwiftUI, Compose and WinUI rows report no focus
   and take no commands.
@@ -209,19 +221,40 @@ assistant's prompt.
 Props: `value` and `onChangeText` (controlled; left out, the composer keeps
 its own text and clears it on send), `placeholder` (`Message`), `onSend`
 (called with the trimmed text from the button or the keyboard's send key;
-nothing is sent while the text is blank), `onStop` (the stop button while
-`busy`; without it the button waits), `busy`, `notice` (a line under the
-capsule in the secondary color: a hint, an error, who else is typing),
-`menu` (`label`, `icon`, `items`: the platform's menu behind an icon button
-at the capsule's leading edge, for what the message goes to), `disabled`,
-`autoFocus`, `maxLength`, `style`, `testID`.
+nothing is sent while the text is blank or while `busy`), `onStop` (the
+stop button while `busy`; without it the button waits), `busy`, `notice` (a
+line under the capsule: a hint, an error, who else is typing),
+`noticeColor` (`secondaryLabel`, or `destructive` for an error),
+`sendLabel` (`Send`) and `stopLabel` (`Stop`, the buttons' accessible
+names), `sendIcon` and `stopIcon` (the kit's arrow and stop square),
+`onKeyPress` (a key pressed in the field, by its name and whether Shift
+was held: Escape to close an assistant; on web and Windows the Enter that
+sends stays the composer's), `autoCapitalize`, `autoCorrect` and `keyboardType` (the
+field's, as on a `TextField`), `menu` (`label`, `icon`, `items`: the
+platform's menu behind an icon button at the capsule's leading edge, for
+what the message goes to), `disabled`, `autoFocus`, `maxLength`, `style`,
+`testID`.
 
 Drawn in React Native on every platform: a `Surface` capsule holding a
 `bare` `TextField` and the kit's circle `Button` in a host of its own, so
 it sits in a `Sheet`'s footer or at the bottom of a screen. Enter sends and
 Shift+Enter breaks the line on web and a desktop keyboard; the keyboard's
-send key sends on a phone. The button is the platform's: a SwiftUI button, a
-Material button, a `<button>`, a WinUI button.
+send key sends on a phone. While `busy` neither sends, and the text stays.
+On web the capsule draws the focus ring while the field has the focus.
+A screen reader reads a new `notice` out, so an error after a failed send
+is heard. On Android and web the notice is a polite live region, and on
+iOS, which has no live regions, an announcement queued the same way: the
+screen reader reads it once it is done speaking. On Windows, where
+react-native-windows raises no event when a live region changes, it is an
+announcement that Narrator reads at once, and a newer notice replaces one
+it has not read yet. The notice the composer mounts with is not read.
+The button is the platform's: a SwiftUI button, a
+Material button, a `<button>`, a WinUI button. On Windows a `sendIcon` or
+`stopIcon` with no `windows` glyph shows its label in its place.
+The field is the `inline` variant's, so it hears what that hears and takes
+the traits that takes: iOS and Android report no Escape to `onKeyPress`,
+Windows reports no Shift, and on Windows `keyboardType` has no effect and
+`autoCapitalize` honours only `characters`.
 
 ## SearchField
 
@@ -332,6 +365,18 @@ Material's date dialog keeps its days in UTC; the kit hands it each day as
 midnight UTC and reads its answer back the same way, so the day picked is the
 day reported in every zone.
 
+The year takes at least four digits, so the year 50 is `0050` and the year
+12026 is `12026`, and a year before 0 takes a minus sign (`-0005`). The day
+`onChange` hands back is written the same way, so it always reads back as a
+`value`. A string that names no day the calendar has, such as `2026-02-30`, is no day: as a `value` the picker
+keeps its own, and as a bound it bounds nothing. The browser's date input
+takes no year before 1, so on web a day in the year `0000` leaves the input
+empty. Where the bounds leave it open, Material's calendar on Android runs
+from 1900 to 2100, widened to the value's year, and the Windows calendar runs
+from 1900, or the value when it is earlier, to 2100, or the value when it is
+later. Windows holds no day before 1601: a value before it leaves the field
+empty, and a bound before it opens the calendar as far as 1601.
+
 `presented` draws no row. It presents the platform's own picker over the
 content, from `at` (the chip's rectangle, in the coordinates of the parent it
 is laid over), for a date chip on a canvas the kit did not draw; `onDismiss`
@@ -340,7 +385,7 @@ is called when it closes, picked or not, after `onChange`. A day picked in
 
 | Platform | Presented |
 | --- | --- |
-| iOS | A SwiftUI popover from the chip's bottom edge, holding the graphical calendar, or the wheels for a time. It closes on a tap outside. |
+| iOS | A SwiftUI popover from the middle of the chip's bottom edge over React Native content, or from where the picker sits inside a host, holding the graphical calendar, or the wheels for a time. It closes on a tap outside. |
 | Android | The Material dialogs: the date, then the time for `datetime`. They open in the middle of the screen whatever `at` says. Dismissing the time after a day was picked keeps the day. |
 | Web | The browser's picker, opened with `showPicker()` from an unseen input laid over the chip. Where the browser refuses for want of a recent press, the input takes the focus and the keyboard edits it. It closes when the focus leaves or on Escape. |
 | Windows | A `CalendarView` in a flyout under the chip, then a `TimePickerFlyout` for `datetime`, from a one-point island. A light dismiss after a day was picked keeps the day. |
@@ -350,9 +395,9 @@ is called when it closes, picked or not, after `onChange`. A day picked in
 A label with a color well that opens a color picker, optionally with preset
 swatches. Props: `label`, `value` (`#RRGGBB` or `#RRGGBBAA`, or an empty
 string for no color), `onValueChange`, `supportsOpacity` (default true),
-`swatches` (colors, or `system` for the platform's own palette),
-`presentation` (`automatic`, `inline`, `popover`, `menu`), `allowsNone`,
-`disabled`, `style`, `testID`.
+`swatches` (colors, `{color, name}` swatches, or `system` for the platform's
+own palette), `presentation` (`automatic`, `inline`, `popover`, `menu`),
+`allowsNone`, `disabled`, `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -365,7 +410,14 @@ Swatches are round on every platform, the selected one ringed, wrapping onto
 further lines when they overflow. Tapping a swatch keeps the current opacity.
 `swatches="system"` is the platform's own palette of twelve: Apple's system
 colors on iOS and web, Material's on Android, the Windows accent colors on
-Windows, each named for a screen reader and a menu.
+Windows, each named for a screen reader and a menu. A swatch given as
+`{color, name}` is called by its name in a menu and to a screen reader, as
+the system palettes' colors are; a color given alone is called by its hex.
+On Android a swatch carries its name as unseen text inside it, which
+TalkBack reads with the swatch: `@expo/ui`'s Compose layer exposes no
+modifier that sets a content description. For the same reason TalkBack
+passes over the swatches of a disabled picker on Android, where iOS, web and
+Windows announce them as unavailable buttons.
 
 `allowsNone` adds a "No color" choice, a crossed-out circle before the
 swatches and the first entry of a menu, reported as an empty string. An
@@ -377,8 +429,9 @@ it is asked:
 | `presentation` | iOS | Android | Web | Windows |
 | --- | --- | --- | --- | --- |
 | `automatic` | The row, the system picker from the well | The row, the picker in a bottom sheet | The row, the picker in a `Sheet` | The row, the picker in a flyout |
-| `inline` | The row: SwiftUI cannot draw its picker in place, and presents it its own way | The picker drawn in place, the swatches over it, for a sheet of the app's own that would otherwise open a second sheet | The same | The WinUI `ColorPicker` itself in place, under the label |
+| `inline` | The row: SwiftUI cannot draw its picker in place, and presents it its own way | The picker drawn in place, the swatches over it, titled only when given a `label`, for a sheet of the app's own that would otherwise open a second sheet | The same | The WinUI `ColorPicker` itself in place, under the label when given one |
 | `popover` | The row: the system picker is a popover on an iPad and a sheet on a phone | The picker in a Material dialog, over a sheet the row is in: Material has no popover | The picker in a native popover placed against the well | The row: the flyout is a popover already |
 | `menu` | SwiftUI's `Menu` of the swatches from a well | A Material `DropdownMenu` of the swatches from the well | The kit's menu popover from the well | A `MenuFlyout` of the swatches from a drawn well |
 
-A swatch picked from a menu is opaque.
+On Android and web, a picker in a sheet, a dialog or a popover is titled with
+`label`, or "Colors" without one. A swatch picked from a menu is opaque.

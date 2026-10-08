@@ -51,7 +51,8 @@ export function FindBar({value, onChangeText, placeholder = 'Find', matches, onN
               testID={testID ? `${testID}-field` : undefined}
             />
           </View>
-          <View aria-live="polite" accessibilityLiveRegion="polite">
+          {/* Not collapsable: Fabric flattens a view whose only trait is its live region, and TalkBack has no view to watch. */}
+          <View aria-live="polite" accessibilityLiveRegion="polite" collapsable={false}>
             {label ? <Footnote color="secondaryLabel" numberOfLines={1} testID={testID ? `${testID}-count` : undefined}>{label}</Footnote> : null}
           </View>
         </View>

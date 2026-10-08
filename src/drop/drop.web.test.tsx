@@ -1,5 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react';
-import {Text} from 'react-native';
+import {Text, View} from 'react-native';
 import {DropZone} from '.';
 
 /** A drag of files, as the browser describes one. */
@@ -25,6 +25,8 @@ describe('DropZone (web)', () => {
     // The browser drops only where the drag over was taken.
     const over = files();
     expect(fireEvent.dragOver(zone, over)).toBe(false);
+    // The page's guard leaves a drag the zone took as the zone set it.
+    expect(over.dataTransfer.dropEffect).toBe('copy');
     const note = new File(['hello'], 'note.txt', {type: 'text/plain'});
     expect(fireEvent.drop(zone, files(note))).toBe(false);
     expect(onDrop).toHaveBeenCalledWith([{name: 'note.txt', type: 'text/plain', size: 5, file: note}]);
@@ -59,5 +61,77 @@ describe('DropZone (web)', () => {
     rerender(<DropZone onDrop={onDrop}><Text testID="child">Documents</Text></DropZone>);
     fireEvent.dragEnter(screen.getByTestId('child'), files());
     expect(screen.getByText('Drop files here')).toBeInTheDocument();
+  });
+
+  it('refuses files dropped beside the zones while any is mounted, so the browser does not open them in place of the app', () => {
+    const onDrop = vi.fn();
+    const zones = (first: boolean, second: boolean) => (
+      <View>
+        {first ? <DropZone onDrop={onDrop} testID="a"><Text>A</Text></DropZone> : null}
+        {second ? <DropZone onDrop={onDrop} disabled testID="b"><Text>B</Text></DropZone> : null}
+      </View>
+    );
+    const {rerender} = render(zones(true, true));
+    const stray = {dataTransfer: {types: ['Files'], files: [], dropEffect: 'copy'}};
+    expect(fireEvent.dragOver(document.body, stray)).toBe(false);
+    expect(stray.dataTransfer.dropEffect).toBe('none');
+    const note = new File(['hello'], 'note.txt', {type: 'text/plain'});
+    expect(fireEvent.drop(document.body, files(note))).toBe(false);
+    expect(onDrop).not.toHaveBeenCalled();
+    // A disabled zone takes nothing, and keeps the page from opening it too.
+    expect(fireEvent.dragOver(screen.getByTestId('b'), files())).toBe(false);
+    // Text and links are the page's.
+    expect(fireEvent.dragOver(document.body, text)).toBe(true);
+    // A file input takes its own drops, inside a web component too; a disabled one and any other field do not.
+    const picker = document.createElement('input');
+    picker.type = 'file';
+    const off = document.createElement('input');
+    off.type = 'file';
+    off.disabled = true;
+    const field = document.createElement('input');
+    field.type = 'text';
+    const component = document.createElement('div');
+    const inner = document.createElement('input');
+    inner.type = 'file';
+    component.attachShadow({mode: 'open'}).append(inner);
+    document.body.append(picker, off, field, component);
+    expect(fireEvent.dragOver(picker, files())).toBe(true);
+    expect(fireEvent.dragOver(off, files())).toBe(false);
+    expect(fireEvent.dragOver(field, files())).toBe(false);
+    expect(fireEvent.dragOver(inner, files())).toBe(true);
+    picker.remove();
+    off.remove();
+    field.remove();
+    component.remove();
+    // The guard lasts while any zone is mounted, and goes with the last.
+    rerender(zones(false, true));
+    expect(fireEvent.dragOver(document.body, files())).toBe(false);
+    rerender(zones(false, false));
+    // A drag that comes in afterwards does not bring it back.
+    fireEvent.dragEnter(document.body, files());
+    expect(fireEvent.dragOver(document.body, files())).toBe(true);
+  });
+
+  it('lets a page-wide target of the app\'s take a file drag before refusing it, wherever and whenever it listens', () => {
+    render(<DropZone onDrop={vi.fn()} testID="zone"><Text>Documents</Text></DropZone>);
+    const heard: boolean[] = [];
+    const take = (event: DragEvent) => {
+      heard.push(event.defaultPrevented);
+      event.preventDefault();
+    };
+    fireEvent.dragEnter(document.body, files());
+    // Added after the zone mounted, as a root's effect runs after its children's, and after the drag came in.
+    window.addEventListener('dragover', take);
+    window.addEventListener('drop', take);
+    const taken = {dataTransfer: {types: ['Files'], files: [], dropEffect: 'copy'}};
+    expect(fireEvent.dragOver(document.body, taken)).toBe(false);
+    // The app's target takes the drag with the effect it chose, and so hears the drop.
+    expect(taken.dataTransfer.dropEffect).toBe('copy');
+    expect(fireEvent.drop(document.body, files())).toBe(false);
+    expect(heard).toEqual([false, false]);
+    window.removeEventListener('dragover', take);
+    window.removeEventListener('drop', take);
+    // What the app's target leaves, the page refuses.
+    expect(fireEvent.dragOver(document.body, files())).toBe(false);
   });
 });

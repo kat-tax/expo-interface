@@ -7,6 +7,8 @@ export {fillWidth} from './fill';
 export {Icon} from './symbol';
 export type {IconProps} from './symbol/types';
 export {SYMBOL_FONT_FAMILY, getSymbolFontCSS} from './symbol/font';
+export {SYMBOL_FILL_FONT_FAMILY} from './symbol/font';
+export type {SymbolFontOptions} from './symbol/font';
 export {SEGOE_GLYPHS, windowsGlyph} from './symbol/segoe';
 export {
   SCHEME_STORAGE_KEY,
@@ -32,7 +34,7 @@ export type {SurfaceBorder, SurfaceColor, SurfaceProps} from './surface/types';
 export {Toolbar} from './toolbar';
 export type {ToolbarCommand, ToolbarDensity, ToolbarPlacement, ToolbarProps} from './toolbar/types';
 export {Sheet} from './sheet';
-export type {SheetAction, SheetMaterial} from './sheet/types';
+export type {SheetAction, SheetMaterial, SheetMaxHeight, SheetProps} from './sheet/types';
 export {ConstrainedStackHeader} from './stack-header';
 export {Stack} from './router/stack';
 export {TabStack} from './tab-stack';
@@ -49,7 +51,9 @@ export {useHighContrast} from './windows/contrast';
 export {highContrastPalette} from './windows/contrast-palette';
 export type {HighContrast, HighContrastColors} from './windows/contrast-palette';
 export type {TabBarAction, TabBarProps, TabIcon, TabRoute, WebLogo, WindowsPane} from './tabs/types';
+export type {TabBarLocation} from './tabs/types';
 export type {TabViewLayout, TabViewProps, TabViewTab} from './tab-view/types';
+export type {TabViewFill} from './tab-view/types';
 export {KeyboardBar} from './keyboard';
 export type {KeyboardBarProps, KeyboardLibrary, KeyboardState} from './keyboard';
 
@@ -72,7 +76,7 @@ export type {ChipProps} from './chip/types';
 export {Collapsible} from './collapsible';
 export type {CollapsibleProps} from './collapsible/types';
 export {ColorPicker} from './color-picker';
-export type {ColorPickerProps} from './color-picker/types';
+export type {ColorPickerPresentation, ColorPickerProps, ColorPickerSwatch} from './color-picker/types';
 export {ContextMenu} from './context-menu';
 export {DateTimePicker} from './date-time';
 export type {DateTimeAnchor, DateTimeMode, DateTimePickerProps, DateTimeValue} from './date-time/types';
@@ -104,6 +108,8 @@ export {CardGrid} from './card-grid';
 export type {CardGridProps} from './card-grid/types';
 export {useScrollInsets} from './screen/insets';
 export type {ScrollInsets} from './screen/insets';
+export {ScreenScrollView} from './screen/scroll';
+export type {ScreenScrollViewProps} from './screen/scroll';
 export {ListItem} from './list-item';
 export type {ListItemAction, ListItemProps, ListItemSwipeAction} from './list-item/types';
 export {Menu} from './menu';
@@ -116,7 +122,7 @@ export {Picker} from './picker';
 export type {PickerItemProps, PickerOption, PickerProps, PickerValue} from './picker/types';
 export {Popover} from './popover';
 export type {PopoverAction, PopoverDismissReason, PopoverInsets, PopoverProps, PopoverRect} from './popover/types';
-export type {AnchorEdge, AnchorInsets, AnchorRect} from './anchored';
+export type {AnchorAlign, AnchorEdge, AnchorInsets, AnchorRect} from './anchored';
 export {PopupMenu} from './popup-menu';
 export {popupOptionId} from './popup-menu/types';
 export type {MenuRect, PopupMenuDismissReason, PopupMenuProps} from './popup-menu/types';
@@ -152,6 +158,7 @@ export type {
 } from './text-field/types';
 export {Composer} from './composer';
 export type {ComposerMenu, ComposerProps} from './composer/types';
+export type {ComposerNoticeColor} from './composer/types';
 export {FindBar} from './find-bar';
 export type {FindBarMatches, FindBarProps} from './find-bar/types';
 export {COMPACT_WIDTH} from './size-class';
@@ -180,7 +187,9 @@ export type {
   TypographyWeight,
 } from './typography/types';
 export {RelativeTime} from './relative-time';
+export {useRelativeTime} from './relative-time';
 export type {RelativeTimeProps} from './relative-time/types';
+export type {RelativeTimeOptions} from './relative-time/types';
 
 // Platform services
 export {ToastProvider, useToast} from './toast/provider';

@@ -15,6 +15,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | Component | What it is |
 | --- | --- |
 | [`Screen`](layout.md#screen) | The root of a route: background, safe areas, status bar, maximum width, a slot for a floating action button. |
+| [`ScreenScrollView`](layout.md#screenscrollview) | A scroll view that pads its content by the screen's insets. |
 | [`ScreenHeader`](layout.md#screenheader) | A header bar for a screen that draws its own. |
 | [`NativeHost`](layout.md#nativehost) | A native host around a group of controls. |
 | [`Surface`](layout.md#surface) | A box in the theme's colors, pressable if you like. |
@@ -79,7 +80,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`Avatar`](indicators.md#avatar) | A person as a colored circle with initials, a ring, dimmed when away. |
 | [`AvatarGroup`](indicators.md#avatargroup) | People as overlapping faces, counted past a few, pressable. |
 | [`Typography`](indicators.md#typography) | Text in the platform's type scale, and its variants as components. |
-| [`RelativeTime`](indicators.md#relativetime) | A moment as the time since it, kept current. |
+| [`RelativeTime`, `useRelativeTime`](indicators.md#relativetime) | A moment as the time since it, kept current, as text or as a string. |
 | [`Icon`](../icons.md#the-icon-component) | A token drawn on its own, in a tone. |
 
 ## Overlays
@@ -105,12 +106,12 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | `theme`, `useColor`, `usePalette`, `resolvedPalette`, `isColorToken`, `useNavTheme`, `colors`, `getThemeCSS`, `getThemeBootScript` | Reading colors. | [Theming](../theming.md#reading-colors) |
 | `spacing`, `bound`, `inset`, `fonts`, `fontWeights`, `variants` | Constants. | [Theming](../theming.md#constants) |
 | `useHighContrast`, `highContrastPalette` | Windows high contrast. | [Theming](../theming.md#high-contrast) |
-| `icon`, `symbolName`, `materialName`, `registerDrawables`, `drawableOf`, `getSymbolFontCSS`, `SEGOE_GLYPHS`, `windowsGlyph` | Icon tokens, their names per platform, the Android drawables and the web font. | [Icons](../icons.md) |
+| `icon`, `symbolName`, `materialName`, `registerDrawables`, `drawableOf`, `getSymbolFontCSS`, `SYMBOL_FONT_FAMILY`, `SYMBOL_FILL_FONT_FAMILY`, `SEGOE_GLYPHS`, `windowsGlyph` | Icon tokens, their names per platform, the Android drawables, and the web font, registered for every icon or for filled icons alone. | [Icons](../icons.md) |
 | `useNativeHost`, `hostAccentProps`, `fillWidth` | Native hosts. | [Native hosts](../hosts.md) |
 | `useWindowChrome` | Content in the Windows title bar. | [Windows](../platforms/windows.md#the-window) |
 | `useKeyboardShortcut` | A keyboard shortcut on Windows. | [Windows](../platforms/windows.md#keyboard) |
 | `nextSelection` | Which tab to select when one closes. | [TabView](navigation.md#tabview) |
-| `useScrollInsets` | The insets a screen's scroll content pays for a bar it passes under, plus its own. | [Screen](layout.md#screen) |
+| `useScrollInsets` | The insets a screen's scroll content pays for a bar it passes under and the tab bar's floating action, plus its own; read under the `Screen`. | [Screen](layout.md#screen) |
 | `useTabBarInset` | The space the bar floating over the screen takes at its top, with the rows under it. | [HeaderAccessory](navigation.md#headeraccessory) |
 | `caretPoint` | Where the caret is in a text field, on web. | [PopupMenu](overlays.md#popupmenu) |
 | `haptic` | The feel of a touch, by what it means. | [Platform services](../services.md#haptics) |

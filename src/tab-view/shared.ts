@@ -1,4 +1,4 @@
-import type {TabViewLayout, TabViewTab} from './types';
+import type {TabViewLayout, TabViewProps, TabViewTab} from './types';
 import {COMPACT_WIDTH} from '../size-class';
 
 /**
@@ -67,10 +67,36 @@ export function switcherLabel(tabs: readonly TabViewTab[], selected: string): st
   return open ? `${open.title}, ${count}` : count;
 }
 
+/**
+ * Whether a `TabView` is the tabs alone: `content={false}`, or, with no
+ * `content`, an element with no `children` at all, as
+ * `<TabView tabs={open} selected={current} onSelect={setCurrent}/>` writes
+ * it. Children written and rendering nothing, `null` or the `undefined` of
+ * `{current && <Editor/>}`, are a page with nothing in it, so the view keeps
+ * its size when the last document closes. JSX puts a `children` key in the
+ * props whenever the element has a child expression, whatever it evaluates
+ * to, and none when it has none; a wrapper that always writes one says what
+ * it means with `content`.
+ */
+export function isAlone(props: TabViewProps): boolean {
+  return props.content === undefined ? !('children' in props) : !props.content;
+}
+
+/**
+ * What a screen reader calls a tab: its `label`, or its title. The same on
+ * every platform, so an accessory's text never runs into the name on web
+ * while saying nothing natively. An empty label, as
+ * `label: here ? 'index.tsx, Ana is here' : ''` gives, falls back to the
+ * title too, so no platform announces a nameless tab.
+ */
+export function tabLabel(tab: TabViewTab): string {
+  return tab.label || tab.title;
+}
+
 /** What a tab's close cross is called, since a cross says nothing on its own. */
 export function closeLabel(tab: TabViewTab): string {
   return `Close ${tab.title}`;
 }
 
-/** What the add button is called, wherever it is drawn. */
+/** What the add button is called when `addLabel` is not given. */
 export const ADD_LABEL = 'New tab';

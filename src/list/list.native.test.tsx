@@ -1,11 +1,12 @@
-import {Platform, StyleSheet} from 'react-native';
+import {Platform, StyleSheet, Text} from 'react-native';
 import {act, render, screen} from '@testing-library/react-native';
 import {hostFit, hosts} from '../__tests__/hosts';
+import {EmptyState} from '../empty-state';
 import {NativeHostContext} from '../host';
 import {ListItem} from '../list-item';
 import {ScrollInsetsContext} from '../screen/insets';
 import {colors} from '../theme';
-import {host, modifier, nodes} from 'expo-vitest/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {List} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -32,6 +33,15 @@ describe(`List (${Platform.OS})`, () => {
     }
   });
 
+  it.runIf(isIOS)('hands a selected row its fill as a row of SwiftUI\'s list, which draws it to the row\'s edges', async () => {
+    await render_(<List data={rows} renderItem={(title, index) => <ListItem selected={index === 1} testID={title}>{title}</ListItem>}/>);
+    // Row traits work only on the list's own children: nothing may stand between the two.
+    const children = list().children!.filter(child => typeof child !== 'string');
+    expect(children.map(child => child.props.testID)).toEqual(rows);
+    expect(modifier(children[1]!.props, 'listRowBackground')?.color).toBe(colors.light.backgroundSelected);
+    expect(modifier(children[0]!.props, 'listRowBackground')).toBeUndefined();
+  });
+
   it('hides the separators when asked, and keys the rows by index without an extractor', async () => {
     await render_(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} separators={false}/>);
     if (isIOS) {
@@ -48,10 +58,21 @@ describe(`List (${Platform.OS})`, () => {
         renderItem={() => null}
         header={<ListItem testID="header">Header</ListItem>}
         empty={<ListItem testID="empty">Nothing yet</ListItem>}
+        testID="list"
       />,
     );
     expect(host(p => p.text === 'Nothing yet')).toBeTruthy();
     expect(nodes().some(n => n.props.text === 'Header')).toBe(false);
+    expect(list()).toBeUndefined();
+    if (!isIOS) {
+      // Centred in a box the size of the list, as the rows would fill it, and
+      // found by the list's testID while it is empty.
+      const box = byComposeTestID('list');
+      expect(box.type).toContain('BoxView');
+      expect(box.props.contentAlignment).toBe('center');
+      expect(modifier(box.props, 'fillMaxSize')).toBeTruthy();
+      expect(host(p => p.text === 'Nothing yet', box)).toBeTruthy();
+    }
     await render_(
       <List
         data={['One']}
@@ -107,5 +128,22 @@ describe(`List (${Platform.OS})`, () => {
     expect(screen.getByTestId('list')).toBeTruthy();
     await render_(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>}/>);
     expect(hosts()).toHaveLength(0);
+  });
+
+  it('shows the empty state in its own view outside a host, with no host of the list\'s around it', async () => {
+    await render(<List data={[]} renderItem={() => null} empty={<EmptyState title="No versions yet"/>} testID="list"/>);
+    // Only the empty state's own, which fits its height: hosts do not nest,
+    // and the list's would fill the screen.
+    expect(hosts()).toHaveLength(1);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true});
+    expect(list()).toBeUndefined();
+    expect(screen.getByTestId('list')).toBeTruthy();
+  });
+
+  it('shows React Native empty content outside a host as React Native, in no host at all', async () => {
+    await render(<List data={[]} renderItem={() => null} empty={<Text>Nothing yet</Text>} testID="list"/>);
+    expect(hosts()).toHaveLength(0);
+    expect(screen.getByText('Nothing yet')).toBeTruthy();
+    expect(screen.getByTestId('list')).toBeTruthy();
   });
 });

@@ -1,11 +1,11 @@
 import type {TextFieldProps} from './types';
-import type {NativeSyntheticEvent, TextInputKeyPressEventData, TextStyle} from 'react-native';
+import type {TextStyle} from 'react-native';
 
 import {useImperativeHandle, useRef} from 'react';
 import {StyleSheet, TextInput} from 'react-native';
 import {fonts, fontWeights, theme, variants} from '../theme';
 import {InlineTextField} from './inline';
-import {keyboardTypeFor, useAutoFocus, useTextValue} from './shared';
+import {blurOnSubmitFor, inputModeFor, keyboardTypeFor, keyPressFor, useAutoFocus, useTextValue} from './shared';
 
 /**
  * The `row` variant is the form row below; `inline` is the borderless field
@@ -64,6 +64,8 @@ function RowTextField({
       editable={!disabled}
       secureTextEntry={secureTextEntry}
       keyboardType={keyboardTypeFor(keyboardType)}
+      // A `<textarea>` takes the keyboard only through `inputmode`.
+      inputMode={inputModeFor(keyboardType)}
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
       multiline={multiline}
@@ -72,9 +74,10 @@ function RowTextField({
       selectionColor={cursor}
       returnKeyType={returnKeyType}
       submitBehavior={submitBehavior}
+      // react-native-web reads `blurOnSubmit`, not `submitBehavior`.
+      blurOnSubmit={blurOnSubmitFor(submitBehavior)}
       onSubmitEditing={onSubmit ? event => onSubmit(event.nativeEvent.text) : undefined}
-      onKeyPress={onKeyPress ? (event: NativeSyntheticEvent<TextInputKeyPressEventData & {shiftKey?: boolean}>) =>
-        onKeyPress(event.nativeEvent.key, event.nativeEvent.shiftKey === true) : undefined}
+      onKeyPress={keyPressFor({multiline, submitBehavior, disabled, onSubmit, onKeyPress}, current)}
       onFocus={onFocus}
       onBlur={onBlur}
       aria-label={placeholder}

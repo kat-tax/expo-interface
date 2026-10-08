@@ -46,7 +46,9 @@ const DIALOG_WIDTH = 328;
  * Material has no popover: `popover` opens the picker in a dialog, which
  * also lives in a window of its own, over a sheet the row is in. `menu`
  * opens a Material `DropdownMenu` of the swatches from the well, and
- * `inline` draws the picker in the row's place.
+ * `inline` draws the picker in the row's place, titled only by a `label`.
+ * Each preset carries its name as an unseen Text, which its clickable
+ * merges for TalkBack; a disabled preset has no clickable, and no name.
  */
 export function ColorPicker({
   label,
@@ -81,7 +83,7 @@ export function ColorPicker({
       <Box modifiers={[size(2, diameter), rotate(45), background(stroke)]}/>
     </Box>
   );
-  const preset = (key: string, selected: boolean, onPress: () => void, inner: React.ReactNode) => (
+  const preset = (key: string, name: string, selected: boolean, onPress: () => void, inner: React.ReactNode) => (
     // The ring is a circle behind a smaller circle: a border modifier would be square.
     <Box
       key={key}
@@ -94,15 +96,21 @@ export function ColorPicker({
         ...(testID ? [testIDModifier(`${testID}-swatch-${key}`)] : []),
       ]}>
       {inner}
+      {/*
+        @expo/ui's `semantics` takes no content description, so the name is an unseen Text that the
+        clickable merges. A disabled preset has no clickable to merge it into, and would leave the
+        name standing alone as plain text, so it carries none.
+      */}
+      {disabled ? null : <Text color={NONE} maxLines={1}>{name}</Text>}
     </Box>
   );
   const presetBoxes = [
-    ...(allowsNone ? [preset('none', none, () => onValueChange(NO_COLOR), crossed(none ? SWATCH_SELECTED : SWATCH_INNER))] : []),
-    ...presets.map(({color}) => {
+    ...(allowsNone ? [preset('none', 'No color', none, () => onValueChange(NO_COLOR), crossed(none ? SWATCH_SELECTED : SWATCH_INNER))] : []),
+    ...presets.map(({color, name}) => {
       // The ring follows the color held here, which a pick changes at once.
       const selected = !none && sameColor(color, toHex(current, false));
       const inner = selected ? SWATCH_SELECTED : SWATCH_INNER;
-      return preset(color, selected, () => setCurrent({...parseColor(color), a: current.a}), (
+      return preset(color, `Color ${name}`, selected, () => setCurrent({...parseColor(color), a: current.a}), (
         <Box modifiers={[size(inner, inner), clip(Shapes.Circle), background(color)]}/>
       ));
     }),
@@ -127,13 +135,16 @@ export function ColorPicker({
       )}
     </Box>
   );
-  const panel = (panelWidth: number, onClose?: () => void) => (
+  // A picker in a sheet or a dialog is titled; one drawn in place only by a label.
+  const title = label ?? 'Colors';
+  const panel = (panelWidth: number, heading: string | undefined, onClose?: () => void) => (
     <ColorPickerSheet
-      title={label ?? 'Colors'}
+      title={heading}
       value={toHex(current, true)}
       supportsOpacity={supportsOpacity}
       onValueChange={hex => setCurrent(parseColor(hex))}
       onClose={onClose}
+      disabled={disabled}
       width={panelWidth}
       testID={testID ? `${testID}-sheet` : undefined}
     />
@@ -142,8 +153,12 @@ export function ColorPicker({
   if (presentation === 'inline') {
     return (
       <Column verticalArrangement={{spacedBy: 12}} modifiers={[fillMaxWidth(), ...(testID ? [testIDModifier(testID)] : [])]}>
-        {presetBoxes.length > 0 ? <FlowRow verticalArrangement={{spacedBy: 8}} horizontalArrangement={{spacedBy: 8}}>{presetBoxes}</FlowRow> : null}
-        <RNHostView matchContents>{panel(width - SHEET_INSET * 2)}</RNHostView>
+        {presetBoxes.length > 0 ? (
+          <FlowRow verticalArrangement={{spacedBy: 8}} horizontalArrangement={{spacedBy: 8}} modifiers={disabled ? [alpha(0.4)] : []}>
+            {presetBoxes}
+          </FlowRow>
+        ) : null}
+        <RNHostView matchContents>{panel(width - SHEET_INSET * 2, label)}</RNHostView>
       </Column>
     );
   }
@@ -169,13 +184,13 @@ export function ColorPicker({
           open ? (
             <BasicAlertDialog onDismissRequest={() => setOpen(false)}>
               <Column modifiers={[clip(Shapes.RoundedCorner(28)), background(fill), padding(SHEET_INSET, SHEET_INSET, SHEET_INSET, SHEET_INSET)]}>
-                <RNHostView matchContents>{panel(DIALOG_WIDTH - SHEET_INSET * 2, () => setOpen(false))}</RNHostView>
+                <RNHostView matchContents>{panel(DIALOG_WIDTH - SHEET_INSET * 2, title, () => setOpen(false))}</RNHostView>
               </Column>
             </BasicAlertDialog>
           ) : null
         ) : menu ? null : (
           <PickerSheet open={open} onClose={() => setOpen(false)}>
-            {panel(width - SHEET_INSET * 2, () => setOpen(false))}
+            {panel(width - SHEET_INSET * 2, title, () => setOpen(false))}
           </PickerSheet>
         )}
       </FlowRow>

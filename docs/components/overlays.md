@@ -19,7 +19,8 @@ A `MenuItem` has `label`, `icon`, `swatch` (a color dot in place of the
 icon), `active` (a check mark), `role` (`default`, `destructive`),
 `disabled`, `keywords` (never drawn; read by `PopupMenu`'s filter),
 `separator` (a rule above the item), `shortcut` (`Ctrl+S`, `F2`) and
-`onPress`. `Menu`, `ContextMenu`, `PopupMenu` and `Fab` share it.
+`onPress`. `Menu`, `ContextMenu`, `PopupMenu` and `Fab` share it. A close a
+menu reports comes after the item's `onPress`.
 
 | Platform | Renders |
 | --- | --- |
@@ -36,7 +37,11 @@ Differences:
   image the kit writes once per color into the app's cache through
   `expo-file-system`, since a `UIMenu` draws a symbol in the menu's tint
   but keeps an image's colors; without the module the dot is a symbol, which
-  the menu draws monochrome.
+  the menu draws monochrome. iOS's `PopupMenu`, whose rows the kit draws,
+  draws the dot as a symbol in its color. A `HeaderMenu` in a native stack
+  header (on iOS, and on Android when its icon has an Android drawable)
+  draws no dot, since its entries are Expo Router `Stack.Toolbar` menu
+  actions, which the kit gives no swatch.
 - `shortcut` is drawn beside the label and bound wherever the focus is while
   the menu is mounted on Windows, as WinUI draws an accelerator. The other
   platforms ignore it.
@@ -101,12 +106,19 @@ web and Windows place the menu on the edge asked for and move it to stay on
 screen.
 
 `onDismiss` says why the menu closed of its own accord: `select` (an entry
-was picked) or `dismiss` (a press outside, Escape, the back gesture). A close
+was picked), which arrives after the entry's `onPress`, or `dismiss` (a press
+outside, Escape, the back gesture). A close
 the app asked for by clearing `at` is not reported. While the menu is open,
 a new `at` moves it: a menu moved from one handle to the next stays open,
-and no late close of the first reaches the second. On web, Escape closes the
+and no late close of the first reaches the second. On web that holds for a
+move made by a press outside the menu too, as a context menu raised by the
+next handle's right button is: the menu is closed while the press is held
+and shown at the new place once it is over. On iOS, Android and Windows a
+press outside the open menu is the platform's dismissal, reported as
+`dismiss`. On web, Escape closes the
 menu wherever the focus is, even in an editor that keeps the key for itself,
-and the key goes no further.
+and the key goes no further, so a web `Sheet` or a `Popover` card the menu
+is in stays up.
 
 `takesFocus={false}` is for a menu typed into, a slash command in an editor.
 On web the focus stays in the field, and the menu is a `listbox` whose
@@ -131,7 +143,7 @@ A card pointing at a rectangle on a canvas: a spelling suggestion, a note on
 a block, a warning about a link, the editor of an option. Props: `at`
 (`{x, y, width, height}` or `null`), `title`, `message`, `actions` (`label`,
 `onPress`, `role`), `onDismiss(reason)`, `preferredEdge` (`auto`, `top`,
-`bottom`), `width` (280), `modal`, `insets` (`top`, `bottom`, `left`,
+`bottom`), `width` (280), `modal`, `label`, `insets` (`top`, `bottom`, `left`,
 `right`), `trigger` (`manual` or `hover`), `grace` (300 ms), `children`,
 `testID`.
 
@@ -145,16 +157,51 @@ cannot reach a side, and it is a preference: with no room on the edge asked
 for, the card goes to the other. `insets` are what the card keeps clear of at
 its parent's edges, a header over the canvas or a bar under it.
 
+Each time the card comes up, it is drawn only once it has been measured, so
+where it shows is worked out from its own height: a card that goes above the
+rectangle is not seen below it first. On iOS, Android and Windows the
+platform's toolkit sizes the action buttons after the card's first layout,
+so the card waits for them too; on web, where the browser can report the
+card's size just before its parent's, it waits for the parent's report that
+follows, and no longer, so a parent the browser does not report, one with no
+size, does not keep it hidden. Until then it is invisible and takes no
+presses. A card that stays up while it moves to another
+rectangle, or while what it holds changes, is placed by the height it has
+until it is laid out again, and so is one whose `children` hold content the
+toolkit sizes later.
+
+A test renderer lays nothing out, so in an app's tests the card stays
+invisible and takes no presses until the test reports its layout. With React
+Native Testing Library, fire `layout` with a height on the card (`testID`),
+then on its row of actions (`<testID>-actions`) when it has actions. Under
+jsdom, stub `ResizeObserver`, through which react-native-web reports a
+layout, call its callback with the card and its parent (`<testID>-bounds`),
+and let the timeout react-native-web measures in run.
+
+The card's content is not under a screen's bar: `useScrollInsets()` answers
+zero inside it on every platform, as it does in a `Sheet`, so a `List`,
+`CardGrid` or `FieldGroup` in it pads only by its own insets.
+
 `onDismiss` says why the card asks to close: `action` (one of its actions
 was taken), `backdrop` (the backdrop of a modal card was pressed, or on
 Windows a click landed outside the tip), `escape` (Escape on web, wherever
 the focus is, or VoiceOver's escape gesture on a modal card) or `leave` (a
-hover card's pointer stayed away for its grace).
+hover card's pointer stayed away for its grace). On web the card takes Escape
+before an editor that keeps the key for itself, and the key goes no further:
+neither the focused editor nor an overlay the card is in, such as a web
+`Sheet`, acts on it too. One Escape closes one overlay: a card with a menu
+open in it, or another card up inside it, leaves the key to that one and
+takes the next. Of two cards up side by side, or a card and a `PopupMenu`,
+the one that came up last takes it. A card with no `onDismiss` leaves
+Escape alone, unless it is lingering, which Escape ends.
 
 A `modal` card takes the presses around it as its backdrop, so nothing under
 it is pressed by mistake, and says it is a dialog: VoiceOver keeps its focus
-inside, a browser announces a modal dialog named by the title. The backdrop
-is a Dismiss button to the screen readers that reach it.
+inside, and a browser announces a modal dialog named by `label`, or by the
+title without one. On Windows the card is a group of that name, since
+react-native-windows composes no name from the text in a view and cannot mark
+one as a dialog. iOS and Android read what the card holds. The backdrop is a
+Dismiss button to the screen readers that reach it.
 
 A `hover` card is about what is under the pointer. The app sets `at` while
 the pointer is over the thing and clears it when the pointer leaves; the
@@ -162,6 +209,13 @@ card lingers on the last rectangle for `grace`, and stays while the pointer
 is over it, so the pointer can cross onto it. Once the pointer has been away
 from both for the grace, the card goes and reports `leave`. A touch is not a
 hover, so a finger on the card neither keeps it nor counts as leaving.
+
+An action, the backdrop or Escape ends the linger: the card goes when the app
+clears `at`, with no `leave` after it, and a card that goes from under the
+pointer does not keep the next one up. While it lingers the card draws the
+`title`, `message`, `actions` and `children` the app passes then, so an app
+clears only `at` when the pointer leaves and keeps the rest until `onDismiss`
+reports the card gone.
 
 ## Tooltip
 
@@ -185,11 +239,11 @@ announced sets `accessibilityHint` on the control itself.
 
 A modal dialog, or an action sheet, with a title, a message, a field and
 actions. Props: `title`, `message`, `visible`, `onDismiss`, `actions`
-(`label`, `role` `default`, `cancel` or `destructive`, `onPress`; defaults
-to one OK), `input` (a text field for the one-field prompts, a name for a
+(`label`, `role` `default`, `cancel` or `destructive`, `onPress`,
+`disabled`; defaults to one OK), `input` (a text field for the one-field prompts, a name for a
 new thing or a rename: `placeholder`, `value`, `onChangeText`,
-`secureTextEntry`, `keyboardType`, `autoCapitalize`, `autoFocus`, default
-true, `testID`), `sheet`, `children` (an optional trigger rendered in place),
+`secureTextEntry`, `keyboardType`, `autoCapitalize`, `autoCorrect`,
+default true, `autoFocus`, default true, `testID`), `sheet`, `children` (an optional trigger rendered in place),
 `testID`. It mounts its own host where there is none, so it can be rendered
 anywhere.
 
@@ -202,9 +256,22 @@ anywhere.
 
 `sheet` has no Windows form; a dialog is drawn either way, and an action
 sheet holds no field on any platform. The field is controlled through
-`value` and `onChangeText`, so the action that reads it has it; on web and
+`value` and `onChangeText`, so the action that reads it has it, and an
+action that waits for a value is `disabled` until it has one: greyed out,
+it takes no press. A disabled action does not hold the alert open: on
+Android the back gesture and a press outside it, on web Escape and a press
+on the backdrop, and on Windows Escape still dismiss it and report
+`onDismiss`, even with the cancel action disabled. An iOS alert (not a
+`sheet`, which a press outside also closes) closes only through its
+actions, so keep its cancel action enabled. On web and
 Windows the keyboard's action key presses the first action that is not
-`cancel`.
+`cancel`, and nothing while that action is disabled. On Windows a change
+to the actions while the dialog is open updates each button's label and
+whether it takes presses; the buttons are arranged as it opens.
+
+`onDismiss` fires when the alert closes after an action or when the user
+dismisses it. Clearing `visible` closes the alert without a report, on
+every platform.
 
 ## Sheet
 
@@ -222,26 +289,64 @@ the bar: a `SegmentedControl` that picks what the body shows), `footer`
 (the row under the body: a `Composer`), `actions` (buttons along the bottom
 edge, trailing-aligned, the last one filled and the rest outlined; `label`,
 `onPress`, `role`, `variant`, `disabled`, `loading` each), `maxHeight` (the
-most the body grows to), `testID`.
+most the body alone grows to: in points, or a fraction of the window's
+height, `{fraction: 0.6}`), `testID`.
 
 The bar is drawn as soon as a title or any of its buttons is given. Without
 `snapPoints` the sheet fits its content on every platform; `maxHeight` caps
 that, and the body then scrolls inside the cap as React Native content the
-width of the sheet.
+width of the sheet. A fraction is kept between 0 and 1. On web it is of the
+viewport's dynamic height, which follows a phone browser's toolbar, and on
+Windows of the area the sheet's layer covers, which is the window under the
+kit's `Stack`. On an iPad the sheet is a form sheet, shorter than the
+window, while the fraction is still of the window's height, so a fraction
+there leaves less of the sheet for the rest than on a phone. The cap is the
+body's alone: the bar, the accessory, the footer, the actions and the
+sheet's padding come on top, so leave room for them with a fraction well
+under 1. With a fraction near 1 the sheet is taller than the platform lets
+it be: on iOS and Android the footer and the actions are pushed out of it,
+and on web the drawer, which stops short of the viewport's top, scrolls as
+a whole around the body's own scrolling. On Windows the card stops short of
+the window and the body gives way inside it.
+
+```tsx
+<Sheet isPresented={open} onDismiss={close} title="History" maxHeight={{fraction: 0.6}}>
+  <Versions/>
+</Sheet>
+```
 
 | Platform | Renders |
 | --- | --- |
-| iOS | SwiftUI's sheet, with a real material through `presentationBackground`. The bar, the accessory and the actions are SwiftUI content beside the React Native body: the title in the headline font, the kit's buttons at the ends. |
-| Android | Compose's `ModalBottomSheet`. It takes a container color and nothing else, so the sheet is opaque. The bar, the accessory and the actions are Compose content: Compose has no app bar in `@expo/ui`, so the bar is a row in the sheet's palette with the kit's buttons at the ends. |
+| iOS | SwiftUI's sheet, with a real material through `presentationBackground`. The bar, the accessory and the actions are SwiftUI content: the title in the headline font, the kit's buttons at the ends. The pieces stack in one SwiftUI column with no spacing, so the sheet's padding is paid once and a sheet without `snapPoints` fits all of them. |
+| Android | Compose's `ModalBottomSheet`. It takes a container color and nothing else, so the sheet is opaque. The bar, the accessory and the actions are Compose content: Compose has no app bar in `@expo/ui`, so the bar is a row in the sheet's palette with the kit's buttons at the ends. A capped body hands a drag to the sheet, which expands before the body scrolls and collapses when the body is dragged down from its top, as a list in a Material sheet does. |
 | Web | `@expo/ui`'s drawer with `backdrop-filter` for the material. The bar is the kit's, in the `ScreenHeader` look, with the title a level 2 heading, the level of the drawer's own hidden title. A capped body takes keyboard focus, so the arrow keys scroll it. |
 | Windows | A layer drawn in React Native: WinUI's smoke and a centered card, the content scrolling inside, covering the whole window under the kit's `Stack` and the nearest ancestor elsewhere. A sheet's content is React Native's, which no XAML flyout or dialog can hold, and React Native's `Modal` cannot hold a XAML island on react-native-windows 0.84. No material. The bar, the accessory, the footer and the actions stay put while the body scrolls. |
 
-The sheet's content counts as hosted: controls inside it render bare. A
-React Native box inside the sheet (a footer, a `Composer`) mounts a
-`NativeHost` for the controls it holds, as the kit's own do. On iOS and
-Android a capped body is told the sheet's width, since a React Native view
-inside the platform's sheet has no width of its own to fill: the window's,
-or a form sheet's on an iPad, less the sheet's padding.
+On iOS and Android the bar, the accessory and a body without `maxHeight`
+are the sheet's native content, where the kit's controls render bare. Such
+a body must be `@expo/ui` content (a `FieldGroup`, a `List`, a
+`ColorPicker`), as a `Collapsible`'s children must be. A capped body and the
+footer are React Native content, each hosted in the sheet in an
+`RNHostView` at the sheet's width, since a React Native view inside the
+platform's sheet takes no presses and has no width of its own to fill
+without one. The sheet's pieces sit in one native column that takes the
+width the sheet offers and reports it, so the hosted pieces span a sheet
+that fills a phone in landscape, stay inside its safe areas and inside an
+inset sheet, and follow a rotation. Until the column has reported, they
+take the window's width, at most a form sheet's on an iPad or 640 points on
+Android (Material's limit for a sheet), less the sheet's padding. A
+`Pressable` in them takes presses, and a control in them mounts a host of
+its own. `@expo/ui` content of the app's own draws nothing in them without
+a host: wrap it in a `NativeHost`. Give a React Native body a `maxHeight`.
+
+On web and Windows the sheet's content counts as hosted: controls inside it
+render bare, and a React Native box inside it (a `Composer`) mounts a
+`NativeHost` for the controls it holds, as the kit's own do.
+
+The sheet's content is not under a screen's bar: `useScrollInsets()`
+answers zero inside it on every platform, so a `FieldGroup`, `List` or
+`CardGrid` there pads only by its own insets, whatever screen the sheet
+opens from.
 
 ## Toast
 
@@ -272,7 +377,18 @@ toast.show({message: 'Moved to the bin', action: {label: 'Undo', onPress: restor
 ```
 
 The provider queues them and shows one at a time, each for its duration or
-until its action is taken, at the foot of its area. `show` answers an id;
-`dismiss(id)` takes that toast away, showing or waiting, and `dismiss()` the
-one showing. A `Screen` under the provider lifts its `Fab` above the app's
-toast as it does above its own, by the larger of the two.
+until its action is taken, at the foot of its area, above the bottom safe
+area (the home indicator, Android's navigation bar). On iOS and Android it
+also stands above the tab bar of a `Tabs` under it, and above the bar's
+bottom accessory on iOS 26. It comes down to the safe area while the tabs
+are hidden and while a stack around them shows a screen over them. The bar
+is counted at the platform's standard height (`inset.bottomTab`), not
+measured, so where the platform draws it shorter or not at the bottom
+(iPadOS 18 and later draw it at the top of a regular-width window) the toast
+stands higher than the bar needs, as the tabs' floating action does. `show`
+answers an id; `dismiss(id)` takes that toast away, showing or waiting, and
+`dismiss()` the one showing. A `Screen` under the provider lifts its `Fab`
+above the app's toast as it does above its own, by the larger of the two,
+and the tabs' floating action lifts above it too. A provider inside one
+tab's layout shows its toasts in that tab, above the bar, but the tabs'
+floating action lifts only above the toast of a provider around them.

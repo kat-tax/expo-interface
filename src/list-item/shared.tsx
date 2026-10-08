@@ -34,6 +34,9 @@ export function badgeWords(badge: boolean | number | undefined): string | undefi
  * says "Essay, edited yesterday, 2 KB, 3 new" as one thing rather than
  * four loose ones. Only for a row whose headline is text; a row whose
  * headline is content of the app's own names itself through that content.
+ * It names the row on iOS, web and Windows: `@expo/ui`'s Compose layer has
+ * no modifier that sets a description, so an Android row is read from its
+ * own texts.
  */
 export function rowLabel({children, supporting, value, badge}: Pick<ListItemProps, 'children' | 'supporting' | 'value' | 'badge'>): string | undefined {
   const headline = textOf(children);

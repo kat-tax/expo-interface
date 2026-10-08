@@ -2,7 +2,7 @@ import type {ColorSchemeName} from 'react-native';
 import {useContext, useEffect} from 'react';
 import {Animated, Text, View} from 'react-native';
 import {render, screen} from '@testing-library/react';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {SafeAreaInsetsContext, SafeAreaProvider} from 'react-native-safe-area-context';
 import {Switch} from '../switch';
 import {bound, inset, spacing, theme} from '../theme';
 import {ToastInsetContext} from '../toast/context';
@@ -125,6 +125,19 @@ describe('Screen (web)', () => {
     expect(style.right).toBe(`${spacing.three}px`);
     expect(style.bottom).toBe(`${spacing.three}px`);
     expect(slot.parentElement).toBe(parts(screen.getByTestId('kid')).safeArea);
+  });
+
+  it('stands the fab on the bottom safe area of a page that covers the display, as its content and the app\'s toast stand', () => {
+    // A home-screen web app with `viewport-fit=cover`: jsdom has no env(), so the inset is handed down as the provider would.
+    mount(
+      <SafeAreaInsetsContext.Provider value={{top: 0, left: 0, right: 0, bottom: 34}}>
+        <Screen fab={<Text testID="fab">New</Text>}>
+          <View testID="kid"/>
+        </Screen>
+      </SafeAreaInsetsContext.Provider>,
+    );
+    expect(getComputedStyle(screen.getByTestId('screen-fab')).bottom).toBe(`${spacing.three + 34}px`);
+    expect(getComputedStyle(parts(screen.getByTestId('kid')).safeArea).paddingBottom).toBe('34px');
   });
 
   it('renders no fab slot without a fab', () => {

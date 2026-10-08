@@ -1,7 +1,9 @@
 import type {BadgeProps} from './types';
 import {Animated} from 'react-native';
+import {hexColor} from '../hex-color';
 import XamlInfoBadge from '../windows/specs/ExpoInterfaceInfoBadgeNativeComponent';
 import {useXamlProps} from '../windows';
+import {useBadgeColors} from './colors';
 import {usePulseOpacity} from './pulse';
 import {BADGE_SIZE, badgeLabel, badgeText, badgeValue} from './shared';
 
@@ -23,15 +25,22 @@ import {BADGE_SIZE, badgeLabel, badgeText, badgeValue} from './shared';
 export function Badge(props: BadgeProps) {
   const text = badgeText(props);
   const xaml = useXamlProps();
+  const {fill, content} = useBadgeColors(props);
   const opacity = usePulseOpacity(props.pulse === true);
   if (text === null) return null;
   const {dot, color, textColor, testID, style} = props;
   const height = dot ? BADGE_SIZE.dot : BADGE_SIZE.count;
+  // The island parses hex alone, so a name, `rgb()` or a translucent token is
+  // written as hex for it. Without a color of the caller's the control keeps
+  // Fluent's critical fill and picks black or white for it, unless told a text
+  // color. With one, the number's color is worked out here as on the other
+  // platforms, a translucent fill as it shows over the screen's background:
+  // the island would judge the fill without its alpha.
   const badge = (
     <XamlInfoBadge
       value={badgeValue(props)}
-      color={color}
-      textColor={textColor}
+      color={color === undefined ? undefined : hexColor(fill)}
+      textColor={hexColor(color === undefined ? textColor : content)}
       label={badgeLabel(props, text)}
       style={[{minWidth: height, height}, style]}
       testID={testID}

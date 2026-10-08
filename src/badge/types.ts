@@ -1,4 +1,5 @@
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {ColorTokens} from '../theme';
 
 /**
  * A count or a dot beside the thing it is about: unread messages on a tab, a
@@ -8,7 +9,10 @@ import type {StyleProp, ViewStyle} from 'react-native';
  * shape all four platforms can render honestly:
  *
  * - Windows: a WinUI `InfoBadge`, in an island of its own.
- * - Android: the Material 3 Compose `Badge`.
+ * - Android: the Material 3 Compose `Badge` inside a native host (a
+ *   `ListItem`'s slots, a `NativeHost`, `Screen native`); anywhere else drawn
+ *   in React Native to Material's geometry, since a Compose view draws only
+ *   inside a host.
  * - iOS: drawn. SwiftUI's `badge` modifier only paints inside a `List`, a
  *   `TabView` or a toolbar, so a badge anywhere else would silently render
  *   nothing; `ListItem` and `Tabs` are where that modifier belongs.
@@ -36,7 +40,12 @@ export interface BadgeProps {
   showZero?: boolean;
   /**
    * Pulses, its opacity down and back up every 900 ms: someone typing, a
-   * sync in flight. Still while the user asks for less motion.
+   * sync in flight. Still while the user asks for less motion. A drawn badge
+   * on iOS and Android loops on the native driver and web runs a CSS
+   * animation, neither of which renders anything for it. The Windows island
+   * loops on Animated's JavaScript driver, which steps it every frame. Inside
+   * a native host on Android it is paced from JavaScript, a render each half
+   * pulse, since `@expo/ui`'s Compose animations do not repeat.
    */
   pulse?: boolean;
   /**
@@ -45,15 +54,33 @@ export interface BadgeProps {
    */
   dot?: boolean;
   /**
-   * What a screen reader says. Defaults to the count and what it is about —
-   * "3 unread" reads better than "3".
+   * What a screen reader says. Defaults to the count and what it is about:
+   * "3 unread" reads better than "3". On Android inside a host TalkBack reads
+   * the number the badge draws and then the rest of the label ("3", then
+   * "unread"), which is unseen text at the badge's end edge, since
+   * `@expo/ui`'s Compose layer sets no content description (see
+   * `docs/accessibility.md`).
    */
   label?: string;
-  /** Fill color. Defaults to the kit's destructive red, as a badge is on every platform. */
-  color?: string;
-  /** Color of the number. Defaults to whichever of black or white reads on `color`. */
+  /**
+   * The fill: a palette token (`tint` for an unread dot in the accent), which
+   * follows the scheme, or any color React Native reads. Defaults to the
+   * destructive red a badge is on every platform: the palette's
+   * `destructive`, and Fluent's critical fill on Windows.
+   */
+  color?: ColorTokens | (string & {});
+  /**
+   * Color of the number. Defaults to whichever of black or white reads on
+   * `color`, a translucent one judged as it shows over the screen's
+   * background, and white on a fill that cannot be read for it, such as a
+   * CSS variable on web.
+   */
   textColor?: string;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
+  /**
+   * Applied to the badge's own view. The Compose badge inside a host on
+   * Android takes none.
+   */
   style?: StyleProp<ViewStyle>;
 }

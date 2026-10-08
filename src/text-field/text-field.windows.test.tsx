@@ -1,5 +1,5 @@
 import {StyleSheet} from 'react-native';
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {inputScopeFor} from './index.windows';
 import {TextField} from '.';
@@ -73,13 +73,53 @@ describe('TextField (windows)', () => {
   it('renders the bare variant as the inline input without padding of its own', async () => {
     await render(<TextField variant="bare" placeholder="Write" testID="bare"/>);
     expect(islands(BOX)).toHaveLength(0);
-    expect(StyleSheet.flatten(screen.getByTestId('bare').props.style)).toMatchObject({paddingVertical: 0, paddingHorizontal: 0});
+    const style = StyleSheet.flatten(screen.getByTestId('bare').props.style);
+    expect(style).toMatchObject({paddingVertical: 0, paddingHorizontal: 0});
+    expect(style).not.toHaveProperty('outlineStyle');
   });
 
   it('renders the inline variant as a React Native input', async () => {
     await render(<TextField variant="inline" placeholder="Search" testID="search"/>);
     expect(islands(BOX)).toHaveLength(0);
     expect(screen.getByTestId('search').props.placeholder).toBe('Search');
+  });
+
+  it('turns the spellcheck off with autocorrect in the inline variant, and leaves it to the input otherwise', async () => {
+    await render(
+      <>
+        <TextField variant="inline" autoCorrect={false} testID="code"/>
+        <TextField variant="bare" autoCorrect testID="prose"/>
+        <TextField variant="inline" testID="default"/>
+      </>,
+    );
+    // react-native-windows checks the spelling while either prop is on.
+    expect(screen.getByTestId('code').props).toMatchObject({autoCorrect: false, spellCheck: false});
+    expect(screen.getByTestId('prose').props).toMatchObject({autoCorrect: true, spellCheck: true});
+    expect(screen.getByTestId('default').props.spellCheck).toBeUndefined();
+  });
+
+  it('names Escape in the inline variant from the character react-native-windows reports', async () => {
+    const onKeyPress = vi.fn();
+    await render(<TextField variant="inline" onKeyPress={onKeyPress} testID="find"/>);
+    await fireEvent(screen.getByTestId('find'), 'keyPress', {nativeEvent: {key: '\u001b'}});
+    expect(onKeyPress).toHaveBeenLastCalledWith('Escape', false);
+    await fireEvent(screen.getByTestId('find'), 'keyPress', {nativeEvent: {key: 'a'}});
+    expect(onKeyPress).toHaveBeenLastCalledWith('a', false);
+  });
+
+  it('gives a multi-line inline field that submits the Enter key to submit on, and no other field', async () => {
+    await render(
+      <>
+        <TextField variant="inline" multiline submitBehavior="submit" onSubmit={vi.fn()} testID="submits"/>
+        <TextField variant="inline" multiline testID="lines"/>
+        <TextField variant="inline" submitBehavior="submit" onSubmit={vi.fn()} testID="one-line"/>
+      </>,
+    );
+    const submits = screen.getByTestId('submits');
+    expect(submits.props.submitKeyEvents).toEqual([{code: 'Enter'}]);
+    expect(submits.props.blurOnSubmit).toBeUndefined();
+    expect(screen.getByTestId('lines').props.submitKeyEvents).toBeUndefined();
+    expect(screen.getByTestId('one-line').props.submitKeyEvents).toBeUndefined();
   });
 
   it('maps every keyboard variant to an input scope', () => {

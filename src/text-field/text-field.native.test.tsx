@@ -229,6 +229,13 @@ describe(`TextField (${Platform.OS})`, () => {
     const input = screen.getByPlaceholderText('Find in document');
     expect(input.props.returnKeyType).toBe('next');
     expect(input.props.submitBehavior).toBe('submit');
+    // React Native reads `submitBehavior` itself: the web's `blurOnSubmit` and Windows's submit keys stay out.
+    expect(input.props.blurOnSubmit).toBeUndefined();
+    expect(input.props.submitKeyEvents).toBeUndefined();
+    // `inputmode` is web's.
+    expect(input.props.inputMode).toBeUndefined();
+    // The spellcheck follows autocorrect.
+    expect(input.props.spellCheck).toBe(false);
     expect(input.props.autoCapitalize).toBe('none');
     expect(input.props.placeholderTextColor).toBe('#9094A0');
     expect(nodes().some(n => n.type.startsWith('ViewManagerAdapter_ExpoUI'))).toBe(false);
@@ -243,7 +250,11 @@ describe(`TextField (${Platform.OS})`, () => {
   it('renders the bare variant as the inline input without padding of its own', async () => {
     await render(<TextField variant="bare" placeholder="Write" testID="bare"/>);
     const input = screen.getByTestId('bare');
-    expect(StyleSheet.flatten(input.props.style)).toMatchObject({paddingVertical: 0, paddingHorizontal: 0, outlineWidth: 0});
+    const style = StyleSheet.flatten(input.props.style);
+    expect(style).toMatchObject({paddingVertical: 0, paddingHorizontal: 0});
+    // React Native parses only a solid, dotted or dashed outline, and draws none by default.
+    expect(style).not.toHaveProperty('outlineStyle');
+    expect(style).not.toHaveProperty('outlineWidth');
     expect(nodes().some(n => n.type.startsWith('ViewManagerAdapter_ExpoUI'))).toBe(false);
   });
 
@@ -258,6 +269,8 @@ describe(`TextField (${Platform.OS})`, () => {
     expect(input.props.cursorColor).toBe('#FF9500');
     expect(input.props.onSubmitEditing).toBeUndefined();
     expect(input.props.onKeyPress).toBeUndefined();
+    // Without `autoCorrect` the spellcheck stays the platform's default.
+    expect(input.props.spellCheck).toBeUndefined();
     await fireEvent.changeText(input, 'Ada L');
     expect(onChangeText).toHaveBeenCalledWith('Ada L');
   });

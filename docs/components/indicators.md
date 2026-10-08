@@ -45,26 +45,42 @@ A value within a range in the SwiftUI gauge styles. Props: `value`, `min`,
 
 A count or a dot beside the thing it is about. Props: `count` (`0` draws
 nothing), `max` (99; counts above draw as `99+`), `showZero`, `dot`, `label`
-(the accessible name; defaults to the count and what it is about), `color`,
-`textColor`, `pulse` (the badge's opacity goes down and back up every 900
-ms: someone typing, a sync in flight; still while the user asks for less
-motion), `style`, `testID`.
+(the accessible name; defaults to the count and what it is about), `color`
+(the fill, a palette token such as `tint`, which follows the scheme, or any
+color React Native reads; the destructive red without one, Fluent's
+critical fill on Windows), `textColor` (without one, black or white,
+whichever reads on the fill, a translucent fill judged as it shows over the
+screen's background; white on a fill that cannot be read, such as a CSS
+variable on web), `pulse` (the badge's opacity goes down and back up every 900 ms: someone
+typing, a sync in flight; still while the user asks for less motion),
+`style`, `testID`.
 
-A pulse is each platform's own animation: Compose animates the badge's alpha
-toward each end in turn on Android, iOS and Windows loop the opacity of the
-view (on iOS on the native driver), and the web runs a CSS animation that
-`prefers-reduced-motion` stills.
+A pulse is each platform's own animation. Inside a host on Android, Compose
+animates the badge's alpha toward each end in turn. It is told which end
+from JavaScript every half pulse, since `@expo/ui`'s Compose animations do
+not repeat by themselves, so a pulsing badge there renders twice a pulse. A
+drawn badge (iOS, and Android outside a host) and the Windows island loop the
+opacity of the view, on the native driver on iOS and Android and on
+Animated's JavaScript driver on Windows, which steps it every frame. The web
+runs a CSS animation that `prefers-reduced-motion` stills.
 
 | Platform | Renders |
 | --- | --- |
 | iOS | Drawn as the UIKit capsule. SwiftUI's `badge` modifier only paints inside a `List`, a `TabView` or a toolbar and is silently ignored anywhere else. |
-| Android | Material 3 `Badge` |
+| Android | Material 3 `Badge` inside a native host; outside one, drawn in React Native to Material's geometry (a 6 point dot, 16 points high with a number), since a Compose view draws only inside a host. Both set the number in Material's Label Small. Inside a host it takes no `style`. |
 | Web | A `<span role="status">` |
 | Windows | WinUI `InfoBadge`. It holds a number and nothing else, so an overflowing count reads as the cap (`99`) where the others draw `99+`; the accessible name carries the true wording. |
 
-TalkBack reads the number alone on Android: `@expo/ui`'s Compose layer
-exposes no modifier that sets a content description. The other three announce
-the label.
+A drawn badge and the other three platforms announce the label. Inside a
+host on Android `@expo/ui`'s Compose layer exposes no modifier that sets a
+content description, and TalkBack reads the number the badge draws, so the
+rest of the label ("new" of "3 new", the whole label of a dot) is unseen
+text in a small box at the badge's end edge, inside the padding beside the
+number. TalkBack reads it after the number: as part of a row that presses or
+a Material `ListItem`, which merge what they hold, and as a stop of its own
+anywhere else. Where nothing merges them Compose orders the two by position
+and leaves out a node that one drawn above it covers, which is why the box
+keeps clear of the number rather than covering the badge.
 
 Placing a badge over a control is the caller's job. On Windows, put it beside
 a pressable control or inside it: a XAML island takes pointer input for
@@ -93,23 +109,44 @@ ring in the fill behind the group, and past `max` the rest are counted in a
 
 ```tsx
 <AvatarGroup
-  people={peers.map(peer => ({name: peer.name, color: peer.color, dimmed: peer.away, ring: peer.typing ? peer.color : undefined}))}
+  people={peers.map(peer => ({
+    name: peer.name,
+    color: peer.color,
+    dimmed: peer.away,
+    ring: peer.typing ? peer.color : undefined,
+    label: `Follow ${peer.name}`,
+    selected: peer.id === following,
+    disabled: !peer.reachable,
+  }))}
   onPress={peer => follow(peer)}
   onLongPress={peer => openMenu(peer)}
 />
 ```
 
-Props: `people` (each `name`, `initials`, `color`, `ring`, `dimmed`, `key`),
-`max` (3), `size` (24), `ring` (the parting ring, a palette token or a
-color: `background` by default, so give the fill behind the group when it
-sits on a raised surface; a person's own `ring` wins), `onPress(person,
-index)`, `onLongPress(person, index)`, `onPressMore`, `testID`.
+Props: `people` (each `name`, `initials`, `color`, `ring`, `dimmed`, `key`,
+`label`, `hint`, `selected`, `disabled`), `max` (3), `size` (24), `ring`
+(the parting ring, a palette token or a color: `background` by default, so
+give the fill behind the group when it sits on a raised surface; a person's
+own `ring` wins), `onPress(person, index)`, `onLongPress(person, index)`,
+`onPressMore`, `testID`.
 
 A face is a button named for the person when the group is told what a press
 or a press and hold does, and the count a button named "3 more" with
-`onPressMore`. The faces are drawn in React Native on every platform,
-Windows included, where `Avatar` is a `PersonPicture` island: an island
-takes the pointer, and a facepile's faces are pressed.
+`onPressMore`. A person's `label` names the face in place of the name, and
+`hint` is read after it: what a press or a press and hold does, or more
+about the person when the group does not press. An empty label is the name
+and an empty hint is none. The hint is an accessibility hint on iOS and
+Android, the help text on Windows and the description on web. `selected`
+announces the face as selected (on web as the current one, since neither a
+button nor an image can be selected) and draws nothing, so show it with the
+person's `ring`. A `disabled` face takes neither press, is announced as
+unavailable and is drawn at half opacity. When the group does not press, the
+circle itself carries the label, the hint and the selected state, and
+`disabled` only dims it; on web each face and the count are then images,
+since a name on an element with no role goes unread. The faces are drawn in
+React Native on every platform, Windows included, where `Avatar` is a
+`PersonPicture` island: an island takes the pointer, and a facepile's faces
+are pressed.
 
 ## Typography
 
@@ -143,10 +180,26 @@ it renders with it.
 Props: `date` (a `Date` or milliseconds), `variant` (a `Typography` style,
 `footnote` by default), `color` (a token, `secondaryLabel` by default),
 `numeric` (`auto` says "now" and "yesterday" where the language has the
-words; `always` says "1 day ago"), `numberOfLines`, `testID`.
+words; `always` says "1 day ago"), `locale` (the language of the words, a
+BCP 47 tag such as `de` or `pt-BR`; by default the page's language on web
+and the locale Hermes reports elsewhere, as the table below says),
+`numberOfLines`, `testID`.
 
 ```tsx
 <RelativeTime date={document.editedAt}/>
+```
+
+`useRelativeTime(date, {numeric, locale})` answers the same words as a
+string, for text that cannot hold a view: a `ListItem`'s `value`, a `Card`'s
+`subtitle`, a label. The component that calls it renders again as the words
+may change. A `renderItem` function cannot call a hook, so a list calls it
+in the row's own component:
+
+```tsx
+function NoteRow({note}: {note: Note}) {
+  const edited = useRelativeTime(note.editedAt);
+  return <ListItem value={edited}>{note.title}</ListItem>;
+}
 ```
 
 The units round as a person does: under 45 seconds is "now", then minutes
@@ -154,5 +207,9 @@ up to 45, hours up to 22, days up to 26, months up to 11, and years.
 
 | Platform | Words |
 | --- | --- |
-| Web | The locale's, through `Intl.RelativeTimeFormat` |
-| iOS, Android, Windows | English: Hermes has no `Intl.RelativeTimeFormat`. An engine that gains it is used without a change. |
+| Web | `locale`'s, else the page's language, through `Intl.RelativeTimeFormat`. The page's language is the `lang` of its `<html>`: `web.lang` in the app config for a single-page app, or the `lang` that `+html.tsx` sets for a static one. The words follow it when it changes, so they are the app's language rather than the browser's. A server has no page to read, so it renders a static page's words in English without a `locale`, and so does the first render in the browser, which hydrates that HTML; the next render says them in the page's language. The server's words are for the moment it rendered them, so a page loaded after they change hydrates with different words, which React reports as a hydration mismatch and renders again in the browser. |
+| iOS, Android, Windows | English: Hermes has no `Intl.RelativeTimeFormat`. With a polyfill for it and for the `Intl.PluralRules` it needs, such as FormatJS's `@formatjs/intl-relativetimeformat` and `@formatjs/intl-pluralrules` with the locale data of each language the app speaks, the words are `locale`'s, else the locale Hermes reports through `Intl.DateTimeFormat`, which the kit hands the polyfill. On iOS that is the language the system runs the app in: the device's when the app is localized for it, through the app config's `locales` or `CFBundleLocalizations`, else the app's base language, English in an Expo app. So an app in English alone says English times on a German phone. On Android it is the device's language, and on Windows the user's regional format. To follow the device's language whatever the app is localized for, pass `locale`, such as `getLocales()[0].languageTag` from `expo-localization`. A language the polyfill has no data for gets its default, the first locale data the app loaded. |
+
+A tag the engine cannot read (`en_US`) gets the engine's default language,
+and where the engine cannot make a formatter at all, as with a polyfill
+whose `Intl.PluralRules` is missing, the words are English.

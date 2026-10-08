@@ -1,5 +1,6 @@
 import type {LayoutChangeEvent} from 'react-native';
 import {useState} from 'react';
+import {I18nManager} from 'react-native';
 
 /** A rectangle in the coordinates of the content an overlay is laid over. */
 export interface AnchorRect {
@@ -13,6 +14,15 @@ export interface AnchorRect {
 
 /** Which side of the rectangle an anchored card prefers. */
 export type AnchorEdge = 'auto' | 'top' | 'bottom';
+
+/**
+ * How an anchored card lines up with its rectangle across: from its left
+ * edge, centred on it, or to its right edge. `start` and `end` are the
+ * rectangle's left and right in the x coordinates it is given in, not its
+ * leading and trailing edges, under a right-to-left layout too (see
+ * {@link fromLeft}).
+ */
+export type AnchorAlign = 'start' | 'center' | 'end';
 
 /** What an anchored card keeps clear of at its parent's edges: a header over the canvas, a bar under it. */
 export interface AnchorInsets {
@@ -42,11 +52,12 @@ interface AnchoredOptions {
    */
   gap?: number;
   /**
-   * How the card lines up with the rectangle across: from its leading edge,
-   * or centred on it, as a bar of tools over a selection is.
+   * How the card lines up with the rectangle across: from its left edge,
+   * centred on it, as a bar of tools over a selection is, or to its right
+   * edge, as tools hanging from a block's corner are (see {@link AnchorAlign}).
    * @default 'start'
    */
-  align?: 'start' | 'center';
+  align?: AnchorAlign;
 }
 
 interface Anchored {
@@ -54,7 +65,10 @@ interface Anchored {
   onBounds: (event: LayoutChangeEvent) => void;
   /** Measures the card. */
   onCard: (event: LayoutChangeEvent) => void;
-  /** Where the card goes, in the parent's coordinates. */
+  /**
+   * Where the card goes, in the parent's coordinates: `left` from its left
+   * edge, which {@link fromLeft} turns into a style.
+   */
   left: number;
   top: number;
   /** Whether the card ended up above the rectangle. */
@@ -101,8 +115,27 @@ export function useAnchored({at, preferredEdge = 'auto', width, insets, gap = 8,
   const top = at ? (above ? Math.max(top0, at.y - card.height - gap) : below) : 0;
   // Until the parent has been measured there is nothing to clamp against.
   const rightMost = bounds.width > 0 ? Math.max(left0, rightEdge - card.width) : Infinity;
-  const from = at && align === 'center' ? at.x + (at.width ?? 0) / 2 - card.width / 2 : at?.x ?? 0;
+  const x = at?.x ?? 0;
+  const span = at?.width ?? 0;
+  const from = align === 'center' ? x + span / 2 - card.width / 2 : align === 'end' ? x + span - card.width : x;
   const left = at ? Math.max(left0, Math.min(from, rightMost)) : 0;
 
   return {onBounds, onCard, left, top, above, placed: bounds.height > 0 && card.height > 0};
+}
+
+/**
+ * The style that puts a card `left` points from its parent's left edge, as
+ * {@link useAnchored} works it out: a rectangle measured by layout is in
+ * left-to-right x coordinates whatever the layout's direction.
+ *
+ * Under a right-to-left layout React Native on iOS and Android reads `left`
+ * and `right` as the start and end edges (`doLeftAndRightSwapInRTL`, on
+ * unless the app turns it off), so `left` would measure from the right and
+ * mirror the card away from its rectangle. The end edge is the left one
+ * there, and `right` is what sets it. Web and Windows report no swap, and
+ * take `left` as it is.
+ */
+export function fromLeft(left: number): {left: number} | {right: number} {
+  const {isRTL, doLeftAndRightSwapInRTL} = I18nManager.getConstants();
+  return isRTL && doLeftAndRightSwapInRTL ? {right: left} : {left};
 }

@@ -35,20 +35,28 @@ export interface TabBarProps {
   /**
    * Hides the tab bar while keeping the routes, so a screen that needs the
    * whole display (an open document) can take it: natively the native tab
-   * bar's own `hidden`, on web the floating bar is not drawn — unless it
-   * carries a screen's header (`webFoldHeader`), where the tabs go and the bar
-   * stays as that screen's header.
+   * bar's own `hidden`, on web the floating bar is not drawn, unless it
+   * carries a screen's header (`webFoldHeader`), where the tabs and the
+   * app's `action` go and the bar stays as that screen's header. A function
+   * decides by the route, `({segments}) => segments.at(-1) === '[id]'`, on
+   * every render, which a static render answers too, where `HideTabs` waits
+   * for the page to run. On web the static page of a pushed screen it hides
+   * has no bar until the page runs, since the screen's header folds into the
+   * bar once the screen is mounted.
    * @default false
    */
-  hidden?: boolean;
+  hidden?: boolean | ((route: TabBarLocation) => boolean);
   /**
    * The app's one action beside its tabs, a "New" that every section
    * offers, declared once: on iOS 26 a button or menu in the tab bar's
    * bottom accessory; on Android, and iOS before 26, a floating action
    * button above the tab bar at the bottom trailing corner, over every
-   * tab's screens (a `Screen`'s own `fab` sits above it); on web a header
-   * control in the bar's actions slot; on Windows an item first among the
-   * `NavigationView`'s, which invokes rather than selects.
+   * tab's screens (a `Screen`'s own `fab` sits above it, it lifts above
+   * the app's toast while one shows, and a `Screen` keeps the button's room
+   * at the bottom of its scroll content, `useScrollInsets().bottom`); on web
+   * a header control in the bar's actions slot; on Windows an item first
+   * among the `NavigationView`'s, which invokes rather than selects. It goes
+   * with the tabs while they are hidden, on every platform.
    */
   action?: TabBarAction;
   /**
@@ -68,9 +76,22 @@ export interface TabBarProps {
   /**
    * App icon rendered by the `icon-only` and `icon-and-text` web logo presets,
    * e.g. `require('./assets/icon.png')`, or an `IconToken` drawn as the
-   * kit's glyph in the label color. When omitted only the name is shown.
+   * kit's glyph in the label color. An image is drawn as it is, or in the
+   * label color with `webTintIcon`. When omitted only the name is shown.
    */
   webIcon?: ImageSource | number | IconToken;
+  /**
+   * Web only: draws an image `webIcon` in the label color, as a token is
+   * drawn: its shape filled with the color through a CSS mask, so a mark that
+   * is not a symbol follows the scheme, a forced one included, before any
+   * JavaScript runs, and takes the text color in forced colors. The image is
+   * read from its `uri` (a `require` resolves to one), so it must be one the
+   * page may load as a mask: the same origin, or served with CORS. A mask
+   * the browser cannot load hides the mark, with no error on the page. A
+   * source without a `uri` is drawn as it is.
+   * @default false
+   */
+  webTintIcon?: boolean;
   /**
    * Content rendered in the web tab bar beside the tabs: a `Menu` with a
    * `link` trigger, a button. See `webActionsPlacement`.
@@ -123,6 +144,14 @@ export interface TabBarProps {
 }
 
 export type WindowsPane = 'top' | 'left' | 'compact' | 'minimal' | 'auto';
+
+/** The route `Tabs hidden` decides by, when it is a function of it. */
+export interface TabBarLocation {
+  /** The path, as `usePathname()` gives it: `/home/42`. */
+  pathname: string;
+  /** The route's segments, as `useSegments()` gives them: `['(tabs)', 'home', '[id]']`. */
+  segments: readonly string[];
+}
 
 /** The app's one action beside its tabs (`Tabs action`). */
 export interface TabBarAction {

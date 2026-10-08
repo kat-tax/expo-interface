@@ -9,7 +9,7 @@ import {PopupMenu} from '../popup-menu';
 import {Icon} from '../symbol';
 import {flatten} from '../theme';
 import {DEPTH_INDENT} from './draw';
-import {ADD_LABEL, closeLabel, resolveLayout, switcherLabel, tabIndex} from './shared';
+import {ADD_LABEL, closeLabel, isAlone, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
 
 /** The glyphs, as Material Symbols names — the family `Icon` draws with on web. */
 const CLOSE = {symbol: {ios: 'xmark', android: 'close', web: 'close'}} as const;
@@ -70,19 +70,26 @@ function useContainerWidth(ref: RefObject<HTMLElement | null>): number {
  * Below 640 points the strip is a button and a grid of cards instead, the same
  * shape the native files draw — and the grid is a tab list too, so the tabs
  * are the same thing to a screen reader at either size.
+ *
+ * With no children at all (see `isAlone`) it is the tabs alone: no
+ * `tabpanel`, no `aria-controls` on the tabs, and no growth into the parent.
+ * The switcher's cards open under the bar then, at most half the window tall.
  */
-export function TabView({
-  tabs,
-  selected,
-  onSelect,
-  onClose,
-  onAdd,
-  children,
-  label = 'Tabs',
-  layout = 'auto',
-  testID,
-  style,
-}: TabViewProps) {
+export function TabView(props: TabViewProps) {
+  const {
+    tabs,
+    selected,
+    onSelect,
+    onClose,
+    onAdd,
+    addLabel = ADD_LABEL,
+    children,
+    label = 'Tabs',
+    layout = 'auto',
+    fill = 'element',
+    testID,
+    style,
+  } = props;
   const id = useId().replaceAll(/[^A-Za-z0-9_-]/g, '_');
   const root = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLDivElement>(null);
@@ -110,8 +117,10 @@ export function TabView({
     onMove: index => onSelect(tabs[index]!.id),
   });
   const cards = resolved === 'switcher' && open;
+  // The tabs alone have no panel, so no tab controls one.
+  const alone = isAlone(props);
   const tabId = (tab: {id: string}) => `${id}-tab-${tab.id}`;
-  const panelId = `${id}-panel`;
+  const panelId = alone ? undefined : `${id}-panel`;
   /**
    * What names the panel: the open tab's **title**, never the tab itself.
    *
@@ -150,7 +159,7 @@ export function TabView({
     <button
       type="button"
       className="ui-tab-view__add"
-      aria-label={ADD_LABEL}
+      aria-label={addLabel}
       data-testid={testID ? `${testID}-add` : undefined}
       onClick={() => {
         setOpen(false);
@@ -163,7 +172,7 @@ export function TabView({
   return (
     <div
       ref={root}
-      className="ui-tab-view"
+      className={['ui-tab-view', alone && 'ui-tab-view--alone', fill === 'none' && 'ui-tab-view--no-fill'].filter(Boolean).join(' ')}
       style={flatten(StyleSheet.flatten(style) as TextStyle) as CSSProperties}
       data-testid={testID}>
       {resolved === 'strip' ? (
@@ -183,6 +192,9 @@ export function TabView({
                   role="tab"
                   id={tabId(tab)}
                   className="ui-tab-view__tab-body"
+                  // Named as the native tabs are, so an accessory's text does
+                  // not run into the title here while saying nothing there.
+                  aria-label={tabLabel(tab)}
                   aria-selected={index === current}
                   aria-controls={panelId}
                   aria-haspopup={tab.menu ? 'menu' : undefined}
@@ -243,6 +255,7 @@ export function TabView({
                 role="tab"
                 id={tabId(tab)}
                 className="ui-tab-view__card-body"
+                aria-label={tabLabel(tab)}
                 aria-selected={index === current}
                 aria-controls={panelId}
                 aria-haspopup={tab.menu ? 'menu' : undefined}
@@ -269,7 +282,7 @@ export function TabView({
             );
           })}
         </div>
-      ) : (
+      ) : alone ? null : (
         <div
           className="ui-tab-view__panel"
           role="tabpanel"

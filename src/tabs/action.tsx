@@ -1,25 +1,41 @@
 import type {TabBarAction} from './types';
+import {createContext, useContext} from 'react';
 import {NativeTabs} from 'expo-router/unstable-native-tabs';
-import {StyleSheet, View} from 'react-native';
+import {Animated, StyleSheet, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Button} from '../button';
 import {Fab} from '../fab';
 import {Menu} from '../menu';
+import {useToastLift} from '../screen/lift';
+import {AppToastInsetContext} from '../toast/context';
 import {inset, spacing} from '../theme';
 
 /** The room a floating action takes above the tab bar: the button and its gap. */
 export const TAB_ACTION_LIFT = 56 + spacing.three;
 
 /**
+ * Where the iOS 26 accessory's action reports its measured height to
+ * `Tabs`, which adds it to what the tab bar takes of the app's bottom edge.
+ */
+export const TabAccessoryHeightContext = createContext<(height: number) => void>(() => {});
+
+/**
  * iOS 26: the action in the tab bar's bottom accessory, a button or a menu
  * drawn plainly in the accessory's glass. UIKit renders the accessory twice,
  * wide over the tab bar and inline in a minimized one; the inline one shows
- * the icon alone, its label kept as the accessible name.
+ * the icon alone, its label kept as the accessible name. The wide one fills
+ * the frame UIKit gives the accessory, so its measured height is what the
+ * app's toast stands above, on top of the bar.
  */
 export function AccessoryAction({action}: {action: TabBarAction}) {
   const inline = NativeTabs.BottomAccessory.usePlacement() === 'inline';
+  const report = useContext(TabAccessoryHeightContext);
   return (
-    <View style={styles.accessory}>
+    <View
+      style={styles.accessory}
+      testID="tab-accessory"
+      // The inline copy sits in the minimized bar, not over it.
+      onLayout={inline ? undefined : event => report(event.nativeEvent.layout.height)}>
       {action.items ? (
         <Menu label={action.label} icon={action.icon} items={action.items} variant="text" tone="label" hideLabel={inline}/>
       ) : (
@@ -32,14 +48,19 @@ export function AccessoryAction({action}: {action: TabBarAction}) {
 /**
  * Android, and iOS before 26: the action as a floating action button at
  * the bottom trailing corner, above the tab bar, over every tab's screens,
- * as Material places a FAB beside its navigation bar.
+ * as Material places a FAB beside its navigation bar. While the app's toast
+ * (`ToastProvider` around the tabs) shows, it lifts above it and comes back
+ * down as it goes, as a `Screen`'s fab does.
  */
 export function FloatingAction({action}: {action: TabBarAction}) {
   const insets = useSafeAreaInsets();
+  const lift = useToastLift(useContext(AppToastInsetContext));
   return (
-    <View style={[styles.floating, {right: spacing.three + insets.right, bottom: inset.bottomTab + insets.bottom + spacing.three}]} testID="tab-action-slot">
+    <Animated.View
+      style={[styles.floating, {right: spacing.three + insets.right, bottom: inset.bottomTab + insets.bottom + spacing.three}, lift.style]}
+      testID="tab-action-slot">
       <Fab label={action.label} icon={action.icon} onPress={action.onPress} items={action.items} testID="tab-action"/>
-    </View>
+    </Animated.View>
   );
 }
 

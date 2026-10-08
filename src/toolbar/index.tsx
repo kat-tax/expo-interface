@@ -1,19 +1,20 @@
 import type {ReactNode} from 'react';
 import type {ToolbarCommand, ToolbarProps} from './types';
 import type {LayoutChangeEvent} from 'react-native';
-import {useState} from 'react';
+import {Fragment, useState} from 'react';
 import {Platform, StyleSheet, View} from 'react-native';
 import {Row, Spacer} from '@expo/ui';
 import {Button} from '../button';
+import {Divider} from '../divider';
 import {NativeHost} from '../host';
 import {Menu} from '../menu';
 import {Surface} from '../surface';
-import {useAnchored} from '../anchored';
+import {fromLeft, useAnchored} from '../anchored';
 import {MORE} from '../glyphs';
 import {isCompact} from '../size-class';
 import {spacing} from '../theme';
 import {FloatingSurface} from './floating';
-import {anchoredStyles, hasCommands, splitCommands} from './shared';
+import {anchoredStyles, commandDisabled, hasCommands, overflowItems, splitCommands} from './shared';
 
 /**
  * Space between the controls, and at the bar's ends. `compact` is what a bar
@@ -93,19 +94,20 @@ function FloatingToolbar(props: ToolbarProps) {
 }
 
 /**
- * A floating bar beside a rectangle, laid over its parent: centred on the
- * rectangle, over it unless there is no room, inside the parent less its
- * insets, and drawn only once it has been measured and placed.
+ * A floating bar beside a rectangle, laid over its parent: lined up with the
+ * rectangle by `align` (centred on it unless asked otherwise), over it unless
+ * there is no room, inside the parent less its insets, and drawn only once it
+ * has been measured and placed.
  */
 function AnchoredToolbar(props: ToolbarProps) {
-  const {at = null, preferredEdge = 'top', insets, testID} = props;
-  const anchored = useAnchored({at, preferredEdge, insets, align: 'center'});
+  const {at = null, align = 'center', preferredEdge = 'top', insets, testID} = props;
+  const anchored = useAnchored({at, preferredEdge, insets, align});
   return (
     <View style={anchoredStyles.bounds} onLayout={anchored.onBounds} testID={testID ? `${testID}-bounds` : undefined}>
       {at ? (
         <View
           onLayout={anchored.onCard}
-          style={[anchoredStyles.bar, {left: anchored.left, top: anchored.top}, anchored.placed ? null : anchoredStyles.unplaced]}>
+          style={[anchoredStyles.bar, fromLeft(anchored.left), {top: anchored.top}, anchored.placed ? null : anchoredStyles.unplaced]}>
           <FloatingToolbar {...props}/>
         </View>
       ) : null}
@@ -117,15 +119,18 @@ function AnchoredToolbar(props: ToolbarProps) {
 function EdgeToolbar(props: ToolbarProps) {
   const {field, placement = 'bottom', density = 'regular', foldCommands = false, children, style, testID} = props;
   const {gap, edge} = DENSITY[density];
-  // Measured only for a bar that folds: what it has decides whether it does.
-  const [width, setWidth] = useState(0);
-  const {start, end} = controlsOf(props, gap, foldCommands && isCompact(width));
+  // Measured whether or not it folds: React Native reports a frame only when
+  // it is laid out again, and react-native-web observes a view only from its
+  // mount, so a handler added with the fold would wait for the next resize.
+  // Kept as the size class, so the bar renders again only when it crosses it.
+  const [compact, setCompact] = useState(false);
+  const {start, end} = controlsOf(props, gap, foldCommands && compact);
   return (
     <Surface
       color="background"
       radius={0}
       border={placement === 'bottom' ? 'top' : 'bottom'}
-      onLayout={foldCommands ? (event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width) : undefined}
+      onLayout={(event: LayoutChangeEvent) => setCompact(isCompact(event.nativeEvent.layout.width))}
       style={[styles.bar, {paddingHorizontal: edge, paddingVertical: PADDING_VERTICAL}, style]}
       testID={testID}>
       {field == null ? (
@@ -149,35 +154,63 @@ function EdgeToolbar(props: ToolbarProps) {
   );
 }
 
-/** The commands the bar shows, as the kit's own buttons, in a row of their own at the bar's pitch. */
+/**
+ * The commands the bar shows, as the kit's own buttons, in a row of their own
+ * at the bar's pitch; a command with `items` is the kit's own `Menu`, at the
+ * same metrics, in the same host, greyed out with no entries to open on. A
+ * command with `separator` has a vertical
+ * rule before it, none before the first of the row, as a menu's entries do.
+ */
 function Commands({commands, gap}: {commands: ToolbarCommand[]; gap: number}) {
   if (commands.length === 0) return null;
   return (
     <Row alignment="center" spacing={COMMAND_GAP ?? gap}>
       {commands.map((command, index) => (
-        <Button
-          key={index}
-          variant="text"
-          pressed={command.active}
-          size={TOOL.size}
-          iconSize={TOOL.iconSize}
-          label={command.label}
-          prefixIcon={command.icon}
-          hideLabel={command.hideLabel}
-          tone={command.tone}
-          role={command.role}
-          disabled={command.disabled}
-          onPress={command.onPress}
-          testID={command.testID}
-        />
+        <Fragment key={index}>
+          {command.separator && index > 0 ? <Divider vertical/> : null}
+          {command.items ? (
+            <Menu
+              variant="text"
+              size={TOOL.size}
+              iconSize={TOOL.iconSize}
+              label={command.label}
+              icon={command.icon}
+              hideLabel={command.hideLabel}
+              tone={command.tone}
+              disabled={commandDisabled(command)}
+              items={command.items}
+              testID={command.testID}
+            />
+          ) : (
+            <Button
+              variant="text"
+              pressed={command.active}
+              size={TOOL.size}
+              iconSize={TOOL.iconSize}
+              label={command.label}
+              prefixIcon={command.icon}
+              hideLabel={command.hideLabel}
+              tone={command.tone}
+              role={command.role}
+              disabled={command.disabled}
+              onPress={command.onPress}
+              testID={command.testID}
+            />
+          )}
+        </Fragment>
       ))}
     </Row>
   );
 }
 
-/** The commands that asked to live behind the ellipsis, or were folded there. */
+/**
+ * The commands that asked to live behind the ellipsis, or were folded there.
+ * With no entries to show, no commands or only menus with none, there is no
+ * ellipsis: it would open on nothing.
+ */
 function Overflow({commands}: {commands: ToolbarCommand[]}) {
-  if (commands.length === 0) return null;
+  const items = overflowItems(commands);
+  if (items.length === 0) return null;
   return (
     <Menu
       label="More"
@@ -186,14 +219,7 @@ function Overflow({commands}: {commands: ToolbarCommand[]}) {
       variant="text"
       size={TOOL.size}
       iconSize={TOOL.iconSize}
-      items={commands.map(command => ({
-        label: command.label,
-        icon: command.icon,
-        role: command.role,
-        disabled: command.disabled,
-        separator: command.separator,
-        onPress: command.onPress,
-      }))}
+      items={items}
     />
   );
 }

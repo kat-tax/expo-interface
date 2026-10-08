@@ -69,21 +69,36 @@ way.
 present natively mount a host of their own only when there is none:
 
 - `Button`, `Menu`, `IconToggle`, `Switch`, `SegmentedControl`, `Divider`,
-  `ListItem`, `Alert` and `Spinner` check, so they can be rendered anywhere.
+  `ListItem`, `Alert`, `Spinner` and `EmptyState` check, so they can be rendered anywhere.
   A control sized to itself (a button, a switch with no label) gets a host
   of its own size; one that fills its width (a row with a label, a
-  horizontal divider, a list row) gets a host as wide as its container and
+  horizontal divider, a list row, an empty state) gets a host as wide as its container and
   as tall as itself; a vertical divider gets one as tall as its row. Inside
-  a `FieldGroup`, a `Screen native`, a `NativeHost` or a `Sheet` they render
-  bare.
-- `PopupMenu`, `Fab` (iOS and Android), `ShareLink` (iOS) and `EmptyState`
+  a `FieldGroup`, a `Screen native`, a `NativeHost` or a `Sheet`'s native
+  content they render bare.
+- `PopupMenu`, `Fab` (iOS and Android) and `ShareLink` (iOS)
   mount one where they need it.
 - `Toast` and `Toolbar` do the same for their native parts.
-- A `Sheet`'s content counts as hosted, so controls inside it render bare.
+- `List` (iOS and Android) mounts one that fills the screen, and none while
+  it shows its `empty` content: that sits in the list's own view, so an
+  `EmptyState` in it mounts its own.
+- A `Sheet`'s bar, accessory and uncapped body count as hosted, so controls
+  there render bare. On iOS and Android its capped body and its footer are
+  React Native content hosted in an `RNHostView`, where controls mount a
+  host of their own; on web and Windows they count as hosted too.
+
+`Badge` needs no host. On Android it is Compose's Material `Badge` inside one
+and is drawn in React Native to the same geometry outside one; iOS draws it
+everywhere. A badge in a row of the app's own measures like any view.
 
 You rarely call `useNativeHost()` yourself. It is there for a component of
 your own that wraps `@expo/ui` content and has to work both inside and outside
 a host.
+
+It answers true below a `NativeHost`, a `Screen native` and the part of a
+`Sheet` that counts as hosted. Below an `@expo/ui` `Host` of your own it
+answers false, so kit components there act as they do in a React Native
+layout: group them in a `NativeHost` instead.
 
 ## On web and Windows
 

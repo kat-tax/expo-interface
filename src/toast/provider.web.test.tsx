@@ -37,4 +37,16 @@ describe('ToastProvider (web)', () => {
     });
     expect(screen.queryByRole('status')).toBeNull();
   });
+
+  it('stands its toast on the area\'s edge outside a safe-area provider', () => {
+    render(<ToastProvider><Hand/></ToastProvider>);
+    act(() => {
+      toasts.show('Copied');
+    });
+    const floor = getComputedStyle(screen.getByTestId('toast-floor'));
+    expect(floor.position).toBe('absolute');
+    expect(floor.bottom).toBe('0px');
+    // Only the toast in it takes presses.
+    expect(floor.pointerEvents).toBe('none');
+  });
 });

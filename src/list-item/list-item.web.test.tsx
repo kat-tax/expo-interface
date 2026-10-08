@@ -32,6 +32,16 @@ describe('ListItem (web)', () => {
     expect(main.children[1]).toHaveTextContent('Connected');
   });
 
+  it('keeps the supporting text\'s line breaks', async () => {
+    render(<ListItem supporting={'Edited yesterday\nShared with Ana'} testID="row">Essay</ListItem>);
+    expect(screen.getByTestId('row').querySelector('.ui-list-item__supporting')!.textContent).toBe('Edited yesterday\nShared with Ana');
+    // The project does not apply imported stylesheets, so the rule is read from the file.
+    const {readFileSync} = await import('node:fs');
+    const {join} = await import('node:path');
+    const css = readFileSync(join(__dirname, 'list-item.css'), 'utf8');
+    expect(css).toMatch(/\.ui-list-item__supporting \{[^}]*white-space: pre-line;/);
+  });
+
   it('accepts rich supporting content', () => {
     render(<ListItem supporting={<em data-testid="rich">Rich</em>}>Head</ListItem>);
     expect(screen.getByTestId('rich')).toHaveTextContent('Rich');

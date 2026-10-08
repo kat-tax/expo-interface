@@ -102,12 +102,14 @@ describe('Alert (web)', () => {
         message="A name for the document."
         visible
         testID="alert"
-        input={{placeholder: 'Name', value: 'Essay', onChangeText, autoFocus: false, testID: 'name'}}
+        input={{placeholder: 'Name', value: 'Essay', onChangeText, autoCorrect: false, autoFocus: false, testID: 'name'}}
         actions={[{label: 'Cancel', role: 'cancel'}, {label: 'Rename', onPress: onRename}]}
       />,
     );
     const field = within(dialog()).getByRole('textbox', {name: 'Name'});
     expect(field).toHaveValue('Essay');
+    expect(field).toHaveAttribute('autocorrect', 'off');
+    expect(field).toHaveAttribute('spellcheck', 'false');
     expect(field.parentElement).toHaveClass('ui-alert__field');
     expect(document.activeElement).not.toBe(field);
     fireEvent.change(field, {target: {value: 'Essay 2'}});
@@ -115,6 +117,37 @@ describe('Alert (web)', () => {
     fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
     expect(onRename).toHaveBeenCalledTimes(1);
     expect(close).toHaveBeenCalled();
+  });
+
+  it('greys out a disabled action, which neither a click nor Enter presses, until it is enabled', () => {
+    const onRename = vi.fn();
+    const actions = (disabled: boolean): AlertAction[] => [{label: 'Cancel', role: 'cancel'}, {label: 'Rename', disabled, onPress: onRename}];
+    const {rerender} = render(<Alert title="Rename" visible testID="alert" input={{placeholder: 'Name', value: ''}} actions={actions(true)}/>);
+    const rename = screen.getByRole('button', {name: 'Rename'});
+    expect(rename).toBeDisabled();
+    expect(screen.getByRole('button', {name: 'Cancel'})).toBeEnabled();
+    const closes = close.mock.calls.length;
+    fireEvent.click(rename);
+    expect(onRename).not.toHaveBeenCalled();
+    expect(close).toHaveBeenCalledTimes(closes);
+    const field = within(dialog()).getByRole('textbox', {name: 'Name'});
+    vi.useFakeTimers();
+    try {
+      field.focus();
+      fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
+      // react-native-web blurs a one-line field a moment after Enter unless told not to: the user keeps typing.
+      vi.advanceTimersByTime(1);
+      expect(document.activeElement).toBe(field);
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(onRename).not.toHaveBeenCalled();
+    expect(close).toHaveBeenCalledTimes(closes);
+    rerender(<Alert title="Rename" visible testID="alert" input={{placeholder: 'Name', value: 'Essay'}} actions={actions(false)}/>);
+    expect(screen.getByRole('button', {name: 'Rename'})).toBeEnabled();
+    fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
+    expect(onRename).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledTimes(closes + 1);
   });
 
   it('focuses the field as the alert opens, and does nothing on Enter with only a cancel', () => {
@@ -158,6 +191,18 @@ describe('Alert (web)', () => {
     expect(dialog()).not.toHaveAttribute('open');
   });
 
+  it('reports nothing when the app closes it, and the user\'s next dismissal again', () => {
+    const onDismiss = vi.fn();
+    const {rerender} = render(<Alert title="Hi" visible onDismiss={onDismiss} testID="alert"/>);
+    const closes = close.mock.calls.length;
+    rerender(<Alert title="Hi" visible={false} onDismiss={onDismiss} testID="alert"/>);
+    expect(close).toHaveBeenCalledTimes(closes + 1);
+    expect(onDismiss).not.toHaveBeenCalled();
+    rerender(<Alert title="Hi" visible onDismiss={onDismiss} testID="alert"/>);
+    fireEvent(dialog(), new Event('close'));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
   it('reports the dismissal when the dialog closes on its own (Escape)', () => {
     const onDismiss = vi.fn();
     render(<Alert title="Hi" visible onDismiss={onDismiss} testID="alert"/>);
@@ -171,6 +216,17 @@ describe('Alert (web)', () => {
     expect(close).not.toHaveBeenCalled();
     fireEvent.click(dialog());
     expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it('is dismissed by Escape and the backdrop with its cancel action disabled', () => {
+    const onDismiss = vi.fn();
+    const onCancel = vi.fn();
+    render(<Alert title="Hi" visible onDismiss={onDismiss} testID="alert" actions={[{label: 'Cancel', role: 'cancel', disabled: true, onPress: onCancel}, {label: 'Rename', disabled: true}]}/>);
+    fireEvent(dialog(), new Event('close'));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    fireEvent.click(dialog());
+    expect(onDismiss).toHaveBeenCalledTimes(2);
+    expect(onCancel).not.toHaveBeenCalled();
   });
 
   it('keeps the accessible name without a testID and omits a missing message', () => {

@@ -1,9 +1,10 @@
 import type {ToastApi} from './provider';
 import {useContext, useEffect} from 'react';
-import {Text} from 'react-native';
+import {StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {setInsets} from 'vitest-native/helpers';
 import {spacing} from '../theme';
-import {AppToastInsetContext} from './context';
+import {AppToastInsetContext, useAppToastFloor} from './context';
 import {ToastProvider, useToast} from './provider';
 
 /** Hands the provider's toasts to the test, and shows what it says the toast covers. */
@@ -15,6 +16,12 @@ function Hand() {
     toasts = api;
   });
   return <Text testID="covered">{String(covered)}</Text>;
+}
+
+/** A bar along the bottom edge under the provider, as the native tab bar is: reports what it takes of the edge. */
+function Bar({height}: {height: number}) {
+  useAppToastFloor(height);
+  return null;
 }
 
 describe('ToastProvider (ios)', () => {
@@ -75,5 +82,24 @@ describe('ToastProvider (ios)', () => {
       toasts.dismiss();
     });
     expect(screen.getByTestId('covered')).toHaveTextContent('0');
+  });
+
+  it('stands its toast on the bottom safe area and on what a bar under it reports', async () => {
+    await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 34}));
+    try {
+      const {rerender} = await render(<ToastProvider><Bar height={50}/><Hand/></ToastProvider>);
+      await act(async () => {
+        toasts.show('Copied');
+      });
+      // The area above the home indicator and the bar, whose foot the toast's own slot sits at.
+      const floor = () => StyleSheet.flatten(screen.getByTestId('toast-floor').props.style);
+      expect(floor()).toMatchObject({position: 'absolute', top: 0, left: 0, right: 0, bottom: 34 + 50, pointerEvents: 'box-none'});
+      expect(screen.getByText('Copied')).toBeOnTheScreen();
+      // The bar goes (hidden tabs report nothing), and the toast comes down to the safe area.
+      await rerender(<ToastProvider><Hand/></ToastProvider>);
+      expect(floor().bottom).toBe(34);
+    } finally {
+      await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 0}));
+    }
   });
 });

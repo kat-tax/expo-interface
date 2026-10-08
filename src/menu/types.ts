@@ -9,9 +9,16 @@ export interface MenuItem {
   /** Leading icon. */
   icon?: IconToken;
   /**
-   * A color dot (`#rrggbb`) in place of the icon, for a palette. Drawn on
-   * Android and web; iOS menus render images monochrome, so the dot is not
-   * shown there.
+   * A color dot (`#rrggbb`) in place of the icon, for a palette. Android,
+   * web and Windows draw it as a colored circle, and so does iOS's
+   * `PopupMenu`, whose rows the kit draws. A SwiftUI `Menu` draws a symbol
+   * in the menu's tint but keeps an image's colors, so on iOS the kit writes
+   * the dot once per color into the app's cache through `expo-file-system`
+   * and hands the menu the image; without the module the dot is a symbol,
+   * which the menu draws monochrome. A `HeaderMenu` in a native stack
+   * header (on iOS, and on Android when its icon has an Android drawable)
+   * draws no dot: its entries are Expo Router `Stack.Toolbar` menu actions,
+   * which the kit gives no swatch.
    */
   swatch?: string;
   /**
@@ -44,7 +51,11 @@ export interface MenuItem {
    * ignore it.
    */
   shortcut?: string;
-  /** Called when the item is selected; the menu then closes. */
+  /**
+   * Called when the item is selected. A close the menu reports
+   * (`onOpenChange(false)`, a `ContextMenu`'s `onDismiss`, a `PopupMenu`'s
+   * `onDismiss('select')`) comes after it on every platform.
+   */
   onPress?: () => void;
 }
 
@@ -74,9 +85,9 @@ export interface MenuProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape
   trigger?: MenuTrigger;
   /**
    * Called when the menu opens and when it closes. Reported on Android (the
-   * kit owns the `DropdownMenu`'s expanded state) and on web (the popover's
-   * `toggle` event); SwiftUI's `Menu` and `contextMenu` have no presentation
-   * binding, so iOS never reports it.
+   * kit owns the `DropdownMenu`'s expanded state), on web (the popover's
+   * `toggle` event) and on Windows (the `MenuFlyout` opening and closing);
+   * SwiftUI's `Menu` has no presentation binding, so iOS never reports it.
    */
   onOpenChange?: (open: boolean) => void;
   /** Identifier used to locate the trigger in end-to-end tests. */
@@ -152,18 +163,20 @@ export interface ContextMenuProps {
    * Opens the menu at this point whenever it changes, so a canvas can open
    * it where it says it was asked for (a right click it received itself, a
    * press on a block's grip). Relative to the content's top-left corner on
-   * Android and web (web also accepts viewport coordinates for content that
-   * fills it). iOS has no menu at a point: the long-press stays the only
-   * trigger there. Pair with `onDismiss` to clear it once the menu closes.
+   * Android, web and Windows (web also accepts viewport coordinates for
+   * content that fills it). iOS has no menu at a point: the long-press stays
+   * the only trigger there. Pair with `onDismiss` to clear it once the menu
+   * closes.
    */
   at?: MenuPoint | null;
   /** Called when a menu opened by `at` (or a gesture) closes. */
   onDismiss?: () => void;
   /**
    * Called when the menu opens and when it closes. Reported on Android (the
-   * kit owns the `DropdownMenu`'s expanded state) and on web (the popover's
-   * `toggle` event); SwiftUI's `Menu` and `contextMenu` have no presentation
-   * binding, so iOS never reports it.
+   * kit owns the `DropdownMenu`'s expanded state), on web (the popover's
+   * `toggle` event) and on Windows (the `MenuFlyout` opening and closing);
+   * SwiftUI's `contextMenu` and `Menu` have no presentation binding, so iOS
+   * never reports it.
    */
   onOpenChange?: (open: boolean) => void;
   /** Identifier used to locate the trigger in end-to-end tests. */
