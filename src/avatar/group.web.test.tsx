@@ -61,4 +61,12 @@ describe('AvatarGroup (web)', () => {
     expect(screen.getAllByRole('img')).toHaveLength(3);
     expect(screen.queryByRole('button')).toBeNull();
   });
+
+  it('names a face with an empty label by the name, and describes one with an empty hint by nothing', () => {
+    const {container} = render(<AvatarGroup people={[{name: 'Ada Lovelace', label: '', hint: ''}]} onPress={() => {}}/>);
+    const ada = screen.getByRole('button', {name: 'Ada Lovelace'});
+    expect(ada).toHaveAttribute('aria-label', 'Ada Lovelace');
+    expect(ada).not.toHaveAttribute('aria-describedby');
+    expect(container.querySelector('[id]')).toBeNull();
+  });
 });

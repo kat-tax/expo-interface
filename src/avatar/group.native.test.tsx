@@ -104,4 +104,13 @@ describe(`AvatarGroup (${Platform.OS})`, () => {
     expect(screen.getByLabelText('Alan Turing')).not.toBeSelected();
     expect(screen.queryByRole('button')).toBeNull();
   });
+
+  it('names a face with an empty label by the name, and gives one with an empty hint none', async () => {
+    await render(<AvatarGroup people={[{name: 'Ada Lovelace', label: '', hint: ''}]} onPress={() => {}}/>);
+    const ada = screen.getByRole('button', {name: 'Ada Lovelace'});
+    expect(ada.props.accessibilityLabel).toBe('Ada Lovelace');
+    expect(ada.props.accessibilityHint).toBeUndefined();
+    await render(<AvatarGroup people={[{name: 'Ada Lovelace', label: ''}]}/>);
+    expect(screen.getByLabelText('Ada Lovelace').props.accessibilityLabel).toBe('Ada Lovelace');
+  });
 });

@@ -29,15 +29,17 @@ const PICTURE = WEB ? {role: 'img' as const} : null;
 
 /**
  * What a face says: the person's label (their name unless told otherwise),
- * the hint read after it, and whether they are the selected one. Only a
- * selected face says so: on Windows any `selected` value, `false` included,
- * makes the element selectable.
+ * the hint read after it, and whether they are the selected one. An empty
+ * label is the name and an empty hint is none, so `label: here ? '...' : ''`
+ * never leaves a face nameless or described by nothing. Only a selected face
+ * says so: on Windows any `selected` value, `false` included, makes the
+ * element selectable.
  */
 function announcement({name, label, hint, selected}: AvatarGroupPerson, hintId: string) {
   const state = WEB
-    ? {'aria-current': selected ? true : undefined, 'aria-describedby': hint != null ? hintId : undefined}
+    ? {'aria-current': selected ? true : undefined, 'aria-describedby': hint ? hintId : undefined}
     : {'aria-selected': selected ? true : undefined};
-  return {accessibilityLabel: label ?? name, accessibilityHint: hint, ...state};
+  return {accessibilityLabel: label || name, accessibilityHint: hint || undefined, ...state};
 }
 
 /**
@@ -93,7 +95,7 @@ export function AvatarGroup({people, max = 3, size = 24, ring = 'background', on
                 {face}
               </Pressable>
             ) : face}
-            {WEB && person.hint != null ? <Text id={hintId} style={styles.hidden}>{person.hint}</Text> : null}
+            {WEB && person.hint ? <Text id={hintId} style={styles.hidden}>{person.hint}</Text> : null}
           </View>
         );
       })}

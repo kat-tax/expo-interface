@@ -121,7 +121,8 @@ A face is a button named for the person when the group is told what a press
 or a press and hold does, and the count a button named "3 more" with
 `onPressMore`. A person's `label` names the face in place of the name, and
 `hint` is read after it: what a press or a press and hold does, or more
-about the person when the group does not press. The hint is an
+about the person when the group does not press. An empty label is the name
+and an empty hint is none. The hint is an
 accessibility hint on iOS and Android, the help text on Windows and the
 description on web.
 `selected` announces the face as selected (on web as the current one, since

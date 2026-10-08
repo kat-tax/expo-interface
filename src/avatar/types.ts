@@ -41,7 +41,8 @@ export interface AvatarGroupPerson extends Pick<AvatarProps, 'name' | 'initials'
   key?: string;
   /**
    * What assistive technology calls the face, when it says more than the
-   * name: "Follow Ada, on Notes". Defaults to `name`.
+   * name: "Follow Ada, on Notes". An empty label is the name as well.
+   * @default the name
    */
   label?: string;
   /**
@@ -49,7 +50,7 @@ export interface AvatarGroupPerson extends Pick<AvatarProps, 'name' | 'initials'
    * group presses ("Hold to go there once, without following"), or more
    * about the person when it does not ("Editing the outline"). The
    * accessibility hint on iOS and Android, the help text on Windows, the
-   * description on web.
+   * description on web. An empty hint is none.
    */
   hint?: string;
   /**
