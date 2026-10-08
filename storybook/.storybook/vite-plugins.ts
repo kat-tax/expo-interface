@@ -60,3 +60,25 @@ export function materialSymbolsFont(configDir: string): Plugin {
     },
   };
 }
+
+/**
+ * vite-plugin-rnw runs vite-plugin-commonjs over every file outside
+ * `node_modules`, and it hoists each `require` into an `import`. The kit's
+ * source is ES modules whose only requires load its optional peers inside a
+ * `try` (`expo-haptics`). Hoisted, a peer the Storybook does not install
+ * throws as the module graph loads, since Vite stands a throwing module in
+ * for a missing optional peer. Left as written, the require fails in the
+ * browser, the `try` catches it, and the kit goes on without the peer, as an
+ * app without it does.
+ */
+export function leaveKitSource(plugin: Plugin, configDir: string): Plugin {
+  const transform = plugin.transform;
+  if (typeof transform !== 'function') return plugin;
+  const source = `${path.resolve(configDir, '../../src').split(path.sep).join('/')}/`;
+  return {
+    ...plugin,
+    transform(code, id, options) {
+      return id.startsWith(source) ? null : transform.call(this, code, id, options);
+    },
+  };
+}

@@ -3,7 +3,7 @@ import type {Plugin, PluginOption} from 'vite';
 import path from 'node:path';
 import remarkGfm from 'remark-gfm';
 import {EXPO_WEB_PACKAGES, metroCompat} from 'expo-vitest/metro-compat';
-import {MATERIAL_SYMBOLS_URL, materialSymbolsFont, reactNativeShim} from './vite-plugins.ts';
+import {MATERIAL_SYMBOLS_URL, leaveKitSource, materialSymbolsFont, reactNativeShim} from './vite-plugins.ts';
 
 /**
  * Web Storybook: Vite + react-native-web, so the docs site gets the full
@@ -39,7 +39,11 @@ const main: StorybookConfig = {
     const {mergeConfig} = await import('vite');
     // The framework registers `vite-tsconfig-paths`; Vite 8 resolves tsconfig
     // `paths` natively and warns about the plugin, so swap it for the option.
-    const plugins = (await flattenPlugins(config.plugins)).filter(plugin => plugin.name !== 'vite-tsconfig-paths');
+    // vite-plugin-rnw's CommonJS transform stays off the kit's source (see
+    // `leaveKitSource`).
+    const plugins = (await flattenPlugins(config.plugins))
+      .filter(plugin => plugin.name !== 'vite-tsconfig-paths')
+      .map(plugin => (plugin.name === 'vite-plugin-commonjs' ? leaveKitSource(plugin, configDir) : plugin));
     return mergeConfig({...config, plugins}, {
       resolve: {
         tsconfigPaths: true,
