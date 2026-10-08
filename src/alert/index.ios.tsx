@@ -2,7 +2,7 @@ import type {AlertProps} from './types';
 
 import {StyleSheet} from 'react-native';
 import {Alert as SwiftUIAlert, Button, ConfirmationDialog, Spacer, Text} from '@expo/ui/swift-ui';
-import {frame} from '@expo/ui/swift-ui/modifiers';
+import {disabled as disabledMod, frame} from '@expo/ui/swift-ui/modifiers';
 import {NativeHost, useNativeHost} from '../host';
 import {TextField} from '../text-field';
 import {DEFAULT_ACTIONS} from './shared';
@@ -36,7 +36,8 @@ const styles = StyleSheet.create({
  * slot holds `children` or, when none is given, a zero-size `Spacer` anchor.
  * Action buttons carry their SwiftUI role (`cancel` bold / `destructive` red)
  * and dismiss automatically; the presented-state change then reports
- * `onDismiss`. A field goes among the actions, which is where SwiftUI's
+ * `onDismiss`. A disabled action is greyed out by SwiftUI's `disabled`, and
+ * takes no press. A field goes among the actions, which is where SwiftUI's
  * alert takes one.
  */
 function SwiftUIAlertView({title, message, visible, onDismiss, actions = DEFAULT_ACTIONS, sheet, input, children, testID}: AlertProps) {
@@ -79,6 +80,7 @@ function SwiftUIAlertView({title, message, visible, onDismiss, actions = DEFAULT
             label={action.label}
             role={action.role ?? 'default'}
             onPress={action.onPress}
+            modifiers={action.disabled ? [disabledMod(true)] : undefined}
           />
         ))}
       </Component.Actions>

@@ -12,8 +12,9 @@ import {DEFAULT_ACTIONS, defaultAction, splitActions} from './shared';
  * in the top layer with a backdrop, traps focus, and closes on Escape.
  * Actions render as the kit's text buttons; `sheet` anchors the dialog to
  * the bottom edge with the actions stacked, like an iOS action sheet. A
- * field goes under the message, and Enter in it presses the first action
- * that is not the cancel.
+ * disabled action is a disabled `<button>`, which the dialog's first focus
+ * passes over. A field goes under the message, and Enter in it presses the
+ * first action that is not the cancel, unless that action is disabled.
  */
 export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACTIONS, sheet, input, children, testID}: AlertProps) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -50,6 +51,7 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
           {message ? <Body color="secondaryLabel">{message}</Body> : null}
           {input && !sheet ? (
             <div className="ui-alert__field">
+              {/* Enter keeps the focus in the field: the alert closes on a press, and a disabled action leaves the user typing. */}
               <TextField
                 variant="bare"
                 placeholder={input.placeholder}
@@ -60,6 +62,7 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
                 autoCapitalize={input.autoCapitalize}
                 autoCorrect={input.autoCorrect}
                 autoFocus={input.autoFocus ?? true}
+                submitBehavior="submit"
                 onSubmit={submit}
                 testID={input.testID}
               />
@@ -73,6 +76,7 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
               label={action.label}
               variant={sheet ? 'outlined' : 'text'}
               role={action.role === 'destructive' ? 'destructive' : 'default'}
+              disabled={action.disabled}
               onPress={() => {
                 action.onPress?.();
                 ref.current?.close();

@@ -42,8 +42,9 @@ const styles = StyleSheet.create({
  * remaining actions share the confirm slot as a row of text buttons (a
  * column with `sheet`, mirroring the stacked iOS action sheet). Buttons are
  * tinted with the live accent seed so they follow a user-supplied accent even
- * when the native host is not seeded. A field goes under the message, in
- * the dialog's text slot.
+ * when the native host is not seeded. A disabled action's button is
+ * disabled, in Material's disabled color, and takes no press. A field goes
+ * under the message, in the dialog's text slot.
  */
 function AlertDialogView({title, message, visible, onDismiss, actions = DEFAULT_ACTIONS, sheet, input, testID}: AlertProps) {
   const colors = useMaterialColors();
@@ -97,6 +98,7 @@ function AlertDialogView({title, message, visible, onDismiss, actions = DEFAULT_
                 variant="text"
                 color={action.role === 'destructive' ? undefined : tint}
                 role={action.role === 'destructive' ? 'destructive' : 'default'}
+                disabled={action.disabled}
                 onPress={press(action)}
               />
             ))}
@@ -105,7 +107,7 @@ function AlertDialogView({title, message, visible, onDismiss, actions = DEFAULT_
       ) : null}
       {cancel ? (
         <AlertDialog.DismissButton>
-          <Button label={cancel.label} variant="text" color={tint} onPress={press(cancel)}/>
+          <Button label={cancel.label} variant="text" color={tint} disabled={cancel.disabled} onPress={press(cancel)}/>
         </AlertDialog.DismissButton>
       ) : null}
     </AlertDialog>

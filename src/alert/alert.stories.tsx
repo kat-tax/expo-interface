@@ -117,14 +117,15 @@ function Rename({onDismiss}: Pick<AlertProps, 'onDismiss'>) {
       <Alert
         title="Rename drop"
         visible={open}
-        input={{placeholder: 'Name', value: draft, onChangeText: setDraft, autoCapitalize: 'words'}}
+        input={{placeholder: 'Name', value: draft, onChangeText: setDraft, autoCapitalize: 'words', autoCorrect: false}}
         onDismiss={() => {
           setOpen(false);
           onDismiss?.();
         }}
         actions={[
           {label: 'Cancel', role: 'cancel'},
-          {label: 'Rename', onPress: () => setName(draft.trim() || name)},
+          // Waits for a name: greyed out while the field is empty.
+          {label: 'Rename', disabled: draft.trim() === '', onPress: () => setName(draft.trim())},
         ]}>
         <Button
           label="Rename"

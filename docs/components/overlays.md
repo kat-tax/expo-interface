@@ -218,8 +218,8 @@ announced sets `accessibilityHint` on the control itself.
 
 A modal dialog, or an action sheet, with a title, a message, a field and
 actions. Props: `title`, `message`, `visible`, `onDismiss`, `actions`
-(`label`, `role` `default`, `cancel` or `destructive`, `onPress`; defaults
-to one OK), `input` (a text field for the one-field prompts, a name for a
+(`label`, `role` `default`, `cancel` or `destructive`, `onPress`,
+`disabled`; defaults to one OK), `input` (a text field for the one-field prompts, a name for a
 new thing or a rename: `placeholder`, `value`, `onChangeText`,
 `secureTextEntry`, `keyboardType`, `autoCapitalize`, `autoCorrect`,
 default true, `autoFocus`, default true, `testID`), `sheet`, `children` (an optional trigger rendered in place),
@@ -235,9 +235,14 @@ anywhere.
 
 `sheet` has no Windows form; a dialog is drawn either way, and an action
 sheet holds no field on any platform. The field is controlled through
-`value` and `onChangeText`, so the action that reads it has it; on web and
+`value` and `onChangeText`, so the action that reads it has it, and an
+action that waits for a value is `disabled` until it has one: greyed out,
+it takes no press, and the alert can still be dismissed while its cancel
+action is enabled. On web and
 Windows the keyboard's action key presses the first action that is not
-`cancel`.
+`cancel`, and nothing while that action is disabled. On Windows a change
+to the actions while the dialog is open updates each button's label and
+whether it takes presses; the buttons are arranged as it opens.
 
 ## Sheet
 

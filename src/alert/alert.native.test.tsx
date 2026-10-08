@@ -186,6 +186,33 @@ describe(`Alert (${Platform.OS})`, () => {
     }
   });
 
+  it('greys out a disabled action, which takes no press', async () => {
+    await render(
+      <Alert
+        title="Rename"
+        visible
+        testID="alert"
+        actions={[
+          {label: 'Cancel', role: 'cancel', disabled: true, onPress: vi.fn()},
+          {label: 'Rename', disabled: true, onPress: vi.fn()},
+          {label: 'Keep', onPress: vi.fn()},
+        ]}
+      />,
+    );
+    if (isIOS) {
+      expect(children(slot('actions')).map(b => modifier(b.props, 'disabled'))).toEqual([
+        {$type: 'disabled', disabled: true},
+        {$type: 'disabled', disabled: true},
+        undefined,
+      ]);
+    } else {
+      // A disabled Material button, with no press handler at all.
+      const state = (name: string) => buttonsIn(name).map(b => [b.label, b.props.enabled, typeof b.props.onButtonPressed]);
+      expect(state('confirmButton')).toEqual([['Rename', false, 'undefined'], ['Keep', true, 'function']]);
+      expect(state('dismissButton')).toEqual([['Cancel', false, 'undefined']]);
+    }
+  });
+
   it('puts a field where the platform\'s alert takes one: among the actions on iOS, under the message on Android', async () => {
     const onChangeText = vi.fn();
     await render(

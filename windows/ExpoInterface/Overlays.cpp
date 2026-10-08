@@ -32,12 +32,13 @@ controls::Grid MakeAnchor() noexcept {
   return anchor;
 }
 
-/** A button drawn as text alone, in a color: the actions of a flyout. */
+/** A button drawn as text alone, in a color: the actions of a flyout. Disabled, it is still text alone. */
 controls::Button MakeTextButton(const std::string &label, Color color) noexcept {
   controls::Button button;
   button.Content(winrt::box_value(ToHString(label)));
   auto resources = button.Resources();
-  for (auto key : {L"ButtonBackground", L"ButtonBorderBrush", L"ButtonBorderBrushPointerOver", L"ButtonBorderBrushPressed"}) {
+  for (auto key : {L"ButtonBackground", L"ButtonBorderBrush", L"ButtonBorderBrushPointerOver", L"ButtonBorderBrushPressed",
+                   L"ButtonBackgroundDisabled", L"ButtonBorderBrushDisabled"}) {
     resources.Insert(winrt::box_value(key), Brush(Color{0, 0, 0, 0}));
   }
   for (auto key : {L"ButtonForeground", L"ButtonForegroundPointerOver", L"ButtonForegroundPressed"}) {
@@ -237,6 +238,8 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       Show();
     } else if (!props->open && m_popup) {
       Close(-1);
+    } else if (m_popup && props->actions != m_actions) {
+      Refresh(props->actions);
     }
   }
 
@@ -249,7 +252,32 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
     int32_t index;
     std::string label;
     bool destructive;
+    bool disabled;
   };
+
+  /** A button on the open dialog and the index of the action it stands for. */
+  struct Placed {
+    int32_t index;
+    controls::Button button;
+  };
+
+  /**
+   * A change to the actions while the dialog is open: each button takes its
+   * action's new label and whether it takes presses, by index. The
+   * arrangement is fixed when the dialog opens.
+   */
+  void Refresh(const std::string &json) noexcept {
+    m_actions = json;
+    auto entries = ParseArray(json);
+    for (auto &[index, button] : m_buttons) {
+      if (index < 0 || static_cast<uint32_t>(index) >= entries.Size()) continue;
+      auto value = entries.GetAt(static_cast<uint32_t>(index));
+      if (value.ValueType() != JsonValueType::Object) continue;
+      auto entry = value.GetObject();
+      button.Content(winrt::box_value(ToHString(JsonString(entry, L"label"))));
+      button.IsEnabled(!JsonBool(entry, L"disabled"));
+    }
+  }
 
   /** The app window's client area as popup offsets from the anchor and a size, in DIPs. */
   bool WindowFrame(const xaml::XamlRoot &root, double &offsetX, double &offsetY, double &width, double &height) noexcept {
@@ -324,6 +352,8 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
     }
     m_retries = 0;
 
+    m_actions = props->actions;
+    m_buttons.clear();
     std::vector<Action> others;
     std::optional<Action> cancel;
     int32_t index = 0;
@@ -332,7 +362,7 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       if (value.ValueType() != JsonValueType::Object) continue;
       auto entry = value.GetObject();
       const auto role = JsonString(entry, L"role");
-      Action action{current, JsonString(entry, L"label"), role == "destructive"};
+      Action action{current, JsonString(entry, L"label"), role == "destructive", JsonBool(entry, L"disabled")};
       if (role == "cancel" && !cancel) cancel = action;
       else others.push_back(action);
     }
@@ -386,9 +416,11 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       for (size_t i = 2; i < others.size(); ++i) {
         auto button = MakeTextButton(others[i].label, others[i].destructive ? Critical(dark) : accent);
         const int32_t picked = others[i].index;
+        button.IsEnabled(!others[i].disabled);
         button.Click([weak = get_weak(), picked](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
           if (auto strong = weak.get()) strong->Close(picked);
         });
+        m_buttons.push_back({picked, button});
         extra.Children().Append(button);
       }
       body.Children().Append(extra);
@@ -399,6 +431,7 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
     row.Padding({24, 24, 24, 24});
     row.ColumnSpacing(8);
     controls::Button first{nullptr};
+    controls::Button firstEnabled{nullptr};
     auto place = [&](const controls::Button &button) {
       controls::ColumnDefinition column;
       column.Width(xaml::GridLength{1, xaml::GridUnitType::Star});
@@ -406,6 +439,7 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       controls::Grid::SetColumn(button, static_cast<int32_t>(row.ColumnDefinitions().Size() - 1));
       row.Children().Append(button);
       if (!first) first = button;
+      if (!firstEnabled && button.IsEnabled()) firstEnabled = button;
     };
     for (size_t i = 0; i < others.size() && i < 2; ++i) {
       const bool destructive = others[i].destructive;
@@ -414,17 +448,21 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
         OverrideBrushes(button, {L"ButtonForeground", L"ButtonForegroundPointerOver", L"ButtonForegroundPressed"}, Critical(dark));
       }
       const int32_t picked = others[i].index;
+      button.IsEnabled(!others[i].disabled);
       button.Click([weak = get_weak(), picked](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
         if (auto strong = weak.get()) strong->Close(picked);
       });
+      m_buttons.push_back({picked, button});
       place(button);
     }
     if (cancel) {
       auto button = MakeDialogButton(cancel->label, false, accent, dark);
       const int32_t picked = cancel->index;
+      button.IsEnabled(!cancel->disabled);
       button.Click([weak = get_weak(), picked](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
         if (auto strong = weak.get()) strong->Close(picked);
       });
+      m_buttons.push_back({picked, button});
       place(button);
     }
 
@@ -491,10 +529,14 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       m_popup = nullptr;
       return;
     }
-    if (first) {
+    // The first action is the default button. A disabled one cannot take the
+    // focus, so the React body takes it (the field the action waits on), or
+    // the first button that can, as ContentDialog leaves the focus to its
+    // content when its default button is disabled.
+    if (first && first.IsEnabled()) {
       first.Focus(xaml::FocusState::Programmatic);
     } else if (hasSlot) {
-      // No button of its own: the keyboard goes to the React body, through the
+      // No button to take it: the keyboard goes to the React body, through the
       // portal's tab stop in the slot, once the portal has put it there.
       m_focus = winrt::Microsoft::UI::Dispatching::DispatcherQueue::GetForCurrentThread().CreateTimer();
       m_focus.Interval(std::chrono::milliseconds(150));
@@ -505,6 +547,8 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
         }
       });
       m_focus.Start();
+    } else if (firstEnabled) {
+      firstEnabled.Focus(xaml::FocusState::Programmatic);
     }
   }
 
@@ -521,6 +565,8 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
       UnregisterSlot(m_slotName);
       m_slotName.clear();
     }
+    m_buttons.clear();
+    m_actions.clear();
     const int32_t picked = m_picked < 0 ? m_cancel : m_picked;
     if (auto emitter = EventEmitter()) {
       Codegen::ExpoInterfaceContentDialogEventEmitter::OnClose event;
@@ -535,6 +581,9 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
   winrt::Microsoft::UI::Dispatching::DispatcherQueueTimer m_focus{nullptr};
   int m_retries{0};
   std::string m_slotName;
+  // The actions the open dialog was built or last refreshed from, and its buttons.
+  std::string m_actions;
+  std::vector<Placed> m_buttons;
   int32_t m_cancel{-1};
   int32_t m_picked{-1};
 };

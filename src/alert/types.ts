@@ -42,6 +42,13 @@ export interface AlertAction {
    * @default 'default'
    */
   role?: AlertActionRole;
+  /**
+   * Greys the action out and ignores presses: an action that waits for a
+   * value, a Rename while the name is empty. The keyboard's action key in
+   * the field does not press it either, and the alert can still be
+   * dismissed while its cancel action is enabled.
+   */
+  disabled?: boolean;
   /** Called when the action is pressed; the alert then closes. */
   onPress?: () => void;
 }
@@ -79,8 +86,8 @@ export interface AlertProps {
    * with a `TextField` among its actions, Compose's `AlertDialog` with one
    * under the message, a field in the web dialog and one in the WinUI
    * dialog's body. On web and Windows the keyboard's action key presses the
-   * first action that is not `cancel`. An action sheet (`sheet`) holds no
-   * field.
+   * first action that is not `cancel`, and nothing while that action is
+   * disabled. An action sheet (`sheet`) holds no field.
    */
   input?: AlertInput;
   /**

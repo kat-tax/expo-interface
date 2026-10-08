@@ -119,6 +119,28 @@ describe('Alert (web)', () => {
     expect(close).toHaveBeenCalled();
   });
 
+  it('greys out a disabled action, which neither a click nor Enter presses, until it is enabled', () => {
+    const onRename = vi.fn();
+    const actions = (disabled: boolean): AlertAction[] => [{label: 'Cancel', role: 'cancel'}, {label: 'Rename', disabled, onPress: onRename}];
+    const {rerender} = render(<Alert title="Rename" visible testID="alert" input={{placeholder: 'Name', value: ''}} actions={actions(true)}/>);
+    const rename = screen.getByRole('button', {name: 'Rename'});
+    expect(rename).toBeDisabled();
+    expect(screen.getByRole('button', {name: 'Cancel'})).toBeEnabled();
+    const closes = close.mock.calls.length;
+    fireEvent.click(rename);
+    expect(onRename).not.toHaveBeenCalled();
+    expect(close).toHaveBeenCalledTimes(closes);
+    const field = within(dialog()).getByRole('textbox', {name: 'Name'});
+    fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
+    expect(onRename).not.toHaveBeenCalled();
+    expect(close).toHaveBeenCalledTimes(closes);
+    rerender(<Alert title="Rename" visible testID="alert" input={{placeholder: 'Name', value: 'Essay'}} actions={actions(false)}/>);
+    expect(screen.getByRole('button', {name: 'Rename'})).toBeEnabled();
+    fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
+    expect(onRename).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledTimes(closes + 1);
+  });
+
   it('focuses the field as the alert opens, and does nothing on Enter with only a cancel', () => {
     render(<Alert title="Open by id" visible testID="alert" input={{placeholder: 'Identifier'}} actions={[{label: 'Cancel', role: 'cancel'}]}/>);
     const field = within(dialog()).getByRole('textbox', {name: 'Identifier'});
