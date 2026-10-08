@@ -1371,6 +1371,12 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
         auto entry = value.GetObject();
         controls::TabViewItem item;
         item.Header(winrt::box_value(ToHString(JsonString(entry, L"title"))));
+        // The tab's name, which says what the accessory the strip cannot draw
+        // means; the title when the app gives no label. Items are rebuilt with
+        // the JSON, so no old name is left on one.
+        if (const auto name = JsonString(entry, L"label"); !name.empty()) {
+          SetName(item, std::optional<std::string>{name});
+        }
         const auto glyph = JsonString(entry, L"glyph");
         if (!glyph.empty()) {
           controls::FontIconSource icon;

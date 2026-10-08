@@ -1,4 +1,4 @@
-import {Platform, StyleSheet, Text} from 'react-native';
+import {Platform, StyleSheet, Text, View} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {TabView} from '.';
 
@@ -102,6 +102,14 @@ describe(`TabView (${Platform.OS})`, () => {
       expect(screen.queryByTestId('t-cards')).toBeNull();
     });
 
+    it('names a card by its tab\'s label', async () => {
+      const tabs = [TABS[0], {id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <View/>}];
+      await render(<TabView tabs={tabs} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
+      await fireEvent.press(screen.getByTestId('t-switcher'));
+      expect(screen.getByTestId('t-card-b').props.accessibilityLabel).toBe('Sketch, edited');
+      expect(screen.getByTestId('t-card-a').props.accessibilityLabel).toBe('Notes');
+    });
+
     it('closes a card in place, leaving the grid open', async () => {
       const onClose = vi.fn();
       await render(
@@ -134,6 +142,13 @@ describe(`TabView (${Platform.OS})`, () => {
     await layout(480);
     expect(screen.queryByTestId('t-strip')).toBeNull();
     expect(screen.getByTestId('t-switcher')).toBeOnTheScreen();
+  });
+
+  it('names a tab by its label where the accessory says more, and by its title otherwise', async () => {
+    const tabs = [TABS[0], {id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <View/>}];
+    await render(<TabView tabs={tabs} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
+    expect(screen.getByTestId('t-tab-b').props.accessibilityLabel).toBe('Sketch, edited');
+    expect(screen.getByTestId('t-tab-a').props.accessibilityLabel).toBe('Notes');
   });
 
   describe('without children', () => {

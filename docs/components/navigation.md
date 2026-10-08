@@ -166,7 +166,7 @@ header is used.
 Document tabs: a strip of things the user opened and can close, with the
 selected one's content under it. These are not the tabs `Tabs` draws.
 
-Props: `tabs` (`id`, `title`, `icon`, `pinned`, `menu`, `depth`,
+Props: `tabs` (`id`, `title`, `label`, `icon`, `pinned`, `menu`, `depth`,
 `accessory`), `selected`, `onSelect`,
 `onClose` (leaving it out takes the crosses away), `onAdd` (leaving it out
 takes the add button away), `children` (the selected tab's content; left
@@ -216,7 +216,10 @@ Differences:
 - `accessory` (a presence dot, a count, an unsaved mark) is drawn after the
   title on the strips the kit draws and on the switcher's cards. The WinUI
   strip holds text and a glyph alone, so on Windows it shows on the cards
-  only.
+  only. A screen reader does not read it: it reads a tab's `label`, which
+  defaults to the title, on every platform, the WinUI strip included. Say
+  what the accessory means there ("index.tsx, Ana is here"), starting with
+  the title so a voice command still finds the tab by what it shows.
 
 ## Pager
 

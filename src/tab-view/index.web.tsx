@@ -9,7 +9,7 @@ import {PopupMenu} from '../popup-menu';
 import {Icon} from '../symbol';
 import {flatten} from '../theme';
 import {DEPTH_INDENT} from './draw';
-import {ADD_LABEL, closeLabel, resolveLayout, switcherLabel, tabIndex} from './shared';
+import {ADD_LABEL, closeLabel, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
 
 /** The glyphs, as Material Symbols names — the family `Icon` draws with on web. */
 const CLOSE = {symbol: {ios: 'xmark', android: 'close', web: 'close'}} as const;
@@ -189,6 +189,9 @@ export function TabView({
                   role="tab"
                   id={tabId(tab)}
                   className="ui-tab-view__tab-body"
+                  // Named as the native tabs are, so an accessory's text does
+                  // not run into the title here while saying nothing there.
+                  aria-label={tabLabel(tab)}
                   aria-selected={index === current}
                   aria-controls={panelId}
                   aria-haspopup={tab.menu ? 'menu' : undefined}
@@ -249,6 +252,7 @@ export function TabView({
                 role="tab"
                 id={tabId(tab)}
                 className="ui-tab-view__card-body"
+                aria-label={tabLabel(tab)}
                 aria-selected={index === current}
                 aria-controls={panelId}
                 aria-haspopup={tab.menu ? 'menu' : undefined}

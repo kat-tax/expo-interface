@@ -1,4 +1,4 @@
-import {TAB_BREAKPOINT, closeLabel, nextSelection, resolveLayout, switcherLabel, tabIndex} from './shared';
+import {TAB_BREAKPOINT, closeLabel, nextSelection, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
 
 const TABS = [
   {id: 'a', title: 'Notes'},
@@ -58,6 +58,13 @@ describe('switcherLabel', () => {
 
   it('says the count alone when nothing is open', () => {
     expect(switcherLabel(TABS, 'gone')).toBe('3 tabs');
+  });
+});
+
+describe('tabLabel', () => {
+  it('names a tab by its label, and by its title without one', () => {
+    expect(tabLabel({id: 'a', title: 'index.tsx', label: 'index.tsx, Ana is here'})).toBe('index.tsx, Ana is here');
+    expect(tabLabel(TABS[0]!)).toBe('Notes');
   });
 });
 

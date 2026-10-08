@@ -19,7 +19,8 @@ type MenuEvent = Readonly<{index: CodegenTypes.Int32; x: CodegenTypes.Double; y:
  * control's own — so the strip is the platform's even though the pages are
  * not.
  *
- * `items` is a JSON array of `{title, glyph?, closable, depth, menu}`; the
+ * `items` is a JSON array of `{title, label, glyph?, closable, depth, menu}`,
+ * where `label` is the item's UI Automation name; the
  * selection and the close are both reported by the item's index in it, and
  * so is a right click or the Menu key on a tab that has a menu, with the
  * point in the island's coordinates for the kit's own menu to open at.

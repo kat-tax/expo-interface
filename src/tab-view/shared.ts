@@ -67,6 +67,15 @@ export function switcherLabel(tabs: readonly TabViewTab[], selected: string): st
   return open ? `${open.title}, ${count}` : count;
 }
 
+/**
+ * What a screen reader calls a tab: its `label`, or its title. The same on
+ * every platform, so an accessory's text never runs into the name on web
+ * while saying nothing natively.
+ */
+export function tabLabel(tab: TabViewTab): string {
+  return tab.label ?? tab.title;
+}
+
 /** What a tab's close cross is called, since a cross says nothing on its own. */
 export function closeLabel(tab: TabViewTab): string {
   return `Close ${tab.title}`;

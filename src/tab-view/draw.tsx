@@ -11,7 +11,7 @@ import {PopupMenu} from '../popup-menu';
 import {Icon as Glyph} from '../symbol';
 import {Body, Caption} from '../typography';
 import {spacing, useColor} from '../theme';
-import {ADD_LABEL, closeLabel, resolveLayout, switcherLabel, tabIndex} from './shared';
+import {ADD_LABEL, closeLabel, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
 
 /** The cross on a tab, the plus at the end of the strip, and the switcher's own glyph. */
 const CLOSE: IconToken = {symbol: {ios: 'xmark', android: 'close', web: 'close'}};
@@ -140,8 +140,9 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testI
                 // react-native-windows composes no name from a view's
                 // children, so on Windows the tab announced its position and
                 // nothing else — "1 of 3, tab". Only the automation tree
-                // showed it.
-                accessibilityLabel={tab.title}
+                // showed it. The label, where given, says what the
+                // accessory shows.
+                accessibilityLabel={tabLabel(tab)}
                 accessibilityState={{selected: on}}
                 onPress={() => onSelect(tab.id)}
                 onLongPress={tab.menu ? () => menus.open(tab) : undefined}
@@ -255,7 +256,7 @@ export function TabSwitcher({
                   onLayout={event => menus.onLayout(tab.id, event)}>
                   <Pressable
                     accessibilityRole="tab"
-                    accessibilityLabel={tab.title}
+                    accessibilityLabel={tabLabel(tab)}
                     accessibilityState={{selected: on}}
                     onPress={() => {
                       setOpen(false);

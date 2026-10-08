@@ -40,13 +40,18 @@ describe('TabView (windows)', () => {
 
   it('hands the tabs over as JSON, with a Fluent glyph and the crosses that apply', () => {
     expect(JSON.parse(tabItems(TABS, true))).toEqual([
-      {title: 'Notes', glyph: 'E8A5', closable: true, depth: 0, menu: false},
-      {title: 'Sketch', glyph: null, closable: true, depth: 0, menu: false},
+      {title: 'Notes', label: 'Notes', glyph: 'E8A5', closable: true, depth: 0, menu: false},
+      {title: 'Sketch', label: 'Sketch', glyph: null, closable: true, depth: 0, menu: false},
       // Pinned keeps its place — the index is how a selection comes back —
       // and simply shows no cross.
-      {title: 'Readme', glyph: null, closable: false, depth: 0, menu: false},
+      {title: 'Readme', label: 'Readme', glyph: null, closable: false, depth: 0, menu: false},
     ]);
     expect(JSON.parse(tabItems(TABS, false)).every((tab: {closable: boolean}) => !tab.closable)).toBe(true);
+  });
+
+  it('names a WinUI tab by its label, which says what the accessory it cannot draw means', () => {
+    const [item] = JSON.parse(tabItems([{id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <Text>edited</Text>}], false));
+    expect(item).toMatchObject({title: 'Sketch', label: 'Sketch, edited'});
   });
 
   it('takes the control selection as a request for that tab, and ignores the one already open', async () => {
@@ -119,6 +124,13 @@ describe('TabView (windows)', () => {
       // inside a view, so without this the tab announces its position alone.
       accessibilityLabel: 'Sketch',
     });
+  });
+
+  it('names a drawn card by its tab\'s label', async () => {
+    const tabs = [TABS[0], {id: 'b', title: 'Sketch', label: 'Sketch, edited'}];
+    await render(<TabView tabs={tabs} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
+    await fireEvent.press(screen.getByTestId('t-switcher'));
+    expect(screen.getByTestId('t-card-b').props.accessibilityLabel).toBe('Sketch, edited');
   });
 
   describe('without children', () => {

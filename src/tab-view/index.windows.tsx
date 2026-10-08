@@ -7,6 +7,7 @@ import XamlTabView from '../windows/specs/ExpoInterfaceTabViewNativeComponent';
 import {glyphOf, jsonProp, useXamlProps} from '../windows';
 import {useColor} from '../theme';
 import {TabSwitcher, useResolvedLayout} from './draw';
+import {tabLabel} from './shared';
 
 /**
  * The height WinUI gives a tab strip: `TabViewItemHeaderHeight`, plus the room
@@ -109,15 +110,18 @@ export function TabView({
 }
 
 /**
- * The tabs as the island's JSON: each one's title, its Fluent glyph where the
- * icon has one, whether it closes, how deep it is nested and whether it has
- * a menu to ask for. A pinned tab keeps its place in the array — the index
- * is how a selection comes back — and simply shows no cross. An accessory
- * has no place in a `TabViewItem`'s header, which holds text and a glyph.
+ * The tabs as the island's JSON: each one's title, the name UI Automation
+ * gives it, its Fluent glyph where the icon has one, whether it closes, how
+ * deep it is nested and whether it has a menu to ask for. A pinned tab keeps
+ * its place in the array — the index is how a selection comes back — and
+ * simply shows no cross. An accessory has no place in a `TabViewItem`'s
+ * header, which holds text and a glyph, but the label names the item, so
+ * what the accessory means still reaches Narrator.
  */
 export function tabItems(tabs: readonly TabViewTab[], closable: boolean): string {
   return jsonProp(tabs.map(tab => ({
     title: tab.title,
+    label: tabLabel(tab),
     glyph: glyphOf(tab.icon) ?? null,
     closable: closable && !tab.pinned,
     depth: tab.depth ?? 0,

@@ -89,8 +89,16 @@ export interface TabViewProps {
 export interface TabViewTab {
   /** Stable identity: what `selected` names, and what the callbacks report. */
   id: string;
-  /** The tab's text, and what a screen reader says. */
+  /** The tab's text, and what a screen reader says unless `label` says otherwise. */
   title: string;
+  /**
+   * What a screen reader calls the tab, where the accessory says something
+   * the title does not: "index.tsx, Ana is here". Start it with the title, so
+   * a voice command can still find the tab by what it shows. On Windows it
+   * names the WinUI tab too, whose strip draws no accessory.
+   * @default the title
+   */
+  label?: string;
   /** Drawn before the title, and on the switcher's card. */
   icon?: IconToken;
   /**
@@ -114,7 +122,8 @@ export interface TabViewTab {
   /**
    * Content of the app's own after the title: a presence dot, a count, an
    * unsaved mark. Drawn on the strips the kit draws and on the switcher's
-   * cards; the WinUI strip holds text and a glyph alone.
+   * cards; the WinUI strip holds text and a glyph alone. A screen reader does
+   * not read it: say what it means in `label`.
    */
   accessory?: ReactNode;
 }

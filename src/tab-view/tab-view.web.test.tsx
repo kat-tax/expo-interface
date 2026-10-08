@@ -48,6 +48,18 @@ describe('TabView (web)', () => {
     expect(tabs[1]).toHaveAttribute('aria-controls', panel.id);
   });
 
+  it('names a tab by its label, or by its title, and never by the accessory\'s text', () => {
+    const tabs = [
+      TABS[0],
+      {id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <span>edited</span>},
+      {id: 'c', title: 'Inbox', accessory: <span>3</span>},
+    ];
+    render(<TabView tabs={tabs} selected="a" onSelect={() => {}} testID="t"/>);
+    expect(screen.getByTestId('t-tab-a')).toHaveAccessibleName('Notes');
+    expect(screen.getByTestId('t-tab-b')).toHaveAccessibleName('Sketch, edited');
+    expect(screen.getByTestId('t-tab-c')).toHaveAccessibleName('Inbox');
+  });
+
   it('draws no panel and controls none without children: the tabs alone', () => {
     render(<TabView tabs={TABS} selected="b" onSelect={() => {}} testID="t"/>);
     expect(screen.queryByRole('tabpanel')).toBeNull();
@@ -173,6 +185,16 @@ describe('TabView (web)', () => {
       for (const tab of screen.getAllByRole('tab')) expect(tab).not.toHaveAttribute('aria-controls');
       await user.click(screen.getByTestId('t-card-a'));
       expect(screen.queryByRole('tabpanel')).toBeNull();
+    });
+
+    it('names a card as the strip names its tab', async () => {
+      const user = userEvent.setup();
+      windowWidth(480);
+      const tabs = [TABS[0], {id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <span>edited</span>}];
+      render(<TabView tabs={tabs} selected="a" onSelect={() => {}} testID="t"/>);
+      await user.click(screen.getByTestId('t-switcher'));
+      expect(screen.getByTestId('t-card-a')).toHaveAccessibleName('Notes');
+      expect(screen.getByTestId('t-card-b')).toHaveAccessibleName('Sketch, edited');
     });
 
     it('names itself after the group when no tab is open', () => {
