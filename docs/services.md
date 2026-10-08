@@ -154,6 +154,7 @@ palette's `background` is the default.
 | The launch screen | `expo-splash-screen`'s `backgroundColor` and `dark.backgroundColor`, when the app has `expo-splash-screen` and does not configure it itself |
 
 An app's own `backgroundColor` or `android.backgroundColor` replaces the
-light color, and its `expo-splash-screen` options replace the launch
-screen's. Android's night window keeps the plugin's `dark` color, so an app
-that gives its own color and wants another at night passes `dark` too.
+light color in Android's window. The launch screen keeps the plugin's
+colors unless the app configures `expo-splash-screen` itself. Android's
+night window keeps the plugin's `dark` color, so an app that gives its own
+color and wants another at night passes `dark` too.

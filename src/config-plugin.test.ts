@@ -39,8 +39,11 @@ async function run(config: Config, platform: 'android' | 'ios', mod: string, mod
   return result.modResults;
 }
 
+/** The values a color file gives one color resource. */
+const colorsNamed = (file: Resources, name: string) => (file.resources.color ?? []).filter(color => color.$.name === name).map(color => color._);
+
 /** The values a color file gives the window, expo-system-ui's `activityBackground`. */
-const windowColors = (file: Resources) => (file.resources.color ?? []).filter(color => color.$.name === 'activityBackground').map(color => color._);
+const windowColors = (file: Resources) => colorsNamed(file, 'activityBackground');
 
 /** The window's day and night colors and the app's theme, after the Android mods. */
 async function android(config: Config) {
@@ -93,5 +96,10 @@ describe('the config plugin', () => {
     const top = withSystemUI(withExpoInterface(base({backgroundColor: '#eeeeee'})));
     expect((await android(top)).day).toEqual(['#eeeeee']);
     expect(await run(top, 'ios', 'infoPlist', {})).toHaveProperty('RCTRootViewBackgroundColor', 0xffeeeeee);
+    // The app's own color is the window's alone: the launch screen keeps the plugin's colors.
+    const splashDay = await run(top, 'android', 'colors', {resources: {}}) as Resources;
+    const splashNight = await run(top, 'android', 'colorsNight', {resources: {}}) as Resources;
+    expect(colorsNamed(splashDay, 'splashscreen_background')).toEqual([SCHEME_BACKGROUND.light]);
+    expect(colorsNamed(splashNight, 'splashscreen_background')).toEqual([SCHEME_BACKGROUND.dark]);
   });
 });
