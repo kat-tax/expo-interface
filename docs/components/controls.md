@@ -241,11 +241,13 @@ it sits in a `Sheet`'s footer or at the bottom of a screen. Enter sends and
 Shift+Enter breaks the line on web and a desktop keyboard; the keyboard's
 send key sends on a phone. While `busy` neither sends, and the text stays.
 On web the capsule draws the focus ring while the field has the focus.
-A screen reader reads a new `notice` out once it is done speaking, so an
-error after a failed send is heard: through a polite live region on
-Android and web, and through an announcement on iOS, which has no live
-regions, and on Windows, where react-native-windows raises no event when
-one changes. The notice the composer mounts with is not read.
+A screen reader reads a new `notice` out, so an error after a failed send
+is heard. On Android and web the notice is a polite live region, and on
+iOS, which has no live regions, an announcement queued the same way: the
+screen reader reads it once it is done speaking. On Windows, where
+react-native-windows raises no event when a live region changes, it is an
+announcement that Narrator reads at once, and a newer notice replaces one
+it has not read yet. The notice the composer mounts with is not read.
 The button is the platform's: a SwiftUI button, a
 Material button, a `<button>`, a WinUI button. On Windows a `sendIcon` or
 `stopIcon` with no `windows` glyph shows its label in its place.

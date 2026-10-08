@@ -49,9 +49,11 @@ export interface ComposerProps {
   busy?: boolean;
   /**
    * A line under the capsule: a hint, an error, who else is typing. Drawn in
-   * `noticeColor`. A screen reader reads a new notice out once it is done
-   * speaking, as a polite live region: through one on Android and web, and
-   * through an announcement on iOS and Windows. The notice the composer
+   * `noticeColor`. A screen reader reads a new notice out. On Android and
+   * web the notice is a polite live region, and on iOS an announcement
+   * queued the same way, so the screen reader reads it once it is done
+   * speaking. On Windows it is an announcement Narrator reads at once, and
+   * a newer notice replaces one it has not read yet. The notice the composer
    * mounts with is not read.
    */
   notice?: string;

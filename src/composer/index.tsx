@@ -23,10 +23,13 @@ const MIN_HEIGHT = 44;
 const ANNOUNCES = Platform.OS === 'ios' || Platform.OS === 'windows';
 
 /**
- * Has a screen reader read a new notice out, as a polite live region
- * would: the error after a failed send above all. The notice the composer
- * mounts with is not read, as a live region's first text is not. Android
- * and web hear it through the live region around the line.
+ * Has a screen reader read a new notice out: the error after a failed send
+ * above all. On iOS the announcement is queued, so VoiceOver reads it once
+ * it is done speaking, as a polite live region would. On Windows
+ * react-native-windows drops the queue option and raises a UIA notification
+ * that Narrator reads at once, a newer one replacing one not read yet. The
+ * notice the composer mounts with is not read, as a live region's first text
+ * is not. Android and web hear it through the live region around the line.
  */
 function useAnnounced(notice: string | undefined) {
   const read = useRef(notice);
