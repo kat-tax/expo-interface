@@ -112,7 +112,8 @@ place of the home link.
 `hidden` as a function of the route decides on every render, by the path or
 the segments, so the tabs go on the routes it names and come back on the
 others. A static export answers it too, and writes a page its route hides
-without the tabs.
+without the tabs. On a pushed screen that page has no bar until it runs,
+since the screen's header folds into the bar once the screen is mounted.
 
 ```tsx
 <Tabs routes={routes} hidden={({segments}) => segments.at(-1) === '[id]'}/>
