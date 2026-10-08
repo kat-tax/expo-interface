@@ -118,9 +118,12 @@ function NativeToolbar({commands = [], placement = 'bottom', density = 'regular'
  */
 function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], placement = 'bottom', density = 'regular', floating = false, foldCommands = false, children, style, testID}: ToolbarProps) {
   const {gap, edge} = DENSITY[density];
-  // Measured only for a bar that folds: what it has decides whether it does.
-  const [width, setWidth] = useState(0);
-  const folded = foldCommands && isCompact(width);
+  // Measured whether or not it folds: a frame is reported only when the bar
+  // is laid out again, so a handler added with the fold would wait for the
+  // next resize. Kept as the size class, so the bar renders again only when
+  // it crosses it.
+  const [compact, setCompact] = useState(false);
+  const folded = foldCommands && compact;
   // Commands drawn by the kit, as the other platforms draw them: a field
   // keeps them out of the CommandBar, which cannot hold one.
   const described = hasCommands(commands);
@@ -130,7 +133,7 @@ function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], p
   return (
     <Surface
       {...barSurface(floating, placement)}
-      onLayout={foldCommands ? (event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width) : undefined}
+      onLayout={(event: LayoutChangeEvent) => setCompact(isCompact(event.nativeEvent.layout.width))}
       style={[floating ? styles.floatingDrawn : styles.bar, {paddingHorizontal: edge}, style]}
       testID={testID}>
       <View style={[styles.row, {gap}]}>

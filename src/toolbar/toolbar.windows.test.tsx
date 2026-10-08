@@ -117,6 +117,17 @@ describe('commands (windows)', () => {
     expect(JSON.parse(island('ExpoInterfaceMenuFlyout').props.items).map((item: {label: string}) => item.label)).toEqual(['Bold', 'Italic']);
   });
 
+  it('measures the drawn bar whether or not it folds, so a fold turned on once it is narrow takes no new layout', async () => {
+    const bar = (fold: boolean) => (
+      <Toolbar commands={[{label: 'Bold'}, {label: 'Italic'}]} field={<Text>Find</Text>} fieldCommands={[{label: 'Close'}]} foldCommands={fold} testID="bar"/>
+    );
+    const {rerender} = await render(bar(false));
+    await fireEvent(screen.getByTestId('bar'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 400, height: 48}}});
+    expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Bold', 'Italic', 'Close']);
+    await rerender(bar(true));
+    expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Close', 'More']);
+  });
+
   it('floats a drawn bar with no spacer between its slots', async () => {
     await render(<Toolbar floating leading={<Text>Undo</Text>} trailing={<Text>Redo</Text>} testID="bar"/>);
     expect(screen.getByText('Undo')).toBeOnTheScreen();

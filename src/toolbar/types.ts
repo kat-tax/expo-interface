@@ -103,7 +103,8 @@ export interface ToolbarProps extends PropsWithChildren {
    * the kit's compact size class (narrower than 640 points, where `TabView`
    * shows its switcher), leaving the field and its commands the room: an
    * editor's status bar while a find or assistant field is open on a phone.
-   * The width is the bar's own, measured.
+   * The width is the bar's own, measured whether or not it folds, so a bar
+   * that starts folding while it is narrow folds at once.
    * @default false
    */
   foldCommands?: boolean;

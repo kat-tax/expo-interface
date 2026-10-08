@@ -202,6 +202,8 @@ field is still two hosts, and they stay on the bar when it folds.
 bar, measured, is narrower than 640 points, the kit's compact size class
 (`COMPACT_WIDTH`, where `TabView` shows its switcher): an editor's status bar
 gives its field the room while a find or assistant field is open on a phone.
+The bar is measured from its first layout whether or not it folds, so
+turning `foldCommands` on while the bar is narrow folds it at once.
 
 A `floating` bar floats over the content rather than running along an edge:
 raised and rounded, the width of its controls, as the strip of tools over a

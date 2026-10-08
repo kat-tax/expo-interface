@@ -117,15 +117,18 @@ function AnchoredToolbar(props: ToolbarProps) {
 function EdgeToolbar(props: ToolbarProps) {
   const {field, placement = 'bottom', density = 'regular', foldCommands = false, children, style, testID} = props;
   const {gap, edge} = DENSITY[density];
-  // Measured only for a bar that folds: what it has decides whether it does.
-  const [width, setWidth] = useState(0);
-  const {start, end} = controlsOf(props, gap, foldCommands && isCompact(width));
+  // Measured whether or not it folds: React Native reports a frame only when
+  // it is laid out again, and react-native-web observes a view only from its
+  // mount, so a handler added with the fold would wait for the next resize.
+  // Kept as the size class, so the bar renders again only when it crosses it.
+  const [compact, setCompact] = useState(false);
+  const {start, end} = controlsOf(props, gap, foldCommands && compact);
   return (
     <Surface
       color="background"
       radius={0}
       border={placement === 'bottom' ? 'top' : 'bottom'}
-      onLayout={foldCommands ? (event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width) : undefined}
+      onLayout={(event: LayoutChangeEvent) => setCompact(isCompact(event.nativeEvent.layout.width))}
       style={[styles.bar, {paddingHorizontal: edge, paddingVertical: PADDING_VERTICAL}, style]}
       testID={testID}>
       {field == null ? (

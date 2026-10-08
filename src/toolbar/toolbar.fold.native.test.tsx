@@ -46,8 +46,15 @@ describe(`Toolbar field commands and folding (${Platform.OS})`, () => {
     expect(onBar('Bold')).toBe(true);
   });
 
-  it('measures nothing when it does not fold', async () => {
-    await render(<Toolbar commands={commands} testID="bar"/>);
-    expect(screen.getByTestId('bar').props.onLayout).toBeUndefined();
+  it('measures the bar whether or not it folds, so a fold turned on once it is narrow takes no new layout', async () => {
+    const bar = (fold: boolean) => <Toolbar commands={commands} field={<Text>Find</Text>} fieldCommands={fieldCommands} foldCommands={fold} testID="bar"/>;
+    const {rerender} = await render(bar(false));
+    await fireEvent(screen.getByTestId('bar'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 48}}});
+    // Narrow, but not folding: the commands stay on the bar.
+    expect(onBar('Bold')).toBe(true);
+    // The fold arrives with no further layout event, as when a field opens in a bar that keeps its frame.
+    await rerender(bar(true));
+    expect(onBar('Bold')).toBe(false);
+    expect(onBar('Next match')).toBe(true);
   });
 });
