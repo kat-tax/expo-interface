@@ -15,6 +15,7 @@ The differences that change what a screen can do, in one place:
 | `onOpenChange` on menus | Not reported | Yes | Yes | Yes |
 | `ContextMenu` `at` | Ignored | Yes | Yes | Yes |
 | `PopupMenu` match highlighting | No | No | Yes | No |
+| `PopupMenu` moved by a press outside it | Dismissed | Dismissed | Moved | Dismissed |
 | `caretPoint` | `null` | `null` | Yes | `null` |
 | `Progress` indeterminate linear | Yes | Yes | Empty bar | Yes |
 | `Progress` `trackColor` | Ignored | Yes | Yes | Yes |

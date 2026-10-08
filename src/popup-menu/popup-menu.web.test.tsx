@@ -118,6 +118,13 @@ describe('PopupMenu (web)', () => {
     expect(showPopover).toHaveBeenCalledTimes(1);
   });
 
+  it('stays closed for a missing point, as the native menus do', () => {
+    // Outside the type, as a loosely typed caller might hand it in.
+    render(<PopupMenu items={items} at={undefined as unknown as null} testID="popup"/>);
+    expect(showPopover).not.toHaveBeenCalled();
+    expect(screen.getByTestId('popup').style.left).toBe('0px');
+  });
+
   it('closes the popup when the point is cleared', () => {
     const {rerender} = render(<PopupMenu items={items} at={{x: 10, y: 10}} testID="popup"/>);
     expect(showPopover).toHaveBeenCalledTimes(1);

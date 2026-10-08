@@ -37,8 +37,13 @@ export interface PopupMenuProps {
    * Where the menu is open, in the coordinates of the parent the popup is
    * laid over (the canvas's own coordinates): a point, or a rectangle the
    * menu opens beside (a handle, a chip). `null` closes it. While the menu
-   * is open it follows a new value: a menu moved from one handle to the next
-   * stays open, and no dismissal of the first reaches the second.
+   * is open it follows a new point or rectangle: a menu moved from one
+   * handle to the next stays open, and no dismissal of the first reaches the
+   * second. On web that holds for a move made by a press outside the menu
+   * too, as a context menu raised by the next handle's right button is: the
+   * menu is closed while the press is held and shown at the new place once
+   * it is over. On iOS, Android and Windows a press outside the open menu is
+   * the platform's dismissal, reported as `dismiss`.
    */
   at: MenuPoint | MenuRect | null;
   /**
