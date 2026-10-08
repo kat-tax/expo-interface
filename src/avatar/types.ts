@@ -55,8 +55,8 @@ export interface AvatarGroupPerson extends Pick<AvatarProps, 'name' | 'initials'
   hint?: string;
   /**
    * The chosen person: the one followed. Announced as selected, or on web
-   * as the current one, since a button cannot be selected. It draws
-   * nothing; show it with the person's `ring`.
+   * as the current one, since neither a button nor an image can be
+   * selected. It draws nothing; show it with the person's `ring`.
    * @default false
    */
   selected?: boolean;

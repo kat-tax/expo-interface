@@ -111,29 +111,29 @@ ring in the fill behind the group, and past `max` the rest are counted in a
 ```
 
 Props: `people` (each `name`, `initials`, `color`, `ring`, `dimmed`, `key`,
-`label`, `hint`, `selected`, `disabled`),
-`max` (3), `size` (24), `ring` (the parting ring, a palette token or a
-color: `background` by default, so give the fill behind the group when it
-sits on a raised surface; a person's own `ring` wins), `onPress(person,
-index)`, `onLongPress(person, index)`, `onPressMore`, `testID`.
+`label`, `hint`, `selected`, `disabled`), `max` (3), `size` (24), `ring`
+(the parting ring, a palette token or a color: `background` by default, so
+give the fill behind the group when it sits on a raised surface; a person's
+own `ring` wins), `onPress(person, index)`, `onLongPress(person, index)`,
+`onPressMore`, `testID`.
 
 A face is a button named for the person when the group is told what a press
 or a press and hold does, and the count a button named "3 more" with
 `onPressMore`. A person's `label` names the face in place of the name, and
 `hint` is read after it: what a press or a press and hold does, or more
 about the person when the group does not press. An empty label is the name
-and an empty hint is none. The hint is an
-accessibility hint on iOS and Android, the help text on Windows and the
-description on web.
-`selected` announces the face as selected (on web as the current one, since
-a button cannot be selected) and draws nothing, so show it with the person's
-`ring`. A `disabled` face takes neither press, is announced as unavailable
-and is drawn at half opacity. When the group does not press, the circle
-itself carries the label, the hint and the selected state, and `disabled`
-only dims it; on web each face and the count are then images, since a name
-on an element with no role goes unread. The faces are drawn in React Native on every platform,
-Windows included, where `Avatar` is a `PersonPicture` island: an island
-takes the pointer, and a facepile's faces are pressed.
+and an empty hint is none. The hint is an accessibility hint on iOS and
+Android, the help text on Windows and the description on web. `selected`
+announces the face as selected (on web as the current one, since neither a
+button nor an image can be selected) and draws nothing, so show it with the
+person's `ring`. A `disabled` face takes neither press, is announced as
+unavailable and is drawn at half opacity. When the group does not press, the
+circle itself carries the label, the hint and the selected state, and
+`disabled` only dims it; on web each face and the count are then images,
+since a name on an element with no role goes unread. The faces are drawn in
+React Native on every platform, Windows included, where `Avatar` is a
+`PersonPicture` island: an island takes the pointer, and a facepile's faces
+are pressed.
 
 ## Typography
 

@@ -7,9 +7,10 @@ import {AvatarFace} from './drawn';
 import {AVATAR_RING} from './shared';
 
 /**
- * react-native-web drops `accessibilityHint`, and a `<button>` cannot be
- * `aria-selected`: on web a face's hint is the description it takes from a
- * hidden element beside it, and the selected face is the current one.
+ * react-native-web drops `accessibilityHint`, and neither a `<button>` nor
+ * an image can be `aria-selected`: on web a face's hint is the description
+ * it takes from a hidden element beside it, and the selected face is the
+ * current one.
  */
 const WEB = Platform.OS === 'web';
 
