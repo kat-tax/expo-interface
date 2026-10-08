@@ -1,5 +1,5 @@
 import type {TabBarAction} from './types';
-import {useContext} from 'react';
+import {createContext, useContext} from 'react';
 import {NativeTabs} from 'expo-router/unstable-native-tabs';
 import {Animated, StyleSheet, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -14,15 +14,28 @@ import {inset, spacing} from '../theme';
 export const TAB_ACTION_LIFT = 56 + spacing.three;
 
 /**
+ * Where the iOS 26 accessory's action reports its measured height to
+ * `Tabs`, which adds it to what the tab bar takes of the app's bottom edge.
+ */
+export const TabAccessoryHeightContext = createContext<(height: number) => void>(() => {});
+
+/**
  * iOS 26: the action in the tab bar's bottom accessory, a button or a menu
  * drawn plainly in the accessory's glass. UIKit renders the accessory twice,
  * wide over the tab bar and inline in a minimized one; the inline one shows
- * the icon alone, its label kept as the accessible name.
+ * the icon alone, its label kept as the accessible name. The wide one fills
+ * the frame UIKit gives the accessory, so its measured height is what the
+ * app's toast stands above, on top of the bar.
  */
 export function AccessoryAction({action}: {action: TabBarAction}) {
   const inline = NativeTabs.BottomAccessory.usePlacement() === 'inline';
+  const report = useContext(TabAccessoryHeightContext);
   return (
-    <View style={styles.accessory}>
+    <View
+      style={styles.accessory}
+      testID="tab-accessory"
+      // The inline copy sits in the minimized bar, not over it.
+      onLayout={inline ? undefined : event => report(event.nativeEvent.layout.height)}>
       {action.items ? (
         <Menu label={action.label} icon={action.icon} items={action.items} variant="text" tone="label" hideLabel={inline}/>
       ) : (

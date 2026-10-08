@@ -1,7 +1,7 @@
 import type {TabRoute} from './types';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
-import {useEffect, useState} from 'react';
+import {createElement, useEffect, useState} from 'react';
 import {Asset} from 'expo-asset';
 import {Animated, Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, screen as dom, waitFor} from '@testing-library/react';
@@ -16,7 +16,7 @@ import {HeaderSearch} from '../header-search';
 import {HideTabs} from './hide';
 import {Screen} from '../screen';
 import {useScrollInsets} from '../screen/insets';
-import {AppToastInsetContext} from '../toast/context';
+import {AppToastFloorContext, AppToastInsetContext} from '../toast/context';
 import {colors, inset, spacing, theme} from '../theme';
 import {host, modifier, nodes} from 'expo-vitest/native';
 import {visibleText} from '../a11y/roving';
@@ -708,20 +708,21 @@ describe(`Tabs (${Platform.OS})`, () => {
       return null;
     }
 
+    /** A named host view carrying its props, standing in for a native view. */
+    const el = (name: string) => {
+      const Host = (props: Record<string, any>) =>
+        createElement(name, props, props.children);
+      Host.displayName = name;
+      return Host;
+    };
+
     // vitest-native's react-native-screens mock predates the `Tabs.Host` /
     // `Tabs.Screen` compound API that SDK 57's NativeTabs renders (plus the
     // `react-native-screens/experimental` SafeAreaView expo-router wraps
     // Android tab content in — subpath requires resolve to the same mock), so
     // model them as named host views carrying the tab payload as props.
     beforeAll(async () => {
-      const {createElement} = await import('react');
       const {extendPresetMock} = await import('vitest-native/helpers');
-      const el = (name: string) => {
-        const Host = (props: Record<string, any>) =>
-          createElement(name, props, props.children);
-        Host.displayName = name;
-        return Host;
-      };
       extendPresetMock('react-native-screens', {
         SafeAreaView: el('RNSSafeAreaView'),
         Tabs: {
@@ -841,6 +842,27 @@ describe(`Tabs (${Platform.OS})`, () => {
       }
     });
 
+    it('tells the app\'s toast what the tab bar takes of the bottom edge, and nothing while it is hidden', async () => {
+      const report = vi.fn();
+      const {Tabs} = await import('.');
+      // What a `ToastProvider` around the tabs hands them to report on.
+      const layout = () => (
+        <AppToastFloorContext.Provider value={report}>
+          <Tabs routes={routes}/>
+        </AppToastFloorContext.Provider>
+      );
+      await renderApp({...(await app()), _layout: layout});
+      expect(report).toHaveBeenLastCalledWith(inset.bottomTab);
+      // A focused screen hiding the tabs takes the bar from under the toast.
+      await renderApp({
+        ...(await app()),
+        _layout: layout,
+        index: () => <><HideTabs/><Text>Home screen</Text></>,
+      });
+      expect(nodes().find(n => n.type === 'RNSTabsHost')!.props.tabBarHidden).toBe(true);
+      expect(report).toHaveBeenLastCalledWith(0);
+    });
+
     if (isIOS) {
       it('puts the app\'s action in the tab bar\'s bottom accessory on iOS 26, its icon alone where the accessory is inline', async () => {
         const version = Object.getOwnPropertyDescriptor(Platform, 'Version')!;
@@ -856,6 +878,8 @@ describe(`Tabs (${Platform.OS})`, () => {
           const accessory = nodes().find(n => n.type === 'RNSTabsHost')!.props.ios.bottomAccessory as (placement: string) => React.ReactElement;
           await render(accessory('regular'));
           expect(modifier(host(p => p.label === 'New').props, 'labelStyle')).toBeUndefined();
+          // Outside the tabs, its measured height goes nowhere.
+          await fireNative(screen.getByTestId('tab-accessory'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 48}}});
           await render(accessory('inline'));
           expect(modifier(host(p => p.label === 'New').props, 'labelStyle')).toEqual({$type: 'labelStyle', style: 'iconOnly'});
           await renderApp(await app({action: {label: 'New', icon: icons.add, items: [{label: 'Document', onPress: vi.fn()}]}}));
@@ -874,6 +898,35 @@ describe(`Tabs (${Platform.OS})`, () => {
           expect(nodes().find(n => n.type === 'RNSTabsHost')!.props.tabBarHidden).toBe(true);
           expect(hostAccessory()).toBeUndefined();
         } finally {
+          Object.defineProperty(Platform, 'Version', version);
+        }
+      });
+
+      it('stands the app\'s toast above the bottom accessory on iOS 26, by its measured height', async () => {
+        const version = Object.getOwnPropertyDescriptor(Platform, 'Version')!;
+        Object.defineProperty(Platform, 'Version', {configurable: true, get: () => '26.0'});
+        const {extendPresetMock} = await import('vitest-native/helpers');
+        // The host renders the wide accessory inside the tabs, as react-native-screens does.
+        const withAccessory = (props: Record<string, any>) =>
+          createElement('RNSTabsHost', props, props.children, props.ios?.bottomAccessory?.('regular'));
+        extendPresetMock('react-native-screens', {Tabs: {Host: withAccessory, Screen: el('RNSTabsScreenIOS')}});
+        const report = vi.fn();
+        try {
+          const {Tabs} = await import('.');
+          await renderApp({
+            ...(await app()),
+            _layout: () => (
+              <AppToastFloorContext.Provider value={report}>
+                <Tabs routes={routes} action={{label: 'New', icon: icons.add, onPress: vi.fn()}}/>
+              </AppToastFloorContext.Provider>
+            ),
+          });
+          expect(report).toHaveBeenLastCalledWith(inset.bottomTab);
+          // UIKit sizes the accessory's content; the action fills it.
+          await fireNative(screen.getByTestId('tab-accessory'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 48}}});
+          expect(report).toHaveBeenLastCalledWith(inset.bottomTab + 48);
+        } finally {
+          extendPresetMock('react-native-screens', {Tabs: {Host: el('RNSTabsHost'), Screen: el('RNSTabsScreenIOS')}});
           Object.defineProperty(Platform, 'Version', version);
         }
       });

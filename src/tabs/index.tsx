@@ -1,8 +1,10 @@
 import type {TabBarProps} from './types';
+import {useState} from 'react';
 import {NativeTabs} from 'expo-router/unstable-native-tabs';
 import {Platform, StyleSheet, View} from 'react-native';
-import {useColor} from '../theme';
-import {AccessoryAction, FloatingAction, TAB_ACTION_LIFT} from './action';
+import {inset, useColor} from '../theme';
+import {useAppToastFloor} from '../toast/context';
+import {AccessoryAction, FloatingAction, TAB_ACTION_LIFT, TabAccessoryHeightContext} from './action';
 import {tabBadge} from './badge';
 import {NativeTabsContext, TabActionLiftContext} from './context';
 import {HideTabsContext, useHiddenTabs} from './hide';
@@ -23,10 +25,15 @@ export function Tabs({routes, hidden: hiddenProp = false, action, badgeMax = 99}
   // Where the platform has no place for it in the bar, the action floats above it.
   const accessory = hasAccessory();
   const floating = action != null && !accessory;
+  // The app's toast (`ToastProvider` around the tabs) stands above the bar
+  // while it shows, and above the action in its iOS 26 accessory, measured.
+  const [accessoryHeight, setAccessoryHeight] = useState(0);
+  useAppToastFloor(hidden ? 0 : inset.bottomTab + (action && accessory ? accessoryHeight : 0));
   return (
     <NativeTabsContext.Provider value={true}>
       <HideTabsContext.Provider value={hider}>
       <TabActionLiftContext.Provider value={floating && !hidden ? TAB_ACTION_LIFT : 0}>
+      <TabAccessoryHeightContext.Provider value={setAccessoryHeight}>
       <View style={styles.root}>
       <NativeTabs
         hidden={hidden}
@@ -67,6 +74,7 @@ export function Tabs({routes, hidden: hiddenProp = false, action, badgeMax = 99}
       </NativeTabs>
       {floating && !hidden ? <FloatingAction action={action}/> : null}
       </View>
+      </TabAccessoryHeightContext.Provider>
       </TabActionLiftContext.Provider>
       </HideTabsContext.Provider>
     </NativeTabsContext.Provider>

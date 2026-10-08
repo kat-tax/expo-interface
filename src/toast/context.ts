@@ -15,6 +15,26 @@ export const ToastInsetContext = createContext<(height: number) => void>(() => {
 export const AppToastInsetContext = createContext(0);
 
 /**
+ * Where a bar along the app's bottom edge (the platform's tab bar under
+ * `Tabs`, with its bottom accessory on iOS 26) tells the `ToastProvider`
+ * around it how much of that edge it takes, above the safe area, so the
+ * app's toast stands above it. Outside a provider the report goes nowhere.
+ */
+export const AppToastFloorContext = createContext<(height: number) => void>(() => {});
+
+/**
+ * Reports what a bar takes of the app's bottom edge to the `ToastProvider`
+ * around it while it is mounted, and nothing once it goes.
+ */
+export function useAppToastFloor(height: number) {
+  const report = useContext(AppToastFloorContext);
+  useEffect(() => {
+    report(height);
+    return () => report(0);
+  }, [height, report]);
+}
+
+/**
  * Reports a toast's height from the screen's bottom edge while it shows, and
  * nothing once it goes.
  */

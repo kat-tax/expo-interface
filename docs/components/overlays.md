@@ -345,7 +345,12 @@ toast.show({message: 'Moved to the bin', action: {label: 'Undo', onPress: restor
 ```
 
 The provider queues them and shows one at a time, each for its duration or
-until its action is taken, at the foot of its area. `show` answers an id;
-`dismiss(id)` takes that toast away, showing or waiting, and `dismiss()` the
-one showing. A `Screen` under the provider lifts its `Fab` above the app's
-toast as it does above its own, by the larger of the two.
+until its action is taken, at the foot of its area, above the bottom safe
+area (the home indicator, Android's navigation bar). On iOS and Android it
+also stands above the tab bar of a `Tabs` under it while the bar shows, and
+above the bar's bottom accessory on iOS 26. A screen that a stack around the
+tabs pushes over them keeps the toast at that height, since the tabs stay
+mounted under it. `show` answers an id; `dismiss(id)` takes that toast away,
+showing or waiting, and `dismiss()` the one showing. A `Screen` under the
+provider lifts its `Fab` above the app's toast as it does above its own, by
+the larger of the two, and the tabs' floating action lifts above it too.
