@@ -61,8 +61,9 @@ export function useDateValue(
 
 /**
  * A date's local calendar day, as `YYYY-MM-DD`: the year in at least four
- * digits (`0050`, `12026`), with a minus sign before a year before 0
- * (`-0005`), as HTML writes a year. `parseDay` reads every one back.
+ * digits, as HTML writes one (`0050`, `12026`), and a minus sign before a
+ * year before 0 (`-0005`), which HTML's date input does not take, as it
+ * takes no year before 1. `parseDay` reads every one back.
  */
 export function dayOf(date: Date): string {
   const year = date.getFullYear();
