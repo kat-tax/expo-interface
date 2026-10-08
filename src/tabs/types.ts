@@ -86,8 +86,9 @@ export interface TabBarProps {
    * is not a symbol follows the scheme, a forced one included, before any
    * JavaScript runs, and takes the text color in forced colors. The image is
    * read from its `uri` (a `require` resolves to one), so it must be one the
-   * page may load as a mask: the same origin, or served with CORS. A source
-   * without a `uri` is drawn as it is.
+   * page may load as a mask: the same origin, or served with CORS. A mask
+   * the browser cannot load hides the mark, with no error on the page. A
+   * source without a `uri` is drawn as it is.
    * @default false
    */
   webTintIcon?: boolean;

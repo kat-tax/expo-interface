@@ -77,7 +77,9 @@ and `onPress` or menu `items`), `badgeMax` (a count above it is drawn as
 `99+`; 99 by default), and per platform: `webLogo` (`icon-only`, `text-only`,
 `icon-and-text` or a node), `webIcon` (an image, or an `IconToken` drawn as
 the kit's glyph in the label color), `webTintIcon` (an image `webIcon` drawn
-in the label color too, through a CSS mask), `webActions`,
+in the label color too, through a CSS mask: the image must be one the page
+may load as a mask, from the same origin or served with CORS, or the mark
+is not drawn, and an image with no `uri` is drawn as it is), `webActions`,
 `webActionsPlacement`, `webFoldHeader`, `webMaterial` (`none`, `thin`,
 `regular`, `thick`), `windowsPane` (`top`, `left`, `compact`, `minimal`,
 `auto`).
