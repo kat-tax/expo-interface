@@ -194,8 +194,9 @@ Differences:
 - `autoCapitalize` has no equivalent in the Windows row.
 - In `inline` on Windows, `keyboardType` has no effect and `autoCapitalize`
   honours only `characters`: react-native-windows ignores the rest.
-- `submitBehavior` is honoured on web and in `inline`. Compose keeps the field
-  focused after a submit, and on Windows Enter submits and keeps the focus.
+- `submitBehavior` is honoured on web and in `inline` on iOS and Android.
+  Compose keeps the field focused after a submit, and on Windows Enter
+  submits and keeps the focus whatever `submitBehavior` says.
   On Windows a multi-line `inline` field that submits sends on Enter and
   breaks the line on Shift+Enter.
 - `onKeyPress` reaches `inline` and the web and Windows rows. In `inline`,
