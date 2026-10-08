@@ -171,9 +171,11 @@ export interface ToolbarProps extends PropsWithChildren {
    * How a bar at `at` lines up with the rectangle across: centred on it,
    * from its left edge (`start`), or to its right edge (`end`), for tools
    * that hang from a block's corner. Left and right in the x coordinates of
-   * `at`, not leading and trailing: nothing flips them for a right-to-left
-   * layout. Kept inside the parent less `insets` either way. Read only with
-   * `at`.
+   * `at`, not leading and trailing, in a right-to-left layout too: React
+   * Native's layout reports x from the parent's left edge whatever the
+   * direction, and the bar is placed in those coordinates, though React
+   * Native on iOS and Android swaps a view's `left` and `right` there. Kept
+   * inside the parent less `insets` either way. Read only with `at`.
    * @default 'center'
    */
   align?: AnchorAlign;

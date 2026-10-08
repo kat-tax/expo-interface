@@ -1,4 +1,4 @@
-import {Platform, StyleSheet} from 'react-native';
+import {I18nManager, Platform, StyleSheet} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
@@ -62,6 +62,18 @@ describe(`Toolbar floating (${Platform.OS})`, () => {
     expect(style().left).toBe(100);
     await rerender(<Toolbar at={null} commands={commands} testID="bar"/>);
     expect(screen.getByTestId('bar-bounds').children).toHaveLength(0);
+  });
+
+  it('keeps the bar at the rectangle\'s left under a right-to-left layout, set as the end edge React Native swaps there', async () => {
+    const spy = vi.spyOn(I18nManager, 'getConstants').mockReturnValue({isRTL: true, doLeftAndRightSwapInRTL: true});
+    await render(<Toolbar at={{x: 100, y: 200, width: 80, height: 20}} align="start" commands={commands} testID="bar"/>);
+    const placed = () => screen.getByTestId('bar-bounds').children[0] as unknown as {props: {style: unknown; onLayout: (event: unknown) => void}};
+    await fireEvent(screen.getByTestId('bar-bounds'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 400, height: 600}}});
+    await act(async () => placed().props.onLayout({nativeEvent: {layout: {x: 0, y: 0, width: 120, height: 44}}}));
+    const style = StyleSheet.flatten(placed().props.style as never) as Record<string, unknown>;
+    expect(style).toMatchObject({position: 'absolute', right: 100, top: 148});
+    expect(style.left).toBeUndefined();
+    spy.mockRestore();
   });
 
   it('keeps clear of the insets, and needs no testID at a rectangle', async () => {

@@ -9,7 +9,7 @@ import {Divider} from '../divider';
 import {NativeHost} from '../host';
 import {Menu} from '../menu';
 import {Surface} from '../surface';
-import {useAnchored} from '../anchored';
+import {fromLeft, useAnchored} from '../anchored';
 import {MORE} from '../glyphs';
 import {isCompact} from '../size-class';
 import {spacing} from '../theme';
@@ -107,7 +107,7 @@ function AnchoredToolbar(props: ToolbarProps) {
       {at ? (
         <View
           onLayout={anchored.onCard}
-          style={[anchoredStyles.bar, {left: anchored.left, top: anchored.top}, anchored.placed ? null : anchoredStyles.unplaced]}>
+          style={[anchoredStyles.bar, fromLeft(anchored.left), {top: anchored.top}, anchored.placed ? null : anchoredStyles.unplaced]}>
           <FloatingToolbar {...props}/>
         </View>
       ) : null}

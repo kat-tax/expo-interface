@@ -6,7 +6,7 @@ import {StyleSheet, View} from 'react-native';
 import XamlCommandBar from '../windows/specs/ExpoInterfaceCommandBarNativeComponent';
 import {glyphOf, jsonProp, useXamlProps} from '../windows';
 import {Surface} from '../surface';
-import {useAnchored} from '../anchored';
+import {fromLeft, useAnchored} from '../anchored';
 import {Button} from '../button';
 import {Divider} from '../divider';
 import {Menu} from '../menu';
@@ -82,7 +82,7 @@ function AnchoredToolbar(props: ToolbarProps) {
       {at ? (
         <View
           onLayout={anchored.onCard}
-          style={[anchoredStyles.bar, {left: anchored.left, top: anchored.top}, anchored.placed ? null : anchoredStyles.unplaced]}>
+          style={[anchoredStyles.bar, fromLeft(anchored.left), {top: anchored.top}, anchored.placed ? null : anchoredStyles.unplaced]}>
           <PlacedToolbar {...props} floating/>
         </View>
       ) : null}

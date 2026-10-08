@@ -2,7 +2,7 @@ import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {windowsGlyph} from '../symbol/segoe';
 import * as icons from '../__stories__/icons';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {StyleSheet, Text} from 'react-native';
+import {I18nManager, StyleSheet, Text} from 'react-native';
 import {Toolbar} from '.';
 
 describe('Toolbar (windows)', () => {
@@ -89,6 +89,17 @@ describe('commands (windows)', () => {
     expect(StyleSheet.flatten(screen.getByTestId('drawn').props.style)).toMatchObject({borderRadius: 12, alignSelf: 'flex-start'});
     await rerender(<Toolbar at={null} commands={commands}/>);
     expect(islands(BAR)).toHaveLength(0);
+  });
+
+  it('keeps left under a right-to-left layout, since react-native-windows swaps no left and right', async () => {
+    // What react-native-windows reports for a right-to-left app.
+    const spy = vi.spyOn(I18nManager, 'getConstants').mockReturnValue({isRTL: true, doLeftAndRightSwapInRTL: false});
+    await render(<Toolbar at={{x: 100, y: 200, width: 80, height: 20}} commands={commands} testID="bar"/>);
+    const placed = screen.getByTestId('bar-bounds').children[0] as unknown as {props: {style: unknown}};
+    const style = StyleSheet.flatten(placed.props.style as never) as Record<string, unknown>;
+    expect(style.left).toEqual(expect.any(Number));
+    expect(style.right).toBeUndefined();
+    spy.mockRestore();
   });
 
   it('draws its commands as the kit\'s buttons beside a field, with the field\'s commands and the overflow trailing', async () => {

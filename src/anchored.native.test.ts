@@ -1,6 +1,7 @@
 import type {LayoutChangeEvent} from 'react-native';
+import {I18nManager} from 'react-native';
 import {act, renderHook} from '@testing-library/react-native';
-import {useAnchored} from './anchored';
+import {fromLeft, useAnchored} from './anchored';
 
 const layout = (width: number, height: number) => ({nativeEvent: {layout: {x: 0, y: 0, width, height}}}) as LayoutChangeEvent;
 
@@ -40,5 +41,27 @@ describe('useAnchored', () => {
   it('places nothing without a rectangle', async () => {
     const {result} = await renderHook(() => useAnchored({at: null, width: 200}));
     expect(result.current).toMatchObject({left: 0, top: 0, above: false});
+  });
+});
+
+describe('fromLeft', () => {
+  const constants = (isRTL: boolean, doLeftAndRightSwapInRTL: boolean) =>
+    vi.spyOn(I18nManager, 'getConstants').mockReturnValue({isRTL, doLeftAndRightSwapInRTL});
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('sets left in a left-to-right layout', () => {
+    constants(false, true);
+    expect(fromLeft(80)).toEqual({left: 80});
+  });
+
+  it('sets right under a right-to-left layout that swaps them, which React Native reads as the end edge, the left', () => {
+    constants(true, true);
+    expect(fromLeft(80)).toEqual({right: 80});
+  });
+
+  it('sets left under a right-to-left layout that does not swap them', () => {
+    constants(true, false);
+    expect(fromLeft(80)).toEqual({left: 80});
   });
 });
