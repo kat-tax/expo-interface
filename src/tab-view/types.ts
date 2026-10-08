@@ -86,6 +86,17 @@ export interface TabViewProps {
    * @default 'auto'
    */
   layout?: TabViewLayout;
+  /**
+   * What the strip, or the switcher's bar, is painted with: the raised fill,
+   * against which the open tab is the page's own colour, or nothing, for tabs
+   * on a material (a `HeaderAccessory` under a header the screens run under,
+   * the web bar's pill) that a fill of their own would cover. With `none` the
+   * open tab is a pill in the palette's pill fill. The WinUI strip is an
+   * island, which cannot be see-through, so on Windows `none` paints it in
+   * the screen's background, the fill of the header it sits in there.
+   * @default 'element'
+   */
+  fill?: TabViewFill;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
   style?: StyleProp<ViewStyle>;
@@ -136,3 +147,6 @@ export interface TabViewTab {
 
 /** What {@link TabViewProps.layout} asks for, before a width has decided it. */
 export type TabViewLayout = 'auto' | 'strip' | 'switcher';
+
+/** What {@link TabViewProps.fill} paints behind the tabs: the raised fill, or nothing. */
+export type TabViewFill = 'element' | 'none';

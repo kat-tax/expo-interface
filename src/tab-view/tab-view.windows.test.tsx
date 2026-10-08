@@ -1,6 +1,7 @@
 import {StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
+import {colors} from '../theme';
 import {TabView, tabItems} from './index.windows';
 
 const XAML = 'ExpoInterfaceTabView';
@@ -99,6 +100,21 @@ describe('TabView (windows)', () => {
     // The drawn switcher says the same words.
     await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document" layout="switcher" testID="t"/>);
     expect(screen.getByTestId('t-add').props.accessibilityLabel).toBe('New document');
+  });
+
+  it('paints the island in the raised fill, or in the screen\'s background with none, since an island cannot be see-through', async () => {
+    const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
+    expect(island(XAML).props.background).toBe(colors.light.backgroundElement);
+    await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" fill="none" testID="t"/>);
+    expect(island(XAML).props.background).toBe(colors.light.background);
+  });
+
+  it('leaves the drawn switcher\'s bar bare with none', async () => {
+    const bar = () => StyleSheet.flatten(screen.getByTestId('t-switcher').parent!.props.style);
+    const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
+    expect(bar().backgroundColor).toBe(colors.light.backgroundElement);
+    await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" fill="none" testID="t"/>);
+    expect(bar().backgroundColor).toBeUndefined();
   });
 
   it('puts the first tab at the front when the selected id names none', async () => {

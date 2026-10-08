@@ -2,6 +2,7 @@ import type {Meta, StoryObj} from '@storybook/react-native';
 import type {TabViewTab} from './types';
 import {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
+import {Material} from '../material';
 import {Body, Title2} from '../typography';
 import {spacing, useColor} from '../theme';
 import {nextSelection} from './shared';
@@ -123,6 +124,33 @@ export const TabsAlone: Story = {
   },
 };
 
+/** Colours for the material to show, as content passing under a header would. */
+const SWATCHES = ['#FF9500', '#34C759', '#007AFF', '#AF52DE'];
+
+/**
+ * The tabs alone on a material, as in a `HeaderAccessory` under a header the
+ * screens run under: with `fill="none"` the strip paints nothing of its own,
+ * so the material shows through, and the open tab is a pill. On Windows the
+ * WinUI strip is an island, which cannot be see-through, so it takes the
+ * screen's background instead.
+ */
+export const OnAMaterial: Story = {
+  args: {layout: 'strip', fill: 'none'},
+  render: function Render(args) {
+    const [selected, setSelected] = useState(args.selected);
+    return (
+      <View style={styles.stage}>
+        <View style={styles.swatches}>
+          {SWATCHES.map(color => <View key={color} style={[styles.swatch, {backgroundColor: color}]}/>)}
+        </View>
+        <Material kind="regular" edge="bottom">
+          <TabView {...args} selected={selected} onSelect={setSelected}/>
+        </Material>
+      </View>
+    );
+  },
+};
+
 /** A presence dot after a title: content of the app's own in the tab. */
 function Presence() {
   const color = useColor('success');
@@ -163,5 +191,20 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  stage: {
+    height: 160,
+    alignSelf: 'stretch',
+  },
+  swatches: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    flexDirection: 'row',
+  },
+  swatch: {
+    flex: 1,
   },
 });

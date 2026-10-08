@@ -42,6 +42,7 @@ The differences that change what a screen can do, in one place:
 | `TabView` close on the keyboard | Button | Button | Delete | The control's cross |
 | `TabView` tab menu | Long press | Long press | Right click, Menu key | Right click, Menu key |
 | `TabView` accessory in the strip | Yes | Yes | Yes | Cards only |
+| `TabView` `fill="none"` | No fill | No fill | No fill | The screen's background |
 | `List` | SwiftUI `List` | `LazyColumn` | DOM list, `content-visibility` | `FlatList` |
 | `CardGrid` | `FlatList` | `FlatList` | CSS grid | `FlatList` |
 | `Card` star while not set | Always drawn | Always drawn | Under the pointer or the keyboard where a pointer hovers; always drawn on a touch screen | Under the pointer |

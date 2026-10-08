@@ -172,7 +172,8 @@ Props: `tabs` (`id`, `title`, `label`, `icon`, `pinned`, `menu`, `depth`,
 takes the add button away), `addLabel` (what the add button is called to a
 screen reader and in Windows' tooltip, "New tab"), `children` (the selected
 tab's content; left out, the tabs alone), `label` ("Tabs"), `layout`
-(`auto`, `strip`, `switcher`), `style`, `testID`.
+(`auto`, `strip`, `switcher`), `fill` (`element`, the default, or `none`),
+`style`, `testID`.
 `nextSelection(tabs, closing, selected)` is exported for a caller that closes
 the open tab: it moves to the next tab, or the previous one when the last was
 closed.
@@ -214,6 +215,11 @@ Differences:
   has one through `aria-haspopup`.
 - `depth` indents a tab by 12 points a level, on every strip and on the
   cards, for documents that belong to one another.
+- `fill="none"` paints nothing behind the strip or the switcher's bar, for
+  tabs on a material that a fill of their own would cover, and marks the
+  open tab with a pill in the palette's pill fill. The WinUI strip is an
+  island, which cannot be see-through, so on Windows it is painted in the
+  screen's background, the fill of the header row it sits in there.
 - `accessory` (a presence dot, a count, an unsaved mark) is drawn after the
   title on the strips the kit draws and on the switcher's cards. The WinUI
   strip holds text and a glyph alone, so on Windows it shows on the cards
@@ -390,14 +396,14 @@ filter bar, a breadcrumb. Render it in the screen's content, as a
 ```tsx
 <Screen underBar>
   <HeaderAccessory>
-    <TabView tabs={open} selected={current} onSelect={setCurrent}/>
+    <TabView tabs={open} selected={current} onSelect={setCurrent} fill="none"/>
   </HeaderAccessory>
   <List data={rows} renderItem={renderRow}/>
 </Screen>
 ```
 
 A `TabView` without `children` is the strip alone; the page is the screen's
-content.
+content. `fill="none"` lets the header's material show through the strip.
 
 Content passing under a bar pays for the row through `useTabBarInset()`, as
 it pays for the bar, so a `Screen underBar` with the kit's `List` or

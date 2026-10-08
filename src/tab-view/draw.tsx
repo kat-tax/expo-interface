@@ -3,7 +3,7 @@ import type {ReactNode} from 'react';
 import type {IconToken} from '../icons';
 import type {MenuItem, MenuPoint} from '../menu/types';
 import type {ResolvedLayout} from './shared';
-import type {TabViewLayout, TabViewTab} from './types';
+import type {TabViewFill, TabViewLayout, TabViewTab} from './types';
 import {useRef, useState} from 'react';
 import {Pressable, ScrollView, StyleSheet, View, useWindowDimensions} from 'react-native';
 import {inSet} from '../a11y/set';
@@ -60,6 +60,8 @@ export interface TabDrawProps {
   onAdd?: () => void;
   /** What the add button is called. */
   addLabel: string;
+  /** What the strip or the bar is painted with. */
+  fill: TabViewFill;
   label: string;
   testID?: string;
 }
@@ -112,14 +114,18 @@ export function useTabMenus(testID: string | undefined): {
  * hands a screen reader a button inside a tab that it cannot reach on its own;
  * two controls in a row is what the platforms draw and what they announce.
  */
-export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, label, testID}: TabDrawProps) {
+export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fill, label, testID}: TabDrawProps) {
+  // With no fill of its own the strip is on a material or a header's fill,
+  // where the page's colour no longer marks the open tab; the translucent
+  // pill fill reads on either.
+  const filled = fill !== 'none';
   const surface = useColor('backgroundElement');
-  const open = useColor('background');
+  const open = useColor(filled ? 'background' : 'pillBackground');
   const labelColor = useColor('label');
   const secondary = useColor('secondaryLabel');
   const menus = useTabMenus(testID);
   return (
-    <View style={[styles.strip, {backgroundColor: surface}]}>
+    <View style={[styles.strip, filled && {backgroundColor: surface}]}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -134,7 +140,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, la
           return (
             <View
               key={tab.id}
-              style={[styles.tab, on && {backgroundColor: open}, tab.depth ? {paddingLeft: spacing.three + tab.depth * DEPTH_INDENT} : null]}
+              style={[styles.tab, on && {backgroundColor: open}, on && !filled && styles.pill, tab.depth ? {paddingLeft: spacing.three + tab.depth * DEPTH_INDENT} : null]}
               onLayout={event => menus.onLayout(tab.id, event)}>
               <Pressable
                 accessibilityRole="tab"
@@ -202,11 +208,13 @@ export function TabSwitcher({
   onClose,
   onAdd,
   addLabel,
+  fill,
   label,
   testID,
   children,
 }: TabDrawProps & {children?: ReactNode}) {
   const [open, setOpen] = useState(false);
+  const filled = fill !== 'none';
   const surface = useColor('backgroundElement');
   const card = useColor('background');
   const labelColor = useColor('label');
@@ -215,7 +223,7 @@ export function TabSwitcher({
   const menus = useTabMenus(testID);
   return (
     <>
-      <View style={[styles.bar, {backgroundColor: surface}]}>
+      <View style={[styles.bar, filled && {backgroundColor: surface}]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={switcherLabel(tabs, selected)}
@@ -314,6 +322,10 @@ const styles = StyleSheet.create({
     maxWidth: 220,
     paddingLeft: spacing.three,
     paddingRight: spacing.one,
+  },
+  /** The open tab on a strip with no fill of its own, where a pill marks it. */
+  pill: {
+    borderRadius: 8,
   },
   tabBody: {
     flexDirection: 'row',

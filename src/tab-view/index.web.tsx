@@ -84,6 +84,7 @@ export function TabView({
   children,
   label = 'Tabs',
   layout = 'auto',
+  fill = 'element',
   testID,
   style,
 }: TabViewProps) {
@@ -170,7 +171,7 @@ export function TabView({
   return (
     <div
       ref={root}
-      className={['ui-tab-view', alone && 'ui-tab-view--alone'].filter(Boolean).join(' ')}
+      className={['ui-tab-view', alone && 'ui-tab-view--alone', fill === 'none' && 'ui-tab-view--no-fill'].filter(Boolean).join(' ')}
       style={flatten(StyleSheet.flatten(style) as TextStyle) as CSSProperties}
       data-testid={testID}>
       {resolved === 'strip' ? (

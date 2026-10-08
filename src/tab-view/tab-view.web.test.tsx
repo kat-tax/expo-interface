@@ -154,6 +154,13 @@ describe('TabView (web)', () => {
     expect(onAdd).toHaveBeenCalled();
   });
 
+  it('takes no fill of its own with none, and the raised fill by default', () => {
+    const {rerender} = render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
+    expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--no-fill');
+    rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} fill="none" testID="t"/>);
+    expect(screen.getByTestId('t')).toHaveClass('ui-tab-view--no-fill');
+  });
+
   it('calls the add button what it is asked to', () => {
     render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document"/>);
     expect(screen.getByRole('button', {name: 'New document'})).toBeInTheDocument();

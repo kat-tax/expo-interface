@@ -1,5 +1,6 @@
 import {Platform, StyleSheet, Text, View} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {colors} from '../theme';
 import {TabView} from '.';
 
 const TABS = [
@@ -161,6 +162,33 @@ describe(`TabView (${Platform.OS})`, () => {
     await render(<TabView tabs={tabs} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
     expect(screen.getByTestId('t-tab-b').props.accessibilityLabel).toBe('Sketch, edited');
     expect(screen.getByTestId('t-tab-a').props.accessibilityLabel).toBe('Notes');
+  });
+
+  describe('fill', () => {
+    const style = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).parent!.props.style);
+
+    it('paints the strip in the raised fill, with the open tab in the page\'s colour', async () => {
+      await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
+      expect(style('t-strip').backgroundColor).toBe(colors.light.backgroundElement);
+      expect(style('t-tab-a').backgroundColor).toBe(colors.light.background);
+      expect(style('t-tab-a').borderRadius).toBeUndefined();
+      expect(style('t-tab-b').backgroundColor).toBeUndefined();
+    });
+
+    it('draws no fill of its own with none, and marks the open tab with a pill', async () => {
+      await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" fill="none" testID="t"/>);
+      expect(style('t-strip').backgroundColor).toBeUndefined();
+      expect(style('t-tab-a')).toMatchObject({backgroundColor: colors.light.pillBackground, borderRadius: 8});
+      expect(style('t-tab-b').backgroundColor).toBeUndefined();
+      expect(style('t-tab-b').borderRadius).toBeUndefined();
+    });
+
+    it('paints the switcher\'s bar, or leaves it bare with none', async () => {
+      const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
+      expect(style('t-switcher').backgroundColor).toBe(colors.light.backgroundElement);
+      await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" fill="none" testID="t"/>);
+      expect(style('t-switcher').backgroundColor).toBeUndefined();
+    });
   });
 
   describe('without children', () => {

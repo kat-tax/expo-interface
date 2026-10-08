@@ -51,12 +51,16 @@ export function TabView({
   children,
   label = 'Tabs',
   layout = 'auto',
+  fill = 'element',
   testID,
   style,
 }: TabViewProps) {
   const {resolved, onLayout} = useResolvedLayout(layout);
   const xaml = useXamlProps();
-  const background = useColor('backgroundElement');
+  // An island cannot be see-through (its root is white wherever its content
+  // is transparent), so no fill of its own is the screen's background: the
+  // fill of the Windows header row a strip sits in.
+  const background = useColor(fill === 'none' ? 'background' : 'backgroundElement');
   const index = Math.max(0, tabs.findIndex(tab => tab.id === selected));
   // A tab's menu, open where the island said the right click or the Menu
   // key landed, in the island's coordinates, which are the root's.
@@ -103,6 +107,7 @@ export function TabView({
           onClose={onClose}
           onAdd={onAdd}
           addLabel={addLabel}
+          fill={fill}
           label={label}
           testID={testID}>
           {page}
