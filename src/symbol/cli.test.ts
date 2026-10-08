@@ -12,6 +12,7 @@ import {
   fontFaceCSS,
   fontPlan,
   identifier,
+  loadFontTools,
   outlinedUrl,
   packagedNames,
   scanFiles,
@@ -129,6 +130,29 @@ describe('expo-interface-symbols', () => {
     expect(tools.subset).toHaveBeenCalledWith(new Uint8Array([1, 0]), 'aehoprst', [40, 41, 50, 51], {FILL: {min: 0, max: 1}, wght: 400, GRAD: 0, opsz: 24});
     expect([...woff2]).toEqual([9, 2]);
     expect(missing).toEqual([]);
+  });
+
+  it('refuses a harfbuzzjs without the shaping API and the subsetter it drives, before cutting anything', async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'symbols-'));
+    try {
+      const hb = path.join(dir, 'node_modules', 'harfbuzzjs');
+      mkdirSync(path.join(hb, 'dist'), {recursive: true});
+      writeFileSync(
+        path.join(hb, 'package.json'),
+        JSON.stringify({name: 'harfbuzzjs', type: 'module', exports: {'.': './dist/index.mjs', './dist/*.wasm': './dist/*.wasm'}}),
+      );
+      // Another line's API: the files are where 1.x keeps them, the calls are not.
+      writeFileSync(path.join(hb, 'dist', 'index.mjs'), 'export const createFace = () => {};\n');
+      // An empty WebAssembly module, which exports nothing.
+      writeFileSync(path.join(hb, 'dist', 'harfbuzz-subset.wasm'), new Uint8Array([0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00]));
+      mkdirSync(path.join(dir, 'node_modules', 'fontverter'));
+      writeFileSync(path.join(dir, 'node_modules', 'fontverter', 'index.js'), 'module.exports = {};\n');
+      await expect(loadFontTools(dir)).rejects.toThrow(
+        /^harfbuzzjs is not the 1\.x line this drives: it has no Blob, Buffer, Face, Font, Variation, shape, _initialize, free, .*, malloc, memory$/,
+      );
+    } finally {
+      rmSync(dir, {recursive: true, force: true});
+    }
   });
 
   it('always writes into the font the names the kit\'s own controls draw on the web', () => {

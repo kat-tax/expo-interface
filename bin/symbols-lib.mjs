@@ -326,12 +326,43 @@ function cutFont(wasm, sfnt, text, glyphs, axes) {
   }
 }
 
+/** What `shaperOf` takes from `harfbuzzjs`. */
+const HB_SHAPING = ['Blob', 'Buffer', 'Face', 'Font', 'Variation', 'shape'];
+
+/** What `cutFont` calls in `harfbuzzjs`'s subsetter, and the call that sets it up. */
+const HB_SUBSETTING = [
+  '_initialize',
+  'free',
+  'hb_blob_create',
+  'hb_blob_destroy',
+  'hb_blob_get_data',
+  'hb_blob_get_length',
+  'hb_face_create',
+  'hb_face_destroy',
+  'hb_face_reference_blob',
+  'hb_set_add',
+  'hb_set_clear',
+  'hb_set_invert',
+  'hb_subset_input_create_or_fail',
+  'hb_subset_input_destroy',
+  'hb_subset_input_get_flags',
+  'hb_subset_input_glyph_set',
+  'hb_subset_input_pin_axis_location',
+  'hb_subset_input_set',
+  'hb_subset_input_set_axis_range',
+  'hb_subset_input_set_flags',
+  'hb_subset_input_unicode_set',
+  'hb_subset_or_fail',
+  'malloc',
+];
+
 /**
  * The tools `subsetVariableFont` cuts with: `harfbuzzjs` 1 to shape and
  * subset, and `fontverter` to read and write WOFF2, both resolved from the
  * app's root (the app's dev installs, not the kit's dependencies). Throws
- * where either is missing, or where `harfbuzzjs` is an older line without
- * the subsetter this drives.
+ * where either is missing, or where `harfbuzzjs` is another line, without
+ * the shaping API or the subsetter this drives, so nothing fails halfway
+ * through a cut.
  *
  * @param {string} [resolveFrom] the app's root
  * @returns {Promise<FontTools>}
@@ -343,6 +374,12 @@ export async function loadFontTools(resolveFrom = process.cwd()) {
   const hb = await import(/* @vite-ignore */ pathToFileURL(fromApp.resolve('harfbuzzjs')).href);
   const fontverter = fromApp('fontverter');
   const {instance} = await WebAssembly.instantiate(readFileSync(subsetWasm));
+  const lacking = [
+    ...HB_SHAPING.filter(name => typeof hb[name] !== 'function'),
+    ...HB_SUBSETTING.filter(name => typeof instance.exports[name] !== 'function'),
+    ...(instance.exports.memory instanceof WebAssembly.Memory ? [] : ['memory']),
+  ];
+  if (lacking.length > 0) throw new Error(`harfbuzzjs is not the 1.x line this drives: it has no ${lacking.join(', ')}`);
   instance.exports._initialize();
   return {
     decode: bytes => fontverter.convert(Buffer.from(bytes), 'truetype'),

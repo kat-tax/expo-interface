@@ -185,7 +185,7 @@ for `HeaderSearch`. The font draws most solid icons from a glyph of their
 own, so the cut keeps each name's glyph at `FILL 0` and at `FILL 1`. It
 keeps the `FILL` axis and pins the others. A name the font does not have is
 reported and left out. The cut is done with HarfBuzz, so the CLI needs
-`harfbuzzjs` and `fontverter` in the app (`npm i -D harfbuzzjs fontverter`).
+`harfbuzzjs` 1 and `fontverter` in the app (`npm i -D harfbuzzjs fontverter`).
 
 Serve it from the app's bundle and register it beside the palette:
 
