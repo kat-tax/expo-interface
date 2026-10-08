@@ -3,7 +3,8 @@ import type {SheetProps} from './types';
 import {SheetActions} from './actions';
 import {SheetBar} from './bar';
 import {SheetBody} from './body';
-import {hasBar, sub} from './shared';
+import {ScrollInsetsContext} from '../screen/insets';
+import {SHEET_SCROLL_INSETS, hasBar, sub} from './shared';
 
 /**
  * What goes inside the platform's sheet, in order: the bar when anything
@@ -11,10 +12,12 @@ import {hasBar, sub} from './shared';
  * actions along the bottom edge. Each piece is a direct child of the sheet,
  * so native content (the bar on iOS and Android, an accessory of `@expo/ui`
  * content) and React Native content (the body, a footer) sit side by side.
+ * None of it is under a screen's bar, so the screen's scroll insets stop at
+ * the sheet.
  */
 export function sheetChildren({title, subtitle, onBack, onClose, menu, accessory, footer, actions, maxHeight, contentPadding, testID, children}: SheetProps): ReactNode {
   return (
-    <>
+    <ScrollInsetsContext.Provider value={SHEET_SCROLL_INSETS}>
       {hasBar({title, onBack, onClose, menu}) ? (
         <SheetBar title={title} subtitle={subtitle} onBack={onBack} onClose={onClose} menu={menu} testID={sub(testID, 'bar')}/>
       ) : null}
@@ -22,7 +25,7 @@ export function sheetChildren({title, subtitle, onBack, onClose, menu, accessory
       <SheetBody maxHeight={maxHeight} contentPadding={contentPadding} testID={sub(testID, 'body')}>{children}</SheetBody>
       {footer}
       {actions && actions.length > 0 ? <SheetActions actions={actions} testID={sub(testID, 'actions')}/> : null}
-    </>
+    </ScrollInsetsContext.Provider>
   );
 }
 

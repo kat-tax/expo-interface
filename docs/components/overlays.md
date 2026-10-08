@@ -285,6 +285,11 @@ Android a capped body is told the sheet's width, since a React Native view
 inside the platform's sheet has no width of its own to fill: the window's,
 or a form sheet's on an iPad, less the sheet's padding.
 
+The sheet's content is not under a screen's bar: `useScrollInsets()`
+answers zero inside it on every platform, so a `FieldGroup`, `List` or
+`CardGrid` there pads only by its own insets, whatever screen the sheet
+opens from.
+
 ## Toast
 
 A brief message over the screen. Props: `message`, `visible`, `action`

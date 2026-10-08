@@ -2,9 +2,16 @@ import {Platform, Text} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {AccentProvider, ACCENT_SEED} from '../accent';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
 import {Sheet} from '.';
 
 const isIOS = Platform.OS === 'ios';
+
+/** Prints the scroll insets a list or a form at this point pads by. */
+function Insets() {
+  const {top, bottom, automatic} = useScrollInsets();
+  return <Text>{`${top} ${bottom} ${automatic}`}</Text>;
+}
 
 /** iOS: the SwiftUI `Group` wrapping the sheet content carries the presentation modifiers. */
 const presentation = () => host(p => modifier(p, 'presentationDragIndicator') != null);
@@ -104,6 +111,20 @@ describe(`Sheet (${Platform.OS})`, () => {
       expect(modal().props.skipPartiallyExpanded).toBe(false);
       expect(modifier(byComposeTestID('sheet').props, 'fillMaxHeight')).toEqual({$type: 'fillMaxHeight'});
     }
+  });
+
+  it('gives its content no scroll insets, whatever screen it opens from', async () => {
+    await render(
+      <ScrollInsetsContext.Provider value={{top: 96, bottom: 24, automatic: true}}>
+        <Insets/>
+        <Sheet isPresented onDismiss={() => {}} accessory={<Insets/>} footer={<Insets/>} maxHeight={300}>
+          <Insets/>
+        </Sheet>
+      </ScrollInsetsContext.Provider>,
+    );
+    // The screen's own content keeps the bar's insets; the accessory, the body and the footer get none.
+    expect(screen.getByText('96 24 true')).toBeOnTheScreen();
+    expect(screen.getAllByText('0 0 false')).toHaveLength(3);
   });
 
   it('renders nothing while dismissed', async () => {

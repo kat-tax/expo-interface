@@ -1,6 +1,13 @@
 import {afterEach} from 'vitest';
 import {fireEvent, render, screen} from '@testing-library/react';
+import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
 import {Sheet} from '.';
+
+/** Prints the scroll insets a list or a form at this point pads by. */
+function Insets() {
+  const {top, bottom, automatic} = useScrollInsets();
+  return <span>{`${top} ${bottom} ${automatic}`}</span>;
+}
 
 describe('Sheet (web)', () => {
   it('renders nothing while dismissed', () => {
@@ -49,6 +56,20 @@ describe('Sheet (web)', () => {
       </Sheet>,
     );
     expect(screen.getByRole('dialog').style.height).toBe('96vh');
+  });
+
+  it('gives its content no scroll insets, whatever screen it opens from', () => {
+    render(
+      <ScrollInsetsContext.Provider value={{top: 96, bottom: 24, automatic: true}}>
+        <Insets/>
+        <Sheet isPresented onDismiss={() => {}} accessory={<Insets/>} footer={<Insets/>} maxHeight={300}>
+          <Insets/>
+        </Sheet>
+      </ScrollInsetsContext.Provider>,
+    );
+    // The drawer is a portal, which keeps context: the reset is the sheet's own.
+    expect(screen.getByText('96 24 true')).toBeInTheDocument();
+    expect(screen.getAllByText('0 0 false')).toHaveLength(3);
   });
 
   it('calls onDismiss when the dialog is dismissed', () => {

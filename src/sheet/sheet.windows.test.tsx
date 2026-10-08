@@ -1,11 +1,18 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {Text, View} from 'react-native';
 import {useNativeHost} from '../host';
+import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
 import {LayerHost} from '../windows/layer';
 import {Sheet} from '.';
 
 function Hosted() {
   return <Text>{useNativeHost() ? 'hosted' : 'bare'}</Text>;
+}
+
+/** Prints the scroll insets a list or a form at this point pads by. */
+function Insets() {
+  const {top, bottom, automatic} = useScrollInsets();
+  return <Text>{`${top} ${bottom} ${automatic}`}</Text>;
 }
 
 describe('Sheet (windows)', () => {
@@ -42,6 +49,32 @@ describe('Sheet (windows)', () => {
     expect(screen.getByTestId('content').queryAll(node => node.props.testID === 'sheet')).toHaveLength(1);
     await fireEvent(screen.getByTestId('sheet'), 'keyDown', {nativeEvent: {key: 'Escape'}});
     expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives its content no scroll insets when it draws in place, inside the screen that has them', async () => {
+    await render(
+      <ScrollInsetsContext.Provider value={{top: 96, bottom: 24, automatic: true}}>
+        <Insets/>
+        <Sheet isPresented onDismiss={() => {}} accessory={<Insets/>} footer={<Insets/>} maxHeight={300}>
+          <Insets/>
+        </Sheet>
+      </ScrollInsetsContext.Provider>,
+    );
+    expect(screen.getByText('96 24 true')).toBeOnTheScreen();
+    expect(screen.getAllByText('0 0 false')).toHaveLength(3);
+  });
+
+  it('gives its content no scroll insets in a host\'s layer either', async () => {
+    await render(
+      <ScrollInsetsContext.Provider value={{top: 96, bottom: 24, automatic: true}}>
+        <LayerHost>
+          <Sheet isPresented onDismiss={() => {}}>
+            <Insets/>
+          </Sheet>
+        </LayerHost>
+      </ScrollInsetsContext.Provider>,
+    );
+    expect(screen.getByText('0 0 false')).toBeOnTheScreen();
   });
 
   it('shows nothing while not presented', async () => {

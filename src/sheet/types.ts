@@ -56,6 +56,9 @@ export interface SheetAction {
  * Without `snapPoints` the sheet fits its content on every platform:
  * SwiftUI's fitted detent, Compose's intrinsic height, the drawer's own on
  * web. `maxHeight` caps that, and the body scrolls inside the cap.
+ *
+ * The sheet's content is not under a screen's bar, so `useScrollInsets()`
+ * answers zero inside it, whatever screen the sheet opens from.
  */
 export interface SheetProps extends BottomSheetProps {
   material?: SheetMaterial;
