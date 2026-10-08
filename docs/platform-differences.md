@@ -48,6 +48,7 @@ The differences that change what a screen can do, in one place:
 | `TabView` tab menu | Long press | Long press | Right click, Menu key | Right click, Menu key |
 | `TabView` accessory in the strip | Yes | Yes | Yes | Cards only |
 | `TabView` `fill="none"` | No fill | No fill | No fill | The WinUI strip in the screen's background; no fill on the switcher's bar |
+| `TabView` add button's name without `addLabel` | "New tab" | "New tab" | "New tab" | WinUI's own, in the system's language, on the strip; "New tab" on the switcher |
 | `List` | SwiftUI `List` | `LazyColumn` | DOM list, windowed | `FlatList` |
 | `CardGrid` | `FlatList` | `FlatList` | CSS grid, windowed | `FlatList` |
 | `Card` star while not set | Always drawn | Always drawn | Under the pointer or the keyboard where a pointer hovers; always drawn on a touch screen | Under the pointer |
@@ -60,6 +61,7 @@ The differences that change what a screen can do, in one place:
 | `Toolbar` menu command behind the overflow | Its entries, set off by rules | Its entries, set off by rules | Its entries, set off by rules | A submenu (`CommandBar`); its entries in a drawn bar |
 | `FindBar` | Drawn, not `UIFindInteraction` | Drawn | Drawn | Drawn |
 | `Toolbar` floating | The kit's raised capsule | Material's `HorizontalFloatingToolbar` | The kit's raised capsule | The `CommandBar` in a raised card |
+| `Divider` `vertical` inside a host | The row's height | 24dp | The row's height | The row's height |
 | `Button` `pressed` heard as | Selected | Checked, by Material's toggle buttons | Pressed | A button |
 | `AvatarGroup` `selected` heard as | Selected | Selected | Current | Selected |
 | `EmptyState` | The system's view on iOS 17 and later; composed in SwiftUI before, and while `loading` | Composed in Compose, the description hosted React Native text while `selectable` | Drawn | Drawn |
