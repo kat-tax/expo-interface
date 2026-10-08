@@ -79,7 +79,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | [`Avatar`](indicators.md#avatar) | A person as a colored circle with initials, a ring, dimmed when away. |
 | [`AvatarGroup`](indicators.md#avatargroup) | People as overlapping faces, counted past a few, pressable. |
 | [`Typography`](indicators.md#typography) | Text in the platform's type scale, and its variants as components. |
-| [`RelativeTime`](indicators.md#relativetime) | A moment as the time since it, kept current. |
+| [`RelativeTime`, `useRelativeTime`](indicators.md#relativetime) | A moment as the time since it, kept current, as text or as a string. |
 | [`Icon`](../icons.md#the-icon-component) | A token drawn on its own, in a tone. |
 
 ## Overlays

@@ -181,7 +181,9 @@ export type {
   TypographyWeight,
 } from './typography/types';
 export {RelativeTime} from './relative-time';
+export {useRelativeTime} from './relative-time';
 export type {RelativeTimeProps} from './relative-time/types';
+export type {RelativeTimeOptions} from './relative-time/types';
 
 // Platform services
 export {ToastProvider, useToast} from './toast/provider';

@@ -143,10 +143,25 @@ it renders with it.
 Props: `date` (a `Date` or milliseconds), `variant` (a `Typography` style,
 `footnote` by default), `color` (a token, `secondaryLabel` by default),
 `numeric` (`auto` says "now" and "yesterday" where the language has the
-words; `always` says "1 day ago"), `numberOfLines`, `testID`.
+words; `always` says "1 day ago"), `locale` (the language of the words, a
+BCP 47 tag such as `de` or `pt-BR`; on web the page's language by default),
+`numberOfLines`, `testID`.
 
 ```tsx
 <RelativeTime date={document.editedAt}/>
+```
+
+`useRelativeTime(date, {numeric, locale})` answers the same words as a
+string, for text that cannot hold a view: a `ListItem`'s `value`, a `Card`'s
+`subtitle`, a label. The component that calls it renders again as the words
+may change. A `renderItem` function cannot call a hook, so a list calls it
+in the row's own component:
+
+```tsx
+function NoteRow({note}: {note: Note}) {
+  const edited = useRelativeTime(note.editedAt);
+  return <ListItem value={edited}>{note.title}</ListItem>;
+}
 ```
 
 The units round as a person does: under 45 seconds is "now", then minutes
@@ -154,5 +169,7 @@ up to 45, hours up to 22, days up to 26, months up to 11, and years.
 
 | Platform | Words |
 | --- | --- |
-| Web | The locale's, through `Intl.RelativeTimeFormat` |
-| iOS, Android, Windows | English: Hermes has no `Intl.RelativeTimeFormat`. An engine that gains it is used without a change. |
+| Web | `locale`'s, else the page's language, through `Intl.RelativeTimeFormat`. The page's language is the `lang` of its `<html>`: `web.lang` in the app config for a single-page app, or the `lang` that `+html.tsx` sets for a static one. The words follow it when it changes, so they are the app's language rather than the browser's. A static page hydrates with the words the server rendered and says them in the page's language in the next render. |
+| iOS, Android, Windows | English: Hermes has no `Intl.RelativeTimeFormat`. With a polyfill for it, such as FormatJS's `@formatjs/intl-relativetimeformat` and its locale data, `locale`'s or the device's language, with no change in the kit. |
+
+A tag the engine cannot read (`en_US`) gets the engine's default language.
