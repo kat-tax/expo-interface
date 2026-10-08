@@ -59,8 +59,9 @@ export interface AlertAction {
  * Bridges the SwiftUI `Alert` (or `ConfirmationDialog` action sheet with
  * `sheet`) on iOS, the Jetpack Compose Material 3 `AlertDialog` on Android,
  * and the HTML `<dialog>` element on web. Presentation is controlled: set
- * `visible` and clear it from `onDismiss`, which fires whenever the alert
- * closes — after any action, or when the user dismisses it.
+ * `visible` and clear it from `onDismiss`, which fires when the alert
+ * closes after an action or when the user dismisses it. Clearing `visible`
+ * closes it without a report.
  */
 export interface AlertProps {
   /** Title shown at the top of the alert. */
@@ -69,7 +70,10 @@ export interface AlertProps {
   message?: string;
   /** Whether the alert is presented. */
   visible: boolean;
-  /** Called when the alert closes for any reason. */
+  /**
+   * Called when the alert closes after an action or when the user dismisses
+   * it; not when the app closes it by clearing `visible`.
+   */
   onDismiss?: () => void;
   /**
    * Buttons shown in the alert.

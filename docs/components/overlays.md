@@ -244,6 +244,10 @@ Windows the keyboard's action key presses the first action that is not
 to the actions while the dialog is open updates each button's label and
 whether it takes presses; the buttons are arranged as it opens.
 
+`onDismiss` fires when the alert closes after an action or when the user
+dismisses it. Clearing `visible` closes the alert without a report, on
+every platform.
+
 ## Sheet
 
 A bottom sheet that inherits the accent, over `@expo/ui`'s `BottomSheet`

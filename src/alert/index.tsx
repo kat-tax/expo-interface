@@ -18,6 +18,8 @@ import {DEFAULT_ACTIONS, defaultAction, splitActions} from './shared';
  */
 export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACTIONS, sheet, input, children, testID}: AlertProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  // Set while the app closes the dialog by clearing `visible`: that close is not reported.
+  const silent = useRef(false);
   const {cancel, others} = splitActions(actions);
   const submit = () => {
     const action = defaultAction(actions);
@@ -28,9 +30,23 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
 
   useEffect(() => {
     const dialog = ref.current!;
-    if (visible && !dialog.open) dialog.showModal();
-    else if (!visible && dialog.open) dialog.close();
+    if (visible && !dialog.open) {
+      dialog.showModal();
+    } else if (!visible && dialog.open) {
+      silent.current = true;
+      dialog.close();
+    }
   }, [visible]);
+
+  // The dialog's close event, after an action, Escape or a backdrop click,
+  // and after the app's own close, which is not reported.
+  const onClose = () => {
+    if (silent.current) {
+      silent.current = false;
+      return;
+    }
+    onDismiss?.();
+  };
 
   const onBackdrop = (event: SyntheticEvent<HTMLDialogElement, MouseEvent>) => {
     if (event.target === ref.current) ref.current?.close();
@@ -43,7 +59,7 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
         ref={ref}
         className={['ui-alert', sheet && 'ui-alert--sheet'].filter(Boolean).join(' ')}
         aria-label={title}
-        onClose={onDismiss}
+        onClose={onClose}
         onClick={onBackdrop}
         data-testid={testID}>
         <div className="ui-alert__body">

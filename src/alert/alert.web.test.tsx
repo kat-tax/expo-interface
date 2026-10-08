@@ -182,6 +182,18 @@ describe('Alert (web)', () => {
     expect(dialog()).not.toHaveAttribute('open');
   });
 
+  it('reports nothing when the app closes it, and the user\'s next dismissal again', () => {
+    const onDismiss = vi.fn();
+    const {rerender} = render(<Alert title="Hi" visible onDismiss={onDismiss} testID="alert"/>);
+    const closes = close.mock.calls.length;
+    rerender(<Alert title="Hi" visible={false} onDismiss={onDismiss} testID="alert"/>);
+    expect(close).toHaveBeenCalledTimes(closes + 1);
+    expect(onDismiss).not.toHaveBeenCalled();
+    rerender(<Alert title="Hi" visible onDismiss={onDismiss} testID="alert"/>);
+    fireEvent(dialog(), new Event('close'));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
   it('reports the dismissal when the dialog closes on its own (Escape)', () => {
     const onDismiss = vi.fn();
     render(<Alert title="Hi" visible onDismiss={onDismiss} testID="alert"/>);
