@@ -826,6 +826,17 @@ describe(`Tabs (${Platform.OS})`, () => {
           const menu = nodes().find(n => n.type === 'RNSTabsHost')!.props.ios.bottomAccessory as (placement: string) => React.ReactElement;
           await render(menu('regular'));
           expect(nodes().some(n => n.props.label === 'New')).toBe(true);
+          // Hidden tabs take the accessory with them, by the prop and by HideTabs.
+          const hostAccessory = () => nodes().find(n => n.type === 'RNSTabsHost')!.props.ios.bottomAccessory;
+          await renderApp(await app({hidden: true, action: {label: 'New', icon: icons.add, onPress: vi.fn()}}));
+          expect(nodes().find(n => n.type === 'RNSTabsHost')!.props.tabBarHidden).toBe(true);
+          expect(hostAccessory()).toBeUndefined();
+          await renderApp({
+            ...(await app({action: {label: 'New', icon: icons.add, onPress: vi.fn()}})),
+            index: () => <><HideTabs/><Text>Home screen</Text></>,
+          });
+          expect(nodes().find(n => n.type === 'RNSTabsHost')!.props.tabBarHidden).toBe(true);
+          expect(hostAccessory()).toBeUndefined();
         } finally {
           Object.defineProperty(Platform, 'Version', version);
         }

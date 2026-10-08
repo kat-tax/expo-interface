@@ -37,7 +37,9 @@ export function Tabs({routes, hidden: hiddenProp = false, action, badgeMax = 99}
         // Monochrome selected icon to match the label (and the web tab bar);
         // without it iOS falls back to the default system tint.
         iconColor={{selected: labelColor}}>
-        {action && accessory ? (
+        {/* Hidden tabs take the accessory with them: hiding the bar alone leaves
+            UIKit's accessory where it was. */}
+        {action && accessory && !hidden ? (
           <NativeTabs.BottomAccessory>
             <AccessoryAction action={action}/>
           </NativeTabs.BottomAccessory>
