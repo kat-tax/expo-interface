@@ -92,8 +92,9 @@ function samePlace(a: PopoverRect | null, b: PopoverRect | null): boolean {
 /**
  * Escape on web while the card is up, wherever the focus is: the document's
  * keydown in the capture phase, so an editor that holds the focus and keeps
- * the key for itself still lets the card go first. The key is the card's
- * then and goes no further, so the editor does not act on it too.
+ * the key for itself still lets the card go first. The key then stops at the
+ * document, so the editor does not act on it too; another listener on the
+ * document itself, such as a web `Sheet`'s, still gets it.
  */
 export function useEscape(active: boolean, onEscape: () => void): void {
   const escape = useEffectEvent(onEscape);
