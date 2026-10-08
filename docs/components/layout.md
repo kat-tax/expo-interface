@@ -362,9 +362,9 @@ Differences:
   `rgb()`, `hsl()` or a translucent token (`separator`, `pillBackground`)
   draws the badge in Fluent's critical red, which is also its fill without
   one.
-- On Android TalkBack reads the row's own texts as Compose merges them: a
-  badge's count is its number and a dot says nothing, since `@expo/ui`'s
-  Compose layer has no modifier that sets a description. `selected` is
+- On Android TalkBack reads the row's own texts: a badge's count is its
+  number and a dot says nothing, since `@expo/ui`'s Compose layer has no
+  modifier that sets a description. `selected` is
   announced on a row that presses by itself; an inert row, or one with
   `swipeActions`, shows the fill alone.
 - On iOS and Android a row outside a host (a React Native `ScrollView` of
