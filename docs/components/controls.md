@@ -190,14 +190,18 @@ makes sure the keyboard came on Android.
 
 Differences:
 
-- `autoCapitalize` has no Windows equivalent.
+- `autoCapitalize` has no equivalent in the Windows row.
+- In `inline` on Windows, `keyboardType` has no effect and `autoCapitalize`
+  honours only `characters`: react-native-windows ignores the rest.
 - `submitBehavior` is honoured on web and in `inline`. Compose keeps the field
   focused after a submit, and on Windows Enter submits and keeps the focus.
   On Windows a multi-line `inline` field that submits sends on Enter and
   breaks the line on Shift+Enter.
 - `onKeyPress` reaches `inline` and the web and Windows rows. In `inline`,
   iOS and Android report only the keys that write, Enter and Backspace;
-  react-native-windows reports no Shift.
+  react-native-windows reports only the keys that type a character, Escape
+  and Backspace among them, never an Enter that submits (in a one-line
+  field, every Enter), and no Shift.
 - `keyboardType` on web is also the field's `inputmode`, which a multi-line
   field takes.
 - `onFocus`, `onBlur` and the `ref` reach `inline` and the web row, the
@@ -222,8 +226,8 @@ line under the capsule: a hint, an error, who else is typing),
 `sendLabel` (`Send`) and `stopLabel` (`Stop`, the buttons' accessible
 names), `sendIcon` and `stopIcon` (the kit's arrow and stop square),
 `onKeyPress` (a key pressed in the field, by its name and whether Shift
-was held: Escape to close an assistant; on web the Enter that sends stays
-the composer's), `autoCapitalize`, `autoCorrect` and `keyboardType` (the
+was held: Escape to close an assistant; on web and Windows the Enter that
+sends stays the composer's), `autoCapitalize`, `autoCorrect` and `keyboardType` (the
 field's, as on a `TextField`), `menu` (`label`, `icon`, `items`: the
 platform's menu behind an icon button at the capsule's leading edge, for
 what the message goes to), `disabled`, `autoFocus`, `maxLength`, `style`,
@@ -238,8 +242,10 @@ On web the capsule draws the focus ring while the field has the focus.
 The button is the platform's: a SwiftUI button, a
 Material button, a `<button>`, a WinUI button. On Windows a `sendIcon` or
 `stopIcon` with no `windows` glyph shows its label in its place.
-`onKeyPress` hears what the field's `inline` variant hears, so iOS and
-Android report no Escape.
+The field is the `inline` variant's, so it hears what that hears and takes
+the traits that takes: iOS and Android report no Escape to `onKeyPress`,
+Windows reports no Shift, and on Windows `keyboardType` has no effect and
+`autoCapitalize` honours only `characters`.
 
 ## SearchField
 

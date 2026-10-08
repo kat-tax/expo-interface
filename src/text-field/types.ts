@@ -74,8 +74,10 @@ export interface TextFieldProps {
    * Called on a key press with the key's name (`Enter`, `Escape`, `a`) and
    * whether Shift was held, for keyboard handling the platform does not
    * cover. The `inline` variant and the web and Windows rows. In `inline`,
-   * iOS and Android report only the keys that write, Enter and Backspace,
-   * and react-native-windows reports no Shift.
+   * iOS and Android report only the keys that write, Enter and Backspace;
+   * react-native-windows reports only the keys that type a character,
+   * Escape and Backspace among them, never an Enter that submits (in a
+   * one-line field, every Enter), and no Shift.
    */
   onKeyPress?: (key: string, shiftKey: boolean) => void;
   /** Called when the field takes the focus. `inline` variant and the web row only. */
@@ -90,12 +92,14 @@ export interface TextFieldProps {
   secureTextEntry?: boolean;
   /**
    * Keyboard variant to display. On web it is also the field's `inputmode`,
-   * which a multi-line field takes.
+   * which a multi-line field takes. In `inline` on Windows it has no
+   * effect: react-native-windows ignores it.
    * @default 'default'
    */
   keyboardType?: TextFieldKeyboard;
   /**
-   * Automatic capitalization behaviour.
+   * Automatic capitalization behaviour. The Windows row has no equivalent,
+   * and in `inline` on Windows only `characters` applies.
    * @default 'sentences'
    */
   autoCapitalize?: TextFieldCapitalize;

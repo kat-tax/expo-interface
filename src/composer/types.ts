@@ -76,14 +76,16 @@ export interface ComposerProps {
   /**
    * Called on a key pressed in the field, with the key's name (`Escape`,
    * `a`) and whether Shift was held, as `TextField`'s: Escape to close an
-   * assistant built on the composer. On web the Enter that sends stays the
-   * composer's and is not reported. iOS and Android report only the keys
-   * that write, Enter and Backspace, so no Escape; react-native-windows
-   * reports no Shift.
+   * assistant built on the composer. On web and Windows the Enter that
+   * sends stays the composer's and is not reported. iOS and Android report
+   * only the keys that write, Enter and Backspace, so no Escape;
+   * react-native-windows reports only the keys that type a character,
+   * Escape and Backspace among them, and no Shift.
    */
   onKeyPress?: (key: string, shiftKey: boolean) => void;
   /**
-   * Automatic capitalization of the field, as on a `TextField`.
+   * Automatic capitalization of the field, as on a `TextField`. On Windows
+   * only `characters` applies: react-native-windows ignores the others.
    * @default 'sentences'
    */
   autoCapitalize?: TextFieldCapitalize;
@@ -93,7 +95,8 @@ export interface ComposerProps {
    */
   autoCorrect?: boolean;
   /**
-   * The keyboard the field shows, as on a `TextField`.
+   * The keyboard the field shows, as on a `TextField`. It has no effect on
+   * Windows: react-native-windows ignores it.
    * @default 'default'
    */
   keyboardType?: TextFieldKeyboard;
