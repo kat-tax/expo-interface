@@ -93,13 +93,22 @@ ring in the fill behind the group, and past `max` the rest are counted in a
 
 ```tsx
 <AvatarGroup
-  people={peers.map(peer => ({name: peer.name, color: peer.color, dimmed: peer.away, ring: peer.typing ? peer.color : undefined}))}
+  people={peers.map(peer => ({
+    name: peer.name,
+    color: peer.color,
+    dimmed: peer.away,
+    ring: peer.typing ? peer.color : undefined,
+    label: `Follow ${peer.name}`,
+    selected: peer.id === following,
+    disabled: !peer.reachable,
+  }))}
   onPress={peer => follow(peer)}
   onLongPress={peer => openMenu(peer)}
 />
 ```
 
-Props: `people` (each `name`, `initials`, `color`, `ring`, `dimmed`, `key`),
+Props: `people` (each `name`, `initials`, `color`, `ring`, `dimmed`, `key`,
+`label`, `hint`, `selected`, `disabled`),
 `max` (3), `size` (24), `ring` (the parting ring, a palette token or a
 color: `background` by default, so give the fill behind the group when it
 sits on a raised surface; a person's own `ring` wins), `onPress(person,
@@ -107,7 +116,15 @@ index)`, `onLongPress(person, index)`, `onPressMore`, `testID`.
 
 A face is a button named for the person when the group is told what a press
 or a press and hold does, and the count a button named "3 more" with
-`onPressMore`. The faces are drawn in React Native on every platform,
+`onPressMore`. A person's `label` names the face in place of the name, and
+`hint` says what a press or a press and hold does: an accessibility hint on
+iOS and Android, the help text on Windows, the description on web.
+`selected` announces the face as selected (on web as the current one, since
+a button cannot be selected) and draws nothing, so show it with the person's
+`ring`. A `disabled` face takes neither press, is announced as unavailable
+and is drawn at half opacity. When the group does not press, the circle
+itself carries the label, the hint and the selected state, and `disabled`
+only dims it. The faces are drawn in React Native on every platform,
 Windows included, where `Avatar` is a `PersonPicture` island: an island
 takes the pointer, and a facepile's faces are pressed.
 

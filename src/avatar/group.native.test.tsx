@@ -61,4 +61,42 @@ describe(`AvatarGroup (${Platform.OS})`, () => {
     expect(error.mock.calls.some(call => call.join(' ').includes('"key" prop'))).toBe(false);
     error.mockRestore();
   });
+
+  it('names a face by its label and hint, announces the selected one, and leaves a disabled one unpressed and dimmed', async () => {
+    const onPress = vi.fn();
+    const onLongPress = vi.fn();
+    const hint = 'Hold to go there once, without following';
+    await render(
+      <AvatarGroup
+        people={[{name: 'Ada Lovelace', label: 'Follow Ada, on Notes', hint, selected: true}, {name: 'Grace Hopper', disabled: true}, {name: 'Alan Turing'}]}
+        onPress={onPress}
+        onLongPress={onLongPress}
+      />,
+    );
+    const ada = screen.getByRole('button', {name: 'Follow Ada, on Notes', selected: true});
+    expect(screen.getByHintText(hint)).toBe(ada);
+    expect(ada.props['aria-current']).toBeUndefined();
+    expect(screen.queryByLabelText('Ada Lovelace')).toBeNull();
+    expect(screen.queryByText(hint)).toBeNull();
+    expect(screen.getByRole('button', {name: 'Alan Turing'})).not.toBeSelected();
+    expect(screen.getByRole('button', {name: 'Alan Turing'}).props.accessibilityState?.selected).toBeUndefined();
+    expect(screen.getAllByLabelText('Alan Turing')).toHaveLength(1);
+    const grace = screen.getByRole('button', {name: 'Grace Hopper', disabled: true});
+    await fireEvent.press(grace);
+    await fireEvent(grace, 'longPress');
+    expect(onPress).not.toHaveBeenCalled();
+    expect(onLongPress).not.toHaveBeenCalled();
+    expect(StyleSheet.flatten(screen.getByText('GH').parent!.props.style)).toMatchObject({opacity: 0.5});
+    expect(StyleSheet.flatten(screen.getByText('AT').parent!.props.style).opacity).toBeUndefined();
+  });
+
+  it('names and announces a face that does not press', async () => {
+    await render(<AvatarGroup people={[{name: 'Ada Lovelace', label: 'Ada, on Notes', hint: 'Editing the outline', selected: true}, {name: 'Alan Turing'}]}/>);
+    const ada = screen.getByLabelText('Ada, on Notes');
+    expect(StyleSheet.flatten(ada.props.style)).toMatchObject({width: 24});
+    expect(ada).toBeSelected();
+    expect(ada.props.accessibilityHint).toBe('Editing the outline');
+    expect(screen.getByLabelText('Alan Turing')).not.toBeSelected();
+    expect(screen.queryByRole('button')).toBeNull();
+  });
 });

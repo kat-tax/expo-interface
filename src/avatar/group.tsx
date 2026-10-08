@@ -1,9 +1,17 @@
-import type {AvatarGroupProps} from './types';
-import {Pressable, StyleSheet, Text, View} from 'react-native';
+import type {AvatarGroupPerson, AvatarGroupProps} from './types';
+import {useId} from 'react';
+import {Platform, Pressable, StyleSheet, Text, View} from 'react-native';
 import {pressFeedback} from '../surface/shared';
 import {isColorToken, useColor} from '../theme';
 import {AvatarFace} from './drawn';
 import {AVATAR_RING} from './shared';
+
+/**
+ * react-native-web drops `accessibilityHint`, and a `<button>` cannot be
+ * `aria-selected`: on web a face's hint is the description it takes from a
+ * hidden element beside it, and the selected face is the current one.
+ */
+const WEB = Platform.OS === 'web';
 
 /**
  * The circle inside a face's button: the button is the accessibility
@@ -12,17 +20,33 @@ import {AVATAR_RING} from './shared';
 const SILENT = {accessible: false, accessibilityLabel: undefined};
 
 /**
+ * What a face says: the person's label (their name unless told otherwise),
+ * the hint read after it, and whether they are the selected one. Only a
+ * selected face says so: on Windows any `selected` value, `false` included,
+ * makes the element selectable.
+ */
+function announcement({name, label, hint, selected}: AvatarGroupPerson, hintId: string) {
+  const state = WEB
+    ? {'aria-current': selected ? true : undefined, 'aria-describedby': hint != null ? hintId : undefined}
+    : {'aria-selected': selected ? true : undefined};
+  return {accessibilityLabel: label ?? name, accessibilityHint: hint, ...state};
+}
+
+/**
  * People as overlapping faces, a facepile (see {@link AvatarGroupProps}).
  * Each face overlaps the one before it by a quarter of its size, parted
  * from it by a ring in the fill behind the group; past `max` the rest are
  * counted in a `+N` face. A face presses and presses and holds when the
- * group is told what to do with either.
+ * group is told what to do with either. A person's `label` and `hint` name
+ * and describe their face, `selected` announces it, and `disabled` takes it
+ * out of both presses and dims it.
  *
  * Drawn in React Native on every platform, Windows included, where `Avatar`
  * is WinUI's `PersonPicture`: an island takes the pointer, and a facepile's
  * faces are pressed.
  */
 export function AvatarGroup({people, max = 3, size = 24, ring = 'background', onPress, onLongPress, onPressMore, testID}: AvatarGroupProps) {
+  const ident = useId();
   const shown = people.slice(0, max);
   const more = people.length - shown.length;
   const overlap = Math.round(size / 4);
@@ -30,19 +54,22 @@ export function AvatarGroup({people, max = 3, size = 24, ring = 'background', on
   return (
     <View style={styles.row} testID={testID}>
       {shown.map((person, index) => {
+        const hintId = `${ident}-hint-${index}`;
+        const announced = announcement(person, hintId);
         // TODO(windows): a PersonPicture island per face, as `Avatar` draws
         // one, once the island can take the press itself (a XAML Button
         // around the picture, reporting a press and a press and hold): an
-        // island takes the pointer before a Pressable around it does.
+        // island takes the pointer before a Pressable around it does. That
+        // button carries the person's label, hint, selected and disabled.
         const face = (
           <AvatarFace
             name={person.name}
             initials={person.initials}
             color={person.color}
             ring={person.ring ?? ring}
-            dimmed={person.dimmed}
+            dimmed={person.dimmed || person.disabled}
             size={size}
-            {...(pressable ? SILENT : null)}
+            {...(pressable ? SILENT : announced)}
           />
         );
         return (
@@ -50,13 +77,15 @@ export function AvatarGroup({people, max = 3, size = 24, ring = 'background', on
             {pressable ? (
               <Pressable
                 role="button"
-                accessibilityLabel={person.name}
+                {...announced}
+                disabled={person.disabled}
                 onPress={() => onPress?.(person, index)}
                 onLongPress={() => onLongPress?.(person, index)}
                 style={state => pressFeedback(state, 'accent')}>
                 {face}
               </Pressable>
             ) : face}
+            {WEB && person.hint != null ? <Text id={hintId} style={styles.hidden}>{person.hint}</Text> : null}
           </View>
         );
       })}
@@ -100,5 +129,8 @@ const styles = StyleSheet.create({
   },
   count: {
     fontWeight: '600',
+  },
+  hidden: {
+    display: 'none',
   },
 });

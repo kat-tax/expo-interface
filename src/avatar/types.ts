@@ -31,10 +31,42 @@ export interface AvatarProps {
   testID?: string;
 }
 
-/** A person in an `AvatarGroup`. */
+/**
+ * A person in an `AvatarGroup`. Their face is a button when the group
+ * presses and the circle itself when it does not; either one carries the
+ * person's label, hint and selected state.
+ */
 export interface AvatarGroupPerson extends Pick<AvatarProps, 'name' | 'initials' | 'color' | 'ring' | 'dimmed'> {
   /** Tells the faces apart when two people share a name. Defaults to the name and place. */
   key?: string;
+  /**
+   * What assistive technology calls the face, when it says more than the
+   * name: "Follow Ada, on Notes". Defaults to `name`.
+   */
+  label?: string;
+  /**
+   * What a press or a press and hold on the face does, when the label does
+   * not say: "Hold to go there once, without following". Read after the
+   * label: the accessibility hint on iOS and Android, the help text on
+   * Windows, the description on web.
+   */
+  hint?: string;
+  /**
+   * The chosen person: the one followed. Announced as selected, or on web
+   * as the current one, since a button cannot be selected. It draws
+   * nothing; show it with the person's `ring`.
+   * @default false
+   */
+  selected?: boolean;
+  /**
+   * The face takes no press or press and hold and is announced as
+   * unavailable: a person the view cannot be taken to. It is drawn at half
+   * opacity, as every disabled control in the kit is. When the group does
+   * not press, the face is a picture rather than a control, and `disabled`
+   * only dims it.
+   * @default false
+   */
+  disabled?: boolean;
 }
 
 /**
@@ -59,9 +91,9 @@ export interface AvatarGroupProps {
    * @default 'background'
    */
   ring?: ColorTokens | (string & {});
-  /** Called when a face is pressed. */
+  /** Called when a face is pressed, never for a `disabled` person. */
   onPress?: (person: AvatarGroupPerson, index: number) => void;
-  /** Called when a face is pressed and held. */
+  /** Called when a face is pressed and held, never for a `disabled` person. */
   onLongPress?: (person: AvatarGroupPerson, index: number) => void;
   /** Called when the `+N` face is pressed. */
   onPressMore?: () => void;
