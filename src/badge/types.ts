@@ -40,7 +40,11 @@ export interface BadgeProps {
   showZero?: boolean;
   /**
    * Pulses, its opacity down and back up every 900 ms: someone typing, a
-   * sync in flight. Still while the user asks for less motion.
+   * sync in flight. Still while the user asks for less motion. On Android
+   * inside a native host the pulse is paced from JavaScript, a render each
+   * half pulse, since `@expo/ui`'s Compose animations do not repeat.
+   * Anywhere else it is a loop that renders nothing: on the native driver on
+   * iOS and Android, a CSS animation on web.
    */
   pulse?: boolean;
   /**
