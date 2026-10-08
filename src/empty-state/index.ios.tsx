@@ -10,7 +10,9 @@ import {EMPTY_ICON, EmptyStateAction} from './shared';
 import {isActionData} from './types';
 
 /** `ContentUnavailableView` arrived in iOS 17; below that the layout is composed in SwiftUI. */
-const SUPPORTED = Number.parseInt(String(Platform.Version), 10) >= 17;
+function supportsSystemView(): boolean {
+  return Number.parseInt(String(Platform.Version), 10) >= 17;
+}
 
 /**
  * iOS shows the system's own `ContentUnavailableView`, so an empty screen has
@@ -54,7 +56,7 @@ function EmptyStateStack({title, description, icon, action, loading = false, sel
   const fill = frame(hosted ? {maxWidth: Infinity, maxHeight: Infinity} : {maxWidth: Infinity});
   return (
     <VStack spacing={spacing.three} testID={hosted ? testID : undefined} modifiers={[fill]}>
-      {SUPPORTED && !loading ? (
+      {supportsSystemView() && !loading ? (
         <ContentUnavailableView
           title={title}
           description={description}

@@ -158,15 +158,9 @@ describe(`EmptyState (${Platform.OS})`, () => {
     });
 
     it('composes the same layout in SwiftUI on iOS 16, where ContentUnavailableView does not exist', async () => {
-      // SUPPORTED is read once when the module loads, so the version has to be
-      // in place before the import rather than before the render.
-      vi.resetModules();
-      vi.doMock('react-native', async importOriginal => {
-        const actual = await importOriginal<typeof import('react-native')>();
-        return {...actual, Platform: {...actual.Platform, Version: '16.4'}};
-      });
-      const {EmptyState: Old} = await import('.');
-      await render(<Old title="No drops yet" description="Nothing shared." icon={icons.add} testID="old"/>);
+      // The version is read at render, so the getter stands in for an iOS 16 device.
+      const version = vi.spyOn(Platform, 'Version', 'get').mockReturnValue('16.4');
+      await render(<EmptyState title="No drops yet" description="Nothing shared." icon={icons.add} testID="old"/>);
       expect(nodes().some(n => n.type.includes('ContentUnavailableView'))).toBe(false);
       // The symbol as an SF Symbol image, in the size the other platforms give the icon.
       expect(modifier(host(p => p.systemName === iosSymbol(icons.add)).props, 'font')).toMatchObject({size: EMPTY_ICON});
@@ -176,10 +170,9 @@ describe(`EmptyState (${Platform.OS})`, () => {
       expect(screen.queryByText('No drops yet')).toBeNull();
       expect(screen.queryByText('Nothing shared.')).toBeNull();
       expect(screen.getByTestId('old')).toBeOnTheScreen();
-      await render(<Old title="Nothing here"/>);
+      await render(<EmptyState title="Nothing here"/>);
       expect(nodes().some(n => n.type.endsWith('ImageView'))).toBe(false);
-      vi.doUnmock('react-native');
-      vi.resetModules();
+      version.mockRestore();
     });
     return;
   }
