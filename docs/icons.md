@@ -49,7 +49,7 @@ export const starFilled = icon({ios: 'star', android: 'star', web: 'star'}, draw
 | --- | --- | --- |
 | iOS | SF Symbols' own `.fill` name (`star` becomes `star.fill`). A token that already names a solid symbol keeps it. | Nothing |
 | Android | The token's `drawable`, which has to be the filled vector | `npx add-material-symbols --fill star` |
-| Web | The `FILL 1` axis of the Material Symbols variable font | The variable family, registered under `Material Symbols Outlined` or under a name of the app's own in `--ui-symbol-font` |
+| Web | The `FILL 1` axis of the Material Symbols variable font | The variable family, registered under `Material Symbols Outlined` or, for filled icons alone, `Material Symbols Filled`, or under a name of the app's own in `--ui-symbol-font` or `--ui-symbol-fill-font` |
 | Windows | The family's solid glyph, where it has one; otherwise the outline | Nothing |
 
 `expo-symbols` bundles a static Material Symbols font cut at `FILL 0` with no
@@ -66,6 +66,16 @@ variable axes, so filled icons on web need the variable family:
 
 Serve it from the app's own bundle so an offline web build still draws.
 Without the family a filled token draws its outline.
+
+Registered as `Material Symbols Outlined`, the variable family is the one
+every icon draws with first. Registered as `Material Symbols Filled`, it is
+the one a filled token draws with first, and outlined icons keep the static
+instance. The stylesheet's stacks:
+
+| Token | Families, in order |
+| --- | --- |
+| Outlined | `--ui-symbol-font` (`Material Symbols Outlined`), then the static instance |
+| Filled | `--ui-symbol-fill-font` (`Material Symbols Filled`), then `--ui-symbol-font` (`Material Symbols Outlined`), then the static instance |
 
 ## Windows glyphs
 
@@ -177,5 +187,17 @@ from the app's bundle and register it beside the palette:
 <style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2')}}/>
 ```
 
-`getSymbolFontCSS(url, family?)` is the `@font-face` the stylesheet draws
-with; a family of the app's own goes in `--ui-symbol-font` as well.
+`getSymbolFontCSS(url, options?)` is the `@font-face` the stylesheet draws
+with. Its options:
+
+| Option | What it does |
+| --- | --- |
+| `filled` | Registers the font as `Material Symbols Filled` (`SYMBOL_FILL_FONT_FAMILY`), which the stylesheet tries first for a filled token only. `false` by default, which registers it as `Material Symbols Outlined` (`SYMBOL_FONT_FAMILY`), the family every icon tries first. |
+| `family` | A family of the app's own, which then also goes in `--ui-symbol-font`, or in `--ui-symbol-fill-font` with `filled`. |
+
+A family name in place of the options is the same as `{family}`.
+
+```tsx
+// for filled icons alone
+<style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2', {filled: true})}}/>
+```

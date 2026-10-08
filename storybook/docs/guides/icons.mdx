@@ -111,10 +111,13 @@ Each platform draws it from what it has:
   ```
 
   `expo-interface-symbols --font` writes that family cut down to the names
-  the app uses, and `getSymbolFontCSS(url)` is the rule for `+html.tsx`.
-  Serve it from the app's own bundle rather than a CDN so an offline web build
-  still draws. Without the family a filled token quietly draws its outline,
-  which is what this site does, since it ships only the static instance.
+  the app uses, and `getSymbolFontCSS(url)` is the rule for `+html.tsx`, or
+  `getSymbolFontCSS(url, {filled: true})` to take only the filled icons from
+  it, under `Material Symbols Filled` (or its own name in
+  `--ui-symbol-fill-font`). Serve it from the app's own bundle rather than a
+  CDN so an offline web build still draws. Without the family a filled token
+  quietly draws its outline, which is what this site does, since it ships
+  only the static instance.
 - **Android** draws the token's `drawable`, so that drawable has to be the
   filled vector. Jetpack Compose renders XML vectors, not font glyphs, and
   nothing at runtime can fill one. `@expo/material-symbols` ships only the

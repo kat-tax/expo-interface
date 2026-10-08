@@ -9,9 +9,12 @@
   /*
    * `expo-symbols` bundles a static Material Symbols instance cut at `FILL 0`,
    * so the outline is all it can draw. An app that wants filled icons
-   * registers the variable family under `Material Symbols Outlined` (or names
-   * its own family in `--ui-symbol-font`); the static instance stays as the
-   * fallback, and a filled token quietly draws its outline without it.
+   * registers the variable family in one of two ways. Under `Material Symbols
+   * Outlined` (or its own family named in `--ui-symbol-font`), every icon
+   * draws from it first. Under `Material Symbols Filled` (or its own family
+   * named in `--ui-symbol-fill-font`), only a filled token does, and outlines
+   * stay on the static instance. The static instance is the last fallback,
+   * and a filled token quietly draws its outline when neither is registered.
    */
   font-family: var(--ui-symbol-font, 'Material Symbols Outlined'), 'MaterialSymbols_400Regular';
   font-variation-settings: 'FILL' 0;
@@ -34,5 +37,7 @@
 }
 
 .ui-symbol--filled {
+  /* The filled family first, then the stack every icon draws with. */
+  font-family: var(--ui-symbol-fill-font, 'Material Symbols Filled'), var(--ui-symbol-font, 'Material Symbols Outlined'), 'MaterialSymbols_400Regular';
   font-variation-settings: 'FILL' 1;
 }

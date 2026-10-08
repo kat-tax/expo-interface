@@ -7,6 +7,8 @@ export {fillWidth} from './fill';
 export {Icon} from './symbol';
 export type {IconProps} from './symbol/types';
 export {SYMBOL_FONT_FAMILY, getSymbolFontCSS} from './symbol/font';
+export {SYMBOL_FILL_FONT_FAMILY} from './symbol/font';
+export type {SymbolFontOptions} from './symbol/font';
 export {SEGOE_GLYPHS, windowsGlyph} from './symbol/segoe';
 export {
   SCHEME_STORAGE_KEY,
