@@ -19,15 +19,19 @@ function carriesFiles(event: DragEvent): boolean {
 /** How many drop targets are mounted, which together keep the page from opening a stray drop. */
 let targets = 0;
 
+/** The drag events the page's guard refuses a stray file in. */
+const GUARDED = ['dragover', 'drop'] as const;
+
 /**
- * Whether the drag is over a file input, which takes its own drops as the
- * browser's control. The path's first entry is the drag's own target, which
- * the event's `target` is not for an input in a web component's shadow root:
- * by the time the window hears the drag, that is the component.
+ * Whether the drag is over a file input that takes it, which does as the
+ * browser's control; a disabled one takes nothing. The path's first entry is
+ * the drag's own target, which the event's `target` is not for an input in a
+ * web component's open shadow root: by the time the window hears the drag,
+ * that is the component. A closed shadow root hides its input from the path.
  */
 function overFileInput(event: DragEvent): boolean {
   const [target] = event.composedPath();
-  return target instanceof HTMLInputElement && target.type === 'file';
+  return target instanceof HTMLInputElement && target.type === 'file' && !target.disabled;
 }
 
 /**
@@ -43,14 +47,16 @@ function refuseStray(event: DragEvent) {
 }
 
 /**
- * Puts the refusal behind every other listener as a drag comes in: on the
- * window, the last stop of a drag's events, and after the window's own
- * listeners, even one added after the first target mounted. So a page-wide
- * target of the app's, on any element, the document or the window, hears the
- * drag first, and keeps what it takes.
+ * Puts the refusal behind every other listener of the window, the last stop
+ * of a drag's events. It runs as the window captures each drag event, before
+ * the event reaches anything else, and the window's own listeners are read
+ * afresh when the event comes back up to it. So a page-wide target of the
+ * app's, on any element, the document or the window, hears every drag event
+ * first, even with a listener it added during the drag, and keeps what it
+ * takes.
  */
 function refuseLast() {
-  for (const type of ['dragover', 'drop'] as const) {
+  for (const type of GUARDED) {
     window.removeEventListener(type, refuseStray);
     window.addEventListener(type, refuseStray);
   }
@@ -60,15 +66,16 @@ function refuseLast() {
 function guardPage(): () => void {
   targets += 1;
   if (targets === 1) {
-    window.addEventListener('dragenter', refuseLast, true);
+    for (const type of GUARDED) window.addEventListener(type, refuseLast, true);
     refuseLast();
   }
   return () => {
     targets -= 1;
     if (targets === 0) {
-      window.removeEventListener('dragenter', refuseLast, true);
-      window.removeEventListener('dragover', refuseStray);
-      window.removeEventListener('drop', refuseStray);
+      for (const type of GUARDED) {
+        window.removeEventListener(type, refuseLast, true);
+        window.removeEventListener(type, refuseStray);
+      }
     }
   };
 }
@@ -81,9 +88,13 @@ function guardPage(): () => void {
  * leave or the drop. Drags of anything but files are left to the page.
  * While it is mounted, disabled or not, a file dragged over or dropped on
  * the page where no target takes it is refused, so the browser does not
- * open a stray drop in place of the app; a file input keeps its own drops.
- * The refusal comes after every other listener, so a page-wide target of the
- * app's own, on the document or the window, takes a drag before it.
+ * open a stray drop in place of the app; a file input that is not disabled
+ * keeps its own drops. The refusal comes after every other listener, so a
+ * page-wide target of the app's own, on the document or the window, takes a
+ * drag before it. A target takes a drag by cancelling its `dragover`, as the
+ * browser asks of every drop target: an editor that takes dropped files in
+ * its `drop` alone, leaving `dragover` to the browser, is refused with the
+ * page.
  */
 export function useDrop(ref: RefObject<View | null>, {onDrop, disabled = false}: DropOptions): {over: boolean} {
   const [over, setOver] = useState(false);

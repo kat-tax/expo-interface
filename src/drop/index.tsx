@@ -4,9 +4,14 @@ import type {DropOptions, DropZoneProps} from './types';
 import {View as RNView} from 'react-native';
 
 /**
- * iOS, Android and Windows: files arrive through the share sheet and the
- * pickers, not by dropping them on a view, so nothing is ever held over
- * one and nothing is dropped. The web's is `index.web.tsx`.
+ * Makes a view a drop target for files, answering whether files are held
+ * over it. On the web it takes files dropped on the view, and while it is
+ * mounted the page refuses a file dropped where no target takes it, so the
+ * browser does not open it in place of the app; a target of the app's own
+ * takes a drag by cancelling its `dragover` (`index.web.tsx`). iOS, Android
+ * and Windows: files arrive through the share sheet and the pickers, not by
+ * dropping them on a view, so nothing is ever held over one and nothing is
+ * dropped.
  */
 export function useDrop(_ref: RefObject<View | null>, _options: DropOptions): {over: boolean} {
   return {over: false};

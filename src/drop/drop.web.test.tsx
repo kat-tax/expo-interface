@@ -82,20 +82,25 @@ describe('DropZone (web)', () => {
     expect(fireEvent.dragOver(screen.getByTestId('b'), files())).toBe(false);
     // Text and links are the page's.
     expect(fireEvent.dragOver(document.body, text)).toBe(true);
-    // A file input takes its own drops, inside a web component too; any other field does not.
+    // A file input takes its own drops, inside a web component too; a disabled one and any other field do not.
     const picker = document.createElement('input');
     picker.type = 'file';
+    const off = document.createElement('input');
+    off.type = 'file';
+    off.disabled = true;
     const field = document.createElement('input');
     field.type = 'text';
     const component = document.createElement('div');
     const inner = document.createElement('input');
     inner.type = 'file';
     component.attachShadow({mode: 'open'}).append(inner);
-    document.body.append(picker, field, component);
+    document.body.append(picker, off, field, component);
     expect(fireEvent.dragOver(picker, files())).toBe(true);
+    expect(fireEvent.dragOver(off, files())).toBe(false);
     expect(fireEvent.dragOver(field, files())).toBe(false);
     expect(fireEvent.dragOver(inner, files())).toBe(true);
     picker.remove();
+    off.remove();
     field.remove();
     component.remove();
     // The guard lasts while any zone is mounted, and goes with the last.
@@ -109,15 +114,15 @@ describe('DropZone (web)', () => {
 
   it('lets a page-wide target of the app\'s take a file drag before refusing it, wherever and whenever it listens', () => {
     render(<DropZone onDrop={vi.fn()} testID="zone"><Text>Documents</Text></DropZone>);
-    // Added after the zone mounted, as a root's effect runs after its children's.
     const heard: boolean[] = [];
     const take = (event: DragEvent) => {
       heard.push(event.defaultPrevented);
       event.preventDefault();
     };
+    fireEvent.dragEnter(document.body, files());
+    // Added after the zone mounted, as a root's effect runs after its children's, and after the drag came in.
     window.addEventListener('dragover', take);
     window.addEventListener('drop', take);
-    fireEvent.dragEnter(document.body, files());
     const taken = {dataTransfer: {types: ['Files'], files: [], dropEffect: 'copy'}};
     expect(fireEvent.dragOver(document.body, taken)).toBe(false);
     // The app's target takes the drag with the effect it chose, and so hears the drop.
