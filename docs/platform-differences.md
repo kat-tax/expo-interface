@@ -65,6 +65,7 @@ The differences that change what a screen can do, in one place:
 | `Collapsible` children | `@expo/ui` | `@expo/ui` | Any | Any |
 | `Sheet` body without `maxHeight` | `@expo/ui` | `@expo/ui` | Any | Any |
 | `ExternalLink` | In-app browser | In-app browser | New tab | Default browser |
+| `saveFile` | A folder, the app's name | A folder, the app's name | The folder and the name in the Chromium browsers, else a download | A folder, the app's name |
 | A screen pushed over `Tabs` | Over the tab bar | Over the tab bar | Replaces the bar | Inside the pane, its back button |
 | `Stack` `animation` | Native | Native | None | WinUI's motions: drill in, slides, page refresh, fade |
 | A press on the selected tab | Nothing | Nothing | Nothing | Back to the section's root |

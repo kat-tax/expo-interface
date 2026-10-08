@@ -2,14 +2,15 @@ import type {SaveFileSystem} from '.';
 import {Platform} from 'react-native';
 import {loadSaveFileSystem, saveFile, saveWith} from '.';
 
-/** A stand-in for `expo-file-system`: the folder the picker answers, and what was written into it. */
-function fake(pick: () => Promise<unknown> = () => Promise.resolve()) {
+/** A stand-in for `expo-file-system`: the folder the picker answers, what it holds, and what was written into it. */
+function fake(pick: () => Promise<unknown> = () => Promise.resolve(), names: string[] = []) {
   const written: {name: string; mimeType: string | null; content?: string | Uint8Array}[] = [];
   const fileSystem: SaveFileSystem = {
     Directory: {
       async pickDirectoryAsync() {
         await pick();
         return {
+          list: () => names.map(name => ({name})),
           createFile(name, mimeType) {
             const file: (typeof written)[number] = {name, mimeType};
             written.push(file);
@@ -26,14 +27,35 @@ function fake(pick: () => Promise<unknown> = () => Promise.resolve()) {
   return {fileSystem, written};
 }
 
+/** The platform's name for the nth copy of a file kept beside the first. */
+const copy = (stem: string, n: number, extension: string) => (Platform.OS === 'ios' ? `${stem} ${n + 1}${extension}` : `${stem} (${n})${extension}`);
+
+/** The name a file is saved under, into a folder that holds these. */
+async function savedAs(name: string, names: string[]) {
+  const {fileSystem, written} = fake(undefined, names);
+  await saveWith({name, content: ''}, fileSystem);
+  return written[0].name;
+}
+
 describe(`saveFile (${Platform.OS})`, () => {
-  it('writes the file into the folder the user picks', async () => {
+  it('writes the file into the folder the user picks, its type following its name', async () => {
     const {fileSystem, written} = fake();
     await expect(saveWith({name: 'notes.md', content: '# Notes', mimeType: 'text/markdown'}, fileSystem)).resolves.toBe(true);
-    expect(written).toEqual([{name: 'notes.md', mimeType: 'text/markdown', content: '# Notes'}]);
+    // A document provider would add the extension of a type that does not match the name's.
+    expect(written).toEqual([{name: 'notes.md', mimeType: 'application/octet-stream', content: '# Notes'}]);
     const bytes = new Uint8Array([1, 2, 3]);
     await saveWith({name: 'data.bin', content: bytes}, fileSystem);
     expect(written[1]).toEqual({name: 'data.bin', mimeType: 'application/octet-stream', content: bytes});
+  });
+
+  it('keeps a file of the same name, and writes the new one under the platform\'s name for a copy', async () => {
+    expect(await savedAs('notes.md', ['notes.md'])).toBe(copy('notes', 1, '.md'));
+    // Names are compared without case, and a copy's name can be taken too.
+    expect(await savedAs('notes.md', ['NOTES.md', 'notes 2.md', 'notes (1).md'])).toBe(copy('notes', 2, '.md'));
+    expect(await savedAs('README', ['README'])).toBe(copy('README', 1, ''));
+    // A name that starts with its only dot has no extension.
+    expect(await savedAs('.env', ['.env'])).toBe(copy('.env', 1, ''));
+    expect(await savedAs('notes.md', ['other.md'])).toBe('notes.md');
   });
 
   it('writes nothing when the user cancels the picker', async () => {
