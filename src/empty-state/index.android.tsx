@@ -1,10 +1,12 @@
 import type {EmptyStateProps} from './types';
-import {StyleSheet, View} from 'react-native';
-import {CircularProgressIndicator, Column, Icon, RNHostView, Text} from '@expo/ui/jetpack-compose';
-import {fillMaxWidth, padding, size, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {useState} from 'react';
+import {StyleSheet, View, useWindowDimensions} from 'react-native';
+import {Box, CircularProgressIndicator, Column, Icon, RNHostView, Text} from '@expo/ui/jetpack-compose';
+import {fillMaxWidth, onSizeChanged, padding, size, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {NativeHost, NativeHostContext, useNativeHost} from '../host';
 import {drawableOf} from '../icons';
 import {spacing, useColor} from '../theme';
+import {Subheadline} from '../typography';
 import {EMPTY_ICON, EmptyStateAction} from './shared';
 import {isActionData} from './types';
 
@@ -16,7 +18,8 @@ import {isActionData} from './types';
  * React Native hop between the two. The icon is the token's drawable, as
  * every Compose icon is; while `loading` the `CircularProgressIndicator`
  * takes its place. A node of the app's own as the action is hosted in the
- * column as React Native content.
+ * column as React Native content, and so is the description while it is
+ * `selectable`, since Compose text here cannot be selected.
  *
  * Outside a host the column mounts one of its own, as wide as its container.
  * Inside one (a `Screen native`, a `Sheet`, a hosted `List`'s `empty`) it
@@ -35,7 +38,7 @@ export function EmptyState(props: EmptyStateProps) {
 }
 
 /** The state as one Compose column, with the test ID on it when there is no view around it. */
-function EmptyStateColumn({title, description, icon, action, loading = false, testID, hosted}: EmptyStateProps & {hosted: boolean}) {
+function EmptyStateColumn({title, description, icon, action, loading = false, selectable = true, testID, hosted}: EmptyStateProps & {hosted: boolean}) {
   const label = useColor('label');
   const muted = useColor('secondaryLabel');
   const tint = useColor('tint');
@@ -52,7 +55,11 @@ function EmptyStateColumn({title, description, icon, action, loading = false, te
       ) : null}
       <Text color={label} style={{typography: 'titleLarge', textAlign: 'center'}} modifiers={[fillMaxWidth()]}>{title}</Text>
       {description ? (
-        <Text color={muted} style={{typography: 'bodyMedium', textAlign: 'center'}} modifiers={[fillMaxWidth()]}>{description}</Text>
+        selectable ? (
+          <SelectableDescription>{description}</SelectableDescription>
+        ) : (
+          <Text color={muted} style={{typography: 'bodyMedium', textAlign: 'center'}} modifiers={[fillMaxWidth()]}>{description}</Text>
+        )
       ) : null}
       {action ? (
         isActionData(action) ? (
@@ -72,10 +79,36 @@ function EmptyStateColumn({title, description, icon, action, loading = false, te
   );
 }
 
+/**
+ * The description as React Native text, which Android can select: `@expo/ui`'s
+ * Compose layer has no `SelectionContainer`. Hosted text has no width of its
+ * own to wrap at, so it is told the column's, as Compose measures it; until
+ * then, the window's less the column's padding. The box fills the column's
+ * width whatever the text, so the measure does not feed back into itself.
+ */
+function SelectableDescription({children}: {children: string}) {
+  const {width: windowWidth} = useWindowDimensions();
+  const [width, setWidth] = useState(windowWidth - spacing.five * 2);
+  return (
+    <Box contentAlignment="topCenter" modifiers={[fillMaxWidth(), onSizeChanged(next => setWidth(next.width))]}>
+      <RNHostView matchContents>
+        <Subheadline align="center" color="secondaryLabel" selectable style={[styles.description, {width}]}>{children}</Subheadline>
+      </RNHostView>
+    </Box>
+  );
+}
+
 const styles = StyleSheet.create({
   column: {
     flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  /**
+   * The kit's Android subheadline is Material's `bodyMedium` (14 on 20), the
+   * style of the Compose text it stands in for; Material tracks it at 0.25.
+   */
+  description: {
+    letterSpacing: 0.25,
   },
 });

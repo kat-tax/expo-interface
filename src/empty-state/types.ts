@@ -66,7 +66,9 @@ export interface EmptyStateProps {
   loading?: boolean;
   /**
    * Whether the description can be selected and copied: the reason a
-   * document failed to open is worth pasting somewhere.
+   * document failed to open is worth pasting somewhere. On Android the
+   * description is then React Native text hosted in the Compose column, since
+   * `@expo/ui`'s Compose layer cannot select text.
    * @default true
    */
   selectable?: boolean;

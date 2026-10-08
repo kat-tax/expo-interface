@@ -1,11 +1,11 @@
-import {Platform, Text} from 'react-native';
+import {Dimensions, Platform, StyleSheet, Text} from 'react-native';
 import {fireEvent as fireDom, render as renderDom, screen as dom} from '@testing-library/react';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
 import {hostFit, hosts} from '../__tests__/hosts';
 import {iosSymbol} from '../button/shared';
 import {NativeHost, useNativeHost} from '../host';
-import {colors} from '../theme';
+import {colors, spacing} from '../theme';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {EMPTY_ICON} from './shared';
 import {EmptyState} from '.';
@@ -170,8 +170,10 @@ describe(`EmptyState (${Platform.OS})`, () => {
     const column = nodes().find(n => n.type.includes('Column'))!;
     expect(column.props.horizontalAlignment).toBe('center');
     expect(host(p => p.text === 'No drops yet').props.color).toBe(colors.light.label);
-    expect(host(p => p.text === 'Nothing shared.').props.color).toBe(colors.light.secondaryLabel);
-    expect(host(p => p.text === 'Nothing shared.').props.textAlign).toBe('center');
+    // Selectable by default, so the description is React Native text hosted in the column.
+    const description = screen.getByText('Nothing shared.');
+    expect(description.props.selectable).toBe(true);
+    expect(StyleSheet.flatten(description.props.style)).toMatchObject({textAlign: 'center', color: colors.light.secondaryLabel});
     expect(nodes().some(n => n.type.endsWith('IconView') && n.props.size === 48)).toBe(true);
     const button = host(p => typeof p.onButtonPressed === 'function');
     expect(host(p => p.text === 'New drop', button)).toBeTruthy();
@@ -192,6 +194,24 @@ describe(`EmptyState (${Platform.OS})`, () => {
     // Outside the host's context, so a kit control in the node mounts a host of its own.
     await render(<NativeHost><EmptyState title="Opening" action={<Hosted/>}/></NativeHost>);
     expect(screen.getByText('bare')).toBeOnTheScreen();
+  });
+
+  it('lets the description be selected as hosted React Native text at the column\'s width, unless told not to', async () => {
+    await render(
+      <>
+        <EmptyState title="Failed" description="The file is gone." testID="a"/>
+        <EmptyState title="Failed" description="No reason." selectable={false} testID="b"/>
+      </>,
+    );
+    const width = () => StyleSheet.flatten(screen.getByText('The file is gone.').props.style).width;
+    // Until Compose has measured the column: the window's width less the column's padding.
+    expect(width()).toBe(Dimensions.get('window').width - spacing.five * 2);
+    const box = nodes().find(n => n.type.endsWith('BoxView') && modifier(n.props, 'onSizeChanged'))!;
+    await act(async () => modifier(box.props, 'onSizeChanged')!.eventListener({width: 280, height: 40}));
+    expect(width()).toBe(280);
+    // Not selectable: the Compose text, with no React Native text beside it.
+    expect(host(p => p.text === 'No reason.').props.textAlign).toBe('center');
+    expect(screen.queryByText('No reason.')).toBeNull();
   });
 
   it('renders bare inside a host, the test ID on the column', async () => {
