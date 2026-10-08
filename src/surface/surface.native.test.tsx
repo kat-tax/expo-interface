@@ -119,5 +119,8 @@ describe(`Surface (${Platform.OS})`, () => {
     // React Native's test setup mocks View as a class rather than a host view: the ref holds that, with the surface's props.
     expect(plain.current).toMatchObject({props: {testID: 'plain'}});
     expect(card.current).toMatchObject({props: {testID: 'card'}});
+    // What useKeyboardInset calls on it.
+    expect(plain.current?.measureInWindow).toBeInstanceOf(Function);
+    expect(card.current?.measureInWindow).toBeInstanceOf(Function);
   });
 });
