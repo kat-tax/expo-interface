@@ -251,7 +251,9 @@ Differences:
   the command's own label, and greyed out with it when it is `disabled`.
   The Windows `CommandBar` opens them as a submenu. On Windows, either bar
   binds the entries' `shortcut`s while it is mounted, and a `disabled`
-  command binds none of them.
+  command binds none of them. A menu command with no entries is greyed out
+  on the bar, since it would open on nothing, and puts nothing behind the
+  overflow.
 
 `fieldCommands` are the field's own: a find bar's previous and next, an
 assistant's send. They share the trailing group's host, so a bar with a

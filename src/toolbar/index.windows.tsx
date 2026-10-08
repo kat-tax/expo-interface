@@ -14,7 +14,7 @@ import {menuEntries, useMenuShortcuts} from '../menu/windows';
 import {isCompact} from '../size-class';
 import {spacing} from '../theme';
 import {MORE} from '../glyphs';
-import {anchoredStyles, hasCommands, overflowItems, splitCommands} from './shared';
+import {anchoredStyles, commandDisabled, hasCommands, overflowItems, splitCommands} from './shared';
 
 const DENSITY = {
   regular: {gap: spacing.two, edge: spacing.three},
@@ -116,7 +116,8 @@ function NativeToolbar({commands = [], placement = 'bottom', density = 'regular'
             label: command.label,
             glyph: glyphOf(command.icon),
             secondary: command.secondary ?? false,
-            disabled: command.disabled ?? false,
+            // A menu with no entries too, which would open on nothing.
+            disabled: commandDisabled(command),
             role: press ? command.role ?? 'default' : 'default',
             separator: command.separator ?? false,
             // A command with an on state is the bar's own toggle button.
@@ -190,7 +191,8 @@ function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], p
  * Commands as the kit's own buttons, each an island of its own; a command
  * with `items` is the kit's own `Menu`, its button and its `MenuFlyout`,
  * whose entries are greyed out with it, so their shortcuts are not bound
- * while it is disabled. A command with `separator` has a vertical rule
+ * while it is disabled; with no entries it is greyed out itself. A command
+ * with `separator` has a vertical rule
  * before it, none before the first of the group, as a menu's entries do.
  */
 function CommandButtons({commands}: {commands: ToolbarCommand[]}) {
@@ -208,7 +210,7 @@ function CommandButtons({commands}: {commands: ToolbarCommand[]}) {
               icon={command.icon}
               hideLabel={command.hideLabel}
               tone={command.tone}
-              disabled={command.disabled}
+              disabled={commandDisabled(command)}
               items={command.disabled ? command.items.map(item => ({...item, disabled: true})) : command.items}
               testID={command.testID}
             />

@@ -69,7 +69,9 @@ export interface ToolbarCommand {
    * `AppBarButton` with its `MenuFlyout`. Behind the overflow its entries
    * take its place, set off by rules, since the kit's menus do not nest;
    * the `CommandBar` opens them as a submenu. A `disabled` command greys
-   * its entries out, and on Windows binds none of their shortcuts.
+   * its entries out, and on Windows binds none of their shortcuts. With no
+   * entries the command is greyed out on the bar, since it would open on
+   * nothing, and puts nothing behind the overflow.
    */
   items?: MenuItem[];
   /**

@@ -217,6 +217,18 @@ describe('commands', () => {
     expect(onHeading).toHaveBeenCalledTimes(1);
   });
 
+  it('greys out a menu command with no entries, which would open on nothing', async () => {
+    await render(<Toolbar commands={[{label: 'Recent', items: [], testID: 'recent'}, {label: 'Sort', items: [{label: 'Name'}], testID: 'sort'}]}/>);
+    const trigger = (testID: string) => (isIOS ? screen.getByTestId(testID) : byComposeTestID(testID)).props;
+    if (isIOS) {
+      expect(modifier(trigger('recent'), 'disabled')).toEqual({$type: 'disabled', disabled: true});
+      expect(modifier(trigger('sort'), 'disabled')).toBeUndefined();
+    } else {
+      expect(trigger('recent').enabled).toBe(false);
+      expect(trigger('sort').enabled).not.toBe(false);
+    }
+  });
+
   it('puts a secondary menu command\'s entries in the overflow, in its place', async () => {
     await render(<Toolbar commands={[{label: 'Undo'}, {label: 'Export', secondary: true}, {label: 'Sort', secondary: true, items: [{label: 'Name'}, {label: 'Date'}]}]}/>);
     const menus = nodes().filter(node => node.type.endsWith(isIOS ? '_MenuView' : '_DropdownMenuView'));

@@ -14,7 +14,7 @@ import {MORE} from '../glyphs';
 import {isCompact} from '../size-class';
 import {spacing} from '../theme';
 import {FloatingSurface} from './floating';
-import {anchoredStyles, hasCommands, overflowItems, splitCommands} from './shared';
+import {anchoredStyles, commandDisabled, hasCommands, overflowItems, splitCommands} from './shared';
 
 /**
  * Space between the controls, and at the bar's ends. `compact` is what a bar
@@ -157,7 +157,8 @@ function EdgeToolbar(props: ToolbarProps) {
 /**
  * The commands the bar shows, as the kit's own buttons, in a row of their own
  * at the bar's pitch; a command with `items` is the kit's own `Menu`, at the
- * same metrics, in the same host. A command with `separator` has a vertical
+ * same metrics, in the same host, greyed out with no entries to open on. A
+ * command with `separator` has a vertical
  * rule before it, none before the first of the row, as a menu's entries do.
  */
 function Commands({commands, gap}: {commands: ToolbarCommand[]; gap: number}) {
@@ -176,7 +177,7 @@ function Commands({commands, gap}: {commands: ToolbarCommand[]; gap: number}) {
               icon={command.icon}
               hideLabel={command.hideLabel}
               tone={command.tone}
-              disabled={command.disabled}
+              disabled={commandDisabled(command)}
               items={command.items}
               testID={command.testID}
             />

@@ -165,6 +165,14 @@ describe('commands (windows)', () => {
     expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Bold', 'Italic']);
   });
 
+  it('greys out a menu command with no entries, on the CommandBar and on the drawn bar', async () => {
+    const menus = [{label: 'Recent', items: []}, {label: 'Sort', items: [{label: 'Name'}]}];
+    const {rerender} = await render(<Toolbar commands={menus}/>);
+    expect(JSON.parse(island(BAR).props.commands).map((command: {disabled: boolean}) => command.disabled)).toEqual([true, false]);
+    await rerender(<Toolbar commands={menus} field={<Text>Find</Text>}/>);
+    expect(islands('ExpoInterfaceButton').map(button => [button.props.label, button.props.disabled])).toEqual([['Recent', true], ['Sort', false]]);
+  });
+
   it('floats a drawn bar with no spacer between its slots', async () => {
     await render(<Toolbar floating leading={<Text>Undo</Text>} trailing={<Text>Redo</Text>} testID="bar"/>);
     expect(screen.getByText('Undo')).toBeOnTheScreen();

@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {ToolbarCommand} from './types';
 import * as icons from '../__stories__/icons';
-import {hasCommands, overflowItems, splitCommands} from './shared';
+import {commandDisabled, hasCommands, overflowItems, splitCommands} from './shared';
 
 const commands: ToolbarCommand[] = [
   {label: 'Undo'},
@@ -63,6 +63,22 @@ describe('overflowItems', () => {
       {label: 'Archive', separator: true},
     ]);
     expect(items[1]!.onPress).toBe(onName);
+  });
+
+  it('puts nothing in place of a menu command with no entries, and so no rule after it', () => {
+    const items = overflowItems([{label: 'A'}, {label: 'Recent', items: []}, {label: 'B'}, {label: 'Sort', items: [{label: 'Name'}]}, {label: 'Empty', items: []}, {label: 'C'}]);
+    expect(items.map(item => item.label)).toEqual(['A', 'B', 'Name', 'C']);
+    // B follows nothing but A; C still follows Sort's entries.
+    expect(items.map(item => item.separator)).toEqual([undefined, undefined, true, true]);
+  });
+});
+
+describe('commandDisabled', () => {
+  it('greys out a disabled command, and a menu with no entries to open on', () => {
+    expect(commandDisabled({label: 'Undo'})).toBe(false);
+    expect(commandDisabled({label: 'Undo', disabled: true})).toBe(true);
+    expect(commandDisabled({label: 'Sort', items: [{label: 'Name'}]})).toBe(false);
+    expect(commandDisabled({label: 'Recent', items: []})).toBe(true);
   });
 });
 

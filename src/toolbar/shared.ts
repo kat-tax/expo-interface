@@ -27,11 +27,13 @@ export function splitCommands(commands: readonly ToolbarCommand[]): {
  *
  * The kit's menus do not nest, so a menu command's entries take its place,
  * set off by a rule before and after them, and greyed out with the command.
+ * A menu with no entries has nothing to put there, and so no rule either.
  */
 export function overflowItems(commands: readonly ToolbarCommand[]): MenuItem[] {
   let afterMenu = false;
   return commands.flatMap(command => {
     if (command.items) {
+      if (command.items.length === 0) return [];
       afterMenu = true;
       return command.items.map((item, index) => ({
         ...item,
@@ -69,6 +71,14 @@ export const anchoredStyles = StyleSheet.create({
     pointerEvents: 'none',
   },
 });
+
+/**
+ * Whether a command is greyed out on the bar: `disabled`, or a menu with no
+ * entries, which would open on nothing.
+ */
+export function commandDisabled(command: ToolbarCommand): boolean {
+  return !!command.disabled || command.items?.length === 0;
+}
 
 /** Whether a bar was given commands to draw at all. */
 export function hasCommands(commands: readonly ToolbarCommand[] | undefined): commands is ToolbarCommand[] {
