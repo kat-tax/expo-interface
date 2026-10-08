@@ -91,6 +91,16 @@ describe('TabView (windows)', () => {
     expect(onAdd).toHaveBeenCalled();
   });
 
+  it('names the add button for UI Automation and its tooltip, "New tab" unless asked otherwise', async () => {
+    const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} layout="strip" testID="t"/>);
+    expect(island(XAML).props.addLabel).toBe('New tab');
+    await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document" layout="strip" testID="t"/>);
+    expect(island(XAML).props.addLabel).toBe('New document');
+    // The drawn switcher says the same words.
+    await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document" layout="switcher" testID="t"/>);
+    expect(screen.getByTestId('t-add').props.accessibilityLabel).toBe('New document');
+  });
+
   it('puts the first tab at the front when the selected id names none', async () => {
     await render(<TabView tabs={TABS} selected="gone" onSelect={() => {}} layout="strip" testID="t"/>);
     expect(island(XAML).props.selectedIndex).toBe(0);

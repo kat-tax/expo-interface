@@ -29,6 +29,7 @@ struct ExpoInterfaceTabViewProps : winrt::implements<ExpoInterfaceTabViewProps, 
        selectedIndex = cloneFromProps->selectedIndex;
        label = cloneFromProps->label;
        addButton = cloneFromProps->addButton;
+       addLabel = cloneFromProps->addLabel;
        background = cloneFromProps->background;
        accentColor = cloneFromProps->accentColor;
        theme = cloneFromProps->theme;
@@ -54,6 +55,9 @@ struct ExpoInterfaceTabViewProps : winrt::implements<ExpoInterfaceTabViewProps, 
 
   REACT_FIELD(addButton)
   std::optional<bool> addButton{};
+
+  REACT_FIELD(addLabel)
+  std::optional<std::string> addLabel;
 
   REACT_FIELD(background)
   std::optional<std::string> background;

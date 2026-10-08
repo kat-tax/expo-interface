@@ -1,6 +1,7 @@
 import type {TabViewProps} from './types';
 import {StyleSheet, View} from 'react-native';
 import {TabStrip, TabSwitcher, useResolvedLayout} from './draw';
+import {ADD_LABEL} from './shared';
 
 /**
  * iOS and Android draw the strip themselves, because neither platform has a
@@ -24,6 +25,7 @@ export function TabView({
   onSelect,
   onClose,
   onAdd,
+  addLabel = ADD_LABEL,
   children,
   label = 'Tabs',
   layout = 'auto',
@@ -31,7 +33,7 @@ export function TabView({
   style,
 }: TabViewProps) {
   const {resolved, onLayout} = useResolvedLayout(layout);
-  const draw = {tabs, selected, onSelect, onClose, onAdd, label, testID};
+  const draw = {tabs, selected, onSelect, onClose, onAdd, addLabel, label, testID};
   // Children left out are the tabs alone. `null` is still a page, an empty
   // one, so a view whose last document closes keeps its size.
   const alone = children === undefined;

@@ -38,6 +38,11 @@ export interface NativeProps extends ViewProps {
   /** Show the add button at the end of the strip. */
   addButton?: CodegenTypes.WithDefault<boolean, false>;
   /**
+   * What the add button is called to UI Automation and in its tooltip, in
+   * place of WinUI's own name and tooltip for it.
+   */
+  addLabel?: string;
+  /**
    * The colour painted behind the strip: the kit's own element background. An
    * island's root is white wherever its content is transparent, and a
    * `TabView` is transparent by design — its fills are for a Mica window.

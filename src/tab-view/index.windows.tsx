@@ -7,7 +7,7 @@ import XamlTabView from '../windows/specs/ExpoInterfaceTabViewNativeComponent';
 import {glyphOf, jsonProp, useXamlProps} from '../windows';
 import {useColor} from '../theme';
 import {TabSwitcher, useResolvedLayout} from './draw';
-import {tabLabel} from './shared';
+import {ADD_LABEL, tabLabel} from './shared';
 
 /**
  * The height WinUI gives a tab strip: `TabViewItemHeaderHeight`, plus the room
@@ -47,6 +47,7 @@ export function TabView({
   onSelect,
   onClose,
   onAdd,
+  addLabel = ADD_LABEL,
   children,
   label = 'Tabs',
   layout = 'auto',
@@ -71,6 +72,7 @@ export function TabView({
             items={tabItems(tabs, Boolean(onClose))}
             selectedIndex={index}
             addButton={Boolean(onAdd)}
+            addLabel={addLabel}
             background={background}
             label={label}
             onSelectionChange={event => {
@@ -100,6 +102,7 @@ export function TabView({
           onSelect={onSelect}
           onClose={onClose}
           onAdd={onAdd}
+          addLabel={addLabel}
           label={label}
           testID={testID}>
           {page}

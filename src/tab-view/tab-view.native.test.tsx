@@ -144,6 +144,18 @@ describe(`TabView (${Platform.OS})`, () => {
     expect(screen.getByTestId('t-switcher')).toBeOnTheScreen();
   });
 
+  it('calls the add button what it is asked to, in the strip and the switcher', async () => {
+    const {rerender} = await render(
+      <TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document" layout="strip" testID="t"/>,
+    );
+    expect(screen.getByTestId('t-add').props.accessibilityLabel).toBe('New document');
+    await rerender(
+      <TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document" layout="switcher" testID="t"/>,
+    );
+    expect(screen.getByTestId('t-add').props.accessibilityLabel).toBe('New document');
+    expect(screen.queryByLabelText('New tab')).toBeNull();
+  });
+
   it('names a tab by its label where the accessory says more, and by its title otherwise', async () => {
     const tabs = [TABS[0], {id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <View/>}];
     await render(<TabView tabs={tabs} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);

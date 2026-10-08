@@ -169,9 +169,10 @@ selected one's content under it. These are not the tabs `Tabs` draws.
 Props: `tabs` (`id`, `title`, `label`, `icon`, `pinned`, `menu`, `depth`,
 `accessory`), `selected`, `onSelect`,
 `onClose` (leaving it out takes the crosses away), `onAdd` (leaving it out
-takes the add button away), `children` (the selected tab's content; left
-out, the tabs alone), `label` ("Tabs"), `layout` (`auto`, `strip`,
-`switcher`), `style`, `testID`.
+takes the add button away), `addLabel` (what the add button is called to a
+screen reader and in Windows' tooltip, "New tab"), `children` (the selected
+tab's content; left out, the tabs alone), `label` ("Tabs"), `layout`
+(`auto`, `strip`, `switcher`), `style`, `testID`.
 `nextSelection(tabs, closing, selected)` is exported for a caller that closes
 the open tab: it moves to the next tab, or the previous one when the last was
 closed.

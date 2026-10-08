@@ -80,6 +80,7 @@ export function TabView({
   onSelect,
   onClose,
   onAdd,
+  addLabel = ADD_LABEL,
   children,
   label = 'Tabs',
   layout = 'auto',
@@ -156,7 +157,7 @@ export function TabView({
     <button
       type="button"
       className="ui-tab-view__add"
-      aria-label={ADD_LABEL}
+      aria-label={addLabel}
       data-testid={testID ? `${testID}-add` : undefined}
       onClick={() => {
         setOpen(false);

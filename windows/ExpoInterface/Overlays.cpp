@@ -1346,6 +1346,11 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
         }
       }
     });
+    // The add button is a part of the template, there once it is applied: a
+    // name asked for before then is given now.
+    m_view.Loaded([weak = get_weak()](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
+      if (auto strong = weak.get()) strong->NameAddButton();
+    });
     Attach(islandView, m_view);
   }
 
@@ -1416,6 +1421,8 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
     const auto selected = std::clamp(props->selectedIndex.value_or(0), 0, std::max(0, count - 1));
     if (count > 0 && m_view.SelectedIndex() != selected) m_view.SelectedIndex(selected);
     m_view.IsAddTabButtonVisible(props->addButton.value_or(false));
+    m_addLabel = props->addLabel.value_or("");
+    NameAddButton();
     m_applying = false;
   }
 
@@ -1424,6 +1431,20 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
   }
 
  private:
+  /**
+   * Names the add button what the kit was asked to call it, to UI Automation
+   * and in its tooltip, in place of WinUI's own: the other platforms say the
+   * same words. WinUI fills both only when they are empty, as the template is
+   * applied, and this runs after that, so the kit's words win either way.
+   */
+  void NameAddButton() noexcept {
+    if (m_addLabel.empty()) return;
+    auto button = FindDescendant(m_view, L"AddButton");
+    if (!button) return;
+    SetName(button, std::optional<std::string>{m_addLabel});
+    controls::ToolTipService::SetToolTip(button, winrt::box_value(ToHString(m_addLabel)));
+  }
+
   void TabMenu(const controls::TabViewItem &item, const winrt::Windows::Foundation::Point &point) noexcept {
     uint32_t index = 0;
     if (!m_view.TabItems().IndexOf(item, index)) return;
@@ -1438,6 +1459,8 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
 
   controls::TabView m_view{nullptr};
   std::string m_items;
+  /** What the add button is called, once its template part exists. */
+  std::string m_addLabel;
   bool m_applying{false};
 };
 

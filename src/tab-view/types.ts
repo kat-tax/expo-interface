@@ -59,6 +59,12 @@ export interface TabViewProps {
   /** The add button at the end of the strip. Leaving this out takes it away. */
   onAdd?: () => void;
   /**
+   * What the add button is called, to a screen reader and in Windows'
+   * tooltip: "New document", "New chat".
+   * @default 'New tab'
+   */
+  addLabel?: string;
+  /**
    * The selected tab's content, drawn under the strip. Left out, the view is
    * the tabs alone: as tall as the strip or the switcher's bar rather than
    * growing into its parent, and on web with no `tabpanel` for the tabs to

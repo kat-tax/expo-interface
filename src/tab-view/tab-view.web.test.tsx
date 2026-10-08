@@ -154,7 +154,19 @@ describe('TabView (web)', () => {
     expect(onAdd).toHaveBeenCalled();
   });
 
+  it('calls the add button what it is asked to', () => {
+    render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document"/>);
+    expect(screen.getByRole('button', {name: 'New document'})).toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'New tab'})).toBeNull();
+  });
+
   describe('switcher', () => {
+    it('calls the add button what it is asked to there too', () => {
+      windowWidth(480);
+      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document"/>);
+      expect(screen.getByRole('button', {name: 'New document'})).toBeInTheDocument();
+    });
+
     it('replaces the strip with a disclosure under the breakpoint', async () => {
       const user = userEvent.setup();
       windowWidth(480);

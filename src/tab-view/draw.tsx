@@ -11,7 +11,7 @@ import {PopupMenu} from '../popup-menu';
 import {Icon as Glyph} from '../symbol';
 import {Body, Caption} from '../typography';
 import {spacing, useColor} from '../theme';
-import {ADD_LABEL, closeLabel, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
+import {closeLabel, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
 
 /** The cross on a tab, the plus at the end of the strip, and the switcher's own glyph. */
 const CLOSE: IconToken = {symbol: {ios: 'xmark', android: 'close', web: 'close'}};
@@ -58,6 +58,8 @@ export interface TabDrawProps {
   onSelect: (id: string) => void;
   onClose?: (id: string) => void;
   onAdd?: () => void;
+  /** What the add button is called. */
+  addLabel: string;
   label: string;
   testID?: string;
 }
@@ -110,7 +112,7 @@ export function useTabMenus(testID: string | undefined): {
  * hands a screen reader a button inside a tab that it cannot reach on its own;
  * two controls in a row is what the platforms draw and what they announce.
  */
-export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testID}: TabDrawProps) {
+export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, label, testID}: TabDrawProps) {
   const surface = useColor('backgroundElement');
   const open = useColor('background');
   const labelColor = useColor('label');
@@ -172,7 +174,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, label, testI
       {onAdd ? (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={ADD_LABEL}
+          accessibilityLabel={addLabel}
           onPress={onAdd}
           style={styles.add}
           testID={sub(testID, 'add')}>
@@ -199,6 +201,7 @@ export function TabSwitcher({
   onSelect,
   onClose,
   onAdd,
+  addLabel,
   label,
   testID,
   children,
@@ -229,7 +232,7 @@ export function TabSwitcher({
         {onAdd ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={ADD_LABEL}
+            accessibilityLabel={addLabel}
             onPress={() => {
               setOpen(false);
               onAdd();
