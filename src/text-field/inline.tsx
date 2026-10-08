@@ -1,9 +1,9 @@
-import type {NativeSyntheticEvent, TextInputKeyPressEventData, TextStyle} from 'react-native';
+import type {TextStyle} from 'react-native';
 import type {TextFieldProps} from './types';
 import {useImperativeHandle, useRef} from 'react';
 import {Platform, StyleSheet, TextInput} from 'react-native';
 import {fonts, fontWeights, spacing, useColor} from '../theme';
-import {blurOnSubmitFor, inputModeFor, keyboardTypeFor, keyNameOf, useAutoFocus, useTextValue} from './shared';
+import {blurOnSubmitFor, inputModeFor, keyboardTypeFor, keyPressFor, useAutoFocus, useTextValue} from './shared';
 
 /** A key react-native-windows submits a multi-line field on, with the modifiers that must be held. */
 interface WindowsSubmitKey {
@@ -65,21 +65,6 @@ export function InlineTextField({
   }));
 
   const web = Platform.OS === 'web';
-  // A multi-line field that submits keeps the focus on web: react-native-web
-  // submits a multi-line field on Enter only when it may blur it afterwards,
-  // so the key is taken here instead, before the browser inserts the line.
-  const entersSubmit = web && multiline === true && submitBehavior === 'submit' && !disabled && onSubmit !== undefined;
-  const onKey = onKeyPress || entersSubmit
-    ? (event: NativeSyntheticEvent<TextInputKeyPressEventData & {shiftKey?: boolean}>) => {
-      const shift = event.nativeEvent.shiftKey === true;
-      if (entersSubmit && event.nativeEvent.key === 'Enter' && !shift) {
-        event.preventDefault();
-        onSubmit(current);
-        return;
-      }
-      onKeyPress?.(keyNameOf(event.nativeEvent.key), shift);
-    }
-    : undefined;
 
   return (
     <TextInput
@@ -109,7 +94,7 @@ export function InlineTextField({
       blurOnSubmit={web ? blurOnSubmitFor(submitBehavior) : undefined}
       {...(Platform.OS === 'windows' && multiline === true && submitBehavior !== undefined ? {submitKeyEvents: SUBMIT_KEYS} : null)}
       onSubmitEditing={onSubmit ? event => onSubmit(event.nativeEvent.text) : undefined}
-      onKeyPress={onKey}
+      onKeyPress={keyPressFor({multiline, submitBehavior, disabled, onSubmit, onKeyPress}, current)}
       onFocus={onFocus}
       onBlur={onBlur}
       aria-label={placeholder}

@@ -208,6 +208,30 @@ describe('TextField (web)', () => {
       }
     });
 
+    it('submits a multi-line field with submitBehavior="submit" on Enter and keeps it focused, inline or the row', () => {
+      const onSubmit = vi.fn();
+      const onKeyPress = vi.fn();
+      render(
+        <>
+          <TextField variant="inline" multiline submitBehavior="submit" onSubmit={onSubmit} testID="inline"/>
+          <TextField multiline submitBehavior="submit" onSubmit={onSubmit} onKeyPress={onKeyPress} testID="row"/>
+        </>,
+      );
+      for (const id of ['inline', 'row']) {
+        const area = screen.getByTestId(id);
+        expect(area.tagName).toBe('TEXTAREA');
+        enter(area, id);
+        expect(onSubmit).toHaveBeenLastCalledWith(id);
+        expect(document.activeElement).toBe(area);
+      }
+      // The Enter that submits is the field's; Shift+Enter breaks the line and is reported.
+      expect(onKeyPress).not.toHaveBeenCalled();
+      const shifted = fireEvent.keyDown(screen.getByTestId('row'), {key: 'Enter', keyCode: 13, shiftKey: true});
+      expect(shifted).toBe(true);
+      expect(onSubmit).toHaveBeenCalledTimes(2);
+      expect(onKeyPress).toHaveBeenCalledWith('Enter', true);
+    });
+
     it('submits a multi-line field with blurAndSubmit on Enter, and gives the focus up', () => {
       const onSubmit = vi.fn();
       render(<TextField variant="inline" multiline submitBehavior="blurAndSubmit" onSubmit={onSubmit} testID="area"/>);

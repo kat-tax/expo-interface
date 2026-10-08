@@ -1,7 +1,7 @@
 import type {RefObject} from 'react';
-import type {TextInput} from 'react-native';
+import type {NativeSyntheticEvent, TextInput, TextInputKeyPressEventData} from 'react-native';
 import type {ObservableState} from '@expo/ui';
-import type {TextFieldKeyboard, TextFieldSubmitBehavior} from './types';
+import type {TextFieldKeyboard, TextFieldProps, TextFieldSubmitBehavior} from './types';
 import {useCallback, useEffect, useState} from 'react';
 import {Keyboard, Platform} from 'react-native';
 
@@ -128,6 +128,38 @@ export function inputModeFor(type: TextFieldKeyboard | undefined): WebInputMode 
  */
 export function keyNameOf(key: string): string {
   return key === '\u001b' ? 'Escape' : key;
+}
+
+/** A key press as React Native reports it, with the Shift key react-native-web adds. */
+export type KeyPressEvent = NativeSyntheticEvent<TextInputKeyPressEventData & {shiftKey?: boolean}>;
+
+/**
+ * The `onKeyPress` handler of the React Native fields (`inline`, `bare` and
+ * the web row): each key goes to `onKeyPress` by its name (`keyNameOf`) with
+ * whether Shift was held. On web a multi-line field that submits takes Enter
+ * itself and submits, keeping the focus: react-native-web submits a
+ * multi-line field on Enter only when it may blur it afterwards, so the key
+ * is taken here, before the browser inserts the line. Shift+Enter still
+ * breaks the line.
+ * @param props - The field's props that decide what a key does.
+ * @param text - The field's current text, which Enter submits.
+ * @returns The handler, or `undefined` when no key needs one.
+ */
+export function keyPressFor(
+  {multiline, submitBehavior, disabled, onSubmit, onKeyPress}: Pick<TextFieldProps, 'multiline' | 'submitBehavior' | 'disabled' | 'onSubmit' | 'onKeyPress'>,
+  text: string,
+): ((event: KeyPressEvent) => void) | undefined {
+  const entersSubmit = Platform.OS === 'web' && multiline === true && submitBehavior === 'submit' && !disabled && onSubmit !== undefined;
+  if (!onKeyPress && !entersSubmit) return undefined;
+  return event => {
+    const shift = event.nativeEvent.shiftKey === true;
+    if (entersSubmit && event.nativeEvent.key === 'Enter' && !shift) {
+      event.preventDefault();
+      onSubmit(text);
+      return;
+    }
+    onKeyPress?.(keyNameOf(event.nativeEvent.key), shift);
+  };
 }
 
 /**
