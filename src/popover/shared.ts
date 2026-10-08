@@ -1,3 +1,4 @@
+import type {RefObject} from 'react';
 import type {PointerEvent, ViewProps} from 'react-native';
 import type {PopoverRect} from './types';
 import {useEffect, useEffectEvent, useState} from 'react';
@@ -89,24 +90,77 @@ function samePlace(a: PopoverRect | null, b: PopoverRect | null): boolean {
   return a.x === b.x && a.y === b.y && (a.width ?? 0) === (b.width ?? 0) && (a.height ?? 0) === (b.height ?? 0);
 }
 
+/** An overlay that takes Escape on web: a `Popover` card or a `PopupMenu`. */
+interface Taker {
+  node: HTMLElement;
+  /** Whether it would take the key now. */
+  wants: () => boolean;
+  take: () => void;
+}
+
+/** The overlays that take Escape on web, in the order they came up. */
+const takers: Taker[] = [];
+
 /**
- * Escape on web while the card is up, wherever the focus is: the window's
+ * Escape on web while an overlay is up, wherever the focus is: the window's
  * keydown in the capture phase, which comes before every listener on the
  * document and under it, so an editor that holds the focus and keeps the key
- * for itself still lets the card go first. The key then stops at the window:
- * neither the editor nor an overlay around the card that listens on the
- * document, such as a web `Sheet`, acts on it too.
+ * for itself still lets the overlay go first. The key then stops at the
+ * window: neither the editor nor an overlay around this one that listens on
+ * the document, such as a web `Sheet`, acts on it too.
+ *
+ * One Escape closes one overlay, the innermost. One window listener chooses
+ * it for all of them before any acts, since a menu that closes on the key
+ * would no longer be open by the time a card around it looked. A card with a
+ * `PopupMenu` open in it, or another card up inside it, leaves the key to
+ * that one. So does a card with a menu open in it that the browser closes on
+ * Escape (a `popover` element: a `Menu`), and then nothing here takes the
+ * key. Of two overlays up side by side, the one that came up last takes it.
+ *
+ * `node` is the overlay's element (on web a view's ref is its element),
+ * which is in the DOM whenever `active` is set. `wants` says whether it
+ * takes the key at a given moment, if not whenever it is active.
  */
-export function useEscape(active: boolean, onEscape: () => void): void {
+export function useEscape(active: boolean, node: RefObject<unknown>, onEscape: () => void, wants?: () => boolean): void {
   const escape = useEffectEvent(onEscape);
+  const asked = useEffectEvent(() => wants?.() ?? true);
   useEffect(() => {
     if (!active) return;
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      event.stopPropagation();
-      escape();
+    const taker: Taker = {node: node.current as HTMLElement, wants: () => asked(), take: () => escape()};
+    if (takers.length === 0) window.addEventListener('keydown', onEscapeKey, true);
+    takers.push(taker);
+    return () => {
+      takers.splice(takers.indexOf(taker), 1);
+      if (takers.length === 0) window.removeEventListener('keydown', onEscapeKey, true);
     };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [active]);
+  }, [active, node]);
 }
+
+function onEscapeKey(event: KeyboardEvent) {
+  if (event.key !== 'Escape') return;
+  const taker = chosen();
+  if (!taker) return;
+  event.stopPropagation();
+  taker.take();
+}
+
+/**
+ * The overlay Escape is for: of those that want it with no other one that
+ * does inside them, the last to come up; none when a menu the browser closes
+ * is open in that one, above it.
+ */
+function chosen(): Taker | undefined {
+  const wanting = takers.filter(taker => taker.wants());
+  const top = wanting.findLast(taker => !wanting.some(other => other !== taker && taker.node.contains(other.node)));
+  return top && !holdsOpenMenu(top.node) ? top : undefined;
+}
+
+/**
+ * Whether a popover element is open inside the overlay. A `manual` one does
+ * not count: Escape does not close it, so the overlay would never get the
+ * key.
+ */
+function holdsOpenMenu(node: HTMLElement): boolean {
+  return Array.from(node.querySelectorAll('[popover]:not([popover="manual"])')).some(element => element.matches(':popover-open'));
+}
+

@@ -1,9 +1,11 @@
+import type {Ref} from 'react';
 import type {LayoutChangeEvent, ViewProps} from 'react-native';
 import type {useAnchored} from '../anchored';
 import {createContext, useContext, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 export interface PlacedCardProps extends Omit<ViewProps, 'onLayout' | 'style'> {
+  ref?: Ref<View>;
   /** Where the card goes, and the measure of it. */
   anchored: ReturnType<typeof useAnchored>;
   width: number;

@@ -1,5 +1,5 @@
 import type {PopoverDismissReason, PopoverProps} from './types';
-import {useState} from 'react';
+import {useRef, useState} from 'react';
 import {Platform, Pressable, StyleSheet, View} from 'react-native';
 import {Row} from '@expo/ui';
 import {useAnchored} from '../anchored';
@@ -38,7 +38,8 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
   // The card takes Escape only when it does something: with no `onDismiss`,
   // only while it lingers, which the kit ends itself. A card nothing closes
   // leaves the key to the editor.
-  useEscape(Platform.OS === 'web' && shown !== null && (onDismiss !== undefined || at === null), () => dismiss('escape'));
+  const card = useRef<View>(null);
+  useEscape(Platform.OS === 'web' && shown !== null && (onDismiss !== undefined || at === null), card, () => dismiss('escape'));
 
   return (
     <View
@@ -66,6 +67,7 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
         // so the card waits for it; on web the browser lays the whole card
         // out at once.
         <PlacedCard
+          ref={card}
           anchored={anchored}
           width={width}
           sizedLater={Platform.OS !== 'web' && !!actions?.length}

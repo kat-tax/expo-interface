@@ -3,6 +3,7 @@ import type {CSSProperties} from 'react';
 import type {PopupMenuProps} from './types';
 import {useEffect, useId, useRef} from 'react';
 import {MenuList, menuIdent} from '../menu/list';
+import {useEscape} from '../popover/shared';
 import {filterItems, sizeOf} from './types';
 
 /**
@@ -83,22 +84,16 @@ export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus
     };
   }, [open, x, y, size.width, size.height, pressed]);
 
-  // Escape closes the menu wherever the focus is: an editor that holds it
-  // and keeps the key for itself would otherwise leave the menu up. The key
-  // is the menu's then, and goes no further. The window's capture phase
-  // comes before the document's, where an overlay around the menu (a web
-  // `Sheet`) listens for the key to close itself.
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (event: KeyboardEvent) => {
-      const element = popover.current!;
-      if (event.key !== 'Escape' || !element.matches(':popover-open')) return;
-      event.stopPropagation();
-      element.hidePopover();
-    };
-    window.addEventListener('keydown', onKey, true);
-    return () => window.removeEventListener('keydown', onKey, true);
-  }, [open]);
+  // Escape closes the menu while it shows, wherever the focus is: an editor
+  // that holds it and keeps the key for itself would otherwise leave the
+  // menu up. The key is the menu's then, and goes no further, so neither a
+  // web `Sheet` nor a `Popover` card around the menu closes with it.
+  useEscape(
+    open,
+    popover,
+    () => popover.current!.hidePopover(),
+    () => popover.current!.matches(':popover-open'),
+  );
 
   return (
     <span

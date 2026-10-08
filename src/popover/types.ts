@@ -50,7 +50,11 @@ export interface PopoverProps extends PropsWithChildren {
    * Called when the popover closes, with why. On web the card takes Escape
    * only when there is an `onDismiss` to report it to or while a `hover`
    * card lingers. The key then goes no further: neither the focused element
-   * nor an overlay around the card, such as a web `Sheet`, gets it.
+   * nor an overlay around the card, such as a web `Sheet`, gets it. One
+   * Escape closes one overlay: a card with a menu open in it, or another
+   * card up inside it, leaves the key to that one and takes the next. Of two
+   * cards up side by side, or a card and a `PopupMenu`, the one that came up
+   * last takes it.
    */
   onDismiss?: (reason: PopoverDismissReason) => void;
   /**
