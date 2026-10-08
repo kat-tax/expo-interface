@@ -5,29 +5,32 @@ import {List as SwiftUIList, Spacer} from '@expo/ui/swift-ui';
 import {frame, listRowSeparator, listStyle, onAppear} from '@expo/ui/swift-ui/modifiers';
 import {NativeHost, useNativeHost} from '../host';
 import {useScrollInsets} from '../screen/insets';
-import {keyOf} from './shared';
+import {keyOf, showsEmpty} from './shared';
 
 /**
  * iOS renders SwiftUI's `List` in its plain style: the platform's own lazy
  * list, which recycles its rows, draws its separators and scrolls under a
  * translucent bar. The rows are the kit's `ListItem`s, which the `List`
  * insets as rows; the header and the footer are native content before and
- * after them. Outside a host the list mounts one that fills the screen.
+ * after them. Outside a host the list mounts one that fills the screen, and
+ * while it shows its `empty` content it mounts none: that content sits in
+ * the list's own view, so an `EmptyState` brings its own host and fills the
+ * list, where hosts may not nest.
  */
 export function List<T>(props: ListProps<T>) {
   const hosted = useNativeHost();
-  const list = <NativeList {...props}/>;
-  if (hosted) return list;
+  if (hosted) return <NativeList {...props}/>;
   return (
     <View style={[styles.fill, props.style]} testID={props.testID}>
-      <NativeHost fit="fill">{list}</NativeHost>
+      {showsEmpty(props) ? props.empty : <NativeHost fit="fill"><NativeList {...props}/></NativeHost>}
     </View>
   );
 }
 
 function NativeList<T>({data, renderItem, keyExtractor, separators = true, header, footer, empty, onEndReached, contentInset}: ListProps<T>) {
   const insets = useScrollInsets(contentInset);
-  if (data.length === 0 && empty) return <>{empty}</>;
+  // Under a host of the screen's: native content, as the rows are.
+  if (showsEmpty({data, empty})) return <>{empty}</>;
   const last = data.length - 1;
   return (
     <SwiftUIList modifiers={[listStyle('plain'), ...(separators ? [] : [listRowSeparator('hidden')])]}>

@@ -39,7 +39,14 @@ export interface ListProps<T> {
    */
   header?: ReactNode;
   footer?: ReactNode;
-  /** What the list shows in place of its rows when `data` is empty: usually an `EmptyState`. */
+  /**
+   * What the list shows in place of its rows when `data` is empty: usually
+   * an `EmptyState`, which fills the list. On iOS and Android outside a host
+   * it is placed in the list's own view with no host around it, so a control
+   * in it mounts its own; under a host it is native content, as the rows
+   * are. iOS and Android show it without the `header` and `footer`; the web
+   * and Windows keep them around it.
+   */
   empty?: ReactNode;
   /** Called once the last row has been drawn, for a list that loads more. */
   onEndReached?: () => void;

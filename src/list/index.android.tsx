@@ -6,7 +6,7 @@ import {fillMaxSize, height as heightModifier, onVisibilityChanged, testID as te
 import {NativeHost, useNativeHost} from '../host';
 import {useScrollInsets} from '../screen/insets';
 import {useColor} from '../theme';
-import {keyOf} from './shared';
+import {keyOf, showsEmpty} from './shared';
 
 /**
  * Android renders Compose's `LazyColumn`: the platform's own lazy list,
@@ -14,15 +14,18 @@ import {keyOf} from './shared';
  * with Material's `HorizontalDivider` between them. The rows are the kit's
  * `ListItem`s, native content through and through, since a React Native
  * view inside a row is hosted again each time the list recycles it. Outside
- * a host the list mounts one that fills the screen.
+ * a host the list mounts one that fills the screen, and while it shows its
+ * `empty` content it mounts none: that content sits in the list's own view,
+ * so an `EmptyState` brings its own host and fills the list, where hosts may
+ * not nest. Under a host the `empty` content is centred in a `Box` the size
+ * of the list.
  */
 export function List<T>(props: ListProps<T>) {
   const hosted = useNativeHost();
-  const list = <NativeList {...props}/>;
-  if (hosted) return list;
+  if (hosted) return <NativeList {...props}/>;
   return (
     <View style={[styles.fill, props.style]} testID={props.testID}>
-      <NativeHost fit="fill">{list}</NativeHost>
+      {showsEmpty(props) ? props.empty : <NativeHost fit="fill"><NativeList {...props}/></NativeHost>}
     </View>
   );
 }
@@ -30,12 +33,14 @@ export function List<T>(props: ListProps<T>) {
 function NativeList<T>({data, renderItem, keyExtractor, separators = true, header, footer, empty, onEndReached, contentInset, testID}: ListProps<T>) {
   const separator = useColor('separator');
   const insets = useScrollInsets(contentInset);
-  if (data.length === 0 && empty) return <>{empty}</>;
+  const modifiers = [fillMaxSize(), ...(testID ? [testIDModifier(testID)] : [])];
+  // Under a host of the screen's: native content, centred where the rows would be.
+  if (showsEmpty({data, empty})) return <Box contentAlignment="center" modifiers={modifiers}>{empty}</Box>;
   const last = data.length - 1;
   return (
     <LazyColumn
       contentPadding={{top: insets.top, bottom: insets.bottom}}
-      modifiers={[fillMaxSize(), ...(testID ? [testIDModifier(testID)] : [])]}>
+      modifiers={modifiers}>
       {header}
       {data.map((item, index) => (
         <Fragment key={keyOf({keyExtractor}, item, index)}>

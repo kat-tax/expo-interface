@@ -79,6 +79,9 @@ present natively mount a host of their own only when there is none:
 - `PopupMenu`, `Fab` (iOS and Android) and `ShareLink` (iOS)
   mount one where they need it.
 - `Toast` and `Toolbar` do the same for their native parts.
+- `List` (iOS and Android) mounts one that fills the screen, and none while
+  it shows its `empty` content: that sits in the list's own view, so an
+  `EmptyState` in it mounts its own.
 - A `Sheet`'s content counts as hosted, so controls inside it render bare.
 
 `Badge` needs no host. On Android it is Compose's Material `Badge` inside one

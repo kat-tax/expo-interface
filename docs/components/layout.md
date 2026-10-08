@@ -399,9 +399,15 @@ Differences:
   is: the kit's `ListItem`, or `@expo/ui` content. A React Native view
   inside a row is hosted a second time each time the list recycles it, so a
   row that needs one belongs in a `CardGrid`, which is drawn in React
-  Native. The `header`, `footer` and `empty` content are native there too.
+  Native. The `header` and `footer` are native there too.
 - Outside a host the list mounts one that fills the screen (`NativeHost
   fit="fill"`); under `Screen native` it uses the screen's.
+- `empty` takes the list's place. On iOS and Android outside a host it is
+  drawn in the list's own view with no host around it, so an `EmptyState`
+  brings its own and fills the list; under `Screen native` it is native
+  content in the screen's host, centred on Android. iOS and Android show it
+  without the `header` and `footer`; the web and Windows keep them around
+  it.
 - Under a `Screen underBar` the list pads its first row by the bar through
   `useScrollInsets()`, with `contentInset` added to that. On iOS SwiftUI
   insets the list by a header the screen runs under through its safe area,

@@ -1,6 +1,7 @@
 import {Platform, StyleSheet} from 'react-native';
 import {act, render, screen} from '@testing-library/react-native';
 import {hostFit, hosts} from '../__tests__/hosts';
+import {EmptyState} from '../empty-state';
 import {NativeHostContext} from '../host';
 import {ListItem} from '../list-item';
 import {ScrollInsetsContext} from '../screen/insets';
@@ -52,6 +53,12 @@ describe(`List (${Platform.OS})`, () => {
     );
     expect(host(p => p.text === 'Nothing yet')).toBeTruthy();
     expect(nodes().some(n => n.props.text === 'Header')).toBe(false);
+    expect(list()).toBeUndefined();
+    if (!isIOS) {
+      // Centred in a box the size of the list, as the rows would fill it.
+      const box = host(p => p.contentAlignment === 'center');
+      expect(modifier(box.props, 'fillMaxSize')).toBeTruthy();
+    }
     await render_(
       <List
         data={['One']}
@@ -107,5 +114,13 @@ describe(`List (${Platform.OS})`, () => {
     expect(screen.getByTestId('list')).toBeTruthy();
     await render_(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>}/>);
     expect(hosts()).toHaveLength(0);
+  });
+
+  it('shows the empty state in its own view outside a host, with no host of the list\'s around it', async () => {
+    await render(<List data={[]} renderItem={() => null} empty={<EmptyState title="No versions yet"/>} testID="list"/>);
+    // Only the empty state's own: hosts do not nest.
+    expect(hosts()).toHaveLength(1);
+    expect(list()).toBeUndefined();
+    expect(screen.getByTestId('list')).toBeTruthy();
   });
 });
