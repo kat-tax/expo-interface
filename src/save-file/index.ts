@@ -28,19 +28,28 @@ export function loadSaveFileSystem(load?: () => SaveFileSystem): SaveFileSystem 
 }
 
 /**
+ * A name as the folder's names are compared: without case and in one Unicode
+ * form, so that no spelling the folder takes for the same file slips past.
+ * Windows and Android's shared storage fold case, as can a provider in the
+ * iOS Files app, and APFS takes either form of an accented name as one.
+ */
+function sameName(name: string): string {
+  return name.normalize('NFC').toLowerCase();
+}
+
+/**
  * The name to write under in a folder that may hold it already: the name
  * itself, or the platform's name for a copy kept beside the first, `notes 2.md`
  * on iOS (as the Files app keeps both) and `notes (1).md` on Android and
- * Windows (as the Storage Access Framework and the browsers name one). The
- * names are compared without case, as the file systems there compare them.
+ * Windows (as the Storage Access Framework and the browsers name one).
  */
 function freeName(name: string, taken: ReadonlySet<string>): string {
-  if (!taken.has(name.toLowerCase())) return name;
+  if (!taken.has(sameName(name))) return name;
   const dot = name.lastIndexOf('.');
   const [stem, extension] = dot > 0 ? [name.slice(0, dot), name.slice(dot)] : [name, ''];
   for (let copy = 1; ; copy += 1) {
     const candidate = Platform.OS === 'ios' ? `${stem} ${copy + 1}${extension}` : `${stem} (${copy})${extension}`;
-    if (!taken.has(candidate.toLowerCase())) return candidate;
+    if (!taken.has(sameName(candidate))) return candidate;
   }
 }
 
@@ -58,7 +67,7 @@ export async function saveWith({name, content}: SaveFileOptions, fileSystem: Sav
     // The picker was dismissed.
     return false;
   }
-  const taken = new Set(folder.list().map(entry => entry.name.toLowerCase()));
+  const taken = new Set(folder.list().map(entry => sameName(entry.name)));
   // The type follows the name: a document provider adds the extension of a
   // type that does not match the name's own.
   folder.createFile(freeName(name, taken), 'application/octet-stream').write(content);

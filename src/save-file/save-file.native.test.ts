@@ -52,6 +52,8 @@ describe(`saveFile (${Platform.OS})`, () => {
     expect(await savedAs('notes.md', ['notes.md'])).toBe(copy('notes', 1, '.md'));
     // Names are compared without case, and a copy's name can be taken too.
     expect(await savedAs('notes.md', ['NOTES.md', 'notes 2.md', 'notes (1).md'])).toBe(copy('notes', 2, '.md'));
+    // And in one Unicode form: an accented name the folder holds decomposed is the same name.
+    expect(await savedAs('café.md', ['café.md'.normalize('NFD')])).toBe(copy('café', 1, '.md'));
     expect(await savedAs('README', ['README'])).toBe(copy('README', 1, ''));
     // A name that starts with its only dot has no extension.
     expect(await savedAs('.env', ['.env'])).toBe(copy('.env', 1, ''));
