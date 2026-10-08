@@ -58,25 +58,35 @@ describe('useRelativeTime (web)', () => {
     expect(result.current).toBe('3 hours ago');
   });
 
-  it('hydrates a static page with the words the server had, then says them in the page\'s language', async () => {
+  it('hydrates a static page in English, as the server rendered it, whatever the browser\'s language, then says the words in the page\'s', async () => {
+    // A browser whose own language is German.
+    const Engine = Intl.RelativeTimeFormat;
+    class German extends Engine {
+      constructor(locale?: string, options?: Intl.RelativeTimeFormatOptions) {
+        super(locale ?? 'de', options);
+      }
+    }
+    vi.stubGlobal('Intl', Object.create(Intl, {RelativeTimeFormat: {value: German}}));
     const said: string[] = [];
     function When() {
-      const text = useRelativeTime(NOW - 2 * HOUR);
+      // `always`, a style no earlier test made a formatter for, so this engine makes them.
+      const text = useRelativeTime(NOW - 2 * HOUR, {numeric: 'always'});
       said.push(text);
       return <span data-testid="when">{text}</span>;
     }
-    // What the server rendered, which had no page to read its language from.
-    const page = document.body.appendChild(document.createElement('div'));
-    page.innerHTML = '<span data-testid="when">2 hours ago</span>';
     document.documentElement.lang = 'de';
     const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
+      // What the server rendered: English, as it has no page to read a language from.
+      const page = document.body.appendChild(document.createElement('div'));
+      page.innerHTML = '<span data-testid="when">2 hours ago</span>';
       await act(async () => {
         render(<When/>, {container: page, hydrate: true});
       });
       expect(errors).not.toHaveBeenCalled();
     } finally {
       errors.mockRestore();
+      vi.unstubAllGlobals();
     }
     expect(said[0]).toBe('2 hours ago');
     expect(screen.getByTestId('when').textContent).toBe('vor 2 Stunden');

@@ -8,20 +8,25 @@ function subscribe(onChange: () => void): () => void {
 }
 
 /** The `lang` of the page's `<html>`; none when it is empty, which no formatter takes. */
-export function pageLanguage(): string | undefined {
+function pageLanguage(): string | undefined {
   return document.documentElement.lang || undefined;
 }
 
-/** A server has no page to read: a static export is rendered in the engine's language. */
-function serverLanguage(): undefined {
-  return undefined;
+/**
+ * A server has no page to read, so it says the words in English, Expo's
+ * default `web.lang`, rather than in the language of whichever engine runs:
+ * the machine that builds a static export, then the browser that hydrates it.
+ */
+function serverLanguage(): string {
+  return 'en';
 }
 
 /**
  * Web: the language the page declares, the `lang` of its `<html>` (the app
  * config's `web.lang`, or the one `+html.tsx` sets), kept current. A static
- * export hydrates with the server's words, which had no page to read, and
- * switches to the page's in the next render, so hydration matches the HTML.
+ * page's first render, which hydrates the server's HTML, answers English as
+ * the server did, whatever the browser's language; the next render answers
+ * the page's.
  */
 export function usePageLanguage(): string | undefined {
   return useSyncExternalStore(subscribe, pageLanguage, serverLanguage);
