@@ -14,7 +14,12 @@ export interface AnchorRect {
 /** Which side of the rectangle an anchored card prefers. */
 export type AnchorEdge = 'auto' | 'top' | 'bottom';
 
-/** How an anchored card lines up with its rectangle across: from its leading edge, centred on it, or to its trailing edge. */
+/**
+ * How an anchored card lines up with its rectangle across: from its left
+ * edge, centred on it, or to its right edge. `start` and `end` are the
+ * rectangle's left and right in the x coordinates it is given in, not its
+ * leading and trailing edges: nothing flips them for a right-to-left layout.
+ */
 export type AnchorAlign = 'start' | 'center' | 'end';
 
 /** What an anchored card keeps clear of at its parent's edges: a header over the canvas, a bar under it. */
@@ -45,9 +50,9 @@ interface AnchoredOptions {
    */
   gap?: number;
   /**
-   * How the card lines up with the rectangle across: from its leading edge,
-   * centred on it, as a bar of tools over a selection is, or to its
-   * trailing edge, as tools hanging from a block's trailing corner are.
+   * How the card lines up with the rectangle across: from its left edge,
+   * centred on it, as a bar of tools over a selection is, or to its right
+   * edge, as tools hanging from a block's corner are (see {@link AnchorAlign}).
    * @default 'start'
    */
   align?: AnchorAlign;

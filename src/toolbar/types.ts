@@ -167,9 +167,11 @@ export interface ToolbarProps extends PropsWithChildren {
   at?: AnchorRect | null;
   /**
    * How a bar at `at` lines up with the rectangle across: centred on it,
-   * from its leading edge (`start`), or to its trailing edge (`end`), for
-   * tools that hang from a block's trailing corner. Kept inside the parent
-   * less `insets` either way. Read only with `at`.
+   * from its left edge (`start`), or to its right edge (`end`), for tools
+   * that hang from a block's corner. Left and right in the x coordinates of
+   * `at`, not leading and trailing: nothing flips them for a right-to-left
+   * layout. Kept inside the parent less `insets` either way. Read only with
+   * `at`.
    * @default 'center'
    */
   align?: AnchorAlign;

@@ -150,8 +150,8 @@ export const AtASelection: Story = {
 };
 
 /**
- * Tools hanging from a block's trailing corner: lined up with the block's
- * trailing edge, under it, with a menu among the commands. The menu is the
+ * Tools hanging from a block's corner: lined up with the block's right edge
+ * (`align="end"`), under it, with a menu among the commands. The menu is the
  * kit's `Menu` on the bar, an `AppBarButton` with its flyout in the Windows
  * `CommandBar`.
  */

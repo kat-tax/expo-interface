@@ -20,14 +20,14 @@ describe('useAnchored', () => {
     expect(result.current.left).toBe(before.left);
   });
 
-  it('lines the card up with the rectangle\'s trailing edge for end, still kept inside the parent', async () => {
+  it('lines the card up with the rectangle\'s right edge for end, still kept inside the parent', async () => {
     let at: {x: number; y: number; width?: number; height?: number} = {x: 100, y: 200, width: 80, height: 20};
     const {result, rerender} = await renderHook(() => useAnchored({at, align: 'end'}));
     await act(async () => result.current.onBounds(layout(400, 600)));
     await act(async () => result.current.onCard(layout(120, 44)));
-    // Its trailing edge on the rectangle's: 100 + 80 - 120.
+    // Its right edge on the rectangle's: 100 + 80 - 120.
     expect(result.current.left).toBe(60);
-    // A rectangle near the leading edge: clamped to the gap.
+    // A rectangle near the left edge: clamped to the gap.
     at = {x: 0, y: 200, width: 50};
     await rerender({});
     expect(result.current.left).toBe(8);

@@ -55,7 +55,7 @@ describe(`Toolbar floating (${Platform.OS})`, () => {
     expect(style().opacity).toBeUndefined();
     await rerender(<Toolbar at={{x: 100, y: 200, width: 80, height: 20}} preferredEdge="bottom" commands={commands} testID="bar"/>);
     expect(style().top).toBe(228);
-    // To the rectangle's trailing edge (100 + 80 - 120), or from its leading edge.
+    // To the rectangle's right edge (100 + 80 - 120), or from its left edge.
     await rerender(<Toolbar at={{x: 100, y: 200, width: 80, height: 20}} align="end" commands={commands} testID="bar"/>);
     expect(style().left).toBe(60);
     await rerender(<Toolbar at={{x: 100, y: 200, width: 80, height: 20}} align="start" commands={commands} testID="bar"/>);

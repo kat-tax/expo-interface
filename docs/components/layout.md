@@ -277,9 +277,11 @@ one native row; on Windows the same raised card around the `CommandBar`,
 its labels left to the overflow.
 
 `at` floats the bar over its parent beside a rectangle: lined up with it by
-`align` (centred on it by default, from its leading edge with `start`, or to
-its trailing edge with `end`, for tools that hang from a block's trailing
-corner), over it unless there is no room (`preferredEdge` says which side to
+`align` (centred on it by default, from its left edge with `start`, or to
+its right edge with `end`, for tools that hang from a block's corner; left
+and right in the x coordinates of `at`, not leading and trailing, since
+nothing flips them for a right-to-left layout), over it unless there is no
+room (`preferredEdge` says which side to
 try first), and kept inside the parent less `insets`. The bar is laid over the parent
 as an overlay that takes no presses but the bar's, is drawn only once it has
 been measured and placed, and goes when `at` is `null`.
