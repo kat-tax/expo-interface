@@ -2,7 +2,7 @@ import type {SFSymbol} from 'expo-symbols';
 import type {EmptyStateProps} from './types';
 import {Platform, StyleSheet, View} from 'react-native';
 import {ContentUnavailableView, Image, ProgressView, RNHostView, Text, VStack} from '@expo/ui/swift-ui';
-import {fixedSize, font, foregroundStyle, frame, multilineTextAlignment, padding, progressViewStyle, textSelection} from '@expo/ui/swift-ui/modifiers';
+import {controlSize, fixedSize, font, foregroundStyle, frame, multilineTextAlignment, padding, progressViewStyle, textSelection} from '@expo/ui/swift-ui/modifiers';
 import {iosSymbol} from '../button/shared';
 import {NativeHost, NativeHostContext, useNativeHost} from '../host';
 import {spacing, useColor} from '../theme';
@@ -80,8 +80,8 @@ function EmptyStateStack({title, description, icon, action, loading = false, sel
 }
 
 /**
- * The system view's layout, composed: the symbol, or the spinner in its
- * place and its size while loading, the title in the bold title2 style and
+ * The system view's layout, composed: the symbol, or while loading the large
+ * spinner in the symbol's 48 point slot, the title in the bold title2 style and
  * the description in the secondary color, centred, as
  * `ContentUnavailableView` draws them. It pads by the system's standard inset,
  * so a long description stops short of the edges, and it is as flexible as
@@ -94,7 +94,9 @@ function Composed({title, description, symbol, loading, selectable}: {title: str
     // The padding comes before the frame, so the padded content is centred in it.
     <VStack spacing={spacing.one} modifiers={[padding({all: 'default'}), frame({maxWidth: Infinity, maxHeight: Infinity}), fixedSize({vertical: true}), textSelection(selectable)]}>
       {loading ? (
-        <ProgressView modifiers={[progressViewStyle('circular'), frame({width: EMPTY_ICON, height: EMPTY_ICON})]}/>
+        // SwiftUI's spinner keeps its own size whatever its frame, so the large
+        // one, centred in the symbol's slot.
+        <ProgressView modifiers={[progressViewStyle('circular'), controlSize('large'), frame({width: EMPTY_ICON, height: EMPTY_ICON})]}/>
       ) : symbol ? (
         <Image systemName={symbol} size={EMPTY_ICON} color={secondary}/>
       ) : null}

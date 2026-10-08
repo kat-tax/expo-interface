@@ -107,6 +107,8 @@ describe(`EmptyState (${Platform.OS})`, () => {
       // And, like the system view, its own height in the stack around it.
       expect(modifier(stack.props, 'fixedSize')).toEqual({$type: 'fixedSize', vertical: true});
       const spinner = nodes().find(n => n.type.includes('ProgressView'))!;
+      // The large spinner, since SwiftUI's keeps its own size in the symbol's slot.
+      expect(modifier(spinner.props, 'controlSize')).toEqual({$type: 'controlSize', size: 'large'});
       expect(modifier(spinner.props, 'frame')).toMatchObject({width: EMPTY_ICON, height: EMPTY_ICON});
       expect(modifier(host(p => p.text === 'Opening').props, 'font')).toMatchObject({textStyle: 'title2', weight: 'bold'});
       expect(modifier(host(p => p.text === 'One moment.').props, 'foregroundStyle')?.style.color).toBe(colors.light.secondaryLabel);
