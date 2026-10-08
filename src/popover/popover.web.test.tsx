@@ -18,6 +18,64 @@ describe('Popover (web)', () => {
     expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
+  describe('the Escape it takes', () => {
+    /** An editor holding the focus, with what its own keydown listener heard. */
+    const editor = () => {
+      const node = screen.getByTestId('editor');
+      const heard = vi.fn();
+      node.addEventListener('keydown', event => heard(event.key));
+      node.focus();
+      return {node, heard};
+    };
+
+    it('keeps the key from an editor once it has taken it', () => {
+      const onDismiss = vi.fn();
+      render(
+        <>
+          <div contentEditable data-testid="editor"/>
+          <Popover at={{x: 10, y: 10}} title="Spelling" onDismiss={onDismiss} testID="pop"/>
+        </>,
+      );
+      const {node, heard} = editor();
+      fireEvent.keyDown(node, {key: 'Escape'});
+      expect(onDismiss).toHaveBeenCalledWith('escape');
+      expect(heard).not.toHaveBeenCalled();
+      // Any other key is the editor's.
+      fireEvent.keyDown(node, {key: 'a'});
+      expect(heard).toHaveBeenCalledWith('a');
+    });
+
+    it('leaves Escape alone for a card nothing closes', () => {
+      render(
+        <>
+          <div contentEditable data-testid="editor"/>
+          <Popover at={{x: 10, y: 10}} title="Spelling" testID="pop"/>
+        </>,
+      );
+      const {node, heard} = editor();
+      fireEvent.keyDown(node, {key: 'Escape'});
+      expect(heard).toHaveBeenCalledWith('Escape');
+      expect(screen.getByTestId('pop')).toBeInTheDocument();
+    });
+
+    it('takes Escape for a lingering card with nothing to call, since it ends the linger itself', () => {
+      const card = (at: {x: number; y: number} | null) => (
+        <>
+          <div contentEditable data-testid="editor"/>
+          <Popover at={at} title="Spelling" trigger="hover" testID="pop"/>
+        </>
+      );
+      const {rerender} = render(card({x: 10, y: 10}));
+      rerender(card(null));
+      const {node, heard} = editor();
+      act(() => {
+        fireEvent.keyDown(node, {key: 'Escape'});
+      });
+      expect(screen.queryByTestId('pop')).toBeNull();
+      expect(heard).not.toHaveBeenCalled();
+    });
+  });
+
   it('listens for Escape only while it is up', () => {
     const onDismiss = vi.fn();
     const {rerender} = render(<Popover at={null} title="Spelling" onDismiss={onDismiss}/>);

@@ -43,7 +43,11 @@ export interface PopoverProps extends PropsWithChildren {
   message?: string;
   /** Buttons under the message. */
   actions?: PopoverAction[];
-  /** Called when the popover closes, with why. */
+  /**
+   * Called when the popover closes, with why. On web the card takes Escape,
+   * which then goes no further, only when there is an `onDismiss` to report
+   * it to or while a `hover` card lingers.
+   */
   onDismiss?: (reason: PopoverDismissReason) => void;
   /**
    * Which side of the rectangle the card prefers. It still moves when there

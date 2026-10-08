@@ -28,7 +28,10 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
     linger.end();
     onDismiss?.(reason);
   };
-  useEscape(Platform.OS === 'web' && shown !== null, () => dismiss('escape'));
+  // The card takes Escape only when it does something: with no `onDismiss`,
+  // only while it lingers, which the kit ends itself. A card nothing closes
+  // leaves the key to the editor.
+  useEscape(Platform.OS === 'web' && shown !== null && (onDismiss !== undefined || at === null), () => dismiss('escape'));
 
   return (
     <View
