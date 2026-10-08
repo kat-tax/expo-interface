@@ -188,6 +188,17 @@ describe('modal and hover (windows)', () => {
     expect(screen.queryByTestId('pop')).toBeNull();
   });
 
+  it('ends the linger of a drawn hover card from the backdrop', async () => {
+    const onDismiss = vi.fn();
+    const card = (at: {x: number; y: number} | null) => <Popover at={at} modal trigger="hover" title="Option" onDismiss={onDismiss} testID="pop"/>;
+    const {rerender} = await render(card({x: 10, y: 20}));
+    await fireEvent.press(screen.getByTestId('pop-backdrop', {includeHiddenElements: true}));
+    expect(onDismiss).toHaveBeenCalledWith('backdrop');
+    await rerender(card(null));
+    expect(screen.queryByTestId('pop', {includeHiddenElements: true})).toBeNull();
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
   it('takes an action of the drawn card as an action', async () => {
     const onDismiss = vi.fn();
     await render(<Popover at={{x: 0, y: 0}} modal actions={[{label: 'Save', onPress: vi.fn()}]} onDismiss={onDismiss} testID="pop"/>);
