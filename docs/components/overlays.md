@@ -233,7 +233,7 @@ width of the sheet.
 | --- | --- |
 | iOS | SwiftUI's sheet, with a real material through `presentationBackground`. The bar, the accessory and the actions are SwiftUI content beside the React Native body: the title in the headline font, the kit's buttons at the ends. |
 | Android | Compose's `ModalBottomSheet`. It takes a container color and nothing else, so the sheet is opaque. The bar, the accessory and the actions are Compose content: Compose has no app bar in `@expo/ui`, so the bar is a row in the sheet's palette with the kit's buttons at the ends. |
-| Web | `@expo/ui`'s drawer with `backdrop-filter` for the material. The bar is the kit's, in the `ScreenHeader` look. |
+| Web | `@expo/ui`'s drawer with `backdrop-filter` for the material. The bar is the kit's, in the `ScreenHeader` look, with the title a level 2 heading, the level of the drawer's own hidden title. A capped body takes keyboard focus, so the arrow keys scroll it. |
 | Windows | A layer drawn in React Native: WinUI's smoke and a centered card, the content scrolling inside, covering the whole window under the kit's `Stack` and the nearest ancestor elsewhere. A sheet's content is React Native's, which no XAML flyout or dialog can hold, and React Native's `Modal` cannot hold a XAML island on react-native-windows 0.84. No material. The bar, the accessory, the footer and the actions stay put while the body scrolls. |
 
 The sheet's content counts as hosted: controls inside it render bare. A

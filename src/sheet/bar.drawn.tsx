@@ -20,7 +20,10 @@ export function SheetBar({title, subtitle, onBack, onClose, menu, testID}: Sheet
         ) : null}
       </View>
       <View style={styles.titles}>
-        {title !== undefined ? <Headline color="label" numberOfLines={1} align="center">{title}</Headline> : null}
+        {/* A dialog's title, at the level one takes: on web the drawer opens
+            with a hidden title of `@expo/ui`'s, an `h2`, and a heading may go
+            at most one level below the one before it. */}
+        {title !== undefined ? <Headline color="label" numberOfLines={1} align="center" level={2}>{title}</Headline> : null}
         {subtitle !== undefined ? <Footnote color="secondaryLabel" numberOfLines={1} align="center">{subtitle}</Footnote> : null}
       </View>
       <View style={[styles.side, styles.trailing]}>

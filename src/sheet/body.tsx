@@ -1,6 +1,6 @@
 import type {PropsWithChildren} from 'react';
 import type {BottomSheetContentPadding} from '@expo/ui';
-import {ScrollView, StyleSheet} from 'react-native';
+import {Platform, ScrollView, StyleSheet} from 'react-native';
 import {useSheetBodyWidth} from './width';
 
 interface SheetBodyProps extends PropsWithChildren {
@@ -18,7 +18,13 @@ export function SheetBody({maxHeight, contentPadding, testID, children}: SheetBo
   const width = useSheetBodyWidth(contentPadding);
   if (maxHeight === undefined) return <>{children}</>;
   return (
-    <ScrollView style={[styles.scroll, {maxHeight, width}]} contentContainerStyle={styles.content} testID={testID}>
+    <ScrollView
+      style={[styles.scroll, {maxHeight, width}]}
+      contentContainerStyle={styles.content}
+      // On web the capped body is a scroller, which has to be reachable from
+      // the keyboard, or only a pointer can scroll it.
+      tabIndex={Platform.OS === 'web' ? 0 : undefined}
+      testID={testID}>
       {children}
     </ScrollView>
   );

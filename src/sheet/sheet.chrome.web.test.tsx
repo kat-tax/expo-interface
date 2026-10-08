@@ -13,6 +13,8 @@ describe('Sheet chrome (web)', () => {
     const bar = screen.getByTestId('sheet-bar');
     expect(bar).toHaveTextContent('Comments');
     expect(bar).toHaveTextContent('12 unresolved');
+    // The title is the dialog's, at the level of the drawer's own hidden title.
+    expect(within(bar).getByRole('heading', {name: 'Comments', level: 2})).toBeInTheDocument();
     fireEvent.click(within(bar).getByRole('button', {name: 'Back'}));
     fireEvent.click(within(bar).getByRole('button', {name: 'Close'}));
     expect(onBack).toHaveBeenCalledTimes(1);
@@ -75,7 +77,7 @@ describe('Sheet chrome (web)', () => {
     expect(getComputedStyle(actions).justifyContent).toBe('flex-end');
   });
 
-  it('caps the body, which then scrolls inside a box the sheet\'s width, between the accessory and the footer', () => {
+  it('caps the body, which then scrolls inside a box the sheet\'s width, between the accessory and the footer, from the keyboard too', () => {
     render(
       <Sheet isPresented onDismiss={() => {}} title="Comments" accessory={<span>Filter</span>} footer={<span>Write</span>} maxHeight={300} testID="sheet">
         <span>Body</span>
@@ -84,6 +86,7 @@ describe('Sheet chrome (web)', () => {
     const body = screen.getByTestId('sheet-body');
     expect(body.style.maxHeight).toBe('300px');
     expect(body.style.width).toBe('100%');
+    expect(body).toHaveAttribute('tabindex', '0');
     expect(body).toHaveTextContent('Body');
     const text = screen.getByTestId('sheet').textContent!;
     expect(text.indexOf('Comments')).toBeLessThan(text.indexOf('Filter'));
