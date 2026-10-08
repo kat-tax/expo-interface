@@ -1,3 +1,4 @@
+import type {ReactElement} from 'react';
 import type {TabBarProps, TabRoute} from './types';
 import {useEffect} from 'react';
 import {Platform, Text} from 'react-native';
@@ -53,7 +54,8 @@ describe(`useHiddenTabs (${Platform.OS})`, () => {
 
   if (Platform.OS === 'web') {
     it('draws a static page without the tabs its route hides, where HideTabs leaves them drawn', async () => {
-      const {renderToString} = await import('react-dom/server');
+      // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
+      const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
       const {Tabs} = await import('.');
       const routes: TabRoute[] = [
         {href: '/', name: 'index', label: 'Home', icon: {ios: 'house', android: 'home', web: 'home'}},
