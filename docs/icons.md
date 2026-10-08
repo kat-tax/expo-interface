@@ -151,10 +151,19 @@ package ships it and downloads the rest from Google Fonts, downloads the
 `fill` form of every token that asks for one, and writes
 `drawables.android.ts` with the two maps and a `drawables.ts` stub for the
 other platforms. The names the kit's own controls draw on Android are
-written whether or not the sources name them: `more_horiz`, the ellipsis of
-a `Toolbar`'s overflow and a `Card`'s menu, and `star`, outlined and
-filled, for a `Card`'s favorite. A token's own `drawable` still wins.
-`drawableOf(token)` is the lookup the kit's Android controls use.
+written whether or not the sources name them:
+
+| Name | Drawn by |
+| --- | --- |
+| `arrow_back` | the back button of a `Sheet`'s bar |
+| `close` | the close button of a `Sheet`'s bar and a `FindBar`'s close |
+| `more_horiz` | a `Sheet`'s and a `Card`'s menu, and a `Toolbar`'s overflow |
+| `arrow_upward`, `stop` | a `Composer`'s send and stop buttons |
+| `keyboard_arrow_up`, `keyboard_arrow_down` | a `FindBar`'s previous and next match |
+| `star` | a `Card`'s favorite, outlined and, while set, filled |
+
+A token's own `drawable` still wins. `drawableOf(token)` is the lookup the
+kit's Android controls use.
 
 ## The web font
 
