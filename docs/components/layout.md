@@ -477,10 +477,10 @@ Differences:
   in a parent with no height of its own (a scroll view of the app's own, a
   page that scrolls) it grows to its rows and the parent scrolls it;
   `style={{flexShrink: 0}}` does the same in a parent that has a height.
-  Its padding by `useScrollInsets()` is inside the scroller, and
-  so is its scroll padding, so a row the keyboard focus brings into view
-  stops clear of the bar. Its scrollbar spans the whole list, under the
-  bar, since CSS cannot inset a scrollbar.
+  Its padding by `useScrollInsets()` is inside the scroller, and so is its
+  scroll padding, so a row the keyboard focus brings into view stops clear
+  of the bar. Its scrollbar spans the whole list, under the bar, since CSS
+  cannot inset a scrollbar.
 - On the web the list draws the rows inside the part of it the window
   shows, and a viewport more above and below. Two spacers keep the room of
   the other rows, at the height each row was measured at once drawn and at
@@ -544,9 +544,9 @@ Differences:
   in a parent with no height of its own (a scroll view of the app's own, a
   page that scrolls) it grows to its cells and the parent scrolls it;
   `style={{flexShrink: 0}}` does the same in a parent that has a height.
-  Its padding by `useScrollInsets()` is inside the scroller, and
-  so is its scroll padding, but its scrollbar spans the whole grid, under
-  the bar, since CSS cannot inset a scrollbar.
+  Its padding by `useScrollInsets()` is inside the scroller, and so is its
+  scroll padding, but its scrollbar spans the whole grid, under the bar,
+  since CSS cannot inset a scrollbar.
 - On the web the grid draws the rows of cells inside the part of it the
   window shows, and a viewport more above and below, with two spacers for
   the room of the other rows, as the `List` does. Once its width is
