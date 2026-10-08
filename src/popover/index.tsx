@@ -1,4 +1,5 @@
 import type {PopoverDismissReason, PopoverProps} from './types';
+import {useState} from 'react';
 import {Platform, Pressable, StyleSheet, View} from 'react-native';
 import {Row} from '@expo/ui';
 import {useAnchored} from '../anchored';
@@ -15,14 +16,19 @@ import {MODAL_CARD, useEscape, useLinger} from './shared';
  * fills its parent as a `box-none` overlay, measures it, and places the card
  * inside those bounds, clear of the insets: below the rectangle, or above it
  * when the bottom is too close. The card is drawn once it has been measured
- * with its actions, each time it comes up. A modal one takes the presses on
- * the rest of the parent as its backdrop; a hover one lingers once the
- * pointer has gone.
+ * with its actions, and its parent with it, each time it comes up. A modal
+ * one takes the presses on the rest of the parent as its backdrop; a hover
+ * one lingers once the pointer has gone.
  */
 export function Popover({at, title, message, actions, onDismiss, width = 280, preferredEdge = 'auto', modal = false, label, insets, trigger = 'manual', grace, children, testID}: PopoverProps) {
   const linger = useLinger(at, trigger === 'hover', grace, () => onDismiss?.('leave'));
   const shown = linger.shown;
   const anchored = useAnchored({at: shown, preferredEdge, width, insets});
+  // Whether the parent has been measured at all, whatever its size. On web
+  // each layout lands in a timeout of its own, and a card that mounts with
+  // the parent is reported first, so it waits for the parent; iOS and
+  // Android report the parent's layout before the card's.
+  const [boundsKnown, setBoundsKnown] = useState(Platform.OS !== 'web');
   // A dismissal of the card's own ends a linger, so the card goes as soon
   // as the app clears `at`.
   const dismiss = (reason: PopoverDismissReason) => {
@@ -38,7 +44,10 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
     <View
       testID={testID ? `${testID}-bounds` : undefined}
       style={[styles.bounds, modal && shown ? styles.modal : null]}
-      onLayout={anchored.onBounds}>
+      onLayout={event => {
+        anchored.onBounds(event);
+        setBoundsKnown(true);
+      }}>
       {modal && shown ? (
         <Pressable
           accessibilityRole="button"
@@ -60,6 +69,7 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
           anchored={anchored}
           width={width}
           sizedLater={Platform.OS !== 'web' && !!actions?.length}
+          awaitingBounds={!boundsKnown}
           testID={testID}
           {...linger.props}
           {...(modal ? {...MODAL_CARD, 'aria-label': Platform.OS === 'web' ? label ?? title : undefined, onAccessibilityEscape: () => dismiss('escape')} : null)}>

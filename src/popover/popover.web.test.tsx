@@ -171,19 +171,45 @@ describe('Popover (web)', () => {
       vi.unstubAllGlobals();
     });
 
+    /** Lays the nodes out, as the browser reports them; each measure lands in a timeout. */
+    const layOut = async (...targets: Element[]) => {
+      await act(async () => {
+        report?.(targets.map(target => ({target})));
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+    };
+
     it('is drawn, its actions with it, once react-native-web has measured it', async () => {
       render(<Popover at={{x: 10, y: 10}} title="Spelling" actions={[{label: 'Fix', onPress: vi.fn()}]} testID="pop"/>);
       const card = screen.getByTestId('pop');
       expect(getComputedStyle(card).opacity).toBe('0');
       expect(getComputedStyle(card).pointerEvents).toBe('none');
       // The browser lays the whole card out at once, so it does not wait
-      // for its actions apart; the measure lands in a timeout.
-      await act(async () => {
-        report?.([{target: card}]);
-        await new Promise(resolve => setTimeout(resolve, 0));
-      });
+      // for its actions apart.
+      await layOut(card, screen.getByTestId('pop-bounds'));
       expect(getComputedStyle(card).opacity).not.toBe('0');
       expect(getComputedStyle(card).pointerEvents).not.toBe('none');
+    });
+
+    it('waits for its parent, which the browser reports after a card that mounts with it', async () => {
+      render(<Popover at={{x: 10, y: 10}} title="Spelling" testID="pop"/>);
+      const card = screen.getByTestId('pop');
+      await layOut(card);
+      // Placed from the card alone it would sit below the rectangle, unclamped.
+      expect(getComputedStyle(card).opacity).toBe('0');
+      // jsdom measures every node as empty: a parent with no size counts.
+      await layOut(screen.getByTestId('pop-bounds'));
+      expect(getComputedStyle(card).opacity).not.toBe('0');
+    });
+
+    it('draws a card that comes up in a parent already measured once it is measured itself', async () => {
+      const {rerender} = render(<Popover at={null} title="Spelling" testID="pop"/>);
+      await layOut(screen.getByTestId('pop-bounds'));
+      rerender(<Popover at={{x: 10, y: 10}} title="Spelling" testID="pop"/>);
+      const card = screen.getByTestId('pop');
+      expect(getComputedStyle(card).opacity).toBe('0');
+      await layOut(card);
+      expect(getComputedStyle(card).opacity).not.toBe('0');
     });
   });
 

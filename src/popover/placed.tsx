@@ -13,6 +13,12 @@ export interface PlacedCardProps extends Omit<ViewProps, 'onLayout' | 'style'> {
    * @default false
    */
   sizedLater?: boolean;
+  /**
+   * Holds the card back while the parent it is placed in is still to be
+   * measured: on web, where the browser can report the card first.
+   * @default false
+   */
+  awaitingBounds?: boolean;
 }
 
 /** How a `SizedRow` tells the card around it that it has been laid out. */
@@ -23,15 +29,16 @@ const RowLayout = createContext<((event: LayoutChangeEvent) => void) | undefined
  * it. It is mounted each time the card comes up, and is neither seen nor
  * pressed until it has been measured, so the place it shows at is worked out
  * from its own height, not from the last card's or from none. With
- * `sizedLater` it also waits for the `SizedRow` in it to have a height.
+ * `sizedLater` it also waits for the `SizedRow` in it to have a height, and
+ * with `awaitingBounds` for its parent.
  */
-export function PlacedCard({anchored, width, sizedLater = false, ...props}: PlacedCardProps) {
+export function PlacedCard({anchored, width, sizedLater = false, awaitingBounds = false, ...props}: PlacedCardProps) {
   const [measured, setMeasured] = useState(false);
   const [rowSized, setRowSized] = useState(false);
   // Only a card that comes up with the row waits for it, and only while it
   // still has one: a card that gains the row while it is up stays seen.
   const [cameWithRow] = useState(sizedLater);
-  const ready = measured && (rowSized || !(cameWithRow && sizedLater));
+  const ready = !awaitingBounds && measured && (rowSized || !(cameWithRow && sizedLater));
   return (
     <RowLayout.Provider
       value={event => {
