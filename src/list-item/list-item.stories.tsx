@@ -120,6 +120,11 @@ export const Selected: Story = {
   args: {children: 'Essay', icon: icons.info, value: '2 KB', badge: true, selected: true},
 };
 
+/** An unread mark in the accent, over two lines of supporting text. */
+export const BadgeColor: Story = {
+  args: {children: 'Essay', supporting: 'Edited yesterday\nShared with Ana', badge: true, badgeColor: 'tint'},
+};
+
 export const List: Story = {
   render: args => (
     <Column modifiers={fillWidth}>

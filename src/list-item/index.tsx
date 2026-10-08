@@ -8,7 +8,7 @@ import {Button} from '../button';
 import {NativeHost, useNativeHost} from '../host';
 import {TONE_TOKEN, symbolName} from '../icons';
 import {useColor} from '../theme';
-import {ROW_ICON, rowLabel} from './shared';
+import {ROW_ICON, rowLabel, useBadgeColors} from './shared';
 
 /**
  * iOS renders the universal `@expo/ui` `ListItem` (a SwiftUI list row)
@@ -36,10 +36,11 @@ export function ListItem(props: ListItemProps) {
   return hosted ? row : <NativeHost>{row}</NativeHost>;
 }
 
-function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, trailing, action, supporting, selected = false, swipeActions, onPress, testID}: ListItemProps) {
+function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, badgeColor, trailing, action, supporting, selected = false, swipeActions, onPress, testID}: ListItemProps) {
   const toned = useColor(TONE_TOKEN[iconTone]);
   const subtle = useColor('secondaryLabel');
   const selectedFill = useColor('backgroundSelected');
+  const badgeColors = useBadgeColors(badgeColor);
   const filled = action?.variant === 'filled';
   // The row's name, composed from its slots, and its state.
   const modifiers: ViewModifier[] = [];
@@ -61,7 +62,7 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
   const marks = value != null || badge ? (
     <>
       {value != null ? <Text modifiers={[foregroundStyle({type: 'color', color: subtle})]}>{value}</Text> : null}
-      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true}/> : null}
+      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} {...badgeColors}/> : null}
     </>
   ) : null;
   const trailingContent = marks || action ? (

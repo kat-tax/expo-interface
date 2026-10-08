@@ -26,6 +26,11 @@ describe('ListItem slots (windows)', () => {
     expect(screen.getByText('T')).toBeOnTheScreen();
   });
 
+  it('draws the badge in the color it is given', async () => {
+    await render(<ListItem badge={3} badgeColor="tint" testID="row">Essay</ListItem>);
+    expect(island('ExpoInterfaceInfoBadge').props).toMatchObject({color: colors.light.tint, textColor: '#FFFFFF'});
+  });
+
   it('takes the selected fill and says so, pressable or not', async () => {
     await render(
       <>

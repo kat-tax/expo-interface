@@ -1,4 +1,5 @@
 import type {IconToken, IconTone} from '../icons';
+import type {ColorTokens} from '../theme';
 import type {ReactNode} from 'react';
 
 /**
@@ -77,6 +78,13 @@ export interface ListItemProps {
    * row's own texts, so a count is its number and a dot says nothing.
    */
   badge?: boolean | number;
+  /**
+   * The badge's fill: a palette token (`tint` for an unread dot in the
+   * accent), which follows the scheme, or any color. A count on it is drawn
+   * in black or white, whichever reads.
+   * @default 'destructive'
+   */
+  badgeColor?: ColorTokens | (string & {});
   /** Trailing (end) slot — chevron, value, control, etc. */
   trailing?: ReactNode;
   /** A text action rendered natively at the trailing edge, after `trailing`. */

@@ -1,7 +1,10 @@
 import type {ReactNode} from 'react';
+import type {BadgeProps} from '../badge/types';
 import type {MenuItem} from '../menu/types';
 import type {ListItemProps, ListItemSwipeAction} from './types';
+import {onAccent} from '../accent';
 import {ContextMenu} from '../context-menu';
+import {isColorToken, useColor, usePalette} from '../theme';
 
 /** The size the kit draws a row's `icon` at. */
 export const ROW_ICON = 24;
@@ -42,6 +45,22 @@ export function rowLabel({children, supporting, value, badge}: Pick<ListItemProp
   const headline = textOf(children);
   if (headline === undefined) return undefined;
   return [headline, textOf(supporting), value, badgeWords(badge)].filter(Boolean).join(', ');
+}
+
+/**
+ * The fill `badgeColor` names, and the color of a count on it. A token
+ * resolves for the scheme (on web to its CSS variable), and the count takes
+ * black or white by the token's value, which a variable cannot be read for;
+ * any other color goes to the `Badge` as it is, which picks the count's
+ * color itself. Without one the `Badge` keeps its own red.
+ */
+export function useBadgeColors(badgeColor: ListItemProps['badgeColor']): Pick<BadgeProps, 'color' | 'textColor'> {
+  const token = badgeColor !== undefined && isColorToken(badgeColor) ? badgeColor : undefined;
+  const fill = useColor(token ?? 'destructive');
+  const palette = usePalette();
+  if (badgeColor === undefined) return {};
+  if (token === undefined) return {color: badgeColor};
+  return {color: fill, textColor: onAccent(palette[token])};
 }
 
 /**

@@ -54,6 +54,25 @@ describe('ListItem slots (web)', () => {
     expect(screen.getByTestId('plain')).toHaveAttribute('aria-label', 'Plain');
   });
 
+  it('draws the badge in the color it is given, with a count that reads on a token', () => {
+    render(
+      <>
+        <ListItem badge={3} badgeColor="highlight" testID="token">Essay</ListItem>
+        <ListItem badge={2} badgeColor="#123456" testID="raw">Notes</ListItem>
+        <ListItem badge testID="plain">Plain</ListItem>
+      </>,
+    );
+    const token = screen.getByTestId('token').querySelector<HTMLElement>('.ui-badge')!;
+    expect(token.style.getPropertyValue('--ui-badge-fill')).toBe('var(--color-highlight)');
+    // The variable cannot be read for its color, so the row picks the count's from the palette.
+    expect(token.style.getPropertyValue('--ui-badge-on-fill')).toBe('#000000');
+    const raw = screen.getByTestId('raw').querySelector<HTMLElement>('.ui-badge')!;
+    expect(raw.style.getPropertyValue('--ui-badge-fill')).toBe('#123456');
+    expect(raw.style.getPropertyValue('--ui-badge-on-fill')).toBe('#FFFFFF');
+    const plain = screen.getByTestId('plain').querySelector<HTMLElement>('.ui-badge')!;
+    expect(plain.style.getPropertyValue('--ui-badge-fill')).toBe('var(--color-destructive)');
+  });
+
   it('draws a value alone, without a badge', () => {
     render(<ListItem value="2 KB" testID="row">Essay</ListItem>);
     const row = screen.getByTestId('row');

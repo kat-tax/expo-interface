@@ -87,6 +87,26 @@ describe(`ListItem slots (${Platform.OS})`, () => {
     }
   });
 
+  it('draws the badge in the color it is given: a token for the scheme, or any color', async () => {
+    await render(
+      <>
+        <ListItem badge={3} badgeColor="highlight" testID="token">Essay</ListItem>
+        <ListItem badge badgeColor="#123456" testID="raw">Notes</ListItem>
+      </>,
+      options,
+    );
+    if (isIOS) {
+      expect(screen.getByLabelText('3 new')).toHaveStyle({backgroundColor: colors.light.highlight});
+      // A count on a pale token is drawn in black, which reads on it.
+      expect(screen.getByText('3')).toHaveStyle({color: '#000000'});
+      expect(screen.getByLabelText('New')).toHaveStyle({backgroundColor: '#123456'});
+    } else {
+      const [token, raw] = nodes().filter(n => n.type.includes('Badge'));
+      expect(token.props).toMatchObject({containerColor: colors.light.highlight, contentColor: '#000000'});
+      expect(raw.props).toMatchObject({containerColor: '#123456', contentColor: '#FFFFFF'});
+    }
+  });
+
   it('takes the selected fill and says so', async () => {
     await render(
       <>
