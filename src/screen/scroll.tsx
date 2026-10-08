@@ -39,10 +39,11 @@ export function ScreenScrollView({
 }: ScreenScrollViewProps) {
   const insets = useScrollInsets();
   const own = StyleSheet.flatten(contentContainerStyle) as ViewStyle | undefined;
-  // Yoga lets an edge's own padding win over the vertical one, and that over
-  // the overall one, whatever their order: read them the same way.
-  const top = insets.top + points(own?.paddingTop ?? own?.paddingVertical ?? own?.padding);
-  const bottom = insets.bottom + points(own?.paddingBottom ?? own?.paddingVertical ?? own?.padding);
+  // Yoga lets an edge's own padding win over its logical one, that over the
+  // block's, the block's over the vertical one, and that over the overall
+  // one, whatever their order: read them the same way.
+  const top = insets.top + points(own?.paddingTop ?? own?.paddingBlockStart ?? own?.paddingBlock ?? own?.paddingVertical ?? own?.padding);
+  const bottom = insets.bottom + points(own?.paddingBottom ?? own?.paddingBlockEnd ?? own?.paddingBlock ?? own?.paddingVertical ?? own?.padding);
   return (
     <ScrollView
       {...props}

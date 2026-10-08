@@ -25,4 +25,19 @@ describe('ScreenScrollView (web)', () => {
     // No tab action floats on the web: the bottom keeps the style's own.
     expect(getComputedStyle(content).paddingBottom).toBe('16px');
   });
+
+  it('adds the bar to a logical block padding, which react-native-web lays out as Yoga does', () => {
+    render(
+      <SafeAreaProvider>
+        <TabBarContext.Provider value={true}>
+          <Screen underBar>
+            <ScreenScrollView testID="s" contentContainerStyle={{paddingBlockStart: 6, paddingBlock: 16}}/>
+          </Screen>
+        </TabBarContext.Provider>
+      </SafeAreaProvider>,
+    );
+    const content = screen.getByTestId('s').firstElementChild!;
+    expect(getComputedStyle(content).paddingTop).toBe(`${inset.topBar + 6}px`);
+    expect(getComputedStyle(content).paddingBottom).toBe('16px');
+  });
 });

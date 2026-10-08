@@ -39,6 +39,15 @@ describe(`ScreenScrollView (${Platform.OS})`, () => {
     expect(padding()).toMatchObject({paddingTop: 104, paddingBottom: 82});
   });
 
+  it('reads the logical block padding as Yoga does: the block\'s over the vertical one, an edge\'s own over its logical one', async () => {
+    await render(under({top: 100, bottom: 72, automatic: false}, <ScreenScrollView testID="s" contentContainerStyle={{paddingBlock: 16, paddingVertical: 2}}/>));
+    expect(padding()).toMatchObject({paddingTop: 116, paddingBottom: 88});
+    await render(under({top: 100, bottom: 72, automatic: false}, <ScreenScrollView testID="s" contentContainerStyle={{paddingBlockStart: 6, paddingBlockEnd: 8, paddingBlock: 2}}/>));
+    expect(padding()).toMatchObject({paddingTop: 106, paddingBottom: 80});
+    await render(under({top: 100, bottom: 72, automatic: false}, <ScreenScrollView testID="s" contentContainerStyle={{paddingTop: 4, paddingBlockStart: 6, paddingBottom: 3, paddingBlockEnd: 8}}/>));
+    expect(padding()).toMatchObject({paddingTop: 104, paddingBottom: 75});
+  });
+
   it('replaces a percentage with the inset, and leaves an edge with no inset as the style gives it', async () => {
     await render(under({top: 100, bottom: 72, automatic: false}, <ScreenScrollView testID="s" contentContainerStyle={{paddingBottom: '10%'}}/>));
     expect(padding()).toMatchObject({paddingTop: 100, paddingBottom: 72});
