@@ -4,7 +4,7 @@ import type {HostNode} from 'expo-vitest/native';
 import {Platform, processColor} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {HostPaletteContext, type MaterialColors} from '@expo/ui/jetpack-compose';
-import {byComposeTestID, modifier, nodes} from 'expo-vitest/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {ColorPicker} from '.';
 
 /** The picker panel, stubbed: its props are what the tests read and drive (sheet.native.test.tsx covers it). */
@@ -67,6 +67,19 @@ describe(`ColorPicker presentations (${Platform.OS})`, () => {
       // Without a testID the menu carries none.
       await rerender(<ColorPicker value="#FF3B30" presentation="menu" onValueChange={vi.fn()}/>);
       expect(nodes().some(n => n.props.testID != null)).toBe(false);
+    });
+
+    it('names its own swatches as given, in the row and in the menu', async () => {
+      const onValueChange = vi.fn();
+      const swatches = [{color: '#1D1D1F', name: 'Ink'}, '#FF0000'];
+      const {rerender} = await render(<ColorPicker value="#FF0000" swatches={swatches} onValueChange={onValueChange}/>, options);
+      expect(labelled('Color #FF0000').length).toBeGreaterThan(0);
+      await fireEvent.press(labelled('Color Ink')[0]);
+      expect(onValueChange).toHaveBeenLastCalledWith('#1D1D1FFF');
+      // The menu's entries carry the names, the label aside.
+      await rerender(<ColorPicker label="Pen" value="#FF0000" presentation="menu" swatches={swatches} onValueChange={onValueChange}/>);
+      expect(host(p => p.text === 'Ink')).toBeTruthy();
+      expect(host(p => p.text === '#FF0000')).toBeTruthy();
     });
 
     it('keeps the row for inline and popover, where SwiftUI presents its picker its own way', async () => {

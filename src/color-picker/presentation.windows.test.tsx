@@ -36,6 +36,16 @@ describe('ColorPicker presentations (windows)', () => {
     expect(island(FLYOUT).props.open).toBe(false);
   });
 
+  it('names its own swatches as given, in the row and in the menu', async () => {
+    const swatches = [{color: '#1D1D1F', name: 'Ink'}, '#FF0000'];
+    await render(<ColorPicker value="#FF0000" swatches={swatches} onValueChange={vi.fn()}/>);
+    expect(screen.getByRole('button', {name: 'Color Ink'})).toBeOnTheScreen();
+    expect(screen.getByRole('button', {name: 'Color #FF0000'})).toBeOnTheScreen();
+    await render(<ColorPicker label="Pen" value="#FF0000" presentation="menu" swatches={swatches} onValueChange={vi.fn()}/>);
+    const items = JSON.parse(island(FLYOUT).props.items) as {label: string}[];
+    expect(items.map(item => item.label)).toEqual(['Ink', '#FF0000']);
+  });
+
   it('names a menu well without a label Color, and carries no test identifiers without a testID', async () => {
     await render(<ColorPicker value="#E81123" presentation="menu" onValueChange={vi.fn()}/>);
     expect(screen.getByRole('button', {name: 'Color'})).toBeOnTheScreen();

@@ -1,19 +1,14 @@
 import type {MenuItem} from '../menu/types';
+import type {ColorPickerProps, ColorPickerSwatch} from './types';
 import {Platform} from 'react-native';
 import {parseColor, toHex} from './shared';
-
-/** A color in a palette, and its name for a menu and a screen reader. */
-export interface Swatch {
-  color: string;
-  name: string;
-}
 
 /**
  * The platforms' own palettes, as `swatches="system"` gives them: Apple's
  * system colors on iOS and web, Material's on Android, and the Windows
  * accent palette on Windows.
  */
-export const SYSTEM_SWATCHES: Record<'apple' | 'material' | 'fluent', readonly Swatch[]> = {
+export const SYSTEM_SWATCHES: Record<'apple' | 'material' | 'fluent', readonly ColorPickerSwatch[]> = {
   apple: [
     {color: '#FF3B30', name: 'Red'},
     {color: '#FF9500', name: 'Orange'},
@@ -58,12 +53,15 @@ export const SYSTEM_SWATCHES: Record<'apple' | 'material' | 'fluent', readonly S
   ],
 };
 
-/** The swatches a picker shows: its own, named by their hex; the platform's for `system`; none otherwise. */
-export function swatchesOf(swatches: readonly string[] | 'system' | undefined): Swatch[] {
+/**
+ * The swatches a picker shows: its own, named as given or by their hex; the
+ * platform's for `system`; none otherwise.
+ */
+export function swatchesOf(swatches: ColorPickerProps['swatches']): ColorPickerSwatch[] {
   if (swatches === 'system') {
     return [...(Platform.OS === 'android' ? SYSTEM_SWATCHES.material : Platform.OS === 'windows' ? SYSTEM_SWATCHES.fluent : SYSTEM_SWATCHES.apple)];
   }
-  return (swatches ?? []).map(color => ({color, name: color}));
+  return (swatches ?? []).map(swatch => typeof swatch === 'string' ? {color: swatch, name: swatch} : swatch);
 }
 
 /** The value that says no color, as `allowsNone` reports it. */
@@ -78,7 +76,7 @@ export function sameColor(a: string, b: string): boolean {
  * A swatch menu's entries: "No color" first when allowed, then each swatch
  * with its dot, the one the value is checked. A swatch is picked opaque.
  */
-export function swatchMenu(swatches: Swatch[], value: string, allowsNone: boolean, supportsOpacity: boolean, pick: (value: string) => void): MenuItem[] {
+export function swatchMenu(swatches: readonly ColorPickerSwatch[], value: string, allowsNone: boolean, supportsOpacity: boolean, pick: (value: string) => void): MenuItem[] {
   const items: MenuItem[] = swatches.map(({color, name}, index) => ({
     label: name,
     swatch: color,

@@ -79,6 +79,22 @@ export const WithSwatches: Story = {
   },
 };
 
+export const NamedSwatchMenu: Story = {
+  args: {
+    label: 'Ink',
+    value: '#1D1D1F',
+    presentation: 'menu',
+    allowsNone: true,
+    supportsOpacity: false,
+    swatches: [
+      {color: '#1D1D1F', name: 'Black'},
+      {color: '#0A84FF', name: 'Blue'},
+      {color: '#D70015', name: 'Red'},
+      {color: '#248A3D', name: 'Green'},
+    ],
+  },
+};
+
 export const NoLabel: Story = {
   args: {label: undefined},
   // A bare well is named "Color" on web; the surrounding row should still

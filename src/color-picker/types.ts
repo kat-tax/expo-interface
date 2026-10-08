@@ -8,6 +8,17 @@ import type {StyleProp, ViewStyle} from 'react-native';
 export type ColorPickerPresentation = 'automatic' | 'inline' | 'popover' | 'menu';
 
 /**
+ * A preset color and its name: what a menu (`presentation="menu"`) lists and
+ * what a screen reader reads, as "Color <name>".
+ */
+export interface ColorPickerSwatch {
+  /** `#RRGGBB`. */
+  color: string;
+  /** Its name, such as "Ink". */
+  name: string;
+}
+
+/**
  * Cross-platform color picker: a row with a label and a color well that
  * opens the system color picker.
  *
@@ -33,16 +44,18 @@ export interface ColorPickerProps {
    */
   supportsOpacity?: boolean;
   /**
-   * Preset colors (`#RRGGBB`) drawn as a row of round swatches before the
-   * well on every platform, the selected one ringed; tapping one picks it.
+   * Preset colors, each `#RRGGBB` or a `ColorPickerSwatch` with its name,
+   * drawn as a row of round swatches before the well on every platform, the
+   * selected one ringed; tapping one picks it. A swatch's name is what a menu
+   * lists and a screen reader reads; a color given alone is named by its hex.
    * The well still opens the full picker for any other color. More swatches
    * than the row's width holds wrap onto further lines rather than squeeze
    * (a Compose `FlowRow`, a wrapping flex row, lines of their own under the
-   * label on iOS). `system` is the platform's own palette: Apple's system
-   * colors on iOS and web, Material's on Android, the Windows accent colors
-   * on Windows.
+   * label on iOS). `system` is the platform's own palette, its colors named:
+   * Apple's system colors on iOS and web, Material's on Android, the Windows
+   * accent colors on Windows.
    */
-  swatches?: string[] | 'system';
+  swatches?: readonly (string | ColorPickerSwatch)[] | 'system';
   /**
    * How the picker opens (see `ColorPickerPresentation`), so a color is
    * chosen once from wherever it is asked: `inline` inside a sheet of the

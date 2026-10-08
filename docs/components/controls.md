@@ -384,7 +384,8 @@ is called when it closes, picked or not, after `onChange`. A day picked in
 A label with a color well that opens a color picker, optionally with preset
 swatches. Props: `label`, `value` (`#RRGGBB` or `#RRGGBBAA`, or an empty
 string for no color), `onValueChange`, `supportsOpacity` (default true),
-`swatches` (colors, or `system` for the platform's own palette),
+`swatches` (colors, `{color, name}` swatches, or `system` for the platform's
+own palette),
 `presentation` (`automatic`, `inline`, `popover`, `menu`), `allowsNone`,
 `disabled`, `style`, `testID`.
 
@@ -399,7 +400,9 @@ Swatches are round on every platform, the selected one ringed, wrapping onto
 further lines when they overflow. Tapping a swatch keeps the current opacity.
 `swatches="system"` is the platform's own palette of twelve: Apple's system
 colors on iOS and web, Material's on Android, the Windows accent colors on
-Windows, each named for a screen reader and a menu.
+Windows, each named for a screen reader and a menu. A swatch given as
+`{color, name}` is called by its name in a menu and to a screen reader, as
+the system palettes' colors are; a color given alone is called by its hex.
 
 `allowsNone` adds a "No color" choice, a crossed-out circle before the
 swatches and the first entry of a menu, reported as an empty string. An

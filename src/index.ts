@@ -72,7 +72,7 @@ export type {ChipProps} from './chip/types';
 export {Collapsible} from './collapsible';
 export type {CollapsibleProps} from './collapsible/types';
 export {ColorPicker} from './color-picker';
-export type {ColorPickerProps} from './color-picker/types';
+export type {ColorPickerPresentation, ColorPickerProps, ColorPickerSwatch} from './color-picker/types';
 export {ContextMenu} from './context-menu';
 export {DateTimePicker} from './date-time';
 export type {DateTimeAnchor, DateTimeMode, DateTimePickerProps, DateTimeValue} from './date-time/types';

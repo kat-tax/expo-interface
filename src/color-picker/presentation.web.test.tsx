@@ -63,6 +63,22 @@ describe('ColorPicker presentations (web)', () => {
     expect(onValueChange).toHaveBeenLastCalledWith('#007AFFFF');
   });
 
+  it('names its own swatches as given, in the row and in a menu', () => {
+    const onValueChange = vi.fn();
+    const swatches = [{color: '#1D1D1F', name: 'Ink'}, '#FF0000'];
+    const {rerender} = render(<ColorPicker value="#FF0000" swatches={swatches} onValueChange={onValueChange}/>);
+    expect(screen.getByRole('button', {name: 'Color Ink'})).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', {name: 'Color #FF0000'})).toHaveAttribute('aria-pressed', 'true');
+    rerender(<ColorPicker label="Ink" value="#FF0000" presentation="menu" swatches={swatches} onValueChange={onValueChange}/>);
+    const items = screen.getAllByRole('menuitem', {hidden: true});
+    expect(items).toHaveLength(2);
+    expect(items[0]).toHaveTextContent(/^Ink$/);
+    // The current one carries its check.
+    expect(items[1]).toHaveTextContent(/^#FF0000✓$/);
+    fireEvent.click(items[0]);
+    expect(onValueChange).toHaveBeenLastCalledWith('#1D1D1FFF');
+  });
+
   it('names a menu well without a label Color', () => {
     render(<ColorPicker value="" presentation="menu" onValueChange={vi.fn()}/>);
     expect(screen.getByRole('button', {name: 'Color'})).toHaveAttribute('aria-haspopup', 'menu');
