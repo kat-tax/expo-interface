@@ -9,10 +9,10 @@ import {SHEET_SCROLL_INSETS, hasBar, sub} from './shared';
 /**
  * What goes inside the platform's sheet, in order: the bar when anything
  * asks for it, the accessory under it, the body, the footer, and the
- * actions along the bottom edge. Each piece is a direct child of the sheet,
- * so native content (the bar on iOS and Android, an accessory of `@expo/ui`
- * content) and React Native content (the body, a footer) sit side by side.
- * None of it is under a screen's bar, so the screen's scroll insets stop at
+ * actions along the bottom edge. The pieces stack in one column (Compose's
+ * on Android, a `VStack` on iOS, a box on web), so native content (the bar
+ * on iOS and Android, an accessory of `@expo/ui` content) and React Native
+ * content (the body, a footer) sit one under the other. None of it is under a screen's bar, so the screen's scroll insets stop at
  * the sheet.
  */
 export function sheetChildren({title, subtitle, onBack, onClose, menu, accessory, footer, actions, maxHeight, contentPadding, testID, children}: SheetProps): ReactNode {

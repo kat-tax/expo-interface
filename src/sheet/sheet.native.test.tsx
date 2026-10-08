@@ -1,6 +1,7 @@
 import {Platform, Text} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {AccentProvider, ACCENT_SEED} from '../accent';
+import type {HostNode} from 'expo-vitest/native';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
 import {Sheet} from '.';
@@ -78,6 +79,26 @@ describe(`Sheet (${Platform.OS})`, () => {
       'interactiveDismissDisabled',
     ]);
     expect(modifier(presentation().props, 'tint')?.tint.color).toBe('#8959EA');
+  });
+
+  (isIOS ? it : it.skip)('stacks the pieces in one SwiftUI column, so the sheet pads and fits them once', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} title="New drop" actions={[{label: 'Create'}]} testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    // The group the presentation modifiers sit on has one member.
+    const group = presentation();
+    expect(group.children).toHaveLength(1);
+    const [stack] = group.children as HostNode[];
+    expect(stack.type).toBe('ViewManagerAdapter_ExpoUI_VStackView');
+    expect(stack.props).toMatchObject({spacing: 0, alignment: 'leading'});
+    expect(stack.props.modifiers).toBeUndefined();
+    const [bar, body, actions] = stack.children as HostNode[];
+    expect(stack.children).toHaveLength(3);
+    expect(bar.props.testID).toBe('sheet-bar');
+    expect(JSON.stringify(body)).toContain('"Body"');
+    expect(actions.props.testID).toBe('sheet-actions');
   });
 
   it('hides the drag indicator on request', async () => {

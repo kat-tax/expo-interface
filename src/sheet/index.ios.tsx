@@ -1,5 +1,6 @@
 import type {SheetProps} from './types';
 
+import {VStack} from '@expo/ui/swift-ui';
 import {presentationBackground, tint} from '@expo/ui/swift-ui/modifiers';
 import {BottomSheet} from '@expo/ui';
 import {useAccentSeed} from '../accent';
@@ -13,7 +14,15 @@ import {IOS_MATERIAL, hasMaterial} from './shared';
  * Without it, SwiftUI children in the sheet (toggles, pickers, text fields)
  * would render the default systemBlue instead of the user-supplied accent.
  * The bar, the accessory and the actions are SwiftUI content beside the
- * React Native body, all direct children of the sheet.
+ * React Native body.
+ *
+ * The pieces sit in one `VStack` with no spacing, the one member of the
+ * `Group` the platform's sheet wraps its content in. SwiftUI applies a
+ * group's modifiers to each member, and the fitted detent reads one size
+ * per member and keeps the last: with the pieces as members, each would pay
+ * the sheet's top padding and the sheet would fit only its last piece. The
+ * stack is leading-aligned, so a piece narrower than the sheet sits where
+ * it would on its own.
  */
 export function Sheet(props: SheetProps) {
   const {own, rest} = sheetOwnProps(props);
@@ -27,7 +36,7 @@ export function Sheet(props: SheetProps) {
   return (
     <NativeHostContext.Provider value={true}>
       <BottomSheet {...sheet} modifiers={[tint(seed), ...backdrop, ...(modifiers ?? [])]}>
-        {sheetChildren(props)}
+        <VStack spacing={0} alignment="leading">{sheetChildren(props)}</VStack>
       </BottomSheet>
     </NativeHostContext.Provider>
   );
