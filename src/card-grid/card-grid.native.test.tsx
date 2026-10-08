@@ -54,6 +54,13 @@ describe(`CardGrid (${Platform.OS})`, () => {
     expect(screen.getByTestId('bare').props.ListHeaderComponent).toBeUndefined();
   });
 
+  it('keeps a tap on a card while a field has the keyboard, and lets the empty state fill the grid', async () => {
+    await render(<CardGrid data={[]} renderItem={() => null} empty={<Text>Nothing yet</Text>} testID="grid"/>);
+    const grid = screen.getByTestId('grid');
+    expect(grid.props.keyboardShouldPersistTaps).toBe('handled');
+    expect(StyleSheet.flatten(grid.props.contentContainerStyle)).toMatchObject({flexGrow: 1});
+  });
+
   it('pads its content and its scroll indicators by the screen\'s bar and its own insets', async () => {
     await render(
       <ScrollInsetsContext.Provider value={{top: 100, bottom: 0, automatic: false}}>

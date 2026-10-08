@@ -12,7 +12,9 @@ import {GAP, MAX_COLUMNS, MIN_ITEM_WIDTH, columnsFor, rowsOf} from './shared';
  * height, with the column count worked out from the grid's measured width
  * (the window's until the first layout). A row is a flex row of equal cells
  * with the gap between them, and a last row short of cells keeps its cells
- * the width of the others.
+ * the width of the others. A tap on a card reaches it while a field has the
+ * keyboard (`keyboardShouldPersistTaps="handled"`), and while the grid is
+ * empty its content grows to the grid's height, which an `EmptyState` fills.
  */
 export function CardGrid<T>({
   data,
@@ -56,7 +58,10 @@ export function CardGrid<T>({
       ListFooterComponent={footer ? <>{footer}</> : undefined}
       ListEmptyComponent={empty ? <>{empty}</> : undefined}
       onEndReached={onEndReached}
-      contentContainerStyle={{paddingTop: insets.top, paddingBottom: insets.bottom}}
+      // A tap on a card goes to the card while a field has the keyboard; a tap between the cards closes it.
+      keyboardShouldPersistTaps="handled"
+      // While empty the content grows to the grid's height, so an `EmptyState` fills it under the header.
+      contentContainerStyle={[{paddingTop: insets.top, paddingBottom: insets.bottom}, data.length === 0 ? styles.grow : null]}
       scrollIndicatorInsets={{top: insets.top, bottom: insets.bottom}}
       // iOS under a header the screen runs under: UIKit's own inset, which follows a native search bar.
       contentInsetAdjustmentBehavior={insets.automatic ? 'automatic' : undefined}
@@ -71,6 +76,7 @@ const styles = StyleSheet.create({
   grid: {flex: 1, alignSelf: 'stretch'},
   row: {flexDirection: 'row', alignItems: 'stretch'},
   cell: {flex: 1, minWidth: 0},
+  grow: {flexGrow: 1},
 });
 
 export type {CardGridProps} from './types';

@@ -38,6 +38,13 @@ describe('List (windows)', () => {
     expect(screen.getByTestId('bare').props.ListEmptyComponent).toBeUndefined();
   });
 
+  it('keeps a tap on a row while a field has the keyboard, and lets the empty state fill the list', async () => {
+    await render(<List data={[]} renderItem={() => null} empty={<Text>Nothing yet</Text>} testID="list"/>);
+    const list = screen.getByTestId('list');
+    expect(list.props.keyboardShouldPersistTaps).toBe('handled');
+    expect(StyleSheet.flatten(list.props.contentContainerStyle)).toMatchObject({flexGrow: 1});
+  });
+
   it('hands the end to the list, and pads its content by the screen\'s bar and its own insets', async () => {
     const onEndReached = vi.fn();
     await render(

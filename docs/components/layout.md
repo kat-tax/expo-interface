@@ -407,6 +407,9 @@ Differences:
   insets the list by a header the screen runs under through its safe area,
   following a native search bar, so the list adds only a `HeaderAccessory`
   floating under the header and `contentInset`.
+- On Windows a tap on a row while a field has the touch keyboard goes to the
+  row and leaves the keyboard up (`keyboardShouldPersistTaps="handled"`); a
+  tap past the rows closes it.
 
 ## CardGrid
 
@@ -438,6 +441,12 @@ Differences:
   (`contentInsetAdjustmentBehavior="automatic"`), which follows a native
   search bar, and pads only for a `HeaderAccessory` floating under the
   header and `contentInset`.
+- On iOS, Android and Windows a tap on a card while a React Native field has
+  the keyboard goes to the card and leaves the keyboard up
+  (`keyboardShouldPersistTaps="handled"`); a tap between the cards closes
+  it.
+- An `empty` fills the grid's height under the header, as an `EmptyState`
+  centres itself in the room it is given.
 
 ## Collapsible
 
