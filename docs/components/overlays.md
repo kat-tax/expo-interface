@@ -142,7 +142,7 @@ A card pointing at a rectangle on a canvas: a spelling suggestion, a note on
 a block, a warning about a link, the editor of an option. Props: `at`
 (`{x, y, width, height}` or `null`), `title`, `message`, `actions` (`label`,
 `onPress`, `role`), `onDismiss(reason)`, `preferredEdge` (`auto`, `top`,
-`bottom`), `width` (280), `modal`, `insets` (`top`, `bottom`, `left`,
+`bottom`), `width` (280), `modal`, `label`, `insets` (`top`, `bottom`, `left`,
 `right`), `trigger` (`manual` or `hover`), `grace` (300 ms), `children`,
 `testID`.
 
@@ -172,7 +172,8 @@ Escape ends.
 
 A `modal` card takes the presses around it as its backdrop, so nothing under
 it is pressed by mistake, and says it is a dialog: VoiceOver keeps its focus
-inside, a browser announces a modal dialog named by the title. The backdrop
+inside, a browser announces a modal dialog named by `label`, or by the title
+without one; iOS, Android and Windows read what the card holds. The backdrop
 is a Dismiss button to the screen readers that reach it.
 
 A `hover` card is about what is under the pointer. The app sets `at` while

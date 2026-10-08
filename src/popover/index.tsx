@@ -18,7 +18,7 @@ import {MODAL_CARD, useEscape, useLinger} from './shared';
  * each time it comes up. A modal one takes the presses on the rest of the
  * parent as its backdrop; a hover one lingers once the pointer has gone.
  */
-export function Popover({at, title, message, actions, onDismiss, width = 280, preferredEdge = 'auto', modal = false, insets, trigger = 'manual', grace, children, testID}: PopoverProps) {
+export function Popover({at, title, message, actions, onDismiss, width = 280, preferredEdge = 'auto', modal = false, label, insets, trigger = 'manual', grace, children, testID}: PopoverProps) {
   const linger = useLinger(at, trigger === 'hover', grace, () => onDismiss?.('leave'));
   const shown = linger.shown;
   const anchored = useAnchored({at: shown, preferredEdge, width, insets});
@@ -49,15 +49,15 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
       ) : null}
       {shown ? (
         // The placed box carries the pointer and what a modal card says of
-        // itself; the surface inside it is the card. On web the modal card is
-        // a dialog element, named by its title; iOS and Android read the
-        // title in the card itself.
+        // itself; the surface inside it is the card. On web the modal card has
+        // the dialog role, named by `label` or its title; iOS and Android read
+        // the title in the card itself.
         <PlacedCard
           anchored={anchored}
           width={width}
           testID={testID}
           {...linger.props}
-          {...(modal ? {...MODAL_CARD, 'aria-label': Platform.OS === 'web' ? title : undefined, onAccessibilityEscape: () => dismiss('escape')} : null)}>
+          {...(modal ? {...MODAL_CARD, 'aria-label': Platform.OS === 'web' ? label ?? title : undefined, onAccessibilityEscape: () => dismiss('escape')} : null)}>
           <Surface raised border="all" padding={spacing.three} style={styles.body}>
             {title ? <Subheadline color="label" weight="semibold">{title}</Subheadline> : null}
             {message ? <Footnote color="secondaryLabel">{message}</Footnote> : null}

@@ -57,6 +57,23 @@ export const Modal: Story = {
   },
 };
 
+/**
+ * A modal card with no title: `label` is what a screen reader calls the
+ * dialog on web.
+ */
+export const UntitledModal: Story = {
+  args: {
+    title: undefined,
+    message: 'Pick what the column shows.',
+    modal: true,
+    label: 'Status',
+    actions: [
+      {label: 'To do', onPress: fn()},
+      {label: 'Done', onPress: fn()},
+    ],
+  },
+};
+
 /** A word under the pointer, which a hover card is about. */
 function HoverWord({actions, onDismiss}: Pick<PopoverProps, 'actions' | 'onDismiss'>) {
   const [at, setAt] = useState<{x: number; y: number; width: number; height: number} | null>(null);

@@ -67,10 +67,17 @@ export interface PopoverProps extends PropsWithChildren {
   /**
    * A backdrop over the parent while the card is up: a press on it reports
    * `backdrop` through `onDismiss`, and nothing under it takes the press.
-   * For a card with controls in it, an option's editor.
+   * For a card with controls in it, an option's editor. The card says it is
+   * a dialog, named on web by `label` or the title.
    * @default false
    */
   modal?: boolean;
+  /**
+   * What a screen reader calls a `modal` card on web: for one without a
+   * `title`, or with a title that does not say what it is for. Defaults to
+   * `title`. iOS, Android and Windows read what the card holds instead.
+   */
+  label?: string;
   /**
    * What the card keeps clear of at the parent's edges: a header over the
    * canvas, a bar under it.

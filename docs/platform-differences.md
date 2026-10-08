@@ -47,6 +47,7 @@ The differences that change what a screen can do, in one place:
 | `Alert` field | Among the actions | Under the message | Under the message | In the dialog's body, through a portal |
 | `Alert` field's action key | Nothing | Nothing | The first action that is not the cancel | The first action that is not the cancel |
 | `Popover` dismissed by Escape | VoiceOver's escape gesture, modal cards | No | Yes, wherever the focus is | No |
+| `Popover` `label` | Ignored | Ignored | Names a modal card | Ignored |
 | `Toolbar` overflow decided by the platform | No | No | No | Yes |
 | `FindBar` | Drawn, not `UIFindInteraction` | Drawn | Drawn | Drawn |
 | `Toolbar` floating | The kit's raised capsule | Material's `HorizontalFloatingToolbar` | The kit's raised capsule | The `CommandBar` in a raised card |

@@ -117,6 +117,18 @@ describe('Popover (web)', () => {
     expect(screen.queryByTestId('pop')).toBeNull();
   });
 
+  it('names a modal card by its label, or by its title without one', () => {
+    const modal = (props: {title?: string; label?: string}) => <Popover at={{x: 10, y: 10}} modal testID="modal" {...props}/>;
+    const {rerender} = render(modal({label: 'Status'}));
+    expect(screen.getByTestId('modal')).toHaveAttribute('aria-label', 'Status');
+    rerender(modal({label: 'Status', title: 'Pick one'}));
+    expect(screen.getByTestId('modal')).toHaveAttribute('aria-label', 'Status');
+    rerender(modal({title: 'Pick one'}));
+    expect(screen.getByTestId('modal')).toHaveAttribute('aria-label', 'Pick one');
+    rerender(modal({}));
+    expect(screen.getByTestId('modal')).not.toHaveAttribute('aria-label');
+  });
+
   it('is not seen until it has been measured', () => {
     // jsdom has no ResizeObserver, so react-native-web never lays the card
     // out here; the native and Windows projects measure it.

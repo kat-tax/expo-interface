@@ -22,7 +22,7 @@ describe(`Popover modes (${Platform.OS})`, () => {
   it('takes the presses around a modal card as its backdrop, and says the card is a dialog', async () => {
     const onDismiss = vi.fn();
     await render(
-      <Popover at={{x: 40, y: 100}} modal onDismiss={onDismiss} testID="pop">
+      <Popover at={{x: 40, y: 100}} modal label="Option" onDismiss={onDismiss} testID="pop">
         <Text>Option</Text>
       </Popover>,
     );
@@ -30,6 +30,8 @@ describe(`Popover modes (${Platform.OS})`, () => {
     const card = screen.getByTestId('pop');
     expect(card.props.accessibilityViewIsModal).toBe(true);
     expect(card.props.role).toBe('dialog');
+    // The label names a web dialog; VoiceOver and TalkBack read what the card holds.
+    expect(card.props['aria-label']).toBeUndefined();
     // The modal card hides what is around it from VoiceOver, the backdrop included.
     expect(screen.queryByTestId('pop-backdrop')).toBeNull();
     await fireEvent.press(screen.getByTestId('pop-backdrop', {includeHiddenElements: true}));
