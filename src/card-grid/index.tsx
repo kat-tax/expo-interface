@@ -68,9 +68,10 @@ export function CardGrid<T>({
   const {range, start, measure} = useWindowed(scroller, {keys, estimate: estimatedItemHeight, gap});
   const reachEnd = useEffectEvent(() => onEndReached?.());
   const atEnd = rows.length > 0 && range.end === rows.length;
+  // Keyed on the cells, not the rows: a page that only fills the last row is more cells too.
   useEffect(() => {
     if (atEnd) reachEnd();
-  }, [atEnd, rows.length]);
+  }, [atEnd, data.length]);
   const top = insets.top || undefined;
   const bottom = insets.bottom || undefined;
   const vars = {

@@ -15,10 +15,12 @@ const scrollTo = (offset: number) => {
   fireEvent.scroll(screen.getByTestId('grid'));
 };
 
+function grid(props: Partial<React.ComponentProps<typeof CardGrid<string>>> = {}) {
+  return <CardGrid data={CARDS} renderItem={title => <p>{title}</p>} keyExtractor={title => title} minItemWidth={150} maxColumns={4} gap={12} testID="grid" {...props}/>;
+}
+
 function renderGrid(props: Partial<React.ComponentProps<typeof CardGrid<string>>> = {}) {
-  return render(
-    <CardGrid data={CARDS} renderItem={title => <p>{title}</p>} keyExtractor={title => title} minItemWidth={150} maxColumns={4} gap={12} testID="grid" {...props}/>,
-  );
+  return render(grid(props));
 }
 
 describe('CardGrid (web), windowed', () => {
@@ -98,6 +100,17 @@ describe('CardGrid (web), windowed', () => {
     expect(onEndReached).toHaveBeenCalledTimes(1);
     scrollTo(50 * 192 - 12 - 700);
     expect(onEndReached).toHaveBeenCalledTimes(1);
+  });
+
+  it('reaches the end again when more cards arrive while it is still drawn, though they only fill the last row', () => {
+    const onEndReached = vi.fn();
+    const {rerender} = renderGrid({data: CARDS.slice(0, 3), onEndReached});
+    width(636);
+    expect(onEndReached).toHaveBeenCalledTimes(1);
+    // Four columns: the fourth card joins the first row, so there is still one row.
+    rerender(grid({data: CARDS.slice(0, 4), onEndReached}));
+    expect(cells()).toHaveLength(4);
+    expect(onEndReached).toHaveBeenCalledTimes(2);
   });
 
   it('reaches no end without a handler, or with no cards', () => {
