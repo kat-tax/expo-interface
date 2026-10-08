@@ -17,6 +17,15 @@ export type SheetMaterial = 'none' | 'thin' | 'regular' | 'thick';
  * viewport's dynamic height (`dvh`), which follows a phone browser's
  * toolbar; on Windows it is of the area the sheet's layer covers, which is
  * the window under the kit's `Stack`.
+ *
+ * It caps the body alone: the bar, the accessory, the footer, the actions
+ * and the sheet's padding come on top, so leave room for them with a
+ * fraction well under 1. With a fraction near 1 the sheet is taller than
+ * the platform lets it be: on iOS and Android the footer and the actions
+ * are pushed out of it, and on web the drawer, which stops short of the
+ * viewport's top, scrolls as a whole around the body's own scrolling. On
+ * Windows the card stops short of the window and the body gives way inside
+ * it.
  */
 export type SheetMaxHeight = number | {fraction: number};
 
@@ -116,10 +125,10 @@ export interface SheetProps extends BottomSheetProps {
    */
   actions?: SheetAction[];
   /**
-   * The most the body grows to, in points or as a fraction of the window's
-   * height ({@link SheetMaxHeight}). A sheet without `snapPoints` fits its
-   * content; past this height the body scrolls inside the sheet instead, as
-   * React Native content the width of the sheet.
+   * The most the body alone grows to, in points or as a fraction of the
+   * window's height ({@link SheetMaxHeight}). A sheet without `snapPoints`
+   * fits its content; past this height the body scrolls inside the sheet
+   * instead, as React Native content the width of the sheet.
    */
   maxHeight?: SheetMaxHeight;
 }

@@ -30,7 +30,7 @@ import {SHEET_SCROLL_INSETS, bodyCap, hasBar, sub} from './shared';
  * A fractional `maxHeight` is of the area the layer covers, measured as it
  * lays out: `useWindowDimensions` does not follow a resize on
  * react-native-windows 0.84, and a layout event does. Until the first one
- * the body is capped at nothing, which the card's entrance fade hides.
+ * the body is capped at zero height, which the card's entrance fade hides.
  */
 export function Sheet({children, isPresented, onDismiss, title, subtitle, onBack, onClose, menu, accessory, footer, actions, maxHeight, testID}: SheetProps) {
   const [area, setArea] = useState(0);

@@ -97,7 +97,7 @@ describe('Sheet chrome (windows)', () => {
       </Sheet>,
     );
     const cap = () => StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).maxHeight;
-    // Nothing until the area is measured; the card's entrance fade hides that first frame.
+    // Zero height until the area is measured; the card's entrance fade hides that first frame.
     expect(cap()).toBe(0);
     await fireEvent(screen.getByTestId('sheet-area'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 1000, height: 800}}});
     expect(cap()).toBe(400);

@@ -264,8 +264,8 @@ the bar: a `SegmentedControl` that picks what the body shows), `footer`
 (the row under the body: a `Composer`), `actions` (buttons along the bottom
 edge, trailing-aligned, the last one filled and the rest outlined; `label`,
 `onPress`, `role`, `variant`, `disabled`, `loading` each), `maxHeight` (the
-most the body grows to: in points, or a fraction of the window's height,
-`{fraction: 0.6}`), `testID`.
+most the body alone grows to: in points, or a fraction of the window's
+height, `{fraction: 0.6}`), `testID`.
 
 The bar is drawn as soon as a title or any of its buttons is given. Without
 `snapPoints` the sheet fits its content on every platform; `maxHeight` caps
@@ -273,7 +273,14 @@ that, and the body then scrolls inside the cap as React Native content the
 width of the sheet. A fraction is kept between 0 and 1. On web it is of the
 viewport's dynamic height, which follows a phone browser's toolbar, and on
 Windows of the area the sheet's layer covers, which is the window under the
-kit's `Stack`.
+kit's `Stack`. The cap is the body's alone: the bar, the accessory, the
+footer, the actions and the sheet's padding come on top, so leave room for
+them with a fraction well under 1. With a fraction near 1 the sheet is
+taller than the platform lets it be: on iOS and Android the footer and the
+actions are pushed out of it, and on web the drawer, which stops short of
+the viewport's top, scrolls as a whole around the body's own scrolling. On
+Windows the card stops short of the window and the body gives way inside
+it.
 
 ```tsx
 <Sheet isPresented={open} onDismiss={close} title="History" maxHeight={{fraction: 0.6}}>
@@ -296,8 +303,9 @@ footer are React Native content, each hosted in the sheet in an
 `RNHostView` at the sheet's width, since a React Native view inside the
 platform's sheet takes no presses and has no width of its own to fill
 without one: the window's width, at most a form sheet's on an iPad or 640
-points on Android (Material's limit for a sheet), less the sheet's padding. A `Pressable` in them takes presses, and a control in them
-mounts a host of its own. Give a React Native body a `maxHeight`.
+points on Android (Material's limit for a sheet), less the sheet's padding.
+A `Pressable` in them takes presses, and a control in them mounts a host of
+its own. Give a React Native body a `maxHeight`.
 
 On web and Windows the sheet's content counts as hosted: controls inside it
 render bare, and a React Native box inside it (a `Composer`) mounts a
