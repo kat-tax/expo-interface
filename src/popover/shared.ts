@@ -36,7 +36,9 @@ interface Linger {
  *
  * A dismissal of the card's own calls `end`: the card goes as soon as the
  * app clears `at`, with no linger and no `onLeave` after it. A card that goes
- * from under the pointer does not keep the next one up.
+ * from under the pointer does not keep the next one up. `at` is compared by
+ * value, so an app may pass a new object for the same rectangle on every
+ * render.
  */
 export function useLinger(at: PopoverRect | null, enabled: boolean, grace: number = HOVER_GRACE, onLeave: () => void): Linger {
   const [previous, setPrevious] = useState(at);
@@ -44,8 +46,10 @@ export function useLinger(at: PopoverRect | null, enabled: boolean, grace: numbe
   const [over, setOver] = useState(false);
   const [ended, setEnded] = useState(false);
   // The app's rectangle going away is when a linger starts, unless the card
-  // was dismissed while it was up; one coming back ends it.
-  if (at !== previous) {
+  // was dismissed while it was up; one coming back ends it. A new object
+  // holding the same rectangle, which an app may pass on every render, is
+  // no change.
+  if (!samePlace(at, previous)) {
     setPrevious(at);
     setLinger(at === null && enabled && !ended ? previous : null);
     setEnded(false);
@@ -77,6 +81,12 @@ export function useLinger(at: PopoverRect | null, enabled: boolean, grace: numbe
       setEnded(true);
     },
   };
+}
+
+/** Whether two rectangles are the same place, whichever objects hold them. */
+function samePlace(a: PopoverRect | null, b: PopoverRect | null): boolean {
+  if (a === null || b === null) return a === b;
+  return a.x === b.x && a.y === b.y && (a.width ?? 0) === (b.width ?? 0) && (a.height ?? 0) === (b.height ?? 0);
 }
 
 /**

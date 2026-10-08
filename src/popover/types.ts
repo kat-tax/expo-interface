@@ -35,7 +35,10 @@ export type PopoverDismissReason = 'action' | 'backdrop' | 'escape' | 'leave';
  * `PopupMenu`, which is the platform's own.
  */
 export interface PopoverProps extends PropsWithChildren {
-  /** The rectangle to point at. `null` hides the popover. */
+  /**
+   * The rectangle to point at. `null` hides the popover. A new object for
+   * the same rectangle, passed on every render, changes nothing.
+   */
   at: PopoverRect | null;
   /** Bold first line. */
   title?: string;

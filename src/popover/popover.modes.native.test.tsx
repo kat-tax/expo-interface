@@ -143,6 +143,22 @@ describe(`Popover modes (${Platform.OS})`, () => {
       expect(onDismiss).toHaveBeenCalledTimes(1);
     });
 
+    it('keeps an action from starting a linger when the app passes the same rectangle anew first', async () => {
+      const onDismiss = vi.fn();
+      const hover = (at: {x: number; y: number; width?: number; height?: number} | null) => (
+        <Popover at={at} title="Spelling" actions={[{label: 'Fix', onPress: vi.fn()}]} trigger="hover" onDismiss={onDismiss} testID="pop"/>
+      );
+      const {rerender} = await render(hover({x: 10, y: 10, width: 40, height: 16}));
+      await pressAction();
+      // The app renders again before it clears the rectangle, with a new object for the same one.
+      await rerender(hover({x: 10, y: 10, width: 40, height: 16}));
+      await rerender(hover(null));
+      expect(screen.queryByTestId('pop')).toBeNull();
+      await act(async () => vi.advanceTimersByTimeAsync(1000));
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+      expect(onDismiss).toHaveBeenCalledWith('action');
+    });
+
     it('forgets the pointer when the card goes from under it', async () => {
       const onDismiss = vi.fn();
       const hover = (at: {x: number; y: number} | null) => (
