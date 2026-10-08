@@ -598,10 +598,12 @@ wraps at the screen's width and can be selected and copied, unless
 On iOS and Android, outside a host the state mounts one as wide as its
 container, and `style` and `testID` go on the view around it. Inside one (a
 `Screen native`, a `NativeHost`, a `Sheet`, a hosted `List`'s `empty`) it
-renders bare: `testID` names the native stack and `style` is not applied. On
-iOS a bare state centres itself and its action as one group in the space its
-container gives it; on Android it is as wide as its container and as tall as
-itself, and the container places it. See [Native hosts](../hosts.md).
+renders bare: `testID` names the native stack and `style` is not applied. A
+bare state is as wide as its container and centres itself and its action as
+one group in the height the container gives it, the whole screen under a
+`Screen native`. On iOS it fills whatever space it is offered; on Android,
+where the container leaves the height open, it is as tall as itself and the
+container places it. See [Native hosts](../hosts.md).
 
 | Platform | Renders |
 | --- | --- |

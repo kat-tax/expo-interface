@@ -240,6 +240,10 @@ describe(`EmptyState (${Platform.OS})`, () => {
     await render(<NativeHost><EmptyState title="No drops" testID="empty"/></NativeHost>);
     // One host: the one around it, not a second nested inside.
     expect(hosts()).toHaveLength(1);
-    expect(byComposeTestID('empty').type).toContain('Column');
+    const column = byComposeTestID('empty');
+    expect(column.type).toContain('Column');
+    // Centred in the height the host hands down (a `Screen native`'s host is
+    // the screen's size), where the column alone would lay out from the top.
+    expect(modifier(column.props, 'wrapContentHeight')).toEqual({$type: 'wrapContentHeight', alignment: 'centerVertically'});
   });
 });

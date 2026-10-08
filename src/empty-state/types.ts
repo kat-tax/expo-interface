@@ -43,9 +43,10 @@ export interface EmptyStateAction {
  *
  * On iOS and Android the state mounts a host outside one, as wide as its
  * container; inside one (a `Screen native`, a `NativeHost`, a `Sheet`, a
- * hosted `List`'s `empty`) it renders bare. There iOS centres the state and
- * its action as one in the space it is given, and on Android the container
- * places it.
+ * hosted `List`'s `empty`) it renders bare. There the state centres itself
+ * and its action as one in the height its container gives it, the whole
+ * screen under a `Screen native`; on Android, where the container leaves the
+ * height open, it is as tall as itself and the container places it.
  */
 export interface EmptyStateProps {
   /** One line: what is not here. */

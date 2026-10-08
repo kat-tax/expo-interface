@@ -2,7 +2,7 @@ import type {EmptyStateProps} from './types';
 import {useState} from 'react';
 import {StyleSheet, View, useWindowDimensions} from 'react-native';
 import {Box, CircularProgressIndicator, Column, Icon, RNHostView, Text} from '@expo/ui/jetpack-compose';
-import {fillMaxWidth, onSizeChanged, padding, size, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {fillMaxWidth, onSizeChanged, padding, size, testID as testIDModifier, wrapContentHeight} from '@expo/ui/jetpack-compose/modifiers';
 import {NativeHost, NativeHostContext, useNativeHost} from '../host';
 import {drawableOf} from '../icons';
 import {spacing, useColor} from '../theme';
@@ -24,7 +24,9 @@ import {isActionData} from './types';
  * Outside a host the column mounts one of its own, as wide as its container.
  * Inside one (a `Screen native`, a `Sheet`, a hosted `List`'s `empty`) it
  * renders bare, as every self-hosting control does: as wide as its container
- * and as tall as itself, placed by that container.
+ * and centred in the height the container hands down, the whole screen under
+ * a `Screen native`, as iOS centres it. Where the container leaves the height
+ * open it is as tall as itself, placed by that container.
  */
 export function EmptyState(props: EmptyStateProps) {
   const hosted = useNativeHost();
@@ -47,7 +49,12 @@ function EmptyStateColumn({title, description, icon, action, loading = false, se
     <Column
       horizontalAlignment="center"
       verticalArrangement={{spacedBy: spacing.two}}
-      modifiers={[fillMaxWidth(), padding(spacing.five, spacing.five, spacing.five, spacing.five), ...(hosted && testID ? [testIDModifier(testID)] : [])]}>
+      // Centred in the height a host hands down: a `Screen native`'s host is
+      // the screen's size and lays every child out from its top, so without
+      // it the state sits under the app bar where iOS centres it. Where the
+      // height is left to the state (its own host, a sheet's column, a list's
+      // centring box) the column keeps its own height.
+      modifiers={[fillMaxWidth(), wrapContentHeight('centerVertically'), padding(spacing.five, spacing.five, spacing.five, spacing.five), ...(hosted && testID ? [testIDModifier(testID)] : [])]}>
       {loading ? (
         <CircularProgressIndicator color={tint} modifiers={[size(EMPTY_ICON, EMPTY_ICON)]}/>
       ) : drawable ? (
