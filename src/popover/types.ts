@@ -49,9 +49,8 @@ export interface PopoverProps extends PropsWithChildren {
   /**
    * Called when the popover closes, with why. On web the card takes Escape
    * only when there is an `onDismiss` to report it to or while a `hover`
-   * card lingers. The key then stops at the document: the focused element
-   * does not get it, but another overlay listening on the document, such as
-   * a web `Sheet` around the card, does.
+   * card lingers. The key then goes no further: neither the focused element
+   * nor an overlay around the card, such as a web `Sheet`, gets it.
    */
   onDismiss?: (reason: PopoverDismissReason) => void;
   /**

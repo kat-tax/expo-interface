@@ -90,11 +90,12 @@ function samePlace(a: PopoverRect | null, b: PopoverRect | null): boolean {
 }
 
 /**
- * Escape on web while the card is up, wherever the focus is: the document's
- * keydown in the capture phase, so an editor that holds the focus and keeps
- * the key for itself still lets the card go first. The key then stops at the
- * document, so the editor does not act on it too; another listener on the
- * document itself, such as a web `Sheet`'s, still gets it.
+ * Escape on web while the card is up, wherever the focus is: the window's
+ * keydown in the capture phase, which comes before every listener on the
+ * document and under it, so an editor that holds the focus and keeps the key
+ * for itself still lets the card go first. The key then stops at the window:
+ * neither the editor nor an overlay around the card that listens on the
+ * document, such as a web `Sheet`, acts on it too.
  */
 export function useEscape(active: boolean, onEscape: () => void): void {
   const escape = useEffectEvent(onEscape);
@@ -105,7 +106,7 @@ export function useEscape(active: boolean, onEscape: () => void): void {
       event.stopPropagation();
       escape();
     };
-    document.addEventListener('keydown', onKey, true);
-    return () => document.removeEventListener('keydown', onKey, true);
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
   }, [active]);
 }

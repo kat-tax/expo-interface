@@ -85,7 +85,9 @@ export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus
 
   // Escape closes the menu wherever the focus is: an editor that holds it
   // and keeps the key for itself would otherwise leave the menu up. The key
-  // is the menu's then, and goes no further.
+  // is the menu's then, and goes no further. The window's capture phase
+  // comes before the document's, where an overlay around the menu (a web
+  // `Sheet`) listens for the key to close itself.
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
@@ -94,8 +96,8 @@ export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus
       event.stopPropagation();
       element.hidePopover();
     };
-    document.addEventListener('keydown', onKey, true);
-    return () => document.removeEventListener('keydown', onKey, true);
+    window.addEventListener('keydown', onKey, true);
+    return () => window.removeEventListener('keydown', onKey, true);
   }, [open]);
 
   return (

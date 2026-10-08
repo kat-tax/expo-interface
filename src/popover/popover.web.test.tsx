@@ -1,4 +1,5 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
+import {Sheet} from '../sheet';
 import {Popover} from '.';
 
 describe('Popover (web)', () => {
@@ -43,6 +44,24 @@ describe('Popover (web)', () => {
       // Any other key is the editor's.
       fireEvent.keyDown(node, {key: 'a'});
       expect(heard).toHaveBeenCalledWith('a');
+    });
+
+    it('keeps the key from a web Sheet the card is in', () => {
+      const onDismiss = vi.fn();
+      const onSheetDismiss = vi.fn();
+      const sheet = (at: {x: number; y: number} | null) => (
+        <Sheet isPresented onDismiss={onSheetDismiss}>
+          <Popover at={at} title="Option" onDismiss={onDismiss} testID="pop"/>
+        </Sheet>
+      );
+      const {rerender} = render(sheet({x: 10, y: 10}));
+      fireEvent.keyDown(screen.getByTestId('pop'), {key: 'Escape'});
+      expect(onDismiss).toHaveBeenCalledWith('escape');
+      expect(onSheetDismiss).not.toHaveBeenCalled();
+      // With the card down, the key is the sheet's.
+      rerender(sheet(null));
+      fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
+      expect(onSheetDismiss).toHaveBeenCalledTimes(1);
     });
 
     it('leaves Escape alone for a card nothing closes', () => {

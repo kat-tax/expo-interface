@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import type {MenuItem} from '../menu/types';
 import {fireEvent, render, screen} from '@testing-library/react';
+import {Sheet} from '../sheet';
 import {popupOptionId} from './types';
 import {PopupMenu} from '.';
 
@@ -161,6 +162,21 @@ describe('PopupMenu, steadier (web)', () => {
     fireEvent.keyDown(screen.getByTestId('editor'), {key: 'a'});
     fireEvent.keyDown(screen.getByTestId('editor'), {key: 'Escape'});
     expect(editorKey).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps Escape from a web Sheet it is in', () => {
+    const onSheetDismiss = vi.fn();
+    render(
+      <Sheet isPresented onDismiss={onSheetDismiss}>
+        <PopupMenu items={items} at={{x: 10, y: 10}}/>
+      </Sheet>,
+    );
+    fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
+    expect(open).toBe(false);
+    expect(onSheetDismiss).not.toHaveBeenCalled();
+    // Once the menu is down the key is the sheet's.
+    fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
+    expect(onSheetDismiss).toHaveBeenCalledTimes(1);
   });
 
   it('anchors at a rectangle\'s box, and opens over it when the top is asked for', () => {

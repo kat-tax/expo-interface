@@ -117,7 +117,7 @@ and shown at the new place once it is over. On iOS, Android and Windows a
 press outside the open menu is the platform's dismissal, reported as
 `dismiss`. On web, Escape closes the
 menu wherever the focus is, even in an editor that keeps the key for itself,
-and the key goes no further.
+and the key goes no further, so a web `Sheet` the menu is in stays up.
 
 `takesFocus={false}` is for a menu typed into, a slash command in an editor.
 On web the focus stays in the field, and the menu is a `listbox` whose
@@ -170,11 +170,10 @@ was taken), `backdrop` (the backdrop of a modal card was pressed, or on
 Windows a click landed outside the tip), `escape` (Escape on web, wherever
 the focus is, or VoiceOver's escape gesture on a modal card) or `leave` (a
 hover card's pointer stayed away for its grace). On web the card takes Escape
-before an editor that keeps the key for itself, and the key stops at the
-document, so the focused editor does not get it. Another overlay that
-listens on the document itself, such as a web `Sheet` the card is in, still
-gets it. A card with no `onDismiss` leaves Escape alone, unless it is
-lingering, which Escape ends.
+before an editor that keeps the key for itself, and the key goes no further:
+neither the focused editor nor an overlay the card is in, such as a web
+`Sheet`, acts on it too. A card with no `onDismiss` leaves Escape alone,
+unless it is lingering, which Escape ends.
 
 A `modal` card takes the presses around it as its backdrop, so nothing under
 it is pressed by mistake, and says it is a dialog: VoiceOver keeps its focus
