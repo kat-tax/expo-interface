@@ -9,9 +9,9 @@ import type {StyleProp, ViewStyle} from 'react-native';
  *
  * - Windows: a WinUI `InfoBadge`, in an island of its own.
  * - Android: the Material 3 Compose `Badge` inside a native host (a
- *   `ListItem`'s slots, a `NativeHost`, `Screen native`, a `Sheet`); anywhere
- *   else drawn in React Native to Material's geometry, since a Compose view
- *   draws only inside a host.
+ *   `ListItem`'s slots, a `NativeHost`, `Screen native`); anywhere else drawn
+ *   in React Native to Material's geometry, since a Compose view draws only
+ *   inside a host.
  * - iOS: drawn. SwiftUI's `badge` modifier only paints inside a `List`, a
  *   `TabView` or a toolbar, so a badge anywhere else would silently render
  *   nothing; `ListItem` and `Tabs` are where that modifier belongs.

@@ -10,9 +10,9 @@ import {BADGE_FONT_SIZE, MATERIAL_BADGE, badgeText} from './shared';
 
 /**
  * Inside a native host (a `ListItem`'s slots, a `NativeHost`, `Screen
- * native`, a `Sheet`'s content) Android shows the Material 3 Compose `Badge`:
- * the real control, so it takes the platform's own shape, its minimum size,
- * and the way it grows from a dot into a capsule as the number does.
+ * native`) Android shows the Material 3 Compose `Badge`: the real control, so
+ * it takes the platform's own shape, its minimum size, and the way it grows
+ * from a dot into a capsule as the number does.
  *
  * Outside one a Compose view has no composition to draw in, so the badge is
  * drawn in React Native to Material's geometry instead. Yoga sizes it like any

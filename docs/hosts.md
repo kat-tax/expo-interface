@@ -89,10 +89,10 @@ You rarely call `useNativeHost()` yourself. It is there for a component of
 your own that wraps `@expo/ui` content and has to work both inside and outside
 a host.
 
-It answers true below a `NativeHost`, a `Screen native` and a `Sheet`'s
-content. Below an `@expo/ui` `Host` of your own it answers false, so kit
-components there act as they do in a React Native layout: group them in a
-`NativeHost` instead.
+It answers true below a `NativeHost`, a `Screen native` and the part of a
+`Sheet` that counts as hosted. Below an `@expo/ui` `Host` of your own it
+answers false, so kit components there act as they do in a React Native
+layout: group them in a `NativeHost` instead.
 
 ## On web and Windows
 
