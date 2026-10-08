@@ -67,6 +67,18 @@ describe('TabView (web)', () => {
     expect(screen.getByTestId('t')).toHaveClass('ui-tab-view', 'ui-tab-view--alone');
   });
 
+  it('grows into its parent, but not as the tabs alone, whose rule comes after the one that grows', async () => {
+    const {readFileSync} = await import('node:fs');
+    const {join} = await import('node:path');
+    const css = readFileSync(join(__dirname, 'tab-view.css'), 'utf8');
+    const root = /\.ui-tab-view \{([^}]*)\}/.exec(css)!;
+    const alone = /\.ui-tab-view--alone \{([^}]*)\}/.exec(css)!;
+    expect(root[1]).toContain('flex: 1 1 auto;');
+    expect(alone[1]).toContain('flex-grow: 0;');
+    // The same specificity, so the later rule is the one that holds.
+    expect(alone.index).toBeGreaterThan(root.index);
+  });
+
   it('keeps the panel for null, which is a page with nothing in it', () => {
     render(<TabView tabs={TABS} selected="b" onSelect={() => {}} testID="t">{null}</TabView>);
     expect(screen.getByRole('tabpanel')).toBeEmptyDOMElement();
