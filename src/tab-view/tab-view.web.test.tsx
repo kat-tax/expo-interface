@@ -73,6 +73,15 @@ describe('TabView (web)', () => {
     expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--alone');
   });
 
+  it('keeps the panel for children that come out undefined, as when the last document closes', () => {
+    const open = TABS.find(tab => tab.id === 'gone');
+    render(<TabView tabs={TABS} selected="gone" onSelect={() => {}} testID="t">{open && <p>{open.title}</p>}</TabView>);
+    const panel = screen.getByRole('tabpanel');
+    expect(panel).toBeEmptyDOMElement();
+    for (const tab of screen.getAllByRole('tab')) expect(tab).toHaveAttribute('aria-controls', panel.id);
+    expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--alone');
+  });
+
   it('leaves the panel unnamed when no tab is open', () => {
     render(<TabView tabs={TABS} selected="gone" onSelect={() => {}}><p>Nothing</p></TabView>);
     expect(screen.getByRole('tabpanel')).not.toHaveAccessibleName();

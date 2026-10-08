@@ -1,4 +1,4 @@
-import type {TabViewLayout, TabViewTab} from './types';
+import type {TabViewLayout, TabViewProps, TabViewTab} from './types';
 import {COMPACT_WIDTH} from '../size-class';
 
 /**
@@ -65,6 +65,19 @@ export function switcherLabel(tabs: readonly TabViewTab[], selected: string): st
   const count = `${tabs.length} ${tabs.length === 1 ? 'tab' : 'tabs'}`;
   const open = tabs[tabIndex(tabs, selected)];
   return open ? `${open.title}, ${count}` : count;
+}
+
+/**
+ * Whether a `TabView` is the tabs alone: its element has no `children` at
+ * all, as `<TabView tabs={open} selected={current} onSelect={setCurrent}/>`
+ * writes it. Children written and rendering nothing, `null` or the
+ * `undefined` of `{current && <Editor/>}`, are a page with nothing in it, so
+ * the view keeps its size when the last document closes. JSX puts a
+ * `children` key in the props whenever the element has a child expression,
+ * whatever it evaluates to, and none when it has none.
+ */
+export function isAlone(props: TabViewProps): boolean {
+  return !('children' in props);
 }
 
 /**

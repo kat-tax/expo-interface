@@ -9,7 +9,7 @@ import {PopupMenu} from '../popup-menu';
 import {Icon} from '../symbol';
 import {flatten} from '../theme';
 import {DEPTH_INDENT} from './draw';
-import {ADD_LABEL, closeLabel, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
+import {ADD_LABEL, closeLabel, isAlone, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
 
 /** The glyphs, as Material Symbols names — the family `Icon` draws with on web. */
 const CLOSE = {symbol: {ios: 'xmark', android: 'close', web: 'close'}} as const;
@@ -71,23 +71,24 @@ function useContainerWidth(ref: RefObject<HTMLElement | null>): number {
  * shape the native files draw — and the grid is a tab list too, so the tabs
  * are the same thing to a screen reader at either size.
  *
- * Without children it is the tabs alone: no `tabpanel`, no `aria-controls`
- * on the tabs, and no growth into the parent.
+ * With no children at all (see `isAlone`) it is the tabs alone: no
+ * `tabpanel`, no `aria-controls` on the tabs, and no growth into the parent.
  */
-export function TabView({
-  tabs,
-  selected,
-  onSelect,
-  onClose,
-  onAdd,
-  addLabel = ADD_LABEL,
-  children,
-  label = 'Tabs',
-  layout = 'auto',
-  fill = 'element',
-  testID,
-  style,
-}: TabViewProps) {
+export function TabView(props: TabViewProps) {
+  const {
+    tabs,
+    selected,
+    onSelect,
+    onClose,
+    onAdd,
+    addLabel = ADD_LABEL,
+    children,
+    label = 'Tabs',
+    layout = 'auto',
+    fill = 'element',
+    testID,
+    style,
+  } = props;
   const id = useId().replaceAll(/[^A-Za-z0-9_-]/g, '_');
   const root = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLDivElement>(null);
@@ -115,9 +116,8 @@ export function TabView({
     onMove: index => onSelect(tabs[index]!.id),
   });
   const cards = resolved === 'switcher' && open;
-  // Children left out are the tabs alone: no panel, so no tab controls one.
-  // `null` is still a page, an empty one.
-  const alone = children === undefined;
+  // The tabs alone have no panel, so no tab controls one.
+  const alone = isAlone(props);
   const tabId = (tab: {id: string}) => `${id}-tab-${tab.id}`;
   const panelId = alone ? undefined : `${id}-panel`;
   /**

@@ -1,4 +1,4 @@
-import {TAB_BREAKPOINT, closeLabel, nextSelection, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
+import {TAB_BREAKPOINT, closeLabel, isAlone, nextSelection, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
 
 const TABS = [
   {id: 'a', title: 'Notes'},
@@ -58,6 +58,19 @@ describe('switcherLabel', () => {
 
   it('says the count alone when nothing is open', () => {
     expect(switcherLabel(TABS, 'gone')).toBe('3 tabs');
+  });
+});
+
+describe('isAlone', () => {
+  const props = {tabs: TABS, selected: 'a', onSelect: () => {}};
+
+  it('is the tabs alone when the element has no children at all', () => {
+    expect(isAlone(props)).toBe(true);
+  });
+
+  it('is a page for children written but rendering nothing', () => {
+    expect(isAlone({...props, children: null})).toBe(false);
+    expect(isAlone({...props, children: undefined})).toBe(false);
   });
 });
 

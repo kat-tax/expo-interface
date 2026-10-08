@@ -7,7 +7,7 @@ import XamlTabView from '../windows/specs/ExpoInterfaceTabViewNativeComponent';
 import {glyphOf, jsonProp, useXamlProps} from '../windows';
 import {useColor} from '../theme';
 import {TabSwitcher, useResolvedLayout} from './draw';
-import {ADD_LABEL, tabLabel} from './shared';
+import {ADD_LABEL, isAlone, tabLabel} from './shared';
 
 /**
  * The height WinUI gives a tab strip: `TabViewItemHeaderHeight`, plus the room
@@ -37,24 +37,25 @@ const STRIP_HEIGHT = 40;
  * three. WinUI has no control for that shape, and a strip that narrow is
  * unreadable in any case.
  *
- * Without children the view is the strip, or the switcher's bar, alone: as
- * tall as that and no taller, for a strip in a `HeaderAccessory` whose pages
- * are the screen's content.
+ * With no children at all (see `isAlone`) the view is the strip, or the
+ * switcher's bar, alone: as tall as that and no taller, for a strip in a
+ * `HeaderAccessory` whose pages are the screen's content.
  */
-export function TabView({
-  tabs,
-  selected,
-  onSelect,
-  onClose,
-  onAdd,
-  addLabel = ADD_LABEL,
-  children,
-  label = 'Tabs',
-  layout = 'auto',
-  fill = 'element',
-  testID,
-  style,
-}: TabViewProps) {
+export function TabView(props: TabViewProps) {
+  const {
+    tabs,
+    selected,
+    onSelect,
+    onClose,
+    onAdd,
+    addLabel = ADD_LABEL,
+    children,
+    label = 'Tabs',
+    layout = 'auto',
+    fill = 'element',
+    testID,
+    style,
+  } = props;
   const {resolved, onLayout} = useResolvedLayout(layout);
   const xaml = useXamlProps();
   // An island cannot be see-through (its root is white wherever its content
@@ -65,8 +66,7 @@ export function TabView({
   // A tab's menu, open where the island said the right click or the Menu
   // key landed, in the island's coordinates, which are the root's.
   const [menu, setMenu] = useState<{items: MenuItem[]; at: MenuPoint} | null>(null);
-  // Children left out are the tabs alone; `null` is still a page, an empty one.
-  const alone = children === undefined;
+  const alone = isAlone(props);
   const page = alone ? null : <View style={styles.content}>{children}</View>;
   return (
     <View style={[styles.root, alone && styles.alone, style]} onLayout={onLayout} testID={testID}>

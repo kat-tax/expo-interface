@@ -1,7 +1,7 @@
 import type {TabViewProps} from './types';
 import {StyleSheet, View} from 'react-native';
 import {TabStrip, TabSwitcher, useResolvedLayout} from './draw';
-import {ADD_LABEL} from './shared';
+import {ADD_LABEL, isAlone} from './shared';
 
 /**
  * iOS and Android draw the strip themselves, because neither platform has a
@@ -15,29 +15,28 @@ import {ADD_LABEL} from './shared';
  * that opens a grid of cards, and grow a real strip only on a tablet. So the
  * breakpoint is the design, and the drawing follows it.
  *
- * Without children the view is the strip, or the switcher's bar, alone: as
- * tall as that and no taller, for a strip in a `HeaderAccessory` whose pages
- * are the screen's content.
+ * With no children at all (see `isAlone`) the view is the strip, or the
+ * switcher's bar, alone: as tall as that and no taller, for a strip in a
+ * `HeaderAccessory` whose pages are the screen's content.
  */
-export function TabView({
-  tabs,
-  selected,
-  onSelect,
-  onClose,
-  onAdd,
-  addLabel = ADD_LABEL,
-  children,
-  label = 'Tabs',
-  layout = 'auto',
-  fill = 'element',
-  testID,
-  style,
-}: TabViewProps) {
+export function TabView(props: TabViewProps) {
+  const {
+    tabs,
+    selected,
+    onSelect,
+    onClose,
+    onAdd,
+    addLabel = ADD_LABEL,
+    children,
+    label = 'Tabs',
+    layout = 'auto',
+    fill = 'element',
+    testID,
+    style,
+  } = props;
   const {resolved, onLayout} = useResolvedLayout(layout);
   const draw = {tabs, selected, onSelect, onClose, onAdd, addLabel, fill, label, testID};
-  // Children left out are the tabs alone. `null` is still a page, an empty
-  // one, so a view whose last document closes keeps its size.
-  const alone = children === undefined;
+  const alone = isAlone(props);
   const page = alone ? null : <View style={styles.content}>{children}</View>;
   return (
     <View style={[styles.root, alone && styles.alone, style]} onLayout={onLayout} testID={testID}>

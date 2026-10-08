@@ -214,6 +214,17 @@ describe(`TabView (${Platform.OS})`, () => {
       expect(root().children).toHaveLength(2);
     });
 
+    it('keeps the page for children that come out undefined, as when the last document closes', async () => {
+      const open = TABS.find(tab => tab.id === 'gone');
+      await render(
+        <TabView tabs={TABS} selected="gone" onSelect={() => {}} layout="strip" testID="t">
+          {open && <Text>{open.title}</Text>}
+        </TabView>,
+      );
+      expect(grow()).toBe(1);
+      expect(root().children).toHaveLength(2);
+    });
+
     it('is the switcher\'s bar alone, with nothing under it until the cards open', async () => {
       await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
       expect(grow()).toBe(0);

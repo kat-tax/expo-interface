@@ -65,12 +65,15 @@ export interface TabViewProps {
    */
   addLabel?: string;
   /**
-   * The selected tab's content, drawn under the strip. Left out, the view is
-   * the tabs alone: as tall as the strip or the switcher's bar rather than
-   * growing into its parent, and on web with no `tabpanel` for the tabs to
-   * control. That is the shape for a strip in a `HeaderAccessory`, whose pages
-   * are the screen's content. `null` is a page with nothing in it, which keeps
-   * the view's size when the last document closes.
+   * The selected tab's content, drawn under the strip. Left out of the
+   * element altogether, the view is the tabs alone: as tall as the strip or
+   * the switcher's bar rather than growing into its parent, and on web with
+   * no `tabpanel` for the tabs to control. That is the shape for a strip in a
+   * `HeaderAccessory`, whose pages are the screen's content. Children written
+   * but rendering nothing, `null` or the `undefined` of
+   * `{current && <Editor/>}`, are a page with nothing in it, which keeps the
+   * view's size when the last document closes. A component that wraps a
+   * `TabView` passes `children` on only when it was given some.
    */
   children?: ReactNode;
   /**

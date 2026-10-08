@@ -178,12 +178,14 @@ tab's content; left out, the tabs alone), `label` ("Tabs"), `layout`
 the open tab: it moves to the next tab, or the previous one when the last was
 closed.
 
-Without `children` the view is the tabs alone: as tall as the strip or the
-switcher's bar rather than growing into its parent, and on web with no
-`tabpanel` for the tabs to control. That is the shape for a strip in a
-`HeaderAccessory`, whose pages are the screen's content. `null` children are
-a page with nothing in it, so a view whose last document closes keeps its
-size.
+With no `children` at all the view is the tabs alone: as tall as the strip
+or the switcher's bar rather than growing into its parent, and on web with
+no `tabpanel` for the tabs to control. That is the shape for a strip in a
+`HeaderAccessory`, whose pages are the screen's content. Children written
+but rendering nothing, `null` or the `undefined` of `{current && <Editor/>}`,
+are a page with nothing in it, so a view whose last document closes keeps
+its size. A component that wraps a `TabView` passes `children` on only when
+it was given some.
 
 | Platform | Strip (640 points and wider) | Switcher (narrower) |
 | --- | --- | --- |
