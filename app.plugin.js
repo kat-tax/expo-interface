@@ -1,6 +1,6 @@
-// The kit's config plugin: the launch screen and the window behind the app in
-// the kit's background for each scheme, so nothing shows Expo's defaults
-// before the first screen paints. In app.json: "plugins": ["expo-interface"],
+// The kit's config plugin: the launch screen and Android's window behind the
+// app in the kit's background for each scheme, so nothing shows Expo's
+// defaults before the first screen paints. In app.json: "plugins": ["expo-interface"],
 // or ["expo-interface", {"light": "#fafafa", "dark": "#111111"}].
 const {AndroidConfig, withAndroidColors, withAndroidColorsNight, withAndroidStyles, withPlugins} = require('expo/config-plugins');
 
@@ -26,10 +26,15 @@ function canResolve(config, name) {
 }
 
 function withExpoInterface(config, {light = BACKGROUND.light, dark = BACKGROUND.dark} = {}) {
-  // The window: expo-system-ui writes `backgroundColor` as Android's window
-  // background and iOS's root view. The app's own color wins.
-  config.backgroundColor ??= light;
-  const day = config.android?.backgroundColor ?? config.backgroundColor;
+  // Android's window, in the light color unless the app gives its own.
+  // expo-system-ui writes `android.backgroundColor` (or the top-level color)
+  // to the same resource and removes it when there is none, so it is handed
+  // the color too, whichever of the two runs last. The top-level color stays
+  // the app's: expo-system-ui makes it iOS's root view, one color for both
+  // schemes, and without it the root view starts in the system's white or
+  // black for the scheme the app launches in.
+  const day = config.android?.backgroundColor ?? config.backgroundColor ?? light;
+  config.android = {...config.android, backgroundColor: day};
   config = withAndroidColors(config, mod => {
     mod.modResults = AndroidConfig.Colors.assignColorValue(mod.modResults, {name: WINDOW, value: day});
     return mod;

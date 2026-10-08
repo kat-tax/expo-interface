@@ -108,21 +108,22 @@ browser's menu closed and be measured.
 
 ## Launch and window colors
 
-The kit's config plugin paints the launch screen and the window behind the
-app in the kit's background for each scheme, so nothing shows Expo's
+The kit's config plugin paints the launch screen and Android's window behind
+the app in the kit's background for each scheme, so nothing shows Expo's
 defaults before the first screen does:
 
 ```json
 {"expo": {"plugins": ["expo-interface"]}}
 ```
 
-`["expo-interface", {"light": "#fafafa", "dark": "#111111"}]` takes colors of
-the app's own; the palette's `background` is the default.
+`["expo-interface", {"light": "#fafafa", "dark": "#111111"}]` colors the
+launch screen and Android's window with colors of the app's own; the
+palette's `background` is the default.
 
 | What | How |
 | --- | --- |
-| Android's window | `android:windowBackground` in the app theme, with the light color in `values` and the dark one in `values-night`, so the window follows the scheme from the moment the app starts |
-| iOS's window | `backgroundColor`, which `expo-system-ui` writes as the root view's color. iOS takes one color there, the light one; `Screen` paints the scheme's as the app loads |
+| Android's window | `android:windowBackground` in the app theme, with the light color in `values` and the dark one in `values-night`, so the window follows the scheme from the moment the app starts. The light color is also the app's `android.backgroundColor`, which `expo-system-ui` writes to the same place |
+| iOS's window | Left to the app. With no `backgroundColor` or `ios.backgroundColor` of the app's own, `expo-system-ui` starts the root view in white or black for the scheme the app launches in, the palette's `background`, and `Screen` paints the scheme's as the app loads. `expo-system-ui` keeps the color `Screen` last painted and starts the next launch in it. A color of the app's own there is one color for both schemes |
 | The launch screen | `expo-splash-screen`'s `backgroundColor` and `dark.backgroundColor`, when the app has `expo-splash-screen` and does not configure it itself |
 
 An app's own `backgroundColor`, `android.backgroundColor` or
