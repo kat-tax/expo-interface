@@ -1,3 +1,4 @@
+import type {PlatformIOSStatic} from 'react-native';
 import {Dimensions, Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
@@ -27,6 +28,20 @@ async function press(testID: string) {
 const hasTestID = (testID: string) => isIOS
   ? screen.queryByTestId(testID) !== null
   : nodes().some(n => modifier(n.props, 'testID')?.testID === testID);
+
+/** Reports the width the sheet offers its column, as SwiftUI's `onGeometryChange` and Compose's `onSizeChanged` do. */
+async function measure(width: number) {
+  const type = isIOS ? 'onGeometryChange' : 'onSizeChanged';
+  const column = host(p => modifier(p, type) != null);
+  const size = isIOS ? {x: 0, y: 400, width, height: 320} : {width, height: 320};
+  await act(async () => modifier(column.props, type)?.eventListener(size));
+}
+
+/** The width the capped body's scroll view and the footer's box are told. */
+const widths = () => [
+  StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).width,
+  StyleSheet.flatten(screen.getByTestId('sheet-footer').props.style).width,
+];
 
 describe(`Sheet chrome (${Platform.OS})`, () => {
   it('draws the bar as native content: the title over the subtitle, back and close at the ends, the menu before close', async () => {
@@ -122,7 +137,7 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
     const body = screen.getByTestId('sheet-body');
     const window = Dimensions.get('window').width;
     // A phone's sheet is the window's width; an iPad's is a form sheet, and Material caps a sheet at 640.
-    const sheet = Math.min(window, isIOS ? 540 : 640);
+    const sheet = isIOS ? window : Math.min(window, 640);
     expect(StyleSheet.flatten(body.props.style)).toMatchObject({maxHeight: 300, width: sheet - 32});
     // Android hands a drag in the body to the sheet, which expands before the body scrolls.
     expect(body.props.nestedScrollEnabled).toBe(true);
@@ -184,7 +199,7 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
       </Sheet>,
     );
     const window = Dimensions.get('window').width;
-    const sheet = Math.min(window, isIOS ? 540 : 640);
+    const sheet = isIOS ? window : Math.min(window, 640);
     expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).width).toBe(sheet - 16);
   });
 
@@ -198,8 +213,41 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).maxHeight).toBe(height * 0.5);
   });
 
+  it('tells the body and the footer the width the sheet\'s column measures, through a rotation, and keeps it through a pass with none', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} footer={<Text>Write</Text>} maxHeight={300} testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    // Inside the sheet's padding, its safe areas and its own limit: the content's width, whatever the window's.
+    await measure(700);
+    expect(widths()).toEqual([700, 700]);
+    await measure(0);
+    expect(widths()).toEqual([700, 700]);
+    await measure(358);
+    expect(widths()).toEqual([358, 358]);
+  });
+
+  it('tells a phone in landscape a sheet as wide as the window before the column measures, at most Material\'s 640 on Android', async () => {
+    const phone = Dimensions.get('window');
+    Dimensions.set({window: {...phone, width: 844, height: 390}});
+    try {
+      await render(
+        <Sheet isPresented onDismiss={() => {}} footer={<Text>Write</Text>} maxHeight={300} testID="sheet">
+          <Text>Body</Text>
+        </Sheet>,
+      );
+      // An iPhone's sheet in compact height fills the screen: the form sheet's width is an iPad's alone.
+      const width = (isIOS ? 844 : 640) - 32;
+      expect(widths()).toEqual([width, width]);
+    } finally {
+      await act(async () => Dimensions.set({window: phone}));
+    }
+  });
+
   it('tells the body and the footer a tablet sheet\'s width, not the window\'s: a form sheet on an iPad, Material\'s 640 on Android', async () => {
     const phone = Dimensions.get('window');
+    const pad = isIOS ? vi.spyOn(Platform as PlatformIOSStatic, 'isPad', 'get').mockReturnValue(true) : undefined;
     Dimensions.set({window: {...phone, width: 1180}});
     try {
       await render(
@@ -208,11 +256,11 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
         </Sheet>,
       );
       const width = (isIOS ? 540 : 640) - 32;
-      expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).width).toBe(width);
-      expect(StyleSheet.flatten(screen.getByTestId('sheet-footer').props.style).width).toBe(width);
+      expect(widths()).toEqual([width, width]);
     } finally {
       // The sheet is still mounted, and the change re-renders the pieces that read the window.
       await act(async () => Dimensions.set({window: phone}));
+      pad?.mockRestore();
     }
   });
 });

@@ -93,12 +93,27 @@ describe(`Sheet (${Platform.OS})`, () => {
     const [stack] = group.children as HostNode[];
     expect(stack.type).toBe('ViewManagerAdapter_ExpoUI_VStackView');
     expect(stack.props).toMatchObject({spacing: 0, alignment: 'leading'});
-    expect(stack.props.modifiers).toBeUndefined();
+    // It takes the width offered, not its pieces', and reports it for the hosted pieces.
+    expect((stack.props.modifiers as {$type: string}[]).map(m => m.$type)).toEqual(['frame', 'onGeometryChange']);
+    expect(modifier(stack.props, 'frame')).toEqual({$type: 'frame', minWidth: 0, maxWidth: Infinity, alignment: 'leading'});
     const [bar, body, actions] = stack.children as HostNode[];
     expect(stack.children).toHaveLength(3);
     expect(bar.props.testID).toBe('sheet-bar');
     expect(JSON.stringify(body)).toContain('"Body"');
     expect(actions.props.testID).toBe('sheet-actions');
+  });
+
+  (isIOS ? it.skip : it)('stacks the pieces in one Compose column that fills the sheet\'s width', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} title="New drop" actions={[{label: 'Create'}]} testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    const [column] = byComposeTestID('sheet').children as HostNode[];
+    expect(byComposeTestID('sheet').children).toHaveLength(1);
+    expect(column.type).toBe('ViewManagerAdapter_ExpoUI_ColumnView');
+    expect((column.props.modifiers as {$type: string}[]).map(m => m.$type)).toEqual(['fillMaxWidth', 'onSizeChanged']);
+    expect(column.children).toHaveLength(3);
   });
 
   it('hides the drag indicator on request', async () => {

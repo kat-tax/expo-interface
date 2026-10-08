@@ -302,9 +302,13 @@ a body must be `@expo/ui` content (a `FieldGroup`, a `List`, a
 footer are React Native content, each hosted in the sheet in an
 `RNHostView` at the sheet's width, since a React Native view inside the
 platform's sheet takes no presses and has no width of its own to fill
-without one: the window's width, at most a form sheet's on an iPad or 640
-points on Android (Material's limit for a sheet), less the sheet's padding.
-A `Pressable` in them takes presses, and a control in them mounts a host of
+without one. The sheet's pieces sit in one native column that takes the
+width the sheet offers and reports it, so the hosted pieces span a sheet
+that fills a phone in landscape, stay inside its safe areas and inside an
+inset sheet, and follow a rotation. Until the column has reported, they
+take the window's width, at most a form sheet's on an iPad or 640 points on
+Android (Material's limit for a sheet), less the sheet's padding. A
+`Pressable` in them takes presses, and a control in them mounts a host of
 its own. Give a React Native body a `maxHeight`.
 
 On web and Windows the sheet's content counts as hosted: controls inside it
