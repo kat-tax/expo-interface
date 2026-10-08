@@ -607,6 +607,11 @@ On iOS and Android a rule outside a host mounts one of its own, so it draws
 between React Native views too: as wide as its container, or, vertical, as
 tall as its row. See [Native hosts](../hosts.md).
 
+Inside a host (a `Toolbar`'s row, a `NativeHost`), a vertical rule on iOS is
+as tall as the SwiftUI row it is in. On Android it is 24dp, Material's icon
+size, with any `inset` taken from that: Compose's rule fills the height it
+is given, and inside a host there is no row height to give it.
+
 ## EmptyState
 
 What a screen shows when it has nothing to show: no drops yet, no results, no

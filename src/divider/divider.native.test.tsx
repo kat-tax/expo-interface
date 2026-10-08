@@ -25,6 +25,29 @@ describe(`Divider (${Platform.OS})`, () => {
     expect(divider('inside')).toBeTruthy();
   });
 
+  it('gives a vertical rule inside a host a length of its own on Android, where Compose has no row height for it to fill', async () => {
+    await render(
+      <NativeHostContext.Provider value={true}>
+        <Divider vertical inset={4} testID="hosted"/>
+        <Divider testID="across"/>
+      </NativeHostContext.Provider>,
+    );
+    const hosted = divider('hosted').props;
+    const across = divider('across').props;
+    if (isIOS) {
+      // SwiftUI's Divider takes the height of the HStack it is in.
+      expect(modifier(hosted, 'frame')).toBeUndefined();
+    } else {
+      // Before the inset, which is taken from the length.
+      expect((hosted.modifiers as {$type: string}[]).map(m => m.$type)).toEqual(['height', 'padding', 'testID']);
+      expect(modifier(hosted, 'height')).toEqual({$type: 'height', height: 24});
+      expect(modifier(across, 'height')).toBeUndefined();
+    }
+    // Outside a host it is its own host's height, which is the row's.
+    await render(<Divider vertical testID="alone"/>);
+    expect(modifier(divider('alone').props, 'height')).toBeUndefined();
+  });
+
   it('renders the native divider with the theme separator color', async () => {
     await render(<Divider testID="rule"/>);
     const {props} = divider('rule');

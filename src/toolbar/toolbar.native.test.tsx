@@ -168,6 +168,9 @@ describe('commands', () => {
     expect(rule).toBeLessThan(at('Undo'));
     // Still one host: the rule draws inside the bar's row.
     expect(hosts()).toHaveLength(1);
+    // A host sized to its content gives Compose's rule no height to fill, so
+    // on Android it has a length of its own; SwiftUI's takes the row's.
+    if (!isIOS) expect(modifier(rules[0]!.props, 'height')).toEqual({$type: 'height', height: 24});
   });
 
   it('keeps a toggle\'s state in the overflow as the menu\'s check', async () => {
