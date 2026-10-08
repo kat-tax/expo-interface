@@ -28,7 +28,10 @@ const RowLayout = createContext<((event: LayoutChangeEvent) => void) | undefined
 export function PlacedCard({anchored, width, sizedLater = false, ...props}: PlacedCardProps) {
   const [measured, setMeasured] = useState(false);
   const [rowSized, setRowSized] = useState(false);
-  const ready = measured && (rowSized || !sizedLater);
+  // Only a card that comes up with the row waits for it, and only while it
+  // still has one: a card that gains the row while it is up stays seen.
+  const [cameWithRow] = useState(sizedLater);
+  const ready = measured && (rowSized || !(cameWithRow && sizedLater));
   return (
     <RowLayout.Provider
       value={event => {

@@ -84,6 +84,22 @@ describe(`Popover (${Platform.OS})`, () => {
     expect(style().pointerEvents).toBeUndefined();
   });
 
+  it('stays seen when it gains actions while it is up, and stops waiting when it loses them', async () => {
+    const popover = (actions?: {label: string; onPress: () => void}[]) => <Popover at={at} title="Spelling" actions={actions} testID="lint"/>;
+    const {rerender} = await render(popover());
+    await card(60);
+    expect(style().opacity).toBeUndefined();
+    await rerender(popover([{label: 'Fix', onPress: vi.fn()}]));
+    expect(style().opacity).toBeUndefined();
+    // Up again with actions, which go before their host has been sized.
+    await rerender(<Popover at={null} testID="lint"/>);
+    await rerender(popover([{label: 'Fix', onPress: vi.fn()}]));
+    await card(100);
+    expect(style().opacity).toBe(0);
+    await rerender(popover());
+    expect(style().opacity).toBeUndefined();
+  });
+
   it('leaves a card that fits below where it is', async () => {
     await render(<Popover at={at} title="Spelling" testID="lint"/>);
     await bounds(320, 480);
