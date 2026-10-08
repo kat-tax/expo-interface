@@ -46,7 +46,9 @@ export interface NativeProps extends ViewProps {
   /**
    * What the add button is called to UI Automation and in its tooltip, in
    * place of WinUI's own name and tooltip for it. Left out or empty, the
-   * button keeps WinUI's, which are in the system's language.
+   * button keeps WinUI's, which are in the system's language. Words once
+   * given stay when the prop is taken away again: WinUI's are gone from the
+   * button by then, and only a new template brings them back.
    */
   addLabel?: string;
   /**
