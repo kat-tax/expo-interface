@@ -30,13 +30,18 @@ export interface EmptyStateAction {
  * a search, no connection. A centred icon, a line saying what is missing, a
  * sentence saying why, and usually one thing to do about it.
  *
- * - iOS: `ContentUnavailableView`, the system's own — so it takes Apple's
+ * - iOS: `ContentUnavailableView`, the system's own, so it takes Apple's
  *   layout, its metrics and its Dynamic Type behaviour rather than an
- *   approximation of them. It needs iOS 17; below that the kit draws it.
+ *   approximation of them. It needs iOS 17; below that the same layout is
+ *   composed in SwiftUI.
  * - Android: a Compose column in one host, so the icon, the text and the
  *   action are one native view.
  * - Windows, web: composed from the kit's own icon and typography. Neither
  *   platform has a single control for this.
+ *
+ * On iOS and Android the state mounts a host outside one, as wide as its
+ * container; inside one (a `Screen native`, a `NativeHost`, a `Sheet`, a
+ * hosted `List`'s `empty`) it renders bare, and its container places it.
  */
 export interface EmptyStateProps {
   /** One line: what is not here. */
@@ -48,7 +53,8 @@ export interface EmptyStateProps {
   /**
    * One thing to do about it: the kit's `Button`, from data, drawn inside the
    * platform's own view. A node of the app's own is drawn below it in React
-   * Native instead.
+   * Native instead, or, inside a host on iOS and Android, hosted in the view,
+   * where the kit's controls in it mount hosts of their own.
    */
   action?: EmptyStateAction | ReactNode;
   /**
@@ -64,8 +70,15 @@ export interface EmptyStateProps {
    * @default true
    */
   selectable?: boolean;
-  /** Identifier used to locate the component in end-to-end tests. */
+  /**
+   * Identifier used to locate the component in end-to-end tests. Inside a
+   * host on iOS and Android, the native stack's identifier.
+   */
   testID?: string;
+  /**
+   * The view the state is laid out in. Inside a host on iOS and Android the
+   * state is native content with no such view, so it is not applied.
+   */
   style?: StyleProp<ViewStyle>;
 }
 

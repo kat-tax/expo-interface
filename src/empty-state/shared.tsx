@@ -31,9 +31,9 @@ export function EmptyStateAction({action, testID}: {action: EmptyStateProps['act
 }
 
 /**
- * The column every platform lays out the same way, with the icon already drawn
- * by whichever file knows how to draw one here: `SymbolView` on web and on
- * iOS before 17, the kit's `Icon` on Windows, or the spinner while loading.
+ * The column the web and Windows lay out the same way, with the icon already
+ * drawn by whichever file knows how to draw one there: the kit's `Icon` on the
+ * web and on Windows, or the spinner while loading.
  *
  * One `accessible` group, so a screen reader reads the state as one thing
  * rather than as three unrelated lines of text.

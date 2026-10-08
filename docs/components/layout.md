@@ -463,19 +463,28 @@ connection. Props: `title`, `description`, `icon`, `action`, `loading`,
 `variant` (`filled` by default), `icon`, `disabled`, `loading`. The kit draws
 it as its own `Button` inside the platform's view, so natively the action is
 native beside native text rather than a React Native hop between the two. A
-node of the app's own is drawn below the view in React Native instead.
+node of the app's own is drawn below the view in React Native instead; inside
+a host it rides in the view as hosted React Native content, where the kit's
+controls mount hosts of their own.
 `loading` puts the platform's spinner in the icon's place, so a screen waiting
 for its record is the same empty state as one that has none. The description
 wraps at the screen's width and can be selected and copied, unless
 `selectable` is off.
 
+On iOS and Android, outside a host the state mounts one as wide as its
+container, and `style` and `testID` go on the view around it. Inside one (a
+`Screen native`, a `NativeHost`, a `Sheet`, a hosted `List`'s `empty`) it
+renders bare: its container places it, `testID` names the native stack, and
+`style` is not applied. See [Native hosts](../hosts.md).
+
 | Platform | Renders |
 | --- | --- |
 | iOS 17 and later | The system's `ContentUnavailableView` and the action in one host that fills the width. While `loading` the same layout is composed in SwiftUI, padded and filling as the system view does, with a `ProgressView` the symbol's size where the symbol goes. |
-| Older iOS, Web | A drawn column with the icon through `SymbolView`, the kit's `Spinner` while loading |
+| Older iOS | The same layout composed in SwiftUI, with the symbol as an SF Symbol image and the `ProgressView` while loading |
+| Web | A drawn column with the kit's `Icon`, the kit's `Spinner` while loading |
 | Android | A Compose column in one host: the token's drawable, the title and the description in the Material scale, the `CircularProgressIndicator` while loading, and the action as the Material button. A node of the app's own rides in the column as hosted React Native content. |
 | Windows | The drawn column with a Segoe glyph, the WinUI `ProgressRing` while loading |
 
-The drawn layout is one accessibility element that reads the title and the
-description together. The Compose column reads them as the two texts they
+The drawn layout (web, Windows) is one accessibility element that reads the
+title and the description together. The Compose column reads them as the two texts they
 are, since `@expo/ui`'s Compose layer sets no description on a column.

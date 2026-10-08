@@ -10,7 +10,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'What a screen shows when it has nothing to show. iOS 17 and later render the system\'s own `ContentUnavailableView`; every other platform, and older iOS, draw the same column from the kit\'s icon and typography, because none of them has a single control for it.',
+          'What a screen shows when it has nothing to show. iOS 17 and later render the system\'s own `ContentUnavailableView`, and older iOS compose the same layout in SwiftUI; Android composes it in Compose; the web and Windows draw it from the kit\'s icon and typography, because none of them has a single control for it.',
       },
     },
   },

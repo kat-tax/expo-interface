@@ -4,12 +4,18 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
 import {hostFit, hosts} from '../__tests__/hosts';
 import {iosSymbol} from '../button/shared';
+import {NativeHost, useNativeHost} from '../host';
 import {colors} from '../theme';
-import {host, modifier, nodes} from 'expo-vitest/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {EMPTY_ICON} from './shared';
 import {EmptyState} from '.';
 
 const isIOS = Platform.OS === 'ios';
+
+/** Says whether it sits below a host, as a kit control placed there would see it. */
+function Hosted() {
+  return <Text>{useNativeHost() ? 'hosted' : 'bare'}</Text>;
+}
 
 describe(`EmptyState (${Platform.OS})`, () => {
   if (Platform.OS === 'web') {
@@ -106,7 +112,31 @@ describe(`EmptyState (${Platform.OS})`, () => {
       expect(nodes().some(n => n.props.text === 'One moment.')).toBe(false);
     });
 
-    it('draws the column instead on iOS 16, where ContentUnavailableView does not exist', async () => {
+    it('renders bare inside a host, the test ID on the native stack', async () => {
+      await render(
+        <NativeHost>
+          <EmptyState title="No drops" description="Nothing shared." action={{label: 'New drop'}} testID="empty"/>
+        </NativeHost>,
+      );
+      // One host: the one around it, not a second nested inside.
+      expect(hosts()).toHaveLength(1);
+      expect(host(p => p.testID === 'empty').type).toContain('VStack');
+      expect(host(p => p.title === 'No drops')).toBeTruthy();
+      expect(host(p => p.label === 'New drop')).toBeTruthy();
+      await render(<NativeHost><EmptyState title="Nothing here"/></NativeHost>);
+      expect(hosts()).toHaveLength(1);
+      expect(host(p => p.title === 'Nothing here')).toBeTruthy();
+    });
+
+    it('hosts a node of the app\'s own in the stack inside a host, outside the host\'s context', async () => {
+      await render(<NativeHost><EmptyState title="No drops" action={<Hosted/>}/></NativeHost>);
+      expect(hosts()).toHaveLength(1);
+      expect(host(p => p.matchContents === true)).toBeTruthy();
+      // A kit control in the node mounts a host of its own, since it is React Native again.
+      expect(screen.getByText('bare')).toBeOnTheScreen();
+    });
+
+    it('composes the same layout in SwiftUI on iOS 16, where ContentUnavailableView does not exist', async () => {
       // SUPPORTED is read once when the module loads, so the version has to be
       // in place before the import rather than before the render.
       vi.resetModules();
@@ -116,8 +146,15 @@ describe(`EmptyState (${Platform.OS})`, () => {
       });
       const {EmptyState: Old} = await import('.');
       await render(<Old title="No drops yet" description="Nothing shared." icon={icons.add} testID="old"/>);
-      expect(screen.getByText('No drops yet')).toBeOnTheScreen();
-      expect(screen.getByTestId('old').props.accessibilityLabel).toBe('No drops yet. Nothing shared.');
+      expect(nodes().some(n => n.type.includes('ContentUnavailableView'))).toBe(false);
+      // The symbol as an SF Symbol image, in the size the other platforms give the icon.
+      expect(modifier(host(p => p.systemName === iosSymbol(icons.add)).props, 'font')).toMatchObject({size: EMPTY_ICON});
+      expect(host(p => p.text === 'No drops yet')).toBeTruthy();
+      // Native through and through: one host, and no React Native drawn inside it.
+      expect(hosts()).toHaveLength(1);
+      expect(screen.getByTestId('old')).toBeOnTheScreen();
+      await render(<Old title="Nothing here"/>);
+      expect(nodes().some(n => n.type.endsWith('ImageView'))).toBe(false);
       vi.doUnmock('react-native');
       vi.resetModules();
     });
@@ -152,5 +189,15 @@ describe(`EmptyState (${Platform.OS})`, () => {
     // React Native content rides in the column through an RNHostView.
     expect(host(p => p.matchContents === true)).toBeTruthy();
     expect(screen.getByText('Cancel')).toBeOnTheScreen();
+    // Outside the host's context, so a kit control in the node mounts a host of its own.
+    await render(<NativeHost><EmptyState title="Opening" action={<Hosted/>}/></NativeHost>);
+    expect(screen.getByText('bare')).toBeOnTheScreen();
+  });
+
+  it('renders bare inside a host, the test ID on the column', async () => {
+    await render(<NativeHost><EmptyState title="No drops" testID="empty"/></NativeHost>);
+    // One host: the one around it, not a second nested inside.
+    expect(hosts()).toHaveLength(1);
+    expect(byComposeTestID('empty').type).toContain('Column');
   });
 });
