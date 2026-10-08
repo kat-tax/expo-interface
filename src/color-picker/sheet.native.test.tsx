@@ -32,15 +32,22 @@ describe(`ColorPickerSheet (${Platform.OS})`, () => {
   });
 
   it('draws a title row only for a title or a close button', async () => {
-    const {rerender} = await render(<ColorPickerSheet value="#FF6347" supportsOpacity onValueChange={vi.fn()}/>);
+    // The sheet's first child: the title row when there is one, the tabs when there is none.
+    const first = () => screen.getByTestId('sheet').children[0];
+    const {rerender} = await render(<ColorPickerSheet value="#FF6347" supportsOpacity onValueChange={vi.fn()} testID="sheet"/>);
+    expect(first()).toBe(screen.getByLabelText('Picker'));
     expect(screen.queryByRole('heading')).toBeNull();
     expect(screen.queryByLabelText('Close')).toBeNull();
-    await rerender(<ColorPickerSheet title="Ink" value="#FF6347" supportsOpacity onValueChange={vi.fn()}/>);
-    expect(screen.getByRole('heading', {name: 'Ink'})).toBeTruthy();
+    await rerender(<ColorPickerSheet title="Ink" value="#FF6347" supportsOpacity onValueChange={vi.fn()} testID="sheet"/>);
+    expect(first()).not.toBe(screen.getByLabelText('Picker'));
+    expect(screen.getByTestId('sheet').children[1]).toBe(screen.getByLabelText('Picker'));
+    expect(screen.getByRole('heading', {name: 'Ink'}).parent).toBe(first());
     expect(screen.queryByLabelText('Close')).toBeNull();
     const onClose = vi.fn();
-    await rerender(<ColorPickerSheet value="#FF6347" supportsOpacity onValueChange={vi.fn()} onClose={onClose}/>);
+    await rerender(<ColorPickerSheet value="#FF6347" supportsOpacity onValueChange={vi.fn()} onClose={onClose} testID="sheet"/>);
     expect(screen.queryByRole('heading')).toBeNull();
+    // A close button alone keeps the row.
+    expect(screen.getByLabelText('Close').parent).toBe(first());
     await fireEvent.press(screen.getByLabelText('Close'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
