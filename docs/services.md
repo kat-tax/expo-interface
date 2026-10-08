@@ -49,7 +49,7 @@ const saved = await saveFile({name: 'notes.md', content: markdown, mimeType: 'te
 | --- | --- |
 | iOS | The folder the user picks in the system's document picker, through `expo-file-system` |
 | Android | The folder the user picks through the Storage Access Framework, through `expo-file-system` |
-| Web | The browser's save picker where it has one (the Chromium browsers), where the user picks the folder and the name; a download everywhere else |
+| Web | The browser's save picker where it has one (the Chromium browsers), where the user picks the folder and the name; a download everywhere else, and where the picker will not open, as when the press that started the save is too long ago |
 | Windows | The folder the user picks in the shell's picker, through `expo-file-system` on `expo-windows` |
 
 Natively it needs `expo-file-system`, an optional peer, and says so when it
