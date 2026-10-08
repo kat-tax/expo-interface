@@ -437,7 +437,8 @@ Differences:
   there a scroll up into rows never drawn can move what shows by the
   difference between their height and the estimate. A row scrolled out of
   the window is removed, as a native lazy list removes it, and the focus
-  with it.
+  with it. The browser's find in page and a screen reader's browse mode
+  see only the rows drawn.
 
 ## CardGrid
 
@@ -493,7 +494,9 @@ Differences:
   same columns. Each cell says where it stands in the whole
   (`aria-posinset`, `aria-setsize`), and `onEndReached` fires as the
   `List`'s does: once the grid is laid out and the window draws the last
-  row, and again when more cards arrive while it is still drawn.
+  row, and again when more cards arrive while it is still drawn. As with
+  the `List`, find in page and a screen reader's browse mode see only the
+  cards drawn.
 
 ## Collapsible
 
