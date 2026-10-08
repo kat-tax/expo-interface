@@ -221,6 +221,32 @@ describe('commands (windows)', () => {
     expect(onArchive).not.toHaveBeenCalled();
   });
 
+  it('greys out a disabled menu command\'s entries on the drawn bar, and binds none of their shortcuts', async () => {
+    const {LayerHost} = await import('../windows/layer');
+    const onHeading = vi.fn();
+    const onArchive = vi.fn();
+    await render(
+      <LayerHost testID="host">
+        <Toolbar
+          commands={[
+            {label: 'Turn into', items: [{label: 'Heading', shortcut: 'Ctrl+H', onPress: onHeading}]},
+            {label: 'More', disabled: true, items: [{label: 'Archive', shortcut: 'Ctrl+E', onPress: onArchive}]},
+          ]}
+          field={<Text>Find</Text>}
+        />
+      </LayerHost>,
+    );
+    expect(islands('ExpoInterfaceMenuFlyout').map(flyout => JSON.parse(flyout.props.items).map((item: {disabled: boolean}) => item.disabled))).toEqual([
+      [false],
+      [true],
+    ]);
+    const press = (key: string) => fireEvent(screen.getByTestId('host'), 'keyDown', {nativeEvent: {key, ctrlKey: true, shiftKey: false, altKey: false, metaKey: false}});
+    await press('h');
+    expect(onHeading).toHaveBeenCalledTimes(1);
+    await press('e');
+    expect(onArchive).not.toHaveBeenCalled();
+  });
+
   it('draws a menu command as the kit\'s menu beside a field, and its entries in the overflow when it folds', async () => {
     const commands = [{label: 'Turn into', items: [{label: 'Heading'}, {label: 'Quote'}]}, {label: 'Export', secondary: true}];
     await render(<Toolbar commands={commands} field={<Text>Find</Text>} testID="bar"/>);

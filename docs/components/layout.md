@@ -204,8 +204,9 @@ Differences:
   menus do not nest, so behind the overflow, on iOS, Android, web and a
   drawn Windows bar, its entries take its place, set off by rules, without
   the command's own label, and greyed out with it when it is `disabled`.
-  The Windows `CommandBar` opens them as a submenu, and binds their
-  `shortcut`s while the bar is mounted.
+  The Windows `CommandBar` opens them as a submenu. On Windows, either bar
+  binds the entries' `shortcut`s while it is mounted, and a `disabled`
+  command binds none of them.
 
 `fieldCommands` are the field's own: a find bar's previous and next, an
 assistant's send. They share the trailing group's host, so a bar with a

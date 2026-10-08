@@ -170,9 +170,10 @@ function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], p
 
 /**
  * Commands as the kit's own buttons, each an island of its own; a command
- * with `items` is the kit's own `Menu`, its button and its `MenuFlyout`. A
- * command with `separator` has a vertical rule before it, none before the
- * first of the group, as a menu's entries do.
+ * with `items` is the kit's own `Menu`, its button and its `MenuFlyout`,
+ * whose entries are greyed out with it, so their shortcuts are not bound
+ * while it is disabled. A command with `separator` has a vertical rule
+ * before it, none before the first of the group, as a menu's entries do.
  */
 function CommandButtons({commands}: {commands: ToolbarCommand[]}) {
   if (commands.length === 0) return null;
@@ -190,7 +191,7 @@ function CommandButtons({commands}: {commands: ToolbarCommand[]}) {
               hideLabel={command.hideLabel}
               tone={command.tone}
               disabled={command.disabled}
-              items={command.items}
+              items={command.disabled ? command.items.map(item => ({...item, disabled: true})) : command.items}
               testID={command.testID}
             />
           ) : (

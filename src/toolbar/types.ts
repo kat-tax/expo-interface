@@ -66,7 +66,8 @@ export interface ToolbarCommand {
    * bar it is the kit's `Menu`, in the Windows `CommandBar` an
    * `AppBarButton` with its `MenuFlyout`. Behind the overflow its entries
    * take its place, set off by rules, since the kit's menus do not nest;
-   * the `CommandBar` opens them as a submenu.
+   * the `CommandBar` opens them as a submenu. A `disabled` command greys
+   * its entries out, and on Windows binds none of their shortcuts.
    */
   items?: MenuItem[];
   /**
