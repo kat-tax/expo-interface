@@ -609,7 +609,7 @@ container places it. See [Native hosts](../hosts.md).
 
 | Platform | Renders |
 | --- | --- |
-| iOS 17 and later | The system's `ContentUnavailableView` and the action in one host that fills the width. While `loading` the same layout is composed in SwiftUI, padded and sized as the system view is, with a large `ProgressView` in the symbol's 48 point slot. |
+| iOS 17 and later | The system's `ContentUnavailableView` and the action in one host that fills the width. While `loading` the same layout is composed in SwiftUI, padded by SwiftUI's standard inset, as wide as the system view and at its own height, with a large `ProgressView` in the symbol's 48 point slot. |
 | Older iOS | The same layout composed in SwiftUI, with the symbol as an SF Symbol image and the `ProgressView` while loading |
 | Web | A drawn column with the kit's `Icon`, the kit's `Spinner` while loading |
 | Android | A Compose column in one host: the token's drawable, the title and the description in the Material scale, the `CircularProgressIndicator` while loading, and the action as the Material button. A node of the app's own rides in the column as hosted React Native content. While `selectable`, the description is React Native text hosted in the column too, since `@expo/ui`'s Compose layer has no selection container. |

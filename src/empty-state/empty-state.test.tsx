@@ -99,7 +99,7 @@ describe(`EmptyState (${Platform.OS})`, () => {
     it('composes the same layout by hand while loading, padded and filling, with the spinner in the symbol\'s place', async () => {
       await render(<EmptyState title="Opening" description="One moment." icon={icons.add} loading testID="busy"/>);
       expect(nodes().some(n => n.props.title === 'Opening')).toBe(false);
-      // The system view's standard inset, and as greedy as the system view, so
+      // SwiftUI's standard inset, and as greedy as the system view, so
       // the state does not move when loading ends.
       const stack = nodes().find(n => n.type.includes('VStack') && modifier(n.props, 'padding'))!;
       expect(modifier(stack.props, 'padding')).toEqual({$type: 'padding', all: 'default'});
