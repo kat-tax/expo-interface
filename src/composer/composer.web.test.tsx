@@ -95,6 +95,16 @@ describe('Composer (web)', () => {
     expect(screen.getByRole('textbox', {name: 'Reply'})).toBeInTheDocument();
   });
 
+  it('keeps the notice in a polite live region, mounted before the first notice, with the gap under the capsule', () => {
+    const {rerender} = render(<Composer onSend={() => {}} testID="c"/>);
+    const region = screen.getByTestId('c').querySelector('[aria-live="polite"]')!;
+    expect(region).toBeEmptyDOMElement();
+    rerender(<Composer onSend={() => {}} notice="Could not send." noticeColor="destructive" testID="c"/>);
+    const line = screen.getByText('Could not send.');
+    expect(line.parentElement).toBe(region);
+    expect(getComputedStyle(line).marginTop).toBe('6px');
+  });
+
   it('takes its own labels, icons and keys, colors an error notice, and passes the field its traits', () => {
     const onSend = vi.fn();
     const onKeyPress = vi.fn();

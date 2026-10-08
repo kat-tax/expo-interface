@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {AccessibilityInfo, StyleSheet} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {island} from 'expo-vitest/windows';
 import * as icons from '../__stories__/icons';
@@ -58,6 +58,22 @@ describe('Composer (windows)', () => {
     expect(onKeyPress).toHaveBeenLastCalledWith('Escape', false);
     await rerender(<Composer {...props} busy/>);
     expect(island(BUTTON).props).toMatchObject({label: 'Cancel', glyph: glyphOf(STOP)});
+  });
+
+  it('announces a new notice to Narrator, but not the one it mounts with', async () => {
+    const announce = vi.spyOn(AccessibilityInfo, 'announceForAccessibilityWithOptions').mockImplementation(() => {});
+    try {
+      const {rerender} = await render(<Composer onSend={() => {}} notice="Shift+Enter for a new line" testID="c"/>);
+      // react-native-windows raises no event when a live region's text changes, so the composer sets none.
+      expect(screen.container.queryAll(node => node.props.accessibilityLiveRegion !== undefined)).toHaveLength(0);
+      expect(announce).not.toHaveBeenCalled();
+      await rerender(<Composer onSend={() => {}} notice="Could not send." noticeColor="destructive" testID="c"/>);
+      await rerender(<Composer onSend={() => {}} notice="Could not send." noticeColor="destructive" busy testID="c"/>);
+      await rerender(<Composer onSend={() => {}} testID="c"/>);
+      expect(announce.mock.calls).toEqual([['Could not send.', {queue: true}]]);
+    } finally {
+      announce.mockRestore();
+    }
   });
 
   it('takes a menu at the leading edge of the capsule', async () => {

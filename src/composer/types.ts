@@ -47,7 +47,13 @@ export interface ComposerProps {
    * @default false
    */
   busy?: boolean;
-  /** A line under the capsule: a hint, an error, who else is typing. Drawn in `noticeColor`. */
+  /**
+   * A line under the capsule: a hint, an error, who else is typing. Drawn in
+   * `noticeColor`. A screen reader reads a new notice out once it is done
+   * speaking, as a polite live region: through one on Android and web, and
+   * through an announcement on iOS and Windows. The notice the composer
+   * mounts with is not read.
+   */
   notice?: string;
   /**
    * The color of the `notice`: `destructive` for an error.

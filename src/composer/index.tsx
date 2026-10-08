@@ -1,6 +1,6 @@
 import type {ComposerProps} from './types';
-import {useState} from 'react';
-import {Platform, StyleSheet, View} from 'react-native';
+import {useEffect, useRef, useState} from 'react';
+import {AccessibilityInfo, Platform, StyleSheet, View} from 'react-native';
 import {Button} from '../button';
 import {Menu} from '../menu';
 import {SEND, STOP} from '../glyphs';
@@ -15,6 +15,29 @@ import {Footnote} from '../typography';
 const MIN_HEIGHT = 44;
 
 /**
+ * Where a new notice is announced rather than left to a live region: iOS
+ * has no live regions, and react-native-windows gives a view a live
+ * setting but raises no event when its text changes, so Narrator would
+ * not read it.
+ */
+const ANNOUNCES = Platform.OS === 'ios' || Platform.OS === 'windows';
+
+/**
+ * Has a screen reader read a new notice out, as a polite live region
+ * would: the error after a failed send above all. The notice the composer
+ * mounts with is not read, as a live region's first text is not. Android
+ * and web hear it through the live region around the line.
+ */
+function useAnnounced(notice: string | undefined) {
+  const read = useRef(notice);
+  useEffect(() => {
+    if (notice === read.current) return;
+    read.current = notice;
+    if (ANNOUNCES && notice) AccessibilityInfo.announceForAccessibilityWithOptions(notice, {queue: true});
+  }, [notice]);
+}
+
+/**
  * A capsule holding a bare field and a circle button, see
  * {@link ComposerProps}. Enter sends on web and a desktop keyboard and
  * Shift+Enter breaks the line, as the inline field reports them; the
@@ -23,7 +46,8 @@ const MIN_HEIGHT = 44;
  * since it sits in a React Native box wherever the composer is, inside a
  * sheet or not. On web the capsule draws the focus ring while the field has
  * the focus, since the bare field draws none; the touch platforms show no
- * ring, and Windows leaves the field to react-native-windows's own look.
+ * ring, and Windows leaves the field to react-native-windows's own look. A
+ * new notice is read out (`useAnnounced`).
  */
 export function Composer({
   value,
@@ -52,6 +76,7 @@ export function Composer({
   const [text, setText] = useTextValue(value, onChangeText);
   const [focused, setFocused] = useState(false);
   const tint = useColor('tint');
+  useAnnounced(notice);
   const ready = text.trim().length > 0;
   const send = () => {
     const trimmed = text.trim();
@@ -132,7 +157,10 @@ export function Composer({
           )}
         </NativeHost>
       </Surface>
-      {notice !== undefined ? <Footnote color={noticeColor} style={styles.notice}>{notice}</Footnote> : null}
+      {/* The live region stays mounted, so a notice that appears in it is read. React Native reads `aria-live` as `accessibilityLiveRegion`. */}
+      <View aria-live={ANNOUNCES ? undefined : 'polite'}>
+        {notice !== undefined ? <Footnote color={noticeColor} style={styles.notice}>{notice}</Footnote> : null}
+      </View>
     </View>
   );
 }
@@ -140,7 +168,6 @@ export function Composer({
 const styles = StyleSheet.create({
   root: {
     width: '100%',
-    gap: 6,
   },
   capsule: {
     minHeight: MIN_HEIGHT,
@@ -171,7 +198,9 @@ const styles = StyleSheet.create({
   button: {
     marginBottom: 2,
   },
+  // The gap under the capsule goes with the notice: the empty live region takes no room.
   notice: {
+    marginTop: 6,
     paddingHorizontal: 16,
   },
 });

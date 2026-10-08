@@ -1,4 +1,4 @@
-import {Platform, StyleSheet} from 'react-native';
+import {AccessibilityInfo, Platform, StyleSheet} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, modifier} from 'expo-vitest/native';
 import {hosts} from '../__tests__/hosts';
@@ -97,6 +97,31 @@ describe(`Composer (${Platform.OS})`, () => {
     expect(screen.getByText('Shift+Enter for a new line')).toBeOnTheScreen();
     expect(screen.getByPlaceholderText('Reply')).toBeOnTheScreen();
     expect(host(p => p.label === 'Stop' || p.text === 'Stop' || p.contentDescription === 'Stop')).toBeTruthy();
+  });
+
+  it('has a screen reader read a new notice out, but not the one it mounts with', async () => {
+    const announce = vi.spyOn(AccessibilityInfo, 'announceForAccessibilityWithOptions').mockImplementation(() => {});
+    try {
+      const {rerender} = await render(<Composer onSend={() => {}} notice="Shift+Enter for a new line" testID="c"/>);
+      const live = () => screen.container.queryAll(node => node.props.accessibilityLiveRegion === 'polite');
+      const notice = (text: string) => screen.getByText(text).parent!;
+      if (isIOS) {
+        // iOS has no live regions: the composer announces the line itself.
+        expect(live()).toHaveLength(0);
+      } else {
+        expect(notice('Shift+Enter for a new line').props.accessibilityLiveRegion).toBe('polite');
+      }
+      await rerender(<Composer onSend={() => {}} testID="c"/>);
+      // The region stays mounted with nothing in it, so the next notice appears inside it.
+      if (!isIOS) expect(live()).toHaveLength(1);
+      await rerender(<Composer onSend={() => {}} notice="Could not send." noticeColor="destructive" testID="c"/>);
+      if (!isIOS) expect(notice('Could not send.').props.accessibilityLiveRegion).toBe('polite');
+      await rerender(<Composer onSend={() => {}} notice="Could not send." noticeColor="destructive" busy testID="c"/>);
+      await rerender(<Composer onSend={() => {}} notice="Ada is typing" testID="c"/>);
+      expect(announce.mock.calls).toEqual(isIOS ? [['Could not send.', {queue: true}], ['Ada is typing', {queue: true}]] : []);
+    } finally {
+      announce.mockRestore();
+    }
   });
 
   it('takes its own labels, icons and keys, colors an error notice, and passes the field its traits', async () => {
