@@ -37,7 +37,8 @@ Differences:
   image the kit writes once per color into the app's cache through
   `expo-file-system`, since a `UIMenu` draws a symbol in the menu's tint
   but keeps an image's colors; without the module the dot is a symbol, which
-  the menu draws monochrome.
+  the menu draws monochrome. iOS's `PopupMenu`, whose rows the kit draws,
+  draws the dot as a symbol in its color.
 - `shortcut` is drawn beside the label and bound wherever the focus is while
   the menu is mounted on Windows, as WinUI draws an accelerator. The other
   platforms ignore it.

@@ -133,6 +133,13 @@ describe(`PopupMenu (${Platform.OS})`, () => {
     expect(onDismiss).not.toHaveBeenCalled();
   });
 
+  (isIOS ? it : it.skip)('draws a swatch entry as a dot in its color, in place of its icon', async () => {
+    await render(<PopupMenu items={[{label: 'Red', swatch: '#FF0000', icon: icons.add}]} at={{x: 0, y: 0}} testID="popup"/>);
+    // The popover's rows are ordinary SwiftUI views, so the symbol keeps its color.
+    expect(modifier(host(p => p.systemName === 'circle.fill').props, 'foregroundStyle')?.style.color).toBe('#FF0000');
+    expect(nodes().some(n => n.props.systemName === 'plus')).toBe(false);
+  });
+
   (isIOS ? it : it.skip)('says nothing when the popover reports itself presented', async () => {
     const onDismiss = vi.fn();
     await render(<PopupMenu items={items} at={{x: 0, y: 0}} onDismiss={onDismiss} testID="popup"/>);

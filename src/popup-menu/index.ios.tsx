@@ -32,7 +32,9 @@ function arrowEdgeFor(rect: boolean, edge: 'auto' | 'top' | 'bottom'): 'top' | '
  * the top is asked for, and the arrow is fixed to that side.
  *
  * A popover's content is drawn by hand rather than taken from a `Menu`,
- * which SwiftUI only opens from its own button.
+ * which SwiftUI only opens from its own button. Its rows are ordinary views,
+ * so a `swatch` is a symbol in its own color, where a `UIMenu` would draw it
+ * in the menu's tint.
  */
 export function PopupMenu({items, at, preferredEdge = 'auto', filter, onDismiss, testID}: PopupMenuProps) {
   const point = anchorPoint(at, preferredEdge);
@@ -78,7 +80,12 @@ function PopupItems({items, onClose}: {items: MenuItem[]; onClose: () => void}) 
               }}
               modifiers={[buttonStyle('plain'), ...(item.disabled ? [opacity(0.4)] : [])]}>
               <HStack spacing={10} modifiers={[padding({horizontal: 16, vertical: 8})]}>
-                {item.icon ? <Image systemName={iosSymbol(item.icon)} color={color} size={ICON_SIZE}/> : null}
+                {item.swatch ? (
+                  // Ordinary SwiftUI rows rather than a `UIMenu`: the symbol keeps its color.
+                  <Image systemName="circle.fill" color={item.swatch} size={ICON_SIZE - 2}/>
+                ) : item.icon ? (
+                  <Image systemName={iosSymbol(item.icon)} color={color} size={ICON_SIZE}/>
+                ) : null}
                 <Text modifiers={[foregroundStyle({type: 'color', color})]}>{item.label}</Text>
                 <Spacer/>
                 {item.active ? <Image systemName="checkmark" color={tint} size={ICON_SIZE}/> : null}
