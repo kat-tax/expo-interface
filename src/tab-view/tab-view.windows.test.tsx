@@ -104,14 +104,17 @@ describe('TabView (windows)', () => {
     expect(onAdd).toHaveBeenCalled();
   });
 
-  it('names the add button for UI Automation and its tooltip, "New tab" unless asked otherwise', async () => {
+  it('names the add button for UI Automation and its tooltip when asked, and leaves WinUI its own words otherwise', async () => {
     const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} layout="strip" testID="t"/>);
-    expect(island(XAML).props.addLabel).toBe('New tab');
+    // Nothing of the kit's: WinUI's name and tooltip are in the system's language.
+    expect(island(XAML).props.addLabel).toBeUndefined();
     await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document" layout="strip" testID="t"/>);
     expect(island(XAML).props.addLabel).toBe('New document');
-    // The drawn switcher says the same words.
+    // The drawn switcher says the same words, and "New tab" when there are none.
     await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} addLabel="New document" layout="switcher" testID="t"/>);
     expect(screen.getByTestId('t-add').props.accessibilityLabel).toBe('New document');
+    await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} layout="switcher" testID="t"/>);
+    expect(screen.getByTestId('t-add').props.accessibilityLabel).toBe('New tab');
   });
 
   it('paints the island in the raised fill, or in the screen\'s background with none, since an island cannot be see-through', async () => {

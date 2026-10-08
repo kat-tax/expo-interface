@@ -205,7 +205,8 @@ Props: `tabs` (`id`, `title`, `label`, `icon`, `pinned`, `menu`, `depth`,
 `accessory`), `selected`, `onSelect`,
 `onClose` (leaving it out takes the crosses away), `onAdd` (leaving it out
 takes the add button away), `addLabel` (what the add button is called to a
-screen reader and in Windows' tooltip, "New tab"), `children` (the selected
+screen reader and in Windows' tooltip; "New tab", except on the WinUI strip,
+which keeps WinUI's own words, in the system's language), `children` (the selected
 tab's content; left out, the tabs alone), `label` ("Tabs"), `layout`
 (`auto`, `strip`, `switcher`), `fill` (`element`, the default, or `none`),
 `style`, `testID`.

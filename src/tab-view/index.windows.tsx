@@ -48,7 +48,7 @@ export function TabView(props: TabViewProps) {
     onSelect,
     onClose,
     onAdd,
-    addLabel = ADD_LABEL,
+    addLabel,
     children,
     label = 'Tabs',
     layout = 'auto',
@@ -77,6 +77,8 @@ export function TabView(props: TabViewProps) {
             labels={tabLabels(tabs)}
             selectedIndex={index}
             addButton={Boolean(onAdd)}
+            // Only the app's own words: left out, WinUI names the button
+            // and its tooltip itself, in the system's language.
             addLabel={addLabel}
             background={background}
             label={label}
@@ -107,7 +109,7 @@ export function TabView(props: TabViewProps) {
           onSelect={onSelect}
           onClose={onClose}
           onAdd={onAdd}
-          addLabel={addLabel}
+          addLabel={addLabel ?? ADD_LABEL}
           fill={fill}
           label={label}
           testID={testID}>

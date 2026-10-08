@@ -45,7 +45,8 @@ export interface NativeProps extends ViewProps {
   addButton?: CodegenTypes.WithDefault<boolean, false>;
   /**
    * What the add button is called to UI Automation and in its tooltip, in
-   * place of WinUI's own name and tooltip for it.
+   * place of WinUI's own name and tooltip for it. Left out or empty, the
+   * button keeps WinUI's, which are in the system's language.
    */
   addLabel?: string;
   /**

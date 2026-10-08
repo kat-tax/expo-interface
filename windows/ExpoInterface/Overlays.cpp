@@ -1453,10 +1453,11 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
   }
 
   /**
-   * Names the add button what the kit was asked to call it, to UI Automation
-   * and in its tooltip, in place of WinUI's own: the other platforms say the
-   * same words. WinUI fills both only when they are empty, as the template is
-   * applied, and this runs after that, so the kit's words win either way.
+   * Names the add button what the app asked to call it, to UI Automation and
+   * in its tooltip, in place of WinUI's own. WinUI fills both only when they
+   * are empty, as the template is applied, and this runs after that, so the
+   * app's words win either way. With no words of the app's (an empty label)
+   * the button keeps WinUI's, which are in the system's language.
    *
    * It runs on every props update, a selection included, and finding the
    * button walks the control's whole tree, every tab's template first; so a

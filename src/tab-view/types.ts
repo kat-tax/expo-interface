@@ -60,7 +60,9 @@ export interface TabViewProps {
   onAdd?: () => void;
   /**
    * What the add button is called, to a screen reader and in Windows'
-   * tooltip: "New document", "New chat".
+   * tooltip: "New document", "New chat". Left out, the WinUI strip keeps
+   * WinUI's own name and tooltip for the button, in the system's language;
+   * everywhere else, the switcher on Windows included, it is "New tab".
    * @default 'New tab'
    */
   addLabel?: string;
