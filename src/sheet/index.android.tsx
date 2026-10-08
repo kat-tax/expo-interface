@@ -13,8 +13,9 @@ import {sheetChildren, sheetOwnProps} from './compose';
  * the sheet (text fields, pickers, switches, list rows) then resolves the
  * same palette as the seeded `Screen` Host. Controls that also take explicit
  * accent colors (switch track, dialog tint, cursor) read `useColor('tint')`.
- * The bar, the accessory and the actions are Compose content beside the
- * React Native body, all direct children of the sheet.
+ * The bar, the accessory, the actions and a body without `maxHeight` are
+ * Compose content in the sheet's column; a capped body and the footer are
+ * React Native content, each in an `RNHostView` the sheet's width.
  */
 export function Sheet(props: SheetProps) {
   const {rest} = sheetOwnProps(props);

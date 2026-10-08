@@ -7,8 +7,8 @@ import {Menu} from '../menu';
 import {BAR_HEIGHT, BAR_SIDE, sub} from './shared';
 
 /**
- * Android: the bar as Compose content at the top of the sheet, a sibling of
- * the React Native body, in the Material typography the sheet's palette
+ * Android: the bar as Compose content at the top of the sheet's column, in
+ * the Material typography the sheet's palette
  * gives: the title over the subtitle, the kit's buttons (bare Compose
  * buttons here, inside the sheet's host) at the two ends, which are the
  * same width whichever holds one so the title stays centred. Compose has no

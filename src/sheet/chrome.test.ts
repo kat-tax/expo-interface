@@ -1,4 +1,4 @@
-import {BAR_HEIGHT, BAR_SIDE, actionVariant, hasBar, horizontalInset, sub} from './shared';
+import {BAR_HEIGHT, BAR_SIDE, actionVariant, drawsSomething, hasBar, horizontalInset, sub} from './shared';
 
 describe('the sheet\'s chrome', () => {
   it('has ends the same width and a bar taller than a row', () => {
@@ -26,6 +26,16 @@ describe('the sheet\'s chrome', () => {
     expect(hasBar({onBack: () => {}})).toBe(true);
     expect(hasBar({onClose: () => {}})).toBe(true);
     expect(hasBar({menu: [{label: 'Resolve all'}]})).toBe(true);
+  });
+
+  it('hosts a footer only when React would draw something for it', () => {
+    expect(drawsSomething(undefined)).toBe(false);
+    expect(drawsSomething(null)).toBe(false);
+    expect(drawsSomething(false)).toBe(false);
+    expect(drawsSomething(true)).toBe(false);
+    expect(drawsSomething('')).toBe(false);
+    expect(drawsSomething('Reply')).toBe(true);
+    expect(drawsSomething(0)).toBe(true);
   });
 
   it('names a child under the sheet\'s test identifier, or not at all', () => {

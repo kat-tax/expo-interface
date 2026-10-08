@@ -1,3 +1,4 @@
+import type {ReactNode} from 'react';
 import type {BottomSheetContentPadding} from '@expo/ui';
 import type {MenuItem} from '../menu/types';
 import type {ScrollInsets} from '../screen/insets';
@@ -18,6 +19,15 @@ export interface SheetBarProps {
   onClose?: () => void;
   menu?: MenuItem[];
   testID?: string;
+}
+
+/** What a piece of React Native content hosted in the sheet takes. */
+export interface SheetHostedProps {
+  /** The sheet's own padding, which the box's width leaves out. */
+  contentPadding?: BottomSheetContentPadding;
+  /** The box's test identifier, on iOS and Android. */
+  testID?: string;
+  children?: ReactNode;
 }
 
 /** What the row of actions draws. */
@@ -50,6 +60,15 @@ export function horizontalInset(contentPadding: BottomSheetContentPadding | unde
 /** The look of each action: the last one filled, the rest outlined, unless it says otherwise. */
 export function actionVariant(action: SheetAction, index: number, count: number): 'filled' | 'outlined' | 'text' {
   return action.variant ?? (index === count - 1 ? 'filled' : 'outlined');
+}
+
+/**
+ * Whether React draws anything for a node: not for `null`, `undefined`, a
+ * boolean or an empty string, so `footer={canReply && <Composer/>}` hosts no
+ * empty box.
+ */
+export function drawsSomething(node: ReactNode): boolean {
+  return node != null && typeof node !== 'boolean' && node !== '';
 }
 
 /** Whether anything asks for the bar. */

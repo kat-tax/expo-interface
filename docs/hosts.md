@@ -74,15 +74,18 @@ present natively mount a host of their own only when there is none:
   of its own size; one that fills its width (a row with a label, a
   horizontal divider, a list row, an empty state) gets a host as wide as its container and
   as tall as itself; a vertical divider gets one as tall as its row. Inside
-  a `FieldGroup`, a `Screen native`, a `NativeHost` or a `Sheet` they render
-  bare.
+  a `FieldGroup`, a `Screen native`, a `NativeHost` or a `Sheet`'s native
+  content they render bare.
 - `PopupMenu`, `Fab` (iOS and Android) and `ShareLink` (iOS)
   mount one where they need it.
 - `Toast` and `Toolbar` do the same for their native parts.
 - `List` (iOS and Android) mounts one that fills the screen, and none while
   it shows its `empty` content: that sits in the list's own view, so an
   `EmptyState` in it mounts its own.
-- A `Sheet`'s content counts as hosted, so controls inside it render bare.
+- A `Sheet`'s bar, accessory and uncapped body count as hosted, so controls
+  there render bare. On iOS and Android its capped body and its footer are
+  React Native content hosted in an `RNHostView`, where controls mount a
+  host of their own; on web and Windows they count as hosted too.
 
 `Badge` needs no host. On Android it is Compose's Material `Badge` inside one
 and is drawn in React Native to the same geometry outside one; iOS draws it

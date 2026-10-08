@@ -2,9 +2,10 @@ import type {Meta, StoryObj} from '@storybook/react-native';
 import type {SheetProps} from './types';
 import {fn} from 'storybook/test';
 import {useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Pressable, StyleSheet, View} from 'react-native';
 import {Column, Host, Row, Text} from '@expo/ui';
 import {useAccentSeed} from '../accent';
+import {useColor} from '../theme';
 import {hostAccentProps} from '../screen/host-accent';
 import {fillWidth} from '../fill';
 import {Button} from '../button';
@@ -163,6 +164,29 @@ export const Capped: Story = {
   },
 };
 
+/**
+ * Twenty comments, each a row that takes a press: on iOS and Android the
+ * capped body is hosted in the sheet, which is what lets a `Pressable` in
+ * it press.
+ */
+function Comments() {
+  const pressed = useColor('backgroundSelected');
+  return (
+    <View style={styles.rows}>
+      {Array.from({length: 20}, (_, index) => (
+        <Pressable
+          key={index}
+          accessibilityRole="button"
+          onPress={fn()}
+          style={state => [styles.comment, state.pressed ? {backgroundColor: pressed} : null]}>
+          <Footnote color="label">{`Comment ${index + 1}`}</Footnote>
+          <Footnote color="secondaryLabel">Press to open the thread</Footnote>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
 /** The comment thread: a filter under the bar, the thread, and a composer pinned under it. */
 function Thread() {
   const [filter, setFilter] = useState('open');
@@ -181,7 +205,7 @@ function Thread() {
       }
       footer={<Composer placeholder="Reply" onSend={fn()}/>}
       maxHeight={360}>
-      <Rows/>
+      <Comments/>
     </Sheet>
   );
 }
@@ -195,5 +219,10 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: 8,
     paddingVertical: 8,
+  },
+  comment: {
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
   },
 });

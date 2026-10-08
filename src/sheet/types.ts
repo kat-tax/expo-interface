@@ -61,6 +61,16 @@ export interface SheetAction {
  * answers zero inside it, whatever screen the sheet opens from.
  */
 export interface SheetProps extends BottomSheetProps {
+  /**
+   * The body. On iOS and Android a body without `maxHeight` is the sheet's
+   * native content, as the bar is, so it must be `@expo/ui` content (a
+   * `FieldGroup`, a `List`, a `ColorPicker`), where the kit's controls render
+   * bare. With `maxHeight` the body is React Native content hosted in the
+   * sheet at the sheet's width: a `Pressable` in it takes presses, and a
+   * control in it mounts a host of its own. Give a React Native body a
+   * `maxHeight`. On web and Windows the body can be either.
+   */
+  children?: ReactNode;
   material?: SheetMaterial;
   /**
    * The sheet's name, in a bar along its top: native text on iOS and
@@ -88,7 +98,9 @@ export interface SheetProps extends BottomSheetProps {
   accessory?: ReactNode;
   /**
    * The row along the bottom edge, under the body: a `Composer`, a notice.
-   * React Native content on every platform.
+   * React Native content on every platform; on iOS and Android it is hosted
+   * in the sheet at the sheet's width, so it takes presses and a control in
+   * it mounts a host of its own.
    */
   footer?: ReactNode;
   /**

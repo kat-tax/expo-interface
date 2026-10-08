@@ -1,10 +1,17 @@
 import {Dimensions, Platform, StyleSheet, Text} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {Button} from '../button';
+import {useNativeHost} from '../host';
 import {BAR_HEIGHT, BAR_SIDE} from './shared';
 import {Sheet} from '.';
 
 const isIOS = Platform.OS === 'ios';
+
+/** Says whether the kit's controls at this point would render bare, inside a host, or mount one. */
+function Hosted({name}: {name: string}) {
+  return <Text>{`${name} ${useNativeHost() ? 'hosted' : 'bare'}`}</Text>;
+}
 
 /** Presses one of the kit's buttons through the native view's own event: SwiftUI's `onButtonPress`, Compose's `onButtonPressed`. */
 async function press(testID: string) {
@@ -106,7 +113,7 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
     expect(onSave).toHaveBeenCalledTimes(1);
   });
 
-  it('caps the body in a scroll view the sheet\'s width, between the accessory and the footer', async () => {
+  it('caps the body in a scroll view the sheet\'s width, between the accessory and the footer, both hosted in the sheet', async () => {
     await render(
       <Sheet isPresented onDismiss={() => {}} title="Comments" accessory={<Text>Filter</Text>} footer={<Text>Write</Text>} maxHeight={300} testID="sheet">
         <Text>Body</Text>
@@ -117,11 +124,54 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
     // An iPad's sheet is a form sheet, narrower than the window; a phone's is the window's width.
     const sheet = isIOS ? Math.min(window, 540) : window;
     expect(StyleSheet.flatten(body.props.style)).toMatchObject({maxHeight: 300, width: sheet - 32});
+    // Android hands a drag in the body to the sheet, which expands before the body scrolls.
+    expect(body.props.nestedScrollEnabled).toBe(true);
+    expect(StyleSheet.flatten(screen.getByTestId('sheet-footer').props.style).width).toBe(sheet - 32);
+    // The capped body and the footer each sit in an RNHostView that sizes to them and, as content
+    // the sheet presents in its own window, dispatches its own touches: RNTL cannot press through
+    // the sheet's `pointerEvents="none"` host, so `layoutRoot` stands in for a press.
+    const hosts = nodes().filter(n => n.type.endsWith('RNHostView'));
+    expect(hosts).toHaveLength(2);
+    expect(hosts.every(n => n.props.matchContents === true && n.props.layoutRoot === true)).toBe(true);
     expect(screen.getByText('Body')).toBeOnTheScreen();
     const json = JSON.stringify(screen.toJSON());
     expect(json.indexOf('Comments')).toBeLessThan(json.indexOf('Filter'));
     expect(json.indexOf('Filter')).toBeLessThan(json.indexOf('"Body"'));
     expect(json.indexOf('"Body"')).toBeLessThan(json.indexOf('Write'));
+  });
+
+  it('counts the bar\'s row, the accessory and an uncapped body as hosted, and the capped body and the footer as React Native content that mounts its own hosts', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} accessory={<Hosted name="accessory"/>} footer={<Hosted name="footer"/>} maxHeight={300}>
+        <Hosted name="body"/>
+      </Sheet>,
+    );
+    expect(screen.getByText('accessory hosted')).toBeOnTheScreen();
+    expect(screen.getByText('body bare')).toBeOnTheScreen();
+    expect(screen.getByText('footer bare')).toBeOnTheScreen();
+    await render(
+      <Sheet isPresented onDismiss={() => {}}>
+        <Hosted name="body"/>
+      </Sheet>,
+    );
+    expect(screen.getByText('body hosted')).toBeOnTheScreen();
+    // A kit control in the footer mounts a host of its own beside the sheet's.
+    await render(
+      <Sheet isPresented onDismiss={() => {}} footer={<Button label="Reply"/>}>
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    expect(nodes().filter(n => n.type === 'ViewManagerAdapter_ExpoUI_HostView')).toHaveLength(2);
+  });
+
+  it('leaves an uncapped body without a footer as it is, with nothing hosted', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} footer={false} testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    expect(nodes().some(n => n.type.endsWith('RNHostView'))).toBe(false);
+    expect(screen.queryByTestId('sheet-footer')).toBeNull();
   });
 
   it('takes the sheet\'s own padding off the body\'s width', async () => {

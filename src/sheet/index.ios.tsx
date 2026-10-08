@@ -13,8 +13,9 @@ import {IOS_MATERIAL, hasMaterial} from './shared';
  * content, mirroring the Host-level cascade in `Screen` (`hostAccentProps`).
  * Without it, SwiftUI children in the sheet (toggles, pickers, text fields)
  * would render the default systemBlue instead of the user-supplied accent.
- * The bar, the accessory and the actions are SwiftUI content beside the
- * React Native body.
+ * The bar, the accessory, the actions and a body without `maxHeight` are
+ * SwiftUI content; a capped body and the footer are React Native content,
+ * each in an `RNHostView` the sheet's width.
  *
  * The pieces sit in one `VStack` with no spacing, the one member of the
  * `Group` the platform's sheet wraps its content in. SwiftUI applies a

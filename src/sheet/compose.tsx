@@ -3,17 +3,19 @@ import type {SheetProps} from './types';
 import {SheetActions} from './actions';
 import {SheetBar} from './bar';
 import {SheetBody} from './body';
+import {SheetHosted} from './hosted';
 import {ScrollInsetsContext} from '../screen/insets';
-import {SHEET_SCROLL_INSETS, hasBar, sub} from './shared';
+import {SHEET_SCROLL_INSETS, drawsSomething, hasBar, sub} from './shared';
 
 /**
  * What goes inside the platform's sheet, in order: the bar when anything
  * asks for it, the accessory under it, the body, the footer, and the
- * actions along the bottom edge. The pieces stack in one column (Compose's
- * on Android, a `VStack` on iOS, a box on web), so native content (the bar
- * on iOS and Android, an accessory of `@expo/ui` content) and React Native
- * content (the body, a footer) sit one under the other. None of it is under a screen's bar, so the screen's scroll insets stop at
- * the sheet.
+ * actions along the bottom edge, stacked in one column (Compose's on
+ * Android, a `VStack` on iOS, a box on web). On iOS and Android the bar,
+ * the accessory and a body without `maxHeight` are the sheet's native
+ * content, while a capped body and the footer are React Native content,
+ * each hosted in the sheet at the sheet's width. None of it is under a
+ * screen's bar, so the screen's scroll insets stop at the sheet.
  */
 export function sheetChildren({title, subtitle, onBack, onClose, menu, accessory, footer, actions, maxHeight, contentPadding, testID, children}: SheetProps): ReactNode {
   return (
@@ -23,7 +25,9 @@ export function sheetChildren({title, subtitle, onBack, onClose, menu, accessory
       ) : null}
       {accessory}
       <SheetBody maxHeight={maxHeight} contentPadding={contentPadding} testID={sub(testID, 'body')}>{children}</SheetBody>
-      {footer}
+      {drawsSomething(footer) ? (
+        <SheetHosted contentPadding={contentPadding} testID={sub(testID, 'footer')}>{footer}</SheetHosted>
+      ) : null}
       {actions && actions.length > 0 ? <SheetActions actions={actions} testID={sub(testID, 'actions')}/> : null}
     </ScrollInsetsContext.Provider>
   );

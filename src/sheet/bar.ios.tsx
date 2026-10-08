@@ -8,8 +8,8 @@ import {useColor} from '../theme';
 import {BAR_HEIGHT, BAR_SIDE, sub} from './shared';
 
 /**
- * iOS: the bar as SwiftUI content at the top of the sheet, a sibling of the
- * React Native body: the title in the headline font over the subtitle in
+ * iOS: the bar as SwiftUI content at the top of the sheet's stack: the
+ * title in the headline font over the subtitle in
  * the secondary color, the kit's buttons (bare SwiftUI buttons here, inside
  * the sheet's host) at the two ends, which are the same width whichever
  * holds one so the title stays centred.

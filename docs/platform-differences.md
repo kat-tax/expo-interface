@@ -63,6 +63,7 @@ The differences that change what a screen can do, in one place:
 | `AvatarGroup` `selected` heard as | Selected | Selected | Current | Selected |
 | `EmptyState` | The system's view on iOS 17 and later, composed in SwiftUI before | Composed in Compose | Drawn | Drawn |
 | `Collapsible` children | `@expo/ui` | `@expo/ui` | Any | Any |
+| `Sheet` body without `maxHeight` | `@expo/ui` | `@expo/ui` | Any | Any |
 | `ExternalLink` | In-app browser | In-app browser | New tab | Default browser |
 | A screen pushed over `Tabs` | Over the tab bar | Over the tab bar | Replaces the bar | Inside the pane, its back button |
 | `Stack` `animation` | Native | Native | None | WinUI's motions: drill in, slides, page refresh, fade |
