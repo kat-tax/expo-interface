@@ -76,7 +76,7 @@ describe('Screen (windows)', () => {
     expect(rows).toHaveStyle({alignSelf: 'stretch'});
     const root = screen.getByTestId('kid').parent!.parent!;
     expect(root.children.indexOf(rows)).toBe(0);
-    expect(root).not.toHaveStyle({gap: spacing.three});
+    expect(StyleSheet.flatten(root.props.style).gap).toBeUndefined();
   });
 
   it('draws a bar a control gives it at its bottom, and lifts the floating action button above it', async () => {
