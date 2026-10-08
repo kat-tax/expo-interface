@@ -98,7 +98,7 @@ export interface ListItemProps {
    * `ContextMenu` as well: it would nest two of them off the same gesture.
    */
   swipeActions?: ListItemSwipeAction[];
-  /** Secondary content below the headline; strings get subtle styling. */
+  /** Secondary content below the headline; strings get subtle styling and keep their line breaks. */
   supporting?: string | ReactNode;
   /**
    * The row is the current one: the open document, the chosen version. Drawn
