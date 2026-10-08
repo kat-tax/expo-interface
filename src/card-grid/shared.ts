@@ -7,7 +7,7 @@ export const MAX_COLUMNS = 4;
 /** The space between cells. */
 export const GAP = 12;
 
-/** What a cell is tall before the platform has measured it. */
+/** What a row of cells is tall before the web's window has measured it. */
 export const ESTIMATED_CELL = 180;
 
 /**

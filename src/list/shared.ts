@@ -1,6 +1,6 @@
 import type {ListProps} from './types';
 
-/** What a row is tall before the platform has measured it. */
+/** What a row is tall before the web's window has measured it. */
 export const ESTIMATED_ROW = 56;
 
 /** Whether the list shows its `empty` content in place of the rows: no rows, and something to show. */
