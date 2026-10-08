@@ -201,7 +201,8 @@ run time therefore has to appear in a token in the sources, as Android's
 drawables already require. Registered with `{filled: true}`, the cut is
 `Material Symbols Filled`, which the stylesheet tries first for a filled
 token only. Outlined icons then keep the static instance `expo-symbols`
-ships, which holds every name.
+ships, which holds every name. A filled token draws from the cut under
+either registration, so its name has to be in the cut as well.
 
 `getSymbolFontCSS(url, options?)` is the `@font-face` the stylesheet draws
 with. Its options:

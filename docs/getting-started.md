@@ -245,5 +245,12 @@ twin yet. Give the token its own code point with `windows: 'E72D'`. See
 **A filled icon draws as an outline on web.** The variable Material Symbols
 font is not registered. See [Filled icons](icons.md#filled-icons).
 
+**An icon draws as its name on web.** The font `--font` wrote does not hold
+that name, because no token in the sources names it, as with a name built at
+run time. Name it in a token and run the CLI again. Registering the font
+with `{filled: true}` leaves outlined icons on the static instance, which
+holds every name, but a filled icon still draws from the font. See
+[The web font](icons.md#the-web-font).
+
 **The web build flashes the wrong scheme on load.** `app/+html.tsx` is missing
 `getThemeCSS()` or `getThemeBootScript()`.

@@ -12,7 +12,8 @@ export interface SymbolFontOptions {
   /**
    * Registers the font for filled icons alone, under
    * `SYMBOL_FILL_FONT_FAMILY`, so outlined icons keep the static instance
-   * `expo-symbols` ships, which holds every name.
+   * `expo-symbols` ships, which holds every name. A filled icon still draws
+   * from the font first, so its name has to be in it.
    * @default false
    */
   filled?: boolean;
