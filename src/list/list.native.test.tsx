@@ -1,4 +1,4 @@
-import {Platform, StyleSheet} from 'react-native';
+import {Platform, StyleSheet, Text} from 'react-native';
 import {act, render, screen} from '@testing-library/react-native';
 import {hostFit, hosts} from '../__tests__/hosts';
 import {EmptyState} from '../empty-state';
@@ -123,9 +123,18 @@ describe(`List (${Platform.OS})`, () => {
 
   it('shows the empty state in its own view outside a host, with no host of the list\'s around it', async () => {
     await render(<List data={[]} renderItem={() => null} empty={<EmptyState title="No versions yet"/>} testID="list"/>);
-    // Only the empty state's own: hosts do not nest.
+    // Only the empty state's own, which fits its height: hosts do not nest,
+    // and the list's would fill the screen.
     expect(hosts()).toHaveLength(1);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true});
     expect(list()).toBeUndefined();
+    expect(screen.getByTestId('list')).toBeTruthy();
+  });
+
+  it('shows React Native empty content outside a host as React Native, in no host at all', async () => {
+    await render(<List data={[]} renderItem={() => null} empty={<Text>Nothing yet</Text>} testID="list"/>);
+    expect(hosts()).toHaveLength(0);
+    expect(screen.getByText('Nothing yet')).toBeTruthy();
     expect(screen.getByTestId('list')).toBeTruthy();
   });
 });
