@@ -32,9 +32,10 @@ function supportsSystemView(): boolean {
  * system view left to fill a host of a definite size would push the action
  * to the host's bottom edge, where the stack instead centres the two as one.
  *
- * While `loading`, and on iOS 16 where the system view does not exist, the
- * view is composed by hand to the same layout, since the system view takes a
- * symbol and nothing else above its title.
+ * On iOS 16, where the system view does not exist, the view is composed by
+ * hand to the same layout. So it is while `loading`, since `@expo/ui`'s
+ * `ContentUnavailableView` takes a symbol name and nothing else above its
+ * title.
  */
 export function EmptyState(props: EmptyStateProps) {
   const hosted = useNativeHost();
