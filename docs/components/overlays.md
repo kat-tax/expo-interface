@@ -160,20 +160,21 @@ Each time the card comes up, it is drawn only once it has been measured, so
 where it shows is worked out from its own height: a card that goes above the
 rectangle is not seen below it first. On iOS, Android and Windows the
 platform's toolkit sizes the action buttons after the card's first layout,
-so the card waits for them too. On web, where the browser can report the
-card's size before its parent's, it waits for the parent, so a card in a
-parent with no size may not show there. Until then it is invisible and takes
-no presses. A card that stays up while it moves to another rectangle, or while
-what it holds changes, is placed by the height it has until it is laid out
-again, and so is one whose `children` hold content the toolkit sizes later.
+so the card waits for them too; on web, where the browser can report the
+card's size before its parent's, it waits for the parent. Until then it is
+invisible and takes no presses, so on web a card in a parent with no size
+may not show at all. A card that stays up while it moves to another
+rectangle, or while what it holds changes, is placed by the height it has
+until it is laid out again, and so is one whose `children` hold content the
+toolkit sizes later.
 
 A test renderer lays nothing out, so in an app's tests the card stays
 invisible and takes no presses until the test reports its layout. With React
 Native Testing Library, fire `layout` with a height on the card (`testID`),
 then on its row of actions (`<testID>-actions`) when it has actions. Under
 jsdom, stub `ResizeObserver`, through which react-native-web reports a
-layout, and call its callback with the card and its parent
-(`<testID>-bounds`).
+layout, call its callback with the card and its parent (`<testID>-bounds`),
+and let the timeout react-native-web measures in run.
 
 `onDismiss` says why the card asks to close: `action` (one of its actions
 was taken), `backdrop` (the backdrop of a modal card was pressed, or on
