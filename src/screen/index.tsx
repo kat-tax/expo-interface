@@ -68,7 +68,7 @@ export interface ScreenProps extends PropsWithChildren {
   /**
    * A floating action button (`Fab`) the screen places itself: bottom
    * trailing, `spacing.three` from the edges plus the safe-area bottom inset
-   * natively (which includes the tab bar when the screen shows one), fixed
+   * (which natively includes the tab bar when the screen shows one), fixed
    * to the viewport on web. While a `Toast` under the screen shows, the
    * button lifts above it and comes back down as it goes, and it sits above
    * a bar the screen draws at its bottom.
@@ -142,8 +142,11 @@ export function Screen({
   // and its rows stay clear, unless the content passes under them and pads
   // itself (`underBar`).
   const paddingTop = underBar ? 0 : !underHeader ? theme.inset.topBar + barRows : floating ? insets.top + theme.inset.header + rows : 0;
-  // Above a bottom bar the screen draws, and above the tab bar's own floating action.
-  const fabBottom = theme.spacing.three + (hasBottom ? barHeight : 0) + tabAction;
+  // Above a bottom bar the screen draws, above the tab bar's own floating
+  // action, and above the bottom safe area, which the screen's content and
+  // the app's toast stand on: on web too, where the fab is fixed to the
+  // viewport and a page that covers the display (`viewport-fit=cover`) has one.
+  const fabBottom = theme.spacing.three + (hasBottom ? barHeight : 0) + tabAction + (bottomPaid ? 0 : insets.bottom);
 
   useEffect(() => {
     setBackgroundColorAsync(backgroundColor);
@@ -187,7 +190,7 @@ export function Screen({
             styles.fab,
             Platform.OS === 'web'
               ? [styles.fabFixed, {bottom: fabBottom}]
-              : {right: theme.spacing.three + insets.right, bottom: fabBottom + (bottomPaid ? 0 : insets.bottom)},
+              : {right: theme.spacing.three + insets.right, bottom: fabBottom},
             lift.style,
           ]}>
           {fab}

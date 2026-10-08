@@ -50,7 +50,7 @@ as it pays the header's.
 | Platform | Renders |
 | --- | --- |
 | iOS, Android | `SafeAreaView`, `StatusBar` styled for the scheme, the window background painted through `expo-system-ui`, and with `native` an accent-seeded `@expo/ui` `Host`. Under a header the screens run under, the header's height stays clear at the top. Under the platform's tab bar on Android the bottom inset is the tab host's, which keeps its screens above the navigation bar itself: a safe-area view there measures from the host, not the window, and would pay it twice. |
-| Web | The same, with the background as the palette's CSS variable so a static export is in the right scheme before any JavaScript runs; the fab slot is fixed to the viewport |
+| Web | The same, with the background as the palette's CSS variable so a static export is in the right scheme before any JavaScript runs; the fab slot is fixed to the viewport, above its bottom safe area |
 | Windows | A plain view. A desktop window has no safe areas, no status bar and no `@expo/ui` host; `native` only marks the tree as hosted so self-hosting components render bare |
 
 Content is capped at 800 points and centered on every platform.
