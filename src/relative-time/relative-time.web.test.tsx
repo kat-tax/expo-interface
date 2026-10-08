@@ -11,6 +11,7 @@ beforeEach(() => {
 afterEach(() => {
   // Unmounted first, so no time hears the page's language go back.
   cleanup();
+  vi.restoreAllMocks();
   vi.useRealTimers();
   document.documentElement.lang = '';
 });
@@ -45,6 +46,41 @@ describe('RelativeTime (web)', () => {
       document.documentElement.lang = 'de';
     });
     expect(screen.getByTestId('when').textContent).toBe('vor 2 Stunden');
+  });
+
+  it('watches the page\'s language once for every time on it, and stops with the last', async () => {
+    const observe = vi.spyOn(MutationObserver.prototype, 'observe');
+    const disconnect = vi.spyOn(MutationObserver.prototype, 'disconnect');
+    const watching = () => observe.mock.calls.filter(([target]) => target === document.documentElement).length;
+    const said = (...ids: string[]) => ids.map(id => screen.getByTestId(id).textContent);
+    document.documentElement.lang = 'en';
+    const {rerender, unmount} = render(
+      <>
+        <RelativeTime date={NOW - 2 * HOUR} testID="a"/>
+        <RelativeTime date={NOW - 3 * HOUR} testID="b"/>
+        <RelativeTime date={NOW - 4 * HOUR} testID="c"/>
+      </>,
+    );
+    expect(watching()).toBe(1);
+    await act(async () => {
+      document.documentElement.lang = 'de';
+    });
+    expect(said('a', 'b', 'c')).toEqual(['vor 2 Stunden', 'vor 3 Stunden', 'vor 4 Stunden']);
+    // One leaves; the others still hear the page.
+    rerender(
+      <>
+        <RelativeTime date={NOW - 2 * HOUR} testID="a"/>
+        <RelativeTime date={NOW - 3 * HOUR} testID="b"/>
+      </>,
+    );
+    expect(disconnect).not.toHaveBeenCalled();
+    await act(async () => {
+      document.documentElement.lang = 'fr';
+    });
+    expect(said('a', 'b')).toEqual(['il y a 2 heures', 'il y a 3 heures']);
+    unmount();
+    expect(disconnect).toHaveBeenCalledTimes(1);
+    expect(watching()).toBe(1);
   });
 });
 

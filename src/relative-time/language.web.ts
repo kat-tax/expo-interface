@@ -1,10 +1,26 @@
 import {useSyncExternalStore} from 'react';
 
-/** Hears the page's `lang` change, which an app that switches language at run time does on `<html>`. */
+/** Every time on the page that hears its language change. */
+const listeners = new Set<() => void>();
+let observer: MutationObserver | null = null;
+
+/**
+ * Hears the page's `lang` change, which an app that switches language at run
+ * time does on `<html>`. One observer serves every time on the page, so a
+ * list of them watches the attribute once; it goes when the last one does.
+ */
 function subscribe(onChange: () => void): () => void {
-  const observer = new MutationObserver(onChange);
-  observer.observe(document.documentElement, {attributes: true, attributeFilter: ['lang']});
-  return () => observer.disconnect();
+  listeners.add(onChange);
+  if (!observer) {
+    observer = new MutationObserver(() => listeners.forEach(listener => listener()));
+    observer.observe(document.documentElement, {attributes: true, attributeFilter: ['lang']});
+  }
+  return () => {
+    listeners.delete(onChange);
+    if (listeners.size > 0) return;
+    observer!.disconnect();
+    observer = null;
+  };
 }
 
 /** The `lang` of the page's `<html>`; none when it is empty, which no formatter takes. */
