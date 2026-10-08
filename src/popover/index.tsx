@@ -1,4 +1,4 @@
-import type {PopoverProps} from './types';
+import type {PopoverDismissReason, PopoverProps} from './types';
 import {Platform, Pressable, StyleSheet, View} from 'react-native';
 import {Row} from '@expo/ui';
 import {useAnchored} from '../anchored';
@@ -20,11 +20,13 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
   const linger = useLinger(at, trigger === 'hover', grace, () => onDismiss?.('leave'));
   const shown = linger.shown;
   const anchored = useAnchored({at: shown, preferredEdge, width, insets});
-  const escape = () => {
+  // A dismissal of the card's own ends a linger, so the card goes as soon
+  // as the app clears `at`.
+  const dismiss = (reason: PopoverDismissReason) => {
     linger.end();
-    onDismiss?.('escape');
+    onDismiss?.(reason);
   };
-  useEscape(Platform.OS === 'web' && shown !== null, escape);
+  useEscape(Platform.OS === 'web' && shown !== null, () => dismiss('escape'));
 
   return (
     <View
@@ -36,7 +38,7 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
           accessibilityRole="button"
           accessibilityLabel="Dismiss"
           style={styles.backdrop}
-          onPress={() => onDismiss?.('backdrop')}
+          onPress={() => dismiss('backdrop')}
           testID={testID ? `${testID}-backdrop` : undefined}
         />
       ) : null}
@@ -50,7 +52,7 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
           style={[styles.card, {width, left: anchored.left, top: anchored.top}]}
           testID={testID}
           {...linger.props}
-          {...(modal ? {...MODAL_CARD, 'aria-label': Platform.OS === 'web' ? title : undefined, onAccessibilityEscape: escape} : null)}>
+          {...(modal ? {...MODAL_CARD, 'aria-label': Platform.OS === 'web' ? title : undefined, onAccessibilityEscape: () => dismiss('escape')} : null)}>
           <Surface raised border="all" padding={spacing.three} style={styles.body}>
             {title ? <Subheadline color="label" weight="semibold">{title}</Subheadline> : null}
             {message ? <Footnote color="secondaryLabel">{message}</Footnote> : null}
@@ -67,7 +69,7 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
                       role={action.role}
                       onPress={() => {
                         action.onPress();
-                        onDismiss?.('action');
+                        dismiss('action');
                       }}
                     />
                   ))}

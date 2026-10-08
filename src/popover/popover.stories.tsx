@@ -3,7 +3,7 @@ import {useState} from 'react';
 import {fn} from 'storybook/test';
 import {StyleSheet, View} from 'react-native';
 import {Footnote} from '../typography';
-import {Popover} from '.';
+import {Popover, type PopoverProps} from '.';
 
 const meta = {
   title: 'Overlays/Popover',
@@ -58,7 +58,7 @@ export const Modal: Story = {
 };
 
 /** A word under the pointer, which a hover card is about. */
-function HoverWord({onDismiss}: {onDismiss?: () => void}) {
+function HoverWord({actions, onDismiss}: Pick<PopoverProps, 'actions' | 'onDismiss'>) {
   const [at, setAt] = useState<{x: number; y: number; width: number; height: number} | null>(null);
   return (
     <View style={styles.canvas}>
@@ -68,7 +68,7 @@ function HoverWord({onDismiss}: {onDismiss?: () => void}) {
         onPointerLeave={() => setAt(null)}>
         <Footnote color="label">teh</Footnote>
       </View>
-      <Popover at={at} title="Spelling" message="Did you mean “the”?" trigger="hover" onDismiss={onDismiss}/>
+      <Popover at={at} title="Spelling" message="Did you mean “the”?" actions={actions} trigger="hover" onDismiss={onDismiss}/>
     </View>
   );
 }
@@ -76,10 +76,12 @@ function HoverWord({onDismiss}: {onDismiss?: () => void}) {
 /**
  * A card about the word under the pointer: it lingers once the pointer
  * leaves the word, so the pointer can cross onto it, and goes once the
- * pointer has been away from both for the grace.
+ * pointer has been away from both for the grace. Its action ends the
+ * linger, so the card goes at once.
  */
 export const Hover: Story = {
-  render: args => <HoverWord onDismiss={args.onDismiss}/>,
+  args: {actions: [{label: 'Use “the”', onPress: fn()}]},
+  render: args => <HoverWord actions={args.actions} onDismiss={args.onDismiss}/>,
 };
 
 const styles = StyleSheet.create({

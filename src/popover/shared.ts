@@ -17,7 +17,11 @@ interface Linger {
   shown: PopoverRect | null;
   /** The card's pointer events. */
   props: ViewProps;
-  /** Ends a linger at once, for a dismissal of the card's own (Escape). */
+  /**
+   * Ends a linger at once, and keeps the app's next clearing of `at` from
+   * starting one: for a dismissal of the card's own (an action, the
+   * backdrop, Escape).
+   */
   end: () => void;
 }
 
@@ -29,16 +33,29 @@ interface Linger {
  * Once it has been away from both for the grace the card goes, reporting
  * `onLeave`. A touch is not a hover: its pointer events are ignored, so a
  * finger lifting off the card does not count as leaving it.
+ *
+ * A dismissal of the card's own calls `end`: the card goes as soon as the
+ * app clears `at`, with no linger and no `onLeave` after it. A card that goes
+ * from under the pointer does not keep the next one up.
  */
 export function useLinger(at: PopoverRect | null, enabled: boolean, grace: number = HOVER_GRACE, onLeave: () => void): Linger {
   const [previous, setPrevious] = useState(at);
   const [linger, setLinger] = useState<PopoverRect | null>(null);
   const [over, setOver] = useState(false);
-  // The app's rectangle going away is when a linger starts; one coming back ends it.
+  const [ended, setEnded] = useState(false);
+  // The app's rectangle going away is when a linger starts, unless the card
+  // was dismissed while it was up; one coming back ends it.
   if (at !== previous) {
     setPrevious(at);
-    setLinger(at === null && enabled ? previous : null);
+    setLinger(at === null && enabled && !ended ? previous : null);
+    setEnded(false);
   }
+  const shown = at ?? linger;
+  // A card that goes from under the pointer gets no pointerleave, so the
+  // pointer is forgotten with it. Only on a settled pass: the pass that sees
+  // `at` change still holds the old linger, so `shown` reads null there just
+  // before a linger starts.
+  if (over && shown === null && at === previous) setOver(false);
   const leave = useEffectEvent(onLeave);
   useEffect(() => {
     if (!linger || over) return;
@@ -53,9 +70,12 @@ export function useLinger(at: PopoverRect | null, enabled: boolean, grace: numbe
     if (event.nativeEvent.pointerType !== 'touch') setOver(value);
   };
   return {
-    shown: at ?? linger,
+    shown,
     props: enabled ? {onPointerEnter: hovering(true), onPointerLeave: hovering(false)} : {},
-    end: () => setLinger(null),
+    end: () => {
+      setLinger(null);
+      setEnded(true);
+    },
   };
 }
 

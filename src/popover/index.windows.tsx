@@ -1,4 +1,4 @@
-import type {PopoverProps} from './types';
+import type {PopoverDismissReason, PopoverProps} from './types';
 import {Pressable, StyleSheet, View} from 'react-native';
 import XamlTeachingTip from '../windows/specs/ExpoInterfaceTeachingTipNativeComponent';
 import {jsonProp, useXamlProps} from '../windows';
@@ -58,6 +58,12 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
   const linger = useLinger(at, trigger === 'hover', grace, () => onDismiss?.('leave'));
   const shown = linger.shown;
   const anchored = useAnchored({at: shown, preferredEdge, width, insets});
+  // A dismissal of the card's own ends a linger, so the card goes as soon
+  // as the app clears `at`.
+  const dismiss = (reason: PopoverDismissReason) => {
+    linger.end();
+    onDismiss?.(reason);
+  };
 
   return (
     <View testID={testID ? `${testID}-bounds` : undefined} style={[styles.bounds, modal && shown ? styles.modal : null]} onLayout={anchored.onBounds}>
@@ -65,7 +71,7 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
         <Pressable
           accessibilityLabel="Dismiss"
           style={styles.backdrop}
-          onPress={() => onDismiss?.('backdrop')}
+          onPress={() => dismiss('backdrop')}
           testID={testID ? `${testID}-backdrop` : undefined}
         />
       ) : null}
@@ -91,7 +97,7 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
                     role={action.role}
                     onPress={() => {
                       action.onPress();
-                      onDismiss?.('action');
+                      dismiss('action');
                     }}
                   />
                 ))}

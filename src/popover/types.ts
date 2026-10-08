@@ -81,6 +81,12 @@ export interface PopoverProps extends PropsWithChildren {
    * from both for the grace the card goes, reporting `leave` through
    * `onDismiss`. A touch is not a hover: a finger on the card does not keep
    * it, and lifting one off does not count as leaving.
+   *
+   * An action, the backdrop or Escape ends the linger, so the card goes as
+   * soon as the app clears `at`. While it lingers the card draws the title,
+   * message, actions and children it is given then: clear only `at` when the
+   * pointer leaves, and keep the rest until `onDismiss` says the card has
+   * gone.
    * @default 'manual'
    */
   trigger?: 'manual' | 'hover';

@@ -48,6 +48,17 @@ describe('Popover (web)', () => {
     expect(screen.getByRole('button', {name: 'Dismiss'})).toBe(screen.getByTestId('modal-backdrop'));
   });
 
+  it('ends on Escape the linger the app\'s clearing of the rectangle would start', () => {
+    const onDismiss = vi.fn();
+    const {rerender} = render(<Popover at={{x: 10, y: 10}} title="Spelling" trigger="hover" onDismiss={onDismiss} testID="pop"/>);
+    act(() => {
+      fireEvent.keyDown(document.body, {key: 'Escape'});
+    });
+    expect(onDismiss).toHaveBeenCalledWith('escape');
+    rerender(<Popover at={null} title="Spelling" trigger="hover" onDismiss={onDismiss} testID="pop"/>);
+    expect(screen.queryByTestId('pop')).toBeNull();
+  });
+
   it('works without anything to call', () => {
     render(<Popover at={{x: 0, y: 0}} title="Spelling" modal testID="pop"/>);
     fireEvent.keyDown(document.body, {key: 'Escape'});

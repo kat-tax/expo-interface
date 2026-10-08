@@ -174,6 +174,13 @@ is over it, so the pointer can cross onto it. Once the pointer has been away
 from both for the grace, the card goes and reports `leave`. A touch is not a
 hover, so a finger on the card neither keeps it nor counts as leaving.
 
+An action, the backdrop or Escape ends the linger: the card goes when the app
+clears `at`, with no `leave` after it, and a card that goes from under the
+pointer does not keep the next one up. While it lingers the card draws the
+`title`, `message`, `actions` and `children` the app passes then, so an app
+clears only `at` when the pointer leaves and keeps the rest until `onDismiss`
+reports the card gone.
+
 ## Tooltip
 
 A short hint attached to a piece of content. Props: `text`, `children` (must

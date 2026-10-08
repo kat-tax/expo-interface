@@ -164,6 +164,18 @@ describe('modal and hover (windows)', () => {
     }
   });
 
+  it('ends the linger of a drawn hover card on an action', async () => {
+    const onDismiss = vi.fn();
+    const hover = (at: {x: number; y: number} | null) => (
+      <Popover at={at} title="Spelling" actions={[{label: 'Fix', onPress: vi.fn()}]} trigger="hover" onDismiss={onDismiss} testID="pop"/>
+    );
+    const {rerender} = await render(hover({x: 10, y: 20}));
+    await fireEvent(island(BUTTON), 'press');
+    expect(onDismiss).toHaveBeenCalledWith('action');
+    await rerender(hover(null));
+    expect(screen.queryByTestId('pop')).toBeNull();
+  });
+
   it('takes an action of the drawn card as an action', async () => {
     const onDismiss = vi.fn();
     await render(<Popover at={{x: 0, y: 0}} modal actions={[{label: 'Save', onPress: vi.fn()}]} onDismiss={onDismiss}/>);
