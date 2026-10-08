@@ -46,9 +46,11 @@ A value within a range in the SwiftUI gauge styles. Props: `value`, `min`,
 A count or a dot beside the thing it is about. Props: `count` (`0` draws
 nothing), `max` (99; counts above draw as `99+`), `showZero`, `dot`, `label`
 (the accessible name; defaults to the count and what it is about), `color`
-(the fill, a palette token such as `tint`, which follows the scheme, or a
-color; the destructive red without one, Fluent's critical fill on Windows),
-`textColor` (black or white, whichever reads on the fill, without one),
+(the fill, a palette token such as `tint`, which follows the scheme, or any
+color React Native reads; the destructive red without one, Fluent's
+critical fill on Windows), `textColor` (without one, black or white,
+whichever reads on the fill; white on a fill that cannot be read, such as a
+CSS variable on web),
 `pulse` (the badge's opacity goes down and back up every 900 ms: someone
 typing, a sync in flight; still while the user asks for less motion),
 `style`, `testID`.

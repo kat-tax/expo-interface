@@ -56,12 +56,16 @@ export interface BadgeProps {
   label?: string;
   /**
    * The fill: a palette token (`tint` for an unread dot in the accent), which
-   * follows the scheme, or a color. Defaults to the destructive red a badge
-   * is on every platform: the palette's `destructive`, and Fluent's critical
-   * fill on Windows.
+   * follows the scheme, or any color React Native reads. Defaults to the
+   * destructive red a badge is on every platform: the palette's
+   * `destructive`, and Fluent's critical fill on Windows.
    */
   color?: ColorTokens | (string & {});
-  /** Color of the number. Defaults to whichever of black or white reads on `color`. */
+  /**
+   * Color of the number. Defaults to whichever of black or white reads on
+   * `color`, and white on a fill that cannot be read for it, such as a CSS
+   * variable on web.
+   */
   textColor?: string;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;

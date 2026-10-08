@@ -62,6 +62,13 @@ describe(`Badge (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(screen.getByText('4').props.style)).toMatchObject({color: '#000000'});
   });
 
+  it('reads a color that is not hex to pick the number\'s black or white', async () => {
+    await render(<Badge count={5} color="yellow" testID="named"/>);
+    expect(StyleSheet.flatten(screen.getByText('5').props.style)).toMatchObject({color: '#000000'});
+    await render(<Badge count={6} color="rgb(0, 0, 139)" testID="rgb"/>);
+    expect(StyleSheet.flatten(screen.getByText('6').props.style)).toMatchObject({color: '#FFFFFF'});
+  });
+
   it('stops at the cap, and draws nothing for a count of nothing', async () => {
     await render(<Badge count={150} testID="many"/>);
     expect(screen.getByText('99+')).toBeOnTheScreen();
@@ -129,6 +136,11 @@ describe(`Badge (${Platform.OS})`, () => {
     it('takes a palette token for its fill, resolved for the scheme', async () => {
       await render(inHost(<Badge count={4} color="highlight" testID="token"/>));
       expect(byComposeTestID('token').props).toMatchObject({containerColor: colors.light.highlight, contentColor: '#000000'});
+    });
+
+    it('reads a color that is not hex to pick the number\'s black or white', async () => {
+      await render(inHost(<Badge count={5} color="hsl(60, 100%, 50%)" testID="hsl"/>));
+      expect(byComposeTestID('hsl').props).toMatchObject({containerColor: 'hsl(60, 100%, 50%)', contentColor: '#000000'});
     });
 
     it('stops at the cap, and draws nothing for a count of nothing', async () => {

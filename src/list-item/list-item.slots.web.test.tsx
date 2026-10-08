@@ -59,16 +59,21 @@ describe('ListItem slots (web)', () => {
       <>
         <ListItem badge={3} badgeColor="highlight" testID="token">Essay</ListItem>
         <ListItem badge={2} badgeColor="#123456" testID="raw">Notes</ListItem>
+        <ListItem badge={4} badgeColor="gold" testID="named">Drafts</ListItem>
         <ListItem badge testID="plain">Plain</ListItem>
       </>,
     );
     const token = screen.getByTestId('token').querySelector<HTMLElement>('.ui-badge')!;
     expect(token.style.getPropertyValue('--ui-badge-fill')).toBe('var(--color-highlight)');
-    // The variable cannot be read for its color, so the row picks the count's from the palette.
+    // The variable cannot be read for its color, so the badge picks the count's from the palette.
     expect(token.style.getPropertyValue('--ui-badge-on-fill')).toBe('#000000');
     const raw = screen.getByTestId('raw').querySelector<HTMLElement>('.ui-badge')!;
     expect(raw.style.getPropertyValue('--ui-badge-fill')).toBe('#123456');
     expect(raw.style.getPropertyValue('--ui-badge-on-fill')).toBe('#FFFFFF');
+    // A named color is read too: a count on gold is black.
+    const named = screen.getByTestId('named').querySelector<HTMLElement>('.ui-badge')!;
+    expect(named.style.getPropertyValue('--ui-badge-fill')).toBe('gold');
+    expect(named.style.getPropertyValue('--ui-badge-on-fill')).toBe('#000000');
     const plain = screen.getByTestId('plain').querySelector<HTMLElement>('.ui-badge')!;
     expect(plain.style.getPropertyValue('--ui-badge-fill')).toBe('var(--color-destructive)');
   });

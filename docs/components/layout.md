@@ -378,8 +378,8 @@ under the headline, its line breaks kept), `value` (text at the trailing edge
 in the secondary color, before `trailing`: a setting's value, a file's size),
 `badge` (`true` for a dot, a number for a count, as the kit's `Badge` at the
 trailing edge), `badgeColor` (the badge's fill, a palette token such as `tint`
-or a hex color; a count on it is drawn in black or white, whichever reads;
-without one, the `Badge`'s own red), `selected` (the current row, in the
+or any color React Native reads; a count on it is drawn in black or white,
+whichever reads; without one, the `Badge`'s own red), `selected` (the current row, in the
 selected fill and announced as selected), `action` (`label`, `onPress`, `disabled`, `loading`,
 `role`, `variant` `text` or `filled`), `swipeActions` (`label`, `onPress`,
 `icon`, `role`, `disabled` per action), `inset` (default true), `onPress`,

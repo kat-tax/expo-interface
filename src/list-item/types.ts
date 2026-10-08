@@ -79,10 +79,11 @@ export interface ListItemProps {
    */
   badge?: boolean | number;
   /**
-   * The badge's fill: a palette token (`tint` for an unread dot in the
-   * accent), which follows the scheme, or a hex color (`#RRGGBB`). A count
-   * on it is drawn in black or white, whichever reads. Without one, the
-   * `Badge`'s own red: `destructive`, and Fluent's critical fill on Windows.
+   * The badge's fill, the `Badge`'s `color`: a palette token (`tint` for an
+   * unread dot in the accent), which follows the scheme, or any color React
+   * Native reads. A count on it is drawn in black or white, whichever reads.
+   * Without one, the `Badge`'s own red: `destructive`, and Fluent's critical
+   * fill on Windows.
    */
   badgeColor?: ColorTokens | (string & {});
   /** Trailing (end) slot — chevron, value, control, etc. */

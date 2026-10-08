@@ -72,6 +72,15 @@ describe('Badge (web)', () => {
     expect(screen.getByTestId('plain').style.getPropertyValue('--ui-badge-on-fill')).toBe('#FFFFFF');
   });
 
+  it('reads a color that is not hex for the number, and draws white on one it cannot read', () => {
+    render(<Badge count={5} color="yellow" testID="named"/>);
+    expect(screen.getByTestId('named').style.getPropertyValue('--ui-badge-on-fill')).toBe('#000000');
+    render(<Badge count={6} color="var(--brand)" testID="variable"/>);
+    const variable = screen.getByTestId('variable');
+    expect(variable.style.getPropertyValue('--ui-badge-fill')).toBe('var(--brand)');
+    expect(variable.style.getPropertyValue('--ui-badge-on-fill')).toBe('#FFFFFF');
+  });
+
   it('flattens a style into inline CSS, as the other rows do', () => {
     render(<Badge count={1} style={{opacity: 0.5}} testID="styled"/>);
     expect(screen.getByTestId('styled')).toHaveStyle({opacity: 0.5});
