@@ -261,8 +261,9 @@ action that waits for a value is `disabled` until it has one: greyed out,
 it takes no press. A disabled action does not hold the alert open: on
 Android the back gesture and a press outside it, on web Escape and a press
 on the backdrop, and on Windows Escape still dismiss it and report
-`onDismiss`, even with the cancel action disabled. An iOS alert closes only
-through its actions, so keep its cancel action enabled. On web and
+`onDismiss`, even with the cancel action disabled. An iOS alert (not a
+`sheet`, which a press outside also closes) closes only through its
+actions, so keep its cancel action enabled. On web and
 Windows the keyboard's action key presses the first action that is not
 `cancel`, and nothing while that action is disabled. On Windows a change
 to the actions while the dialog is open updates each button's label and

@@ -49,8 +49,9 @@ export interface AlertAction {
    * the alert open: on Android the back gesture and a press outside it, on
    * web Escape and a press on the backdrop, and on Windows Escape still
    * dismiss it and report `onDismiss`, even with the cancel action
-   * disabled. An iOS alert closes only through its actions, so keep its
-   * cancel action enabled.
+   * disabled. An iOS alert (not a `sheet`, which a press outside also
+   * closes) closes only through its actions, so keep its cancel action
+   * enabled.
    */
   disabled?: boolean;
   /** Called when the action is pressed; the alert then closes. */

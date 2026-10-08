@@ -186,6 +186,25 @@ describe(`Alert (${Platform.OS})`, () => {
     }
   });
 
+  (isIOS ? it : it.skip)('reports a sheet closed by a press outside it, with its cancel action disabled', async () => {
+    const onDismiss = vi.fn();
+    const onCancel = vi.fn();
+    await render(
+      <Alert
+        title="Share drop"
+        visible
+        sheet
+        onDismiss={onDismiss}
+        testID="alert"
+        actions={[{label: 'Cancel', role: 'cancel', disabled: true, onPress: onCancel}, {label: 'Delete', role: 'destructive'}]}
+      />,
+    );
+    // SwiftUI closes the action sheet on a press outside it and reports the presented state.
+    await fireEvent(screen.getByTestId('alert'), 'isPresentedChange', {nativeEvent: {isPresented: false}});
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(onCancel).not.toHaveBeenCalled();
+  });
+
   it('greys out a disabled action, which takes no press', async () => {
     const onRename = vi.fn();
     const onDismiss = vi.fn();
