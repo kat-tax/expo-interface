@@ -81,10 +81,9 @@ describe('resolveAccent', () => {
   it('makes a seed legible on the backgrounds of a scheme where it falls short, and keeps it where it does not', () => {
     // systemBlue is 4.0:1 on white, 5.2:1 on black, 3.5:1 on the light raised fill and 4.0:1 on the dark one.
     const accent = resolveAccent(ACCENT_SEED, 4.5);
-    expect(accent.light).not.toBe(ACCENT_SEED);
+    expect(accent).toMatchObject({light: '#0069DB', dark: '#1A87FF'});
     expect(contrastRatio(accent.light, colors.light.background)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(accent.light, colors.light.backgroundElement)).toBeGreaterThanOrEqual(4.5);
-    expect(accent.dark).not.toBe(ACCENT_SEED);
     expect(contrastRatio(accent.dark, colors.dark.background)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(accent.dark, colors.dark.backgroundElement)).toBeGreaterThanOrEqual(4.5);
     // Navy is 8.7:1 on the light raised fill, so the light scheme keeps it.

@@ -47,9 +47,12 @@ describe('legibleTint', () => {
     expect(dark).toBe('#5785EB');
     expect(contrastRatio(dark, '#000000')).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(dark, '#212225')).toBeGreaterThanOrEqual(4.5);
-    // systemBlue passes black and fails the raised fill, so it moves.
+    // systemBlue passes black and fails the raised fill, so it moves just far enough.
     expect(legibleTint('#007AFF', ['#000000'], 4.5)).toBe('#007AFF');
-    expect(legibleTint('#007AFF', ['#000000', '#212225'], 4.5)).not.toBe('#007AFF');
+    const blue = legibleTint('#007AFF', ['#000000', '#212225'], 4.5);
+    expect(blue).toBe('#1A87FF');
+    expect(contrastRatio(blue, '#212225')).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(blue, '#212225')).toBeLessThan(4.7);
     // A seed that passes both is kept.
     expect(legibleTint('#34C759', ['#000000', '#212225'], 4.5)).toBe('#34C759');
   });
