@@ -13,7 +13,7 @@ import {SHEET_SCROLL_INSETS, bodyCap, hasBar, sub} from './shared';
 /**
  * Windows: a sheet's content is React Native's, which no XAML flyout or
  * dialog can hold, and React Native's `Modal` cannot hold a XAML island on
- * react-native-windows 0.84 — so the sheet is a layer drawn in React
+ * react-native-windows 0.84, so the sheet is a layer drawn in React
  * Native over the window: WinUI's smoke and a centred card in the scheme's
  * background, the way a desktop presents a form, with the content
  * scrolling inside it as hosted content. `isPresented` shows it; `onDismiss`
