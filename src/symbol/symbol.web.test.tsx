@@ -29,11 +29,16 @@ describe('Icon (web)', () => {
     const {readFileSync} = await import('node:fs');
     const {join} = await import('node:path');
     const css = readFileSync(join(__dirname, 'symbol.css'), 'utf8');
-    const filled = css.slice(css.indexOf('.ui-symbol--filled {'));
+    const at = css.indexOf('.ui-symbol--filled {');
+    const filled = css.slice(at);
     expect(filled).toContain("font-family: var(--ui-symbol-fill-font, 'Material Symbols Filled'), var(--ui-symbol-font, 'Material Symbols Outlined'), 'MaterialSymbols_400Regular';");
     expect(filled).toContain("font-variation-settings: 'FILL' 1;");
-    // Every other icon keeps the stack without the filled family.
-    expect(css).toContain("font-family: var(--ui-symbol-font, 'Material Symbols Outlined'), 'MaterialSymbols_400Regular';");
+    // Every other icon keeps the stack without the filled family, in a rule
+    // of the same specificity, so the filled rule wins only by coming after it.
+    const plain = css.slice(0, at);
+    expect(plain).toContain('.ui-symbol {');
+    expect(plain).toContain("font-family: var(--ui-symbol-font, 'Material Symbols Outlined'), 'MaterialSymbols_400Regular';");
+    expect(filled).not.toContain('.ui-symbol {');
   });
 
   it('takes a size and a tint', () => {
