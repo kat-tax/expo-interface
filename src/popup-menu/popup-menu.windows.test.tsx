@@ -38,10 +38,12 @@ describe('PopupMenu (windows)', () => {
     await rerender(<PopupMenu items={[{label: 'Heading', onPress: onHeading}]} at={at} preferredEdge="top" onDismiss={onDismiss}/>);
     expect(island(FLYOUT).props).toMatchObject({x: 10, y: 20, edge: 'top'});
     await fireIsland(island(FLYOUT), 'openChange', {open: true});
+    // WinUI raises the item's Click before the flyout's Closed.
     await fireIsland(island(FLYOUT), 'select', {index: 0});
     await fireIsland(island(FLYOUT), 'openChange', {open: false});
     expect(onHeading).toHaveBeenCalledTimes(1);
     expect(onDismiss).toHaveBeenCalledWith('select');
+    expect(onHeading.mock.invocationCallOrder[0]).toBeLessThan(onDismiss.mock.invocationCallOrder[0]!);
     // The next close without a pick is a dismissal.
     await fireIsland(island(FLYOUT), 'openChange', {open: false});
     expect(onDismiss).toHaveBeenLastCalledWith('dismiss');

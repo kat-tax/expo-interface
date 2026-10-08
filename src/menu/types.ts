@@ -85,9 +85,9 @@ export interface MenuProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape
   trigger?: MenuTrigger;
   /**
    * Called when the menu opens and when it closes. Reported on Android (the
-   * kit owns the `DropdownMenu`'s expanded state) and on web (the popover's
-   * `toggle` event); SwiftUI's `Menu` and `contextMenu` have no presentation
-   * binding, so iOS never reports it.
+   * kit owns the `DropdownMenu`'s expanded state), on web (the popover's
+   * `toggle` event) and on Windows (the `MenuFlyout` opening and closing);
+   * SwiftUI's `Menu` has no presentation binding, so iOS never reports it.
    */
   onOpenChange?: (open: boolean) => void;
   /** Identifier used to locate the trigger in end-to-end tests. */
@@ -163,18 +163,20 @@ export interface ContextMenuProps {
    * Opens the menu at this point whenever it changes, so a canvas can open
    * it where it says it was asked for (a right click it received itself, a
    * press on a block's grip). Relative to the content's top-left corner on
-   * Android and web (web also accepts viewport coordinates for content that
-   * fills it). iOS has no menu at a point: the long-press stays the only
-   * trigger there. Pair with `onDismiss` to clear it once the menu closes.
+   * Android, web and Windows (web also accepts viewport coordinates for
+   * content that fills it). iOS has no menu at a point: the long-press stays
+   * the only trigger there. Pair with `onDismiss` to clear it once the menu
+   * closes.
    */
   at?: MenuPoint | null;
   /** Called when a menu opened by `at` (or a gesture) closes. */
   onDismiss?: () => void;
   /**
    * Called when the menu opens and when it closes. Reported on Android (the
-   * kit owns the `DropdownMenu`'s expanded state) and on web (the popover's
-   * `toggle` event); SwiftUI's `Menu` and `contextMenu` have no presentation
-   * binding, so iOS never reports it.
+   * kit owns the `DropdownMenu`'s expanded state), on web (the popover's
+   * `toggle` event) and on Windows (the `MenuFlyout` opening and closing);
+   * SwiftUI's `contextMenu` and `Menu` have no presentation binding, so iOS
+   * never reports it.
    */
   onOpenChange?: (open: boolean) => void;
   /** Identifier used to locate the trigger in end-to-end tests. */
