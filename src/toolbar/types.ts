@@ -45,9 +45,11 @@ export interface ToolbarCommand {
    * editor, a check that runs, a panel that is open. It is drawn filled in
    * the accent while on, and assistive technology hears the state: the kit's
    * `Button` with `pressed` on iOS, Android and web, an `AppBarToggleButton`
-   * in the Windows `CommandBar`. Behind the overflow it is an entry with the
-   * menu's check while it is on; a menu has no off state, so one that is off
-   * is a plain entry. Leave it out for a command that is not a toggle.
+   * in the Windows `CommandBar`. Behind the kit's overflow menu (iOS,
+   * Android, web and a drawn Windows bar) it is an entry with the menu's
+   * check while it is on; a menu has no off state, so one that is off is a
+   * plain entry. The `CommandBar`'s own overflow keeps the toggle button.
+   * Leave it out for a command that is not a toggle.
    */
   active?: boolean;
   /**

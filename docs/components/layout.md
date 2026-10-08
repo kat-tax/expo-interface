@@ -193,9 +193,10 @@ Differences:
   and heard as one. The drawn bars give it the kit's `Button` with
   `pressed` (`aria-pressed` on web, the selected trait on iOS, Material's
   icon toggle button on Android); the Windows `CommandBar` makes it an
-  `AppBarToggleButton`. In the overflow, a toggle that is on is an entry
-  with the menu's check; a menu has no off state, so one that is off is a
-  plain entry.
+  `AppBarToggleButton`. In the kit's overflow menu (iOS, Android, web and
+  a drawn Windows bar), a toggle that is on is an entry with the menu's
+  check; a menu has no off state, so one that is off is a plain entry. The
+  `CommandBar`'s own overflow keeps the `AppBarToggleButton`.
 - A command's `separator` is a vertical `Divider` before it on the drawn
   bars, a rule in the overflow menu, and an `AppBarSeparator` in the
   Windows `CommandBar`. None is drawn before the first command of a row or
