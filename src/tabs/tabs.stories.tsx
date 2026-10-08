@@ -76,6 +76,19 @@ export const Glass: Story = {
 };
 
 /**
+ * The app's mark drawn in the label color (web), from an image rather than an
+ * icon token: its shape filled through a CSS mask, so it follows the scheme,
+ * a forced one included, and takes the text color in forced colors.
+ */
+export const TintedMark: Story = {
+  args: {
+    webLogo: 'icon-only',
+    webIcon: {uri: 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E%3Cpath d=\'M12 2C8 7 5 10.5 5 14a7 7 0 0 0 14 0c0-3.5-3-7-7-12z\'/%3E%3C/svg%3E'},
+    webTintIcon: true,
+  },
+};
+
+/**
  * A screen of the toast app: a button that shows the app's toast, and a fab
  * of its own, which lifts above the toast while it shows.
  */
