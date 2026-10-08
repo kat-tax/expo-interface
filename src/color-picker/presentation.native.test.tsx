@@ -136,13 +136,22 @@ describe(`ColorPicker presentations (${Platform.OS})`, () => {
   });
 
   it('names each preset for TalkBack with an unseen text its clickable merges', async () => {
-    await render(<ColorPicker value="#FF0000" swatches={[{color: '#1D1D1F', name: 'Ink'}, '#FF0000']} allowsNone onValueChange={vi.fn()} testID="cp"/>, options);
+    const swatches = [{color: '#1D1D1F', name: 'Ink'}, '#FF0000'];
+    const {rerender} = await render(<ColorPicker value="#FF0000" swatches={swatches} allowsNone onValueChange={vi.fn()} testID="cp"/>, options);
     const name = (testID: string) => children(byComposeTestID(testID))[1].props;
     // After the inner circle, so the swatch draws as it did; transparent, so nothing shows.
     expect(name('cp-swatch-#1D1D1F')).toMatchObject({text: 'Color Ink', color: '#00000000', maxLines: 1});
     expect(name('cp-swatch-#FF0000')).toMatchObject({text: 'Color #FF0000'});
     expect(name('cp-swatch-none')).toMatchObject({text: 'No color'});
     expect(modifier(byComposeTestID('cp-swatch-#1D1D1F').props, 'clickable')).toBeTruthy();
+    expect(ofType('TextView')).toHaveLength(3);
+    // A disabled preset has no clickable to merge a name into, so it carries none: only the inner circle.
+    await rerender(<ColorPicker value="#FF0000" swatches={swatches} allowsNone disabled onValueChange={vi.fn()} testID="cp"/>);
+    for (const testID of ['cp-swatch-#1D1D1F', 'cp-swatch-#FF0000', 'cp-swatch-none']) {
+      expect(modifier(byComposeTestID(testID).props, 'clickable')).toBeUndefined();
+      expect(children(byComposeTestID(testID))).toHaveLength(1);
+    }
+    expect(ofType('TextView')).toHaveLength(0);
   });
 
   it('offers No color beside the palette, and crosses out the well for an empty value', async () => {

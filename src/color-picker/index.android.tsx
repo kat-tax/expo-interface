@@ -48,7 +48,7 @@ const DIALOG_WIDTH = 328;
  * opens a Material `DropdownMenu` of the swatches from the well, and
  * `inline` draws the picker in the row's place, titled only by a `label`.
  * Each preset carries its name as an unseen Text, which its clickable
- * merges for TalkBack.
+ * merges for TalkBack; a disabled preset has no clickable, and no name.
  */
 export function ColorPicker({
   label,
@@ -96,8 +96,12 @@ export function ColorPicker({
         ...(testID ? [testIDModifier(`${testID}-swatch-${key}`)] : []),
       ]}>
       {inner}
-      {/* @expo/ui's `semantics` takes no content description, so the name is an unseen Text that the clickable merges. */}
-      <Text color={NONE} maxLines={1}>{name}</Text>
+      {/*
+        @expo/ui's `semantics` takes no content description, so the name is an unseen Text that the
+        clickable merges. A disabled preset has no clickable to merge it into, and would leave the
+        name standing alone as plain text, so it carries none.
+      */}
+      {disabled ? null : <Text color={NONE} maxLines={1}>{name}</Text>}
     </Box>
   );
   const presetBoxes = [

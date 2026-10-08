@@ -405,7 +405,9 @@ Windows, each named for a screen reader and a menu. A swatch given as
 the system palettes' colors are; a color given alone is called by its hex.
 On Android a swatch in the row carries its name as unseen text inside it,
 which TalkBack reads with the swatch: `@expo/ui`'s Compose layer exposes no
-modifier that sets a content description.
+modifier that sets a content description. For the same reason TalkBack
+passes over the swatches of a disabled picker on Android, where web and
+Windows announce them as unavailable buttons.
 
 `allowsNone` adds a "No color" choice, a crossed-out circle before the
 swatches and the first entry of a menu, reported as an empty string. An
