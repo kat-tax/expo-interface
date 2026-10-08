@@ -276,14 +276,13 @@ Windows of the area the sheet's layer covers, which is the window under the
 kit's `Stack`. On an iPad the sheet is a form sheet, shorter than the
 window, while the fraction is still of the window's height, so a fraction
 there leaves less of the sheet for the rest than on a phone. The cap is the
-body's alone: the bar, the accessory, the
-footer, the actions and the sheet's padding come on top, so leave room for
-them with a fraction well under 1. With a fraction near 1 the sheet is
-taller than the platform lets it be: on iOS and Android the footer and the
-actions are pushed out of it, and on web the drawer, which stops short of
-the viewport's top, scrolls as a whole around the body's own scrolling. On
-Windows the card stops short of the window and the body gives way inside
-it.
+body's alone: the bar, the accessory, the footer, the actions and the
+sheet's padding come on top, so leave room for them with a fraction well
+under 1. With a fraction near 1 the sheet is taller than the platform lets
+it be: on iOS and Android the footer and the actions are pushed out of it,
+and on web the drawer, which stops short of the viewport's top, scrolls as
+a whole around the body's own scrolling. On Windows the card stops short of
+the window and the body gives way inside it.
 
 ```tsx
 <Sheet isPresented={open} onDismiss={close} title="History" maxHeight={{fraction: 0.6}}>
