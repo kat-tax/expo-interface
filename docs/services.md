@@ -39,7 +39,8 @@ feedback Safari plays on a touch screen.
 `saveFile({name, content, mimeType})` saves a file where the user chooses: an
 export, a backup, what the app made. `content` is text or bytes. It resolves
 `true` once the file is written and `false` when the user cancels; a failure
-to write rejects.
+to write rejects. A web download resolves `true` once it starts, since the
+browser does not say whether the file was kept.
 
 ```tsx
 const saved = await saveFile({name: 'notes.md', content: markdown, mimeType: 'text/markdown'});
@@ -47,16 +48,21 @@ const saved = await saveFile({name: 'notes.md', content: markdown, mimeType: 'te
 
 | Platform | Where it goes |
 | --- | --- |
-| iOS | The folder the user picks in the system's document picker, through `expo-file-system`, under the app's name |
-| Android | The folder the user picks through the Storage Access Framework, through `expo-file-system`, under the app's name. The system asks the user to let the app into the folder, and from Android 11 Download itself cannot be picked, only a folder in it |
+| iOS | The folder the user picks in the system's document picker, through `expo-file-system`, under the `name` the app gives |
+| Android | The folder the user picks through the Storage Access Framework, through `expo-file-system`, under the `name` the app gives. The system asks the user to let the app into the folder, and from Android 11 Download itself cannot be picked, only a folder in it |
 | Web | The browser's save picker where it has one (the Chromium browsers), where the user picks the folder and the name; a download everywhere else, and where the picker will not open, as when the press that started the save is too long ago |
-| Windows | The folder the user picks in the shell's picker, through `expo-file-system` on `expo-windows`, under the app's name |
+| Windows | The folder the user picks in the shell's picker, through `expo-file-system` on `expo-windows`, under the `name` the app gives |
 
 Natively the user picks a folder, not a name: `expo-file-system` has a
 folder picker and no save picker. A file of the same name in the folder is
 kept, and the new one takes the platform's name for a copy: `notes 2.md` on
 iOS, `notes (1).md` on Android and Windows. On all three the file's type
-follows its extension, and `mimeType` is the web's.
+follows its extension, and `mimeType` is the web's. On Android both rest on
+the name `expo-file-system` takes from each document's URI, which the
+device's own storage builds from the file's name and another app's document
+provider, such as a cloud drive, may not: in such a folder the provider
+names a copy itself or keeps two files of one name, and it may record the
+type as `application/octet-stream`.
 
 Natively it needs `expo-file-system`, an optional peer, and says so when it
 is missing. `ShareLink` is the other way out: it hands the file to another

@@ -80,10 +80,19 @@ export async function saveWith({name, content}: SaveFileOptions, fileSystem: Sav
  * picker (`UIDocumentPickerViewController`, the Storage Access Framework,
  * the shell's picker) through `expo-file-system`, an optional peer, which
  * has no save picker: the user picks the folder, and the file takes the
- * app's name. A file of that name in the folder is kept, and the new one
- * takes the platform's name for a copy: `notes 2.md` on iOS, `notes (1).md`
- * on Android and Windows. Resolves `true` once written and `false` when the
- * user cancels; a failure to write rejects.
+ * name it is given. On Android the system first asks the user to let the
+ * app into the folder, and from Android 11 Download itself cannot be
+ * picked, only a folder in it. A file of that name in the folder is kept,
+ * and the new one takes the platform's name for a copy: `notes 2.md` on
+ * iOS, `notes (1).md` on Android and Windows. Resolves `true` once written
+ * and `false` when the user cancels; a failure to write rejects.
+ *
+ * The web opens the browser's save picker where it has one (the Chromium
+ * browsers), where the user picks the folder and the name, and downloads
+ * the file everywhere else, as it does when the picker will not open
+ * because the press that started the save is too long ago. There `false`
+ * means only that the user dismissed the picker, and a download resolves
+ * `true` once it starts: the browser does not say whether the file was kept.
  */
 export function saveFile(options: SaveFileOptions): Promise<boolean> {
   return saveWith(options, loadSaveFileSystem());

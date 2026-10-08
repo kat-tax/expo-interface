@@ -25,8 +25,10 @@ function download(blob: Blob, name: string): true {
  * a download everywhere else, saved where the browser saves them. The
  * picker opens only while the press that asked for it is recent, which an
  * export that awaits its content first can outlast: when it will not open,
- * the file downloads instead. Resolves `true` once saved and `false` when
- * the user dismisses the picker; a failure to write rejects.
+ * the file downloads instead. Resolves `true` once the picked file is
+ * written, or once a download starts (the browser does not say whether the
+ * file was kept), and `false` when the user dismisses the picker; a failure
+ * to write rejects.
  */
 export async function saveFile({name, content, mimeType = 'application/octet-stream'}: SaveFileOptions): Promise<boolean> {
   // A typed array is copied out, so the blob holds the bytes even if the caller's buffer changes.
