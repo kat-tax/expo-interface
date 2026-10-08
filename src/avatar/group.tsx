@@ -21,6 +21,13 @@ const WEB = Platform.OS === 'web';
 const SILENT = {accessible: false, accessibilityLabel: undefined};
 
 /**
+ * A face that does not press is a picture. On web it says so: a name and a
+ * state on an element with no role are not read. iOS, Android and Windows
+ * read the circle as it is.
+ */
+const PICTURE = WEB ? {role: 'img' as const} : null;
+
+/**
  * What a face says: the person's label (their name unless told otherwise),
  * the hint read after it, and whether they are the selected one. Only a
  * selected face says so: on Windows any `selected` value, `false` included,
@@ -70,7 +77,7 @@ export function AvatarGroup({people, max = 3, size = 24, ring = 'background', on
             ring={person.ring ?? ring}
             dimmed={person.dimmed || person.disabled}
             size={size}
-            {...(pressable ? SILENT : announced)}
+            {...(pressable ? SILENT : {...announced, ...PICTURE})}
           />
         );
         return (
@@ -102,7 +109,7 @@ function More({count, size, ring, overlap, onPress}: {count: number; size: numbe
   const token = useColor(isColorToken(ring) ? ring : 'background');
   const face = (
     <View
-      {...(onPress ? SILENT : {accessible: true, accessibilityLabel: `${count} more`})}
+      {...(onPress ? SILENT : {accessible: true, accessibilityLabel: `${count} more`, ...PICTURE})}
       style={[styles.face, {width: size, height: size, borderRadius: size / 2, backgroundColor: fill, borderWidth: AVATAR_RING, borderColor: isColorToken(ring) ? token : ring}]}>
       <Text numberOfLines={1} style={[styles.count, {color: label, fontSize: Math.round(size * 0.4)}]}>{`+${count}`}</Text>
     </View>

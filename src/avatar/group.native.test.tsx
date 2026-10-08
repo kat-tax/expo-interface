@@ -99,6 +99,8 @@ describe(`AvatarGroup (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(ada.props.style)).toMatchObject({width: 24});
     expect(ada).toBeSelected();
     expect(ada.props.accessibilityHint).toBe('Editing the outline');
+    // Read as the person, not as an image.
+    expect(ada.props.role).toBeUndefined();
     expect(screen.getByLabelText('Alan Turing')).not.toBeSelected();
     expect(screen.queryByRole('button')).toBeNull();
   });

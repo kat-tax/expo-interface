@@ -19,6 +19,7 @@ interface FaceAnnouncement {
   'aria-selected'?: boolean;
   'aria-current'?: boolean;
   'aria-describedby'?: string;
+  role?: 'img';
 }
 
 /**

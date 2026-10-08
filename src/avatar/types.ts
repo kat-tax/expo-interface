@@ -33,8 +33,8 @@ export interface AvatarProps {
 
 /**
  * A person in an `AvatarGroup`. Their face is a button when the group
- * presses and the circle itself when it does not; either one carries the
- * person's label, hint and selected state.
+ * presses and the circle itself when it does not (an image on web); either
+ * one carries the person's label, hint and selected state.
  */
 export interface AvatarGroupPerson extends Pick<AvatarProps, 'name' | 'initials' | 'color' | 'ring' | 'dimmed'> {
   /** Tells the faces apart when two people share a name. Defaults to the name and place. */

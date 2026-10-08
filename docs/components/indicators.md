@@ -124,7 +124,8 @@ a button cannot be selected) and draws nothing, so show it with the person's
 `ring`. A `disabled` face takes neither press, is announced as unavailable
 and is drawn at half opacity. When the group does not press, the circle
 itself carries the label, the hint and the selected state, and `disabled`
-only dims it. The faces are drawn in React Native on every platform,
+only dims it; on web each face and the count are then images, since a name
+on an element with no role goes unread. The faces are drawn in React Native on every platform,
 Windows included, where `Avatar` is a `PersonPicture` island: an island
 takes the pointer, and a facepile's faces are pressed.
 

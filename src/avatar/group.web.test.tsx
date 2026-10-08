@@ -9,6 +9,7 @@ describe('AvatarGroup (web)', () => {
     const ada = screen.getByRole('button', {name: 'Ada Lovelace'});
     expect(screen.getAllByLabelText('Ada Lovelace')).toEqual([ada]);
     expect(screen.getByText('AL').parentElement).not.toHaveAttribute('aria-label');
+    expect(screen.queryByRole('img')).toBeNull();
     screen.getByRole('button', {name: 'Alan Turing'}).click();
     expect(onPress).toHaveBeenCalledWith(people[1], 1);
   });
@@ -49,12 +50,15 @@ describe('AvatarGroup (web)', () => {
     expect(onPress).toHaveBeenCalledWith(people[2], 2);
   });
 
-  it('marks and describes a face that does not press', () => {
-    render(<AvatarGroup people={[{name: 'Ada Lovelace', label: 'Ada, on Notes', hint: 'Editing the outline', selected: true}, {name: 'Alan Turing'}]}/>);
-    const ada = screen.getByLabelText('Ada, on Notes');
+  it('marks and describes a face that does not press, a picture named for the person', () => {
+    render(<AvatarGroup people={[{name: 'Ada Lovelace', label: 'Ada, on Notes', hint: 'Editing the outline', selected: true}, {name: 'Alan Turing'}, {name: 'Grace Hopper'}]} max={2}/>);
+    const ada = screen.getByRole('img', {name: 'Ada, on Notes'});
     expect(ada).toHaveAttribute('aria-current', 'true');
     expect(ada).toHaveAccessibleDescription('Editing the outline');
-    expect(screen.getByLabelText('Alan Turing')).not.toHaveAttribute('aria-current');
+    expect(screen.getByRole('img', {name: 'Alan Turing'})).not.toHaveAttribute('aria-current');
+    // The count is part of the picture too.
+    expect(screen.getByRole('img', {name: '1 more'})).toHaveTextContent('+1');
+    expect(screen.getAllByRole('img')).toHaveLength(3);
     expect(screen.queryByRole('button')).toBeNull();
   });
 });
