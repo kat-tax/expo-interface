@@ -28,7 +28,7 @@ import {ROW_ICON, rowLabel, useBadgeColors} from './shared';
  * A SwiftUI row draws nothing outside a host. A row that finds no host above
  * it (a `ScrollView` of rows in a React Native screen) mounts one of its own,
  * as wide as its container and as tall as the row; inside a `FieldGroup`, a
- * `Screen native` or a `Sheet` it renders bare.
+ * `Screen native` or a `Sheet`'s native content it renders bare.
  */
 export function ListItem(props: ListItemProps) {
   const hosted = useNativeHost();

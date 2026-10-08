@@ -27,7 +27,8 @@ const TRANSPARENT = '#00000000';
  * A Compose row draws nothing outside a host, and says nothing about it. So
  * a row that finds no host above it (a `ScrollView` of rows in a React Native
  * screen) mounts one of its own, as wide as its container and as tall as the
- * row; inside a `FieldGroup`, a `Screen native` or a `Sheet` it renders bare.
+ * row; inside a `FieldGroup`, a `Screen native` or a `Sheet`'s native
+ * content it renders bare.
  */
 export function ListItem({swipeActions, ...props}: ListItemProps) {
   const hosted = useNativeHost();
