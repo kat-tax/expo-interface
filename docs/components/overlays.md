@@ -379,9 +379,9 @@ also stands above the tab bar of a `Tabs` under it, and above the bar's
 bottom accessory on iOS 26. It comes down to the safe area while the tabs
 are hidden and while a stack around them shows a screen over them. The bar
 is counted at the platform's standard height (`inset.bottomTab`), not
-measured, so where the platform draws it shorter or not at the bottom (an
-iPad draws it at the top) the toast stands higher than the bar needs, as
-the tabs' floating action does. `show`
+measured, so where the platform draws it shorter or not at the bottom
+(iPadOS 18 and later draw it at the top of a regular-width window) the toast
+stands higher than the bar needs, as the tabs' floating action does. `show`
 answers an id; `dismiss(id)` takes that toast away, showing or waiting, and
 `dismiss()` the one showing. A `Screen` under the provider lifts its `Fab`
 above the app's toast as it does above its own, by the larger of the two,

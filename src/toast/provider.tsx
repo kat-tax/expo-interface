@@ -34,10 +34,10 @@ let shown = 0;
  * except while the tabs are hidden or a stack around them shows a screen
  * over them. The bar counts at its standard height (`inset.bottomTab`),
  * not measured, so where the platform draws it shorter or not at the
- * bottom (at the top on an iPad) the toast stands higher than the bar
- * needs. Put the provider around the app's navigation. A `Screen`'s
- * fab lifts above it as it lifts above a toast of its own, and so does the
- * tabs' floating action.
+ * bottom (iPadOS 18 and later draw it at the top of a regular-width
+ * window) the toast stands higher than the bar needs. Put the provider
+ * around the app's navigation. A `Screen`'s fab lifts above it as it
+ * lifts above a toast of its own, and so does the tabs' floating action.
  */
 export function ToastProvider({children}: PropsWithChildren) {
   const [queue, setQueue] = useState<readonly (ToastOptions & {id: string})[]>([]);
