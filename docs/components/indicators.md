@@ -182,7 +182,7 @@ Props: `date` (a `Date` or milliseconds), `variant` (a `Typography` style,
 `numeric` (`auto` says "now" and "yesterday" where the language has the
 words; `always` says "1 day ago"), `locale` (the language of the words, a
 BCP 47 tag such as `de` or `pt-BR`; by default the page's language on web
-and the device's elsewhere),
+and the locale Hermes reports elsewhere, as the table below says),
 `numberOfLines`, `testID`.
 
 ```tsx
@@ -208,7 +208,7 @@ up to 45, hours up to 22, days up to 26, months up to 11, and years.
 | Platform | Words |
 | --- | --- |
 | Web | `locale`'s, else the page's language, through `Intl.RelativeTimeFormat`. The page's language is the `lang` of its `<html>`: `web.lang` in the app config for a single-page app, or the `lang` that `+html.tsx` sets for a static one. The words follow it when it changes, so they are the app's language rather than the browser's. A server has no page to read, so it renders a static page's words in English without a `locale`, and so does the first render in the browser, which hydrates that HTML; the next render says them in the page's language. The server's words are for the moment it rendered them, so a page loaded after they change hydrates with different words, which React reports as a hydration mismatch and renders again in the browser. |
-| iOS, Android, Windows | English: Hermes has no `Intl.RelativeTimeFormat`. With a polyfill for it and for the `Intl.PluralRules` it needs, such as FormatJS's `@formatjs/intl-relativetimeformat` and `@formatjs/intl-pluralrules` with the locale data of each language the app speaks, the words are `locale`'s, else the device's language, which the kit reads from `Intl.DateTimeFormat` and hands the polyfill. A language the polyfill has no data for gets its default, the first locale data the app loaded. |
+| iOS, Android, Windows | English: Hermes has no `Intl.RelativeTimeFormat`. With a polyfill for it and for the `Intl.PluralRules` it needs, such as FormatJS's `@formatjs/intl-relativetimeformat` and `@formatjs/intl-pluralrules` with the locale data of each language the app speaks, the words are `locale`'s, else the locale Hermes reports through `Intl.DateTimeFormat`, which the kit hands the polyfill. On iOS that is the language the system runs the app in: the device's when the app is localized for it, through the app config's `locales` or `CFBundleLocalizations`, else the app's base language, English in an Expo app. So an app in English alone says English times on a German phone. On Android it is the device's language, and on Windows the user's regional format. To follow the device's language whatever the app is localized for, pass `locale`, such as `getLocales()[0].languageTag` from `expo-localization`. A language the polyfill has no data for gets its default, the first locale data the app loaded. |
 
 A tag the engine cannot read (`en_US`) gets the engine's default language,
 and where the engine cannot make a formatter at all, as with a polyfill

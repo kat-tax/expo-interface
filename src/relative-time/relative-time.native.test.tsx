@@ -155,7 +155,7 @@ describe(`useRelativeTime (${Platform.OS})`, () => {
     vi.useRealTimers();
   });
 
-  it('answers the words as a string, in the device\'s language without a locale, and keeps them current', async () => {
+  it('answers the words as a string, in the locale Hermes reports without a locale, and keeps them current', async () => {
     const {result} = await renderHook(() => useRelativeTime(NOW - DAY + 20 * MINUTE));
     expect(result.current).toBe('yesterday');
     await act(async () => {
@@ -173,9 +173,9 @@ describe(`useRelativeTime (${Platform.OS})`, () => {
     expect(result.current).toBe('vor 1 Tag');
   });
 
-  it('says the device\'s language without a locale, as Intl.DateTimeFormat reports it, read once', async () => {
+  it('says the locale Intl.DateTimeFormat reports without a locale, read once', async () => {
     let read = 0;
-    // A device set to German, as Hermes reports it. A function, since the
+    // An app that runs in German, as Hermes reports it. A function, since the
     // transform's subclass of a built-in would not keep its own methods.
     function German() {
       read += 1;
