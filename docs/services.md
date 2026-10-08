@@ -55,8 +55,8 @@ const saved = await saveFile({name: 'notes.md', content: markdown, mimeType: 'te
 Natively the user picks a folder, not a name: `expo-file-system` has a
 folder picker and no save picker. A file of the same name in the folder is
 kept, and the new one takes the platform's name for a copy: `notes 2.md` on
-iOS, `notes (1).md` on Android and Windows. There the file's type follows
-its extension, and `mimeType` is the web's.
+iOS, `notes (1).md` on Android and Windows. On all three the file's type
+follows its extension, and `mimeType` is the web's.
 
 Natively it needs `expo-file-system`, an optional peer, and says so when it
 is missing. `ShareLink` is the other way out: it hands the file to another
