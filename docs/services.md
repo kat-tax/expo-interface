@@ -58,9 +58,9 @@ folder picker and no save picker. A file of the same name in the folder is
 kept, and the new one takes the platform's name for a copy: `notes 2.md` on
 iOS, `notes (1).md` on Android and Windows. On all three the file's type
 follows its extension, and `mimeType` is the web's. On Android both rest on
-the name `expo-file-system` takes from each document's URI, which the
-device's own storage builds from the file's name and another app's document
-provider, such as a cloud drive, may not: in such a folder the provider
+the name `expo-file-system` takes from each document's URI. The device's own
+storage builds that URI from the file's name. Another app's document
+provider, such as a cloud drive, may not. In such a folder the provider
 names a copy itself or keeps two files of one name, and it may record the
 type as `application/octet-stream`.
 
