@@ -329,9 +329,9 @@ under the headline, its line breaks kept), `value` (text at the trailing edge
 in the secondary color, before `trailing`: a setting's value, a file's size),
 `badge` (`true` for a dot, a number for a count, as the kit's `Badge` at the
 trailing edge), `badgeColor` (the badge's fill, a palette token such as `tint`
-or a color, default `destructive`; a count on it is drawn in black or white,
-whichever reads), `selected` (the current row, in the selected fill and
-announced as selected), `action` (`label`, `onPress`, `disabled`, `loading`,
+or a hex color; a count on it is drawn in black or white, whichever reads;
+without one, the `Badge`'s own red), `selected` (the current row, in the
+selected fill and announced as selected), `action` (`label`, `onPress`, `disabled`, `loading`,
 `role`, `variant` `text` or `filled`), `swipeActions` (`label`, `onPress`,
 `icon`, `role`, `disabled` per action), `inset` (default true), `onPress`,
 `testID`.
@@ -358,6 +358,10 @@ Differences:
   inset.
 - On iOS a selected row in a `List` or a `FieldGroup` fills the whole row,
   through SwiftUI's row background.
+- On Windows `badgeColor` is read as hex and nothing else: a named color,
+  `rgb()`, `hsl()` or a translucent token (`separator`, `pillBackground`)
+  draws the badge in Fluent's critical red, which is also its fill without
+  one.
 - On Android TalkBack reads the row's own texts as Compose merges them: a
   badge's count is its number and a dot says nothing, since `@expo/ui`'s
   Compose layer has no modifier that sets a description. `selected` is

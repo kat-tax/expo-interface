@@ -31,6 +31,20 @@ describe('ListItem slots (windows)', () => {
     expect(island('ExpoInterfaceInfoBadge').props).toMatchObject({color: colors.light.tint, textColor: '#FFFFFF'});
   });
 
+  it('hands a hex badge color to the island as it is, for the island to pick the count color', async () => {
+    await render(<ListItem badge={3} badgeColor="#123456" testID="row">Essay</ListItem>);
+    const {props} = island('ExpoInterfaceInfoBadge');
+    expect(props.color).toBe('#123456');
+    expect(props.textColor).toBeUndefined();
+  });
+
+  it('leaves the island its own critical red without a badge color', async () => {
+    await render(<ListItem badge={3} testID="row">Essay</ListItem>);
+    const {props} = island('ExpoInterfaceInfoBadge');
+    expect(props.color).toBeUndefined();
+    expect(props.textColor).toBeUndefined();
+  });
+
   it('takes the selected fill and says so, pressable or not', async () => {
     await render(
       <>

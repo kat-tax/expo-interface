@@ -24,6 +24,7 @@ The differences that change what a screen can do, in one place:
 | `Badge` `style` | Yes | Not applied inside a host | Yes | Yes |
 | `ListItem` named from its slots | Yes | The row's own texts | Yes | Yes |
 | `ListItem` `selected` announced | Yes | On a row that presses, without `swipeActions` | Yes | Yes |
+| `ListItem` `badgeColor` that is not hex | Yes | Yes | Yes | Fluent's critical red |
 | `SegmentedControl` `size`, `shape` | `pill` only | Yes | Yes | Not applied |
 | `Stepper` `formatValue` | Yes | Yes | Yes | Not applied |
 | `TextField` `autoCapitalize` | Yes | Yes | Yes | No equivalent |
