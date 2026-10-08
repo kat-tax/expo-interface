@@ -35,6 +35,9 @@ describe(`AvatarGroup (${Platform.OS})`, () => {
     await fireEvent.press(screen.getByRole('button', {name: '3 more'}));
     expect(onPressMore).toHaveBeenCalledTimes(1);
     expect(StyleSheet.flatten(screen.getByText('+3').parent!.props.style)).toMatchObject({borderColor: '#101010', width: 32});
+    // The count's button is its one stop: the face inside it is silent.
+    expect(screen.getAllByLabelText('3 more')).toEqual([screen.getByRole('button', {name: '3 more'})]);
+    expect(screen.getByText('+3').parent!.props.accessible).toBe(false);
   });
 
   it('presses only where it is told what to do, and draws no count with nothing more', async () => {

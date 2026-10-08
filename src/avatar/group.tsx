@@ -15,7 +15,8 @@ const WEB = Platform.OS === 'web';
 
 /**
  * The circle inside a face's button: the button is the accessibility
- * element, so the circle gets no name and no stop of its own.
+ * element, so the circle gets no name and no stop of its own. The name goes
+ * as well as the stop because react-native-web drops `accessible`.
  */
 const SILENT = {accessible: false, accessibilityLabel: undefined};
 
@@ -101,8 +102,7 @@ function More({count, size, ring, overlap, onPress}: {count: number; size: numbe
   const token = useColor(isColorToken(ring) ? ring : 'background');
   const face = (
     <View
-      accessible={onPress == null}
-      accessibilityLabel={`${count} more`}
+      {...(onPress ? SILENT : {accessible: true, accessibilityLabel: `${count} more`})}
       style={[styles.face, {width: size, height: size, borderRadius: size / 2, backgroundColor: fill, borderWidth: AVATAR_RING, borderColor: isColorToken(ring) ? token : ring}]}>
       <Text numberOfLines={1} style={[styles.count, {color: label, fontSize: Math.round(size * 0.4)}]}>{`+${count}`}</Text>
     </View>

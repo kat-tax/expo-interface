@@ -13,6 +13,16 @@ describe('AvatarGroup (web)', () => {
     expect(onPress).toHaveBeenCalledWith(people[1], 1);
   });
 
+  it('makes a pressable count a button named for the rest, with no labelled face inside it', () => {
+    const onPressMore = vi.fn();
+    render(<AvatarGroup people={[{name: 'Ada Lovelace'}, {name: 'Grace Hopper'}, {name: 'Alan Turing'}, {name: 'Edsger Dijkstra'}]} max={1} onPressMore={onPressMore}/>);
+    const more = screen.getByRole('button', {name: '3 more'});
+    expect(screen.getAllByLabelText('3 more')).toEqual([more]);
+    expect(screen.getByText('+3').parentElement).not.toHaveAttribute('aria-label');
+    more.click();
+    expect(onPressMore).toHaveBeenCalledTimes(1);
+  });
+
   it('names, describes and marks the current face, and a disabled face does not press', () => {
     const onPress = vi.fn();
     const hint = 'Hold to go there once, without following';
