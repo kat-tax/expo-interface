@@ -45,10 +45,27 @@ export function Toolbar(props: ToolbarProps) {
   return <PlacedToolbar {...props}/>;
 }
 
-/** A bar where it is laid out: the platform's `CommandBar` for commands, the kit's otherwise. */
+/** How a placed bar reports its width, to the size class `foldCommands` reads. */
+interface Measured {
+  onMeasure: (event: LayoutChangeEvent) => void;
+}
+
+/**
+ * A bar where it is laid out: the platform's `CommandBar` for commands, the
+ * kit's otherwise.
+ *
+ * Both bars are measured, and the size class is kept here rather than in the
+ * drawn bar. The documented fold opens a field on a bar of commands, which
+ * swaps the `CommandBar` for the drawn bar: one that measured itself would
+ * start unmeasured, draw every command beside the field, and fold only once
+ * its own first layout came. Both run the width of the edge they sit on, so
+ * the class carries over.
+ */
 function PlacedToolbar(props: ToolbarProps) {
-  if (hasCommands(props.commands) && props.field == null) return <NativeToolbar {...props}/>;
-  return <DrawnToolbar {...props}/>;
+  const [compact, setCompact] = useState(false);
+  const onMeasure = (event: LayoutChangeEvent) => setCompact(isCompact(event.nativeEvent.layout.width));
+  if (hasCommands(props.commands) && props.field == null) return <NativeToolbar {...props} onMeasure={onMeasure}/>;
+  return <DrawnToolbar {...props} compact={compact} onMeasure={onMeasure}/>;
 }
 
 /**
@@ -80,7 +97,7 @@ function barSurface(floating: boolean, placement: 'top' | 'bottom') {
     : {color: 'background' as const, radius: 0, border: placement === 'bottom' ? 'top' as const : 'bottom' as const, raised: false};
 }
 
-function NativeToolbar({commands = [], placement = 'bottom', density = 'regular', floating = false, children, style, testID}: ToolbarProps) {
+function NativeToolbar({commands = [], placement = 'bottom', density = 'regular', floating = false, children, style, testID, onMeasure}: ToolbarProps & Measured) {
   const xaml = useXamlProps();
   // A menu command's entries bind their shortcuts while the bar is up, as
   // WinUI's accelerators are; a disabled command's do not.
@@ -88,6 +105,7 @@ function NativeToolbar({commands = [], placement = 'bottom', density = 'regular'
   return (
     <Surface
       {...barSurface(floating, placement)}
+      onLayout={onMeasure}
       style={[floating ? styles.floatingBar : styles.nativeBar, style]}
       testID={testID}>
       <XamlCommandBar
@@ -135,13 +153,12 @@ function NativeToolbar({commands = [], placement = 'bottom', density = 'regular'
  * rows — every kit control is a XAML island of its own here, so there is no
  * single native row to gather them in, and a `field` needs no host either side.
  */
-function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], placement = 'bottom', density = 'regular', floating = false, foldCommands = false, children, style, testID}: ToolbarProps) {
+function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], placement = 'bottom', density = 'regular', floating = false, foldCommands = false, children, style, testID, compact, onMeasure}: ToolbarProps & Measured & {compact: boolean}) {
   const {gap, edge} = DENSITY[density];
-  // Measured whether or not it folds: a frame is reported only when the bar
-  // is laid out again, so a handler added with the fold would wait for the
-  // next resize. Kept as the size class, so the bar renders again only when
-  // it crosses it.
-  const [compact, setCompact] = useState(false);
+  // Measured whether or not it folds (see `PlacedToolbar`): a frame is
+  // reported only when the bar is laid out again, so a handler added with
+  // the fold would wait for the next resize. Kept as the size class, so the
+  // bar renders again only when it crosses it.
   const folded = foldCommands && compact;
   // Commands drawn by the kit, as the other platforms draw them: a field
   // keeps them out of the CommandBar, which cannot hold one.
@@ -152,7 +169,7 @@ function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], p
   return (
     <Surface
       {...barSurface(floating, placement)}
-      onLayout={(event: LayoutChangeEvent) => setCompact(isCompact(event.nativeEvent.layout.width))}
+      onLayout={onMeasure}
       style={[floating ? styles.floatingDrawn : styles.bar, {paddingHorizontal: edge}, style]}
       testID={testID}>
       <View style={[styles.row, {gap}]}>

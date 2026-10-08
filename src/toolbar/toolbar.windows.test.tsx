@@ -146,6 +146,19 @@ describe('commands (windows)', () => {
     expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Close', 'More']);
   });
 
+  it('folds at once when a field opens on a CommandBar that was measured narrow, with no layout of the drawn bar', async () => {
+    const {rerender} = await render(<Toolbar commands={[{label: 'Bold'}, {label: 'Italic'}]} testID="bar"/>);
+    expect(islands(BAR)).toHaveLength(1);
+    await fireEvent(screen.getByTestId('bar'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 400, height: 68}}});
+    // The documented fold: a field and foldCommands arrive together, which
+    // swaps the CommandBar for the drawn bar.
+    await rerender(
+      <Toolbar commands={[{label: 'Bold'}, {label: 'Italic'}]} field={<Text>Find</Text>} fieldCommands={[{label: 'Close'}]} foldCommands testID="bar"/>,
+    );
+    expect(islands(BAR)).toHaveLength(0);
+    expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Close', 'More']);
+  });
+
   it('floats a drawn bar with no spacer between its slots', async () => {
     await render(<Toolbar floating leading={<Text>Undo</Text>} trailing={<Text>Redo</Text>} testID="bar"/>);
     expect(screen.getByText('Undo')).toBeOnTheScreen();
