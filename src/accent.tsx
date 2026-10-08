@@ -132,7 +132,10 @@ interface AccentProviderProps extends PropsWithChildren {
    * (the palette's `background` and `backgroundElement`); the stricter
    * decides. 4.5 is WCAG's for text. A seed short of it in a scheme is made
    * lighter on dark or darker on light until it reaches it on both; one that
-   * reaches it is kept as it is.
+   * reaches it is kept as it is. The system colors `theme` names natively
+   * and the fills a platform draws itself are not measured, and in the dark
+   * scheme some are a little lighter: ask for more where tinted text sits
+   * on them.
    */
   minContrast?: number;
   /**

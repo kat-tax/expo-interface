@@ -71,9 +71,17 @@ or lighter in the dark one, keeping its hue, until it reaches the ratio on
 both; a seed that reaches it is kept as it is. The ratio is measured against
 the palette's `background` and `backgroundElement` values, the colors
 `useColor`, `usePalette` and the CSS variables hand out for those two tokens.
-A deeper fill such as `backgroundSelected`, and a system color a `theme` token
-names natively, are not measured. `resolveAccent(seed, minContrast)` is the
-same computation, for code that wants the result without a provider.
+`resolveAccent(seed, minContrast)` is the same computation, for code that
+wants the result without a provider.
+
+A deeper fill such as `backgroundSelected`, a system color a `theme` token
+names natively, and a fill the platform draws itself are not measured. In the
+dark scheme some of those are a little lighter than `backgroundElement`: what
+`theme.backgroundElement` names inside an iOS sheet and on Windows, and
+SwiftUI's grouped rows in a sheet. A tint that just reaches 4.5:1 on the
+palette's fill measures about 3.9:1 on them, so where tinted text sits on one,
+ask for a higher ratio, or fill the view with `useColor('backgroundElement')`,
+the color the ratio is measured against.
 
 | Platform | How the seed is applied |
 | --- | --- |
