@@ -10,6 +10,7 @@ import {useAnchored} from '../anchored';
 import {Button} from '../button';
 import {Divider} from '../divider';
 import {Menu} from '../menu';
+import {menuEntries, useMenuShortcuts} from '../menu/windows';
 import {isCompact} from '../size-class';
 import {spacing} from '../theme';
 import {MORE} from '../glyphs';
@@ -81,30 +82,46 @@ function barSurface(floating: boolean, placement: 'top' | 'bottom') {
 
 function NativeToolbar({commands = [], placement = 'bottom', density = 'regular', floating = false, children, style, testID}: ToolbarProps) {
   const xaml = useXamlProps();
+  // A menu command's entries bind their shortcuts while the bar is up, as
+  // WinUI's accelerators are; a disabled command's do not.
+  useMenuShortcuts(commands.flatMap(command => (command.items && !command.disabled ? command.items : [])));
   return (
     <Surface
       {...barSurface(floating, placement)}
       style={[floating ? styles.floatingBar : styles.nativeBar, style]}
       testID={testID}>
       <XamlCommandBar
-        commands={jsonProp(commands.map(command => ({
-          label: command.label,
-          glyph: glyphOf(command.icon),
-          secondary: command.secondary ?? false,
-          disabled: command.disabled ?? false,
-          role: command.role ?? 'default',
-          separator: command.separator ?? false,
-          // A command with an on state is the bar's own toggle button.
-          toggle: command.active !== undefined,
-          checked: command.active === true,
-        })))}
+        commands={jsonProp(commands.map(command => {
+          // A menu takes no press of its own, so no role and no on state.
+          const press = !command.items;
+          return {
+            label: command.label,
+            glyph: glyphOf(command.icon),
+            secondary: command.secondary ?? false,
+            disabled: command.disabled ?? false,
+            role: press ? command.role ?? 'default' : 'default',
+            separator: command.separator ?? false,
+            // A command with an on state is the bar's own toggle button.
+            toggle: press && command.active !== undefined,
+            checked: press && command.active === true,
+            // A menu command is a button with its MenuFlyout: a chevron on the bar, a submenu in the overflow.
+            ...(command.items ? {menu: menuEntries(command.items)} : {}),
+          };
+        }))}
         // Beside the icon, not under it: a CommandBar only shows labels it has
         // placed underneath once the bar is open, so 'bottom' on a closed bar
         // is a row of unlabelled glyphs. A dense bar drops them altogether and
         // leaves the naming to the overflow menu, which is what Fluent does
         // with a row of icon tools.
         labels={density === 'compact' || floating ? 'collapsed' : 'right'}
-        onPress={event => commands[event.nativeEvent.index]?.onPress?.()}
+        // A command by its index; a menu command's entry by the index of the
+        // pick in its menu, where -1 is the press that opened the flyout.
+        onPress={event => {
+          const {index, item} = event.nativeEvent;
+          const command = commands[index];
+          if (command?.items) command.items[item]?.onPress?.();
+          else command?.onPress?.();
+        }}
         style={floating ? styles.floatingCommandBar : styles.commandBar}
         {...xaml}
       />
@@ -152,9 +169,10 @@ function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], p
 }
 
 /**
- * Commands as the kit's own buttons, each an island of its own. A command
- * with `separator` has a vertical rule before it, none before the first of
- * the group, as a menu's entries do.
+ * Commands as the kit's own buttons, each an island of its own; a command
+ * with `items` is the kit's own `Menu`, its button and its `MenuFlyout`. A
+ * command with `separator` has a vertical rule before it, none before the
+ * first of the group, as a menu's entries do.
  */
 function CommandButtons({commands}: {commands: ToolbarCommand[]}) {
   if (commands.length === 0) return null;
@@ -163,19 +181,33 @@ function CommandButtons({commands}: {commands: ToolbarCommand[]}) {
       {commands.map((command, index) => (
         <Fragment key={index}>
           {command.separator && index > 0 ? <Divider vertical/> : null}
-          <Button
-            variant="text"
-            size="small"
-            pressed={command.active}
-            label={command.label}
-            prefixIcon={command.icon}
-            hideLabel={command.hideLabel}
-            tone={command.tone}
-            role={command.role}
-            disabled={command.disabled}
-            onPress={command.onPress}
-            testID={command.testID}
-          />
+          {command.items ? (
+            <Menu
+              variant="text"
+              size="small"
+              label={command.label}
+              icon={command.icon}
+              hideLabel={command.hideLabel}
+              tone={command.tone}
+              disabled={command.disabled}
+              items={command.items}
+              testID={command.testID}
+            />
+          ) : (
+            <Button
+              variant="text"
+              size="small"
+              pressed={command.active}
+              label={command.label}
+              prefixIcon={command.icon}
+              hideLabel={command.hideLabel}
+              tone={command.tone}
+              role={command.role}
+              disabled={command.disabled}
+              onPress={command.onPress}
+              testID={command.testID}
+            />
+          )}
         </Fragment>
       ))}
     </>

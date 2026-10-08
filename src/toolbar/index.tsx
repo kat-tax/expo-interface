@@ -156,8 +156,9 @@ function EdgeToolbar(props: ToolbarProps) {
 
 /**
  * The commands the bar shows, as the kit's own buttons, in a row of their own
- * at the bar's pitch. A command with `separator` has a vertical rule before
- * it, none before the first of the row, as a menu's entries do.
+ * at the bar's pitch; a command with `items` is the kit's own `Menu`, at the
+ * same metrics, in the same host. A command with `separator` has a vertical
+ * rule before it, none before the first of the row, as a menu's entries do.
  */
 function Commands({commands, gap}: {commands: ToolbarCommand[]; gap: number}) {
   if (commands.length === 0) return null;
@@ -166,20 +167,35 @@ function Commands({commands, gap}: {commands: ToolbarCommand[]; gap: number}) {
       {commands.map((command, index) => (
         <Fragment key={index}>
           {command.separator && index > 0 ? <Divider vertical/> : null}
-          <Button
-            variant="text"
-            pressed={command.active}
-            size={TOOL.size}
-            iconSize={TOOL.iconSize}
-            label={command.label}
-            prefixIcon={command.icon}
-            hideLabel={command.hideLabel}
-            tone={command.tone}
-            role={command.role}
-            disabled={command.disabled}
-            onPress={command.onPress}
-            testID={command.testID}
-          />
+          {command.items ? (
+            <Menu
+              variant="text"
+              size={TOOL.size}
+              iconSize={TOOL.iconSize}
+              label={command.label}
+              icon={command.icon}
+              hideLabel={command.hideLabel}
+              tone={command.tone}
+              disabled={command.disabled}
+              items={command.items}
+              testID={command.testID}
+            />
+          ) : (
+            <Button
+              variant="text"
+              pressed={command.active}
+              size={TOOL.size}
+              iconSize={TOOL.iconSize}
+              label={command.label}
+              prefixIcon={command.icon}
+              hideLabel={command.hideLabel}
+              tone={command.tone}
+              role={command.role}
+              disabled={command.disabled}
+              onPress={command.onPress}
+              testID={command.testID}
+            />
+          )}
         </Fragment>
       ))}
     </Row>

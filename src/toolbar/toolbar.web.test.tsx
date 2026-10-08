@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
 import {Toolbar} from '.';
 
@@ -32,6 +32,25 @@ describe('Toolbar commands (web)', () => {
     const precedes = (a: Element, b: Element) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
     expect(precedes(screen.getByRole('button', {name: 'Italic'}), rules[0]!)).toBe(true);
     expect(precedes(rules[0]!, screen.getByRole('button', {name: 'Undo'}))).toBe(true);
+  });
+
+  it('draws a menu command as a menu of its own, and a secondary one\'s entries behind the overflow', () => {
+    const onHeading = vi.fn();
+    render(
+      <Toolbar
+        commands={[
+          {label: 'Turn into', icon: icons.settings, hideLabel: true, items: [{label: 'Heading', onPress: onHeading}, {label: 'Quote'}]},
+          {label: 'Sort', secondary: true, items: [{label: 'Name'}]},
+        ]}
+      />,
+    );
+    expect(screen.getByRole('button', {name: 'Turn into'})).toHaveAttribute('popovertarget');
+    fireEvent.click(screen.getByRole('menuitem', {name: 'Heading', hidden: true}));
+    expect(onHeading).toHaveBeenCalledTimes(1);
+    // The secondary menu has no trigger of its own: its entries are in the overflow.
+    expect(screen.queryByRole('button', {name: 'Sort'})).toBeNull();
+    expect(screen.getByRole('button', {name: 'More'})).toBeInTheDocument();
+    expect(screen.getByRole('menuitem', {name: 'Name', hidden: true})).toBeInTheDocument();
   });
 
   it('keeps a toggle\'s state in the overflow as the menu\'s check', () => {

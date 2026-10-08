@@ -159,8 +159,8 @@ A bar of tools along a canvas: an editor's status bar, the strip over a
 drawing, the row under a preview.
 
 Props: `commands` (the bar described as data: `label`, `icon`, `hideLabel`,
-`active`, `tone`, `onPress`, `secondary`, `disabled`, `role`, `separator`,
-`testID` per command), or `leading` and `trailing` nodes; `field` (a `TextField variant="inline"` that
+`active`, `tone`, `onPress`, `items`, `secondary`, `disabled`, `role`,
+`separator`, `testID` per command), or `leading` and `trailing` nodes; `field` (a `TextField variant="inline"` that
 grows into the space the controls leave); `placement` (`top` or `bottom`;
 the rule goes on the side facing the content); `density` (`regular` or
 `compact`); `children` (a second row under the controls); `fieldCommands`
@@ -172,8 +172,8 @@ for a bar floating beside a rectangle; `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
-| iOS, Android, Web | A drawn `Surface` bar. The controls sit in one native host as a single row, so a bar of buttons and menus costs one host rather than one per control. With `commands`, the kit draws them as text buttons at the platform's own bar metrics (a 22pt symbol at the bar button's size on iOS, as the header's actions, spaced to the 44pt pitch of a toolbar's items; a 22dp icon in Material's 48dp icon button on Android, which is the bar's height and the pitch there; the kit's small button on web) and puts the `secondary` ones behind a `Menu` labelled "More". A command that is `active` is drawn filled; `tone` draws the others in the label color, for a row of tools where the accent marks the active one; `hideLabel` keeps the icon alone; a command's `separator` draws a vertical `Divider` before it. |
-| Windows | With `commands` and no `field`, a WinUI `CommandBar` island: the control lays the commands out, moves the ones that do not fit into its own overflow menu, and draws labels beside the icons (`compact` drops them and leaves the naming to the overflow). Otherwise a drawn bar of islands. |
+| iOS, Android, Web | A drawn `Surface` bar. The controls sit in one native host as a single row, so a bar of buttons and menus costs one host rather than one per control. With `commands`, the kit draws them as text buttons at the platform's own bar metrics (a 22pt symbol at the bar button's size on iOS, as the header's actions, spaced to the 44pt pitch of a toolbar's items; a 22dp icon in Material's 48dp icon button on Android, which is the bar's height and the pitch there; the kit's small button on web) and puts the `secondary` ones behind a `Menu` labelled "More". A command that is `active` is drawn filled; `tone` draws the others in the label color, for a row of tools where the accent marks the active one; `hideLabel` keeps the icon alone; a command's `separator` draws a vertical `Divider` before it; a command with `items` is a `Menu` of its own, in the same host. |
+| Windows | With `commands` and no `field`, a WinUI `CommandBar` island: the control lays the commands out, moves the ones that do not fit into its own overflow menu, and draws labels beside the icons (`compact` drops them and leaves the naming to the overflow). A command with `items` is an `AppBarButton` with a `MenuFlyout`: a chevron on the bar, a submenu in the overflow. Otherwise a drawn bar of islands, where a command with `items` is the kit's `Menu`. |
 
 Differences:
 
@@ -199,6 +199,13 @@ Differences:
 - A command's `separator` is a vertical `Divider` before it on the drawn
   bars, none before the first command of a row, a rule in the overflow
   menu, and an `AppBarSeparator` in the Windows `CommandBar`.
+- A command with `items` is a menu, opened from the command, as `Tabs`
+  `action` takes one; it takes no `onPress`, `active` or `role`. The kit's
+  menus do not nest, so behind the overflow, on iOS, Android, web and a
+  drawn Windows bar, its entries take its place, set off by rules, without
+  the command's own label, and greyed out with it when it is `disabled`.
+  The Windows `CommandBar` opens them as a submenu, and binds their
+  `shortcut`s while the bar is mounted.
 
 `fieldCommands` are the field's own: a find bar's previous and next, an
 assistant's send. They share the trailing group's host, so a bar with a

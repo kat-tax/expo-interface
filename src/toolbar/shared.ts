@@ -24,17 +24,33 @@ export function splitCommands(commands: readonly ToolbarCommand[]): {
  * kit draws. A toggle keeps its state as the menu's check while it is on: a
  * menu has no off state, so one that is off is a plain entry, as the
  * platforms' own menus show it.
+ *
+ * The kit's menus do not nest, so a menu command's entries take its place,
+ * set off by a rule before and after them, and greyed out with the command.
  */
 export function overflowItems(commands: readonly ToolbarCommand[]): MenuItem[] {
-  return commands.map(command => ({
-    label: command.label,
-    icon: command.icon,
-    active: command.active,
-    role: command.role,
-    disabled: command.disabled,
-    separator: command.separator,
-    onPress: command.onPress,
-  }));
+  let afterMenu = false;
+  return commands.flatMap(command => {
+    if (command.items) {
+      afterMenu = true;
+      return command.items.map((item, index) => ({
+        ...item,
+        separator: index === 0 || item.separator,
+        disabled: command.disabled || item.disabled,
+      }));
+    }
+    const entry: MenuItem = {
+      label: command.label,
+      icon: command.icon,
+      active: command.active,
+      role: command.role,
+      disabled: command.disabled,
+      separator: afterMenu || command.separator,
+      onPress: command.onPress,
+    };
+    afterMenu = false;
+    return [entry];
+  });
 }
 
 /** Styles the anchored bar shares on every platform. */

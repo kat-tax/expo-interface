@@ -1,5 +1,5 @@
 import {Platform, StyleSheet, Text as RNText} from 'react-native';
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
 import {Button} from '../button';
 import {Divider} from '../divider';
@@ -182,6 +182,46 @@ describe('commands', () => {
       expect(host(p => p.text === '✓', entry('Spellcheck'))).toBeTruthy();
       expect(nodes(entry('Wrap')).some(node => node.props.text === '✓')).toBe(false);
     }
+  });
+
+  it('draws a menu command as a menu of its own on the bar, in the same host', async () => {
+    const onHeading = vi.fn();
+    await render(
+      <Toolbar
+        commands={[
+          {label: 'Bold'},
+          {label: 'Turn into', icon: icons.settings, hideLabel: true, items: [{label: 'Heading', onPress: onHeading}, {label: 'Quote'}], testID: 'turn'},
+        ]}
+      />,
+    );
+    expect(hosts()).toHaveLength(1);
+    // iOS: SwiftUI's Menu; Android: Material's DropdownMenu on the kit's button. No overflow.
+    const menus = nodes().filter(node => node.type.endsWith(isIOS ? '_MenuView' : '_DropdownMenuView'));
+    expect(menus).toHaveLength(1);
+    expect(nodes(menus[0]!).map(labelOf)).toEqual(expect.arrayContaining(['Heading', 'Quote']));
+    expect(onBar('Bold')).toBe(true);
+    if (isIOS) {
+      expect(screen.getByTestId('turn').type).toContain('Menu');
+      // The bar's 22pt symbol as the menu's label, named by the command.
+      expect(modifier(screen.getByTestId('turn').props, 'accessibilityLabel')?.label).toBe('Turn into');
+      await fireEvent(screen.container.queryAll(node => node.props.label === 'Heading' && typeof node.props.onButtonPress === 'function')[0]!, 'buttonPress');
+    } else {
+      // The trigger is the kit's button inside the DropdownMenu.
+      expect(byComposeTestID('turn')).toBeTruthy();
+      expect(nodes(menus[0]!).some(node => modifier(node.props, 'testID')?.testID === 'turn')).toBe(true);
+      await fireEvent(screen.container.queryAll(node => typeof node.props.onItemPressed === 'function')[0]!, 'itemPressed');
+    }
+    expect(onHeading).toHaveBeenCalledTimes(1);
+  });
+
+  it('puts a secondary menu command\'s entries in the overflow, in its place', async () => {
+    await render(<Toolbar commands={[{label: 'Undo'}, {label: 'Export', secondary: true}, {label: 'Sort', secondary: true, items: [{label: 'Name'}, {label: 'Date'}]}]}/>);
+    const menus = nodes().filter(node => node.type.endsWith(isIOS ? '_MenuView' : '_DropdownMenuView'));
+    // One menu: the overflow, with no trigger of the command's own.
+    expect(menus).toHaveLength(1);
+    const labels = nodes(menus[0]!).map(labelOf);
+    expect(labels).toEqual(expect.arrayContaining(['Export', 'Name', 'Date']));
+    expect(labels).not.toContain('Sort');
   });
 
   it('still takes the two slots when it was given no commands', async () => {

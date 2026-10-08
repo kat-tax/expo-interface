@@ -665,9 +665,28 @@ struct CommandBarView : winrt::implements<CommandBarView, winrt::IInspectable>,
           m_bar.PrimaryCommands().Append(separator);
         }
       }
-      // A command with an on state is the bar's own toggle button, which
-      // Narrator reads as on or off; the others are plain buttons.
-      if (JsonBool(entry, L"toggle")) {
+      // A menu command opens its entries as the button's flyout: a chevron on
+      // the bar, a submenu in the overflow. A pick is reported with the
+      // command's index and the entry's. A command with an on state is the
+      // bar's own toggle button, which Narrator reads as on or off; the others
+      // are plain buttons.
+      if (entry.HasKey(L"menu") && entry.Lookup(L"menu").ValueType() == JsonValueType::Array) {
+        controls::AppBarButton button;
+        Dress(button, entry, current, dark);
+        controls::MenuFlyout flyout;
+        FillMenu(flyout, entry.GetNamedArray(L"menu"), dark, [weak = get_weak(), current](int32_t picked) {
+          if (auto strong = weak.get()) {
+            if (auto emitter = strong->EventEmitter()) {
+              Codegen::ExpoInterfaceCommandBarEventEmitter::OnPress event;
+              event.index = current;
+              event.item = picked;
+              emitter->onPress(std::move(event));
+            }
+          }
+        });
+        button.Flyout(flyout);
+        Append(button, secondary);
+      } else if (JsonBool(entry, L"toggle")) {
         controls::AppBarToggleButton toggle;
         toggle.IsChecked(JsonBool(entry, L"checked"));
         Dress(toggle, entry, current, dark);
@@ -680,7 +699,11 @@ struct CommandBarView : winrt::implements<CommandBarView, winrt::IInspectable>,
     }
   }
 
-  /** The label, glyph, state and press every command takes, a toggle or not. */
+  /**
+   * The label, glyph, state and press every command takes, a toggle, a menu
+   * or neither. A press is the command's own (`item` -1): for a menu command
+   * it only opens the flyout, and the pick is reported from there.
+   */
   template <typename T>
   void Dress(T &button, const JsonObject &entry, int32_t current, bool dark) noexcept {
     button.Label(ToHString(JsonString(entry, L"label")));
@@ -698,6 +721,7 @@ struct CommandBarView : winrt::implements<CommandBarView, winrt::IInspectable>,
         if (auto emitter = strong->EventEmitter()) {
           Codegen::ExpoInterfaceCommandBarEventEmitter::OnPress event;
           event.index = current;
+          event.item = -1;
           emitter->onPress(std::move(event));
         }
       }

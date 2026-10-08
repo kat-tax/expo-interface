@@ -38,6 +38,32 @@ describe('overflowItems', () => {
     ]);
     expect(items[0]!.onPress).toBe(onPress);
   });
+
+  it('puts a menu command\'s entries in its place, set off by rules and greyed out with it', () => {
+    const onName = vi.fn();
+    const items = overflowItems([
+      {label: 'Export'},
+      {label: 'Sort', disabled: true, active: true, onPress: vi.fn(), items: [{label: 'Name', active: true, onPress: onName}, {label: 'Date', disabled: false}]},
+      {label: 'Delete'},
+      {label: 'Turn into', items: [{label: 'Heading', disabled: true}, {label: 'Quote', separator: true}]},
+      {label: 'Archive'},
+    ]);
+    // The menu commands' own labels are gone: their entries stand for them.
+    expect(items.map(item => item.label)).toEqual(['Export', 'Name', 'Date', 'Delete', 'Heading', 'Quote', 'Archive']);
+    expect(items).toMatchObject([
+      {label: 'Export', separator: undefined},
+      // A rule before the first entry; the command's disabled greys them all.
+      {label: 'Name', active: true, separator: true, disabled: true},
+      {label: 'Date', separator: undefined, disabled: true},
+      // And a rule after the group.
+      {label: 'Delete', separator: true},
+      // An enabled command keeps its entries' own state and rules.
+      {label: 'Heading', separator: true, disabled: true},
+      {label: 'Quote', separator: true, disabled: undefined},
+      {label: 'Archive', separator: true},
+    ]);
+    expect(items[1]!.onPress).toBe(onName);
+  });
 });
 
 describe('hasCommands', () => {

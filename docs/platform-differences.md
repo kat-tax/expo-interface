@@ -51,6 +51,7 @@ The differences that change what a screen can do, in one place:
 | `Popover` dismissed by Escape | VoiceOver's escape gesture, modal cards | No | Yes, wherever the focus is | No |
 | `Popover` `label` | Ignored | Ignored | Names a modal card | Ignored |
 | `Toolbar` overflow decided by the platform | No | No | No | Yes |
+| `Toolbar` menu command behind the overflow | Its entries, set off by rules | Its entries, set off by rules | Its entries, set off by rules | A submenu (`CommandBar`); its entries in a drawn bar |
 | `FindBar` | Drawn, not `UIFindInteraction` | Drawn | Drawn | Drawn |
 | `Toolbar` floating | The kit's raised capsule | Material's `HorizontalFloatingToolbar` | The kit's raised capsule | The `CommandBar` in a raised card |
 | `Button` `pressed` heard as | Selected | Checked, by Material's toggle buttons | Pressed | A button |

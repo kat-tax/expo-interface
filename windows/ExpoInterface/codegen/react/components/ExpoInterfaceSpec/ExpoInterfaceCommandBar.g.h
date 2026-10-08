@@ -60,6 +60,9 @@ REACT_STRUCT(ExpoInterfaceCommandBarSpec_onPress)
 struct ExpoInterfaceCommandBarSpec_onPress {
   REACT_FIELD(index)
   int32_t index{};
+
+  REACT_FIELD(item)
+  int32_t item{};
 };
 
 struct ExpoInterfaceCommandBarEventEmitter {

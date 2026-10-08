@@ -3,6 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnchorAlign, AnchorInsets, AnchorRect} from '../anchored';
 import type {ButtonTone} from '../button/types';
 import type {IconToken} from '../icons';
+import type {MenuItem} from '../menu/types';
 
 /** Which edge of its content a `Toolbar` sits on, and so where its rule goes. */
 export type ToolbarPlacement = 'top' | 'bottom';
@@ -57,14 +58,24 @@ export interface ToolbarCommand {
    * @default 'accent'
    */
   tone?: ButtonTone;
+  /** Called on a press; ignored when `items` are given. */
   onPress?: () => void;
+  /**
+   * A menu instead of a press: the entries `Menu` takes, opened from the
+   * command; `onPress`, `active` and `role` are ignored with them. On the
+   * bar it is the kit's `Menu`, in the Windows `CommandBar` an
+   * `AppBarButton` with its `MenuFlyout`. Behind the overflow its entries
+   * take its place, set off by rules, since the kit's menus do not nest;
+   * the `CommandBar` opens them as a submenu.
+   */
+  items?: MenuItem[];
   /**
    * Put this one in the overflow menu rather than on the bar. On Windows the
    * platform may move others there too, as the bar narrows.
    */
   secondary?: boolean;
   disabled?: boolean;
-  /** `destructive` draws the command in the danger color. */
+  /** `destructive` draws the command in the danger color. Ignored when `items` are given. */
   role?: 'default' | 'destructive';
   /**
    * A rule before this command, to group the ones after it: a vertical

@@ -163,6 +163,78 @@ describe('commands (windows)', () => {
     expect(commands[0]!.onPress).toHaveBeenCalledTimes(1);
   });
 
+  it('hands a menu command to the bar with its entries, as a button with a flyout', async () => {
+    await render(
+      <Toolbar
+        commands={[
+          {label: 'Bold'},
+          // A menu takes no press of its own: no role, no on state.
+          {label: 'Turn into', role: 'destructive', active: true, items: [{label: 'Heading'}, {label: 'Quote', active: true, separator: true}]},
+        ]}
+      />,
+    );
+    const [, menu] = JSON.parse(island(BAR).props.commands);
+    expect(menu).toMatchObject({label: 'Turn into', role: 'default', toggle: false, checked: false});
+    expect(menu.menu).toEqual([
+      {label: 'Heading', glyph: null, swatch: null, shortcut: null, active: false, destructive: false, disabled: false, separator: false},
+      {label: 'Quote', glyph: null, swatch: null, shortcut: null, active: true, destructive: false, disabled: false, separator: true},
+    ]);
+  });
+
+  it('reports a pick from a menu command\'s flyout by the command and the entry, and its own press as -1', async () => {
+    const onBold = vi.fn();
+    const onTurn = vi.fn();
+    const onHeading = vi.fn();
+    await render(<Toolbar commands={[{label: 'Bold', onPress: onBold}, {label: 'Turn into', onPress: onTurn, items: [{label: 'Heading', onPress: onHeading}, {label: 'Quote'}]}]}/>);
+    await fireIsland(island(BAR), 'press', {index: 1, item: 0});
+    expect(onHeading).toHaveBeenCalledTimes(1);
+    // The press that opens the flyout runs nothing.
+    await fireIsland(island(BAR), 'press', {index: 1, item: -1});
+    expect(onHeading).toHaveBeenCalledTimes(1);
+    expect(onTurn).not.toHaveBeenCalled();
+    // An entry with no handler, and a plain command's press.
+    await fireIsland(island(BAR), 'press', {index: 1, item: 1});
+    await fireIsland(island(BAR), 'press', {index: 0, item: -1});
+    expect(onBold).toHaveBeenCalledTimes(1);
+    // An index the bar no longer has.
+    await fireIsland(island(BAR), 'press', {index: 5, item: -1});
+  });
+
+  it('binds a menu command\'s shortcuts while the bar is mounted, except a disabled command\'s', async () => {
+    const {LayerHost} = await import('../windows/layer');
+    const onHeading = vi.fn();
+    const onArchive = vi.fn();
+    await render(
+      <LayerHost testID="host">
+        <Toolbar
+          commands={[
+            {label: 'Turn into', items: [{label: 'Heading', shortcut: 'Ctrl+H', onPress: onHeading}]},
+            {label: 'More', disabled: true, items: [{label: 'Archive', shortcut: 'Ctrl+E', onPress: onArchive}]},
+          ]}
+        />
+      </LayerHost>,
+    );
+    const press = (key: string) => fireEvent(screen.getByTestId('host'), 'keyDown', {nativeEvent: {key, ctrlKey: true, shiftKey: false, altKey: false, metaKey: false}});
+    await press('h');
+    expect(onHeading).toHaveBeenCalledTimes(1);
+    await press('e');
+    expect(onArchive).not.toHaveBeenCalled();
+  });
+
+  it('draws a menu command as the kit\'s menu beside a field, and its entries in the overflow when it folds', async () => {
+    const commands = [{label: 'Turn into', items: [{label: 'Heading'}, {label: 'Quote'}]}, {label: 'Export', secondary: true}];
+    await render(<Toolbar commands={commands} field={<Text>Find</Text>} testID="bar"/>);
+    expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Turn into', 'More']);
+    expect(islands('ExpoInterfaceMenuFlyout').map(flyout => JSON.parse(flyout.props.items).map((item: {label: string}) => item.label))).toEqual([
+      ['Heading', 'Quote'],
+      ['Export'],
+    ]);
+    await render(<Toolbar commands={commands} field={<Text>Find</Text>} foldCommands testID="folded"/>);
+    await fireEvent(screen.getByTestId('folded'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 400, height: 48}}});
+    const items = JSON.parse(island('ExpoInterfaceMenuFlyout').props.items) as {label: string; separator: boolean}[];
+    expect(items.map(item => [item.label, item.separator])).toEqual([['Heading', true], ['Quote', false], ['Export', true]]);
+  });
+
   it('draws the bar itself when there is a field, which cannot go in the island', async () => {
     await render(<Toolbar commands={commands} field={<Text>Search</Text>} testID="bar"/>);
     expect(islands(BAR)).toHaveLength(0);
