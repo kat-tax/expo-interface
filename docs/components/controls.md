@@ -385,9 +385,8 @@ A label with a color well that opens a color picker, optionally with preset
 swatches. Props: `label`, `value` (`#RRGGBB` or `#RRGGBBAA`, or an empty
 string for no color), `onValueChange`, `supportsOpacity` (default true),
 `swatches` (colors, `{color, name}` swatches, or `system` for the platform's
-own palette),
-`presentation` (`automatic`, `inline`, `popover`, `menu`), `allowsNone`,
-`disabled`, `style`, `testID`.
+own palette), `presentation` (`automatic`, `inline`, `popover`, `menu`),
+`allowsNone`, `disabled`, `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -403,10 +402,10 @@ colors on iOS and web, Material's on Android, the Windows accent colors on
 Windows, each named for a screen reader and a menu. A swatch given as
 `{color, name}` is called by its name in a menu and to a screen reader, as
 the system palettes' colors are; a color given alone is called by its hex.
-On Android a swatch in the row carries its name as unseen text inside it,
-which TalkBack reads with the swatch: `@expo/ui`'s Compose layer exposes no
+On Android a swatch carries its name as unseen text inside it, which
+TalkBack reads with the swatch: `@expo/ui`'s Compose layer exposes no
 modifier that sets a content description. For the same reason TalkBack
-passes over the swatches of a disabled picker on Android, where web and
+passes over the swatches of a disabled picker on Android, where iOS, web and
 Windows announce them as unavailable buttons.
 
 `allowsNone` adds a "No color" choice, a crossed-out circle before the

@@ -25,6 +25,8 @@ The differences that change what a screen can do, in one place:
 | `ListItem` named from its slots | Yes | The row's own texts | Yes | Yes |
 | `ListItem` `selected` announced | Yes | On a row that presses, without `swipeActions` | Yes | Yes |
 | `ListItem` `badgeColor` that is not hex | Yes | Yes | Yes | Fluent's critical red |
+| `ColorPicker` `inline` | The row, the system picker from the well | Drawn in place | Drawn in place | The WinUI `ColorPicker` in place |
+| `ColorPicker` swatches of a disabled picker heard | Unavailable | Not at all | Unavailable | Unavailable |
 | `SegmentedControl` `size`, `shape` | `pill` only | Yes | Yes | Not applied |
 | `Stepper` `formatValue` | Yes | Yes | Yes | Not applied |
 | `TextField` `autoCapitalize` | Yes | Yes | Yes | No equivalent |

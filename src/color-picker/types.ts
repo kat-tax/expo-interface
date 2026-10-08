@@ -30,9 +30,11 @@ export interface ColorPickerSwatch {
  */
 export interface ColorPickerProps {
   /**
-   * Label rendered at the leading edge of the row and, on Android and web,
-   * the title of the picker it opens ("Colors" without one); there a picker
-   * drawn in place (`inline`) has a title only when given a label.
+   * The label at the leading edge of the row and, on Android and web, the
+   * title of the picker it opens ("Colors" without one). A picker drawn in
+   * place (`inline`) has no row on Android, web and Windows: the label is
+   * the picker's heading on Android and web and sits above it on Windows,
+   * and without one nothing titles it.
    */
   label?: string;
   /** Selected color as `#RRGGBB` or `#RRGGBBAA`, or an empty string for no color (`allowsNone`). */
@@ -75,7 +77,12 @@ export interface ColorPickerProps {
    * as an empty string. An empty `value` draws the well crossed out.
    */
   allowsNone?: boolean;
-  /** Disables interaction. */
+  /**
+   * Disables interaction: no color is picked from the row, the swatches or
+   * the picker, and the swatches are announced as unavailable. On Android
+   * TalkBack passes over the swatches of a disabled picker instead, as
+   * `@expo/ui`'s Compose layer can neither mark a node disabled nor name it.
+   */
   disabled?: boolean;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
