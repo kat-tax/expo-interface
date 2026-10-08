@@ -34,6 +34,12 @@ describe(`Composer (${Platform.OS})`, () => {
     expect(field.props.multiline).toBe(true);
     // The bare field: no padding of its own, the capsule draws it.
     expect(StyleSheet.flatten(field.props.style)).toMatchObject({paddingHorizontal: 0, fontSize: 15});
+    // A focused field draws no ring on the capsule here: that is web's.
+    await fireEvent(field, 'focus');
+    let capsule = field.parent;
+    while (capsule && StyleSheet.flatten(capsule.props.style)?.minHeight !== 44) capsule = capsule.parent;
+    expect(StyleSheet.flatten(capsule!.props.style)).not.toHaveProperty('outlineStyle');
+    await fireEvent(field, 'blur');
     // The button is in a host of its own, inside the React Native capsule.
     expect(hosts()).toHaveLength(1);
     // Nothing to send yet.

@@ -1,5 +1,6 @@
 import type {ComposerProps} from './types';
-import {StyleSheet, View} from 'react-native';
+import {useState} from 'react';
+import {Platform, StyleSheet, View} from 'react-native';
 import {Button} from '../button';
 import {Menu} from '../menu';
 import {SEND, STOP} from '../glyphs';
@@ -7,6 +8,7 @@ import {NativeHost} from '../host';
 import {Surface} from '../surface';
 import {TextField} from '../text-field';
 import {useTextValue} from '../text-field/shared';
+import {useColor} from '../theme';
 import {Footnote} from '../typography';
 
 /** The capsule's height before the text wraps, in points. */
@@ -19,7 +21,9 @@ const MIN_HEIGHT = 44;
  * keyboard's send key sends on a phone. While busy neither Enter nor the send
  * key sends, and the text stays. The button is in a host of its own,
  * since it sits in a React Native box wherever the composer is, inside a
- * sheet or not.
+ * sheet or not. On web the capsule draws the focus ring while the field has
+ * the focus, since the bare field draws none; the touch platforms show no
+ * ring, and Windows leaves the field to react-native-windows's own look.
  */
 export function Composer({
   value,
@@ -37,6 +41,8 @@ export function Composer({
   style,
 }: ComposerProps) {
   const [text, setText] = useTextValue(value, onChangeText);
+  const [focused, setFocused] = useState(false);
+  const tint = useColor('tint');
   const ready = text.trim().length > 0;
   const send = () => {
     const trimmed = text.trim();
@@ -46,7 +52,15 @@ export function Composer({
   };
   return (
     <View style={[styles.root, style]} testID={testID}>
-      <Surface color="element" radius="pill" style={[styles.capsule, menu ? styles.withMenu : null]}>
+      <Surface
+        color="element"
+        radius="pill"
+        style={[
+          styles.capsule,
+          menu ? styles.withMenu : null,
+          Platform.OS === 'web' && focused ? [styles.focusRing, {outlineColor: tint}] : null,
+        ]}
+      >
         {menu ? (
           <NativeHost fit style={styles.button}>
             <Menu
@@ -74,6 +88,8 @@ export function Composer({
           disabled={disabled}
           autoFocus={autoFocus}
           maxLength={maxLength}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           style={styles.field}
           testID={testID ? `${testID}-field` : undefined}
         />
@@ -125,6 +141,12 @@ const styles = StyleSheet.create({
   // The menu's button sits where the field's leading padding would.
   withMenu: {
     paddingLeft: 4,
+  },
+  // The web focus ring, as the SearchField draws it, in the tint.
+  focusRing: {
+    outlineStyle: 'solid',
+    outlineWidth: 2,
+    outlineOffset: -1,
   },
   field: {
     flex: 1,

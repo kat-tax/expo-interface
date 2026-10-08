@@ -128,11 +128,26 @@ describe('TextField (web)', () => {
   });
 
   it('renders the bare variant with no padding and no focus ring of its own', () => {
-    render(<TextField variant="bare" placeholder="Write" testID="bare"/>);
-    const style = getComputedStyle(screen.getByTestId('bare'));
-    expect(style.paddingLeft).toBe('0px');
-    expect(style.paddingTop).toBe('0px');
-    expect(style.outlineWidth).toBe('0px');
+    // Chrome's focus ring is `outline-style: auto`, which no width turns off.
+    const ring = document.createElement('style');
+    ring.textContent = 'input, textarea { outline-style: auto; }';
+    document.head.append(ring);
+    try {
+      render(
+        <>
+          <TextField variant="bare" placeholder="Write" testID="bare"/>
+          <TextField variant="inline" placeholder="Find" testID="inline"/>
+        </>,
+      );
+      const style = getComputedStyle(screen.getByTestId('bare'));
+      expect(style.paddingLeft).toBe('0px');
+      expect(style.paddingTop).toBe('0px');
+      expect(style.outlineStyle).toBe('none');
+      // The inline field keeps the browser's ring.
+      expect(getComputedStyle(screen.getByTestId('inline')).outlineStyle).toBe('auto');
+    } finally {
+      ring.remove();
+    }
   });
 
   it('dims and locks the inline variant when disabled', () => {

@@ -1,4 +1,4 @@
-import type {NativeSyntheticEvent, TextInputKeyPressEventData} from 'react-native';
+import type {NativeSyntheticEvent, TextInputKeyPressEventData, TextStyle} from 'react-native';
 import type {TextFieldProps} from './types';
 import {useImperativeHandle, useRef} from 'react';
 import {Platform, StyleSheet, TextInput} from 'react-native';
@@ -95,13 +95,19 @@ export function InlineTextField({
   );
 }
 
+/**
+ * The box around a bare field draws the padding and the focus ring. The
+ * browser draws its ring with `outline-style: auto`, which no width turns
+ * off, so on web the style itself is turned off. The native renderers parse
+ * only a solid, dotted or dashed outline, and draw none unless told.
+ */
+const NO_RING = Platform.select<TextStyle>({web: {outlineStyle: 'none'} as unknown as TextStyle, default: {}});
+
 const styles = StyleSheet.create({
-  // The box around a bare field draws the padding and the focus ring; the
-  // outline width is what react-native-web turns the browser's ring off with.
   bare: {
     paddingVertical: 0,
     paddingHorizontal: 0,
-    outlineWidth: 0,
+    ...NO_RING,
   },
   input: {
     flexGrow: 1,

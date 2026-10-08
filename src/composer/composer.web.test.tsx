@@ -21,9 +21,30 @@ describe('Composer (web)', () => {
     fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
     expect(onSend).toHaveBeenLastCalledWith('again');
     expect(onSend).toHaveBeenCalledTimes(2);
-    // The bare field: no padding of its own, no focus ring; the capsule draws both.
-    expect(getComputedStyle(field).paddingLeft).toBe('0px');
-    expect(getComputedStyle(field).outlineWidth).toBe('0px');
+  });
+
+  it('draws the focus ring on the capsule while the field has the focus, and none on the field', () => {
+    // Chrome's focus ring is `outline-style: auto`, which no width turns off.
+    const ring = document.createElement('style');
+    ring.textContent = 'input, textarea { outline-style: auto; }';
+    document.head.append(ring);
+    try {
+      render(<Composer onSend={() => {}} testID="c"/>);
+      const field = screen.getByRole('textbox', {name: 'Message'});
+      // The bare field: no padding of its own, no focus ring; the capsule draws both.
+      expect(getComputedStyle(field).paddingLeft).toBe('0px');
+      expect(getComputedStyle(field).outlineStyle).toBe('none');
+      const capsule = field.parentElement!;
+      expect(getComputedStyle(capsule).outlineStyle).not.toBe('solid');
+      fireEvent.focus(field);
+      expect(getComputedStyle(capsule).outlineStyle).toBe('solid');
+      expect(getComputedStyle(capsule).outlineWidth).toBe('2px');
+      expect(capsule.style.outlineColor).toBe('var(--color-tint)');
+      fireEvent.blur(field);
+      expect(getComputedStyle(capsule).outlineStyle).not.toBe('solid');
+    } finally {
+      ring.remove();
+    }
   });
 
   it('is a stop button while busy, and leaves a controlled text to the app', () => {

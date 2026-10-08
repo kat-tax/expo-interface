@@ -243,7 +243,11 @@ describe(`TextField (${Platform.OS})`, () => {
   it('renders the bare variant as the inline input without padding of its own', async () => {
     await render(<TextField variant="bare" placeholder="Write" testID="bare"/>);
     const input = screen.getByTestId('bare');
-    expect(StyleSheet.flatten(input.props.style)).toMatchObject({paddingVertical: 0, paddingHorizontal: 0, outlineWidth: 0});
+    const style = StyleSheet.flatten(input.props.style);
+    expect(style).toMatchObject({paddingVertical: 0, paddingHorizontal: 0});
+    // React Native parses only a solid, dotted or dashed outline, and draws none by default.
+    expect(style).not.toHaveProperty('outlineStyle');
+    expect(style).not.toHaveProperty('outlineWidth');
     expect(nodes().some(n => n.type.startsWith('ViewManagerAdapter_ExpoUI'))).toBe(false);
   });
 

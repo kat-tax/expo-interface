@@ -221,6 +221,7 @@ Drawn in React Native on every platform: a `Surface` capsule holding a
 it sits in a `Sheet`'s footer or at the bottom of a screen. Enter sends and
 Shift+Enter breaks the line on web and a desktop keyboard; the keyboard's
 send key sends on a phone. While `busy` neither sends, and the text stays.
+On web the capsule draws the focus ring while the field has the focus.
 The button is the platform's: a SwiftUI button, a
 Material button, a `<button>`, a WinUI button.
 
