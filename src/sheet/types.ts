@@ -16,7 +16,10 @@ export type SheetMaterial = 'none' | 'thin' | 'regular' | 'thick';
  * is 60% of it, kept between 0 and 1. On web the fraction is of the
  * viewport's dynamic height (`dvh`), which follows a phone browser's
  * toolbar; on Windows it is of the area the sheet's layer covers, which is
- * the window under the kit's `Stack`.
+ * the window under the kit's `Stack`. On an iPad the sheet is a form sheet,
+ * shorter than the window, while the fraction is still of the window's
+ * height, so a fraction there leaves less of the sheet for the rest than on
+ * a phone.
  *
  * It caps the body alone: the bar, the accessory, the footer, the actions
  * and the sheet's padding come on top, so leave room for them with a

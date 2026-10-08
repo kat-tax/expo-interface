@@ -273,7 +273,10 @@ that, and the body then scrolls inside the cap as React Native content the
 width of the sheet. A fraction is kept between 0 and 1. On web it is of the
 viewport's dynamic height, which follows a phone browser's toolbar, and on
 Windows of the area the sheet's layer covers, which is the window under the
-kit's `Stack`. The cap is the body's alone: the bar, the accessory, the
+kit's `Stack`. On an iPad the sheet is a form sheet, shorter than the
+window, while the fraction is still of the window's height, so a fraction
+there leaves less of the sheet for the rest than on a phone. The cap is the
+body's alone: the bar, the accessory, the
 footer, the actions and the sheet's padding come on top, so leave room for
 them with a fraction well under 1. With a fraction near 1 the sheet is
 taller than the platform lets it be: on iOS and Android the footer and the

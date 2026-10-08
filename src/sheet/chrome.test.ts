@@ -45,6 +45,10 @@ describe('the sheet\'s chrome', () => {
     expect(bodyCap({fraction: 2}, 800)).toBe(800);
     expect(bodyCap({fraction: -1}, 800)).toBe(0);
     expect(capFraction(0.5)).toBe(0.5);
+    // A fraction worked out from nothing is no height, not NaN; an endless one is all of it.
+    expect(capFraction(Number.NaN)).toBe(0);
+    expect(bodyCap({fraction: Number.NaN}, 800)).toBe(0);
+    expect(capFraction(Number.POSITIVE_INFINITY)).toBe(1);
   });
 
   it('names a child under the sheet\'s test identifier, or not at all', () => {

@@ -64,6 +64,7 @@ The differences that change what a screen can do, in one place:
 | `EmptyState` | The system's view on iOS 17 and later, composed in SwiftUI before | Composed in Compose | Drawn | Drawn |
 | `Collapsible` children | `@expo/ui` | `@expo/ui` | Any | Any |
 | `Sheet` body without `maxHeight` | `@expo/ui` | `@expo/ui` | Any | Any |
+| `Sheet` `maxHeight` fraction of | The window's height | The window's height | The viewport's dynamic height | The area the sheet's layer covers |
 | `ExternalLink` | In-app browser | In-app browser | New tab | Default browser |
 | `saveFile` | A folder, the app's name | A folder, the app's name | The folder and the name in the Chromium browsers, else a download | A folder, the app's name |
 | A screen pushed over `Tabs` | Over the tab bar | Over the tab bar | Replaces the bar | Inside the pane, its back button |
