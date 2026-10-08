@@ -55,7 +55,7 @@ describe('Composer (web)', () => {
     expect(screen.queryByRole('button', {name: 'Send'})).toBeNull();
     fireEvent.click(screen.getByRole('button', {name: 'Stop'}));
     expect(onStop).toHaveBeenCalledTimes(1);
-    // Enter does nothing while busy, and the text stays to be sent later.
+    // Enter does nothing while busy, and the text stays for the next send.
     const field = screen.getByRole('textbox', {name: 'Message'});
     fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
     expect(onSend).not.toHaveBeenCalled();
@@ -67,6 +67,24 @@ describe('Composer (web)', () => {
     expect(onSend).toHaveBeenCalledTimes(2);
     expect(onChangeText).not.toHaveBeenCalled();
     expect(screen.getByRole('textbox', {name: 'Message'})).toHaveValue('draft');
+  });
+
+  it('keeps the text it holds itself while busy, and sends it only on the next Enter', () => {
+    const onSend = vi.fn();
+    const {rerender} = render(<Composer onSend={onSend} onStop={() => {}} testID="c"/>);
+    const field = screen.getByRole('textbox', {name: 'Message'});
+    fireEvent.change(field, {target: {value: 'draft'}});
+    rerender(<Composer onSend={onSend} onStop={() => {}} busy testID="c"/>);
+    fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
+    expect(onSend).not.toHaveBeenCalled();
+    expect(field).toHaveValue('draft');
+    // Nothing goes out when the work ends: the text waits for the user.
+    rerender(<Composer onSend={onSend} onStop={() => {}} testID="c"/>);
+    expect(onSend).not.toHaveBeenCalled();
+    expect(field).toHaveValue('draft');
+    fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
+    expect(onSend).toHaveBeenCalledWith('draft');
+    expect(field).toHaveValue('');
   });
 
   it('waits while busy with nothing to stop, and shows the notice under the capsule', () => {

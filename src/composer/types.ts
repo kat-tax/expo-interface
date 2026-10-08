@@ -42,8 +42,8 @@ export interface ComposerProps {
   /**
    * Something is running on what was sent: the send button is a stop
    * button, and the text can be written on meanwhile. Enter and the
-   * keyboard's send key do nothing until it is done; the text stays to be
-   * sent then.
+   * keyboard's send key do nothing until it is done, and the text stays for
+   * the next send: nothing goes out by itself when `busy` ends.
    * @default false
    */
   busy?: boolean;

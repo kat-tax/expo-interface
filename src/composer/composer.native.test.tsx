@@ -76,6 +76,21 @@ describe(`Composer (${Platform.OS})`, () => {
     expect(screen.getByTestId('c-field').props.value).toBe('draft');
   });
 
+  it('keeps the text it holds itself while busy, for the next send', async () => {
+    const onSend = vi.fn();
+    const {rerender} = await render(<Composer onSend={onSend} onStop={() => {}} testID="c"/>);
+    await fireEvent.changeText(screen.getByTestId('c-field'), 'draft');
+    await rerender(<Composer onSend={onSend} onStop={() => {}} busy testID="c"/>);
+    await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'draft'}});
+    expect(onSend).not.toHaveBeenCalled();
+    expect(screen.getByTestId('c-field').props.value).toBe('draft');
+    await rerender(<Composer onSend={onSend} onStop={() => {}} testID="c"/>);
+    expect(onSend).not.toHaveBeenCalled();
+    await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'draft'}});
+    expect(onSend).toHaveBeenCalledWith('draft');
+    expect(screen.getByTestId('c-field').props.value).toBe('');
+  });
+
   it('waits while busy with nothing to stop, and shows the notice under the capsule', async () => {
     await render(<Composer onSend={() => {}} busy notice="Shift+Enter for a new line" placeholder="Reply" testID="c"/>);
     expect(enabled('c-stop')).toBe(false);
