@@ -237,6 +237,8 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
     if (props->open && !m_popup) {
       Show();
     } else if (!props->open && m_popup) {
+      // Closed by the app, which knows: nothing is reported.
+      m_silent = true;
       Close(-1);
     } else if (m_popup && props->actions != m_actions) {
       Refresh(props->actions);
@@ -354,6 +356,7 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
 
     m_actions = props->actions;
     m_buttons.clear();
+    m_silent = false;
     std::vector<Action> others;
     std::optional<Action> cancel;
     int32_t index = 0;
@@ -567,6 +570,14 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
     }
     m_buttons.clear();
     m_actions.clear();
+    if (m_silent) {
+      m_silent = false;
+      // The popup closes a moment after it is asked to. If the app opened the
+      // dialog again in that moment, `open` found it still up and changed
+      // nothing, so it opens now.
+      if (auto props = Props(); props && props->open) Show();
+      return;
+    }
     const int32_t picked = m_picked < 0 ? m_cancel : m_picked;
     if (auto emitter = EventEmitter()) {
       Codegen::ExpoInterfaceContentDialogEventEmitter::OnClose event;
@@ -586,6 +597,8 @@ struct ContentDialogView : winrt::implements<ContentDialogView, winrt::IInspecta
   std::vector<Placed> m_buttons;
   int32_t m_cancel{-1};
   int32_t m_picked{-1};
+  // Closed through the `open` prop: the close is not reported.
+  bool m_silent{false};
 };
 
 // -- CommandBar (toolbar) ----------------------------------------------------

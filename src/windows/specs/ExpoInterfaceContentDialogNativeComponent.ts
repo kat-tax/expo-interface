@@ -13,7 +13,8 @@ type ActionEvent = Readonly<{index: CodegenTypes.Int32}>;
  * in the body. A disabled action's button takes no press. While the dialog
  * is open a change to `actions` updates each button's label and whether it
  * takes presses; the buttons are arranged as it opens. A pick is reported by
- * index; any other close reports the cancel's (`-1` without one).
+ * index; Escape and a press on the smoke report the cancel's (`-1` without
+ * one); a close the `open` prop asks for reports nothing.
  */
 export interface NativeProps extends ViewProps {
   open: boolean;
