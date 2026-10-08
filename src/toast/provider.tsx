@@ -1,8 +1,9 @@
 import type {PropsWithChildren} from 'react';
 import type {ToastProps} from './types';
 import {createContext, useContext, useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 import {SafeAreaInsetsContext} from 'react-native-safe-area-context';
+import {useNativeTabs} from '../tabs/context';
 import {AppToastFloorContext, AppToastInsetContext, ToastInsetContext} from './context';
 import {Toast} from '.';
 
@@ -42,7 +43,12 @@ export function ToastProvider({children}: PropsWithChildren) {
   // edge, above the safe area. The safe area is read from the context, so a
   // provider outside a `SafeAreaProvider` stands on its edge.
   const [bar, setBar] = useState(0);
-  const safeBottom = useContext(SafeAreaInsetsContext)?.bottom ?? 0;
+  const safeArea = useContext(SafeAreaInsetsContext)?.bottom ?? 0;
+  // Android's tab host keeps its screens above the navigation bar itself, so
+  // a provider in a tab's layout stands on the host's bottom, as a `Screen`
+  // there does; the context still holds the window's inset.
+  const underTabs = useNativeTabs();
+  const safeBottom = Platform.OS === 'android' && underTabs ? 0 : safeArea;
   const api = useMemo<ToastApi>(() => ({
     show(toast) {
       shown += 1;

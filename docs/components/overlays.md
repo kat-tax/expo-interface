@@ -353,4 +353,6 @@ are hidden and while a stack around them shows a screen over them. `show`
 answers an id; `dismiss(id)` takes that toast away, showing or waiting, and
 `dismiss()` the one showing. A `Screen` under the provider lifts its `Fab`
 above the app's toast as it does above its own, by the larger of the two,
-and the tabs' floating action lifts above it too.
+and the tabs' floating action lifts above it too. A provider inside one
+tab's layout shows its toasts in that tab, above the bar, but the tabs'
+floating action lifts only above the toast of a provider around them.
