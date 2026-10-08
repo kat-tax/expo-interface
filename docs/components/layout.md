@@ -68,9 +68,9 @@ inset. Render it in the screen's content, under the `Screen` whose insets it
 reads.
 
 On iOS, on a `Screen underBar` under a header the screen runs under, it
-takes UIKit's own inset (`contentInsetAdjustmentBehavior="automatic"`),
-which follows a native search bar, and pads only for a `HeaderAccessory`
-floating under the header. On iOS its scroll indicators are inset with the
+takes UIKit's own inset (`contentInsetAdjustmentBehavior="automatic"`,
+whatever the app passes for it), which follows a native search bar, and
+pads only for a `HeaderAccessory` floating under the header. On iOS its scroll indicators are inset with the
 content unless `scrollIndicatorInsets` says otherwise; on the other
 platforms they span the whole view. A press on a control in it acts while
 the keyboard is up (`keyboardShouldPersistTaps` is `handled` unless set).
@@ -88,7 +88,7 @@ It takes every `ScrollView` prop and a `ref`.
 | --- | --- |
 | iOS, Android | React Native's `ScrollView`, padded by the bar on a `Screen underBar` (on iOS under a header the screen runs under, UIKit's inset and the rows floating under the header) and by the tab bar's floating action |
 | Web | react-native-web's `ScrollView`, padded by the tab bar on a `Screen underBar` |
-| Windows | React Native's `ScrollView`. The Windows `Screen` has no insets to pad by |
+| Windows | React Native's `ScrollView` with the keyboard default above and no padding of its own: the Windows `Screen` has no insets to pad by |
 
 ## ScreenHeader
 
