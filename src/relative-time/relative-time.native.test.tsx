@@ -46,11 +46,34 @@ describe('relative', () => {
 
   it('says it in the language asked for, and in the engine\'s where the engine cannot read the tag', () => {
     expect(relative(NOW - 2 * HOUR, NOW, 'auto', 'de').text).toBe('vor 2 Stunden');
-    // The same language and style again is the formatter already made.
     expect(relative(NOW - 3 * HOUR, NOW, 'auto', 'de').text).toBe('vor 3 Stunden');
     expect(relative(NOW - 10 * SECOND, NOW, 'auto', 'de').text).toBe('jetzt');
     expect(relative(NOW - DAY, NOW, 'always', 'de').text).toBe('vor 1 Tag');
     expect(relative(NOW - 2 * HOUR, NOW, 'auto', 'en_US').text).toBe('2 hours ago');
+  });
+
+  it('makes one formatter for a language and style, however many times say it', () => {
+    let made = 0;
+    const Engine = Intl.RelativeTimeFormat;
+    class Counted extends Engine {
+      constructor(locale?: string, options?: Intl.RelativeTimeFormatOptions) {
+        super(locale, options);
+        made += 1;
+      }
+    }
+    vi.stubGlobal('Intl', Object.create(Intl, {RelativeTimeFormat: {value: Counted}}));
+    try {
+      // Italian, which no earlier test asked for, so the first call makes its formatter.
+      expect(relative(NOW - 2 * HOUR, NOW, 'auto', 'it').text).toBe('2 ore fa');
+      expect(relative(NOW - 3 * HOUR, NOW, 'auto', 'it').text).toBe('3 ore fa');
+      expect(relative(NOW - DAY, NOW, 'auto', 'it').text).toBe('ieri');
+      expect(made).toBe(1);
+      // Another style is another formatter.
+      expect(relative(NOW - DAY, NOW, 'always', 'it').text).toBe('1 giorno fa');
+      expect(made).toBe(2);
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });
 
