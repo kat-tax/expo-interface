@@ -35,6 +35,10 @@ const STRIP_HEIGHT = 40;
  * Under 640 points Windows falls back to the same drawn switcher as the other
  * three. WinUI has no control for that shape, and a strip that narrow is
  * unreadable in any case.
+ *
+ * Without children the view is the strip, or the switcher's bar, alone: as
+ * tall as that and no taller, for a strip in a `HeaderAccessory` whose pages
+ * are the screen's content.
  */
 export function TabView({
   tabs,
@@ -55,8 +59,11 @@ export function TabView({
   // A tab's menu, open where the island said the right click or the Menu
   // key landed, in the island's coordinates, which are the root's.
   const [menu, setMenu] = useState<{items: MenuItem[]; at: MenuPoint} | null>(null);
+  // Children left out are the tabs alone; `null` is still a page, an empty one.
+  const alone = children === undefined;
+  const page = alone ? null : <View style={styles.content}>{children}</View>;
   return (
-    <View style={[styles.root, style]} onLayout={onLayout} testID={testID}>
+    <View style={[styles.root, alone && styles.alone, style]} onLayout={onLayout} testID={testID}>
       {resolved === 'strip' ? (
         <>
           <XamlTabView
@@ -82,7 +89,7 @@ export function TabView({
             testID={testID ? `${testID}-strip` : undefined}
             {...xaml}
           />
-          <View style={styles.content}>{children}</View>
+          {page}
           <PopupMenu items={menu?.items ?? []} at={menu?.at ?? null} onDismiss={() => setMenu(null)} testID={testID ? `${testID}-menu` : undefined}/>
         </>
       ) : (
@@ -94,7 +101,7 @@ export function TabView({
           onAdd={onAdd}
           label={label}
           testID={testID}>
-          <View style={styles.content}>{children}</View>
+          {page}
         </TabSwitcher>
       )}
     </View>
@@ -122,6 +129,10 @@ const styles = StyleSheet.create({
   root: {
     flexGrow: 1,
     flexShrink: 1,
+  },
+  /** The tabs alone have no page to grow for. */
+  alone: {
+    flexGrow: 0,
   },
   strip: {
     height: STRIP_HEIGHT,

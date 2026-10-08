@@ -13,6 +13,10 @@ import {TabStrip, TabSwitcher, useResolvedLayout} from './draw';
  * Safari and Chrome on both of them hide open pages behind a numbered button
  * that opens a grid of cards, and grow a real strip only on a tablet. So the
  * breakpoint is the design, and the drawing follows it.
+ *
+ * Without children the view is the strip, or the switcher's bar, alone: as
+ * tall as that and no taller, for a strip in a `HeaderAccessory` whose pages
+ * are the screen's content.
  */
 export function TabView({
   tabs,
@@ -28,17 +32,19 @@ export function TabView({
 }: TabViewProps) {
   const {resolved, onLayout} = useResolvedLayout(layout);
   const draw = {tabs, selected, onSelect, onClose, onAdd, label, testID};
+  // Children left out are the tabs alone. `null` is still a page, an empty
+  // one, so a view whose last document closes keeps its size.
+  const alone = children === undefined;
+  const page = alone ? null : <View style={styles.content}>{children}</View>;
   return (
-    <View style={[styles.root, style]} onLayout={onLayout} testID={testID}>
+    <View style={[styles.root, alone && styles.alone, style]} onLayout={onLayout} testID={testID}>
       {resolved === 'strip' ? (
         <>
           <TabStrip {...draw}/>
-          <View style={styles.content}>{children}</View>
+          {page}
         </>
       ) : (
-        <TabSwitcher {...draw}>
-          <View style={styles.content}>{children}</View>
-        </TabSwitcher>
+        <TabSwitcher {...draw}>{page}</TabSwitcher>
       )}
     </View>
   );
@@ -48,6 +54,10 @@ const styles = StyleSheet.create({
   root: {
     flexGrow: 1,
     flexShrink: 1,
+  },
+  /** The tabs alone have no page to grow for. */
+  alone: {
+    flexGrow: 0,
   },
   /**
    * Grow and shrink, but not `flex: 1` — whose basis of zero collapses the

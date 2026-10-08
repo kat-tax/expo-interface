@@ -11,6 +11,11 @@
   min-width: 0;
 }
 
+/* The tabs alone, with no panel, have nothing to grow for. */
+.ui-tab-view--alone {
+  flex-grow: 0;
+}
+
 .ui-tab-view__bar {
   display: flex;
   align-items: stretch;

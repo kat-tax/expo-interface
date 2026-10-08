@@ -1,4 +1,4 @@
-import {Text} from 'react-native';
+import {StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {TabView, tabItems} from './index.windows';
@@ -118,6 +118,33 @@ describe('TabView (windows)', () => {
       // Named explicitly: react-native-windows composes no name from the text
       // inside a view, so without this the tab announces its position alone.
       accessibilityLabel: 'Sketch',
+    });
+  });
+
+  describe('without children', () => {
+    const root = () => screen.getByTestId('t');
+    const grow = () => StyleSheet.flatten(root().props.style).flexGrow;
+    /** The view the page is drawn in: the one child that grows. */
+    const page = () => root().children.some(child => typeof child !== 'string' && StyleSheet.flatten(child.props.style)?.flexGrow === 1);
+
+    it('is the island alone: no growth and no page under it', async () => {
+      const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
+      expect(islands(XAML)).toHaveLength(1);
+      expect(grow()).toBe(0);
+      expect(page()).toBe(false);
+      await rerender(
+        <TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" testID="t">
+          <Text>Page of A</Text>
+        </TabView>,
+      );
+      expect(grow()).toBe(1);
+      expect(page()).toBe(true);
+    });
+
+    it('is the switcher\'s bar alone', async () => {
+      await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
+      expect(grow()).toBe(0);
+      expect(root().children).toHaveLength(1);
     });
   });
 

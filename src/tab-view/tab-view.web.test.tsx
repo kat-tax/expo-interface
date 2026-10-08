@@ -48,6 +48,19 @@ describe('TabView (web)', () => {
     expect(tabs[1]).toHaveAttribute('aria-controls', panel.id);
   });
 
+  it('draws no panel and controls none without children: the tabs alone', () => {
+    render(<TabView tabs={TABS} selected="b" onSelect={() => {}} testID="t"/>);
+    expect(screen.queryByRole('tabpanel')).toBeNull();
+    for (const tab of screen.getAllByRole('tab')) expect(tab).not.toHaveAttribute('aria-controls');
+    expect(screen.getByTestId('t')).toHaveClass('ui-tab-view', 'ui-tab-view--alone');
+  });
+
+  it('keeps the panel for null, which is a page with nothing in it', () => {
+    render(<TabView tabs={TABS} selected="b" onSelect={() => {}} testID="t">{null}</TabView>);
+    expect(screen.getByRole('tabpanel')).toBeEmptyDOMElement();
+    expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--alone');
+  });
+
   it('leaves the panel unnamed when no tab is open', () => {
     render(<TabView tabs={TABS} selected="gone" onSelect={() => {}}><p>Nothing</p></TabView>);
     expect(screen.getByRole('tabpanel')).not.toHaveAccessibleName();
@@ -147,6 +160,18 @@ describe('TabView (web)', () => {
       // The grid is a tab list too, so the tabs are the same thing to a screen
       // reader at either size.
       expect(screen.getAllByRole('tab')).toHaveLength(3);
+      expect(screen.queryByRole('tabpanel')).toBeNull();
+    });
+
+    it('is the bar alone without children, and its cards control no panel', async () => {
+      const user = userEvent.setup();
+      windowWidth(480);
+      render(<TabView tabs={TABS} selected="b" onSelect={() => {}} testID="t"/>);
+      expect(screen.queryByRole('tabpanel')).toBeNull();
+      await user.click(screen.getByTestId('t-switcher'));
+      expect(screen.getAllByRole('tab')).toHaveLength(3);
+      for (const tab of screen.getAllByRole('tab')) expect(tab).not.toHaveAttribute('aria-controls');
+      await user.click(screen.getByTestId('t-card-a'));
       expect(screen.queryByRole('tabpanel')).toBeNull();
     });
 

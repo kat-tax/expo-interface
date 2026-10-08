@@ -169,11 +169,19 @@ selected one's content under it. These are not the tabs `Tabs` draws.
 Props: `tabs` (`id`, `title`, `icon`, `pinned`, `menu`, `depth`,
 `accessory`), `selected`, `onSelect`,
 `onClose` (leaving it out takes the crosses away), `onAdd` (leaving it out
-takes the add button away), `children` (the selected tab's content), `label`
-("Tabs"), `layout` (`auto`, `strip`, `switcher`), `style`, `testID`.
+takes the add button away), `children` (the selected tab's content; left
+out, the tabs alone), `label` ("Tabs"), `layout` (`auto`, `strip`,
+`switcher`), `style`, `testID`.
 `nextSelection(tabs, closing, selected)` is exported for a caller that closes
 the open tab: it moves to the next tab, or the previous one when the last was
 closed.
+
+Without `children` the view is the tabs alone: as tall as the strip or the
+switcher's bar rather than growing into its parent, and on web with no
+`tabpanel` for the tabs to control. That is the shape for a strip in a
+`HeaderAccessory`, whose pages are the screen's content. `null` children are
+a page with nothing in it, so a view whose last document closes keeps its
+size.
 
 | Platform | Strip (640 points and wider) | Switcher (narrower) |
 | --- | --- | --- |
@@ -383,6 +391,9 @@ filter bar, a breadcrumb. Render it in the screen's content, as a
   <List data={rows} renderItem={renderRow}/>
 </Screen>
 ```
+
+A `TabView` without `children` is the strip alone; the page is the screen's
+content.
 
 Content passing under a bar pays for the row through `useTabBarInset()`, as
 it pays for the bar, so a `Screen underBar` with the kit's `List` or

@@ -1,4 +1,4 @@
-import {Platform, Text} from 'react-native';
+import {Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {TabView} from '.';
 
@@ -134,6 +134,43 @@ describe(`TabView (${Platform.OS})`, () => {
     await layout(480);
     expect(screen.queryByTestId('t-strip')).toBeNull();
     expect(screen.getByTestId('t-switcher')).toBeOnTheScreen();
+  });
+
+  describe('without children', () => {
+    const root = () => screen.getByTestId('t');
+    const grow = () => StyleSheet.flatten(root().props.style).flexGrow;
+
+    it('is the strip alone: no growth and no page under it', async () => {
+      const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
+      expect(grow()).toBe(0);
+      expect(root().children).toHaveLength(1);
+      await rerender(
+        <TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" testID="t">
+          <Text>Page of A</Text>
+        </TabView>,
+      );
+      expect(grow()).toBe(1);
+      expect(root().children).toHaveLength(2);
+    });
+
+    it('keeps the page for null, which is a page with nothing in it', async () => {
+      await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" testID="t">{null}</TabView>);
+      expect(grow()).toBe(1);
+      expect(root().children).toHaveLength(2);
+    });
+
+    it('is the switcher\'s bar alone, with nothing under it until the cards open', async () => {
+      await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
+      expect(grow()).toBe(0);
+      expect(root().children).toHaveLength(1);
+      await fireEvent.press(screen.getByTestId('t-switcher'));
+      expect(screen.getByTestId('t-cards')).toBeOnTheScreen();
+    });
+
+    it('lets a caller\'s style grow it all the same', async () => {
+      await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" style={{flexGrow: 1}} testID="t"/>);
+      expect(grow()).toBe(1);
+    });
   });
 
   it('needs no testID to draw', async () => {

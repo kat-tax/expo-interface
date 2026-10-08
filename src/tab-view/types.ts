@@ -55,7 +55,14 @@ export interface TabViewProps {
   onClose?: (id: string) => void;
   /** The add button at the end of the strip. Leaving this out takes it away. */
   onAdd?: () => void;
-  /** The selected tab's content, drawn under the strip. */
+  /**
+   * The selected tab's content, drawn under the strip. Left out, the view is
+   * the tabs alone: as tall as the strip or the switcher's bar rather than
+   * growing into its parent, and on web with no `tabpanel` for the tabs to
+   * control. That is the shape for a strip in a `HeaderAccessory`, whose pages
+   * are the screen's content. `null` is a page with nothing in it, which keeps
+   * the view's size when the last document closes.
+   */
   children?: ReactNode;
   /**
    * What the strip is called — "Open files", "Documents". Each tab is named

@@ -105,6 +105,24 @@ export const Switcher: Story = {args: {layout: 'switcher', onClose: () => {}, on
 /** Left to measure for itself, which is how it is meant to be used: the strip above 640 points, the switcher below. */
 export const Adaptive: Story = {args: {onClose: () => {}, onAdd: () => {}}};
 
+/**
+ * The tabs alone, with no children: as tall as the strip and no taller, with
+ * the page drawn under it by the app rather than by the view. The shape for a
+ * strip in a `HeaderAccessory`, whose pages are the screen's content.
+ */
+export const TabsAlone: Story = {
+  args: {layout: 'strip'},
+  render: function Render(args) {
+    const [selected, setSelected] = useState(args.selected);
+    return (
+      <View style={styles.frame}>
+        <TabView {...args} selected={selected} onSelect={setSelected}/>
+        <Page tab={args.tabs.find(tab => tab.id === selected)}/>
+      </View>
+    );
+  },
+};
+
 /** A presence dot after a title: content of the app's own in the tab. */
 function Presence() {
   const color = useColor('success');

@@ -70,6 +70,9 @@ function useContainerWidth(ref: RefObject<HTMLElement | null>): number {
  * Below 640 points the strip is a button and a grid of cards instead, the same
  * shape the native files draw — and the grid is a tab list too, so the tabs
  * are the same thing to a screen reader at either size.
+ *
+ * Without children it is the tabs alone: no `tabpanel`, no `aria-controls`
+ * on the tabs, and no growth into the parent.
  */
 export function TabView({
   tabs,
@@ -110,8 +113,11 @@ export function TabView({
     onMove: index => onSelect(tabs[index]!.id),
   });
   const cards = resolved === 'switcher' && open;
+  // Children left out are the tabs alone: no panel, so no tab controls one.
+  // `null` is still a page, an empty one.
+  const alone = children === undefined;
   const tabId = (tab: {id: string}) => `${id}-tab-${tab.id}`;
-  const panelId = `${id}-panel`;
+  const panelId = alone ? undefined : `${id}-panel`;
   /**
    * What names the panel: the open tab's **title**, never the tab itself.
    *
@@ -163,7 +169,7 @@ export function TabView({
   return (
     <div
       ref={root}
-      className="ui-tab-view"
+      className={['ui-tab-view', alone && 'ui-tab-view--alone'].filter(Boolean).join(' ')}
       style={flatten(StyleSheet.flatten(style) as TextStyle) as CSSProperties}
       data-testid={testID}>
       {resolved === 'strip' ? (
@@ -269,7 +275,7 @@ export function TabView({
             );
           })}
         </div>
-      ) : (
+      ) : alone ? null : (
         <div
           className="ui-tab-view__panel"
           role="tabpanel"
