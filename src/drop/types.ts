@@ -16,7 +16,10 @@ export interface DroppedFile {
 export interface DropOptions {
   /** Called with the files dropped. */
   onDrop: (files: DroppedFile[]) => void;
-  /** Takes no drops while set. */
+  /**
+   * Takes no drops while set. On the web it still keeps a file dropped
+   * beside it from being opened in place of the app.
+   */
   disabled?: boolean;
 }
 

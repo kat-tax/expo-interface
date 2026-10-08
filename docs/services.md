@@ -74,6 +74,11 @@ A dropped file is `{name, type, size, file}`, `file` being the browser's
 every child on its way, so the overlay holds steady over a full grid. Drags
 of text or links are left to the page.
 
+While a zone is mounted, a file dropped anywhere else on the page is
+refused, and the pointer shows that nothing takes it, so the browser does
+not open the file in place of the app. A disabled zone does the same. Text
+and links are left to the page, and a file input takes its own drops.
+
 This is the web's: files reach an iOS, Android or Windows app through the
 share sheet and the pickers, so there `DropZone` draws its children and
 `useDrop` never fires.

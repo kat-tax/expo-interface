@@ -16,17 +16,58 @@ function carriesFiles(event: DragEvent): boolean {
   return Array.from(event.dataTransfer?.types ?? []).includes('Files');
 }
 
+/** How many drop targets are mounted, which together keep the page from opening a stray drop. */
+let targets = 0;
+
+/** Whether the drag is over a file input, which takes its own drops as the browser's control. */
+function overFileInput(event: DragEvent): boolean {
+  return event.target instanceof HTMLInputElement && event.target.type === 'file';
+}
+
+/**
+ * A file dragged over or dropped on the page where no target took it is
+ * refused, the pointer showing that nothing takes it: left alone, the
+ * browser opens the file in place of the app. A target that took the drag
+ * has cancelled the event already, and keeps it.
+ */
+function refuseStray(event: DragEvent) {
+  if (event.defaultPrevented || !carriesFiles(event) || overFileInput(event)) return;
+  event.preventDefault();
+  event.dataTransfer!.dropEffect = 'none';
+}
+
+/** Refuses stray file drops on the page while a target is mounted; answers the release. */
+function guardPage(): () => void {
+  targets += 1;
+  if (targets === 1) {
+    document.addEventListener('dragover', refuseStray);
+    document.addEventListener('drop', refuseStray);
+  }
+  return () => {
+    targets -= 1;
+    if (targets === 0) {
+      document.removeEventListener('dragover', refuseStray);
+      document.removeEventListener('drop', refuseStray);
+    }
+  };
+}
+
 /**
  * Web: makes the element a drop target for files, through the DOM's drag
  * events. A drag passes over the element's children too, each crossing a
  * leave and an enter of its own, so the hold is counted rather than taken
  * from the last event: `over` is true from the first enter to the last
  * leave or the drop. Drags of anything but files are left to the page.
+ * While it is mounted, disabled or not, a file dragged over or dropped on
+ * the page where no target takes it is refused, so the browser does not
+ * open a stray drop in place of the app; a file input keeps its own drops.
  */
 export function useDrop(ref: RefObject<View | null>, {onDrop, disabled = false}: DropOptions): {over: boolean} {
   const [over, setOver] = useState(false);
   const depth = useRef(0);
   const drop = useEffectEvent((files: DroppedFile[]) => onDrop(files));
+  // Apart from the target's own listeners, so a disabled target guards the page too.
+  useEffect(() => guardPage(), []);
   useEffect(() => {
     // A react-native-web view's ref is its DOM element.
     const element = ref.current as unknown as HTMLElement | null;
@@ -72,7 +113,9 @@ export function useDrop(ref: RefObject<View | null>, {onDrop, disabled = false}:
 
 /**
  * Web: the children, taking files dropped on them, with a dashed `Surface`
- * over them and the label while files are held over the zone.
+ * over them and the label while files are held over the zone. While it is
+ * mounted, a file dropped anywhere else on the page is refused rather than
+ * opened by the browser in place of the app.
  */
 export function DropZone({children, onDrop, disabled, label = 'Drop files here', style, testID}: DropZoneProps) {
   const zone = useRef<View>(null);
