@@ -21,12 +21,13 @@ const points = (value: ViewStyle['padding']) => (typeof value === 'number' ? val
  * given as a percentage is replaced by the inset. Read under the `Screen`,
  * as every kit scroller reads them, so render it in the screen's content.
  *
- * On iOS under a header the screen runs under, UIKit insets the view by the
- * header itself (`contentInsetAdjustmentBehavior="automatic"`) and follows
- * a native search bar as it grows and collapses, and the padding is only
- * what floats under the header. The scroll indicators are inset with the
- * content unless `scrollIndicatorInsets` says otherwise, and a press on a
- * control in the view acts while the keyboard is up
+ * On iOS, on a `Screen underBar` under a header the screen runs under,
+ * UIKit insets the view by the header itself
+ * (`contentInsetAdjustmentBehavior="automatic"`) and follows a native search
+ * bar as it grows and collapses, and the padding is only what floats under
+ * the header. On iOS the scroll indicators are inset with the content unless
+ * `scrollIndicatorInsets` says otherwise; elsewhere they span the view. A
+ * press on a control in the view acts while the keyboard is up
  * (`keyboardShouldPersistTaps` is `handled` unless set). Windows has no
  * insets to pad by, so there it is a plain `ScrollView`.
  */
@@ -54,7 +55,7 @@ export function ScreenScrollView({
         insets.bottom > 0 ? {paddingBottom: bottom} : null,
       ]}
       scrollIndicatorInsets={scrollIndicatorInsets ?? {top: insets.top, bottom: insets.bottom}}
-      // iOS under a header the screen runs under: UIKit's own inset, which follows a native search bar.
+      // iOS, on a `Screen underBar` under a header the screen runs under: UIKit's own inset, which follows a native search bar.
       contentInsetAdjustmentBehavior={insets.automatic ? 'automatic' : contentInsetAdjustmentBehavior}
     />
   );

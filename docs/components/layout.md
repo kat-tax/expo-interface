@@ -66,13 +66,14 @@ padding as it is, and a percentage on an edge with one is replaced by the
 inset. Render it in the screen's content, under the `Screen` whose insets it
 reads.
 
-On iOS under a header the screen runs under, it takes UIKit's own inset
-(`contentInsetAdjustmentBehavior="automatic"`), which follows a native
-search bar, and pads only for a `HeaderAccessory` floating under the header.
-Its scroll indicators are inset with it unless `scrollIndicatorInsets` says
-otherwise, and a press on a control in it acts while the keyboard is up
-(`keyboardShouldPersistTaps` is `handled` unless set). It takes every
-`ScrollView` prop and a `ref`.
+On iOS, on a `Screen underBar` under a header the screen runs under, it
+takes UIKit's own inset (`contentInsetAdjustmentBehavior="automatic"`),
+which follows a native search bar, and pads only for a `HeaderAccessory`
+floating under the header. On iOS its scroll indicators are inset with the
+content unless `scrollIndicatorInsets` says otherwise; on the other
+platforms they span the whole view. A press on a control in it acts while
+the keyboard is up (`keyboardShouldPersistTaps` is `handled` unless set).
+It takes every `ScrollView` prop and a `ref`.
 
 ```tsx
 <Screen underBar>

@@ -22,11 +22,11 @@ export interface ScrollInsets {
    */
   bottom: number;
   /**
-   * iOS under a header the screen runs under: the platform insets scroll
-   * content by the header itself, and follows it as a native search bar
-   * grows and collapses (UIKit's content inset adjustment, which a scroll
-   * view takes with `contentInsetAdjustmentBehavior="automatic"`, and
-   * SwiftUI's safe area). `top` is then what the platform does not know of,
+   * iOS, on a `Screen underBar` under a header the screen runs under: the
+   * platform insets scroll content by the header itself, and follows it as
+   * a native search bar grows and collapses (UIKit's content inset
+   * adjustment, which a scroll view takes with
+   * `contentInsetAdjustmentBehavior="automatic"`, and SwiftUI's safe area). `top` is then what the platform does not know of,
    * a `HeaderAccessory` floating under the header.
    */
   automatic: boolean;
