@@ -2,6 +2,9 @@ import {StyleSheet} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {island} from 'expo-vitest/windows';
 import * as icons from '../__stories__/icons';
+import {NEXT, STOP} from '../glyphs';
+import {colors} from '../theme';
+import {glyphOf} from '../windows';
 import {Composer} from '.';
 
 const BUTTON = 'ExpoInterfaceButton';
@@ -25,6 +28,35 @@ describe('Composer (windows)', () => {
     await fireEvent.changeText(screen.getByTestId('c-field'), 'again');
     await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'again'}});
     expect(onSend).toHaveBeenLastCalledWith('again');
+  });
+
+  it('takes its own labels, icons and keys, colors an error notice, and passes the field its traits', async () => {
+    const onKeyPress = vi.fn();
+    const props = {
+      onSend: () => {},
+      onStop: () => {},
+      sendLabel: 'Ask',
+      stopLabel: 'Cancel',
+      sendIcon: NEXT,
+      notice: 'Could not send.',
+      noticeColor: 'destructive' as const,
+      autoCapitalize: 'none' as const,
+      autoCorrect: false,
+      keyboardType: 'email' as const,
+      onKeyPress,
+      testID: 'c',
+    };
+    const {rerender} = await render(<Composer {...props}/>);
+    // A token with a Fluent glyph draws icon-only, named by the label.
+    expect(island(BUTTON).props).toMatchObject({label: 'Ask', glyph: glyphOf(NEXT), iconOnly: true});
+    expect(screen.getByText('Could not send.')).toHaveStyle({color: colors.light.destructive});
+    const field = screen.getByTestId('c-field');
+    expect(field.props).toMatchObject({autoCapitalize: 'none', autoCorrect: false, keyboardType: 'email-address'});
+    // react-native-windows names Escape by the character it types.
+    await fireEvent(field, 'keyPress', {nativeEvent: {key: '\u001b'}});
+    expect(onKeyPress).toHaveBeenLastCalledWith('Escape', false);
+    await rerender(<Composer {...props} busy/>);
+    expect(island(BUTTON).props).toMatchObject({label: 'Cancel', glyph: glyphOf(STOP)});
   });
 
   it('takes a menu at the leading edge of the capsule', async () => {

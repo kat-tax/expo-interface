@@ -152,6 +152,7 @@ export type {
 } from './text-field/types';
 export {Composer} from './composer';
 export type {ComposerMenu, ComposerProps} from './composer/types';
+export type {ComposerNoticeColor} from './composer/types';
 export {FindBar} from './find-bar';
 export type {FindBarMatches, FindBarProps} from './find-bar/types';
 export {COMPACT_WIDTH} from './size-class';

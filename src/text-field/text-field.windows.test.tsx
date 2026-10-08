@@ -1,5 +1,5 @@
 import {StyleSheet} from 'react-native';
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {inputScopeFor} from './index.windows';
 import {TextField} from '.';
@@ -82,6 +82,15 @@ describe('TextField (windows)', () => {
     await render(<TextField variant="inline" placeholder="Search" testID="search"/>);
     expect(islands(BOX)).toHaveLength(0);
     expect(screen.getByTestId('search').props.placeholder).toBe('Search');
+  });
+
+  it('names Escape in the inline variant from the character react-native-windows reports', async () => {
+    const onKeyPress = vi.fn();
+    await render(<TextField variant="inline" onKeyPress={onKeyPress} testID="find"/>);
+    await fireEvent(screen.getByTestId('find'), 'keyPress', {nativeEvent: {key: '\u001b'}});
+    expect(onKeyPress).toHaveBeenLastCalledWith('Escape', false);
+    await fireEvent(screen.getByTestId('find'), 'keyPress', {nativeEvent: {key: 'a'}});
+    expect(onKeyPress).toHaveBeenLastCalledWith('a', false);
   });
 
   it('gives a multi-line inline field that submits the Enter key to submit on, and no other field', async () => {

@@ -3,7 +3,7 @@ import type {TextFieldProps} from './types';
 import {useImperativeHandle, useRef} from 'react';
 import {Platform, StyleSheet, TextInput} from 'react-native';
 import {fonts, fontWeights, spacing, useColor} from '../theme';
-import {blurOnSubmitFor, keyboardTypeFor, useAutoFocus, useTextValue} from './shared';
+import {blurOnSubmitFor, inputModeFor, keyboardTypeFor, keyNameOf, useAutoFocus, useTextValue} from './shared';
 
 /** A key react-native-windows submits a multi-line field on, with the modifiers that must be held. */
 interface WindowsSubmitKey {
@@ -77,7 +77,7 @@ export function InlineTextField({
         onSubmit(current);
         return;
       }
-      onKeyPress?.(event.nativeEvent.key, shift);
+      onKeyPress?.(keyNameOf(event.nativeEvent.key), shift);
     }
     : undefined;
 
@@ -91,6 +91,8 @@ export function InlineTextField({
       editable={!disabled}
       secureTextEntry={secureTextEntry}
       keyboardType={keyboardTypeFor(keyboardType)}
+      // On web a `<textarea>` takes the keyboard only through `inputmode`.
+      inputMode={web ? inputModeFor(keyboardType) : undefined}
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
       multiline={multiline}

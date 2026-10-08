@@ -81,8 +81,17 @@ describe('TextField (web)', () => {
         <TextField keyboardType="decimal" testID="decimal"/>
         <TextField keyboardType="url" testID="url"/>
         <TextField keyboardType="default" testID="default"/>
+        <TextField multiline keyboardType="email" testID="area"/>
+        <TextField variant="inline" keyboardType="url" testID="inline-url"/>
+        <TextField variant="inline" multiline keyboardType="phone" testID="inline-area"/>
       </>,
     );
+    // A `<textarea>` has no type: the keyboard comes through `inputmode`.
+    expect(screen.getByTestId('area')).toHaveAttribute('inputmode', 'email');
+    expect(screen.getByTestId('inline-url')).toHaveAttribute('inputmode', 'url');
+    expect(screen.getByTestId('inline-url')).toHaveAttribute('type', 'url');
+    expect(screen.getByTestId('inline-area')).toHaveAttribute('inputmode', 'tel');
+    expect(screen.getByTestId('email')).toHaveAttribute('inputmode', 'email');
     expect(screen.getByTestId('email')).toHaveAttribute('type', 'email');
     expect(screen.getByTestId('number')).toHaveAttribute('inputmode', 'numeric');
     expect(screen.getByTestId('phone')).toHaveAttribute('type', 'tel');

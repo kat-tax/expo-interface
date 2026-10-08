@@ -195,7 +195,11 @@ Differences:
   focused after a submit, and on Windows Enter submits and keeps the focus.
   On Windows a multi-line `inline` field that submits sends on Enter and
   breaks the line on Shift+Enter.
-- `onKeyPress` reaches `inline` and the web and Windows rows.
+- `onKeyPress` reaches `inline` and the web and Windows rows. In `inline`,
+  iOS and Android report only the keys that write, Enter and Backspace;
+  react-native-windows reports no Shift.
+- `keyboardType` on web is also the field's `inputmode`, which a multi-line
+  field takes.
 - `onFocus`, `onBlur` and the `ref` reach `inline` and the web row, the
   React Native inputs. The SwiftUI, Compose and WinUI rows report no focus
   and take no commands.
@@ -211,12 +215,19 @@ assistant's prompt.
 Props: `value` and `onChangeText` (controlled; left out, the composer keeps
 its own text and clears it on send), `placeholder` (`Message`), `onSend`
 (called with the trimmed text from the button or the keyboard's send key;
-nothing is sent while the text is blank or while `busy`), `onStop` (the stop button while
-`busy`; without it the button waits), `busy`, `notice` (a line under the
-capsule in the secondary color: a hint, an error, who else is typing),
-`menu` (`label`, `icon`, `items`: the platform's menu behind an icon button
-at the capsule's leading edge, for what the message goes to), `disabled`,
-`autoFocus`, `maxLength`, `style`, `testID`.
+nothing is sent while the text is blank or while `busy`), `onStop` (the
+stop button while `busy`; without it the button waits), `busy`, `notice` (a
+line under the capsule: a hint, an error, who else is typing),
+`noticeColor` (`secondaryLabel`, or `destructive` for an error),
+`sendLabel` (`Send`) and `stopLabel` (`Stop`, the buttons' accessible
+names), `sendIcon` and `stopIcon` (the kit's arrow and stop square),
+`onKeyPress` (a key pressed in the field, by its name and whether Shift
+was held: Escape to close an assistant; on web the Enter that sends stays
+the composer's), `autoCapitalize`, `autoCorrect` and `keyboardType` (the
+field's, as on a `TextField`), `menu` (`label`, `icon`, `items`: the
+platform's menu behind an icon button at the capsule's leading edge, for
+what the message goes to), `disabled`, `autoFocus`, `maxLength`, `style`,
+`testID`.
 
 Drawn in React Native on every platform: a `Surface` capsule holding a
 `bare` `TextField` and the kit's circle `Button` in a host of its own, so
@@ -225,7 +236,10 @@ Shift+Enter breaks the line on web and a desktop keyboard; the keyboard's
 send key sends on a phone. While `busy` neither sends, and the text stays.
 On web the capsule draws the focus ring while the field has the focus.
 The button is the platform's: a SwiftUI button, a
-Material button, a `<button>`, a WinUI button.
+Material button, a `<button>`, a WinUI button. On Windows a `sendIcon` or
+`stopIcon` with no `windows` glyph shows its label in its place.
+`onKeyPress` hears what the field's `inline` variant hears, so iOS and
+Android report no Escape.
 
 ## SearchField
 

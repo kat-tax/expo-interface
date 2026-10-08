@@ -73,7 +73,47 @@ describe('Composer (web)', () => {
     render(<Composer onSend={() => {}} busy notice="Shift+Enter for a new line" placeholder="Reply" testID="c"/>);
     expect(screen.getByRole('button', {name: 'Stop'})).toBeDisabled();
     expect(screen.getByTestId('c')).toHaveTextContent('Shift+Enter for a new line');
+    expect(screen.getByText('Shift+Enter for a new line').style.color).toBe('var(--color-secondary-label)');
     expect(screen.getByRole('textbox', {name: 'Reply'})).toBeInTheDocument();
+  });
+
+  it('takes its own labels, icons and keys, colors an error notice, and passes the field its traits', () => {
+    const onSend = vi.fn();
+    const onKeyPress = vi.fn();
+    const props = {
+      onSend,
+      onStop: () => {},
+      sendLabel: 'Ask',
+      stopLabel: 'Cancel',
+      sendIcon: icons.star,
+      stopIcon: icons.trash,
+      notice: 'Could not send.',
+      noticeColor: 'destructive' as const,
+      autoCapitalize: 'none' as const,
+      autoCorrect: false,
+      keyboardType: 'email' as const,
+      onKeyPress,
+    };
+    const {rerender} = render(<Composer {...props}/>);
+    expect(screen.getByRole('button', {name: 'Ask'}).querySelector('.ui-symbol')).toHaveTextContent('star');
+    expect(screen.getByText('Could not send.').style.color).toBe('var(--color-destructive)');
+    const field = screen.getByRole('textbox', {name: 'Message'});
+    expect(field).toHaveAttribute('autocapitalize', 'none');
+    expect(field).toHaveAttribute('autocorrect', 'off');
+    expect(field).toHaveAttribute('spellcheck', 'false');
+    expect(field).toHaveAttribute('inputmode', 'email');
+    fireEvent.keyDown(field, {key: 'Escape'});
+    expect(onKeyPress).toHaveBeenLastCalledWith('Escape', false);
+    fireEvent.keyDown(field, {key: 'Enter', shiftKey: true});
+    expect(onKeyPress).toHaveBeenLastCalledWith('Enter', true);
+    expect(onSend).not.toHaveBeenCalled();
+    // The Enter that sends stays the composer's.
+    fireEvent.change(field, {target: {value: 'hi'}});
+    fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
+    expect(onSend).toHaveBeenCalledWith('hi');
+    expect(onKeyPress).not.toHaveBeenCalledWith('Enter', false);
+    rerender(<Composer {...props} busy/>);
+    expect(screen.getByRole('button', {name: 'Cancel'}).querySelector('.ui-symbol')).toHaveTextContent('delete');
   });
 
   it('needs no test identifier', () => {

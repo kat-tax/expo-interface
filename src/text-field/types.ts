@@ -73,10 +73,12 @@ export interface TextFieldProps {
   /**
    * Called on a key press with the key's name (`Enter`, `Escape`, `a`) and
    * whether Shift was held, for keyboard handling the platform does not
-   * cover. `inline` variant only.
+   * cover. The `inline` variant and the web and Windows rows. In `inline`,
+   * iOS and Android report only the keys that write, Enter and Backspace,
+   * and react-native-windows reports no Shift.
    */
   onKeyPress?: (key: string, shiftKey: boolean) => void;
-  /** Called when the field takes the focus. `inline` variant and the web row only, as `onKeyPress`. */
+  /** Called when the field takes the focus. `inline` variant and the web row only. */
   onFocus?: () => void;
   /** Called when the field gives up the focus. `inline` variant and the web row only. */
   onBlur?: () => void;
@@ -87,7 +89,8 @@ export interface TextFieldProps {
   /** Masks the input for sensitive values such as passwords. */
   secureTextEntry?: boolean;
   /**
-   * Keyboard variant to display.
+   * Keyboard variant to display. On web it is also the field's `inputmode`,
+   * which a multi-line field takes.
    * @default 'default'
    */
   keyboardType?: TextFieldKeyboard;

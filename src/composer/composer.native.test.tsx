@@ -3,6 +3,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, modifier} from 'expo-vitest/native';
 import {hosts} from '../__tests__/hosts';
 import * as icons from '../__stories__/icons';
+import {colors} from '../theme';
 import {Composer} from '.';
 
 const SEND_TO = icons.share;
@@ -81,6 +82,38 @@ describe(`Composer (${Platform.OS})`, () => {
     expect(screen.getByText('Shift+Enter for a new line')).toBeOnTheScreen();
     expect(screen.getByPlaceholderText('Reply')).toBeOnTheScreen();
     expect(host(p => p.label === 'Stop' || p.text === 'Stop' || p.contentDescription === 'Stop')).toBeTruthy();
+  });
+
+  it('takes its own labels, icons and keys, colors an error notice, and passes the field its traits', async () => {
+    const onKeyPress = vi.fn();
+    const props = {
+      onSend: () => {},
+      onStop: () => {},
+      sendLabel: 'Ask',
+      stopLabel: 'Cancel',
+      sendIcon: icons.star,
+      stopIcon: icons.trash,
+      notice: 'Could not send.',
+      noticeColor: 'destructive' as const,
+      autoCapitalize: 'none' as const,
+      autoCorrect: false,
+      keyboardType: 'email' as const,
+      onKeyPress,
+      testID: 'c',
+    };
+    const {rerender} = await render(<Composer {...props}/>);
+    const field = screen.getByTestId('c-field');
+    expect(field.props).toMatchObject({autoCapitalize: 'none', autoCorrect: false, keyboardType: 'email-address'});
+    // `inputmode` is web's.
+    expect(field.props.inputMode).toBeUndefined();
+    await fireEvent(field, 'keyPress', {nativeEvent: {key: 'Escape'}});
+    expect(onKeyPress).toHaveBeenLastCalledWith('Escape', false);
+    expect(host(p => p.label === 'Ask' || p.text === 'Ask' || p.contentDescription === 'Ask')).toBeTruthy();
+    if (isIOS) expect(screen.getByTestId('c-send').props.systemImage).toBe('star');
+    expect(screen.getByText('Could not send.')).toHaveStyle({color: colors.light.destructive});
+    await rerender(<Composer {...props} busy/>);
+    expect(host(p => p.label === 'Cancel' || p.text === 'Cancel' || p.contentDescription === 'Cancel')).toBeTruthy();
+    if (isIOS) expect(screen.getByTestId('c-stop').props.systemImage).toBe('trash');
   });
 
   it('takes a menu at the leading edge of the capsule, in a second host', async () => {

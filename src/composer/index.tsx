@@ -33,6 +33,15 @@ export function Composer({
   onStop,
   busy = false,
   notice,
+  noticeColor = 'secondaryLabel',
+  sendLabel = 'Send',
+  stopLabel = 'Stop',
+  sendIcon = SEND,
+  stopIcon = STOP,
+  onKeyPress,
+  autoCapitalize,
+  autoCorrect,
+  keyboardType,
   menu,
   disabled = false,
   autoFocus,
@@ -85,6 +94,10 @@ export function Composer({
           returnKeyType="send"
           submitBehavior="submit"
           onSubmit={send}
+          onKeyPress={onKeyPress}
+          autoCapitalize={autoCapitalize}
+          autoCorrect={autoCorrect}
+          keyboardType={keyboardType}
           disabled={disabled}
           autoFocus={autoFocus}
           maxLength={maxLength}
@@ -96,8 +109,8 @@ export function Composer({
         <NativeHost fit style={styles.button}>
           {busy ? (
             <Button
-              label="Stop"
-              prefixIcon={STOP}
+              label={stopLabel}
+              prefixIcon={stopIcon}
               hideLabel
               shape="circle"
               size="small"
@@ -107,8 +120,8 @@ export function Composer({
             />
           ) : (
             <Button
-              label="Send"
-              prefixIcon={SEND}
+              label={sendLabel}
+              prefixIcon={sendIcon}
               hideLabel
               shape="circle"
               size="small"
@@ -119,7 +132,7 @@ export function Composer({
           )}
         </NativeHost>
       </Surface>
-      {notice !== undefined ? <Footnote color="secondaryLabel" style={styles.notice}>{notice}</Footnote> : null}
+      {notice !== undefined ? <Footnote color={noticeColor} style={styles.notice}>{notice}</Footnote> : null}
     </View>
   );
 }

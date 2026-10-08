@@ -25,6 +25,7 @@ The differences that change what a screen can do, in one place:
 | `Stepper` `formatValue` | Yes | Yes | Yes | Not applied |
 | `TextField` `autoCapitalize` | Yes | Yes | Yes | No equivalent |
 | `TextField` `submitBehavior` | Native | Native | Yes | Enter keeps focus |
+| `onKeyPress` in `inline` and `Composer` | Keys that write, Enter, Backspace | Keys that write, Enter, Backspace | Yes | Yes, Shift not reported |
 | `SearchField` `clearable` | Yes | Yes | The control's own | The control's own |
 | `SearchField` suggestions with icons | Yes | Yes | Text only | Text only |
 | `HeaderSearch` `stacked` | Native | Drawn under the app bar | Drawn under the header | Drawn under the header |

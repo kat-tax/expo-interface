@@ -71,8 +71,15 @@ export const WithAMenu: Story = {
   args: {
     notice: undefined,
     placeholder: 'Ask about this document',
-    menu: {label: 'Ask', icon: icons.info, items: [{label: 'This page', active: true}, {label: 'The whole document'}, {label: 'The web'}]},
+    sendLabel: 'Ask',
+    menu: {label: 'Ask about', icon: icons.info, items: [{label: 'This page', active: true}, {label: 'The whole document'}, {label: 'The web'}]},
   },
+  render: args => <Composer {...args}/>,
+};
+
+/** A message that could not be sent, told in the destructive color under the capsule. */
+export const AnError: Story = {
+  args: {notice: 'The message could not be sent.', noticeColor: 'destructive'},
   render: args => <Composer {...args}/>,
 };
 

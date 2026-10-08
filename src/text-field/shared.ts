@@ -90,6 +90,46 @@ export function keyboardTypeFor(type: TextFieldKeyboard | undefined): AppleKeybo
   }
 }
 
+/** The `inputmode` a browser takes for each keyboard variant. */
+export type WebInputMode = 'email' | 'numeric' | 'tel' | 'decimal' | 'url';
+
+/**
+ * Maps the conformed keyboard variant to the field's `inputmode` on web.
+ * react-native-web drops `type` on a `<textarea>`, so a multi-line field
+ * shows the keyboard asked for only through `inputmode`; on a one-line
+ * `<input>` it also sets the matching `type`.
+ * @param type - The cross-platform keyboard variant.
+ * @returns The `inputmode`, or `undefined` for the default keyboard.
+ */
+export function inputModeFor(type: TextFieldKeyboard | undefined): WebInputMode | undefined {
+  switch (type) {
+    case 'email':
+      return 'email';
+    case 'number':
+      return 'numeric';
+    case 'phone':
+      return 'tel';
+    case 'decimal':
+      return 'decimal';
+    case 'url':
+      return 'url';
+    case 'default':
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Names a key the way every platform names it: react-native-windows reports
+ * a key by the character it types, so Escape arrives as U+001B. Enter and
+ * Backspace it already names.
+ * @param key - The key as the `TextInput` reported it.
+ * @returns The key's name.
+ */
+export function keyNameOf(key: string): string {
+  return key === '\u001b' ? 'Escape' : key;
+}
+
 /**
  * The `blurOnSubmit` react-native-web reads in place of `submitBehavior`,
  * which it does not know: `submit` keeps the field focused through Enter,

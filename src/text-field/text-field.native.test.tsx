@@ -232,6 +232,8 @@ describe(`TextField (${Platform.OS})`, () => {
     // React Native reads `submitBehavior` itself: the web's `blurOnSubmit` and Windows's submit keys stay out.
     expect(input.props.blurOnSubmit).toBeUndefined();
     expect(input.props.submitKeyEvents).toBeUndefined();
+    // `inputmode` is web's.
+    expect(input.props.inputMode).toBeUndefined();
     expect(input.props.autoCapitalize).toBe('none');
     expect(input.props.placeholderTextColor).toBe('#9094A0');
     expect(nodes().some(n => n.type.startsWith('ViewManagerAdapter_ExpoUI'))).toBe(false);

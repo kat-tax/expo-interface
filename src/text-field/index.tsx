@@ -5,7 +5,7 @@ import {useImperativeHandle, useRef} from 'react';
 import {StyleSheet, TextInput} from 'react-native';
 import {fonts, fontWeights, theme, variants} from '../theme';
 import {InlineTextField} from './inline';
-import {blurOnSubmitFor, keyboardTypeFor, useAutoFocus, useTextValue} from './shared';
+import {blurOnSubmitFor, inputModeFor, keyboardTypeFor, useAutoFocus, useTextValue} from './shared';
 
 /**
  * The `row` variant is the form row below; `inline` is the borderless field
@@ -64,6 +64,8 @@ function RowTextField({
       editable={!disabled}
       secureTextEntry={secureTextEntry}
       keyboardType={keyboardTypeFor(keyboardType)}
+      // A `<textarea>` takes the keyboard only through `inputmode`.
+      inputMode={inputModeFor(keyboardType)}
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
       multiline={multiline}

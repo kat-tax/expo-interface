@@ -1,6 +1,10 @@
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {IconToken} from '../icons';
 import type {MenuItem} from '../menu/types';
+import type {TextFieldCapitalize, TextFieldKeyboard} from '../text-field/types';
+
+/** The color of the line under a composer: `destructive` for an error. */
+export type ComposerNoticeColor = 'secondaryLabel' | 'destructive';
 
 /** The menu at a composer's leading edge: what the message goes to, a model, an attachment. */
 export interface ComposerMenu {
@@ -42,8 +46,57 @@ export interface ComposerProps {
    * @default false
    */
   busy?: boolean;
-  /** A line under the capsule in the secondary color: a hint, an error, who else is typing. */
+  /** A line under the capsule: a hint, an error, who else is typing. Drawn in `noticeColor`. */
   notice?: string;
+  /**
+   * The color of the `notice`: `destructive` for an error.
+   * @default 'secondaryLabel'
+   */
+  noticeColor?: ComposerNoticeColor;
+  /**
+   * The send button's accessible name; the button shows its icon alone.
+   * @default 'Send'
+   */
+  sendLabel?: string;
+  /**
+   * The stop button's accessible name; the button shows its icon alone.
+   * @default 'Stop'
+   */
+  stopLabel?: string;
+  /**
+   * The send button's icon. Defaults to the kit's arrow. On Windows a token
+   * with no `windows` glyph shows `sendLabel` in its place.
+   */
+  sendIcon?: IconToken;
+  /**
+   * The stop button's icon. Defaults to the kit's stop square. On Windows a
+   * token with no `windows` glyph shows `stopLabel` in its place.
+   */
+  stopIcon?: IconToken;
+  /**
+   * Called on a key pressed in the field, with the key's name (`Escape`,
+   * `a`) and whether Shift was held, as `TextField`'s: Escape to close an
+   * assistant built on the composer. On web the Enter that sends stays the
+   * composer's and is not reported. iOS and Android report only the keys
+   * that write, Enter and Backspace, so no Escape; react-native-windows
+   * reports no Shift.
+   */
+  onKeyPress?: (key: string, shiftKey: boolean) => void;
+  /**
+   * Automatic capitalization of the field, as on a `TextField`.
+   * @default 'sentences'
+   */
+  autoCapitalize?: TextFieldCapitalize;
+  /**
+   * Autocorrect and spellcheck suggestions in the field, as on a `TextField`.
+   * @default true
+   */
+  autoCorrect?: boolean;
+  /**
+   * The keyboard the field shows, as on a `TextField`.
+   * @default 'default'
+   */
+  keyboardType?: TextFieldKeyboard;
   /**
    * A menu at the capsule's leading edge: what the message goes to, a
    * model, an attachment. The platform's menu behind an icon button.
