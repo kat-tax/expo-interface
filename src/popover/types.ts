@@ -114,6 +114,11 @@ export interface PopoverProps extends PropsWithChildren {
   grace?: number;
   /** Extra content under the message, above the actions. */
   children?: ReactNode;
-  /** Identifier used to locate the popover in end-to-end tests. */
+  /**
+   * Identifier used to locate the card in end-to-end tests. The box laid
+   * over the parent is `<testID>-bounds`, a modal card's backdrop
+   * `<testID>-backdrop`, and the drawn card's row of actions
+   * `<testID>-actions`.
+   */
   testID?: string;
 }

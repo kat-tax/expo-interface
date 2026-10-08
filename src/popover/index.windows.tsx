@@ -95,7 +95,7 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
             {message ? <Footnote color="secondaryLabel">{message}</Footnote> : null}
             {children}
             {actions?.length ? (
-              <SizedRow style={styles.actions}>
+              <SizedRow style={styles.actions} testID={testID ? `${testID}-actions` : undefined}>
                 {actions.map((action, index) => (
                   <Button
                     key={index}

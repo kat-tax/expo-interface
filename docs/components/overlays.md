@@ -167,6 +167,14 @@ no presses. A card that stays up while it moves to another rectangle, or while
 what it holds changes, is placed by the height it has until it is laid out
 again, and so is one whose `children` hold content the toolkit sizes later.
 
+A test renderer lays nothing out, so in an app's tests the card stays
+invisible and takes no presses until the test reports its layout. With React
+Native Testing Library, fire `layout` with a height on the card (`testID`),
+then on its row of actions (`<testID>-actions`) when it has actions. Under
+jsdom, stub `ResizeObserver`, through which react-native-web reports a
+layout, and call its callback with the card and its parent
+(`<testID>-bounds`).
+
 `onDismiss` says why the card asks to close: `action` (one of its actions
 was taken), `backdrop` (the backdrop of a modal card was pressed, or on
 Windows a click landed outside the tip), `escape` (Escape on web, wherever

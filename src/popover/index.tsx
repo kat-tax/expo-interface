@@ -78,7 +78,7 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
             {message ? <Footnote color="secondaryLabel">{message}</Footnote> : null}
             {children}
             {actions?.length ? (
-              <SizedRow style={styles.actions}>
+              <SizedRow style={styles.actions} testID={testID ? `${testID}-actions` : undefined}>
                 <NativeHost fit>
                   <Row alignment="center" spacing={spacing.two}>
                     {actions.map((action, index) => (

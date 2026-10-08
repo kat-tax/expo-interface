@@ -12,11 +12,10 @@ const card = (height: number) =>
   act(async () => {
     fireEvent(screen.getByTestId('lint'), 'layout', {nativeEvent: {layout: {height}}});
   });
-/** Lays out the row the actions' host sits in: the one view in the card that listens for its layout. */
+/** Lays out the row the actions' host sits in, which the toolkit sizes after the card. */
 const row = (height: number) =>
   act(async () => {
-    const [actions] = screen.container.queryAll(i => typeof i.props.onLayout === 'function' && i.props.testID === undefined);
-    fireEvent(actions, 'layout', {nativeEvent: {layout: {height}}});
+    fireEvent(screen.getByTestId('lint-actions'), 'layout', {nativeEvent: {layout: {height}}});
   });
 const at: PopoverRect = {x: 40, y: 100, width: 60, height: 20};
 
@@ -127,6 +126,14 @@ describe(`Popover (${Platform.OS})`, () => {
     await fireEvent(fix, isIOS ? 'buttonPress' : 'buttonPressed');
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(onDismiss).toHaveBeenCalledWith('action');
+  });
+
+  it('names the row of actions after its testID, for a test to lay out', async () => {
+    const popover = (testID?: string) => <Popover at={at} title="Spelling" actions={[{label: 'Fix', onPress: vi.fn()}]} testID={testID}/>;
+    const {rerender} = await render(popover('lint'));
+    expect(screen.getByTestId('lint-actions')).toBeOnTheScreen();
+    await rerender(popover());
+    expect(screen.queryByTestId('lint-actions')).toBeNull();
   });
 
   it('needs no testID, and ignores a layout that changes nothing', async () => {
