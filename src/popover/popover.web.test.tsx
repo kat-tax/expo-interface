@@ -129,11 +129,43 @@ describe('Popover (web)', () => {
     expect(screen.getByTestId('modal')).not.toHaveAttribute('aria-label');
   });
 
-  it('is not seen until it has been measured', () => {
-    // jsdom has no ResizeObserver, so react-native-web never lays the card
-    // out here; the native and Windows projects measure it.
-    render(<Popover at={{x: 10, y: 10}} title="Spelling" testID="pop"/>);
-    expect(getComputedStyle(screen.getByTestId('pop')).opacity).toBe('0');
+  describe('once laid out', () => {
+    /**
+     * react-native-web reports a layout from a `ResizeObserver`, which jsdom
+     * lacks: this one keeps its callback, so a test can lay a node out.
+     * react-native-web makes its one observer on the first `onLayout` it
+     * meets with the class present, so it is this one from here on.
+     */
+    let report: ((entries: {target: Element}[]) => void) | undefined;
+    beforeEach(() => {
+      vi.stubGlobal('ResizeObserver', class {
+        constructor(callback: typeof report) {
+          report = callback;
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      });
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('is drawn, its actions with it, once react-native-web has measured it', async () => {
+      render(<Popover at={{x: 10, y: 10}} title="Spelling" actions={[{label: 'Fix', onPress: vi.fn()}]} testID="pop"/>);
+      const card = screen.getByTestId('pop');
+      expect(getComputedStyle(card).opacity).toBe('0');
+      expect(getComputedStyle(card).pointerEvents).toBe('none');
+      // The browser lays the whole card out at once, so it does not wait
+      // for its actions apart; the measure lands in a timeout.
+      await act(async () => {
+        report?.([{target: card}]);
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+      expect(getComputedStyle(card).opacity).not.toBe('0');
+      expect(getComputedStyle(card).pointerEvents).not.toBe('none');
+    });
   });
 
   it('works without anything to call', () => {
