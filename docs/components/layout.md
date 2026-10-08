@@ -34,7 +34,8 @@ trailing corner, above the safe area and the tab bar, lifted above a `Toast`
 while one shows and above a bar the screen draws at its bottom).
 
 Read `useScrollInsets()` in a component the `Screen` renders: the component
-that renders the `Screen` is outside it and reads nothing.
+that renders the `Screen` is outside it and reads nothing. Inside a `Sheet`
+both are zero, whatever screen it opens from.
 
 A control in the content can give the screen a bar of its own: a
 `HeaderSearch` whose placement the platform has no header for puts its row
@@ -350,7 +351,9 @@ Differences:
   padding, a clear row of that height ends it.
 
 A `Sheet` full of one is how the kit does a form: the question is the
-section's title and the note under it is the footer.
+section's title and the note under it is the footer. In a sheet the form
+pads by nothing for the screen's bar or the tab bar's action:
+`useScrollInsets()` answers zero there.
 
 ```tsx
 <Sheet isPresented={open} onDismiss={close}>
