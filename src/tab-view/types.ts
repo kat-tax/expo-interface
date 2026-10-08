@@ -63,6 +63,7 @@ export interface TabViewProps {
    * tooltip: "New document", "New chat". Left out, the WinUI strip keeps
    * WinUI's own name and tooltip for the button, in the system's language;
    * everywhere else, the switcher on Windows included, it is "New tab".
+   * Words once given stay on the WinUI strip if `addLabel` is later left out.
    * @default 'New tab'
    */
   addLabel?: string;

@@ -206,7 +206,8 @@ Props: `tabs` (`id`, `title`, `label`, `icon`, `pinned`, `menu`, `depth`,
 `onClose` (leaving it out takes the crosses away), `onAdd` (leaving it out
 takes the add button away), `addLabel` (what the add button is called to a
 screen reader and in Windows' tooltip; "New tab", except on the WinUI strip,
-which keeps WinUI's own words, in the system's language), `children` (the selected
+which keeps WinUI's own words, in the system's language; words given once
+stay there if `addLabel` is later left out), `children` (the selected
 tab's content; left out, the tabs alone), `content` (whether there is a page
 under the tabs, whatever `children` are), `label` ("Tabs"), `layout`
 (`auto`, `strip`, `switcher`), `fill` (`element`, the default, or `none`),
