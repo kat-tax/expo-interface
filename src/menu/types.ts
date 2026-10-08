@@ -9,9 +9,16 @@ export interface MenuItem {
   /** Leading icon. */
   icon?: IconToken;
   /**
-   * A color dot (`#rrggbb`) in place of the icon, for a palette. Drawn on
-   * Android and web; iOS menus render images monochrome, so the dot is not
-   * shown there.
+   * A color dot (`#rrggbb`) in place of the icon, for a palette. Android,
+   * web and Windows draw it as a colored circle, and so does iOS's
+   * `PopupMenu`, whose rows the kit draws. A SwiftUI `Menu` draws a symbol
+   * in the menu's tint but keeps an image's colors, so on iOS the kit writes
+   * the dot once per color into the app's cache through `expo-file-system`
+   * and hands the menu the image; without the module the dot is a symbol,
+   * which the menu draws monochrome. A `HeaderMenu` in a native stack
+   * header (on iOS, and on Android when its icon has an Android drawable)
+   * draws no dot: its entries are Expo Router `Stack.Toolbar` menu actions,
+   * which the kit gives no swatch.
    */
   swatch?: string;
   /**

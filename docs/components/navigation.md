@@ -272,6 +272,8 @@ off them, and a component of the app's own between the row and its items
 cannot be. Such a component is a custom view in the bar, and the controls it
 renders draw themselves inside it, each in a host of its own. `testID` names
 the web and Windows triggers; the native items are found by their `label`.
+A native bar's menu draws no `swatch` dot for an entry: the kit gives the
+bar's menu actions none.
 
 ## HeaderSearch
 
