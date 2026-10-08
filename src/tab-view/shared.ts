@@ -83,10 +83,12 @@ export function isAlone(props: TabViewProps): boolean {
 /**
  * What a screen reader calls a tab: its `label`, or its title. The same on
  * every platform, so an accessory's text never runs into the name on web
- * while saying nothing natively.
+ * while saying nothing natively. An empty label, as
+ * `label: here ? 'index.tsx, Ana is here' : ''` gives, falls back to the
+ * title too, so no platform announces a nameless tab.
  */
 export function tabLabel(tab: TabViewTab): string {
-  return tab.label ?? tab.title;
+  return tab.label || tab.title;
 }
 
 /** What a tab's close cross is called, since a cross says nothing on its own. */

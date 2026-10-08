@@ -115,7 +115,8 @@ export interface TabViewTab {
    * What a screen reader calls the tab, where the accessory says something
    * the title does not: "index.tsx, Ana is here". Start it with the title, so
    * a voice command can still find the tab by what it shows. On Windows it
-   * names the WinUI tab too, whose strip draws no accessory.
+   * names the WinUI tab too, whose strip draws no accessory. An empty label
+   * is the title as well.
    * @default the title
    */
   label?: string;

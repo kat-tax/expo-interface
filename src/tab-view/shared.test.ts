@@ -79,6 +79,10 @@ describe('tabLabel', () => {
     expect(tabLabel({id: 'a', title: 'index.tsx', label: 'index.tsx, Ana is here'})).toBe('index.tsx, Ana is here');
     expect(tabLabel(TABS[0]!)).toBe('Notes');
   });
+
+  it('names a tab by its title when its label is empty', () => {
+    expect(tabLabel({id: 'a', title: 'index.tsx', label: ''})).toBe('index.tsx');
+  });
 });
 
 describe('closeLabel', () => {
