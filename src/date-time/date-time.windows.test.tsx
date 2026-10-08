@@ -1,6 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
-import {DateTimePicker, parseDateString, parseTimeString, toDateString, toTimeString} from './index.windows';
+import {DateTimePicker, parseDateString, parseTimeString, toTimeString} from './index.windows';
 
 const DATE = 'ExpoInterfaceDatePicker';
 const TIME = 'ExpoInterfaceTimePicker';
@@ -68,11 +68,18 @@ describe('DateTimePicker (windows)', () => {
     await fireIsland(island(DATE), 'dateChange', {date: '2030-02-03'});
     expect(island(DATE).props.date).toBe('2030-02-03');
   });
+
+  it('writes and reads a day before 1970 in the island\'s format', async () => {
+    const onChange = vi.fn();
+    await render(<DateTimePicker mode="date" value="1965-03-01" onChange={onChange}/>);
+    expect(island(DATE).props.date).toBe('1965-03-01');
+    await fireIsland(island(DATE), 'dateChange', {date: '1965-03-09'});
+    expect(onChange).toHaveBeenLastCalledWith(new Date(1965, 2, 9), '1965-03-09');
+  });
 });
 
 describe('date strings (windows)', () => {
   it('formats and parses local days and times', () => {
-    expect(toDateString(new Date(2026, 0, 5))).toBe('2026-01-05');
     expect(toTimeString(new Date(2026, 0, 5, 7, 9))).toBe('07:09');
     expect(parseDateString('2026-03-09', noon)).toEqual(new Date(2026, 2, 9, 12, 30));
     expect(parseTimeString('23:59', noon)).toEqual(new Date(2026, 5, 15, 23, 59));
@@ -81,6 +88,9 @@ describe('date strings (windows)', () => {
   it('rejects what is not a day or a time', () => {
     expect(parseDateString('', noon)).toBeNull();
     expect(parseDateString('2026-xx-01', noon)).toBeNull();
+    expect(parseDateString('2026-02-30', noon)).toBeNull();
+    // What an island that could not convert a day would send.
+    expect(parseDateString('1899-00--1', noon)).toBeNull();
     expect(parseTimeString('', noon)).toBeNull();
     expect(parseTimeString('12:zz', noon)).toBeNull();
   });

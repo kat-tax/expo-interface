@@ -36,6 +36,13 @@ describe('toInputValue', () => {
   it('drops seconds and milliseconds', () => {
     expect(toInputValue(new Date(2026, 0, 1, 23, 59, 59, 999), 'datetime')).toBe('2026-01-01T23:59');
   });
+
+  it('writes a year before 1000 in the four digits HTML wants', () => {
+    const year999 = new Date(2000, 0, 5, 9, 5);
+    year999.setFullYear(999, 0, 5);
+    expect(toInputValue(year999, 'date')).toBe('0999-01-05');
+    expect(toInputValue(year999, 'datetime')).toBe('0999-01-05T09:05');
+  });
 });
 
 describe('parseInputValue', () => {
@@ -64,6 +71,10 @@ describe('parseInputValue', () => {
   it('replaces both parts in datetime mode', () => {
     const next = parseInputValue('2030-01-02T17:45', 'datetime', JUNE_15);
     expect(next?.getTime()).toBe(new Date(2030, 0, 2, 17, 45, 0, 0).getTime());
+  });
+
+  it('reads a year before 100 as that year', () => {
+    expect(parseInputValue('0050-06-15', 'date', JUNE_15)?.getFullYear()).toBe(50);
   });
 
   it('keeps the base time when the datetime string has no time part', () => {

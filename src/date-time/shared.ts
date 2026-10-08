@@ -59,16 +59,32 @@ export function useDateValue(
   return [current, setValue];
 }
 
-/** A date's local calendar day, as `YYYY-MM-DD`. */
+/** A date's local calendar day, as `YYYY-MM-DD`, the year in four digits. */
 export function dayOf(date: Date): string {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  return `${String(date.getFullYear()).padStart(4, '0')}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-/** A `YYYY-MM-DD` day as its local midnight; `undefined` for anything else. */
+/**
+ * A `YYYY-MM-DD` day as its local midnight; `undefined` for anything else, a
+ * day the calendar does not have (`2026-02-30`) among them.
+ */
 export function parseDay(day: string): Date | undefined {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);
   if (!match) return undefined;
-  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const midnight = localMidnight(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  // A day the calendar does not have rolls into another (2026-02-30 is
+  // 2 March), so it is no day.
+  return dayOf(midnight) === day ? midnight : undefined;
+}
+
+/**
+ * The local midnight of a day, any year: `new Date(y, m, d)` reads the years
+ * 0 to 99 as 1900 to 1999, where `setFullYear` takes the year as given.
+ */
+function localMidnight(year: number, month: number, day: number): Date {
+  const date = new Date(2000, 0, 1);
+  date.setFullYear(year, month, day);
+  return date;
 }
 
 /** A value as a `Date`: a day string read as its local midnight, a `Date` as it is. */
@@ -82,12 +98,15 @@ export function toDate(value: DateTimeValue | undefined): Date | undefined {
  * instant itself shows as the day before, west of Greenwich, before noon.
  */
 export function utcDayOf(date: Date): Date {
-  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  // `Date.UTC` reads the years 0 to 99 as 1900 to 1999, `setUTCFullYear` does not.
+  const utc = new Date(0);
+  utc.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+  return utc;
 }
 
 /** The local day Material's date dialog picked, from its answer at midnight UTC. */
 export function fromUtcDay(picked: Date): Date {
-  return new Date(picked.getUTCFullYear(), picked.getUTCMonth(), picked.getUTCDate());
+  return localMidnight(picked.getUTCFullYear(), picked.getUTCMonth(), picked.getUTCDate());
 }
 
 /**
@@ -138,7 +157,7 @@ export function inputType(mode: DateTimeMode): 'date' | 'time' | 'datetime-local
  * @returns The serialized date as a string.
  */
 export function toInputValue(date: Date, mode: DateTimeMode): string {
-  const datePart = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  const datePart = dayOf(date);
   const timePart = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
   switch (mode) {
     case 'date':

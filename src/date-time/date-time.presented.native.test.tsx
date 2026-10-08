@@ -161,6 +161,19 @@ describe(`DateTimePicker presented (${Platform.OS})`, () => {
     }
   });
 
+  (isIOS ? it.skip : it)('shows the dialog a year before 100 as that year, and reports a pick in it', async () => {
+    const onChange = vi.fn();
+    await render(<DateTimePicker mode="date" value="0050-06-15" presented onChange={onChange}/>, options);
+    // `Date.UTC(50, 5, 15)` is 1950, so the instants are written as strings.
+    expect(dialog()?.props.initialDate).toBe(new Date('0050-06-15T00:00:00.000Z').getTime());
+    await act(async () => {
+      dialog()?.props.onDateSelected({nativeEvent: {date: new Date('0050-06-20T00:00:00.000Z').toISOString()}});
+    });
+    const [picked, day] = onChange.mock.calls[0];
+    expect([picked.getFullYear(), picked.getMonth(), picked.getDate()]).toEqual([50, 5, 20]);
+    expect(day).toBe('0050-06-20');
+  });
+
   (isIOS ? it.skip : it)('bounds the dialog\'s days on one side alone', async () => {
     const {rerender} = await render(<DateTimePicker mode="date" value={JUNE_15} minimumDate="2026-06-01" presented/>, options);
     expect(dialog()?.props.selectableDates).toEqual({start: Date.UTC(2026, 5, 1), end: null});

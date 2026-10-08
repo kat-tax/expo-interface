@@ -332,6 +332,12 @@ Material's date dialog keeps its days in UTC; the kit hands it each day as
 midnight UTC and reads its answer back the same way, so the day picked is the
 day reported in every zone.
 
+The year takes four digits, so the year 50 is `0050`. A string that names no
+day the calendar has, such as `2026-02-30`, is no day: as a `value` the picker
+keeps its own, and as a bound it bounds nothing. The browser's date input
+takes no year before 1, so on web a day in the year `0000` leaves the input
+empty.
+
 `presented` draws no row. It presents the platform's own picker over the
 content, from `at` (the chip's rectangle, in the coordinates of the parent it
 is laid over), for a date chip on a canvas the kit did not draw; `onDismiss`
