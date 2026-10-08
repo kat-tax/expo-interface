@@ -204,13 +204,13 @@ token only. Outlined icons then keep the static instance `expo-symbols`
 ships, which holds every name. A filled token draws from the cut under
 either registration, so its name has to be in the cut as well.
 
-`getSymbolFontCSS(url, options?)` is the `@font-face` the stylesheet draws
-with. Its options:
+`getSymbolFontCSS(url, options?)` is the `@font-face` that registers the
+cut for the stylesheet. Its options:
 
 | Option | What it does |
 | --- | --- |
 | `filled` | Registers the font as `Material Symbols Filled` (`SYMBOL_FILL_FONT_FAMILY`), which the stylesheet tries first for a filled token only. `false` by default, which registers it as `Material Symbols Outlined` (`SYMBOL_FONT_FAMILY`), the family every icon tries first. |
-| `family` | A family of the app's own, which then also goes in `--ui-symbol-font`, or in `--ui-symbol-fill-font` with `filled`. |
+| `family` | A family of the app's own to register the font under. The rule also names it on `:root` in `--ui-symbol-font`, or in `--ui-symbol-fill-font` with `filled`, so icons draw with it with nothing more from the app. |
 
 A family name in place of the options is the same as `{family}`.
 
