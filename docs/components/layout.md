@@ -466,6 +466,11 @@ Differences:
   insets the list by a header the screen runs under through its safe area,
   following a native search bar, so the list adds only a `HeaderAccessory`
   floating under the header and `contentInset`.
+- Under `Tabs` with a floating `action` (Android, and iOS before 26) the
+  list ends clear of the button: it pads past its last row by
+  `useScrollInsets().bottom`, with `contentInset` added. On iOS, where the
+  `List` takes no content padding, a row of that height without a separator
+  ends it.
 - On Windows a tap on a row while a field has the touch keyboard goes to the
   row and leaves the keyboard up (`keyboardShouldPersistTaps="handled"`); a
   tap past the rows closes it.
@@ -532,6 +537,10 @@ Differences:
   (`contentInsetAdjustmentBehavior="automatic"`), which follows a native
   search bar, and pads only for a `HeaderAccessory` floating under the
   header and `contentInset`.
+- Under `Tabs` with a floating `action` (Android, and iOS before 26) the
+  grid ends clear of the button: it pads past its last row by
+  `useScrollInsets().bottom`, with `contentInset` added, and on iOS its
+  scroll indicators with it.
 - On iOS, Android and Windows a tap on a card while a React Native field has
   the keyboard goes to the card and leaves the keyboard up
   (`keyboardShouldPersistTaps="handled"`); a tap between the cards closes
