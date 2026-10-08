@@ -55,7 +55,7 @@ describe('Composer (web)', () => {
     expect(screen.queryByRole('button', {name: 'Send'})).toBeNull();
     fireEvent.click(screen.getByRole('button', {name: 'Stop'}));
     expect(onStop).toHaveBeenCalledTimes(1);
-    // Enter waits while busy, and the text stays to be sent later.
+    // Enter does nothing while busy, and the text stays to be sent later.
     const field = screen.getByRole('textbox', {name: 'Message'});
     fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
     expect(onSend).not.toHaveBeenCalled();

@@ -73,7 +73,7 @@ describe('Composer (windows)', () => {
     expect(island(BUTTON).props).toMatchObject({label: 'Stop', disabled: false});
     await fireEvent(screen.getByTestId('c-stop'), 'press');
     expect(onStop).toHaveBeenCalledTimes(1);
-    // Enter waits while busy.
+    // Enter does nothing while busy.
     await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'draft'}});
     expect(onSend).not.toHaveBeenCalled();
     expect(screen.getByText('Replying')).toBeOnTheScreen();

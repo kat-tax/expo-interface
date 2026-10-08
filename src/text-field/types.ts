@@ -123,10 +123,12 @@ export interface TextFieldProps {
    */
   returnKeyType?: TextFieldReturnKey;
   /**
-   * Whether the action key closes the keyboard. Left out, a one-line field
-   * closes it as it submits and a multi-line field breaks the line. On
-   * Windows a multi-line `inline` field given one submits on Enter and
-   * breaks the line on Shift+Enter.
+   * Whether the action key closes the keyboard. Honoured on web and in
+   * `inline` on iOS and Android; there, left out, a one-line field closes
+   * it as it submits and a multi-line field breaks the line. The native
+   * rows keep the platform's own way (the Compose row keeps the focus). On
+   * Windows Enter submits and keeps the focus, and a multi-line `inline`
+   * field given one submits on Enter and breaks the line on Shift+Enter.
    */
   submitBehavior?: TextFieldSubmitBehavior;
   /**
