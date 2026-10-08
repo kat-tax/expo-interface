@@ -229,6 +229,13 @@ describe('commands', () => {
     }
   });
 
+  it('draws no overflow when the commands behind it are only menus with no entries', async () => {
+    await render(<Toolbar commands={[{label: 'Undo'}, {label: 'Recent', secondary: true, items: []}]}/>);
+    // No menu at all: the overflow would open on nothing.
+    expect(nodes().filter(node => node.type.endsWith(isIOS ? '_MenuView' : '_DropdownMenuView'))).toHaveLength(0);
+    expect(onBar('Undo')).toBe(true);
+  });
+
   it('puts a secondary menu command\'s entries in the overflow, in its place', async () => {
     await render(<Toolbar commands={[{label: 'Undo'}, {label: 'Export', secondary: true}, {label: 'Sort', secondary: true, items: [{label: 'Name'}, {label: 'Date'}]}]}/>);
     const menus = nodes().filter(node => node.type.endsWith(isIOS ? '_MenuView' : '_DropdownMenuView'));

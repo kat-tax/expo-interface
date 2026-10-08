@@ -71,7 +71,8 @@ export interface ToolbarCommand {
    * the `CommandBar` opens them as a submenu. A `disabled` command greys
    * its entries out, and on Windows binds none of their shortcuts. With no
    * entries the command is greyed out on the bar, since it would open on
-   * nothing, and puts nothing behind the overflow.
+   * nothing, and puts nothing behind the overflow; with nothing else behind
+   * it, the bar draws no overflow menu.
    */
   items?: MenuItem[];
   /**

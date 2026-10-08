@@ -173,6 +173,11 @@ describe('commands (windows)', () => {
     expect(islands('ExpoInterfaceButton').map(button => [button.props.label, button.props.disabled])).toEqual([['Recent', true], ['Sort', false]]);
   });
 
+  it('draws no overflow on the drawn bar when the commands behind it are only menus with no entries', async () => {
+    await render(<Toolbar commands={[{label: 'Undo'}, {label: 'Recent', secondary: true, items: []}]} field={<Text>Find</Text>}/>);
+    expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Undo']);
+  });
+
   it('floats a drawn bar with no spacer between its slots', async () => {
     await render(<Toolbar floating leading={<Text>Undo</Text>} trailing={<Text>Redo</Text>} testID="bar"/>);
     expect(screen.getByText('Undo')).toBeOnTheScreen();

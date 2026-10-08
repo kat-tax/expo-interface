@@ -235,9 +235,14 @@ function CommandButtons({commands}: {commands: ToolbarCommand[]}) {
   );
 }
 
-/** The commands that asked to live behind the ellipsis, or were folded there. */
+/**
+ * The commands that asked to live behind the ellipsis, or were folded there.
+ * With no entries to show, no commands or only menus with none, there is no
+ * ellipsis: it would open on nothing.
+ */
 function Overflow({commands}: {commands: ToolbarCommand[]}) {
-  if (commands.length === 0) return null;
+  const items = overflowItems(commands);
+  if (items.length === 0) return null;
   return (
     <Menu
       label="More"
@@ -245,7 +250,7 @@ function Overflow({commands}: {commands: ToolbarCommand[]}) {
       icon={MORE}
       variant="text"
       size="small"
-      items={overflowItems(commands)}
+      items={items}
     />
   );
 }

@@ -53,6 +53,12 @@ describe('Toolbar commands (web)', () => {
     expect(screen.getByRole('menuitem', {name: 'Name', hidden: true})).toBeInTheDocument();
   });
 
+  it('draws no overflow when the commands behind it are only menus with no entries', () => {
+    render(<Toolbar commands={[{label: 'Undo'}, {label: 'Recent', secondary: true, items: []}]}/>);
+    expect(screen.getByRole('button', {name: 'Undo'})).toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: 'More'})).toBeNull();
+  });
+
   it('keeps a toggle\'s state in the overflow as the menu\'s check', () => {
     render(<Toolbar commands={[{label: 'Undo'}, {label: 'Spellcheck', secondary: true, active: true}, {label: 'Wrap', secondary: true, active: false}]}/>);
     expect(screen.getByRole('menuitem', {name: 'Spellcheck', hidden: true})).toHaveAttribute('aria-current', 'true');
