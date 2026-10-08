@@ -23,7 +23,7 @@ export interface ColorPickerSwatch {
  * opens the system color picker.
  *
  * Bridges the SwiftUI `ColorPicker` on iOS. Android (Jetpack Compose) and
- * web (DOM) redraw the iOS row — the label and the well — and open a sheet
+ * web (DOM) redraw the iOS row (the label and the well) and open a sheet
  * that reproduces the iOS picker: Grid, Spectrum and Sliders tabs, the
  * opacity slider and the preview swatch with saved colors.
  * A controlled control: pair `value` with `onValueChange`.
