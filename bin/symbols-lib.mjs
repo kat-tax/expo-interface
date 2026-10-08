@@ -105,6 +105,19 @@ export const KIT_FILLED = ['star'];
  */
 export const KIT_WEB_NAMES = ['add', 'arrow_back', 'arrow_upward', 'close', 'grid_view', 'keyboard_arrow_down', 'keyboard_arrow_up', 'more_horiz', 'search', 'star', 'stop'];
 
+/**
+ * The names `--font` cuts the font to: the names found, the ones the kit
+ * draws on the web, and the filled names, which need not be among either
+ * (a `--fill` name is in no source), sorted and each once.
+ *
+ * @param {string[]} names
+ * @param {string[]} filled
+ * @returns {string[]}
+ */
+export function fontNames(names, filled) {
+  return [...new Set([...names, ...KIT_WEB_NAMES, ...filled])].sort();
+}
+
 /** The names across a set of files, merged. */
 export function scanFiles(files) {
   const names = new Set();
@@ -270,10 +283,16 @@ const HB_SUBSET_FLAGS_NO_LAYOUT_CLOSURE = 0x200;
 const tag = name => [...name].reduce((value, char) => (value << 8) + char.charCodeAt(0), 0);
 
 /**
- * Shapes a name with HarfBuzz at a fill, the other axes pinned. Always
- * through the `hb` namespace: its `Buffer` and `Blob` would shadow Node's.
+ * Shapes a name with HarfBuzz at a fill, the other axes pinned: one font of
+ * the face for each of `FONT_FILLS`, and the glyph ids a name shapes to in
+ * it. Always through the `hb` namespace: its `Buffer` and `Blob` would
+ * shadow Node's.
+ *
+ * @param hb `harfbuzzjs` 1's shaping API
+ * @param {Uint8Array} sfnt
+ * @returns {(name: string, fill: number) => number[]}
  */
-function shaperOf(hb, sfnt) {
+export function shaperOf(hb, sfnt) {
   const face = new hb.Face(new hb.Blob(sfnt));
   const fonts = new Map(FONT_FILLS.map(fill => {
     const font = new hb.Font(face);
@@ -293,9 +312,18 @@ function shaperOf(hb, sfnt) {
  * Cuts the sfnt with HarfBuzz's subsetter, as `subset-font` drives it but by
  * glyph as well as by character, and without the layout closure that would
  * take in every ligature of the kept letters. Every layout feature stays, so
- * the ligatures and the fill swap still work in the cut.
+ * the ligatures and the fill swap still work in the cut. An axis given a
+ * range keeps it, an axis given a number is pinned there, and an axis the
+ * font lacks throws. What it allocates in HarfBuzz is freed either way.
+ *
+ * @param wasm the exports of `harfbuzzjs` 1's subsetter
+ * @param {Uint8Array} sfnt
+ * @param {string} text the characters to keep
+ * @param {number[]} glyphs the glyph ids to keep
+ * @param {Record<string, number | {min: number, max: number}>} axes
+ * @returns {Uint8Array}
  */
-function cutFont(wasm, sfnt, text, glyphs, axes) {
+export function cutFont(wasm, sfnt, text, glyphs, axes) {
   // Memory can grow with any call, so the view is taken afresh each time.
   const heap = () => new Uint8Array(wasm.memory.buffer);
   const data = wasm.malloc(sfnt.byteLength);
@@ -397,6 +425,19 @@ export async function loadFontTools(resolveFrom = process.cwd()) {
   };
 }
 
+/**
+ * What `--font` says when it cannot load its tools: how to install them and,
+ * when they are installed but are not what the cut drives, what they lack.
+ *
+ * @param {unknown} error from `loadFontTools`
+ * @returns {string}
+ */
+export function fontToolsHelp(error) {
+  const install = '--font needs harfbuzzjs 1 and fontverter: npm i -D harfbuzzjs fontverter';
+  if (error instanceof Error && 'code' in error && error.code === 'MODULE_NOT_FOUND') return install;
+  return `${install}\n${error instanceof Error ? error.message : String(error)}`;
+}
+
 export async function main(argv = process.argv.slice(2)) {
   const {values, positionals} = parseArgs({
     args: argv,
@@ -446,8 +487,8 @@ export async function main(argv = process.argv.slice(2)) {
     let tools;
     try {
       tools = await loadFontTools();
-    } catch {
-      console.error('--font needs harfbuzzjs 1 and fontverter: npm i -D harfbuzzjs fontverter');
+    } catch (error) {
+      console.error(fontToolsHelp(error));
       process.exitCode = 1;
       return;
     }
@@ -458,14 +499,13 @@ export async function main(argv = process.argv.slice(2)) {
       console.log('downloading the variable font once');
       writeFileSync(cached, await fetchBytes(VARIABLE_FONT_URL));
     }
-    // The names found, the ones the kit draws on the web, and the `--fill` names, which need not be among either.
-    const fontNames = [...new Set([...names, ...KIT_WEB_NAMES, ...filled])].sort();
-    const {woff2, missing} = await subsetVariableFont(readFileSync(cached), fontNames, tools);
+    const cut = fontNames(names, filled);
+    const {woff2, missing} = await subsetVariableFont(readFileSync(cached), cut, tools);
     if (missing.length > 0) console.error(`not in the variable font, left out: ${missing.join(', ')}`);
     const file = path.join(out, 'MaterialSymbolsOutlined.woff2');
     writeFileSync(file, woff2);
     console.log(
-      `wrote ${path.relative(process.cwd(), file)} (${(woff2.length / 1024).toFixed(1)} KB, ${fontNames.length - missing.length} icons): ` +
+      `wrote ${path.relative(process.cwd(), file)} (${(woff2.length / 1024).toFixed(1)} KB, ${cut.length - missing.length} icons): ` +
         'register it in +html.tsx with getSymbolFontCSS(url), or getSymbolFontCSS(url, {filled: true}) for filled icons alone',
     );
   }

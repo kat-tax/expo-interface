@@ -2,26 +2,93 @@ import {mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {
+  FONT_AXES,
   FONT_FAMILY,
   FONT_FILLS,
   KIT_FILLED,
   KIT_NAMES,
   KIT_WEB_NAMES,
+  cutFont,
   drawablesModule,
   filledUrl,
   fontFaceCSS,
+  fontNames,
   fontPlan,
+  fontToolsHelp,
   identifier,
   loadFontTools,
   outlinedUrl,
   packagedNames,
   scanFiles,
   scanSource,
+  shaperOf,
   sourceFiles,
   stubModule,
   subsetVariableFont,
 } from '../../bin/symbols-lib.mjs';
 import {getSymbolFontCSS} from './font';
+
+/** An OpenType tag HarfBuzz was handed, as its four letters. */
+const tagName = (value: number) => String.fromCharCode(value >>> 24, (value >>> 16) & 255, (value >>> 8) & 255, value & 255);
+
+/**
+ * HarfBuzz's subsetter as `cutFont` drives it: every call logged with its
+ * arguments, the sets it fills kept, and the cut's bytes waiting in its
+ * memory. `axes` are the font's; `fails` makes the cut itself fail.
+ */
+function fakeSubsetter({axes = ['FILL', 'wght', 'GRAD', 'opsz'], fails = false} = {}) {
+  const memory = {buffer: new ArrayBuffer(64)};
+  const heap = new Uint8Array(memory.buffer);
+  // The cut, where its blob's data lies.
+  heap.set([7, 8, 9], 40);
+  const log: [string, ...number[]][] = [];
+  // The layout features, the characters and the glyphs.
+  const sets: Record<number, (string | number)[]> = {10: [], 11: [], 12: []};
+  const hasAxis = (_input: number, _face: number, axis: number) => Number(axes.includes(tagName(axis)));
+  const calls: Record<string, (...args: number[]) => number | undefined> = {
+    malloc: () => 8,
+    free: () => undefined,
+    hb_blob_create: () => 1,
+    hb_blob_destroy: () => undefined,
+    hb_blob_get_data: () => 40,
+    hb_blob_get_length: () => 3,
+    hb_face_create: () => 2,
+    hb_face_destroy: () => undefined,
+    hb_face_reference_blob: () => 21,
+    hb_set_add: (set, value) => {
+      sets[set].push(value);
+      return undefined;
+    },
+    hb_set_clear: set => {
+      sets[set].push('clear');
+      return undefined;
+    },
+    hb_set_invert: set => {
+      sets[set].push('invert');
+      return undefined;
+    },
+    hb_subset_input_create_or_fail: () => 3,
+    hb_subset_input_destroy: () => undefined,
+    hb_subset_input_get_flags: () => 0x1,
+    hb_subset_input_glyph_set: () => 12,
+    hb_subset_input_pin_axis_location: hasAxis,
+    hb_subset_input_set: () => 10,
+    hb_subset_input_set_axis_range: hasAxis,
+    hb_subset_input_set_flags: () => undefined,
+    hb_subset_input_unicode_set: () => 11,
+    hb_subset_or_fail: () => (fails ? 0 : 20),
+  };
+  const wasm = Object.fromEntries(
+    Object.entries(calls).map(([name, call]) => [
+      name,
+      (...args: number[]) => {
+        log.push([name, ...args]);
+        return call(...args);
+      },
+    ]),
+  );
+  return {wasm: {...wasm, memory}, log, sets, heap};
+}
 
 describe('expo-interface-symbols', () => {
   it('reads the Material names a source uses, and which tokens ask for the solid form', () => {
@@ -152,6 +219,146 @@ describe('expo-interface-symbols', () => {
       );
     } finally {
       rmSync(dir, {recursive: true, force: true});
+    }
+  });
+
+  it('tells an app without the font tools how to install them, and one with the wrong ones what they lack', async () => {
+    const install = '--font needs harfbuzzjs 1 and fontverter: npm i -D harfbuzzjs fontverter';
+    const dir = mkdtempSync(path.join(tmpdir(), 'symbols-'));
+    try {
+      // Nothing to resolve from an empty folder.
+      expect(fontToolsHelp(await loadFontTools(dir).catch((error: unknown) => error))).toBe(install);
+    } finally {
+      rmSync(dir, {recursive: true, force: true});
+    }
+    expect(fontToolsHelp(new Error('harfbuzzjs is not the 1.x line this drives: it has no hb_set_invert'))).toBe(
+      `${install}\nharfbuzzjs is not the 1.x line this drives: it has no hb_set_invert`,
+    );
+    expect(fontToolsHelp('no wasm')).toBe(`${install}\nno wasm`);
+  });
+
+  it('cuts the font to the names found, the kit\'s web names and the filled names, each once', () => {
+    expect(fontNames(['share', 'star'], ['favorite', 'star'])).toEqual([...new Set(['favorite', 'share', ...KIT_WEB_NAMES])].sort());
+    expect(fontNames([], [])).toEqual(KIT_WEB_NAMES);
+  });
+
+  it('shapes each name in a font of its own fill, the other axes pinned, and answers the glyph ids', () => {
+    const fonts: FakeFont[] = [];
+    const buffers: FakeBuffer[] = [];
+    class FakeFont {
+      face: unknown;
+      variations: [string, number][] = [];
+      constructor(face: unknown) {
+        this.face = face;
+        fonts.push(this);
+      }
+      setVariations(variations: {tag: string; value: number}[]) {
+        this.variations = variations.map(({tag, value}) => [tag, value]);
+      }
+    }
+    class FakeBuffer {
+      text = '';
+      guessed = false;
+      infos: {codepoint: number}[] = [];
+      constructor() {
+        buffers.push(this);
+      }
+      addText(text: string) {
+        this.text = text;
+      }
+      guessSegmentProperties() {
+        this.guessed = true;
+      }
+      getGlyphInfos() {
+        return this.infos;
+      }
+    }
+    const hb = {
+      Blob: class {
+        bytes: Uint8Array;
+        constructor(bytes: Uint8Array) {
+          this.bytes = bytes;
+        }
+      },
+      Face: class {
+        blob: unknown;
+        constructor(blob: unknown) {
+          this.blob = blob;
+        }
+      },
+      Variation: class {
+        tag: string;
+        value: number;
+        constructor(tag: string, value: number) {
+          this.tag = tag;
+          this.value = value;
+        }
+      },
+      Font: FakeFont,
+      Buffer: FakeBuffer,
+      // `star` is a ligature, swapped for its solid glyph at FILL 1; anything else is its letters.
+      shape(font: FakeFont, buffer: FakeBuffer) {
+        const fill = font.variations.find(([axis]) => axis === 'FILL')![1];
+        buffer.infos = buffer.text === 'star' ? [{codepoint: 5590 + fill}] : [...buffer.text].map(char => ({codepoint: char.charCodeAt(0)}));
+      },
+    };
+    const sfnt = new Uint8Array([1, 2]);
+    const shape = shaperOf(hb, sfnt);
+    expect(shape('star', 0)).toEqual([5590]);
+    expect(shape('star', 1)).toEqual([5591]);
+    expect(shape('ab', 1)).toEqual([97, 98]);
+    // One font for each fill, of one face over the font's bytes, at the kit's axes and that fill.
+    expect(fonts.map(font => font.variations)).toEqual(
+      FONT_FILLS.map(fill => [['wght', 400], ['GRAD', 0], ['opsz', 24], ['FILL', fill]]),
+    );
+    expect(fonts[0].face).toBe(fonts[1].face);
+    expect(fonts[0].face).toEqual({blob: {bytes: sfnt}});
+    expect(buffers.map(buffer => [buffer.text, buffer.guessed])).toEqual([['star', true], ['star', true], ['ab', true]]);
+  });
+
+  it('cuts by the plan\'s characters and glyphs, with every layout feature and no layout closure, and frees what it made', () => {
+    const {wasm, log, sets, heap} = fakeSubsetter();
+    const cut = cutFont(wasm, new Uint8Array([1, 2, 3]), 'ar', [4000, 5591], FONT_AXES);
+    expect([...cut]).toEqual([7, 8, 9]);
+    // The font is copied into HarfBuzz's memory, and a writable blob made over it.
+    expect(heap.slice(8, 11)).toEqual(new Uint8Array([1, 2, 3]));
+    expect(log).toContainEqual(['malloc', 3]);
+    expect(log).toContainEqual(['hb_blob_create', 8, 3, 2, 0, 0]);
+    // Every layout feature stays: the feature set is cleared, then inverted to all of them.
+    expect(log).toContainEqual(['hb_subset_input_set', 3, 6]);
+    expect(sets[10]).toEqual(['clear', 'invert']);
+    // No layout closure, so the kept letters' other ligatures stay out; the input's own flags stay set.
+    expect(log).toContainEqual(['hb_subset_input_set_flags', 3, 0x1 | 0x200]);
+    // The characters, and the glyphs, by id.
+    expect(sets[11]).toEqual([0x61, 0x72]);
+    expect(sets[12]).toEqual([4000, 5591]);
+    // FILL keeps its range; the other axes are pinned at the kit's defaults.
+    expect(log.filter(([name]) => name.includes('_axis_')).map(([name, input, face, axis, ...rest]) => [name, input, face, tagName(axis as number), ...rest])).toEqual([
+      ['hb_subset_input_set_axis_range', 3, 2, 'FILL', 0, 1, Number.NaN],
+      ['hb_subset_input_pin_axis_location', 3, 2, 'wght', 400],
+      ['hb_subset_input_pin_axis_location', 3, 2, 'GRAD', 0],
+      ['hb_subset_input_pin_axis_location', 3, 2, 'opsz', 24],
+    ]);
+    expect(log).toContainEqual(['hb_subset_or_fail', 2, 3]);
+    expect(log.filter(([name]) => /destroy|free/.test(name))).toEqual([
+      ['hb_blob_destroy', 1],
+      ['hb_blob_destroy', 21],
+      ['hb_face_destroy', 20],
+      ['hb_subset_input_destroy', 3],
+      ['hb_face_destroy', 2],
+      ['free', 8],
+    ]);
+  });
+
+  it('throws for an axis the font lacks and for a cut HarfBuzz refuses, and frees what it made either way', () => {
+    const noFill = fakeSubsetter({axes: ['wght', 'GRAD', 'opsz']});
+    expect(() => cutFont(noFill.wasm, new Uint8Array([1]), 'a', [1], FONT_AXES)).toThrow('the font has no FILL axis');
+    const noSize = fakeSubsetter({axes: ['FILL', 'wght', 'GRAD']});
+    expect(() => cutFont(noSize.wasm, new Uint8Array([1]), 'a', [1], FONT_AXES)).toThrow('the font has no opsz axis');
+    const refused = fakeSubsetter({fails: true});
+    expect(() => cutFont(refused.wasm, new Uint8Array([1]), 'a', [1], FONT_AXES)).toThrow('harfbuzz could not cut the font');
+    for (const {log} of [noFill, noSize, refused]) {
+      expect(log.filter(([name]) => /destroy|free/.test(name))).toEqual([['hb_blob_destroy', 1], ['hb_subset_input_destroy', 3], ['hb_face_destroy', 2], ['free', 8]]);
     }
   });
 
