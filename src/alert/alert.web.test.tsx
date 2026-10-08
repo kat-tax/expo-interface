@@ -131,7 +131,16 @@ describe('Alert (web)', () => {
     expect(onRename).not.toHaveBeenCalled();
     expect(close).toHaveBeenCalledTimes(closes);
     const field = within(dialog()).getByRole('textbox', {name: 'Name'});
-    fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
+    vi.useFakeTimers();
+    try {
+      field.focus();
+      fireEvent.keyDown(field, {key: 'Enter', keyCode: 13});
+      // react-native-web blurs a one-line field a moment after Enter unless told not to: the user keeps typing.
+      vi.advanceTimersByTime(1);
+      expect(document.activeElement).toBe(field);
+    } finally {
+      vi.useRealTimers();
+    }
     expect(onRename).not.toHaveBeenCalled();
     expect(close).toHaveBeenCalledTimes(closes);
     rerender(<Alert title="Rename" visible testID="alert" input={{placeholder: 'Name', value: 'Essay'}} actions={actions(false)}/>);
