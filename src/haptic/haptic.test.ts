@@ -1,6 +1,6 @@
 import type {HapticsLibrary} from './play';
 import {Platform} from 'react-native';
-import {loadHaptics, playHaptic} from './play';
+import {createHapticPacer, loadHaptics, playHaptic} from './play';
 import {haptic} from '.';
 
 /** A stand-in for `expo-haptics`, its calls recorded; `refuse` lists the Android constants the device lacks. */
@@ -71,5 +71,32 @@ describe(`haptic (${Platform.OS})`, () => {
     library.impactAsync.mockImplementation(() => Promise.reject(new Error('busy')));
     expect(() => playHaptic('lift', library)).not.toThrow();
     await settle();
+  });
+});
+
+describe('createHapticPacer', () => {
+  it('drops a step within 120 ms of a lift', () => {
+    const pace = createHapticPacer();
+    expect(pace('lift', 1000)).toBe(true);
+    expect(pace('step', 1119)).toBe(false);
+    expect(pace('step', 1120)).toBe(true);
+  });
+
+  it('drops a step within 45 ms of the last step played, and a dropped step does not move the window', () => {
+    const pace = createHapticPacer();
+    expect(pace('step', 0)).toBe(true);
+    expect(pace('step', 44)).toBe(false);
+    expect(pace('step', 45)).toBe(true);
+    expect(pace('step', 60)).toBe(false);
+    expect(pace('step', 90)).toBe(true);
+  });
+
+  it('always plays a lift and a drop', () => {
+    const pace = createHapticPacer();
+    expect(pace('step', 0)).toBe(true);
+    expect(pace('lift', 1)).toBe(true);
+    expect(pace('drop', 2)).toBe(true);
+    expect(pace('lift', 3)).toBe(true);
+    expect(pace('drop', 3)).toBe(true);
   });
 });
