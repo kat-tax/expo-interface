@@ -6,6 +6,7 @@ import {hostFit, hosts} from '../__tests__/hosts';
 import {iosSymbol} from '../button/shared';
 import {colors} from '../theme';
 import {host, modifier, nodes} from 'expo-vitest/native';
+import {EMPTY_ICON} from './shared';
 import {EmptyState} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -89,11 +90,17 @@ describe(`EmptyState (${Platform.OS})`, () => {
       expect(modifier(host(p => p.description === 'No reason.').props, 'textSelection')).toEqual({$type: 'textSelection', value: false});
     });
 
-    it('composes the same layout by hand while loading, with the spinner in the symbol\'s place', async () => {
+    it('composes the same layout by hand while loading, padded and filling, with the spinner in the symbol\'s place', async () => {
       await render(<EmptyState title="Opening" description="One moment." icon={icons.add} loading testID="busy"/>);
       expect(nodes().some(n => n.props.title === 'Opening')).toBe(false);
-      expect(nodes().some(n => n.type.includes('ProgressView'))).toBe(true);
-      expect(modifier(host(p => p.text === 'Opening').props, 'font')).toMatchObject({size: 22, weight: 'bold'});
+      // The system view's standard inset, and as greedy as the system view, so
+      // the state does not move when loading ends.
+      const stack = nodes().find(n => n.type.includes('VStack') && modifier(n.props, 'padding'))!;
+      expect(modifier(stack.props, 'padding')).toEqual({$type: 'padding', all: 'default'});
+      expect(modifier(stack.props, 'frame')).toMatchObject({maxWidth: Infinity, maxHeight: Infinity});
+      const spinner = nodes().find(n => n.type.includes('ProgressView'))!;
+      expect(modifier(spinner.props, 'frame')).toMatchObject({width: EMPTY_ICON, height: EMPTY_ICON});
+      expect(modifier(host(p => p.text === 'Opening').props, 'font')).toMatchObject({textStyle: 'title2', weight: 'bold'});
       expect(modifier(host(p => p.text === 'One moment.').props, 'foregroundStyle')?.style.color).toBe(colors.light.secondaryLabel);
       await render(<EmptyState title="Opening" loading testID="bare"/>);
       expect(nodes().some(n => n.props.text === 'One moment.')).toBe(false);

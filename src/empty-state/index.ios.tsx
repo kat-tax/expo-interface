@@ -1,12 +1,12 @@
 import type {EmptyStateProps} from './types';
 import {Platform, StyleSheet, View} from 'react-native';
 import {ContentUnavailableView, ProgressView, Text, VStack} from '@expo/ui/swift-ui';
-import {font, foregroundStyle, frame, multilineTextAlignment, progressViewStyle, textSelection} from '@expo/ui/swift-ui/modifiers';
+import {font, foregroundStyle, frame, multilineTextAlignment, padding, progressViewStyle, textSelection} from '@expo/ui/swift-ui/modifiers';
 import {iosSymbol} from '../button/shared';
 import {NativeHost} from '../host';
 import {spacing, useColor} from '../theme';
 import {DrawnEmptyState} from './drawn';
-import {EmptyStateAction} from './shared';
+import {EMPTY_ICON, EmptyStateAction} from './shared';
 import {isActionData} from './types';
 
 /** `ContentUnavailableView` arrived in iOS 17; below that the kit draws it. */
@@ -34,7 +34,7 @@ export function EmptyState(props: EmptyStateProps) {
       <NativeHost>
         <VStack spacing={spacing.three} modifiers={[frame({maxWidth: Infinity})]}>
           {loading ? (
-            <Loading title={title} description={description} selectable={selectable}/>
+            <Composed title={title} description={description} selectable={selectable}/>
           ) : (
             <ContentUnavailableView
               title={title}
@@ -52,16 +52,20 @@ export function EmptyState(props: EmptyStateProps) {
 }
 
 /**
- * The system view's layout with the spinner in the symbol's place: the title
- * in the title2 weight and the description in the secondary color, centred,
- * as `ContentUnavailableView` draws them.
+ * The system view's layout with the spinner in the symbol's place, in the
+ * symbol's size: the title in the bold title2 style and the description in
+ * the secondary color, centred, as `ContentUnavailableView` draws them. It
+ * pads by the system's standard inset and fills what it is offered, as the
+ * system view does, so a long description stops short of the edges and the
+ * state stays where it is when loading ends.
  */
-function Loading({title, description, selectable}: {title: string; description?: string; selectable: boolean}) {
+function Composed({title, description, selectable}: {title: string; description?: string; selectable: boolean}) {
   const secondary = useColor('secondaryLabel');
   return (
-    <VStack spacing={spacing.one} modifiers={[textSelection(selectable)]}>
-      <ProgressView modifiers={[progressViewStyle('circular')]}/>
-      <Text modifiers={[font({size: 22, weight: 'bold'}), multilineTextAlignment('center')]}>{title}</Text>
+    // The padding comes before the frame, so the padded content is centred in it.
+    <VStack spacing={spacing.one} modifiers={[padding({all: 'default'}), frame({maxWidth: Infinity, maxHeight: Infinity}), textSelection(selectable)]}>
+      <ProgressView modifiers={[progressViewStyle('circular'), frame({width: EMPTY_ICON, height: EMPTY_ICON})]}/>
+      <Text modifiers={[font({textStyle: 'title2', weight: 'bold'}), multilineTextAlignment('center')]}>{title}</Text>
       {description ? (
         <Text modifiers={[foregroundStyle({type: 'color', color: secondary}), multilineTextAlignment('center')]}>{description}</Text>
       ) : null}

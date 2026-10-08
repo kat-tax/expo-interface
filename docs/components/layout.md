@@ -471,7 +471,7 @@ wraps at the screen's width and can be selected and copied, unless
 
 | Platform | Renders |
 | --- | --- |
-| iOS 17 and later | The system's `ContentUnavailableView` and the action in one host that fills the width. While `loading` the same layout is composed in SwiftUI, with a `ProgressView` where the symbol goes. |
+| iOS 17 and later | The system's `ContentUnavailableView` and the action in one host that fills the width. While `loading` the same layout is composed in SwiftUI, padded and filling as the system view does, with a `ProgressView` the symbol's size where the symbol goes. |
 | Older iOS, Web | A drawn column with the icon through `SymbolView`, the kit's `Spinner` while loading |
 | Android | A Compose column in one host: the token's drawable, the title and the description in the Material scale, the `CircularProgressIndicator` while loading, and the action as the Material button. A node of the app's own rides in the column as hosted React Native content. |
 | Windows | The drawn column with a Segoe glyph, the WinUI `ProgressRing` while loading |
