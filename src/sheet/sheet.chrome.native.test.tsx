@@ -1,5 +1,5 @@
 import {Dimensions, Platform, StyleSheet, Text} from 'react-native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {Button} from '../button';
 import {useNativeHost} from '../host';
@@ -142,13 +142,16 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
 
   it('counts the bar\'s row, the accessory and an uncapped body as hosted, and the capped body and the footer as React Native content that mounts its own hosts', async () => {
     await render(
-      <Sheet isPresented onDismiss={() => {}} accessory={<Hosted name="accessory"/>} footer={<Hosted name="footer"/>} maxHeight={300}>
+      <Sheet isPresented onDismiss={() => {}} title="Comments" onClose={() => {}} accessory={<Hosted name="accessory"/>} footer={<Hosted name="footer"/>} maxHeight={300} testID="sheet">
         <Hosted name="body"/>
       </Sheet>,
     );
     expect(screen.getByText('accessory hosted')).toBeOnTheScreen();
     expect(screen.getByText('body bare')).toBeOnTheScreen();
     expect(screen.getByText('footer bare')).toBeOnTheScreen();
+    // The bar's close button renders bare: the sheet's own host is the only one.
+    expect(hasTestID('sheet-bar-close')).toBe(true);
+    expect(nodes().filter(n => n.type === 'ViewManagerAdapter_ExpoUI_HostView')).toHaveLength(1);
     await render(
       <Sheet isPresented onDismiss={() => {}}>
         <Hosted name="body"/>
@@ -208,7 +211,8 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
       expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).width).toBe(width);
       expect(StyleSheet.flatten(screen.getByTestId('sheet-footer').props.style).width).toBe(width);
     } finally {
-      Dimensions.set({window: phone});
+      // The sheet is still mounted, and the change re-renders the pieces that read the window.
+      await act(async () => Dimensions.set({window: phone}));
     }
   });
 });
