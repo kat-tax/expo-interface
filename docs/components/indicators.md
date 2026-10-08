@@ -74,9 +74,12 @@ A drawn badge and the other three platforms announce the label. Inside a
 host on Android `@expo/ui`'s Compose layer exposes no modifier that sets a
 content description, and TalkBack reads the number the badge draws, so the
 rest of the label ("new" of "3 new", the whole label of a dot) is unseen
-text laid over the badge at its size. TalkBack reads it after the number: as
-part of a row that presses or a Material `ListItem`, which merge what they
-hold, and as a stop of its own anywhere else.
+text in a small box at the badge's end edge, inside the padding beside the
+number. TalkBack reads it after the number: as part of a row that presses or
+a Material `ListItem`, which merge what they hold, and as a stop of its own
+anywhere else. Where nothing merges them Compose orders the two by position
+and leaves out a node that one drawn above it covers, which is why the box
+keeps clear of the number rather than covering the badge.
 
 Placing a badge over a control is the caller's job. On Windows, put it beside
 a pressable control or inside it: a XAML island takes pointer input for

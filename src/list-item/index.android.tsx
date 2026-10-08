@@ -59,8 +59,8 @@ export function ListItem({swipeActions, ...props}: ListItemProps) {
  * one, which puts the state in its semantics for TalkBack. The name composed
  * from the slots has nowhere to go: `@expo/ui`'s Compose `semantics` takes
  * `contentType` alone, so TalkBack reads the row's own texts. The badge's
- * words are among them: the hosted `Badge` lays the rest of its label over
- * itself as unseen text, read after its number.
+ * words are among them: the hosted `Badge` puts the rest of its label at its
+ * end edge as unseen text, read after its number.
  */
 function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, badgeColor, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
   const label = useColor('label');

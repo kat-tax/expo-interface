@@ -23,7 +23,7 @@ const composeBadge = () => nodes().find(n => n.type.endsWith('BadgeView'))!;
 /** What the Compose `Text` inside the badge is carrying, if anything. */
 const composeText = () => nodes(composeBadge()).map(n => n.props.text).filter((text): text is string => typeof text === 'string');
 
-/** The transparent text laid over a hosted badge, which TalkBack reads after the number. */
+/** The transparent text in a hosted badge's end padding, which TalkBack reads after the number. */
 const unseenText = () => nodes().filter(n => n.props.color === '#00000000').map(n => n.props.text);
 
 describe(`Badge (${Platform.OS})`, () => {
@@ -117,19 +117,24 @@ describe(`Badge (${Platform.OS})`, () => {
       expect(unseenText()).toEqual(['new']);
     });
 
-    it('lays the rest of its label over itself as unseen text, which TalkBack reads after the number', async () => {
+    it('puts the rest of its label in its end padding as unseen text, which TalkBack reads after the number', async () => {
       await render(inHost(<Badge count={3} label="3 unread messages" testID="unread"/>));
-      // A box the badge sizes: the text matches its size, so it neither widens
-      // nor moves the badge, and comes after it, so it is read after the number.
+      // A box the badge sizes, with the text after the badge in the tree.
       const [box] = nodes().filter(n => n.type.endsWith('BoxView'));
       expect(box.props.contentAlignment).toBe('center');
       const [badge, words] = (box.children ?? []) as HostNode[];
       expect(modifier(badge.props, 'testID')?.testID).toBe('unread');
       expect(words.props).toMatchObject({text: 'unread messages', color: '#00000000', maxLines: 1});
-      expect(modifier(words.props, 'matchParentSize')).toBeTruthy();
+      // At the end edge, as wide as Material's padding beside the number and as
+      // high as a dot: it covers none of the number, which an unmerged tree
+      // would otherwise leave out, and comes after it by position too. Not
+      // the badge's own size, which would lay it over the number.
+      expect(modifier(words.props, 'align')?.alignment).toBe('centerEnd');
+      expect(modifier(words.props, 'size')).toMatchObject({width: MATERIAL_BADGE.padding, height: MATERIAL_BADGE.dot});
+      expect(modifier(words.props, 'matchParentSize')).toBeUndefined();
     });
 
-    it('lays nothing over itself when the label is the number alone', async () => {
+    it('adds no unseen text when the label is the number alone', async () => {
       await render(inHost(<Badge count={3} label="3" testID="bare"/>));
       expect(composeText()).toEqual(['3']);
       expect(unseenText()).toEqual([]);

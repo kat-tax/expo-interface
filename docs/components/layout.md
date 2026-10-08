@@ -411,8 +411,8 @@ Differences:
   `InfoBadge`'s own fill, where the other three draw `destructive`.
 - On Android TalkBack reads the row's own texts rather than a name composed
   from its slots, since `@expo/ui`'s Compose layer has no modifier that sets
-  a description. The badge's words are among them as unseen text over the
-  badge, so a count reads "3, new" and a dot "New". `selected` is announced
+  a description. The badge's words are among them as unseen text at the
+  badge's end, so a count reads "3, new" and a dot "New". `selected` is announced
   on a row that presses by itself; an inert row, or one with
   `swipeActions`, shows the fill alone.
 - On iOS and Android a row outside a host (a React Native `ScrollView` of

@@ -55,7 +55,7 @@ describe(`ListItem slots (${Platform.OS})`, () => {
       expect(host(p => p.text === '3')).toBeTruthy();
       expect(JSON.stringify(slot('trailingContent')[0])).toContain('"T"');
       // The texts TalkBack reads the row by: the badge's number, then its
-      // label's word as unseen text over it.
+      // label's word as unseen text at its end.
       expect(texts('row')).toEqual(['Essay', '2 KB', '3', 'new']);
       expect(host(p => p.text === 'new').props.color).toBe('#00000000');
     }
@@ -69,7 +69,7 @@ describe(`ListItem slots (${Platform.OS})`, () => {
     } else {
       const badge = nodes().find(n => n.type.includes('Badge'))!;
       expect(badge).toBeTruthy();
-      // A dot holds nothing; what it says is unseen text over it, read last.
+      // A dot holds nothing; what it says is unseen text at its end, read last.
       expect(badge.children ?? []).toHaveLength(0);
       expect(texts('row')).toEqual(['Essay', 'Edited', '2 KB', 'New']);
       expect(host(p => p.text === 'New').props.color).toBe('#00000000');
