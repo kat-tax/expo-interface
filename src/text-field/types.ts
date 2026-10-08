@@ -48,7 +48,7 @@ export type TextFieldVariant = 'row' | 'inline' | 'bare';
 
 /**
  * Cross-platform single/multi-line text input with a conformed iOS-style
- * appearance — a borderless field whose placeholder doubles as the row label,
+ * appearance: a borderless field whose placeholder doubles as the row label,
  * exactly the SwiftUI `Form` row look the other platforms emulate. Drop it
  * straight into a `FieldGroup.Section` alongside other rows.
  *
