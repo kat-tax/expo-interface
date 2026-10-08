@@ -26,8 +26,9 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
   const anchored = useAnchored({at: shown, preferredEdge, width, insets});
   // Whether the parent has been measured at all, whatever its size. On web
   // each layout lands in a timeout of its own, and a card that mounts with
-  // the parent is reported first, so it waits for the parent; iOS and
-  // Android report the parent's layout before the card's.
+  // the parent is reported first, so it waits for the parent, a task at
+  // most (see `PlacedCard`); iOS and Android report the parent's layout
+  // before the card's.
   const [boundsKnown, setBoundsKnown] = useState(Platform.OS !== 'web');
   // A dismissal of the card's own ends a linger, so the card goes as soon
   // as the app clears `at`.

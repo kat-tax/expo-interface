@@ -162,9 +162,10 @@ where it shows is worked out from its own height: a card that goes above the
 rectangle is not seen below it first. On iOS, Android and Windows the
 platform's toolkit sizes the action buttons after the card's first layout,
 so the card waits for them too; on web, where the browser can report the
-card's size before its parent's, it waits for the parent. Until then it is
-invisible and takes no presses, so on web a card in a parent with no size
-may not show at all. A card that stays up while it moves to another
+card's size just before its parent's, it waits for the parent's report that
+follows, and no longer, so a parent the browser does not report, one with no
+size, does not keep it hidden. Until then it is invisible and takes no
+presses. A card that stays up while it moves to another
 rectangle, or while what it holds changes, is placed by the height it has
 until it is laid out again, and so is one whose `children` hold content the
 toolkit sizes later.

@@ -336,15 +336,52 @@ describe('Popover (web)', () => {
       expect(getComputedStyle(card).pointerEvents).not.toBe('none');
     });
 
-    it('waits for its parent, which the browser reports after a card that mounts with it', async () => {
-      render(<Popover at={{x: 10, y: 10}} title="Spelling" testID="pop"/>);
-      const card = screen.getByTestId('pop');
-      await layOut(card);
-      // Placed from the card alone it would sit below the rectangle, unclamped.
-      expect(getComputedStyle(card).opacity).toBe('0');
-      // jsdom measures every node as empty: a parent with no size counts.
-      await layOut(screen.getByTestId('pop-bounds'));
-      expect(getComputedStyle(card).opacity).not.toBe('0');
+    describe('timeout by timeout', () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      /**
+       * Reports the nodes, as the browser does, and runs the measures
+       * react-native-web queues for them, each in a timeout of its own. A
+       * timeout the card sets from its own measure comes after these.
+       */
+      const measure = (...targets: Element[]) => {
+        act(() => {
+          report?.(targets.map(target => ({target})));
+        });
+        act(() => {
+          vi.advanceTimersByTime(0);
+        });
+      };
+
+      it('waits for its parent, which the browser reports just after a card that mounts with it', () => {
+        render(<Popover at={{x: 10, y: 10}} title="Spelling" testID="pop"/>);
+        const card = screen.getByTestId('pop');
+        measure(card);
+        // Placed from the card alone it would sit below the rectangle, unclamped.
+        expect(getComputedStyle(card).opacity).toBe('0');
+        // jsdom measures every node as empty: a parent with no size counts.
+        measure(screen.getByTestId('pop-bounds'));
+        expect(getComputedStyle(card).opacity).not.toBe('0');
+      });
+
+      it('is drawn a task after its own measure in a parent the browser does not report', () => {
+        render(<Popover at={{x: 10, y: 10}} title="Spelling" testID="pop"/>);
+        const card = screen.getByTestId('pop');
+        // A parent with no size gets no first report from a ResizeObserver.
+        measure(card);
+        expect(getComputedStyle(card).opacity).toBe('0');
+        act(() => {
+          vi.advanceTimersToNextTimer();
+        });
+        expect(getComputedStyle(card).opacity).not.toBe('0');
+        expect(getComputedStyle(card).pointerEvents).not.toBe('none');
+      });
     });
 
     it('draws a card that comes up in a parent already measured once it is measured itself', async () => {

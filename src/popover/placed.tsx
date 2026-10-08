@@ -17,7 +17,12 @@ export interface PlacedCardProps extends Omit<ViewProps, 'onLayout' | 'style'> {
   sizedLater?: boolean;
   /**
    * Holds the card back while the parent it is placed in is still to be
-   * measured: on web, where the browser can report the card first.
+   * measured: on web, where the browser can report the card first. It holds
+   * for one task after the card's own layout at most. react-native-web
+   * measures each node the browser reports in a timeout of its own, in the
+   * order they were reported, so a measure of the parent reported with the
+   * card lands first, and a parent the browser never reports, one with no
+   * size, does not keep the card hidden.
    * @default false
    */
   awaitingBounds?: boolean;
@@ -32,7 +37,7 @@ const RowLayout = createContext<((event: LayoutChangeEvent) => void) | undefined
  * pressed until it has been measured, so the place it shows at is worked out
  * from its own height, not from the last card's or from none. With
  * `sizedLater` it also waits for the `SizedRow` in it to have a height, and
- * with `awaitingBounds` for its parent.
+ * with `awaitingBounds` for its parent, a task after its own layout at most.
  */
 export function PlacedCard({anchored, width, sizedLater = false, awaitingBounds = false, ...props}: PlacedCardProps) {
   const [measured, setMeasured] = useState(false);
@@ -40,7 +45,8 @@ export function PlacedCard({anchored, width, sizedLater = false, awaitingBounds 
   // Only a card that comes up with the row waits for it, and only while it
   // still has one: a card that gains the row while it is up stays seen.
   const [cameWithRow] = useState(sizedLater);
-  const ready = !awaitingBounds && measured && (rowSized || !(cameWithRow && sizedLater));
+  const [waited, setWaited] = useState(false);
+  const ready = (!awaitingBounds || waited) && measured && (rowSized || !(cameWithRow && sizedLater));
   return (
     <RowLayout.Provider
       value={event => {
@@ -51,6 +57,7 @@ export function PlacedCard({anchored, width, sizedLater = false, awaitingBounds 
         onLayout={event => {
           anchored.onCard(event);
           setMeasured(true);
+          if (awaitingBounds) setTimeout(() => setWaited(true), 0);
         }}
         style={[styles.card, {width, left: anchored.left, top: anchored.top}, ready ? null : styles.unplaced]}
       />
