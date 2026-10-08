@@ -597,8 +597,10 @@ wraps at the screen's width and can be selected and copied, unless
 
 On iOS and Android, outside a host the state mounts one as wide as its
 container, and `style` and `testID` go on the view around it. Inside one (a
-`Screen native`, a `NativeHost`, a `Sheet`, a hosted `List`'s `empty`) it
-renders bare: `testID` names the native stack and `style` is not applied. A
+`Screen native`, a `NativeHost`, a hosted `List`'s `empty`, or a `Sheet`'s
+bar, accessory or body without `maxHeight`) it renders bare: `testID` names
+the native stack and `style` is not applied. A `Sheet`'s capped body and its
+footer are React Native content, so a state there mounts its own host. A
 bare state is as wide as its container and centres itself and its action as
 one group in the height the container gives it, the whole screen under a
 `Screen native`. On iOS it fills whatever space it is offered; on Android,

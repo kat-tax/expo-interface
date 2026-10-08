@@ -22,11 +22,12 @@ import {isActionData} from './types';
  * `selectable`, since Compose text here cannot be selected.
  *
  * Outside a host the column mounts one of its own, as wide as its container.
- * Inside one (a `Screen native`, a `Sheet`, a hosted `List`'s `empty`) it
- * renders bare, as every self-hosting control does: as wide as its container
- * and centred in the height the container hands down, the whole screen under
- * a `Screen native`, as iOS centres it. Where the container leaves the height
- * open it is as tall as itself, placed by that container.
+ * Inside one (a `Screen native`, a `Sheet`'s native content, a hosted
+ * `List`'s `empty`) it renders bare, as every self-hosting control does: as
+ * wide as its container and centred in the height the container hands down,
+ * the whole screen under a `Screen native`, as iOS centres it. Where the
+ * container leaves the height open it is as tall as itself, placed by that
+ * container.
  */
 export function EmptyState(props: EmptyStateProps) {
   const hosted = useNativeHost();

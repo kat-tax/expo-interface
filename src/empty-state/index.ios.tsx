@@ -23,9 +23,10 @@ function supportsSystemView(): boolean {
  * the kit's SwiftUI button under the view, native beside native. Outside a
  * host the stack gets one of its own that fills the width, so the description
  * wraps at the screen's width, and a node of the app's own is React Native
- * underneath the host. Inside a host (a `Screen native`, a `Sheet`, a hosted
- * `List`'s `empty`) the stack renders bare, as every self-hosting control
- * does, and a node of the app's own rides in it as hosted React Native.
+ * underneath the host. Inside a host (a `Screen native`, a `Sheet`'s native
+ * content, a hosted `List`'s `empty`) the stack renders bare, as every
+ * self-hosting control does, and a node of the app's own rides in it as
+ * hosted React Native.
  *
  * The view takes its own height and the stack is the part that fills: a
  * system view left to fill a host of a definite size would push the action

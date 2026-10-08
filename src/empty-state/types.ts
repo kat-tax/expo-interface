@@ -42,8 +42,10 @@ export interface EmptyStateAction {
  *   platform has a single control for this.
  *
  * On iOS and Android the state mounts a host outside one, as wide as its
- * container; inside one (a `Screen native`, a `NativeHost`, a `Sheet`, a
- * hosted `List`'s `empty`) it renders bare. There the state centres itself
+ * container; inside one (a `Screen native`, a `NativeHost`, a hosted
+ * `List`'s `empty`, or a `Sheet`'s bar, accessory or body without
+ * `maxHeight`) it renders bare; a `Sheet`'s capped body and its footer are
+ * React Native content, where it mounts its own. A bare state centres itself
  * and its action as one in the height its container gives it, the whole
  * screen under a `Screen native`; on Android, where the container leaves the
  * height open, it is as tall as itself and the container places it.
