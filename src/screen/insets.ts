@@ -35,8 +35,9 @@ export interface ScrollInsets {
 
 /**
  * No insets: what content that floats over the screen rather than under its
- * bars (a popover's card) gives the scrollers in it, and what they read
- * outside a screen.
+ * bars (a sheet's content, a popover's card) gives the scrollers in it, so a
+ * `FieldGroup`, `List` or `CardGrid` there pads only by its own insets,
+ * whatever screen it opens from; and what they read outside a screen.
  */
 export const NO_SCROLL_INSETS: ScrollInsets = {top: 0, bottom: 0, automatic: false};
 

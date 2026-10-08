@@ -2,13 +2,13 @@ import type {SheetProps} from './types';
 import {useState} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
 import {NativeHostContext} from '../host/context';
-import {ScrollInsetsContext} from '../screen/insets';
+import {NO_SCROLL_INSETS, ScrollInsetsContext} from '../screen/insets';
 import {Layer} from '../windows/layer';
 import {ModalLayer} from '../windows/modal-layer';
 import {spacing} from '../theme';
 import {SheetActions} from './actions';
 import {SheetBar} from './bar';
-import {SHEET_SCROLL_INSETS, bodyCap, hasBar, sub} from './shared';
+import {bodyCap, hasBar, sub} from './shared';
 
 /**
  * Windows: a sheet's content is React Native's, which no XAML flyout or
@@ -45,7 +45,7 @@ export function Sheet({children, isPresented, onDismiss, title, subtitle, onBack
         testID={sub(testID, 'area')}>
         <ModalLayer onDismiss={onDismiss} testID="sheet">
           <NativeHostContext.Provider value={true}>
-            <ScrollInsetsContext.Provider value={SHEET_SCROLL_INSETS}>
+            <ScrollInsetsContext.Provider value={NO_SCROLL_INSETS}>
               <View style={styles.frame}>
                 {hasBar({title, onBack, onClose, menu}) ? (
                   <SheetBar title={title} subtitle={subtitle} onBack={onBack} onClose={onClose} menu={menu} testID={sub(testID, 'bar')}/>

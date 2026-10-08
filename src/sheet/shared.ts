@@ -1,7 +1,6 @@
 import type {ReactNode} from 'react';
 import type {BottomSheetContentPadding} from '@expo/ui';
 import type {MenuItem} from '../menu/types';
-import type {ScrollInsets} from '../screen/insets';
 import type {SheetAction, SheetMaterial, SheetMaxHeight} from './types';
 
 /** A fraction kept between 0 and 1; one that is not a number counts as 0. */
@@ -13,13 +12,6 @@ export function capFraction(fraction: number): number {
 export function bodyCap(maxHeight: SheetMaxHeight | undefined, height: number): number | undefined {
   return typeof maxHeight === 'object' ? capFraction(maxHeight.fraction) * height : maxHeight;
 }
-
-/**
- * What the sheet's content pads by for a bar: nothing. A sheet opens over the
- * screen, not under its bar, so a `FieldGroup`, `List` or `CardGrid` in it
- * pads only by its own insets, whatever screen the sheet opens from.
- */
-export const SHEET_SCROLL_INSETS: ScrollInsets = {top: 0, bottom: 0, automatic: false};
 
 /** What the bar draws. */
 export interface SheetBarProps {

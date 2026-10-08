@@ -4,8 +4,8 @@ import {SheetActions} from './actions';
 import {SheetBar} from './bar';
 import {SheetBody} from './body';
 import {SheetHosted} from './hosted';
-import {ScrollInsetsContext} from '../screen/insets';
-import {SHEET_SCROLL_INSETS, drawsSomething, hasBar, sub} from './shared';
+import {NO_SCROLL_INSETS, ScrollInsetsContext} from '../screen/insets';
+import {drawsSomething, hasBar, sub} from './shared';
 
 /**
  * What goes inside the platform's sheet, in order: the bar when anything
@@ -19,7 +19,7 @@ import {SHEET_SCROLL_INSETS, drawsSomething, hasBar, sub} from './shared';
  */
 export function sheetChildren({title, subtitle, onBack, onClose, menu, accessory, footer, actions, maxHeight, contentPadding, testID, children}: SheetProps): ReactNode {
   return (
-    <ScrollInsetsContext.Provider value={SHEET_SCROLL_INSETS}>
+    <ScrollInsetsContext.Provider value={NO_SCROLL_INSETS}>
       {hasBar({title, onBack, onClose, menu}) ? (
         <SheetBar title={title} subtitle={subtitle} onBack={onBack} onClose={onClose} menu={menu} testID={sub(testID, 'bar')}/>
       ) : null}
