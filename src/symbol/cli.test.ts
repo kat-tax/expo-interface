@@ -155,9 +155,32 @@ describe('expo-interface-symbols', () => {
     }
   });
 
-  it('always writes into the font the names the kit\'s own controls draw on the web', () => {
-    const drawn = ['glyphs.ts', 'card/shared.ts', 'header-search/shared.ts', 'tab-view/index.web.tsx'];
-    expect(scanFiles(drawn.map(file => path.join(__dirname, '..', file))).names).toEqual(KIT_WEB_NAMES);
+  it('always writes into the font every name the kit\'s own sources draw on the web through Icon', () => {
+    const kit = path.join(__dirname, '..');
+    // The names a kit source spells that the web does not draw through `Icon`, by file.
+    const elsewhere: Record<string, string[]> = {
+      // JSDoc examples.
+      'icons.ts': ['share', 'star'],
+      'tabs/types.ts': ['home', 'settings'],
+      // `SymbolView`, which draws from the static instance `expo-symbols` ships, never the cut.
+      'screen/header.tsx': ['arrow_back'],
+      'search-field/index.tsx': ['cancel', 'search'],
+      'tabs/index.web.tsx': ['arrow_back'],
+      // Windows draws Segoe, and the native strip is not the one the web draws.
+      'screen/header.windows.tsx': ['arrow_back'],
+      'tab-view/draw.tsx': ['add', 'close', 'grid_view'],
+    };
+    const drawn = new Set<string>();
+    for (const file of sourceFiles([kit])) {
+      const relative = path.relative(kit, file).split(path.sep).join('/');
+      // The stories' tokens stand in for an app's.
+      if (relative.startsWith('__stories__/')) continue;
+      for (const name of scanFiles([file]).names) {
+        if (!elsewhere[relative]?.includes(name)) drawn.add(name);
+      }
+    }
+    // A new name drawn through `Icon` fails here until KIT_WEB_NAMES holds it.
+    expect([...drawn].sort()).toEqual(KIT_WEB_NAMES);
   });
 
   it('writes the same font face the kit registers', () => {
