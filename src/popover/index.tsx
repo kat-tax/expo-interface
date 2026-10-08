@@ -33,6 +33,7 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
       onLayout={anchored.onBounds}>
       {modal && shown ? (
         <Pressable
+          accessibilityRole="button"
           accessibilityLabel="Dismiss"
           style={styles.backdrop}
           onPress={() => onDismiss?.('backdrop')}
@@ -41,13 +42,15 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
       ) : null}
       {shown ? (
         // The placed box carries the pointer and what a modal card says of
-        // itself; the surface inside it is the card.
+        // itself; the surface inside it is the card. On web the modal card is
+        // a dialog element, named by its title; iOS and Android read the
+        // title in the card itself.
         <View
           onLayout={anchored.onCard}
           style={[styles.card, {width, left: anchored.left, top: anchored.top}]}
           testID={testID}
           {...linger.props}
-          {...(modal ? {...MODAL_CARD, onAccessibilityEscape: escape} : null)}>
+          {...(modal ? {...MODAL_CARD, 'aria-label': Platform.OS === 'web' ? title : undefined, onAccessibilityEscape: escape} : null)}>
           <Surface raised border="all" padding={spacing.three} style={styles.body}>
             {title ? <Subheadline color="label" weight="semibold">{title}</Subheadline> : null}
             {message ? <Footnote color="secondaryLabel">{message}</Footnote> : null}

@@ -29,7 +29,7 @@ describe('Popover (web)', () => {
     expect(onDismiss).not.toHaveBeenCalled();
   });
 
-  it('ends a hover card\'s linger on Escape, and says a modal card is a modal dialog', () => {
+  it('ends a hover card\'s linger on Escape, and says a modal card is a modal dialog named by its title', () => {
     const onDismiss = vi.fn();
     const {rerender} = render(<Popover at={{x: 10, y: 10}} title="Spelling" trigger="hover" onDismiss={onDismiss} testID="pop"/>);
     rerender(<Popover at={null} title="Spelling" trigger="hover" onDismiss={onDismiss} testID="pop"/>);
@@ -43,6 +43,9 @@ describe('Popover (web)', () => {
     const card = screen.getByTestId('modal');
     expect(card).toHaveAttribute('role', 'dialog');
     expect(card).toHaveAttribute('aria-modal', 'true');
+    expect(card).toHaveAttribute('aria-label', 'Option');
+    // The backdrop is a button that dismisses the card.
+    expect(screen.getByRole('button', {name: 'Dismiss'})).toBe(screen.getByTestId('modal-backdrop'));
   });
 
   it('works without anything to call', () => {

@@ -153,7 +153,8 @@ hover card's pointer stayed away for its grace).
 
 A `modal` card takes the presses around it as its backdrop, so nothing under
 it is pressed by mistake, and says it is a dialog: VoiceOver keeps its focus
-inside, a browser announces it as modal.
+inside, a browser announces a modal dialog named by the title. The backdrop
+is a Dismiss button to the screen readers that reach it.
 
 A `hover` card is about what is under the pointer. The app sets `at` while
 the pointer is over the thing and clears it when the pointer leaves; the
