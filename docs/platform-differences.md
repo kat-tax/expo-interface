@@ -57,7 +57,7 @@ The differences that change what a screen can do, in one place:
 | `Toolbar` floating | The kit's raised capsule | Material's `HorizontalFloatingToolbar` | The kit's raised capsule | The `CommandBar` in a raised card |
 | `Button` `pressed` heard as | Selected | Checked, by Material's toggle buttons | Pressed | A button |
 | `AvatarGroup` `selected` heard as | Selected | Selected | Current | Selected |
-| `EmptyState` native | iOS 17+ | Drawn | Drawn | Drawn |
+| `EmptyState` | The system's view on iOS 17 and later, composed in SwiftUI before | Composed in Compose | Drawn | Drawn |
 | `Collapsible` children | `@expo/ui` | `@expo/ui` | Any | Any |
 | `ExternalLink` | In-app browser | In-app browser | New tab | Default browser |
 | A screen pushed over `Tabs` | Over the tab bar | Over the tab bar | Replaces the bar | Inside the pane, its back button |
