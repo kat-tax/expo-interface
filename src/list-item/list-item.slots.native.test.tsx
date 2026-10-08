@@ -98,13 +98,25 @@ describe(`ListItem slots (${Platform.OS})`, () => {
     );
     if (isIOS) {
       expect(modifier(row('current').props, 'background')?.style.color).toBe(colors.light.backgroundSelected);
+      // And the row's own background, which a List or Form draws to the row's edges.
+      expect(modifier(row('current').props, 'listRowBackground')?.color).toBe(colors.light.backgroundSelected);
       expect(modifier(row('current').props, 'accessibilityAddTraits')?.traits).toEqual(['isSelected']);
       expect(modifier(row('plain').props, 'background')).toBeUndefined();
+      expect(modifier(row('plain').props, 'listRowBackground')).toBeUndefined();
     } else {
       expect(row('current').props.colors).toEqual({containerColor: colors.light.backgroundSelected});
       expect(modifier(row('flush').props, 'background')?.color).toBe(colors.light.backgroundSelected);
       expect(row('plain').props.colors).toEqual({containerColor: '#00000000'});
     }
+  });
+
+  (isIOS ? it : it.skip)('fills a selected row with swipe actions to the row\'s edges as well', async () => {
+    await render(
+      <ListItem selected swipeActions={[{label: 'Delete', role: 'destructive', onPress: vi.fn()}]} testID="row">Essay</ListItem>,
+      options,
+    );
+    // The row trait rides on the button that the swipe wraps, as `.swipeActions` does.
+    expect(modifier(row('row').props, 'listRowBackground')?.color).toBe(colors.light.backgroundSelected);
   });
 
   (isIOS ? it.skip : it)('says a row that presses is the current one, through Compose\'s selectable', async () => {

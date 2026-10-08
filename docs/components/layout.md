@@ -353,6 +353,8 @@ Differences:
   wrap the row in a `ContextMenu` as well.
 - `inset` has nothing to turn off on iOS, where the `Form` supplies every
   inset.
+- On iOS a selected row in a `List` or a `FieldGroup` fills the whole row,
+  through SwiftUI's row background.
 - On Android TalkBack reads the row's own texts as Compose merges them: a
   badge's count is its number and a dot says nothing, since `@expo/ui`'s
   Compose layer has no modifier that sets a description. `selected` is
