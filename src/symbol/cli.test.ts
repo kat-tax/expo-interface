@@ -1,4 +1,4 @@
-import {mkdtempSync, mkdirSync, rmSync, writeFileSync} from 'node:fs';
+import {mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {
@@ -181,6 +181,44 @@ describe('expo-interface-symbols', () => {
     }
     // A new name drawn through `Icon` fails here until KIT_WEB_NAMES holds it.
     expect([...drawn].sort()).toEqual(KIT_WEB_NAMES);
+  });
+
+  it('always writes every name the kit\'s own sources draw on Android as a drawable, and the docs list each', () => {
+    const kit = path.join(__dirname, '..');
+    // The names a kit source spells that Android does not draw through `drawableOf`, by file.
+    const elsewhere: Record<string, string[]> = {
+      // JSDoc examples.
+      'icons.ts': ['share', 'star'],
+      'tabs/types.ts': ['home', 'settings'],
+      // `SymbolView` and the kit's `Icon`, which draw the font `expo-symbols` ships, never a drawable.
+      'screen/header.tsx': ['arrow_back'],
+      'search-field/index.tsx': ['cancel', 'search'],
+      'tab-view/draw.tsx': ['add', 'close', 'grid_view'],
+      // The open action of the drawn header search, which only the web and Windows draw.
+      'header-search/shared.ts': ['search'],
+      // The web's and Windows' own files.
+      'tabs/index.web.tsx': ['arrow_back'],
+      'tab-view/index.web.tsx': ['add', 'close', 'grid_view'],
+      'screen/header.windows.tsx': ['arrow_back'],
+    };
+    const names = new Set<string>();
+    const filled = new Set<string>();
+    for (const file of sourceFiles([kit])) {
+      const relative = path.relative(kit, file).split(path.sep).join('/');
+      // The stories' tokens stand in for an app's.
+      if (relative.startsWith('__stories__/')) continue;
+      const found = scanFiles([file]);
+      for (const name of found.names) if (!elsewhere[relative]?.includes(name)) names.add(name);
+      for (const name of found.filled) if (!elsewhere[relative]?.includes(name)) filled.add(name);
+    }
+    // A new chrome glyph fails here until KIT_NAMES (and KIT_FILLED, for a solid one) holds it.
+    expect([...names].sort()).toEqual(KIT_NAMES);
+    expect([...filled].sort()).toEqual(KIT_FILLED);
+    // The table of them in the icons page names each, and nothing else.
+    const page = readFileSync(path.join(kit, '..', 'docs', 'icons.md'), 'utf8');
+    const table = page.split('| Name | Drawn by |')[1].split('\n\n')[0];
+    const listed = [...table.matchAll(/^\| ([^|]+) \|/gm)].flatMap(([, cell]) => [...cell.matchAll(/`([a-z0-9_]+)`/g)].map(([, name]) => name));
+    expect(listed.sort()).toEqual(KIT_NAMES);
   });
 
   it('writes the same font face the kit registers', () => {
