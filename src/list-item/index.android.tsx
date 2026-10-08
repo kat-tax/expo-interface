@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 import type {ListItemProps} from './types';
-import {ROW_ICON, WithRowMenu, useBadgeColors} from './shared';
+import {ROW_ICON, WithRowMenu} from './shared';
 import {Button, CircularProgressIndicator, Column, Icon, ListItem as ComposeListItem, Row, Shape, Spacer, Text, TextButton} from '@expo/ui/jetpack-compose';
 import {background, clickable, fillMaxWidth, selectable, size, testID as testIDModifier, weight, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
 import {Badge} from '../badge';
@@ -61,7 +61,6 @@ export function ListItem({swipeActions, ...props}: ListItemProps) {
  * `contentType` alone, so TalkBack reads the row's own texts.
  */
 function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, badgeColor, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
-  const badgeColors = useBadgeColors(badgeColor);
   const label = useColor('label');
   const subtle = useColor('secondaryLabel');
   const tint = useColor('tint');
@@ -97,7 +96,7 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
   const marks = value != null || badge ? (
     <>
       {value != null ? <Text color={subtle} style={{fontSize: 14}}>{value}</Text> : null}
-      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} {...badgeColors}/> : null}
+      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} color={badgeColor}/> : null}
     </>
   ) : null;
   const trailingContent = marks || action ? (

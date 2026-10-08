@@ -8,7 +8,7 @@ import {Button} from '../button';
 import {NativeHost, useNativeHost} from '../host';
 import {TONE_TOKEN, symbolName} from '../icons';
 import {useColor} from '../theme';
-import {ROW_ICON, rowLabel, useBadgeColors} from './shared';
+import {ROW_ICON, rowLabel} from './shared';
 
 /**
  * iOS renders the universal `@expo/ui` `ListItem` (a SwiftUI list row)
@@ -40,7 +40,6 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
   const toned = useColor(TONE_TOKEN[iconTone]);
   const subtle = useColor('secondaryLabel');
   const selectedFill = useColor('backgroundSelected');
-  const badgeColors = useBadgeColors(badgeColor);
   const filled = action?.variant === 'filled';
   // The row's name, composed from its slots, and its state.
   const modifiers: ViewModifier[] = [];
@@ -62,7 +61,7 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
   const marks = value != null || badge ? (
     <>
       {value != null ? <Text modifiers={[foregroundStyle({type: 'color', color: subtle})]}>{value}</Text> : null}
-      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} {...badgeColors}/> : null}
+      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} color={badgeColor}/> : null}
     </>
   ) : null;
   const trailingContent = marks || action ? (

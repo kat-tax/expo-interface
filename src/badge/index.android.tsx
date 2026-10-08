@@ -1,9 +1,8 @@
 import type {BadgeProps} from './types';
 import {Badge as ComposeBadge, Text} from '@expo/ui/jetpack-compose';
 import {animated, graphicsLayer, testID as testIDModifier, tween} from '@expo/ui/jetpack-compose/modifiers';
-import {onAccent} from '../accent';
 import {useNativeHost} from '../host';
-import {useColor} from '../theme';
+import {useBadgeColors} from './colors';
 import {DrawnBadge} from './drawn';
 import {PULSE_HALF, PULSE_LOW, usePulsePhase} from './pulse';
 import {MATERIAL_BADGE, badgeText} from './shared';
@@ -43,13 +42,11 @@ export function Badge(props: BadgeProps) {
  */
 function HostedBadge(props: BadgeProps) {
   const text = badgeText(props);
-  const destructive = useColor('destructive');
+  const {fill, content} = useBadgeColors(props);
   // A pulse is Compose's to draw: the alpha animates toward each end the phase names.
   const phase = usePulsePhase(props.pulse === true);
   if (text === null) return null;
-  const {dot, color, textColor, testID} = props;
-  const fill = color ?? destructive;
-  const content = textColor ?? onAccent(fill);
+  const {dot, testID} = props;
   return (
     <ComposeBadge
       containerColor={fill}

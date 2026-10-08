@@ -61,6 +61,17 @@ describe('Badge (web)', () => {
     expect(screen.getByTestId('told').style.getPropertyValue('--ui-badge-on-fill')).toBe('#FF0000');
   });
 
+  it('fills with a palette token\'s variable, and contrasts the number against the token\'s value', () => {
+    render(<Badge count={4} color="highlight" testID="token"/>);
+    const token = screen.getByTestId('token');
+    // The variable follows the scheme; its value is what the number is read against.
+    expect(token.style.getPropertyValue('--ui-badge-fill')).toBe('var(--color-highlight)');
+    expect(token.style.getPropertyValue('--ui-badge-on-fill')).toBe('#000000');
+    render(<Badge count={4} testID="plain"/>);
+    expect(screen.getByTestId('plain').style.getPropertyValue('--ui-badge-fill')).toBe('var(--color-destructive)');
+    expect(screen.getByTestId('plain').style.getPropertyValue('--ui-badge-on-fill')).toBe('#FFFFFF');
+  });
+
   it('flattens a style into inline CSS, as the other rows do', () => {
     render(<Badge count={1} style={{opacity: 0.5}} testID="styled"/>);
     expect(screen.getByTestId('styled')).toHaveStyle({opacity: 0.5});

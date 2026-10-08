@@ -55,6 +55,13 @@ describe(`Badge (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(screen.getByText('1').props.style)).toMatchObject({color: '#FF0000'});
   });
 
+  it('takes a palette token for its fill, resolved for the scheme, with a number that reads on it', async () => {
+    await render(<Badge count={4} color="highlight" testID="token"/>);
+    expect(StyleSheet.flatten(screen.getByTestId('token').props.style)).toMatchObject({backgroundColor: colors.light.highlight});
+    // Highlight is pale, so the number is black.
+    expect(StyleSheet.flatten(screen.getByText('4').props.style)).toMatchObject({color: '#000000'});
+  });
+
   it('stops at the cap, and draws nothing for a count of nothing', async () => {
     await render(<Badge count={150} testID="many"/>);
     expect(screen.getByText('99+')).toBeOnTheScreen();
@@ -117,6 +124,11 @@ describe(`Badge (${Platform.OS})`, () => {
       expect(byComposeTestID('light').props).toMatchObject({containerColor: '#FFFFFF', contentColor: '#000000'});
       await render(inHost(<Badge count={1} color="#FFFFFF" textColor="#FF0000" testID="told"/>));
       expect(byComposeTestID('told').props).toMatchObject({contentColor: '#FF0000'});
+    });
+
+    it('takes a palette token for its fill, resolved for the scheme', async () => {
+      await render(inHost(<Badge count={4} color="highlight" testID="token"/>));
+      expect(byComposeTestID('token').props).toMatchObject({containerColor: colors.light.highlight, contentColor: '#000000'});
     });
 
     it('stops at the cap, and draws nothing for a count of nothing', async () => {

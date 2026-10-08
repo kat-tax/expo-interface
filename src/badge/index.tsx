@@ -2,8 +2,8 @@ import './badge.css';
 import type {CSSProperties} from 'react';
 import type {BadgeProps} from './types';
 import {StyleSheet, type TextStyle} from 'react-native';
-import {onAccent} from '../accent';
-import {flatten, theme} from '../theme';
+import {flatten} from '../theme';
+import {useBadgeColors} from './colors';
 import {BADGE_SIZE, badgeLabel, badgeText} from './shared';
 
 /**
@@ -14,13 +14,13 @@ import {BADGE_SIZE, badgeLabel, badgeText} from './shared';
  */
 export function Badge(props: BadgeProps) {
   const text = badgeText(props);
+  const {fill, content} = useBadgeColors(props);
   if (text === null) return null;
-  const {dot, color, textColor, testID, style} = props;
-  const fill = color ?? (theme.destructive as string);
+  const {dot, testID, style} = props;
   const vars = {
     '--ui-badge-size': `${dot ? BADGE_SIZE.dot : BADGE_SIZE.count}px`,
     '--ui-badge-fill': fill,
-    '--ui-badge-on-fill': textColor ?? onAccent(fill),
+    '--ui-badge-on-fill': content,
     ...flatten(StyleSheet.flatten(style) as TextStyle),
   } as CSSProperties;
   return (

@@ -45,10 +45,13 @@ A value within a range in the SwiftUI gauge styles. Props: `value`, `min`,
 
 A count or a dot beside the thing it is about. Props: `count` (`0` draws
 nothing), `max` (99; counts above draw as `99+`), `showZero`, `dot`, `label`
-(the accessible name; defaults to the count and what it is about), `color`,
-`textColor`, `pulse` (the badge's opacity goes down and back up every 900
-ms: someone typing, a sync in flight; still while the user asks for less
-motion), `style`, `testID`.
+(the accessible name; defaults to the count and what it is about), `color`
+(the fill, a palette token such as `tint`, which follows the scheme, or a
+color; the destructive red without one, Fluent's critical fill on Windows),
+`textColor` (black or white, whichever reads on the fill, without one),
+`pulse` (the badge's opacity goes down and back up every 900 ms: someone
+typing, a sync in flight; still while the user asks for less motion),
+`style`, `testID`.
 
 A pulse is each platform's own animation. Inside a host on Android, Compose
 animates the badge's alpha toward each end in turn. It is told which end

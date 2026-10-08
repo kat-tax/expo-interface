@@ -1,5 +1,5 @@
 import type {ListItemProps} from './types';
-import {ROW_ICON, WithRowMenu, rowLabel, textOf, useBadgeColors} from './shared';
+import {ROW_ICON, WithRowMenu, rowLabel, textOf} from './shared';
 import {StyleSheet, View} from 'react-native';
 import {Badge} from '../badge';
 import {Button} from '../button';
@@ -37,7 +37,6 @@ export function ListItem({swipeActions, ...props}: ListItemProps) {
  */
 function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, badgeColor, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
   const selectedFill = useColor('backgroundSelected');
-  const badgeColors = useBadgeColors(badgeColor);
   const filled = action?.variant === 'filled';
   const headline = textOf(children);
   const label = rowLabel({children, supporting, value, badge});
@@ -60,7 +59,7 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
       {value != null || badge || trailing != null ? (
         <View style={styles.slot}>
           {value != null ? <Footnote color="secondaryLabel">{value}</Footnote> : null}
-          {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} {...badgeColors}/> : null}
+          {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} color={badgeColor}/> : null}
           {trailing}
         </View>
       ) : null}

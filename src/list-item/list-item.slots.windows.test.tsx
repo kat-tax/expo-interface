@@ -26,9 +26,12 @@ describe('ListItem slots (windows)', () => {
     expect(screen.getByText('T')).toBeOnTheScreen();
   });
 
-  it('draws the badge in the color it is given', async () => {
+  it('draws the badge in the color it is given, a token resolved for the scheme', async () => {
     await render(<ListItem badge={3} badgeColor="tint" testID="row">Essay</ListItem>);
-    expect(island('ExpoInterfaceInfoBadge').props).toMatchObject({color: colors.light.tint, textColor: '#FFFFFF'});
+    const {props} = island('ExpoInterfaceInfoBadge');
+    expect(props.color).toBe(colors.light.tint);
+    // The island picks the count's black or white for the fill, as the others do.
+    expect(props.textColor).toBeUndefined();
   });
 
   it('hands a hex badge color to the island as it is, for the island to pick the count color', async () => {

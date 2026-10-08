@@ -1,6 +1,7 @@
 import {Animated, StyleSheet} from 'react-native';
 import {render} from '@testing-library/react-native';
 import {island} from 'expo-vitest/windows';
+import {colors} from '../theme';
 import {Badge} from '.';
 
 const BADGE = 'ExpoInterfaceInfoBadge';
@@ -34,6 +35,12 @@ describe('Badge (windows)', () => {
     expect(island(BADGE).props).toMatchObject({color: '#0A84FF', textColor: '#000000'});
     await render(<Badge count={1}/>);
     expect(island(BADGE).props.color).toBeUndefined();
+  });
+
+  it('resolves a palette token for its fill, and leaves the number\'s color to the control', async () => {
+    await render(<Badge count={1} color="highlight"/>);
+    expect(island(BADGE).props.color).toBe(colors.light.highlight);
+    expect(island(BADGE).props.textColor).toBeUndefined();
   });
 
   it('draws nothing for a count of zero', async () => {

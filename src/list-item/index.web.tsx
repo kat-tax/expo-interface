@@ -1,6 +1,6 @@
 import './list-item.css';
 import type {ListItemProps} from './types';
-import {ROW_ICON, WithRowMenu, rowLabel, useBadgeColors} from './shared';
+import {ROW_ICON, WithRowMenu, rowLabel} from './shared';
 import {Badge} from '../badge';
 import {Button} from '../button';
 import {Icon} from '../symbol';
@@ -31,14 +31,13 @@ export function ListItem({swipeActions, ...props}: ListItemProps) {
  * which is what the kit's menus say of their current entry too.
  */
 function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, badgeColor, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
-  const badgeColors = useBadgeColors(badgeColor);
   const rowClass = ['ui-list-item', !inset && 'ui-list-item--flush', selected && 'ui-list-item--selected'].filter(Boolean).join(' ');
   const label = rowLabel({children, supporting, value, badge});
   const current = selected ? ('true' as const) : undefined;
   const marks = value != null || badge ? (
     <>
       {value != null ? <span className="ui-list-item__value">{value}</span> : null}
-      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} {...badgeColors}/> : null}
+      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} color={badgeColor}/> : null}
     </>
   ) : null;
   const content = (

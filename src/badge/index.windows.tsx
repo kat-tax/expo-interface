@@ -2,6 +2,7 @@ import type {BadgeProps} from './types';
 import {Animated} from 'react-native';
 import XamlInfoBadge from '../windows/specs/ExpoInterfaceInfoBadgeNativeComponent';
 import {useXamlProps} from '../windows';
+import {useBadgeColors} from './colors';
 import {usePulseOpacity} from './pulse';
 import {BADGE_SIZE, badgeLabel, badgeText, badgeValue} from './shared';
 
@@ -23,14 +24,17 @@ import {BADGE_SIZE, badgeLabel, badgeText, badgeValue} from './shared';
 export function Badge(props: BadgeProps) {
   const text = badgeText(props);
   const xaml = useXamlProps();
+  const {fill} = useBadgeColors(props);
   const opacity = usePulseOpacity(props.pulse === true);
   if (text === null) return null;
   const {dot, color, textColor, testID, style} = props;
   const height = dot ? BADGE_SIZE.dot : BADGE_SIZE.count;
+  // Without a color of the caller's the control keeps Fluent's critical fill,
+  // and without a text color it picks black or white for the fill.
   const badge = (
     <XamlInfoBadge
       value={badgeValue(props)}
-      color={color}
+      color={color === undefined ? undefined : fill}
       textColor={textColor}
       label={badgeLabel(props, text)}
       style={[{minWidth: height, height}, style]}

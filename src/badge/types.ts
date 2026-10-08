@@ -1,4 +1,5 @@
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {ColorTokens} from '../theme';
 
 /**
  * A count or a dot beside the thing it is about: unread messages on a tab, a
@@ -53,8 +54,13 @@ export interface BadgeProps {
    * reads the number instead (see `docs/accessibility.md`).
    */
   label?: string;
-  /** Fill color. Defaults to the kit's destructive red, as a badge is on every platform. */
-  color?: string;
+  /**
+   * The fill: a palette token (`tint` for an unread dot in the accent), which
+   * follows the scheme, or a color. Defaults to the destructive red a badge
+   * is on every platform: the palette's `destructive`, and Fluent's critical
+   * fill on Windows.
+   */
+  color?: ColorTokens | (string & {});
   /** Color of the number. Defaults to whichever of black or white reads on `color`. */
   textColor?: string;
   /** Identifier used to locate the component in end-to-end tests. */

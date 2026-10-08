@@ -1,8 +1,7 @@
 import type {BadgeProps} from './types';
 import type {BadgeMetrics} from './shared';
 import {Animated, StyleSheet, Text} from 'react-native';
-import {onAccent} from '../accent';
-import {useColor} from '../theme';
+import {useBadgeColors} from './colors';
 import {usePulseOpacity} from './pulse';
 import {BADGE_FONT_SIZE, badgeLabel, badgeText} from './shared';
 
@@ -15,11 +14,10 @@ import {BADGE_FONT_SIZE, badgeLabel, badgeText} from './shared';
  */
 export function DrawnBadge({metrics, ...props}: BadgeProps & {metrics: BadgeMetrics}) {
   const text = badgeText(props);
-  const destructive = useColor('destructive');
+  const {fill, content} = useBadgeColors(props);
   const opacity = usePulseOpacity(props.pulse === true);
   if (text === null) return null;
-  const {dot, color, textColor, testID, style} = props;
-  const fill = color ?? destructive;
+  const {dot, testID, style} = props;
   const size = dot ? metrics.dot : metrics.count;
   return (
     <Animated.View
@@ -36,7 +34,7 @@ export function DrawnBadge({metrics, ...props}: BadgeProps & {metrics: BadgeMetr
         <Text
           numberOfLines={1}
           allowFontScaling={false}
-          style={[styles.text, {color: textColor ?? onAccent(fill), fontWeight: metrics.fontWeight, lineHeight: metrics.lineHeight, letterSpacing: metrics.letterSpacing}]}>
+          style={[styles.text, {color: content, fontWeight: metrics.fontWeight, lineHeight: metrics.lineHeight, letterSpacing: metrics.letterSpacing}]}>
           {text}
         </Text>
       )}
