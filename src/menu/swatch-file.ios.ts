@@ -8,21 +8,18 @@ interface FileSystem {
 }
 
 /**
- * `expo-file-system`, when the app has it: the `require` sits in a `try` so
- * Metro treats the dependency as optional and a bundle without the library
- * still builds. Without it the menu draws its dot as a symbol instead.
+ * `expo-file-system`, when the app has it, or the file system a test hands
+ * in. The `require` sits in the `try` itself, which is what makes Metro treat
+ * it as optional: a bundle without the library still builds. Without it the
+ * menu draws its dot as a symbol instead.
  */
-export function loadFileSystem(load: () => FileSystem = requireFileSystem): FileSystem | null {
+export function loadFileSystem(load?: () => FileSystem): FileSystem | null {
   try {
-    return load();
+    // eslint-disable-next-line typescript/no-require-imports -- optional peer, resolved only when installed.
+    return load ? load() : (require('expo-file-system') as FileSystem);
   } catch {
     return null;
   }
-}
-
-function requireFileSystem(): FileSystem {
-  // eslint-disable-next-line typescript/no-require-imports -- optional peer, resolved only when installed.
-  return require('expo-file-system') as FileSystem;
 }
 
 const written = new Map<string, string | undefined>();
