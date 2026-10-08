@@ -32,8 +32,10 @@ export interface EmptyStateAction {
  *
  * - iOS: `ContentUnavailableView`, the system's own, so it takes Apple's
  *   layout, its metrics and its Dynamic Type behaviour rather than an
- *   approximation of them. It needs iOS 17; below that the same layout is
- *   composed in SwiftUI.
+ *   approximation of them. It needs iOS 17. Below that, and while `loading`
+ *   on any version, the same layout is composed in SwiftUI and padded by
+ *   SwiftUI's standard inset, since `@expo/ui`'s view takes a symbol name and
+ *   nothing else above its title.
  * - Android: a Compose column, so the icon, the title and an action given
  *   as data are native beside native. While `selectable`, the description
  *   is React Native text hosted in the column, since Compose text cannot be
@@ -69,7 +71,8 @@ export interface EmptyStateProps {
   /**
    * What is missing is on its way: the platform's spinner in the icon's
    * place, so a screen waiting for its record is the same empty state as one
-   * that has none.
+   * that has none. On iOS the state is then composed in SwiftUI rather than
+   * the system view, which has no place for a spinner.
    * @default false
    */
   loading?: boolean;

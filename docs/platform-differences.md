@@ -61,7 +61,7 @@ The differences that change what a screen can do, in one place:
 | `Toolbar` floating | The kit's raised capsule | Material's `HorizontalFloatingToolbar` | The kit's raised capsule | The `CommandBar` in a raised card |
 | `Button` `pressed` heard as | Selected | Checked, by Material's toggle buttons | Pressed | A button |
 | `AvatarGroup` `selected` heard as | Selected | Selected | Current | Selected |
-| `EmptyState` | The system's view on iOS 17 and later, composed in SwiftUI before | Composed in Compose | Drawn | Drawn |
+| `EmptyState` | The system's view on iOS 17 and later; composed in SwiftUI before, and while `loading` | Composed in Compose, the description hosted React Native text while `selectable` | Drawn | Drawn |
 | `Collapsible` children | `@expo/ui` | `@expo/ui` | Any | Any |
 | `Sheet` body without `maxHeight` | `@expo/ui` | `@expo/ui` | Any | Any |
 | `Sheet` `maxHeight` fraction of | The window's height | The window's height | The viewport's dynamic height | The area the sheet's layer covers |
