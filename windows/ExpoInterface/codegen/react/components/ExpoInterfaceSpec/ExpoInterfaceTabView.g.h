@@ -26,6 +26,7 @@ struct ExpoInterfaceTabViewProps : winrt::implements<ExpoInterfaceTabViewProps, 
      if (cloneFrom) {
        auto cloneFromProps = cloneFrom.as<ExpoInterfaceTabViewProps>();
        items = cloneFromProps->items;
+       labels = cloneFromProps->labels;
        selectedIndex = cloneFromProps->selectedIndex;
        label = cloneFromProps->label;
        addButton = cloneFromProps->addButton;
@@ -46,6 +47,9 @@ struct ExpoInterfaceTabViewProps : winrt::implements<ExpoInterfaceTabViewProps, 
 
   REACT_FIELD(items)
   std::string items;
+
+  REACT_FIELD(labels)
+  std::string labels;
 
   REACT_FIELD(selectedIndex)
   std::optional<int32_t> selectedIndex{};

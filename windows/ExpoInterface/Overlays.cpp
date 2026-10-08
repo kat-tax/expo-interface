@@ -1368,7 +1368,8 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
     // would read out.
     SetName(m_view, props->label);
     Root().as<controls::Panel>().Background(Brush(ColorOr(props->background, Color{0, 0, 0, 0})));
-    if (props->items != m_items) {
+    const bool rebuilt = props->items != m_items;
+    if (rebuilt) {
       m_items = props->items;
       m_view.TabItems().Clear();
       for (auto value : ParseArray(m_items)) {
@@ -1376,12 +1377,6 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
         auto entry = value.GetObject();
         controls::TabViewItem item;
         item.Header(winrt::box_value(ToHString(JsonString(entry, L"title"))));
-        // The tab's name, which says what the accessory the strip cannot draw
-        // means; the title when the app gives no label. Items are rebuilt with
-        // the JSON, so no old name is left on one.
-        if (const auto name = JsonString(entry, L"label"); !name.empty()) {
-          SetName(item, std::optional<std::string>{name});
-        }
         const auto glyph = JsonString(entry, L"glyph");
         if (!glyph.empty()) {
           controls::FontIconSource icon;
@@ -1417,6 +1412,12 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
         m_view.TabItems().Append(item);
       }
     }
+    // New items have no names yet; items kept are renamed in place when only
+    // the names changed, since a rebuild would drop the focus on a tab.
+    if (rebuilt || props->labels != m_labels) {
+      m_labels = props->labels;
+      NameItems();
+    }
     const auto count = static_cast<int32_t>(m_view.TabItems().Size());
     const auto selected = std::clamp(props->selectedIndex.value_or(0), 0, std::max(0, count - 1));
     if (count > 0 && m_view.SelectedIndex() != selected) m_view.SelectedIndex(selected);
@@ -1431,6 +1432,22 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
   }
 
  private:
+  /**
+   * Names each tab for UI Automation from `labels`, by its index: what the
+   * accessory the strip cannot draw means, or the title. An empty name hands
+   * the tab back to WinUI's own, its header text.
+   */
+  void NameItems() noexcept {
+    const auto names = JsonStrings(ParseArray(m_labels));
+    const auto items = m_view.TabItems();
+    const auto count = std::min(static_cast<uint32_t>(names.size()), items.Size());
+    for (uint32_t index = 0; index < count; ++index) {
+      if (auto item = items.GetAt(index).try_as<controls::TabViewItem>()) {
+        SetName(item, std::optional<std::string>{names[index]});
+      }
+    }
+  }
+
   /**
    * Names the add button what the kit was asked to call it, to UI Automation
    * and in its tooltip, in place of WinUI's own: the other platforms say the
@@ -1459,6 +1476,7 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
 
   controls::TabView m_view{nullptr};
   std::string m_items;
+  std::string m_labels;
   /** What the add button is called, once its template part exists. */
   std::string m_addLabel;
   bool m_applying{false};

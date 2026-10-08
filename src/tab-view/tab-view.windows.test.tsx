@@ -2,7 +2,7 @@ import {StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {colors} from '../theme';
-import {TabView, tabItems} from './index.windows';
+import {TabView, tabItems, tabLabels} from './index.windows';
 
 const XAML = 'ExpoInterfaceTabView';
 
@@ -41,18 +41,30 @@ describe('TabView (windows)', () => {
 
   it('hands the tabs over as JSON, with a Fluent glyph and the crosses that apply', () => {
     expect(JSON.parse(tabItems(TABS, true))).toEqual([
-      {title: 'Notes', label: 'Notes', glyph: 'E8A5', closable: true, depth: 0, menu: false},
-      {title: 'Sketch', label: 'Sketch', glyph: null, closable: true, depth: 0, menu: false},
+      {title: 'Notes', glyph: 'E8A5', closable: true, depth: 0, menu: false},
+      {title: 'Sketch', glyph: null, closable: true, depth: 0, menu: false},
       // Pinned keeps its place — the index is how a selection comes back —
       // and simply shows no cross.
-      {title: 'Readme', label: 'Readme', glyph: null, closable: false, depth: 0, menu: false},
+      {title: 'Readme', glyph: null, closable: false, depth: 0, menu: false},
     ]);
     expect(JSON.parse(tabItems(TABS, false)).every((tab: {closable: boolean}) => !tab.closable)).toBe(true);
   });
 
-  it('names a WinUI tab by its label, which says what the accessory it cannot draw means', () => {
-    const [item] = JSON.parse(tabItems([{id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <Text>edited</Text>}], false));
-    expect(item).toMatchObject({title: 'Sketch', label: 'Sketch, edited'});
+  it('names the WinUI tabs by their labels, which say what the accessory it cannot draw means', () => {
+    const tabs = [TABS[0], {id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <Text>edited</Text>}];
+    expect(JSON.parse(tabLabels(tabs))).toEqual(['Notes', 'Sketch, edited']);
+  });
+
+  it('renames the tabs without touching the items when only a label changes', async () => {
+    const tabs = (label?: string) => [TABS[0], {id: 'b', title: 'Sketch', label, accessory: label ? <Text>Ana</Text> : undefined}];
+    const {rerender} = await render(<TabView tabs={tabs()} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
+    const items = island(XAML).props.items;
+    expect(JSON.parse(island(XAML).props.labels)).toEqual(['Notes', 'Sketch']);
+    // A collaborator joins: the name says so, and the items, whose every
+    // change rebuilds the strip, stay as they were.
+    await rerender(<TabView tabs={tabs('Sketch, Ana is here')} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
+    expect(island(XAML).props.items).toBe(items);
+    expect(JSON.parse(island(XAML).props.labels)).toEqual(['Notes', 'Sketch, Ana is here']);
   });
 
   it('takes the control selection as a request for that tab, and ignores the one already open', async () => {

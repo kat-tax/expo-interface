@@ -11,8 +11,8 @@ const TABS = [
 describe('TabView tab menus and depth (windows)', () => {
   it('hands the island each tab\'s depth and whether it has a menu', () => {
     expect(JSON.parse(tabItems(TABS, false))).toEqual([
-      {title: 'Notes', label: 'Notes', glyph: null, closable: false, depth: 0, menu: true},
-      {title: 'Sketch', label: 'Sketch', glyph: null, closable: false, depth: 1, menu: false},
+      {title: 'Notes', glyph: null, closable: false, depth: 0, menu: true},
+      {title: 'Sketch', glyph: null, closable: false, depth: 1, menu: false},
     ]);
     expect(JSON.parse(tabItems([{id: 'c', title: 'Empty', menu: []}], false))[0].menu).toBe(false);
   });

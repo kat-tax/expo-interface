@@ -19,15 +19,21 @@ type MenuEvent = Readonly<{index: CodegenTypes.Int32; x: CodegenTypes.Double; y:
  * control's own — so the strip is the platform's even though the pages are
  * not.
  *
- * `items` is a JSON array of `{title, label, glyph?, closable, depth, menu}`,
- * where `label` is the item's UI Automation name; the
+ * `items` is a JSON array of `{title, glyph?, closable, depth, menu}`; the
  * selection and the close are both reported by the item's index in it, and
  * so is a right click or the Menu key on a tab that has a menu, with the
  * point in the island's coordinates for the kit's own menu to open at.
  */
 export interface NativeProps extends ViewProps {
-  /** JSON array of the tabs. */
+  /** JSON array of the tabs. A change rebuilds every item. */
   items: string;
+  /**
+   * JSON array of each tab's UI Automation name, in the order of `items`.
+   * Apart from `items` because a name follows what an accessory says (a
+   * collaborator joining, an unsaved mark): a change renames the items in
+   * place, keeping the strip, its focus and Narrator's place in it.
+   */
+  labels: string;
   selectedIndex?: CodegenTypes.WithDefault<CodegenTypes.Int32, 0>;
   /**
    * What the strip is called to UI Automation. An island names its own
