@@ -15,7 +15,7 @@ export type ToolbarDensity = 'regular' | 'compact';
  * A bar of tools along a canvas: the editor's status bar, the strip over a
  * drawing, the row under a preview.
  *
- * The controls are one native view — a `Row` inside a single host — so a bar
+ * The controls are one native view, a `Row` inside a single host, so a bar
  * of buttons and menus costs one bridge crossing rather than one per group.
  * Put a `Divider vertical` between groups, or give a command `separator`;
  * both slots take the kit's own controls, which draw natively inside the
