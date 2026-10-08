@@ -1,9 +1,9 @@
 import type {TabRoute} from './types';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 import {Asset} from 'expo-asset';
-import {Platform, StyleSheet, Text} from 'react-native';
+import {Animated, Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, screen as dom, waitFor} from '@testing-library/react';
 import {fireEvent as fireNative, render, screen} from '@testing-library/react-native';
 import Constants from 'expo-constants';
@@ -16,6 +16,7 @@ import {HeaderSearch} from '../header-search';
 import {HideTabs} from './hide';
 import {Screen} from '../screen';
 import {useScrollInsets} from '../screen/insets';
+import {AppToastInsetContext} from '../toast/context';
 import {colors, inset, spacing, theme} from '../theme';
 import {host, modifier, nodes} from 'expo-vitest/native';
 import {visibleText} from '../a11y/roving';
@@ -802,6 +803,41 @@ describe(`Tabs (${Platform.OS})`, () => {
       } finally {
         Object.defineProperty(Platform, 'Version', version);
         await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 0}));
+      }
+    });
+
+    it('lifts its floating action above the app\'s toast while one shows, and lowers it as the toast goes', async () => {
+      const version = Object.getOwnPropertyDescriptor(Platform, 'Version')!;
+      Object.defineProperty(Platform, 'Version', {configurable: true, get: () => (isIOS ? '18.0' : 35)});
+      const timing = vi.spyOn(Animated, 'timing');
+      const toast = {cover: (_height: number) => {}};
+      try {
+        const {Tabs} = await import('.');
+        // What a `ToastProvider` around the tabs tells them its toast covers.
+        function Layout() {
+          const [covered, setCovered] = useState(68);
+          useEffect(() => {
+            toast.cover = setCovered;
+          }, []);
+          return (
+            <AppToastInsetContext.Provider value={covered}>
+              <Tabs routes={routes} action={{label: 'New', icon: icons.add, onPress: vi.fn()}}/>
+            </AppToastInsetContext.Provider>
+          );
+        }
+        await renderApp({...(await app()), _layout: Layout});
+        // The slot rides a transform by the toast's height, as a screen's fab does, from where it stands.
+        expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({toValue: -68, useNativeDriver: true}));
+        expect(StyleSheet.flatten(screen.getByTestId('tab-action-slot').props.style)).toMatchObject({
+          right: spacing.three,
+          bottom: inset.bottomTab + spacing.three,
+          transform: [{translateY: expect.anything()}],
+        });
+        await act(async () => toast.cover(0));
+        expect(timing).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({toValue: -0}));
+      } finally {
+        timing.mockRestore();
+        Object.defineProperty(Platform, 'Version', version);
       }
     });
 

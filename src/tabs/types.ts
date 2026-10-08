@@ -49,12 +49,12 @@ export interface TabBarProps {
    * offers, declared once: on iOS 26 a button or menu in the tab bar's
    * bottom accessory; on Android, and iOS before 26, a floating action
    * button above the tab bar at the bottom trailing corner, over every
-   * tab's screens (a `Screen`'s own `fab` sits above it, and a `Screen`
-   * keeps the button's room at the bottom of its scroll content,
-   * `useScrollInsets().bottom`); on web a header
-   * control in the bar's actions slot; on Windows an item first among the
-   * `NavigationView`'s, which invokes rather than selects. It goes with the
-   * tabs while they are hidden, on every platform.
+   * tab's screens (a `Screen`'s own `fab` sits above it, it lifts above
+   * the app's toast while one shows, and a `Screen` keeps the button's room
+   * at the bottom of its scroll content, `useScrollInsets().bottom`); on web
+   * a header control in the bar's actions slot; on Windows an item first
+   * among the `NavigationView`'s, which invokes rather than selects. It goes
+   * with the tabs while they are hidden, on every platform.
    */
   action?: TabBarAction;
   /**
