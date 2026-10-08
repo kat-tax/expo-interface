@@ -68,7 +68,7 @@ std::string DateToString(DateTime date) noexcept {
  * so a bound before 1601 opens the calendar as far as Windows goes rather
  * than falling back to the default range. The first such day is the 2nd of
  * January 1601 (noon on the 1st is still 1600 in UTC east of UTC+12) and the
- * last the 30th of December 30827 (noon on the 31st is 30828 in UTC west of
+ * last the 30th of December 30827 (noon on the 31st is 30828 in UTC at
  * UTC-12), so the clamp goes by the whole day, not the year. Empty when no
  * bound was sent.
  */
