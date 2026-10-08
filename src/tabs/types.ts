@@ -40,7 +40,9 @@ export interface TabBarProps {
    * app's `action` go and the bar stays as that screen's header. A function
    * decides by the route, `({segments}) => segments.at(-1) === '[id]'`, on
    * every render, which a static render answers too, where `HideTabs` waits
-   * for the page to run.
+   * for the page to run. On web the static page of a pushed screen it hides
+   * has no bar until the page runs, since the screen's header folds into the
+   * bar once the screen is mounted.
    * @default false
    */
   hidden?: boolean | ((route: TabBarLocation) => boolean);
