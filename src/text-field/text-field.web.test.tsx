@@ -232,6 +232,32 @@ describe('TextField (web)', () => {
       expect(onKeyPress).toHaveBeenCalledWith('Enter', true);
     });
 
+    it('leaves the Enter that commits an input method\'s text to the input method, in a multi-line field that submits', () => {
+      const onSubmit = vi.fn();
+      const onKeyPress = vi.fn();
+      render(
+        <>
+          <TextField variant="bare" multiline submitBehavior="submit" onSubmit={onSubmit} onKeyPress={onKeyPress} testID="bare"/>
+          <TextField multiline submitBehavior="submit" onSubmit={onSubmit} testID="row"/>
+        </>,
+      );
+      for (const id of ['bare', 'row']) {
+        const area = screen.getByTestId(id);
+        area.focus();
+        fireEvent.change(area, {target: {value: 'にほん'}});
+        // Chrome and Firefox mark the committing key; Safari sends the key code 229 alone.
+        expect(fireEvent.keyDown(area, {key: 'Enter', keyCode: 13, isComposing: true})).toBe(true);
+        expect(fireEvent.keyDown(area, {key: 'Enter', keyCode: 229})).toBe(true);
+        vi.advanceTimersByTime(1);
+        expect(onSubmit).not.toHaveBeenCalled();
+        expect(document.activeElement).toBe(area);
+      }
+      // Reported as any other key, and the next Enter submits.
+      expect(onKeyPress).toHaveBeenCalledWith('Enter', false);
+      fireEvent.keyDown(screen.getByTestId('row'), {key: 'Enter', keyCode: 13});
+      expect(onSubmit).toHaveBeenCalledWith('にほん');
+    });
+
     it('submits a multi-line field with blurAndSubmit on Enter, and gives the focus up', () => {
       const onSubmit = vi.fn();
       render(<TextField variant="inline" multiline submitBehavior="blurAndSubmit" onSubmit={onSubmit} testID="area"/>);

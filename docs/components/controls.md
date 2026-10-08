@@ -176,7 +176,8 @@ The `bare` variant is `inline` without the field's own padding and, on web,
 without the browser's focus ring, for a field inside a box that draws both:
 a `Composer`'s capsule, an `Alert`'s field. A multi-line field that submits
 (`submitBehavior="submit"`) sends on Enter and breaks the line on Shift+Enter
-on web, keeping the focus.
+on web, keeping the focus; an Enter that commits an input method's text, a
+Japanese or Chinese word, commits it and sends nothing.
 The `inline` variant is a React Native input for a field inside a React
 Native layout on every platform; it focuses on mount with `autoFocus` and
 makes sure the keyboard came on Android.

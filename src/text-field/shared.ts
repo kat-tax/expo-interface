@@ -130,8 +130,21 @@ export function keyNameOf(key: string): string {
   return key === '\u001b' ? 'Escape' : key;
 }
 
-/** A key press as React Native reports it, with the Shift key react-native-web adds. */
-export type KeyPressEvent = NativeSyntheticEvent<TextInputKeyPressEventData & {shiftKey?: boolean}>;
+/**
+ * A key press as React Native reports it, with what a browser's keyboard
+ * event adds on web: the Shift key, and whether an input method is composing.
+ */
+export type KeyPressEvent = NativeSyntheticEvent<TextInputKeyPressEventData & {shiftKey?: boolean; isComposing?: boolean; keyCode?: number}>;
+
+/**
+ * Whether a key arrives while an input method is composing text: the Enter
+ * that commits a Japanese or Chinese word, say. Browsers mark it with
+ * `isComposing`, and Safari with the key code 229 alone, as react-native-web
+ * checks before it submits.
+ */
+function composing(event: KeyPressEvent): boolean {
+  return event.nativeEvent.isComposing === true || event.nativeEvent.keyCode === 229;
+}
 
 /**
  * The `onKeyPress` handler of the React Native fields (`inline`, `bare` and
@@ -140,7 +153,8 @@ export type KeyPressEvent = NativeSyntheticEvent<TextInputKeyPressEventData & {s
  * itself and submits, keeping the focus: react-native-web submits a
  * multi-line field on Enter only when it may blur it afterwards, so the key
  * is taken here, before the browser inserts the line. Shift+Enter still
- * breaks the line.
+ * breaks the line, and an Enter that commits an input method's text commits
+ * it and submits nothing.
  * @param props - The field's props that decide what a key does.
  * @param text - The field's current text, which Enter submits.
  * @returns The handler, or `undefined` when no key needs one.
@@ -153,7 +167,7 @@ export function keyPressFor(
   if (!onKeyPress && !entersSubmit) return undefined;
   return event => {
     const shift = event.nativeEvent.shiftKey === true;
-    if (entersSubmit && event.nativeEvent.key === 'Enter' && !shift) {
+    if (entersSubmit && event.nativeEvent.key === 'Enter' && !shift && !composing(event)) {
       event.preventDefault();
       onSubmit(text);
       return;
