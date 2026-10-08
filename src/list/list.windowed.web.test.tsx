@@ -60,6 +60,20 @@ describe('List (web), windowed', () => {
     expect(spacers().map(spacer => spacer.style.height)).toEqual([`${89 * 56}px`, `${(300 - 122) * 56}px`]);
   });
 
+  it('removes a focused row scrolled more than a viewport out of view, and the focus with it', () => {
+    renderList({renderItem: title => <button type="button">{title}</button>});
+    laidOut();
+    const first = screen.getByRole('button', {name: 'Row 0'});
+    act(() => first.focus());
+    expect(document.activeElement).toBe(first);
+    // Row 0 ends 56 px down: a viewport above the view still draws it.
+    scrollTo(600);
+    expect(document.activeElement).toBe(first);
+    scrollTo(700);
+    expect(screen.queryByRole('button', {name: 'Row 0'})).toBeNull();
+    expect(document.activeElement).toBe(document.body);
+  });
+
   it('keeps the room of a row at its measured height once drawn', () => {
     renderList();
     scrollTo(5600);

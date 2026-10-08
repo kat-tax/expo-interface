@@ -560,7 +560,8 @@ Differences:
   (`aria-posinset`, `aria-setsize`), and `onEndReached` fires as the
   `List`'s does: once the grid is laid out and the window draws the last
   row, and again when more cards arrive while it is still drawn. As with
-  the `List`, only the cards drawn are in the page, for find in page,
+  the `List`, a row of cards scrolled out of the window is removed, and the
+  focus with it. Only the cards drawn are in the page, for find in page,
   printing, a screen reader's browse mode and a scroll to a card's
   element, and a static page holds only the rows that fill 1200 pixels at
   `estimatedItemHeight`.

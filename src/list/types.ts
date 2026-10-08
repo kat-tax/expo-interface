@@ -15,10 +15,11 @@ import type {StyleProp, ViewStyle} from 'react-native';
  * - Android: Compose `LazyColumn`, with a Material divider between rows.
  * - Web: a DOM list that scrolls itself and draws only the rows near the
  *   view, two spacers keeping the room of the rest at their measured
- *   heights once seen and at `estimatedItemHeight` before. Only the drawn
- *   rows are in the page, so find in page, printing and a scroll to a row's
- *   element reach only those, and a static page holds only the rows that
- *   fill 1200 pixels at `estimatedItemHeight`.
+ *   heights once seen and at `estimatedItemHeight` before. A focused row
+ *   scrolled more than a viewport out of view is removed, and the focus
+ *   with it. Only the drawn rows are in the page, so find in page, printing
+ *   and a scroll to a row's element reach only those, and a static page
+ *   holds only the rows that fill 1200 pixels at `estimatedItemHeight`.
  * - Windows: React Native's `FlatList`, windowed.
  *
  * Every platform's list scrolls itself and fills the space its parent gives

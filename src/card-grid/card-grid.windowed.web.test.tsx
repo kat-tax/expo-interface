@@ -73,6 +73,20 @@ describe('CardGrid (web), windowed', () => {
     expect(spacers().map(spacer => spacer.style.height)).toEqual([`${6 * 192}px`, `${(50 - 17) * 192}px`]);
   });
 
+  it('removes a focused card scrolled more than a viewport out of view, and the focus with it', () => {
+    renderGrid({renderItem: title => <button type="button">{title}</button>});
+    width(636);
+    const card = screen.getByRole('button', {name: 'Card 1'});
+    act(() => card.focus());
+    expect(document.activeElement).toBe(card);
+    // The first row ends 180 px down: a viewport above the view still draws it.
+    scrollTo(700);
+    expect(document.activeElement).toBe(card);
+    scrollTo(800);
+    expect(screen.queryByRole('button', {name: 'Card 1'})).toBeNull();
+    expect(document.activeElement).toBe(document.body);
+  });
+
   it('measures a row by its first cell, and keeps its room at that height', () => {
     renderGrid();
     width(636);
