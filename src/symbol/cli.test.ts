@@ -3,11 +3,14 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {
   FONT_FAMILY,
+  FONT_FILLS,
   KIT_FILLED,
   KIT_NAMES,
+  KIT_WEB_NAMES,
   drawablesModule,
   filledUrl,
   fontFaceCSS,
+  fontPlan,
   identifier,
   outlinedUrl,
   packagedNames,
@@ -17,6 +20,7 @@ import {
   stubModule,
   subsetVariableFont,
 } from '../../bin/symbols-lib.mjs';
+import {getSymbolFontCSS} from './font';
 
 describe('expo-interface-symbols', () => {
   it('reads the Material names a source uses, and which tokens ask for the solid form', () => {
@@ -95,11 +99,44 @@ describe('expo-interface-symbols', () => {
     );
   });
 
-  it('subsets the variable font to the names, keeping the fill axis and pinning the rest', async () => {
-    const subset = vi.fn(async (_font: Buffer, text: string, options: object) => Buffer.from(`${text}|${JSON.stringify(options)}`));
-    const result = await subsetVariableFont(new Uint8Array([1, 2]), ['share', 'sticky_note'], subset);
-    expect(result.toString()).toContain('share sticky_note share sticky note');
-    expect(result.toString()).toContain('"FILL":{"min":0,"max":1}');
-    expect(result.toString()).toContain('"wght":400');
+  it('keeps each name\'s glyph at both fills and its letters, and leaves out a name the font does not have', () => {
+    // The font swaps most icons for a solid glyph of their own at FILL 1.
+    const shape = (name: string, fill: number) => {
+      if (name === 'star') return [5590 + fill];
+      if (name === 'stop') return [4000 + fill];
+      // Not a ligature in the font: its letters.
+      if (name === 'not_an_icon') return [1, 2, 3];
+      // One glyph at one fill only is not a whole icon either.
+      return fill === 0 ? [9] : [7, 8];
+    };
+    expect(fontPlan(['star', 'stop', 'not_an_icon', 'outline_only'], shape)).toEqual({
+      text: 'aoprst',
+      glyphs: [4000, 4001, 5590, 5591],
+      missing: ['not_an_icon', 'outline_only'],
+    });
+    expect(FONT_FILLS).toEqual([0, 1]);
+  });
+
+  it('cuts the variable font to those glyphs, keeping the fill axis and pinning the rest', async () => {
+    const tools = {
+      decode: vi.fn(async (font: Uint8Array) => new Uint8Array([...font, 0])),
+      shaper: vi.fn(() => (name: string, fill: number) => [name.length * 10 + fill]),
+      subset: vi.fn(() => new Uint8Array([9])),
+      encode: vi.fn(async (sfnt: Uint8Array) => Buffer.from([...sfnt, 2])),
+    };
+    const {woff2, missing} = await subsetVariableFont(new Uint8Array([1]), ['share', 'stop'], tools);
+    expect(tools.shaper).toHaveBeenCalledWith(new Uint8Array([1, 0]));
+    expect(tools.subset).toHaveBeenCalledWith(new Uint8Array([1, 0]), 'aehoprst', [40, 41, 50, 51], {FILL: {min: 0, max: 1}, wght: 400, GRAD: 0, opsz: 24});
+    expect([...woff2]).toEqual([9, 2]);
+    expect(missing).toEqual([]);
+  });
+
+  it('always writes into the font the names the kit\'s own controls draw on the web', () => {
+    const drawn = ['glyphs.ts', 'card/shared.ts', 'header-search/shared.ts', 'tab-view/index.web.tsx'];
+    expect(scanFiles(drawn.map(file => path.join(__dirname, '..', file))).names).toEqual(KIT_WEB_NAMES);
+  });
+
+  it('writes the same font face the kit registers', () => {
+    expect(fontFaceCSS('/f.woff2')).toBe(getSymbolFontCSS('/f.woff2'));
   });
 });

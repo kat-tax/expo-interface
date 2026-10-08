@@ -15,8 +15,11 @@
  *   bundle. The app registers them once: `registerDrawables(drawables,
  *   filledDrawables)`.
  * - with `--font`, `MaterialSymbolsOutlined.woff2`: the variable Material
- *   Symbols font cut down to the names found, with the fill axis kept, for
- *   filled icons on the web. Needs `subset-font` (`npm i -D subset-font`).
+ *   Symbols font cut down to the glyphs of the names found, the `fill`
+ *   names and the names the kit's own controls draw on the web, at both
+ *   fills, with the fill axis kept and the other axes pinned, for filled
+ *   icons on the web. Needs `harfbuzzjs` 1 and `fontverter`
+ *   (`npm i -D harfbuzzjs fontverter`).
  *
  * The downloads come from Google Fonts' CDN and GitHub; nothing here needs
  * a key. Run it again after adding an icon.
@@ -24,6 +27,7 @@
 import {existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import {pathToFileURL} from 'node:url';
 import {parseArgs} from 'node:util';
 
 const GSTATIC = 'https://fonts.gstatic.com/s/i/short-term/release/materialsymbolsoutlined';
@@ -87,6 +91,15 @@ export function sourceFiles(roots, cwd = process.cwd()) {
  */
 export const KIT_NAMES = ['arrow_back', 'arrow_upward', 'close', 'keyboard_arrow_down', 'keyboard_arrow_up', 'more_horiz', 'star', 'stop'];
 export const KIT_FILLED = ['star'];
+
+/**
+ * The Material names the kit's own controls draw on the web through `Icon`,
+ * written into the font whether or not an app's sources name them: the
+ * chrome glyphs of a `Sheet`'s bar, a `Composer`, a `FindBar` and a
+ * `Toolbar`, a `Card`'s menu and star, a `TabView` strip's close, add and
+ * switcher buttons, and `HeaderSearch`'s open action.
+ */
+export const KIT_WEB_NAMES = ['add', 'arrow_back', 'arrow_upward', 'close', 'grid_view', 'keyboard_arrow_down', 'keyboard_arrow_up', 'more_horiz', 'search', 'star', 'stop'];
 
 /** The names across a set of files, merged. */
 export function scanFiles(files) {
@@ -174,16 +187,169 @@ async function fetchBytes(url) {
   return new Uint8Array(await response.arrayBuffer());
 }
 
+/** The axes the font is pinned at: the weight, grade and optical size the kit draws with. */
+export const PINNED_AXES = {wght: 400, GRAD: 0, opsz: 24};
+
+/** The axes the cut keeps: the whole fill range, and the rest pinned. */
+export const FONT_AXES = {FILL: {min: 0, max: 1}, ...PINNED_AXES};
+
 /**
- * The variable font cut down to `names`, with the fill axis kept and the
- * other axes pinned to the kit's defaults, through `subset-font`.
+ * The fills the kit draws, outline and solid. The font draws most solid
+ * icons from a glyph of their own, which it swaps in at `FILL 1` through
+ * its layout tables rather than its character map, so each name is shaped
+ * at both.
  */
-export async function subsetVariableFont(font, names, subset) {
-  const text = [...names, ...names.map(name => name.replaceAll('_', ' '))].join(' ');
-  return subset(Buffer.from(font), text, {
-    targetFormat: 'woff2',
-    variationAxes: {FILL: {min: 0, max: 1}, wght: 400, GRAD: 0, opsz: 24},
-  });
+export const FONT_FILLS = [0, 1];
+
+/**
+ * What the cut keeps for `names`: their characters, and the glyph each
+ * shapes to at every fill. `shape(name, fill)` answers the glyph ids a name
+ * shapes to. A name that does not shape to exactly one glyph at every fill
+ * is not in the font, and is reported in `missing` and left out.
+ *
+ * @param {string[]} names
+ * @param {(name: string, fill: number) => number[]} shape
+ * @returns {{text: string, glyphs: number[], missing: string[]}}
+ */
+export function fontPlan(names, shape) {
+  const glyphs = new Set();
+  const missing = [];
+  const kept = [];
+  for (const name of names) {
+    const shaped = FONT_FILLS.map(fill => shape(name, fill));
+    if (shaped.some(ids => ids.length !== 1)) {
+      missing.push(name);
+      continue;
+    }
+    kept.push(name);
+    for (const [id] of shaped) glyphs.add(id);
+  }
+  return {text: [...new Set(kept.join(''))].sort().join(''), glyphs: [...glyphs].sort((a, b) => a - b), missing};
+}
+
+/**
+ * @typedef {object} FontTools
+ * @property {(font: Uint8Array) => Promise<Uint8Array>} decode The font as a plain sfnt.
+ * @property {(sfnt: Uint8Array) => Promise<Uint8Array>} encode An sfnt as WOFF2.
+ * @property {(sfnt: Uint8Array) => (name: string, fill: number) => number[]} shaper What each name shapes to at a fill.
+ * @property {(sfnt: Uint8Array, text: string, glyphs: number[], axes: typeof FONT_AXES) => Uint8Array} subset The sfnt cut to the text's characters and the glyphs, with no layout closure, at the axes.
+ */
+
+/**
+ * The variable font cut down to the glyphs `names` shape to at both fills,
+ * and their characters, with the fill axis kept and the other axes pinned
+ * to the kit's defaults. Only those glyphs: the cut does not take in every
+ * ligature its letters could spell, as a cut by text alone would. The names
+ * the font does not have come back in `missing`.
+ *
+ * @param {Uint8Array} font
+ * @param {string[]} names
+ * @param {FontTools} tools from `loadFontTools`
+ * @returns {Promise<{woff2: Uint8Array, missing: string[]}>}
+ */
+export async function subsetVariableFont(font, names, tools) {
+  const sfnt = await tools.decode(font);
+  const plan = fontPlan(names, tools.shaper(sfnt));
+  const woff2 = await tools.encode(tools.subset(sfnt, plan.text, plan.glyphs, FONT_AXES));
+  return {woff2, missing: plan.missing};
+}
+
+const HB_MEMORY_MODE_WRITABLE = 2;
+const HB_SUBSET_SETS_LAYOUT_FEATURE_TAG = 6;
+const HB_SUBSET_FLAGS_NO_LAYOUT_CLOSURE = 0x200;
+
+/** An OpenType tag as the number HarfBuzz takes. */
+const tag = name => [...name].reduce((value, char) => (value << 8) + char.charCodeAt(0), 0);
+
+/**
+ * Shapes a name with HarfBuzz at a fill, the other axes pinned. Always
+ * through the `hb` namespace: its `Buffer` and `Blob` would shadow Node's.
+ */
+function shaperOf(hb, sfnt) {
+  const face = new hb.Face(new hb.Blob(sfnt));
+  const fonts = new Map(FONT_FILLS.map(fill => {
+    const font = new hb.Font(face);
+    font.setVariations([...Object.entries(PINNED_AXES), ['FILL', fill]].map(([axis, value]) => new hb.Variation(axis, value)));
+    return [fill, font];
+  }));
+  return (name, fill) => {
+    const buffer = new hb.Buffer();
+    buffer.addText(name);
+    buffer.guessSegmentProperties();
+    hb.shape(fonts.get(fill), buffer);
+    return buffer.getGlyphInfos().map(info => info.codepoint);
+  };
+}
+
+/**
+ * Cuts the sfnt with HarfBuzz's subsetter, as `subset-font` drives it but by
+ * glyph as well as by character, and without the layout closure that would
+ * take in every ligature of the kept letters. Every layout feature stays, so
+ * the ligatures and the fill swap still work in the cut.
+ */
+function cutFont(wasm, sfnt, text, glyphs, axes) {
+  // Memory can grow with any call, so the view is taken afresh each time.
+  const heap = () => new Uint8Array(wasm.memory.buffer);
+  const data = wasm.malloc(sfnt.byteLength);
+  heap().set(sfnt, data);
+  const blob = wasm.hb_blob_create(data, sfnt.byteLength, HB_MEMORY_MODE_WRITABLE, 0, 0);
+  const face = wasm.hb_face_create(blob, 0);
+  wasm.hb_blob_destroy(blob);
+  const input = wasm.hb_subset_input_create_or_fail();
+  try {
+    const features = wasm.hb_subset_input_set(input, HB_SUBSET_SETS_LAYOUT_FEATURE_TAG);
+    wasm.hb_set_clear(features);
+    wasm.hb_set_invert(features);
+    wasm.hb_subset_input_set_flags(input, wasm.hb_subset_input_get_flags(input) | HB_SUBSET_FLAGS_NO_LAYOUT_CLOSURE);
+    const unicodes = wasm.hb_subset_input_unicode_set(input);
+    for (const char of text) wasm.hb_set_add(unicodes, char.codePointAt(0));
+    const kept = wasm.hb_subset_input_glyph_set(input);
+    for (const id of glyphs) wasm.hb_set_add(kept, id);
+    for (const [axis, value] of Object.entries(axes)) {
+      const ok = typeof value === 'number'
+        ? wasm.hb_subset_input_pin_axis_location(input, face, tag(axis), value)
+        : wasm.hb_subset_input_set_axis_range(input, face, tag(axis), value.min, value.max, Number.NaN);
+      if (!ok) throw new Error(`the font has no ${axis} axis`);
+    }
+    const subset = wasm.hb_subset_or_fail(face, input);
+    if (!subset) throw new Error('harfbuzz could not cut the font');
+    const result = wasm.hb_face_reference_blob(subset);
+    const offset = wasm.hb_blob_get_data(result, 0);
+    const bytes = Buffer.from(heap().slice(offset, offset + wasm.hb_blob_get_length(result)));
+    wasm.hb_blob_destroy(result);
+    wasm.hb_face_destroy(subset);
+    return bytes;
+  } finally {
+    wasm.hb_subset_input_destroy(input);
+    wasm.hb_face_destroy(face);
+    wasm.free(data);
+  }
+}
+
+/**
+ * The tools `subsetVariableFont` cuts with: `harfbuzzjs` 1 to shape and
+ * subset, and `fontverter` to read and write WOFF2, both resolved from the
+ * app's root (the app's dev installs, not the kit's dependencies). Throws
+ * where either is missing, or where `harfbuzzjs` is an older line without
+ * the subsetter this drives.
+ *
+ * @param {string} [resolveFrom] the app's root
+ * @returns {Promise<FontTools>}
+ */
+export async function loadFontTools(resolveFrom = process.cwd()) {
+  const fromApp = createRequire(path.join(resolveFrom, 'package.json'));
+  // First, so an older harfbuzzjs fails here rather than halfway through.
+  const subsetWasm = fromApp.resolve('harfbuzzjs/dist/harfbuzz-subset.wasm');
+  const hb = await import(/* @vite-ignore */ pathToFileURL(fromApp.resolve('harfbuzzjs')).href);
+  const fontverter = fromApp('fontverter');
+  const {instance} = await WebAssembly.instantiate(readFileSync(subsetWasm));
+  instance.exports._initialize();
+  return {
+    decode: bytes => fontverter.convert(Buffer.from(bytes), 'truetype'),
+    encode: bytes => fontverter.convert(bytes, 'woff2', 'truetype'),
+    shaper: sfnt => shaperOf(hb, sfnt),
+    subset: (sfnt, text, glyphs, axes) => cutFont(instance.exports, sfnt, text, glyphs, axes),
+  };
 }
 
 export async function main(argv = process.argv.slice(2)) {
@@ -232,13 +398,11 @@ export async function main(argv = process.argv.slice(2)) {
   writeFileSync(path.join(out, 'drawables.ts'), stubModule());
   console.log(`wrote ${path.relative(process.cwd(), path.join(out, 'drawables.android.ts'))}: ${names.length} icons, ${filled.length} filled`);
   if (values.font) {
-    let subset;
+    let tools;
     try {
-      // Named at run time: a bundler reading this file must not try to resolve an optional tool.
-      const tool = 'subset-font';
-      subset = (await import(/* @vite-ignore */ tool)).default;
+      tools = await loadFontTools();
     } catch {
-      console.error('--font needs subset-font: npm i -D subset-font');
+      console.error('--font needs harfbuzzjs 1 and fontverter: npm i -D harfbuzzjs fontverter');
       process.exitCode = 1;
       return;
     }
@@ -249,8 +413,15 @@ export async function main(argv = process.argv.slice(2)) {
       console.log('downloading the variable font once');
       writeFileSync(cached, await fetchBytes(VARIABLE_FONT_URL));
     }
-    const woff2 = await subsetVariableFont(readFileSync(cached), names, subset);
-    writeFileSync(path.join(out, 'MaterialSymbolsOutlined.woff2'), woff2);
-    console.log(`wrote ${path.relative(process.cwd(), path.join(out, 'MaterialSymbolsOutlined.woff2'))} (${Math.round(woff2.length / 1024)} KB), register it with getSymbolFontCSS in +html.tsx`);
+    // The names found, the ones the kit draws on the web, and the `--fill` names, which need not be among either.
+    const fontNames = [...new Set([...names, ...KIT_WEB_NAMES, ...filled])].sort();
+    const {woff2, missing} = await subsetVariableFont(readFileSync(cached), fontNames, tools);
+    if (missing.length > 0) console.error(`not in the variable font, left out: ${missing.join(', ')}`);
+    const file = path.join(out, 'MaterialSymbolsOutlined.woff2');
+    writeFileSync(file, woff2);
+    console.log(
+      `wrote ${path.relative(process.cwd(), file)} (${(woff2.length / 1024).toFixed(1)} KB, ${fontNames.length - missing.length} icons): ` +
+        'register it in +html.tsx with getSymbolFontCSS(url), or getSymbolFontCSS(url, {filled: true}) for filled icons alone',
+    );
   }
 }

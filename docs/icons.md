@@ -178,14 +178,30 @@ kit's Android controls use.
 ## The web font
 
 `--font` also writes `MaterialSymbolsOutlined.woff2`: the variable Material
-Symbols font cut down to the names found, with the `FILL` axis kept and the
-other axes pinned, through `subset-font` (`npm i -D subset-font`). Serve it
-from the app's bundle and register it beside the palette:
+Symbols font cut down to the ligatures of the names found, the `fill` names,
+and the names the kit's own controls draw on the web. Those are the eight
+listed above, plus `add` and `grid_view` for a `TabView` strip and `search`
+for `HeaderSearch`. The font draws most solid icons from a glyph of their
+own, so the cut keeps each name's glyph at `FILL 0` and at `FILL 1`. It
+keeps the `FILL` axis and pins the others. A name the font does not have is
+reported and left out. The cut is done with HarfBuzz, so the CLI needs
+`harfbuzzjs` and `fontverter` in the app (`npm i -D harfbuzzjs fontverter`).
+
+Serve it from the app's bundle and register it beside the palette:
 
 ```tsx
 // app/+html.tsx
 <style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2')}}/>
 ```
+
+Registered that way, every icon draws from the cut first. The cut maps
+every letter its names use, so a name it does not hold draws as its letters
+rather than falling back to the static instance. A name the app builds at
+run time therefore has to appear in a token in the sources, as Android's
+drawables already require. Registered with `{filled: true}`, the cut is
+`Material Symbols Filled`, which the stylesheet tries first for a filled
+token only. Outlined icons then keep the static instance `expo-symbols`
+ships, which holds every name.
 
 `getSymbolFontCSS(url, options?)` is the `@font-face` the stylesheet draws
 with. Its options:
