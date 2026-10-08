@@ -151,6 +151,8 @@ describe(`Screen (${Platform.OS})`, () => {
       const rows = screen.getByTestId('screen-header-rows');
       expect(within(rows).getByText('Strip')).toBeOnTheScreen();
       expect(StyleSheet.flatten(rows.props.style)).toMatchObject({position: 'absolute', top: 47 + inset.header, left: 0, right: 0});
+      // Floating, the rows are not above the content too.
+      expect(screen.queryByTestId('screen-top-rows')).toBeNull();
       if (isIOS) {
         const shape = nodes().find(n => n.type.includes('RoundedRectangle'))!;
         expect(modifier(shape.props, 'foregroundStyle')?.style).toMatchObject({type: 'material', material: 'thin'});
@@ -186,8 +188,18 @@ describe(`Screen (${Platform.OS})`, () => {
       </StackHeaderContext.Provider>,
     );
     expect(screen.queryByTestId('screen-header-rows')).toBeNull();
-    expect(screen.getByText('Strip')).toBeOnTheScreen();
-    expect(StyleSheet.flatten(parts().root.props.style).paddingTop).toBe(0);
+    // In a box the screen's width, which does not grow, above the content and with no gap under it.
+    const rows = screen.getByTestId('screen-top-rows');
+    expect(within(rows).getByText('Strip')).toBeOnTheScreen();
+    expect(StyleSheet.flatten(rows.props.style)).toEqual({alignSelf: 'stretch'});
+    const root = rows.parent!;
+    const content = screen.getByText('Body').parent!;
+    expect(content.parent).toBe(root);
+    expect(root.children.indexOf(rows)).toBe(0);
+    expect(root.children.indexOf(content)).toBe(1);
+    expect(StyleSheet.flatten(root.props.style)).toEqual(StyleSheet.flatten(parts().root.props.style));
+    expect(StyleSheet.flatten(root.props.style).paddingTop).toBe(0);
+    expect(StyleSheet.flatten(root.props.style).gap).toBeUndefined();
   });
 
   it('changes nothing for underBar, since the top inset is already nothing natively', async () => {

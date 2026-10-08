@@ -36,6 +36,11 @@ describe(`Screen bars (${Platform.OS})`, () => {
       expect(kid.contains(bottom)).toBe(false);
       expect(top.compareDocumentPosition(kid) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
       expect(kid.compareDocumentPosition(bottom) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+      // The top rows are the screen's width, with no gap between them and the content.
+      const rows = dom.getByTestId('screen-top-rows');
+      expect(rows.contains(top)).toBe(true);
+      expect(getComputedStyle(rows).alignSelf).toBe('stretch');
+      expect(getComputedStyle(rows.parentElement!).gap).toBe('');
       expect(dom.getByTestId('screen-bars').contains(bottom)).toBe(true);
     });
 
@@ -90,6 +95,7 @@ describe(`Screen bars (${Platform.OS})`, () => {
     const root = content.parent!;
     const top = screen.getByTestId('bar-top');
     expect(kid).not.toContainElement(top);
+    expect(top.parent).toBe(screen.getByTestId('screen-top-rows'));
     expect(root.children.indexOf(top.parent!)).toBeLessThan(root.children.indexOf(content));
     const bars = screen.getByTestId('screen-bars');
     expect(bars).toContainElement(screen.getByTestId('bar-bottom'));

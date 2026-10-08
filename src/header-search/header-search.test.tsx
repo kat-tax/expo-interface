@@ -504,9 +504,13 @@ describe(`HeaderSearch (${Platform.OS})`, () => {
     );
     const row = screen.getByTestId('q-stacked');
     expect(row).toHaveStyle({borderBottomWidth: expect.any(Number), borderRadius: 0});
-    // Above the content, in the screen's root, not in its content box.
+    // Above the content, in the screen's top rows, not in its content box.
     const content = screen.getByTestId('kid').parent!;
-    expect(content.parent!.children.indexOf(row)).toBeLessThan(content.parent!.children.indexOf(content));
+    const rows = screen.getByTestId('screen-top-rows');
+    expect(rows).toContainElement(row);
+    expect(content).not.toContainElement(row);
+    expect(content.parent!.children.indexOf(rows)).toBe(0);
+    expect(content.parent!.children.indexOf(content)).toBe(1);
     const input = screen.getByPlaceholderText('Find a drop');
     await fireEvent.changeText(input, 'dem');
     expect(onChangeText).toHaveBeenCalledWith('dem');

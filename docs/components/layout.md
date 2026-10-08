@@ -34,8 +34,10 @@ A control in the content can give the screen a bar of its own: a
 `HeaderSearch` whose placement the platform has no header for puts its row
 above the content (Android's `stacked`) or its bottom bar below it
 (`integrated`), and the screen draws them at its edges, outside the content's
-host and clear of its gutter. A `HeaderAccessory` on iOS and Android puts its
-row at the top the same way; under a header the screens run under, the row
+host and clear of its gutter. The rows at the top span the screen's width at
+their own height, with the content right under them. A `HeaderAccessory` on
+iOS and Android puts its row at the top the same way, across the screen with
+the content right under it; under a header the screens run under, the row
 floats at the header's bottom edge, and the screen pays its measured height
 as it pays the header's.
 

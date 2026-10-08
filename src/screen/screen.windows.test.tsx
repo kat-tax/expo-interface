@@ -63,6 +63,21 @@ describe('Screen (windows)', () => {
     expect(screen.getByText('Add')).toBeOnTheScreen();
   });
 
+  it('draws a bar a control gives it at its top, the screen\'s width, with the content right under it', async () => {
+    await render(
+      <Screen>
+        <ScreenBar edge="top"><Text testID="row">Row</Text></ScreenBar>
+        <View testID="kid"/>
+      </Screen>,
+    );
+    const rows = screen.getByTestId('screen-top-rows');
+    expect(rows).toContainElement(screen.getByTestId('row'));
+    expect(rows).toHaveStyle({alignSelf: 'stretch'});
+    const root = screen.getByTestId('kid').parent!.parent!;
+    expect(root.children.indexOf(rows)).toBe(0);
+    expect(root).not.toHaveStyle({gap: spacing.three});
+  });
+
   it('draws a bar a control gives it at its bottom, and lifts the floating action button above it', async () => {
     await render(
       <Screen fab={<Text>Add</Text>}>

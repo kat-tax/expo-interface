@@ -147,7 +147,7 @@ export function Screen({
       edges={edges}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'}/>
       <View style={[styles.root, {paddingTop}]}>
-        {floatingRows ? null : top}
+        {hasTop && !floatingRows ? <View testID="screen-top-rows" style={styles.topRows}>{top}</View> : null}
         <View style={[styles.content, gutter ? styles.gutter : undefined]}>
           <ToastInsetContext.Provider value={lift.report}>
             <ScreenBarsContext.Provider value={bars}>
@@ -193,7 +193,12 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     alignItems: 'center',
-    gap: theme.spacing.three,
+  },
+  // The rows at the top under an opaque header: the screen's width above the
+  // content, as the floating rows are, at their own height. The box does not
+  // grow, so a row in it that would (a `TabView`) has no free space to take.
+  topRows: {
+    alignSelf: 'stretch',
   },
   content: {
     flex: 1,
