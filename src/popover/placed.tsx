@@ -1,32 +1,63 @@
-import type {ViewProps} from 'react-native';
+import type {LayoutChangeEvent, ViewProps} from 'react-native';
 import type {useAnchored} from '../anchored';
-import {useState} from 'react';
+import {createContext, useContext, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
-interface PlacedCardProps extends Omit<ViewProps, 'onLayout' | 'style'> {
+export interface PlacedCardProps extends Omit<ViewProps, 'onLayout' | 'style'> {
   /** Where the card goes, and the measure of it. */
   anchored: ReturnType<typeof useAnchored>;
   width: number;
+  /**
+   * Whether the card holds a `SizedRow` to wait for: a row of controls the
+   * platform's toolkit sizes only after the card's first layout.
+   * @default false
+   */
+  sizedLater?: boolean;
 }
+
+/** How a `SizedRow` tells the card around it that it has been laid out. */
+const RowLayout = createContext<((event: LayoutChangeEvent) => void) | undefined>(undefined);
 
 /**
  * The box a drawn popover's card sits in, at the place the anchoring gives
  * it. It is mounted each time the card comes up, and is neither seen nor
  * pressed until it has been measured, so the place it shows at is worked out
- * from its own height, not from the last card's or from none.
+ * from its own height, not from the last card's or from none. With
+ * `sizedLater` it also waits for the `SizedRow` in it to have a height.
  */
-export function PlacedCard({anchored, width, ...props}: PlacedCardProps) {
+export function PlacedCard({anchored, width, sizedLater = false, ...props}: PlacedCardProps) {
   const [measured, setMeasured] = useState(false);
+  const [rowSized, setRowSized] = useState(false);
+  const ready = measured && (rowSized || !sizedLater);
   return (
-    <View
-      {...props}
-      onLayout={event => {
-        anchored.onCard(event);
-        setMeasured(true);
-      }}
-      style={[styles.card, {width, left: anchored.left, top: anchored.top}, measured ? null : styles.unplaced]}
-    />
+    <RowLayout.Provider
+      value={event => {
+        if (event.nativeEvent.layout.height > 0) setRowSized(true);
+      }}>
+      <View
+        {...props}
+        onLayout={event => {
+          anchored.onCard(event);
+          setMeasured(true);
+        }}
+        style={[styles.card, {width, left: anchored.left, top: anchored.top}, ready ? null : styles.unplaced]}
+      />
+    </RowLayout.Provider>
   );
+}
+
+/**
+ * A row of controls in a `PlacedCard` that the platform's toolkit sizes
+ * after the card's first layout: the actions' `@expo/ui` host on iOS and
+ * Android, the button islands on Windows. Until then the row has no height,
+ * and a card placed by its height without the row would show below the
+ * rectangle and then flip above it. A layout reaches the card before the
+ * views inside it, so when the row first has a height, the card has already
+ * been measured with it.
+ */
+export function SizedRow(props: Omit<ViewProps, 'onLayout'>) {
+  const onLayout = useContext(RowLayout);
+  return <View {...props} onLayout={onLayout}/>;
 }
 
 const styles = StyleSheet.create({

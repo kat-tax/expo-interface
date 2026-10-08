@@ -156,10 +156,14 @@ cannot reach a side, and it is a preference: with no room on the edge asked
 for, the card goes to the other. `insets` are what the card keeps clear of at
 its parent's edges, a header over the canvas or a bar under it.
 
-The card is drawn once it has been measured, each time it comes up, so where
-it shows is worked out from its own height: a card that goes above the
-rectangle is never seen below it first. Until then it is invisible and takes
-no presses.
+Each time the card comes up, it is drawn only once it has been measured, so
+where it shows is worked out from its own height: a card that goes above the
+rectangle is not seen below it first. On iOS, Android and Windows the
+platform's toolkit sizes the action buttons after the card's first layout,
+so the card waits for them too. Until then it is invisible and takes no
+presses. A card that stays up while it moves to another rectangle, or while
+what it holds changes, is placed by the height it has until it is laid out
+again, and so is one whose `children` hold content the toolkit sizes later.
 
 `onDismiss` says why the card asks to close: `action` (one of its actions
 was taken), `backdrop` (the backdrop of a modal card was pressed, or on

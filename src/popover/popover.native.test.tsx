@@ -12,6 +12,12 @@ const card = (height: number) =>
   act(async () => {
     fireEvent(screen.getByTestId('lint'), 'layout', {nativeEvent: {layout: {height}}});
   });
+/** Lays out the row the actions' host sits in: the one view in the card that listens for its layout. */
+const row = (height: number) =>
+  act(async () => {
+    const [actions] = screen.container.queryAll(i => typeof i.props.onLayout === 'function' && i.props.testID === undefined);
+    fireEvent(actions, 'layout', {nativeEvent: {layout: {height}}});
+  });
 const at: PopoverRect = {x: 40, y: 100, width: 60, height: 20};
 
 describe(`Popover (${Platform.OS})`, () => {
@@ -59,6 +65,23 @@ describe(`Popover (${Platform.OS})`, () => {
     // 400 + 8 + 40 fits above the bottom's 480 - 8: below, where the last card could not go.
     expect(style()).toMatchObject({top: 408});
     expect(style().opacity).toBeUndefined();
+  });
+
+  it('waits for the host its actions sit in, which the platform sizes after the card', async () => {
+    await render(<Popover at={{x: 300, y: 400}} title="Spelling" actions={[{label: 'Fix', onPress: vi.fn()}]} testID="lint"/>);
+    await bounds(320, 480);
+    // The card's first layout has the host at no height: 400 + 8 + 60 fits
+    // below, where the whole card does not.
+    await card(60);
+    expect(style().opacity).toBe(0);
+    await row(0);
+    expect(style().opacity).toBe(0);
+    // The toolkit sizes the host: the card is laid out again with it, then the row.
+    await card(100);
+    await row(40);
+    expect(style()).toMatchObject({left: 32, top: 292});
+    expect(style().opacity).toBeUndefined();
+    expect(style().pointerEvents).toBeUndefined();
   });
 
   it('leaves a card that fits below where it is', async () => {

@@ -5,8 +5,16 @@ import {Popover} from '.';
 
 const TIP = 'ExpoInterfaceTeachingTip';
 const BUTTON = 'ExpoInterfaceButton';
-/** Lays out the drawn card, which takes no presses until it has been measured. */
-const measureCard = (testID = 'pop') => fireEvent(screen.getByTestId(testID), 'layout', {nativeEvent: {layout: {height: 100}}});
+/** The drawn card's row of buttons: the one view in the card that listens for its layout. */
+const actionRows = () => screen.container.queryAll(i => typeof i.props.onLayout === 'function' && i.props.testID === undefined);
+/**
+ * Lays out the drawn card, then its row of buttons, which XAML sizes after
+ * the card: it takes no presses until both have been measured.
+ */
+const measureCard = async (testID = 'pop') => {
+  await fireEvent(screen.getByTestId(testID), 'layout', {nativeEvent: {layout: {height: 100}}});
+  for (const row of actionRows()) await fireEvent(row, 'layout', {nativeEvent: {layout: {height: 32}}});
+};
 
 describe('Popover (windows)', () => {
   it('renders nothing but the bounds while there is no rectangle', async () => {
@@ -211,6 +219,22 @@ describe('modal and hover (windows)', () => {
     expect(opacity()).toBe(0);
     await measureCard();
     expect(opacity()).toBeUndefined();
+  });
+
+  it('waits for its button islands, which XAML sizes after the card', async () => {
+    await render(<Popover at={{x: 500, y: 300, height: 20}} width={200} modal title="Option" actions={[{label: 'Save', onPress: vi.fn()}]} testID="pop"/>);
+    const style = () => StyleSheet.flatten(screen.getByTestId('pop').props.style);
+    const [row] = actionRows();
+    await fireEvent(screen.getByTestId('pop-bounds'), 'layout', {nativeEvent: {layout: {width: 600, height: 400}}});
+    // Without the buttons the card fits below the rectangle, where the whole card does not.
+    await fireEvent(screen.getByTestId('pop'), 'layout', {nativeEvent: {layout: {height: 60}}});
+    await fireEvent(row, 'layout', {nativeEvent: {layout: {height: 0}}});
+    expect(style().opacity).toBe(0);
+    await fireEvent(screen.getByTestId('pop'), 'layout', {nativeEvent: {layout: {height: 100}}});
+    await fireEvent(row, 'layout', {nativeEvent: {layout: {height: 32}}});
+    // 300 + 20 + 8 + 100 + 8 > 400: above, at 300 - 100 - 8.
+    expect(style()).toMatchObject({top: 192, left: 392});
+    expect(style().opacity).toBeUndefined();
   });
 });
 

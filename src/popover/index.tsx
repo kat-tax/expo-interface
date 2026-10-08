@@ -7,16 +7,17 @@ import {NativeHost} from '../host';
 import {Surface} from '../surface';
 import {Footnote, Subheadline} from '../typography';
 import {spacing} from '../theme';
-import {PlacedCard} from './placed';
+import {PlacedCard, SizedRow} from './placed';
 import {MODAL_CARD, useEscape, useLinger} from './shared';
 
 /**
  * A card pointing at a rectangle on a canvas (see {@link PopoverProps}). It
  * fills its parent as a `box-none` overlay, measures it, and places the card
  * inside those bounds, clear of the insets: below the rectangle, or above it
- * when the bottom is too close. The card is drawn once it has been measured,
- * each time it comes up. A modal one takes the presses on the rest of the
- * parent as its backdrop; a hover one lingers once the pointer has gone.
+ * when the bottom is too close. The card is drawn once it has been measured
+ * with its actions, each time it comes up. A modal one takes the presses on
+ * the rest of the parent as its backdrop; a hover one lingers once the
+ * pointer has gone.
  */
 export function Popover({at, title, message, actions, onDismiss, width = 280, preferredEdge = 'auto', modal = false, label, insets, trigger = 'manual', grace, children, testID}: PopoverProps) {
   const linger = useLinger(at, trigger === 'hover', grace, () => onDismiss?.('leave'));
@@ -51,10 +52,14 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
         // The placed box carries the pointer and what a modal card says of
         // itself; the surface inside it is the card. On web the modal card has
         // the dialog role, named by `label` or its title; iOS and Android read
-        // the title in the card itself.
+        // the title in the card itself. On iOS and Android the actions' host
+        // is sized by the platform's toolkit after the card's first layout,
+        // so the card waits for it; on web the browser lays the whole card
+        // out at once.
         <PlacedCard
           anchored={anchored}
           width={width}
+          sizedLater={Platform.OS !== 'web' && !!actions?.length}
           testID={testID}
           {...linger.props}
           {...(modal ? {...MODAL_CARD, 'aria-label': Platform.OS === 'web' ? label ?? title : undefined, onAccessibilityEscape: () => dismiss('escape')} : null)}>
@@ -63,23 +68,25 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
             {message ? <Footnote color="secondaryLabel">{message}</Footnote> : null}
             {children}
             {actions?.length ? (
-              <NativeHost fit style={styles.actions}>
-                <Row alignment="center" spacing={spacing.two}>
-                  {actions.map((action, index) => (
-                    <Button
-                      key={index}
-                      label={action.label}
-                      variant="text"
-                      size="small"
-                      role={action.role}
-                      onPress={() => {
-                        action.onPress();
-                        dismiss('action');
-                      }}
-                    />
-                  ))}
-                </Row>
-              </NativeHost>
+              <SizedRow style={styles.actions}>
+                <NativeHost fit>
+                  <Row alignment="center" spacing={spacing.two}>
+                    {actions.map((action, index) => (
+                      <Button
+                        key={index}
+                        label={action.label}
+                        variant="text"
+                        size="small"
+                        role={action.role}
+                        onPress={() => {
+                          action.onPress();
+                          dismiss('action');
+                        }}
+                      />
+                    ))}
+                  </Row>
+                </NativeHost>
+              </SizedRow>
             ) : null}
           </Surface>
         </PlacedCard>

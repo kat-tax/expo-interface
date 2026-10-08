@@ -7,7 +7,7 @@ import {Button} from '../button';
 import {Surface} from '../surface';
 import {Footnote, Subheadline} from '../typography';
 import {spacing} from '../theme';
-import {PlacedCard} from './placed';
+import {PlacedCard, SizedRow} from './placed';
 import {MODAL_CARD, useLinger} from './shared';
 
 /**
@@ -77,9 +77,12 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
         />
       ) : null}
       {shown ? (
+        // The button islands are sized by XAML after the card's first layout,
+        // so the card waits for them.
         <PlacedCard
           anchored={anchored}
           width={width}
+          sizedLater={!!actions?.length}
           testID={testID}
           {...linger.props}
           {...(modal ? MODAL_CARD : null)}>
@@ -88,7 +91,7 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
             {message ? <Footnote color="secondaryLabel">{message}</Footnote> : null}
             {children}
             {actions?.length ? (
-              <View style={styles.actions}>
+              <SizedRow style={styles.actions}>
                 {actions.map((action, index) => (
                   <Button
                     key={index}
@@ -102,7 +105,7 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
                     }}
                   />
                 ))}
-              </View>
+              </SizedRow>
             ) : null}
           </Surface>
         </PlacedCard>
