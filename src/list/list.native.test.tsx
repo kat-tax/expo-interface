@@ -33,6 +33,15 @@ describe(`List (${Platform.OS})`, () => {
     }
   });
 
+  it.runIf(isIOS)('hands a selected row its fill as a row of SwiftUI\'s list, which draws it to the row\'s edges', async () => {
+    await render_(<List data={rows} renderItem={(title, index) => <ListItem selected={index === 1} testID={title}>{title}</ListItem>}/>);
+    // Row traits work only on the list's own children: nothing may stand between the two.
+    const children = list().children!.filter(child => typeof child !== 'string');
+    expect(children.map(child => child.props.testID)).toEqual(rows);
+    expect(modifier(children[1]!.props, 'listRowBackground')?.color).toBe(colors.light.backgroundSelected);
+    expect(modifier(children[0]!.props, 'listRowBackground')).toBeUndefined();
+  });
+
   it('hides the separators when asked, and keys the rows by index without an extractor', async () => {
     await render_(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} separators={false}/>);
     if (isIOS) {
