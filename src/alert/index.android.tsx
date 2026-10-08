@@ -78,6 +78,7 @@ function AlertDialogView({title, message, visible, onDismiss, actions = DEFAULT_
                   secureTextEntry={input.secureTextEntry}
                   keyboardType={input.keyboardType}
                   autoCapitalize={input.autoCapitalize}
+                  autoCorrect={input.autoCorrect}
                   autoFocus={input.autoFocus ?? true}
                   testID={input.testID}
                 />

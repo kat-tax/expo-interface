@@ -58,6 +58,7 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
                 secureTextEntry={input.secureTextEntry}
                 keyboardType={input.keyboardType}
                 autoCapitalize={input.autoCapitalize}
+                autoCorrect={input.autoCorrect}
                 autoFocus={input.autoFocus ?? true}
                 onSubmit={submit}
                 testID={input.testID}

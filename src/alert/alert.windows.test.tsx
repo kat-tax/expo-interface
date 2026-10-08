@@ -58,7 +58,7 @@ describe('Alert (windows)', () => {
         title="Rename"
         visible
         onDismiss={onDismiss}
-        input={{placeholder: 'Name', value: 'Essay', onChangeText, testID: 'name'}}
+        input={{placeholder: 'Name', value: 'Essay', onChangeText, autoCorrect: false, testID: 'name'}}
         actions={[{label: 'Cancel', role: 'cancel'}, {label: 'Rename', onPress: onRename}]}
       />,
     );
@@ -70,7 +70,7 @@ describe('Alert (windows)', () => {
     expect(screen.queryAllByTestId('name')).toHaveLength(0);
     await fireIsland(portal, 'ready', {connected: true});
     const box = island('ExpoInterfaceTextBox');
-    expect(box.props).toMatchObject({placeholder: 'Name', value: 'Essay', testID: 'name'});
+    expect(box.props).toMatchObject({placeholder: 'Name', value: 'Essay', spellCheck: false, testID: 'name'});
     await fireIsland(box, 'changeText', {text: 'Essay 2'});
     expect(onChangeText).toHaveBeenCalledWith('Essay 2');
     await fireIsland(box, 'submit', {text: 'Essay 2'});

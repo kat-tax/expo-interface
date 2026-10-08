@@ -102,12 +102,14 @@ describe('Alert (web)', () => {
         message="A name for the document."
         visible
         testID="alert"
-        input={{placeholder: 'Name', value: 'Essay', onChangeText, autoFocus: false, testID: 'name'}}
+        input={{placeholder: 'Name', value: 'Essay', onChangeText, autoCorrect: false, autoFocus: false, testID: 'name'}}
         actions={[{label: 'Cancel', role: 'cancel'}, {label: 'Rename', onPress: onRename}]}
       />,
     );
     const field = within(dialog()).getByRole('textbox', {name: 'Name'});
     expect(field).toHaveValue('Essay');
+    expect(field).toHaveAttribute('autocorrect', 'off');
+    expect(field).toHaveAttribute('spellcheck', 'false');
     expect(field.parentElement).toHaveClass('ui-alert__field');
     expect(document.activeElement).not.toBe(field);
     fireEvent.change(field, {target: {value: 'Essay 2'}});

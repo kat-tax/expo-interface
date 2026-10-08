@@ -194,7 +194,7 @@ describe(`Alert (${Platform.OS})`, () => {
         message="A name for the document."
         visible
         testID="alert"
-        input={{placeholder: 'Name', value: 'Essay', onChangeText, autoCapitalize: 'words', testID: 'name'}}
+        input={{placeholder: 'Name', value: 'Essay', onChangeText, autoCapitalize: 'words', autoCorrect: false, testID: 'name'}}
         actions={[{label: 'Cancel', role: 'cancel'}, {label: 'Rename'}]}
       />,
     );
@@ -202,10 +202,12 @@ describe(`Alert (${Platform.OS})`, () => {
       const field = host(p => p.placeholder === 'Name', slot('actions'));
       expect(field.props.autoFocus).toBe(true);
       expect(field.props.testID).toBe('name');
+      expect(modifier(field.props, 'autocorrectionDisabled')).toEqual({$type: 'autocorrectionDisabled', disabled: true});
       expect(children(slot('actions')).map(b => b.props.label ?? b.props.placeholder)).toEqual(['Name', 'Cancel', 'Rename']);
     } else {
       const field = host(p => p.autoFocus === true, slot('text'));
       expect(modifier(field.props, 'testID')?.testID).toBe('name');
+      expect(field.props.keyboardOptions.autoCorrectEnabled).toBe(false);
       expect(host(p => p.text === 'Name', field)).toBeTruthy();
       expect(host(p => p.text === 'A name for the document.', slot('text'))).toBeTruthy();
       // The kit's field shifts itself back to line up in a form; here a box undoes that.

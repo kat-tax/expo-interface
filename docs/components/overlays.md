@@ -221,8 +221,8 @@ actions. Props: `title`, `message`, `visible`, `onDismiss`, `actions`
 (`label`, `role` `default`, `cancel` or `destructive`, `onPress`; defaults
 to one OK), `input` (a text field for the one-field prompts, a name for a
 new thing or a rename: `placeholder`, `value`, `onChangeText`,
-`secureTextEntry`, `keyboardType`, `autoCapitalize`, `autoFocus`, default
-true, `testID`), `sheet`, `children` (an optional trigger rendered in place),
+`secureTextEntry`, `keyboardType`, `autoCapitalize`, `autoCorrect`,
+default true, `autoFocus`, default true, `testID`), `sheet`, `children` (an optional trigger rendered in place),
 `testID`. It mounts its own host where there is none, so it can be rendered
 anywhere.
 

@@ -68,6 +68,7 @@ function SwiftUIAlertView({title, message, visible, onDismiss, actions = DEFAULT
             secureTextEntry={input.secureTextEntry}
             keyboardType={input.keyboardType}
             autoCapitalize={input.autoCapitalize}
+            autoCorrect={input.autoCorrect}
             autoFocus={input.autoFocus ?? true}
             testID={input.testID}
           />

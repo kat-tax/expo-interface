@@ -14,6 +14,12 @@ export interface AlertInput {
   keyboardType?: TextFieldKeyboard;
   autoCapitalize?: TextFieldCapitalize;
   /**
+   * Offers corrections and checks spelling as the user types; off for a
+   * name, an identifier or a code.
+   * @default true
+   */
+  autoCorrect?: boolean;
+  /**
    * Focuses the field as the alert opens.
    * @default true
    */
