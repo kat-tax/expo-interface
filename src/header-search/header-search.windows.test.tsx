@@ -1,5 +1,5 @@
 import type {HeaderSearchCommands} from './types';
-import {createRef} from 'react';
+import {createRef, useEffect, useState} from 'react';
 import {Text, View} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {HeaderAction} from '../header-action';
@@ -97,6 +97,21 @@ describe('HeaderSearch (windows)', () => {
     await act(async () => ref.current!.clear());
     expect(island(BOX).props.text).toBe('');
     await act(async () => ref.current!.cancel());
+    expect(islands(BOX)).toHaveLength(0);
+  });
+
+  it('takes the search out of the header when the screen stops rendering it', async () => {
+    let hide = () => {};
+    function Toggled() {
+      const [shown, setShown] = useState(true);
+      useEffect(() => {
+        hide = () => setShown(false);
+      });
+      return shown ? <HeaderSearch placement="stacked" placeholder="Find a drop"/> : null;
+    }
+    await renderApp(app(<Toggled/>));
+    expect(islands(BOX)).toHaveLength(1);
+    await act(async () => hide());
     expect(islands(BOX)).toHaveLength(0);
   });
 

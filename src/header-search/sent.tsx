@@ -1,8 +1,8 @@
-import type {ComponentProps, PropsWithChildren} from 'react';
+import type {PropsWithChildren} from 'react';
 import type {HeaderSearchProps, HeaderSearchSlot} from './types';
 import {useMemo} from 'react';
+import {useHeaderOption} from '../header/option';
 import {useInHeader} from '../header/shared';
-import {Stack} from '../router/stack';
 import {ScreenBar} from '../screen/bars';
 import {useClearOnUnmount} from './clear';
 import {SearchBottomBar, SiteSearch} from './drawn';
@@ -42,17 +42,16 @@ export const HeaderSearch = Object.assign(
 );
 
 /**
- * Sends the search to the route's header through its options, the way the
- * other header controls reach `headerRight`: a `Stack.Screen` in a screen
- * merges what it is given with what is there, so a `HeaderActions` beside
- * the search keeps its items.
+ * Sends the search to the route's header through its `headerSearch` option,
+ * an option of the kit's own that the drawn header reads. Setting options
+ * merges, so a `HeaderActions` beside the search keeps its items, and the
+ * search comes off the route when the element goes: unmounted, or turned
+ * `integrated`, which draws its own bar instead.
  */
 function SearchSlot({placement, children}: PropsWithChildren<{placement: HeaderSearchSlot['placement']}>) {
-  // An option of the kit's own, which the stack's types do not know and the drawn header reads.
-  const options = useMemo(() => ({headerSearch: {placement, node: children}}) as unknown as ScreenOptions, [placement, children]);
-  return <Stack.Screen options={options}/>;
+  const slot = useMemo<HeaderSearchSlot>(() => ({placement, node: children}), [placement, children]);
+  useHeaderOption('headerSearch', slot);
+  return null;
 }
-
-type ScreenOptions = ComponentProps<typeof Stack.Screen>['options'];
 
 export type {HeaderSearchCommands, HeaderSearchInput, HeaderSearchIntegration, HeaderSearchPlacement, HeaderSearchProps} from './types';

@@ -298,7 +298,9 @@ bar's menu actions none.
 The header's search, in the placements the platforms have. Like the other
 header controls it is rendered in the screen's content and sends itself to
 the header from there; mounting it adds the search and unmounting it takes
-the search away.
+the search away. A screen has one search: on web and Windows two in one
+screen share the route's one `headerSearch` option, and the first to unmount
+takes the search away.
 
 ```tsx
 export default function Documents() {
@@ -404,6 +406,11 @@ filter bar, a breadcrumb. Render it in the screen's content, as a
 
 A `TabView` without `children` is the strip alone; the page is the screen's
 content. `fill="none"` lets the header's material show through the strip.
+
+Unmounting it takes the row away, as unmounting a `HeaderSearch` takes the
+search away. On web and Windows the row is the route's one `headerAccessory`
+option, so a screen renders one: two in one screen share it, and the first
+to unmount takes the row away.
 
 Content passing under a bar pays for the row through `useTabBarInset()`, as
 it pays for the bar, so a `Screen underBar` with the kit's `List` or
