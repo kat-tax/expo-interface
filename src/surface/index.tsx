@@ -59,6 +59,7 @@ export function Surface({
   suppressNativeMenu = false,
   label,
   onLayout,
+  ref,
   style,
   testID,
 }: SurfaceProps) {
@@ -81,11 +82,12 @@ export function Surface({
   };
 
   if (!onPress && !onLongPress) {
-    return <View style={[box, style]} onLayout={onLayout} testID={testID} {...(suppressNativeMenu ? NO_NATIVE_MENU : null)}>{children}</View>;
+    return <View ref={ref} style={[box, style]} onLayout={onLayout} testID={testID} {...(suppressNativeMenu ? NO_NATIVE_MENU : null)}>{children}</View>;
   }
 
   return (
     <StatePressable
+      ref={ref}
       role="button"
       accessibilityLabel={label}
       disabled={disabled}

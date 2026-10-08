@@ -90,6 +90,9 @@ const covered = useKeyboardInset(editor);
 <View ref={editor} style={{flex: 1, paddingBottom: covered}}>
 ```
 
+A `Surface` takes the ref as a `View` does, so one surface can keep the
+browser's menu closed and be measured.
+
 | Platform | Reads |
 | --- | --- |
 | iOS | The keyboard's frame as it starts to change (`keyboardWillChangeFrame`), so the answer arrives with the keyboard, measured against the view in the window |

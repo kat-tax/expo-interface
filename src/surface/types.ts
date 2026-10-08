@@ -1,5 +1,5 @@
-import type {PropsWithChildren, ReactNode} from 'react';
-import type {LayoutChangeEvent, PressableProps, StyleProp, ViewStyle} from 'react-native';
+import type {PropsWithChildren, ReactNode, Ref} from 'react';
+import type {LayoutChangeEvent, PressableProps, StyleProp, View, ViewStyle} from 'react-native';
 import type {ColorTokens} from '../theme';
 
 /** Fill of a `Surface`, from the theme's background tokens. */
@@ -25,6 +25,8 @@ export type Feedback = 'control' | 'subtle' | 'accent';
 export interface StatePressableProps extends Omit<PressableProps, 'style' | 'children'> {
   style: (state: PressState) => StyleProp<ViewStyle>;
   children?: ReactNode;
+  /** The pressable's view, passed on to `Pressable`. */
+  ref?: Ref<View>;
 }
 
 /**
@@ -83,6 +85,12 @@ export interface SurfaceProps extends PropsWithChildren {
   label?: string;
   /** Called with the surface's size once it is laid out. */
   onLayout?: (event: LayoutChangeEvent) => void;
+  /**
+   * The surface's view, to measure it: `useKeyboardInset(ref)`,
+   * `useDrop(ref)`, `measureInWindow`. On the web it is the surface's DOM
+   * element.
+   */
+  ref?: Ref<View>;
   /** Style applied to the surface, after everything the props set. */
   style?: StyleProp<ViewStyle>;
   /** Identifier used to locate the component in end-to-end tests. */

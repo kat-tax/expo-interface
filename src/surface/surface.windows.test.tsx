@@ -1,4 +1,6 @@
+import type {View} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
+import {createRef} from 'react';
 import {PlatformColor, Text} from 'react-native';
 import {Surface} from '.';
 import {StatePressable} from './pressable';
@@ -29,6 +31,20 @@ describe('Surface (windows)', () => {
   it('draws a plain box, with no pointer to track, without a press handler', async () => {
     await render(<Surface testID="box"><Text>Box</Text></Surface>);
     expect(screen.getByTestId('box').props.onHoverIn).toBeUndefined();
+  });
+
+  it('hands its ref the view it draws, through the pointer-tracking pressable too', async () => {
+    const plain = createRef<View>();
+    const card = createRef<View>();
+    await render(
+      <>
+        <Surface ref={plain} testID="box"/>
+        <Surface ref={card} onPress={vi.fn()} testID="card"/>
+      </>,
+    );
+    // React Native's test setup mocks View as a class rather than a host view: the ref holds that, with the surface's props.
+    expect(plain.current).toMatchObject({props: {testID: 'box'}});
+    expect(card.current).toMatchObject({props: {testID: 'card'}});
   });
 });
 

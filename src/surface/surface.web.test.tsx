@@ -1,4 +1,6 @@
+import type {View} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react';
+import {createRef} from 'react';
 import {Surface} from '.';
 
 describe('Surface (web)', () => {
@@ -33,6 +35,21 @@ describe('Surface (web)', () => {
     expect(fireEvent.contextMenu(screen.getByTestId('canvas'))).toBe(false);
     expect(fireEvent.contextMenu(screen.getByTestId('card'))).toBe(false);
     expect(fireEvent.contextMenu(screen.getByTestId('plain'))).toBe(true);
+  });
+
+  it('hands its ref the DOM element, plain or pressable, with the browser menu still kept closed', () => {
+    const plain = createRef<View>();
+    const card = createRef<View>();
+    render(
+      <>
+        <Surface ref={plain} suppressNativeMenu testID="canvas"/>
+        <Surface ref={card} suppressNativeMenu onPress={() => {}} label="Card" testID="card"/>
+      </>,
+    );
+    expect(plain.current).toBe(screen.getByTestId('canvas'));
+    expect(card.current).toBe(screen.getByTestId('card'));
+    expect(fireEvent.contextMenu(screen.getByTestId('canvas'))).toBe(false);
+    expect(fireEvent.contextMenu(screen.getByTestId('card'))).toBe(false);
   });
 
   it('is a button when it presses', () => {

@@ -1,5 +1,7 @@
+import type {View} from 'react-native';
 import {Platform, StyleSheet, Text} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
+import {createRef} from 'react';
 import {colors} from '../theme';
 import {PRESSED_OPACITY, pressFeedback} from './shared';
 import {Surface} from '.';
@@ -103,5 +105,19 @@ describe(`Surface (${Platform.OS})`, () => {
     expect(style().margin).toBe(4);
     fireEvent(screen.getByTestId('surface'), 'layout', {nativeEvent: {layout: {width: 10, height: 20}}});
     expect(onLayout).toHaveBeenCalledTimes(1);
+  });
+
+  it('hands its ref the view it draws, plain or pressable', async () => {
+    const plain = createRef<View>();
+    const card = createRef<View>();
+    await render(
+      <>
+        <Surface ref={plain} testID="plain"/>
+        <Surface ref={card} onPress={vi.fn()} label="Card" testID="card"/>
+      </>,
+    );
+    // React Native's test setup mocks View as a class rather than a host view: the ref holds that, with the surface's props.
+    expect(plain.current).toMatchObject({props: {testID: 'plain'}});
+    expect(card.current).toMatchObject({props: {testID: 'card'}});
   });
 });

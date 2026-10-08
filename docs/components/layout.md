@@ -79,7 +79,9 @@ such as `opaqueSeparator`, which follows the scheme, or any color;
 shadow), `padding`, `onPress`, `onLongPress`, `disabled`, `label` (the
 accessible name of a pressable surface), `suppressNativeMenu` (web only:
 the browser's context menu does not open over the surface, for a canvas or
-an editor with menus of its own), `onLayout`, `style`, `testID`.
+an editor with menus of its own), `onLayout`, `ref` (the surface's view,
+to measure it with `useKeyboardInset`, `useDrop` or `measureInWindow`; the
+DOM element on web), `style`, `testID`.
 
 Differences:
 
