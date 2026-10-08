@@ -35,6 +35,26 @@ describe('ColorPicker presentations (web)', () => {
     expect(screen.queryByRole('heading')).toBeNull();
   });
 
+  it('disables the picker drawn in place along with its presets', () => {
+    const onValueChange = vi.fn();
+    const {rerender} = render(<ColorPicker value="#FF0000" presentation="inline" swatches={['#FF0000']} onValueChange={onValueChange} testID="cp"/>);
+    const sheet = () => screen.getByTestId('cp-sheet');
+    expect(getComputedStyle(sheet()).opacity).not.toBe('0.4');
+    expect(within(sheet()).getByRole('button', {name: 'Color #FFFFFF'})).not.toHaveAttribute('aria-disabled');
+    rerender(<ColorPicker value="#FF0000" presentation="inline" swatches={['#FF0000']} disabled onValueChange={onValueChange} testID="cp"/>);
+    expect(getComputedStyle(sheet()).opacity).toBe('0.4');
+    const white = within(sheet()).getByRole('button', {name: 'Color #FFFFFF'});
+    expect(white).toHaveAttribute('aria-disabled', 'true');
+    fireEvent.click(white);
+    expect(within(sheet()).getByRole('radio', {name: 'Sliders tab'})).toHaveAttribute('aria-disabled', 'true');
+    expect(within(sheet()).getByRole('slider', {name: 'Opacity'})).toHaveAttribute('aria-disabled', 'true');
+    expect(within(sheet()).getByRole('textbox', {name: 'Opacity percent'})).toHaveAttribute('readonly');
+    expect(within(sheet()).getByRole('button', {name: 'Save color'})).toHaveAttribute('aria-disabled', 'true');
+    const preset = screen.getByTestId('cp').querySelector<HTMLButtonElement>('.ui-color-picker__presets .ui-color-picker__preset')!;
+    expect(preset).toBeDisabled();
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
   it('opens the picker in a native popover from the well, and closes it from its close button', () => {
     const {rerender} = render(<ColorPicker label="Ink" value="#FF0000" presentation="popover" onValueChange={vi.fn()} testID="cp"/>);
     const popover = document.querySelector<HTMLElement>('.ui-color-picker__popover')!;

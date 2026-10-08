@@ -1,4 +1,4 @@
-import {Platform} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {setColorScheme} from 'vitest-native/helpers';
 import {nodes} from 'expo-vitest/native';
@@ -166,6 +166,53 @@ describe(`ColorPickerSheet (${Platform.OS})`, () => {
     expect(onValueChange).toHaveBeenLastCalledWith('#000000FF');
     await fireEvent.press(screen.getByLabelText('Saved color #123456FF'));
     expect(onValueChange).toHaveBeenLastCalledWith('#123456FF');
+  });
+
+  it('dims itself and takes no pick when disabled, the close button aside', async () => {
+    const onValueChange = vi.fn();
+    const onClose = vi.fn();
+    const sheet = (disabled: boolean) => (
+      <ColorPickerSheet title="Ink" value="#123456" supportsOpacity disabled={disabled} onValueChange={onValueChange} onClose={onClose} testID="sheet"/>
+    );
+    const {rerender} = await render(sheet(false));
+    expect(StyleSheet.flatten(screen.getByTestId('sheet').props.style).opacity).toBeUndefined();
+    await fireEvent.press(screen.getByLabelText('Save color'));
+    const saved = screen.getAllByLabelText(/^Saved color/).length;
+    await rerender(sheet(true));
+    expect(StyleSheet.flatten(screen.getByTestId('sheet').props.style).opacity).toBe(0.4);
+    // The grid, the tabs and the saved colors are disabled buttons.
+    const white = screen.getByLabelText('Color #FFFFFF');
+    expect(white.props.accessibilityState.disabled).toBe(true);
+    await fireEvent.press(white);
+    await fireEvent.press(screen.getByLabelText('Sliders tab'));
+    expect(screen.getByLabelText('Grid tab').props.accessibilityState).toMatchObject({checked: true, disabled: true});
+    await fireEvent.press(screen.getAllByLabelText(/^Saved color/)[0]);
+    await fireEvent.press(screen.getByLabelText('Save color'));
+    expect(screen.getAllByLabelText(/^Saved color/)).toHaveLength(saved);
+    // The opacity slider never takes the touch, and its field cannot be edited.
+    const opacity = screen.getByLabelText('Opacity');
+    expect(opacity.props.accessibilityState.disabled).toBe(true);
+    expect(opacity.props.onStartShouldSetResponder()).toBe(false);
+    expect(opacity.props.onMoveShouldSetResponder()).toBe(false);
+    await layout(opacity, 236);
+    await touch(opacity, 'responderGrant', 18);
+    const percent = screen.getByLabelText('Opacity percent');
+    expect(percent.props.editable).toBe(false);
+    expect(percent.props['aria-disabled']).toBe(true);
+    // The spectrum and the channel sliders, reached while enabled, are as still.
+    for (const tab of ['Spectrum', 'Sliders']) {
+      await rerender(sheet(false));
+      await fireEvent.press(screen.getByLabelText(`${tab} tab`));
+      await rerender(sheet(true));
+      const surface = screen.getByLabelText(tab === 'Spectrum' ? 'Spectrum' : 'Red');
+      expect(surface.props.accessibilityState.disabled).toBe(true);
+      expect(surface.props.onStartShouldSetResponder()).toBe(false);
+    }
+    expect(screen.getByLabelText('Hex color').props.editable).toBe(false);
+    expect(screen.getByLabelText('Green value').props.editable).toBe(false);
+    expect(onValueChange).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByLabelText('Close'));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('raises the selected tab on a dark surface in the dark scheme', async () => {

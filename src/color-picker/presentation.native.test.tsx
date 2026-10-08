@@ -95,8 +95,14 @@ describe(`ColorPicker presentations (${Platform.OS})`, () => {
     const {rerender} = await render(<ColorPicker label="Ink" value="#FF0000" presentation="inline" swatches={['#FF0000']} allowsNone onValueChange={vi.fn()} testID="cp"/>, options);
     expect(sheetProps).toMatchObject({title: 'Ink'});
     expect(sheetProps!.onClose).toBeUndefined();
+    expect(sheetProps!.disabled).toBeUndefined();
     expect(byComposeTestID('cp-swatch-none')).toBeTruthy();
     expect(byComposeTestID('cp-swatch-#FF0000')).toBeTruthy();
+    expect(modifier(ofType('FlowRow')[0].props, 'alpha')).toBeUndefined();
+    // A disabled picker disables the picker in place, and dims the presets over it as the row does.
+    await rerender(<ColorPicker label="Ink" value="#FF0000" presentation="inline" swatches={['#FF0000']} allowsNone disabled onValueChange={vi.fn()} testID="cp"/>);
+    expect(sheetProps!.disabled).toBe(true);
+    expect(modifier(ofType('FlowRow')[0].props, 'alpha')?.alpha).toBe(0.4);
     await rerender(<ColorPicker value="#FF0000" presentation="inline" onValueChange={vi.fn()}/>);
     expect(ofType('FlowRow')).toHaveLength(0);
     // Without a label the picker adds no heading under the sheet it sits in.

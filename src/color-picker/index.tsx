@@ -62,6 +62,7 @@ export function ColorPicker({
       supportsOpacity={supportsOpacity}
       onValueChange={hex => setCurrent(parseColor(hex))}
       onClose={onClose}
+      disabled={disabled}
       testID={testID ? `${testID}-sheet` : undefined}
     />
   );

@@ -42,6 +42,11 @@ export interface ColorPickerSheetProps {
   onValueChange: (hex: string) => void;
   /** Called from the close button; without it there is none, as when the picker is drawn in place. */
   onClose?: () => void;
+  /**
+   * Dims the picker and disables its controls, as for a disabled picker
+   * drawn in place. The close button stays live.
+   */
+  disabled?: boolean;
   /** Fixed content width (Android sizes the hosted React Native tree from its content). */
   width?: number;
   /** Identifier used to locate the sheet in end-to-end tests. */
@@ -68,15 +73,16 @@ const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n
 /** Colors the user saved with the `+` button, shared by every picker for the session. */
 let savedColors: RGBA[] = [];
 
-const responder = (handler: (x: number, y: number) => void) => ({
-  onStartShouldSetResponder: () => true,
-  onMoveShouldSetResponder: () => true,
+/** Touch handlers for a drag surface; a disabled one never takes the touch. */
+const responder = (handler: (x: number, y: number) => void, disabled?: boolean) => ({
+  onStartShouldSetResponder: () => !disabled,
+  onMoveShouldSetResponder: () => !disabled,
   onResponderTerminationRequest: () => false,
   onResponderGrant: (event: GestureResponderEvent) => handler(event.nativeEvent.locationX, event.nativeEvent.locationY),
   onResponderMove: (event: GestureResponderEvent) => handler(event.nativeEvent.locationX, event.nativeEvent.locationY),
 });
 
-export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, onClose, width, testID}: ColorPickerSheetProps) {
+export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, onClose, disabled, width, testID}: ColorPickerSheetProps) {
   const [tab, setTab] = useState<ColorPickerTab>('grid');
   const [color, setColor] = useColorValue(value, onValueChange, supportsOpacity);
   const [saved, setSaved] = useState(savedColors);
@@ -92,7 +98,7 @@ export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, 
   };
 
   return (
-    <View style={[styles.sheet, width != null ? {width} : styles.fill]} testID={testID}>
+    <View style={[styles.sheet, width != null ? {width} : styles.fill, ...(disabled ? [styles.disabled] : [])]} testID={testID}>
       {title != null || onClose ? (
         <View style={styles.header}>
           {title != null ? <Text style={[styles.title, {color: label}]} numberOfLines={1} role="heading" accessible>{title}</Text> : null}
@@ -107,11 +113,11 @@ export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, 
           ) : null}
         </View>
       ) : null}
-      <Tabs value={tab} onChange={setTab}/>
+      <Tabs value={tab} onChange={setTab} disabled={disabled}/>
       <View style={styles.section}>
-        {tab === 'grid' ? <Grid color={color} onChange={setColor}/> : null}
-        {tab === 'spectrum' ? <Spectrum color={color} onChange={setColor}/> : null}
-        {tab === 'sliders' ? <Sliders color={color} onChange={setColor}/> : null}
+        {tab === 'grid' ? <Grid color={color} onChange={setColor} disabled={disabled}/> : null}
+        {tab === 'spectrum' ? <Spectrum color={color} onChange={setColor} disabled={disabled}/> : null}
+        {tab === 'sliders' ? <Sliders color={color} onChange={setColor} disabled={disabled}/> : null}
       </View>
       {supportsOpacity ? (
         <View style={styles.section}>
@@ -123,11 +129,13 @@ export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, 
               checkered
               colorAt={t => toCss({...color, a: t})}
               onChange={a => setColor({...color, a})}
+              disabled={disabled}
             />
             <Field
               label="Opacity percent"
               value={`${Math.round(color.a * 100)}%`}
               onCommit={text => setColor({...color, a: clamp(parseFloat(text) || 0, 0, 100) / 100})}
+              disabled={disabled}
             />
           </View>
         </View>
@@ -144,6 +152,7 @@ export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, 
               key={`${toHex(entry, true)}-${index}`}
               role="button"
               aria-label={`Saved color ${toHex(entry, true)}`}
+              disabled={disabled}
               onPress={() => setColor(entry)}
               style={[styles.swatch, {backgroundColor: toCss(entry)}]}
             />
@@ -151,6 +160,7 @@ export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, 
           <Pressable
             role="button"
             aria-label="Save color"
+            disabled={disabled}
             onPress={save}
             style={[styles.swatch, {backgroundColor: fill}]}>
             <Text style={[styles.plus, {color: secondary}]}>+</Text>
@@ -161,7 +171,14 @@ export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, 
   );
 }
 
-function Tabs({value, onChange}: {value: ColorPickerTab; onChange: (tab: ColorPickerTab) => void}) {
+/** What every part of the picker takes: the color shown, how it reports a pick, and whether it can. */
+interface PartProps {
+  color: RGBA;
+  onChange: (next: RGBA) => void;
+  disabled?: boolean;
+}
+
+function Tabs({value, onChange, disabled}: {value: ColorPickerTab; onChange: (tab: ColorPickerTab) => void; disabled?: boolean}) {
   const dark = useColorScheme() === 'dark';
   const label = useColor('label');
   const fill = useColor('pillBackground');
@@ -175,6 +192,7 @@ function Tabs({value, onChange}: {value: ColorPickerTab; onChange: (tab: ColorPi
             role="radio"
             aria-label={`${tab.label} tab`}
             aria-checked={selected}
+            disabled={disabled}
             onPress={() => onChange(tab.value)}
             style={[styles.tab, selected && [styles.tabSelected, {backgroundColor: dark ? '#636366' : '#ffffff'}]]}>
             <Text style={[styles.tabLabel, {color: label}, selected && styles.tabLabelSelected]}>{tab.label}</Text>
@@ -185,7 +203,7 @@ function Tabs({value, onChange}: {value: ColorPickerTab; onChange: (tab: ColorPi
   );
 }
 
-function Grid({color, onChange}: {color: RGBA; onChange: (next: RGBA) => void}) {
+function Grid({color, onChange, disabled}: PartProps) {
   const rows = Array.from({length: grid.rows}, (_, row) =>
     Array.from({length: grid.columns}, (_, column) => gridColor(row, column)),
   );
@@ -201,6 +219,7 @@ function Grid({color, onChange}: {color: RGBA; onChange: (next: RGBA) => void}) 
                 role="button"
                 aria-label={`Color ${toHex({...cell, a: 1}, false)}`}
                 aria-selected={selected}
+                disabled={disabled}
                 onPress={() => onChange({...cell, a: color.a})}
                 style={[styles.gridCell, {backgroundColor: toCss({...cell, a: 1})}]}>
                 {selected ? <View style={styles.gridSelected}/> : null}
@@ -213,7 +232,7 @@ function Grid({color, onChange}: {color: RGBA; onChange: (next: RGBA) => void}) 
   );
 }
 
-function Spectrum({color, onChange}: {color: RGBA; onChange: (next: RGBA) => void}) {
+function Spectrum({color, onChange, disabled}: PartProps) {
   const [size, setSize] = useState({width: 0, height: 0});
   const position = spectrumPosition(color);
   const pick = (x: number, y: number) => {
@@ -222,9 +241,10 @@ function Spectrum({color, onChange}: {color: RGBA; onChange: (next: RGBA) => voi
   };
   return (
     <View
-      {...responder(pick)}
+      {...responder(pick, disabled)}
       role="slider"
       aria-label="Spectrum"
+      aria-disabled={disabled}
       aria-valuetext={toHex(color, false)}
       onLayout={(event: LayoutChangeEvent) => setSize(event.nativeEvent.layout)}
       style={styles.spectrum}>
@@ -248,7 +268,7 @@ function Spectrum({color, onChange}: {color: RGBA; onChange: (next: RGBA) => voi
 const CHANNELS = ['r', 'g', 'b'] as const;
 const CHANNEL_NAMES = {r: 'Red', g: 'Green', b: 'Blue'} as const;
 
-function Sliders({color, onChange}: {color: RGBA; onChange: (next: RGBA) => void}) {
+function Sliders({color, onChange, disabled}: PartProps) {
   const secondary = useColor('secondaryLabel');
   return (
     <View style={styles.sliders}>
@@ -261,11 +281,13 @@ function Sliders({color, onChange}: {color: RGBA; onChange: (next: RGBA) => void
               value={color[channel] / 255}
               colorAt={t => toCss({...color, a: 1, [channel]: t * 255})}
               onChange={t => onChange({...color, [channel]: Math.round(t * 255)})}
+              disabled={disabled}
             />
             <Field
               label={`${CHANNEL_NAMES[channel]} value`}
               value={String(color[channel])}
               onCommit={text => onChange({...color, [channel]: clamp(Math.round(Number(text)) || 0, 0, 255)})}
+              disabled={disabled}
             />
           </View>
         </View>
@@ -280,6 +302,7 @@ function Sliders({color, onChange}: {color: RGBA; onChange: (next: RGBA) => void
             if (!/^[0-9a-f]{3}$|^[0-9a-f]{6}$/i.test(text)) return;
             onChange({...parseColor(text), a: color.a});
           }}
+          disabled={disabled}
         />
       </View>
     </View>
@@ -295,10 +318,11 @@ interface SliderProps {
   /** Draws a checkerboard under the track (for translucent colors). */
   checkered?: boolean;
   onChange: (value: number) => void;
+  disabled?: boolean;
 }
 
 /** A pill track banded with `SEGMENTS` solid colors and a ringed thumb, like the iOS color sliders. */
-function Slider({label, value, colorAt, checkered, onChange}: SliderProps) {
+function Slider({label, value, colorAt, checkered, onChange, disabled}: SliderProps) {
   const [width, setWidth] = useState(0);
   // The thumb travels inside the pill, inset by the ring around it.
   const travel = Math.max(0, width - THUMB - 2 * THUMB_INSET);
@@ -308,9 +332,10 @@ function Slider({label, value, colorAt, checkered, onChange}: SliderProps) {
   };
   return (
     <View
-      {...responder(pick)}
+      {...responder(pick, disabled)}
       role="slider"
       aria-label={label}
+      aria-disabled={disabled}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(value * 100)}
@@ -337,10 +362,11 @@ interface FieldProps {
   wide?: boolean;
   /** Called with the typed text when editing ends or the return key is pressed. */
   onCommit: (text: string) => void;
+  disabled?: boolean;
 }
 
 /** Rounded value box that commits when editing ends, like the iOS picker's fields. */
-function Field({label, value, wide, onCommit}: FieldProps) {
+function Field({label, value, wide, onCommit, disabled}: FieldProps) {
   const [text, setText] = useState(value);
   // Follow the picked color while the field is not being edited.
   const [seen, setSeen] = useState(value);
@@ -354,6 +380,8 @@ function Field({label, value, wide, onCommit}: FieldProps) {
   return (
     <TextInput
       aria-label={label}
+      aria-disabled={disabled}
+      editable={!disabled}
       value={text}
       onChangeText={setText}
       onSubmitEditing={commit}
@@ -367,6 +395,7 @@ function Field({label, value, wide, onCommit}: FieldProps) {
 const styles = StyleSheet.create({
   sheet: {gap: 16},
   fill: {alignSelf: 'stretch'},
+  disabled: {opacity: 0.4},
   header: {height: 44, alignItems: 'center', justifyContent: 'center'},
   title: {
     fontFamily: fonts?.sans,

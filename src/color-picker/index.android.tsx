@@ -144,6 +144,7 @@ export function ColorPicker({
       supportsOpacity={supportsOpacity}
       onValueChange={hex => setCurrent(parseColor(hex))}
       onClose={onClose}
+      disabled={disabled}
       width={panelWidth}
       testID={testID ? `${testID}-sheet` : undefined}
     />
@@ -152,7 +153,11 @@ export function ColorPicker({
   if (presentation === 'inline') {
     return (
       <Column verticalArrangement={{spacedBy: 12}} modifiers={[fillMaxWidth(), ...(testID ? [testIDModifier(testID)] : [])]}>
-        {presetBoxes.length > 0 ? <FlowRow verticalArrangement={{spacedBy: 8}} horizontalArrangement={{spacedBy: 8}}>{presetBoxes}</FlowRow> : null}
+        {presetBoxes.length > 0 ? (
+          <FlowRow verticalArrangement={{spacedBy: 8}} horizontalArrangement={{spacedBy: 8}} modifiers={disabled ? [alpha(0.4)] : []}>
+            {presetBoxes}
+          </FlowRow>
+        ) : null}
         <RNHostView matchContents>{panel(width - SHEET_INSET * 2, label)}</RNHostView>
       </Column>
     );
