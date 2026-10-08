@@ -4,10 +4,10 @@ import path from 'node:path';
 import {createElement, useEffect, useState} from 'react';
 import {Asset} from 'expo-asset';
 import {Animated, Platform, StyleSheet, Text} from 'react-native';
-import {act, fireEvent, screen as dom, waitFor} from '@testing-library/react';
+import {act, fireEvent, render as renderDom, screen as dom, waitFor} from '@testing-library/react';
 import {fireEvent as fireNative, render, screen} from '@testing-library/react-native';
 import Constants from 'expo-constants';
-import {Stack, router} from 'expo-router';
+import {ExpoRoot, Stack, router} from 'expo-router';
 import * as icons from '../__stories__/icons';
 import {HeaderAccessory} from '../header-accessory';
 import {HeaderAction} from '../header-action';
@@ -333,6 +333,24 @@ describe(`Tabs (${Platform.OS})`, () => {
       it('draws the app\'s name in the home link where there is no mark', async () => {
         await renderApp(await stackApp({webLogo: 'text-only'}), '/home/detail');
         expect(dom.getByTestId('tab-bar-home').textContent).toBe(appName);
+      });
+
+      it('shows the back button in place of the home link on a deep link into a stack anchored at its index', async () => {
+        // The tab's stack layout exports `unstable_settings = {anchor: 'index'}`,
+        // so Expo Router opens the stack with its index under the screen.
+        const modules: Record<string, object> = Object.fromEntries(Object.entries(await stackApp()).map(([name, route]) => [name, {default: route}]));
+        modules['home/_layout'] = {...modules['home/_layout'], unstable_settings: {anchor: 'index'}};
+        const context = Object.assign((id: string) => modules[id.replace(/^\.\//, '').replace(/\.\w*$/, '')], {
+          resolve: (key: string) => key,
+          id: '0',
+          keys: () => Object.keys(modules).map(key => `./${key}.js`),
+        }) as unknown as Parameters<typeof ExpoRoot>[0]['context'];
+        renderDom(<ExpoRoot context={context} location="/home/detail"/>);
+        expect(dom.getByText('Detail screen')).toBeInTheDocument();
+        expect(dom.queryByTestId('tab-bar-home')).toBeNull();
+        fireEvent.click(dom.getByLabelText('Go back'));
+        await waitFor(() => expect(dom.getByText('Home screen')).toBeInTheDocument());
+        expect(dom.queryByLabelText('Go back')).toBeNull();
       });
 
       it('folds a screen\'s inline search into the bar as a frameless field beside the logo, and after a pushed screen\'s title', async () => {
