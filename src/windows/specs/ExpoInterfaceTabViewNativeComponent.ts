@@ -49,9 +49,10 @@ export interface NativeProps extends ViewProps {
    */
   addLabel?: string;
   /**
-   * The colour painted behind the strip: the kit's own element background. An
-   * island's root is white wherever its content is transparent, and a
-   * `TabView` is transparent by design — its fills are for a Mica window.
+   * The colour painted behind the strip: the kit's element background, or the
+   * screen's background for the kit's `fill="none"`. An island's root is
+   * white wherever its content is transparent, and a `TabView` is
+   * transparent by design — its fills are for a Mica window.
    */
   background?: string;
   accentColor?: string;

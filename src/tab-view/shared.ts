@@ -96,5 +96,5 @@ export function closeLabel(tab: TabViewTab): string {
   return `Close ${tab.title}`;
 }
 
-/** What the add button is called, wherever it is drawn. */
+/** What the add button is called when `addLabel` is not given. */
 export const ADD_LABEL = 'New tab';
