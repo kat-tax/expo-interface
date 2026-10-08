@@ -134,8 +134,10 @@ interface AccentProviderProps extends PropsWithChildren {
    * lighter on dark or darker on light until it reaches it on both; one that
    * reaches it is kept as it is. The system colors `theme` names natively
    * and the fills a platform draws itself are not measured, and in the dark
-   * scheme some are a little lighter: ask for more where tinted text sits
-   * on them.
+   * scheme some are lighter, much lighter on Android, where
+   * `theme.backgroundElement` is the theme's floating background: where
+   * tinted text sits on them, ask for more or fill the view with
+   * `useColor('backgroundElement')`.
    */
   minContrast?: number;
   /**

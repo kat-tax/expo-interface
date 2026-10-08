@@ -75,13 +75,18 @@ the palette's `background` and `backgroundElement` values, the colors
 wants the result without a provider.
 
 A deeper fill such as `backgroundSelected`, a system color a `theme` token
-names natively, and a fill the platform draws itself are not measured. In the
-dark scheme some of those are a little lighter than `backgroundElement`: what
+names natively, and a fill the platform draws itself are not measured, and in
+the dark scheme some of those are lighter than `backgroundElement`. What
 `theme.backgroundElement` names inside an iOS sheet and on Windows, and
-SwiftUI's grouped rows in a sheet. A tint that just reaches 4.5:1 on the
-palette's fill measures about 3.9:1 on them, so where tinted text sits on one,
-ask for a higher ratio, or fill the view with `useColor('backgroundElement')`,
-the color the ratio is measured against.
+SwiftUI's grouped rows in a sheet, are a little lighter: a tint that just
+reaches 4.5:1 on the palette's fill measures about 3.9:1 on them. On Android
+the gap is wider. There `theme.background` and `theme.backgroundElement` name
+the theme's window and floating backgrounds, #303030 and #424242 in
+Material's dark theme, and the same tint measures about 3.7:1 and under 3:1
+on them. Where tinted text sits on one of these, fill the view with
+`useColor('backgroundElement')`, the color the ratio is measured against, or
+ask for a higher ratio. On Android's floating background it takes a ratio of
+about 7 to reach 4.5:1.
 
 | Platform | How the seed is applied |
 | --- | --- |
