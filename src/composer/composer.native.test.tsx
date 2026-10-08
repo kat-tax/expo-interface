@@ -103,7 +103,7 @@ describe(`Composer (${Platform.OS})`, () => {
     };
     const {rerender} = await render(<Composer {...props}/>);
     const field = screen.getByTestId('c-field');
-    expect(field.props).toMatchObject({autoCapitalize: 'none', autoCorrect: false, keyboardType: 'email-address'});
+    expect(field.props).toMatchObject({autoCapitalize: 'none', autoCorrect: false, spellCheck: false, keyboardType: 'email-address'});
     // `inputmode` is web's.
     expect(field.props.inputMode).toBeUndefined();
     await fireEvent(field, 'keyPress', {nativeEvent: {key: 'Escape'}});

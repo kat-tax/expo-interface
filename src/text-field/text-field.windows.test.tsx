@@ -84,6 +84,20 @@ describe('TextField (windows)', () => {
     expect(screen.getByTestId('search').props.placeholder).toBe('Search');
   });
 
+  it('turns the spellcheck off with autocorrect in the inline variant, and leaves it to the input otherwise', async () => {
+    await render(
+      <>
+        <TextField variant="inline" autoCorrect={false} testID="code"/>
+        <TextField variant="bare" autoCorrect testID="prose"/>
+        <TextField variant="inline" testID="default"/>
+      </>,
+    );
+    // react-native-windows checks the spelling while either prop is on.
+    expect(screen.getByTestId('code').props).toMatchObject({autoCorrect: false, spellCheck: false});
+    expect(screen.getByTestId('prose').props).toMatchObject({autoCorrect: true, spellCheck: true});
+    expect(screen.getByTestId('default').props.spellCheck).toBeUndefined();
+  });
+
   it('names Escape in the inline variant from the character react-native-windows reports', async () => {
     const onKeyPress = vi.fn();
     await render(<TextField variant="inline" onKeyPress={onKeyPress} testID="find"/>);

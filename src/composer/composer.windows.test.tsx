@@ -51,7 +51,8 @@ describe('Composer (windows)', () => {
     expect(island(BUTTON).props).toMatchObject({label: 'Ask', glyph: glyphOf(NEXT), iconOnly: true});
     expect(screen.getByText('Could not send.')).toHaveStyle({color: colors.light.destructive});
     const field = screen.getByTestId('c-field');
-    expect(field.props).toMatchObject({autoCapitalize: 'none', autoCorrect: false, keyboardType: 'email-address'});
+    // The spellcheck goes off with autocorrect: react-native-windows checks while either is on.
+    expect(field.props).toMatchObject({autoCapitalize: 'none', autoCorrect: false, spellCheck: false, keyboardType: 'email-address'});
     // react-native-windows names Escape by the character it types.
     await fireEvent(field, 'keyPress', {nativeEvent: {key: '\u001b'}});
     expect(onKeyPress).toHaveBeenLastCalledWith('Escape', false);

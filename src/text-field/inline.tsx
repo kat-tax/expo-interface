@@ -95,6 +95,10 @@ export function InlineTextField({
       inputMode={web ? inputModeFor(keyboardType) : undefined}
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
+      // react-native-windows keeps checking the spelling unless `spellCheck`
+      // is off as well as `autoCorrect`. iOS and the web already take
+      // `spellCheck` from `autoCorrect`, so this changes nothing there.
+      spellCheck={autoCorrect}
       multiline={multiline}
       maxLength={maxLength}
       cursorColor={cursor}

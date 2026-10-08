@@ -234,6 +234,8 @@ describe(`TextField (${Platform.OS})`, () => {
     expect(input.props.submitKeyEvents).toBeUndefined();
     // `inputmode` is web's.
     expect(input.props.inputMode).toBeUndefined();
+    // The spellcheck follows autocorrect.
+    expect(input.props.spellCheck).toBe(false);
     expect(input.props.autoCapitalize).toBe('none');
     expect(input.props.placeholderTextColor).toBe('#9094A0');
     expect(nodes().some(n => n.type.startsWith('ViewManagerAdapter_ExpoUI'))).toBe(false);
@@ -267,6 +269,8 @@ describe(`TextField (${Platform.OS})`, () => {
     expect(input.props.cursorColor).toBe('#FF9500');
     expect(input.props.onSubmitEditing).toBeUndefined();
     expect(input.props.onKeyPress).toBeUndefined();
+    // Without `autoCorrect` the spellcheck stays the platform's default.
+    expect(input.props.spellCheck).toBeUndefined();
     await fireEvent.changeText(input, 'Ada L');
     expect(onChangeText).toHaveBeenCalledWith('Ada L');
   });
