@@ -32,7 +32,10 @@ let shown = 0;
  * Android's navigation bar). Around `Tabs` on iOS and Android it also
  * stands above the tab bar, and above its bottom accessory on iOS 26,
  * except while the tabs are hidden or a stack around them shows a screen
- * over them. Put the provider around the app's navigation. A `Screen`'s
+ * over them. The bar counts at its standard height (`inset.bottomTab`),
+ * not measured, so where the platform draws it shorter or not at the
+ * bottom (at the top on an iPad) the toast stands higher than the bar
+ * needs. Put the provider around the app's navigation. A `Screen`'s
  * fab lifts above it as it lifts above a toast of its own, and so does the
  * tabs' floating action.
  */
