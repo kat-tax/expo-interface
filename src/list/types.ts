@@ -4,15 +4,21 @@ import type {StyleProp, ViewStyle} from 'react-native';
 /**
  * A list of rows that grows: the inbox, the versions of a document, the
  * licences, the members of a space. The rows are `ListItem`s, and the list
- * is the platform's own lazy one, so three thousand rows cost what the
- * screen shows.
+ * is the platform's own lazy one, which draws only the rows on screen. The
+ * web and Windows render only the rows near the view; on iOS and Android
+ * React renders every row and the native list keeps a view for each, so a
+ * very long list there is better loaded a page at a time with
+ * `onEndReached`.
  *
  * - iOS: SwiftUI `List`, in the plain style, which draws its separators and
  *   recycles its rows.
  * - Android: Compose `LazyColumn`, with a Material divider between rows.
  * - Web: a DOM list that scrolls itself and draws only the rows near the
  *   view, two spacers keeping the room of the rest at their measured
- *   heights once seen and at `estimatedItemHeight` before.
+ *   heights once seen and at `estimatedItemHeight` before. Only the drawn
+ *   rows are in the page, so find in page, printing and a scroll to a row's
+ *   element reach only those, and a static page holds only the rows that
+ *   fill 1200 pixels at `estimatedItemHeight`.
  * - Windows: React Native's `FlatList`, windowed.
  *
  * Every platform's list scrolls itself and fills the space its parent gives

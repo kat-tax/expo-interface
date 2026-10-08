@@ -13,7 +13,10 @@ import type {StyleProp, ViewStyle} from 'react-native';
  *   column count worked out from the measured width.
  * - Web: a CSS grid that scrolls itself and draws only the rows of cells
  *   near the view, two spacers keeping the room of the rest at their
- *   measured heights once seen and at `estimatedItemHeight` before.
+ *   measured heights once seen and at `estimatedItemHeight` before. Only the
+ *   drawn cells are in the page, so find in page, printing and a scroll to a
+ *   card's element reach only those, and a static page holds only the rows
+ *   that fill 1200 pixels at `estimatedItemHeight`.
  *
  * Every platform's grid scrolls itself and fills the space its parent gives
  * it (a `Screen`'s content, a view with `flex: 1`). On the web, in a parent

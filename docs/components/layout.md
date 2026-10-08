@@ -424,7 +424,10 @@ Differences:
 
 A list of rows that grows: the inbox, the versions of a document, the
 members of a space. The rows are `ListItem`s and the list is the platform's
-own lazy one, so three thousand rows cost what the screen shows.
+own lazy one, which draws only the rows on screen. The web and Windows
+render only the rows near the view; on iOS and Android React renders every
+row and the native list keeps a view for each, so a very long list there is
+better loaded a page at a time with `onEndReached`.
 
 Props: `data`, `renderItem(item, index)`, `keyExtractor` (the index when
 left out), `separators` (default true), `header`, `footer`, `empty` (what
@@ -486,8 +489,11 @@ Differences:
   there a scroll up into rows never drawn can move what shows by the
   difference between their height and the estimate. A row scrolled out of
   the window is removed, as a native lazy list removes it, and the focus
-  with it. The browser's find in page and a screen reader's browse mode
-  see only the rows drawn.
+  with it. Only the rows drawn are in the page: the browser's find in page,
+  printing, a screen reader's browse mode, and a link or a script that
+  scrolls to a row's element reach only those. A static page, and a test
+  renderer that lays nothing out, hold only the rows that fill 1200 pixels
+  at `estimatedItemHeight`.
 
 ## CardGrid
 
@@ -544,8 +550,10 @@ Differences:
   (`aria-posinset`, `aria-setsize`), and `onEndReached` fires as the
   `List`'s does: once the grid is laid out and the window draws the last
   row, and again when more cards arrive while it is still drawn. As with
-  the `List`, find in page and a screen reader's browse mode see only the
-  cards drawn.
+  the `List`, only the cards drawn are in the page, for find in page,
+  printing, a screen reader's browse mode and a scroll to a card's
+  element, and a static page holds only the rows that fill 1200 pixels at
+  `estimatedItemHeight`.
 
 ## Collapsible
 

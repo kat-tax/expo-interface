@@ -14,7 +14,7 @@ interface Version {
   unread: boolean;
 }
 
-/** Three hundred versions of one document, which cost what the screen shows. */
+/** Three hundred versions of one document, more than a screen holds. */
 const VERSIONS: Version[] = Array.from({length: 300}, (_, index) => ({
   id: `v${300 - index}`,
   title: `Version ${300 - index}`,
