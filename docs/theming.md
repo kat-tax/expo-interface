@@ -69,11 +69,11 @@ under cards, menus, dialogs and bars, `backgroundElement`. The stricter of the
 two decides. A seed short of it in a scheme is made darker in the light scheme
 or lighter in the dark one, keeping its hue, until it reaches the ratio on
 both; a seed that reaches it is kept as it is. The ratio is measured against
-the palette's values, the colors `useColor`, `usePalette` and the CSS
-variables hand out, so a deeper fill such as `backgroundSelected`, or a system
-color a `theme` token names natively, is not part of it. `resolveAccent(seed,
-minContrast)` is the same computation, for code that wants the result without
-a provider.
+the palette's `background` and `backgroundElement` values, the colors
+`useColor`, `usePalette` and the CSS variables hand out for those two tokens.
+A deeper fill such as `backgroundSelected`, and a system color a `theme` token
+names natively, are not measured. `resolveAccent(seed, minContrast)` is the
+same computation, for code that wants the result without a provider.
 
 | Platform | How the seed is applied |
 | --- | --- |
