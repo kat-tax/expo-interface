@@ -1,11 +1,14 @@
 import type {BadgeProps} from './types';
-import {Badge as ComposeBadge, Text} from '@expo/ui/jetpack-compose';
-import {animated, graphicsLayer, testID as testIDModifier, tween} from '@expo/ui/jetpack-compose/modifiers';
+import {Box, Badge as ComposeBadge, Text} from '@expo/ui/jetpack-compose';
+import {animated, graphicsLayer, matchParentSize, testID as testIDModifier, tween} from '@expo/ui/jetpack-compose/modifiers';
 import {useNativeHost} from '../host';
 import {useBadgeColors} from './colors';
 import {DrawnBadge} from './drawn';
 import {PULSE_HALF, PULSE_LOW, usePulsePhase} from './pulse';
-import {MATERIAL_BADGE, badgeText} from './shared';
+import {MATERIAL_BADGE, badgeLabel, badgeText, badgeWordsAfter} from './shared';
+
+/** The label's text over a hosted badge: there for TalkBack, not to be seen. */
+const UNSEEN = '#00000000';
 
 /**
  * Inside a native host (a `ListItem`'s slots, a `NativeHost`, `Screen
@@ -29,12 +32,15 @@ export function Badge(props: BadgeProps) {
 /**
  * The Compose `Badge`, for a badge inside a host.
  *
- * **TalkBack reads the number alone here**, not the `label`. `@expo/ui`'s
- * Compose layer exposes no modifier that sets a content description — only
- * `Icon` takes one as a prop, and `semantics` takes `contentType` and nothing
- * else — so there is nowhere to put a better name. The drawn badge and the
- * other three platforms announce the label. When a modifier for it lands, this
- * is the first place to use it.
+ * **The label is unseen text beside the badge.** `@expo/ui`'s Compose layer
+ * exposes no modifier that sets a content description (only `Icon` takes one
+ * as a prop, and `semantics` takes `contentType` and nothing else), and
+ * TalkBack reads the number the badge draws. So what the label says past
+ * that number ("new" of "3 new", the whole label of a dot) is a transparent
+ * `Text` laid over the badge at its size, which TalkBack reads after the
+ * number: merged into a row that presses or a Material `ListItem`, a stop of
+ * its own anywhere else. When a description modifier lands, this is the first
+ * place to use it.
  *
  * Its pulse is paced from JavaScript: `@expo/ui`'s Compose animation specs
  * have no repeating one, so the alpha is told which end to head for each half
@@ -47,18 +53,25 @@ function HostedBadge(props: BadgeProps) {
   const phase = usePulsePhase(props.pulse === true);
   if (text === null) return null;
   const {dot, testID} = props;
+  const words = badgeWordsAfter(badgeLabel(props, text), text);
   return (
-    <ComposeBadge
-      containerColor={fill}
-      contentColor={content}
-      modifiers={[
-        ...(props.pulse ? [graphicsLayer({alpha: animated(phase === 'low' ? PULSE_LOW : 1, tween({durationMillis: PULSE_HALF, easing: 'ease'}))})] : []),
-        ...(testID ? [testIDModifier(testID)] : []),
-      ]}>
-      {/* A dot is a badge with nothing in it, which is how Compose draws one.
-          The number is in Label Small, the type the badge gives its content:
-          @expo/ui's Text passes a style of its own, which would drop it. */}
-      {dot ? null : <Text color={content} style={{typography: 'labelSmall'}}>{text}</Text>}
-    </ComposeBadge>
+    <Box contentAlignment="center">
+      <ComposeBadge
+        containerColor={fill}
+        contentColor={content}
+        modifiers={[
+          ...(props.pulse ? [graphicsLayer({alpha: animated(phase === 'low' ? PULSE_LOW : 1, tween({durationMillis: PULSE_HALF, easing: 'ease'}))})] : []),
+          ...(testID ? [testIDModifier(testID)] : []),
+        ]}>
+        {/* A dot is a badge with nothing in it, which is how Compose draws one.
+            The number is in Label Small, the type the badge gives its content:
+            @expo/ui's Text passes a style of its own, which would drop it. */}
+        {dot ? null : <Text color={content} style={{typography: 'labelSmall'}}>{text}</Text>}
+      </ComposeBadge>
+      {/* Sized to the badge by `matchParentSize`, so it neither widens the badge
+          nor moves it; a transparent color rather than a zero alpha, which
+          Compose would take for an invisible layer and leave out. */}
+      {words ? <Text color={UNSEEN} maxLines={1} modifiers={[matchParentSize()]}>{words}</Text> : null}
+    </Box>
   );
 }

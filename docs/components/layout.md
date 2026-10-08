@@ -409,10 +409,11 @@ Differences:
   through SwiftUI's row background.
 - Without a `badgeColor` the badge on Windows is Fluent's critical red, the
   `InfoBadge`'s own fill, where the other three draw `destructive`.
-- On Android TalkBack reads the row's own texts: a badge's count is its
-  number and a dot says nothing, since `@expo/ui`'s Compose layer has no
-  modifier that sets a description. `selected` is
-  announced on a row that presses by itself; an inert row, or one with
+- On Android TalkBack reads the row's own texts rather than a name composed
+  from its slots, since `@expo/ui`'s Compose layer has no modifier that sets
+  a description. The badge's words are among them as unseen text over the
+  badge, so a count reads "3, new" and a dot "New". `selected` is announced
+  on a row that presses by itself; an inert row, or one with
   `swipeActions`, shows the fill alone.
 - On iOS and Android a row outside a host (a React Native `ScrollView` of
   rows) mounts a host of its own, so it draws there too. See

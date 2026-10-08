@@ -1,8 +1,9 @@
 import type {ReactNode} from 'react';
+import type {HostNode} from 'expo-vitest/native';
 import {Platform, StyleSheet} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {colors} from '../theme';
-import {byComposeTestID, host, nodes} from 'expo-vitest/native';
+import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {hosts} from '../__tests__/hosts';
 import {NativeHostContext} from '../host';
 import {MATERIAL_BADGE, UIKIT_BADGE} from './shared';
@@ -16,8 +17,14 @@ const drawn = isIOS ? UIKIT_BADGE : MATERIAL_BADGE;
 /** Inside a native host, as a `ListItem`'s slots or a `NativeHost` are. */
 const inHost = (node: ReactNode) => <NativeHostContext.Provider value={true}>{node}</NativeHostContext.Provider>;
 
+/** The Compose `Badge` drawn inside a host. */
+const composeBadge = () => nodes().find(n => n.type.endsWith('BadgeView'))!;
+
 /** What the Compose `Text` inside the badge is carrying, if anything. */
-const composeText = () => nodes().map(n => n.props.text).filter((text): text is string => typeof text === 'string');
+const composeText = () => nodes(composeBadge()).map(n => n.props.text).filter((text): text is string => typeof text === 'string');
+
+/** The transparent text laid over a hosted badge, which TalkBack reads after the number. */
+const unseenText = () => nodes().filter(n => n.props.color === '#00000000').map(n => n.props.text);
 
 describe(`Badge (${Platform.OS})`, () => {
   it('draws a capsule in the destructive red, named for a screen reader', async () => {
@@ -107,6 +114,25 @@ describe(`Badge (${Platform.OS})`, () => {
       });
       // Compose's Text carries its content as a prop, not as an RN text node.
       expect(composeText()).toEqual(['3']);
+      expect(unseenText()).toEqual(['new']);
+    });
+
+    it('lays the rest of its label over itself as unseen text, which TalkBack reads after the number', async () => {
+      await render(inHost(<Badge count={3} label="3 unread messages" testID="unread"/>));
+      // A box the badge sizes: the text matches its size, so it neither widens
+      // nor moves the badge, and comes after it, so it is read after the number.
+      const [box] = nodes().filter(n => n.type.endsWith('BoxView'));
+      expect(box.props.contentAlignment).toBe('center');
+      const [badge, words] = (box.children ?? []) as HostNode[];
+      expect(modifier(badge.props, 'testID')?.testID).toBe('unread');
+      expect(words.props).toMatchObject({text: 'unread messages', color: '#00000000', maxLines: 1});
+      expect(modifier(words.props, 'matchParentSize')).toBeTruthy();
+    });
+
+    it('lays nothing over itself when the label is the number alone', async () => {
+      await render(inHost(<Badge count={3} label="3" testID="bare"/>));
+      expect(composeText()).toEqual(['3']);
+      expect(unseenText()).toEqual([]);
     });
 
     it('sets the number in Label Small, the type the drawn badge copies', async () => {
@@ -123,6 +149,8 @@ describe(`Badge (${Platform.OS})`, () => {
       await render(inHost(<Badge dot testID="dot"/>));
       expect(byComposeTestID('dot')).toBeTruthy();
       expect(composeText()).toEqual([]);
+      // A dot draws no number, so its whole label is the unseen text.
+      expect(unseenText()).toEqual(['New']);
     });
 
     it('takes a fill and a text color of its own', async () => {
@@ -146,6 +174,7 @@ describe(`Badge (${Platform.OS})`, () => {
     it('stops at the cap, and draws nothing for a count of nothing', async () => {
       await render(inHost(<Badge count={150} testID="many"/>));
       expect(composeText()).toEqual(['99+']);
+      expect(unseenText()).toEqual(['new']);
       const {toJSON} = await render(inHost(<Badge count={0}/>));
       expect(toJSON()).toBeNull();
     });

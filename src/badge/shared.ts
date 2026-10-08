@@ -84,3 +84,13 @@ export function badgeLabel(props: BadgeProps, text: string): string {
   if (props.label) return props.label;
   return props.dot ? 'New' : `${text} new`;
 }
+
+/**
+ * What the label says past the number the badge draws, for a badge whose
+ * number a screen reader reads by itself (the Compose badge on Android):
+ * "new" of "3 new", the whole label of a dot or of a label that does not
+ * start with the number, and nothing when the label is the number alone.
+ */
+export function badgeWordsAfter(label: string, text: string): string {
+  return (label.startsWith(text) ? label.slice(text.length) : label).trim();
+}

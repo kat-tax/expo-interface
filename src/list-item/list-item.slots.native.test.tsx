@@ -9,6 +9,8 @@ import {ListItem} from '.';
 const isIOS = Platform.OS === 'ios';
 const row = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
 const slot = (name: string) => nodes().filter(n => n.props?.slotName === name);
+/** The Compose texts in a row, in order (Android). */
+const texts = (testID: string) => nodes(byComposeTestID(testID)).map(n => n.props.text).filter(text => typeof text === 'string');
 
 /** Inside a host, as a row in a list is. */
 const options = {wrapper: ({children}: React.PropsWithChildren) => <NativeHostContext.Provider value={true}>{children}</NativeHostContext.Provider>};
@@ -52,6 +54,10 @@ describe(`ListItem slots (${Platform.OS})`, () => {
       expect(nodes().some(n => n.type.includes('Badge'))).toBe(true);
       expect(host(p => p.text === '3')).toBeTruthy();
       expect(JSON.stringify(slot('trailingContent')[0])).toContain('"T"');
+      // The texts TalkBack reads the row by: the badge's number, then its
+      // label's word as unseen text over it.
+      expect(texts('row')).toEqual(['Essay', '2 KB', '3', 'new']);
+      expect(host(p => p.text === 'new').props.color).toBe('#00000000');
     }
   });
 
@@ -63,8 +69,10 @@ describe(`ListItem slots (${Platform.OS})`, () => {
     } else {
       const badge = nodes().find(n => n.type.includes('Badge'))!;
       expect(badge).toBeTruthy();
-      // A dot holds nothing; the value is the only text in the trailing slot.
+      // A dot holds nothing; what it says is unseen text over it, read last.
       expect(badge.children ?? []).toHaveLength(0);
+      expect(texts('row')).toEqual(['Essay', 'Edited', '2 KB', 'New']);
+      expect(host(p => p.text === 'New').props.color).toBe('#00000000');
     }
   });
 

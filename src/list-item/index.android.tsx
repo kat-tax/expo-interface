@@ -58,7 +58,9 @@ export function ListItem({swipeActions, ...props}: ListItemProps) {
  * A row that presses is `clickable`, or `selectable` while it is the current
  * one, which puts the state in its semantics for TalkBack. The name composed
  * from the slots has nowhere to go: `@expo/ui`'s Compose `semantics` takes
- * `contentType` alone, so TalkBack reads the row's own texts.
+ * `contentType` alone, so TalkBack reads the row's own texts. The badge's
+ * words are among them: the hosted `Badge` lays the rest of its label over
+ * itself as unseen text, read after its number.
  */
 function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, badgeColor, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
   const label = useColor('label');

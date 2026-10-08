@@ -49,9 +49,11 @@ export interface BadgeProps {
    */
   dot?: boolean;
   /**
-   * What a screen reader says. Defaults to the count and what it is about —
-   * "3 unread" reads better than "3". On Android inside a host TalkBack
-   * reads the number instead (see `docs/accessibility.md`).
+   * What a screen reader says. Defaults to the count and what it is about:
+   * "3 unread" reads better than "3". On Android inside a host TalkBack reads
+   * the number the badge draws and then the rest of the label ("3", then
+   * "unread"), which is unseen text over the badge, since `@expo/ui`'s
+   * Compose layer sets no content description (see `docs/accessibility.md`).
    */
   label?: string;
   /**

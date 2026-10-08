@@ -70,9 +70,13 @@ CSS animation that `prefers-reduced-motion` stills.
 | Web | A `<span role="status">` |
 | Windows | WinUI `InfoBadge`. It holds a number and nothing else, so an overflowing count reads as the cap (`99`) where the others draw `99+`; the accessible name carries the true wording. |
 
-TalkBack reads the number alone for a badge inside a host on Android:
-`@expo/ui`'s Compose layer exposes no modifier that sets a content
-description. A drawn badge and the other three platforms announce the label.
+A drawn badge and the other three platforms announce the label. Inside a
+host on Android `@expo/ui`'s Compose layer exposes no modifier that sets a
+content description, and TalkBack reads the number the badge draws, so the
+rest of the label ("new" of "3 new", the whole label of a dot) is unseen
+text laid over the badge at its size. TalkBack reads it after the number: as
+part of a row that presses or a Material `ListItem`, which merge what they
+hold, and as a stop of its own anywhere else.
 
 Placing a badge over a control is the caller's job. On Windows, put it beside
 a pressable control or inside it: a XAML island takes pointer input for

@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {badgeLabel, badgeText, badgeValue} from './shared';
+import {badgeLabel, badgeText, badgeValue, badgeWordsAfter} from './shared';
 
 describe('badgeText', () => {
   it('is the count', () => {
@@ -51,5 +51,22 @@ describe('badgeLabel', () => {
     expect(badgeLabel({count: 3}, '3')).toBe('3 new');
     expect(badgeLabel({count: 150}, '99+')).toBe('99+ new');
     expect(badgeLabel({dot: true}, '')).toBe('New');
+  });
+});
+
+describe('badgeWordsAfter', () => {
+  it('is what the label says past the number, which a reader that reads the number has not heard', () => {
+    expect(badgeWordsAfter('3 new', '3')).toBe('new');
+    expect(badgeWordsAfter('99+ new', '99+')).toBe('new');
+    expect(badgeWordsAfter('3 unread messages', '3')).toBe('unread messages');
+  });
+
+  it('is the whole label for a dot, which draws no number, and for a label that does not start with it', () => {
+    expect(badgeWordsAfter('New', '')).toBe('New');
+    expect(badgeWordsAfter('Three unread', '3')).toBe('Three unread');
+  });
+
+  it('is nothing when the label is the number alone', () => {
+    expect(badgeWordsAfter('3', '3')).toBe('');
   });
 });
