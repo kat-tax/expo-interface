@@ -157,8 +157,12 @@ export function Composer({
           )}
         </NativeHost>
       </Surface>
-      {/* The live region stays mounted, so a notice that appears in it is read. React Native reads `aria-live` as `accessibilityLiveRegion`. */}
-      <View aria-live={ANNOUNCES ? undefined : 'polite'}>
+      {/*
+        The live region stays mounted, so a notice that appears in it is read. React Native reads `aria-live` as
+        `accessibilityLiveRegion`, which does not keep a view on its own: without `collapsable={false}` Fabric flattens
+        the region away and TalkBack has no view to watch.
+      */}
+      <View aria-live={ANNOUNCES ? undefined : 'polite'} collapsable={ANNOUNCES ? undefined : false}>
         {notice !== undefined ? <Footnote color={noticeColor} style={styles.notice}>{notice}</Footnote> : null}
       </View>
     </View>

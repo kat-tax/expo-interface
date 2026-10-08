@@ -112,8 +112,12 @@ describe(`Composer (${Platform.OS})`, () => {
         expect(notice('Shift+Enter for a new line').props.accessibilityLiveRegion).toBe('polite');
       }
       await rerender(<Composer onSend={() => {}} testID="c"/>);
-      // The region stays mounted with nothing in it, so the next notice appears inside it.
-      if (!isIOS) expect(live()).toHaveLength(1);
+      // The region stays mounted with nothing in it, so the next notice appears inside it. It is not collapsable,
+      // or Fabric flattens a view whose only trait is its live region and TalkBack has nothing to watch.
+      if (!isIOS) {
+        expect(live()).toHaveLength(1);
+        expect(live()[0].props.collapsable).toBe(false);
+      }
       await rerender(<Composer onSend={() => {}} notice="Could not send." noticeColor="destructive" testID="c"/>);
       if (!isIOS) expect(notice('Could not send.').props.accessibilityLiveRegion).toBe('polite');
       await rerender(<Composer onSend={() => {}} notice="Could not send." noticeColor="destructive" busy testID="c"/>);
