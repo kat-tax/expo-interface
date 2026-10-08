@@ -78,7 +78,7 @@ export interface TabViewProps {
   children?: ReactNode;
   /**
    * What the strip is called — "Open files", "Documents". Each tab is named
-   * by its own title, so this names the group they are in.
+   * by its own `label`, or its title, so this names the group they are in.
    * @default 'Tabs'
    */
   label?: string;
