@@ -23,10 +23,12 @@ import type {StyleProp, ViewStyle} from 'react-native';
  *
  * Every platform's list scrolls itself and fills the space its parent gives
  * it (a `Screen`'s content, a view with `flex: 1`). On iOS, Android and
- * Windows that parent needs a height: inside a scroll view the list gets
- * none. On the web, in a parent with no height of its own, it grows to its
- * rows and the parent scrolls it; `style={{flexShrink: 0}}` does the same in
- * a parent that has a height.
+ * Windows that parent needs a height of its own: inside a scroll view the
+ * iOS and Android list gets no height, and the Windows list grows to its
+ * rows, so it draws every one of them and is no longer windowed. On the web,
+ * in a parent with no height of its own, it grows to its rows and the parent
+ * scrolls it; `style={{flexShrink: 0}}` does the same in a parent that has a
+ * height.
  *
  * On iOS and Android a row is native content, as a row in a `FieldGroup`
  * is: the kit's `ListItem` with its slots, or `@expo/ui` content. A React

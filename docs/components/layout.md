@@ -471,7 +471,9 @@ Differences:
   tap past the rows closes it.
 - The list scrolls itself and fills the space its parent gives it, so a
   view wrapped around it needs `flex: 1`. On iOS, Android and Windows that
-  parent needs a height: inside a scroll view the list gets none. On the
+  parent needs a height of its own: inside a scroll view the iOS and
+  Android list gets no height, and the Windows list grows to its rows, so
+  it draws every one of them and is no longer windowed. On the
   web the list is its own scroller (`overflow-y: auto`, `flex: 1 1 auto`),
   so it scrolls under the fixed body that `ScrollViewStyleReset` sets, and
   in a parent with no height of its own (a scroll view of the app's own, a
@@ -538,7 +540,8 @@ Differences:
   centres itself in the room it is given.
 - The grid scrolls itself and fills the space its parent gives it, so a
   view wrapped around it needs `flex: 1`. On iOS, Android and Windows that
-  parent needs a height: inside a scroll view the grid gets none. On the
+  parent needs a height of its own: inside a scroll view the grid grows to
+  its rows, so it draws every one of them and is no longer windowed. On the
   web the grid is its own scroller (`overflow-y: auto`, `flex: 1 1 auto`),
   so it scrolls under the fixed body that `ScrollViewStyleReset` sets, and
   in a parent with no height of its own (a scroll view of the app's own, a
