@@ -64,9 +64,9 @@ describe(`DateTimePicker presented (${Platform.OS})`, () => {
     const onDismiss = vi.fn();
     await render(<DateTimePicker mode="date" value={JUNE_15} presented at={chip} onChange={onChange} onDismiss={onDismiss} testID="dt"/>, options);
     if (isIOS) {
-      // A popover from the chip's bottom edge, with the calendar.
+      // A popover from the middle of the chip's bottom edge, with the calendar.
       expect(screen.getByTestId('dt').props).toMatchObject({isPresented: true, arrowEdge: 'top'});
-      expect(StyleSheet.flatten(hosts()[0].props.style)).toMatchObject({position: 'absolute', left: 40, top: 124});
+      expect(StyleSheet.flatten(hosts()[0].props.style)).toMatchObject({position: 'absolute', left: 85, top: 124});
       expect(modifier(picker().props, 'datePickerStyle')?.style).toBe('graphical');
       expect(picker().props.displayedComponents).toEqual(['date']);
       // SwiftUI keeps the time of day as the day changes.

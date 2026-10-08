@@ -71,8 +71,10 @@ export interface DateTimePickerProps {
   presented?: boolean;
   /**
    * Where a presented picker opens from, in the coordinates of the parent it
-   * is laid over: the chip's rectangle. Android's dialogs open in the middle
-   * of the screen whatever it says.
+   * is laid over: the chip's rectangle. Over React Native content the popover
+   * on iOS points at the middle of its bottom edge; inside a host it opens
+   * from where the picker sits. Android's dialogs open in the middle of the
+   * screen whatever it says.
    */
   at?: DateTimeAnchor | null;
   /**

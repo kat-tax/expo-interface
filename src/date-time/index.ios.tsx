@@ -50,10 +50,11 @@ function RowPicker({
 }
 
 /**
- * A SwiftUI `popover` from a point at the chip's bottom edge — the
- * presentation an iPad and a phone both give a calendar there, kept a
- * popover on a phone by `presentationCompactAdaptation` — holding the
- * graphical calendar for a date and the wheels for a time. A day picked in
+ * A SwiftUI `popover` from a point at the middle of the chip's bottom edge
+ * over React Native content, or from where the picker sits inside a host,
+ * holding the graphical calendar for a date and the wheels for a time. It is
+ * the presentation an iPad and a phone both give a calendar there, kept a
+ * popover on a phone by `presentationCompactAdaptation`. A day picked in
  * `date` mode closes it; a time is set by turning the wheels, and the
  * popover closes as any does, by a tap outside it.
  */
@@ -99,13 +100,17 @@ function PresentedPicker({
     </Popover>
   );
   // Inside a host the popover is presented from where it sits; over React
-  // Native content it is laid at the chip in a host of its own.
+  // Native content it is laid at the chip in a host of its own. It hangs from
+  // a point at the middle of the chip's bottom edge, where its arrow points.
+  // The point stays a point: this host is laid over the content as long as
+  // the picker is mounted (closed too, `presented={false}` still renders it),
+  // and a host the chip's size would sit over the chip.
   if (hosted) return popover;
   return (
     <NativeHost
       fit
       pointerEvents="box-none"
-      style={[styles.anchor, {left: at?.x ?? 0, top: (at?.y ?? 0) + (at?.height ?? 0)}]}>
+      style={[styles.anchor, {left: (at?.x ?? 0) + (at?.width ?? 0) / 2, top: (at?.y ?? 0) + (at?.height ?? 0)}]}>
       {popover}
     </NativeHost>
   );

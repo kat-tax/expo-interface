@@ -346,7 +346,7 @@ is called when it closes, picked or not, after `onChange`. A day picked in
 
 | Platform | Presented |
 | --- | --- |
-| iOS | A SwiftUI popover from the chip's bottom edge, holding the graphical calendar, or the wheels for a time. It closes on a tap outside. |
+| iOS | A SwiftUI popover from the middle of the chip's bottom edge over React Native content, or from where the picker sits inside a host, holding the graphical calendar, or the wheels for a time. It closes on a tap outside. |
 | Android | The Material dialogs: the date, then the time for `datetime`. They open in the middle of the screen whatever `at` says. Dismissing the time after a day was picked keeps the day. |
 | Web | The browser's picker, opened with `showPicker()` from an unseen input laid over the chip. Where the browser refuses for want of a recent press, the input takes the focus and the keyboard edits it. It closes when the focus leaves or on Escape. |
 | Windows | A `CalendarView` in a flyout under the chip, then a `TimePickerFlyout` for `datetime`, from a one-point island. A light dismiss after a day was picked keeps the day. |
