@@ -4,7 +4,7 @@ import type {ColorTokens} from '../theme';
  * A person as a colored circle with their initials: the peers on a document,
  * the members of a space.
  *
- * Drawn in React Native on every platform, like `Surface` — an avatar is a
+ * Drawn in React Native on every platform, like `Surface`: an avatar is a
  * picture in a row of them, not a control, and it belongs wherever the row
  * is.
  */
