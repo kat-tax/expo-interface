@@ -336,7 +336,11 @@ The year takes four digits, so the year 50 is `0050`. A string that names no
 day the calendar has, such as `2026-02-30`, is no day: as a `value` the picker
 keeps its own, and as a bound it bounds nothing. The browser's date input
 takes no year before 1, so on web a day in the year `0000` leaves the input
-empty.
+empty. Where the bounds leave it open, Material's calendar on Android runs
+from 1900 to 2100, widened to the value's year, and the Windows calendar runs
+from 1900, or the value when it is earlier, to 2100, or the value when it is
+later. Windows holds no day before 1601: a value before it leaves the field
+empty, and a bound before it opens the calendar as far as 1601.
 
 `presented` draws no row. It presents the platform's own picker over the
 content, from `at` (the chip's rectangle, in the coordinates of the parent it

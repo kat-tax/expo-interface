@@ -33,6 +33,7 @@ The differences that change what a screen can do, in one place:
 | `HeaderSearch` `hideWhenScrolling`, `integration` | Yes | Ignored | Ignored | Ignored |
 | `DateTimePicker` time bounds | Yes | Yes | Yes | Date only |
 | `DateTimePicker` presented | A popover from the chip | The dialogs, in the middle of the screen | The browser's picker at the chip | A flyout under the chip |
+| `DateTimePicker` days without bounds | Any | The years 1900 to 2100, widened to the value's year | From the year 1 | 1900 to 2100, widened to the value; none before 1601 |
 | `FieldGroup` `titleUppercase` | Ignored | Yes | Yes | Yes |
 | `TabView` reordering | No | No | No | Off |
 | `TabView` close on the keyboard | Button | Button | Delete | The control's cross |
