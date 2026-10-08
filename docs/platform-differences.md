@@ -54,7 +54,7 @@ The differences that change what a screen can do, in one place:
 | `Alert` field | Among the actions | Under the message | Under the message | In the dialog's body, through a portal |
 | `Alert` field's action key | Nothing | Nothing | The first action that is not the cancel, unless it is disabled | The first action that is not the cancel, unless it is disabled |
 | `Popover` dismissed by Escape | VoiceOver's escape gesture, modal cards | No | Yes, wherever the focus is | No |
-| `Popover` `label` | Ignored | Ignored | Names a modal card | Ignored |
+| `Popover` `label` | Ignored | Ignored | Names a modal card | Names a modal card |
 | `Toolbar` overflow decided by the platform | No | No | No | Yes |
 | `Toolbar` menu command behind the overflow | Its entries, set off by rules | Its entries, set off by rules | Its entries, set off by rules | A submenu (`CommandBar`); its entries in a drawn bar |
 | `FindBar` | Drawn, not `UIFindInteraction` | Drawn | Drawn | Drawn |

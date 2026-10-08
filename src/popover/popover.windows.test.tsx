@@ -196,6 +196,35 @@ describe('modal and hover (windows)', () => {
     expect(onDismiss).toHaveBeenCalledWith('action');
   });
 
+  it('names the drawn modal card by its label, or by its title without one, and keeps its buttons reachable', async () => {
+    const onDismiss = vi.fn();
+    const modal = (props: {title?: string; label?: string}) => (
+      <Popover at={{x: 0, y: 0}} modal actions={[{label: 'Save', onPress: vi.fn()}]} onDismiss={onDismiss} testID="pop" {...props}/>
+    );
+    const card = () => screen.getByTestId('pop');
+    const {rerender} = await render(modal({label: 'Status'}));
+    expect(card().props).toMatchObject({accessible: true, accessibilityLabel: 'Status'});
+    await rerender(modal({label: 'Status', title: 'Pick one'}));
+    expect(card().props.accessibilityLabel).toBe('Status');
+    await rerender(modal({title: 'Pick one'}));
+    expect(card().props.accessibilityLabel).toBe('Pick one');
+    await rerender(modal({label: '', title: 'Pick one'}));
+    expect(card().props.accessibilityLabel).toBe('Pick one');
+    // With nothing to be called, the card is not a group with no name.
+    await rerender(modal({}));
+    expect(card().props.accessible).toBeUndefined();
+    expect(card().props.accessibilityLabel).toBeUndefined();
+    await measureCard();
+    await fireEvent(island(BUTTON), 'press');
+    expect(onDismiss).toHaveBeenCalledWith('action');
+  });
+
+  it('names no card that is not modal', async () => {
+    await render(<Popover at={{x: 0, y: 0}} title="Spelling" label="Suggestion" trigger="hover" testID="pop"/>);
+    expect(screen.getByTestId('pop').props.accessible).toBeUndefined();
+    expect(screen.getByTestId('pop').props.accessibilityLabel).toBeUndefined();
+  });
+
   it('needs no testID for the drawn card\'s backdrop', async () => {
     const onDismiss = vi.fn();
     await render(<Popover at={{x: 0, y: 0}} title="Option" modal onDismiss={onDismiss}/>);

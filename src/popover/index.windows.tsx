@@ -55,7 +55,7 @@ function TipPopover({at, title, message, actions = [], onDismiss, width = 280, p
   );
 }
 
-function DrawnPopover({at, title, message, actions, onDismiss, width = 280, preferredEdge = 'auto', modal = false, insets, trigger = 'manual', grace, children, testID}: PopoverProps) {
+function DrawnPopover({at, title, message, actions, onDismiss, width = 280, preferredEdge = 'auto', modal = false, label, insets, trigger = 'manual', grace, children, testID}: PopoverProps) {
   const linger = useLinger(at, trigger === 'hover', grace, () => onDismiss?.('leave'));
   const shown = linger.shown;
   const anchored = useAnchored({at: shown, preferredEdge, width, insets});
@@ -65,6 +65,10 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
     linger.end();
     onDismiss?.(reason);
   };
+  // react-native-windows composes no name from the text inside a view, so a
+  // modal card is named outright: an accessible view is a group to UI
+  // Automation, with its name and with the buttons inside it still reached.
+  const name = label || title;
 
   return (
     <View testID={testID ? `${testID}-bounds` : undefined} style={[styles.bounds, modal && shown ? styles.modal : null]} onLayout={anchored.onBounds}>
@@ -85,7 +89,7 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
           sizedLater={!!actions?.length}
           testID={testID}
           {...linger.props}
-          {...(modal ? MODAL_CARD : null)}>
+          {...(modal ? {...MODAL_CARD, ...(name ? {accessible: true, accessibilityLabel: name} : null)} : null)}>
           <Surface raised border="all" padding={spacing.three} style={styles.body}>
             {title ? <Subheadline color="label" weight="semibold">{title}</Subheadline> : null}
             {message ? <Footnote color="secondaryLabel">{message}</Footnote> : null}

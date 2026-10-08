@@ -177,9 +177,11 @@ unless it is lingering, which Escape ends.
 
 A `modal` card takes the presses around it as its backdrop, so nothing under
 it is pressed by mistake, and says it is a dialog: VoiceOver keeps its focus
-inside, a browser announces a modal dialog named by `label`, or by the title
-without one; iOS, Android and Windows read what the card holds. The backdrop
-is a Dismiss button to the screen readers that reach it.
+inside, and a browser announces a modal dialog named by `label`, or by the
+title without one. On Windows the card is a group of that name, since
+react-native-windows composes no name from the text in a view and cannot mark
+one as a dialog. iOS and Android read what the card holds. The backdrop is a
+Dismiss button to the screen readers that reach it.
 
 A `hover` card is about what is under the pointer. The app sets `at` while
 the pointer is over the thing and clears it when the pointer leaves; the
