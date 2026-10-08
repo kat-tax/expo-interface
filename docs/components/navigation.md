@@ -71,7 +71,8 @@ The app's section tabs for Expo Router.
 
 Props: `routes` (`name`, `href`, `label`, `icon` as one of the app's
 `IconToken`s or the symbol names per platform, `badge`, `windowsPlacement`),
-`hidden`, `action` (the app's one action beside its tabs: `label`, `icon`,
+`hidden` (or a function of the route, `({pathname, segments}) => boolean`),
+`action` (the app's one action beside its tabs: `label`, `icon`,
 and `onPress` or menu `items`), `badgeMax` (a count above it is drawn as
 `99+`; 99 by default), and per platform: `webLogo` (`icon-only`, `text-only`,
 `icon-and-text` or a node), `webIcon` (an image, or an `IconToken` drawn as
@@ -83,7 +84,7 @@ the kit's glyph in the label color), `webActions`,
 | Platform | Renders |
 | --- | --- |
 | iOS, Android | Expo Router's native tabs: the platform's own tab bar at the bottom, with `badge` as the bar's badge. On iOS 26 the `action` is a button or a menu in the tab bar's bottom accessory, its icon alone while the accessory is inline in a minimized bar. On Android and on iOS before 26 it is a floating action button above the tab bar at the bottom trailing corner, over every tab's screens, and a `Screen`'s own `fab` sits above it. A `Screen` counts it in `useScrollInsets().bottom`, so the kit's `List`, `CardGrid` and `FieldGroup` end clear of it. |
-| Web | A floating bar along the top with the app's logo, the tabs and action slots. A route's `badge` is a pill beside the label. In a window too narrow for the row, a phone's width, the tabs show their icons alone with their names as accessible names, and a `HeaderMenu` or `HeaderAction` in the bar with an icon shows that alone. A folded header's `HeaderSearch` is a frameless field beside the logo, after the app's name or a pushed screen's title, that takes the bar's spare width and shrinks with the bar; in a narrow bar it takes the name's room beside the mark. An `action` placement is a magnifier among the actions, and `stacked` a second pill under the bar. The tabs' own `action` is a `HeaderAction`, or a `HeaderMenu` with `items`, among the bar's actions after whatever a screen folds in. The row clips what it cannot hold, so the page never scrolls sideways. |
+| Web | A floating bar along the top with the app's logo, the tabs and action slots. A route's `badge` is a pill beside the label. In a window too narrow for the row, a phone's width, the tabs show their icons alone with their names as accessible names, and a `HeaderMenu` or `HeaderAction` in the bar with an icon shows that alone. A folded header's `HeaderSearch` is a frameless field beside the logo, after the app's name or a pushed screen's title, that takes the bar's spare width and shrinks with the bar; in a narrow bar it takes the name's room beside the mark. An `action` placement is a magnifier among the actions, and `stacked` a second pill under the bar. The tabs' own `action` is a `HeaderAction`, or a `HeaderMenu` with `items`, among the bar's actions after whatever a screen folds in, and goes with the tabs while they are hidden. The row clips what it cannot hold, so the page never scrolls sideways. |
 | Windows | A WinUI `NavigationView` in any of its pane display modes: the top bar (`top`), or with `windowsPane` the navigation pane down the left side, expanded (`left`), at its glyph-only width (`compact`), or as its toggle button alone (`minimal`); `auto` picks by the window's width at WinUI's own breakpoints, the expanded pane from 1008 points, the compact one from 641 and the minimal one below that. The expanded pane's toggle button collapses it to its glyphs beside the content and back. The compact pane's opens the pane over the content, and so does the minimal pane's, which is drawn at the top start of the content with the screen's header beside it; a selection, a press beside the open pane or Escape closes it. A count `badge` is an `InfoBadge`; other text is its dot. The `InfoBadge` holds a number alone, so a count past `badgeMax` is drawn as the cap. The `action` is the first item, invoked rather than selected, and with `items` it opens a `MenuFlyout`. `windowsPlacement` puts a route at the pane's foot (`footer`) or makes it WinUI's own settings item (`settings`). The control's own back button, at the top of the pane or the start of the top bar, pops a card the stack above pushed over the tabs, or a screen a stack inside a tab pushed; a selection in the pane leaves the drilled-in screens. The button is drawn whenever a stack is around the tabs, disabled at the root as a WinUI app's is, and only while something can pop when the tabs are the root. A press on the selected item returns to its root, as the Settings app does. A selection slides the content along the top bar in the order of the items, or refreshes it in a side pane; back from a card, the content returns as the card leaves. |
 
 On web a screen under `Tabs` has one bar, not two: `ConstrainedStackHeader`
@@ -92,18 +93,48 @@ over all of it (the back button in the mark's place, the title where the
 app's name goes, `headerRight` where `webActions` go). A tab's own screen
 hands over `headerRight` alone and keeps its title, since the tab beside it in
 the bar already says it. The bar keeps the height of its tabs, and a header
-control folded into it drops to their size. `hidden` hides the tabs rather
-than the bar while a pushed screen's header is folded in;
+control folded into it drops to their size. `hidden` hides the tabs and the
+`action` rather than the bar while a pushed screen's header is folded in;
 `webFoldHeader={false}` keeps the two rows. A screen reached with nothing
 under it, a deep link to a screen other than its stack's `index`, has no
 back button: the bar folds in its title all the same and puts the logo in
 the back button's place, a link to the first tab named for it (the app's
 name stands in for a mark the logo does not have).
 
+Natively such a screen has no back button either, and with the tabs hidden
+nothing on it leads home. Export `unstable_settings = {anchor: 'index'}`
+from the tab's stack layout (`app/(tabs)/home/_layout.tsx`): a deep link
+then opens the stack with its index under the screen, and the platform's
+back button leads there. On web the bar then shows that back button in
+place of the home link.
+
+`hidden` as a function of the route decides on every render, by the path or
+the segments, so the tabs go on the routes it names and come back on the
+others. A static export answers it too, and writes a page its route hides
+without the tabs.
+
+```tsx
+<Tabs routes={routes} hidden={({segments}) => segments.at(-1) === '[id]'}/>
+```
+
 A screen hides the tabs for itself by rendering `HideTabs` in its content:
 the tabs go while the screen is focused and come back when it loses the
 focus or goes, as `hidden` would hide them, decided by the screen rather than
-by the URL. `<HideTabs hidden={false}/>` lets go without unmounting.
+by the URL. `<HideTabs hidden={false}/>` lets go without unmounting. It acts
+once the screen is mounted, so a static export draws the tabs on its page
+until the page runs; a page its URL decides is `hidden` as a function of the
+route.
+
+```tsx
+export default function Document() {
+  return (
+    <Screen>
+      <HideTabs/>
+      <Editor/>
+    </Screen>
+  );
+}
+```
 
 On web the bar is a `navigation` landmark of links, not a `tablist`, since the
 tabs move between routes rather than panels; the active one carries

@@ -35,12 +35,15 @@ export interface TabBarProps {
   /**
    * Hides the tab bar while keeping the routes, so a screen that needs the
    * whole display (an open document) can take it: natively the native tab
-   * bar's own `hidden`, on web the floating bar is not drawn — unless it
-   * carries a screen's header (`webFoldHeader`), where the tabs go and the bar
-   * stays as that screen's header.
+   * bar's own `hidden`, on web the floating bar is not drawn, unless it
+   * carries a screen's header (`webFoldHeader`), where the tabs and the
+   * app's `action` go and the bar stays as that screen's header. A function
+   * decides by the route, `({segments}) => segments.at(-1) === '[id]'`, on
+   * every render, which a static render answers too, where `HideTabs` waits
+   * for the page to run.
    * @default false
    */
-  hidden?: boolean;
+  hidden?: boolean | ((route: TabBarLocation) => boolean);
   /**
    * The app's one action beside its tabs, a "New" that every section
    * offers, declared once: on iOS 26 a button or menu in the tab bar's
@@ -50,7 +53,8 @@ export interface TabBarProps {
    * keeps the button's room at the bottom of its scroll content,
    * `useScrollInsets().bottom`); on web a header
    * control in the bar's actions slot; on Windows an item first among the
-   * `NavigationView`'s, which invokes rather than selects.
+   * `NavigationView`'s, which invokes rather than selects. It goes with the
+   * tabs while they are hidden, on every platform.
    */
   action?: TabBarAction;
   /**
@@ -125,6 +129,14 @@ export interface TabBarProps {
 }
 
 export type WindowsPane = 'top' | 'left' | 'compact' | 'minimal' | 'auto';
+
+/** The route `Tabs hidden` decides by, when it is a function of it. */
+export interface TabBarLocation {
+  /** The path, as `usePathname()` gives it: `/home/42`. */
+  pathname: string;
+  /** The route's segments, as `useSegments()` gives them: `['(tabs)', 'home', '[id]']`. */
+  segments: readonly string[];
+}
 
 /** The app's one action beside its tabs (`Tabs action`). */
 export interface TabBarAction {

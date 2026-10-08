@@ -208,8 +208,8 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(dom.getByText('Home screen')).toBeInTheDocument();
       });
 
-      it('keeps the bar as the header while the tabs are hidden', async () => {
-        await renderApp(await stackApp({hidden: true}), '/home');
+      it('keeps the bar as the header while the tabs are hidden, without the app\'s action', async () => {
+        await renderApp(await stackApp({hidden: true, action: {label: 'New', icon: icons.add, onPress: vi.fn()}}), '/home');
         // Nothing is folded in yet, so `hidden` hides the bar outright.
         expect(getComputedStyle(dom.getByTestId('tab-bar')).display).toBe('none');
 
@@ -219,6 +219,18 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).toBe('none');
         expect(dom.getByTestId('tab-bar').contains(dom.getByText('detail'))).toBe(true);
         expect(dom.getByLabelText('Go back')).toBeInTheDocument();
+        // The action goes with the tabs, as it does natively.
+        expect(dom.queryByTestId('tab-action')).toBeNull();
+      });
+
+      it('hides the tabs on the routes a function of the route names, as the route changes', async () => {
+        await renderApp(await stackApp({hidden: ({segments}: {segments: readonly string[]}) => segments.at(-1) === 'detail'}), '/home');
+        expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).not.toBe('none');
+        await act(async () => router.push('/home/detail'));
+        expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).toBe('none');
+        expect(dom.getByLabelText('Go back')).toBeInTheDocument();
+        await act(async () => router.back());
+        expect(getComputedStyle(dom.getByTestId('tab-bar-tabs')).display).not.toBe('none');
       });
 
       it('hides the tabs while a focused screen renders HideTabs, and shows them again when it goes', async () => {
@@ -790,6 +802,16 @@ describe(`Tabs (${Platform.OS})`, () => {
       await renderApp(await app({hidden: true}));
       expect(triggers()).toHaveLength(2);
       expect(screen.getByText('Home screen')).toBeOnTheScreen();
+      expect(nodes().find(n => n.type === 'RNSTabsHost')!.props.tabBarHidden).toBe(true);
+    });
+
+    it('hides the native tab bar on the routes a function of the route names', async () => {
+      await renderApp(await app({hidden: ({pathname}: {pathname: string}) => pathname === '/settings'}));
+      const tabBarHidden = () => nodes().find(n => n.type === 'RNSTabsHost')!.props.tabBarHidden;
+      expect(tabBarHidden()).toBe(false);
+      await act(async () => router.navigate('/settings'));
+      expect(screen.getByText('Settings screen')).toBeOnTheScreen();
+      expect(tabBarHidden()).toBe(true);
     });
 
     it('themes the tab bar with the palette', async () => {

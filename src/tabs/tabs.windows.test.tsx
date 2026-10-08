@@ -87,6 +87,15 @@ describe('Tabs (windows)', () => {
     expect(screen.getByText('Home screen')).toBeOnTheScreen();
   });
 
+  it('drops the bar on the routes a function of the route names, as the route changes', async () => {
+    await renderApp(app({hidden: ({pathname}: {pathname: string}) => pathname === '/settings'}), '/settings');
+    expect(islands(NAV)).toHaveLength(0);
+    expect(screen.getByText('Settings screen')).toBeOnTheScreen();
+    await act(async () => router.navigate('/'));
+    expect(screen.getByText('Home screen')).toBeOnTheScreen();
+    expect(islands(NAV)).toHaveLength(1);
+  });
+
   it('leaves the caption buttons their room at the top bar\'s end while the content is in the title bar', async () => {
     chrome.state = {extended: true, insets: {left: 0, right: 138, height: 32}};
     try {

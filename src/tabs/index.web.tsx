@@ -164,8 +164,10 @@ export function WebTabList({logo, icon, slot, hidden = false, shown = true, acti
     onRows?.(rows);
   }, [onRows, rows]);
   const fill = hasMaterial(material) ? null : styles.solid;
-  // The app's action stays whatever the screen folds in: it is the app's, not the screen's.
-  const appAction = action == null ? null : action.items ? (
+  // The app's action stays whatever the screen folds in, since it is the
+  // app's, not the screen's; it goes with the tabs while they are hidden, as
+  // it does natively.
+  const appAction = action == null || hidden ? null : action.items ? (
     <HeaderMenu label={action.label} icon={action.icon} items={action.items} testID="tab-action"/>
   ) : (
     <HeaderAction label={action.label} icon={action.icon} onPress={action.onPress ?? noop} testID="tab-action"/>

@@ -1,5 +1,6 @@
+import type {TabBarProps} from './types';
 import {createContext, useCallback, useContext, useEffect, useId, useMemo, useState, useSyncExternalStore} from 'react';
-import {useNavigation} from 'expo-router';
+import {useNavigation, usePathname, useSegments} from 'expo-router';
 
 /** Where a screen asks for the tabs to be hidden while it is focused — see {@link HideTabs}. */
 export interface TabsHider {
@@ -8,8 +9,16 @@ export interface TabsHider {
 
 export const HideTabsContext = createContext<TabsHider | null>(null);
 
-/** The tabs' own `hidden`, or hidden while a focused screen renders `HideTabs`. */
-export function useHiddenTabs(hidden: boolean): {hider: TabsHider; hidden: boolean} {
+/**
+ * The tabs' own `hidden`, decided by the route in the render itself when it
+ * is a function of it, or hidden while a focused screen renders `HideTabs`.
+ * The route is read from Expo Router's store, which a static render answers
+ * with the URL it renders, so a page its URL hides is drawn without its tabs.
+ */
+export function useHiddenTabs(hidden: TabBarProps['hidden'] = false): {hider: TabsHider; hidden: boolean} {
+  const pathname = usePathname();
+  const segments = useSegments();
+  const own = typeof hidden === 'function' ? hidden({pathname, segments}) : hidden;
   const [asking, setAsking] = useState<ReadonlySet<string>>(() => new Set());
   const hider = useMemo<TabsHider>(() => ({
     set(id, on) {
@@ -22,7 +31,7 @@ export function useHiddenTabs(hidden: boolean): {hider: TabsHider; hidden: boole
       });
     },
   }), []);
-  return {hider, hidden: hidden || asking.size > 0};
+  return {hider, hidden: own || asking.size > 0};
 }
 
 /**
@@ -32,6 +41,10 @@ export function useHiddenTabs(hidden: boolean): {hider: TabsHider; hidden: boole
  * by the URL. `hidden={false}` lets go without unmounting. Under `Tabs` on
  * every platform, as `Tabs hidden` would: on web the bar stays while it
  * carries a pushed screen's header.
+ *
+ * It acts once the screen is mounted, so a static export draws the tabs on
+ * its page until the page runs; a page its URL decides is `Tabs hidden` as a
+ * function of the route, which the static render answers.
  */
 export function HideTabs({hidden = true}: {hidden?: boolean}) {
   const hider = useContext(HideTabsContext);

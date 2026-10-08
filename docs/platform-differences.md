@@ -68,6 +68,7 @@ The differences that change what a screen can do, in one place:
 | A screen pushed over `Tabs` | Over the tab bar | Over the tab bar | Replaces the bar | Inside the pane, its back button |
 | `Stack` `animation` | Native | Native | None | WinUI's motions: drill in, slides, page refresh, fade |
 | A press on the selected tab | Nothing | Nothing | Nothing | Back to the section's root |
+| A deep-linked screen's way home | The stack's `anchor` | The stack's `anchor` | The logo, a link to the first tab, or the `anchor` | The stack's `anchor` |
 | Keyboard shortcuts | No | No | No | Yes |
 | High contrast palette | No | No | No | Yes |
 | Window title and chrome | No | No | No | Yes |
