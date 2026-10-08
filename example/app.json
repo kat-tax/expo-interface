@@ -28,7 +28,6 @@
       "expo-image",
       "expo-router",
       "expo-system-ui",
-      "../app.plugin.js",
       "expo-status-bar",
       [
         "expo-splash-screen",
