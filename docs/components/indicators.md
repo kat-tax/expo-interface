@@ -60,8 +60,9 @@ animates the badge's alpha toward each end in turn. It is told which end
 from JavaScript every half pulse, since `@expo/ui`'s Compose animations do
 not repeat by themselves, so a pulsing badge there renders twice a pulse. A
 drawn badge (iOS, and Android outside a host) and the Windows island loop the
-opacity of the view, on the native driver on iOS and Android. The web runs a
-CSS animation that `prefers-reduced-motion` stills.
+opacity of the view, on the native driver on iOS and Android and on
+Animated's JavaScript driver on Windows, which steps it every frame. The web
+runs a CSS animation that `prefers-reduced-motion` stills.
 
 | Platform | Renders |
 | --- | --- |

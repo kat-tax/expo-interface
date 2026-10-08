@@ -40,11 +40,12 @@ export interface BadgeProps {
   showZero?: boolean;
   /**
    * Pulses, its opacity down and back up every 900 ms: someone typing, a
-   * sync in flight. Still while the user asks for less motion. On Android
-   * inside a native host the pulse is paced from JavaScript, a render each
-   * half pulse, since `@expo/ui`'s Compose animations do not repeat.
-   * Anywhere else it is a loop that renders nothing: on the native driver on
-   * iOS and Android, a CSS animation on web.
+   * sync in flight. Still while the user asks for less motion. A drawn badge
+   * on iOS and Android loops on the native driver and web runs a CSS
+   * animation, neither of which renders anything for it. The Windows island
+   * loops on Animated's JavaScript driver, which steps it every frame. Inside
+   * a native host on Android it is paced from JavaScript, a render each half
+   * pulse, since `@expo/ui`'s Compose animations do not repeat.
    */
   pulse?: boolean;
   /**
