@@ -7,7 +7,7 @@ import {Animated, Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, screen as dom, waitFor} from '@testing-library/react';
 import {fireEvent as fireNative, render, screen} from '@testing-library/react-native';
 import Constants from 'expo-constants';
-import {router} from 'expo-router';
+import {Stack, router} from 'expo-router';
 import * as icons from '../__stories__/icons';
 import {HeaderAccessory} from '../header-accessory';
 import {HeaderAction} from '../header-action';
@@ -861,6 +861,29 @@ describe(`Tabs (${Platform.OS})`, () => {
       });
       expect(nodes().find(n => n.type === 'RNSTabsHost')!.props.tabBarHidden).toBe(true);
       expect(report).toHaveBeenLastCalledWith(0);
+    });
+
+    it('takes the bar from under the app\'s toast while a stack around the tabs shows a screen over them', async () => {
+      const report = vi.fn();
+      const {Tabs} = await import('.');
+      await renderApp({
+        _layout: () => <Stack screenOptions={{headerShown: false}}/>,
+        '(tabs)/_layout': () => (
+          <AppToastFloorContext.Provider value={report}>
+            <Tabs routes={routes}/>
+          </AppToastFloorContext.Provider>
+        ),
+        '(tabs)/index': () => <Text>Home screen</Text>,
+        '(tabs)/settings': () => <Text>Settings screen</Text>,
+        detail: () => <Text>Detail screen</Text>,
+      });
+      expect(report).toHaveBeenLastCalledWith(inset.bottomTab);
+      // The tabs stay mounted under the pushed screen, which has no bar under it.
+      await act(async () => router.push('/detail'));
+      expect(screen.getByText('Detail screen')).toBeOnTheScreen();
+      expect(report).toHaveBeenLastCalledWith(0);
+      await act(async () => router.back());
+      expect(report).toHaveBeenLastCalledWith(inset.bottomTab);
     });
 
     if (isIOS) {

@@ -58,13 +58,16 @@ export function HideTabs({hidden = true}: {hidden?: boolean}) {
 }
 
 /**
- * Whether the screen is focused, read from its navigation object and its
- * focus and blur events rather than from `useIsFocused`. expo-router's
- * custom `Navigator`, which the kit's Windows tabs are built on, renders no
+ * Whether the screen it is rendered in is focused, read from its navigation
+ * object and its focus and blur events rather than from `useIsFocused`. A
+ * layout is a screen of the navigator around it (the root layout one of
+ * expo-router's root navigator), so in the tabs' layout this answers
+ * whether a stack around them shows a screen over them. expo-router's custom
+ * `Navigator`, which the kit's Windows tabs are built on, renders no
  * `NavigationContent`, so nothing under it provides the focused route, and
  * `useIsFocused` answers false in every screen it holds.
  */
-function useFocused(): boolean {
+export function useFocused(): boolean {
   const navigation = useNavigation();
   const subscribe = useCallback((onChange: () => void) => {
     const focus = navigation.addListener('focus', onChange);

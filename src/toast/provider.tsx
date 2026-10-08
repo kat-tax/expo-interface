@@ -29,10 +29,11 @@ let shown = 0;
  * capsule on iOS and web, WinUI's `InfoBar` on Windows), shown at the foot
  * of the provider's area above the bottom safe area (the home indicator,
  * Android's navigation bar). Around `Tabs` on iOS and Android it also
- * stands above the tab bar while the bar shows, and above its bottom
- * accessory on iOS 26, so put the provider around the app's navigation. A
- * `Screen`'s fab lifts above it as it lifts above a toast of its own, and
- * so does the tabs' floating action.
+ * stands above the tab bar, and above its bottom accessory on iOS 26,
+ * except while the tabs are hidden or a stack around them shows a screen
+ * over them. Put the provider around the app's navigation. A `Screen`'s
+ * fab lifts above it as it lifts above a toast of its own, and so does the
+ * tabs' floating action.
  */
 export function ToastProvider({children}: PropsWithChildren) {
   const [queue, setQueue] = useState<readonly (ToastOptions & {id: string})[]>([]);

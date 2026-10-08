@@ -7,7 +7,7 @@ import {useAppToastFloor} from '../toast/context';
 import {AccessoryAction, FloatingAction, TAB_ACTION_LIFT, TabAccessoryHeightContext} from './action';
 import {tabBadge} from './badge';
 import {NativeTabsContext, TabActionLiftContext} from './context';
-import {HideTabsContext, useHiddenTabs} from './hide';
+import {HideTabsContext, useFocused, useHiddenTabs} from './hide';
 import {routeSymbol} from './icon';
 
 /** Whether UIKit gives the tab bar a bottom accessory, which it does from iOS 26. */
@@ -27,8 +27,11 @@ export function Tabs({routes, hidden: hiddenProp = false, action, badgeMax = 99}
   const floating = action != null && !accessory;
   // The app's toast (`ToastProvider` around the tabs) stands above the bar
   // while it shows, and above the action in its iOS 26 accessory, measured.
+  // A screen that a stack around the tabs shows over them has no bar under
+  // it: the tabs stay mounted beneath, but their layout loses the focus.
+  const focused = useFocused();
   const [accessoryHeight, setAccessoryHeight] = useState(0);
-  useAppToastFloor(hidden ? 0 : inset.bottomTab + (action && accessory ? accessoryHeight : 0));
+  useAppToastFloor(hidden || !focused ? 0 : inset.bottomTab + (action && accessory ? accessoryHeight : 0));
   return (
     <NativeTabsContext.Provider value={true}>
       <HideTabsContext.Provider value={hider}>
