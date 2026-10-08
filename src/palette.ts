@@ -1,5 +1,5 @@
 import {ACCENT_SEED, onAccent} from './accent';
-import {SCHEME_BACKGROUND} from './backgrounds';
+import {SCHEME_BACKGROUND, SCHEME_BACKGROUND_ELEMENT} from './backgrounds';
 
 /**
  * Concrete scheme palette. These are the values `useColor` resolves on iOS
@@ -18,7 +18,7 @@ export const colors = {
     secondaryLabel: '#60646C',
     tertiaryLabel: '#9094A0',
     background: SCHEME_BACKGROUND.light,
-    backgroundElement: '#F0F0F3',
+    backgroundElement: SCHEME_BACKGROUND_ELEMENT.light,
     backgroundSelected: '#E0E1E6',
     separator: 'rgba(60, 60, 67, 0.29)',
     tint: ACCENT_SEED,
@@ -38,7 +38,7 @@ export const colors = {
     secondaryLabel: '#B0B4BA',
     tertiaryLabel: '#6E7378',
     background: SCHEME_BACKGROUND.dark,
-    backgroundElement: '#212225',
+    backgroundElement: SCHEME_BACKGROUND_ELEMENT.dark,
     backgroundSelected: '#2E3135',
     separator: 'rgba(84, 84, 88, 0.6)',
     tint: ACCENT_SEED,

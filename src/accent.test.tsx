@@ -2,6 +2,7 @@ import {Platform} from 'react-native';
 import {act, renderHook} from '@testing-library/react-native';
 import {ACCENT_SEED, ACCENT_STORAGE_KEY, AccentProvider, currentAccent, onAccent, resolveAccent, useAccentSeed} from './accent';
 import {contrastRatio} from './legible';
+import {colors} from './palette';
 import {setColorScheme} from './scheme';
 
 const isWeb = Platform.OS === 'web';
@@ -77,16 +78,29 @@ describe('resolveAccent', () => {
     expect(resolveAccent({light: '#0040DD', dark: '#FFD60A'})).toEqual({light: '#0040DD', dark: '#FFD60A', onLight: '#FFFFFF', onDark: '#000000'});
   });
 
-  it('makes a seed legible on the background of a scheme where it falls short, and keeps it where it does not', () => {
-    // systemBlue is 4.0:1 on white and 5.2:1 on black.
+  it('makes a seed legible on the backgrounds of a scheme where it falls short, and keeps it where it does not', () => {
+    // systemBlue is 4.0:1 on white, 5.2:1 on black, 3.5:1 on the light raised fill and 4.0:1 on the dark one.
     const accent = resolveAccent(ACCENT_SEED, 4.5);
     expect(accent.light).not.toBe(ACCENT_SEED);
-    expect(contrastRatio(accent.light, '#ffffff')).toBeGreaterThanOrEqual(4.5);
-    expect(accent.dark).toBe(ACCENT_SEED);
+    expect(contrastRatio(accent.light, colors.light.background)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(accent.light, colors.light.backgroundElement)).toBeGreaterThanOrEqual(4.5);
+    expect(accent.dark).not.toBe(ACCENT_SEED);
+    expect(contrastRatio(accent.dark, colors.dark.background)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(accent.dark, colors.dark.backgroundElement)).toBeGreaterThanOrEqual(4.5);
+    // Navy is 8.7:1 on the light raised fill, so the light scheme keeps it.
     const navy = resolveAccent({light: '#1C3D8F', dark: '#1C3D8F'}, 4.5);
     expect(navy.light).toBe('#1C3D8F');
-    expect(contrastRatio(navy.dark, '#000000')).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(navy.dark, colors.dark.background)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(navy.dark, colors.dark.backgroundElement)).toBeGreaterThanOrEqual(4.5);
     expect(navy.onDark).toBe(onAccent(navy.dark));
+  });
+
+  it('measures the tint against the raised background as well as the screen', () => {
+    // On black alone #1a56db would be #376DE7, which is 3.4:1 on the dark raised fill.
+    const accent = resolveAccent('#1a56db', 4.5);
+    expect(accent).toEqual({light: '#1a56db', dark: '#5785EB', onLight: onAccent('#1a56db'), onDark: onAccent('#5785EB')});
+    expect(contrastRatio(accent.dark, colors.dark.backgroundElement)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(accent.light, colors.light.backgroundElement)).toBeGreaterThanOrEqual(4.5);
   });
 });
 
