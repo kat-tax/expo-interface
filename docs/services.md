@@ -70,10 +70,14 @@ called with the files. `useDrop(ref, {onDrop, disabled})` makes any view a
 target and answers `{over}`, for a look of the app's own.
 
 ```tsx
-<DropZone onDrop={files => files.forEach(add)} label="Drop to add to the space">
+<DropZone style={{flex: 1}} onDrop={files => files.forEach(add)} label="Drop to add to the space">
   <CardGrid data={documents} renderItem={renderCard}/>
 </DropZone>
 ```
+
+A zone around a `List` or a `CardGrid` takes `flex: 1`, as any view
+around them does, so the list fills the zone and scrolls inside it. On the
+web a zone left at its own height grows to every row, and nothing scrolls.
 
 A dropped file is `{name, type, size, file}`, `file` being the browser's
 `File`. The zone counts a drag's enters and leaves, since a drag crosses
