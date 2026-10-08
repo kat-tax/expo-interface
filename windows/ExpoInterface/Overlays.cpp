@@ -1347,9 +1347,13 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
       }
     });
     // The add button is a part of the template, there once it is applied: a
-    // name asked for before then is given now.
+    // name asked for before then is given now. A load may come with a new
+    // template, and so a new button, so it is named again.
     m_view.Loaded([weak = get_weak()](const winrt::IInspectable &, const xaml::RoutedEventArgs &) {
-      if (auto strong = weak.get()) strong->NameAddButton();
+      if (auto strong = weak.get()) {
+        strong->m_namedAddLabel.clear();
+        strong->NameAddButton();
+      }
     });
     Attach(islandView, m_view);
   }
@@ -1453,13 +1457,18 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
    * and in its tooltip, in place of WinUI's own: the other platforms say the
    * same words. WinUI fills both only when they are empty, as the template is
    * applied, and this runs after that, so the kit's words win either way.
+   *
+   * It runs on every props update, a selection included, and finding the
+   * button walks the control's whole tree, every tab's template first; so a
+   * button already given these words is left alone.
    */
   void NameAddButton() noexcept {
-    if (m_addLabel.empty()) return;
+    if (m_addLabel.empty() || m_addLabel == m_namedAddLabel) return;
     auto button = FindDescendant(m_view, L"AddButton");
     if (!button) return;
     SetName(button, std::optional<std::string>{m_addLabel});
     controls::ToolTipService::SetToolTip(button, winrt::box_value(ToHString(m_addLabel)));
+    m_namedAddLabel = m_addLabel;
   }
 
   void TabMenu(const controls::TabViewItem &item, const winrt::Windows::Foundation::Point &point) noexcept {
@@ -1479,6 +1488,8 @@ struct TabViewView : winrt::implements<TabViewView, winrt::IInspectable>,
   std::string m_labels;
   /** What the add button is called, once its template part exists. */
   std::string m_addLabel;
+  /** What the add button found last was named; cleared when it may be a new one. */
+  std::string m_namedAddLabel;
   bool m_applying{false};
 };
 
