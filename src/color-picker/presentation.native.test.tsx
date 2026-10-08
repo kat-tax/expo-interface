@@ -34,6 +34,7 @@ const tap = async (node: HostNode) => {
   });
 };
 const ofType = (name: string) => nodes().filter(n => n.type.includes(name));
+const children = (node: HostNode) => (node.children ?? []).filter((c): c is HostNode => typeof c === 'object');
 
 beforeEach(() => {
   sheetProps = undefined;
@@ -128,6 +129,16 @@ describe(`ColorPicker presentations (${Platform.OS})`, () => {
     const [menu] = screen.container.queryAll(i => typeof i.props.onDismissRequest === 'function');
     await fireEvent(menu, 'dismissRequest');
     expect(ofType('DropdownMenu')[0].props.expanded).toBe(false);
+  });
+
+  it('names each preset for TalkBack with an unseen text its clickable merges', async () => {
+    await render(<ColorPicker value="#FF0000" swatches={[{color: '#1D1D1F', name: 'Ink'}, '#FF0000']} allowsNone onValueChange={vi.fn()} testID="cp"/>, options);
+    const name = (testID: string) => children(byComposeTestID(testID))[1].props;
+    // After the inner circle, so the swatch draws as it did; transparent, so nothing shows.
+    expect(name('cp-swatch-#1D1D1F')).toMatchObject({text: 'Color Ink', color: '#00000000', maxLines: 1});
+    expect(name('cp-swatch-#FF0000')).toMatchObject({text: 'Color #FF0000'});
+    expect(name('cp-swatch-none')).toMatchObject({text: 'No color'});
+    expect(modifier(byComposeTestID('cp-swatch-#1D1D1F').props, 'clickable')).toBeTruthy();
   });
 
   it('offers No color beside the palette, and crosses out the well for an empty value', async () => {

@@ -46,7 +46,8 @@ const DIALOG_WIDTH = 328;
  * Material has no popover: `popover` opens the picker in a dialog, which
  * also lives in a window of its own, over a sheet the row is in. `menu`
  * opens a Material `DropdownMenu` of the swatches from the well, and
- * `inline` draws the picker in the row's place.
+ * `inline` draws the picker in the row's place. Each preset carries its
+ * name as an unseen Text, which its clickable merges for TalkBack.
  */
 export function ColorPicker({
   label,
@@ -81,7 +82,7 @@ export function ColorPicker({
       <Box modifiers={[size(2, diameter), rotate(45), background(stroke)]}/>
     </Box>
   );
-  const preset = (key: string, selected: boolean, onPress: () => void, inner: React.ReactNode) => (
+  const preset = (key: string, name: string, selected: boolean, onPress: () => void, inner: React.ReactNode) => (
     // The ring is a circle behind a smaller circle: a border modifier would be square.
     <Box
       key={key}
@@ -94,15 +95,17 @@ export function ColorPicker({
         ...(testID ? [testIDModifier(`${testID}-swatch-${key}`)] : []),
       ]}>
       {inner}
+      {/* @expo/ui's `semantics` takes no content description, so the name is an unseen Text that the clickable merges. */}
+      <Text color={NONE} maxLines={1}>{name}</Text>
     </Box>
   );
   const presetBoxes = [
-    ...(allowsNone ? [preset('none', none, () => onValueChange(NO_COLOR), crossed(none ? SWATCH_SELECTED : SWATCH_INNER))] : []),
-    ...presets.map(({color}) => {
+    ...(allowsNone ? [preset('none', 'No color', none, () => onValueChange(NO_COLOR), crossed(none ? SWATCH_SELECTED : SWATCH_INNER))] : []),
+    ...presets.map(({color, name}) => {
       // The ring follows the color held here, which a pick changes at once.
       const selected = !none && sameColor(color, toHex(current, false));
       const inner = selected ? SWATCH_SELECTED : SWATCH_INNER;
-      return preset(color, selected, () => setCurrent({...parseColor(color), a: current.a}), (
+      return preset(color, `Color ${name}`, selected, () => setCurrent({...parseColor(color), a: current.a}), (
         <Box modifiers={[size(inner, inner), clip(Shapes.Circle), background(color)]}/>
       ));
     }),

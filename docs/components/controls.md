@@ -403,6 +403,9 @@ colors on iOS and web, Material's on Android, the Windows accent colors on
 Windows, each named for a screen reader and a menu. A swatch given as
 `{color, name}` is called by its name in a menu and to a screen reader, as
 the system palettes' colors are; a color given alone is called by its hex.
+On Android a swatch in the row carries its name as unseen text inside it,
+which TalkBack reads with the swatch: `@expo/ui`'s Compose layer exposes no
+modifier that sets a content description.
 
 `allowsNone` adds a "No color" choice, a crossed-out circle before the
 swatches and the first entry of a menu, reported as an empty string. An
