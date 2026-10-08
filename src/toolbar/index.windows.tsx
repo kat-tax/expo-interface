@@ -1,18 +1,19 @@
 import type {ReactNode} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {ToolbarCommand, ToolbarProps} from './types';
-import {useState} from 'react';
+import {Fragment, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import XamlCommandBar from '../windows/specs/ExpoInterfaceCommandBarNativeComponent';
 import {glyphOf, jsonProp, useXamlProps} from '../windows';
 import {Surface} from '../surface';
 import {useAnchored} from '../anchored';
 import {Button} from '../button';
+import {Divider} from '../divider';
 import {Menu} from '../menu';
 import {isCompact} from '../size-class';
 import {spacing} from '../theme';
 import {MORE} from '../glyphs';
-import {anchoredStyles, hasCommands, splitCommands} from './shared';
+import {anchoredStyles, hasCommands, overflowItems, splitCommands} from './shared';
 
 const DENSITY = {
   regular: {gap: spacing.two, edge: spacing.three},
@@ -149,26 +150,32 @@ function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], p
   );
 }
 
-/** Commands as the kit's own buttons, each an island of its own. */
+/**
+ * Commands as the kit's own buttons, each an island of its own. A command
+ * with `separator` has a vertical rule before it, none before the first of
+ * the group, as a menu's entries do.
+ */
 function CommandButtons({commands}: {commands: ToolbarCommand[]}) {
   if (commands.length === 0) return null;
   return (
     <>
       {commands.map((command, index) => (
-        <Button
-          key={index}
-          variant="text"
-          size="small"
-          pressed={command.active}
-          label={command.label}
-          prefixIcon={command.icon}
-          hideLabel={command.hideLabel}
-          tone={command.tone}
-          role={command.role}
-          disabled={command.disabled}
-          onPress={command.onPress}
-          testID={command.testID}
-        />
+        <Fragment key={index}>
+          {command.separator && index > 0 ? <Divider vertical/> : null}
+          <Button
+            variant="text"
+            size="small"
+            pressed={command.active}
+            label={command.label}
+            prefixIcon={command.icon}
+            hideLabel={command.hideLabel}
+            tone={command.tone}
+            role={command.role}
+            disabled={command.disabled}
+            onPress={command.onPress}
+            testID={command.testID}
+          />
+        </Fragment>
       ))}
     </>
   );
@@ -184,14 +191,7 @@ function Overflow({commands}: {commands: ToolbarCommand[]}) {
       icon={MORE}
       variant="text"
       size="small"
-      items={commands.map(command => ({
-        label: command.label,
-        icon: command.icon,
-        role: command.role,
-        disabled: command.disabled,
-        separator: command.separator,
-        onPress: command.onPress,
-      }))}
+      items={overflowItems(commands)}
     />
   );
 }

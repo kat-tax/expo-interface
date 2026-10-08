@@ -107,14 +107,29 @@ describe('commands (windows)', () => {
     expect(JSON.parse(island('ExpoInterfaceMenuFlyout').props.items).map((item: {label: string}) => item.label)).toEqual(['Export']);
   });
 
-  it('folds its commands behind the overflow in the compact size class, keeping the field\'s', async () => {
+  it('folds its commands behind the overflow in the compact size class, keeping the field\'s and the toggles\' state', async () => {
     await render(
-      <Toolbar commands={[{label: 'Bold'}, {label: 'Italic'}]} field={<Text>Find</Text>} fieldCommands={[{label: 'Close'}]} foldCommands testID="bar"/>,
+      <Toolbar commands={[{label: 'Bold', active: true}, {label: 'Italic'}]} field={<Text>Find</Text>} fieldCommands={[{label: 'Close'}]} foldCommands testID="bar"/>,
     );
     expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Bold', 'Italic', 'Close']);
     await fireEvent(screen.getByTestId('bar'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 400, height: 48}}});
     expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Close', 'More']);
-    expect(JSON.parse(island('ExpoInterfaceMenuFlyout').props.items).map((item: {label: string}) => item.label)).toEqual(['Bold', 'Italic']);
+    const items = JSON.parse(island('ExpoInterfaceMenuFlyout').props.items) as {label: string; active: boolean}[];
+    expect(items.map(item => item.label)).toEqual(['Bold', 'Italic']);
+    // A toggle that is on keeps its check in the flyout.
+    expect(items.map(item => item.active)).toEqual([true, false]);
+  });
+
+  it('draws a rule before a command that asks for one on the drawn bar, and none before the first', async () => {
+    await render(<Toolbar commands={[{label: 'Bold', separator: true}, {label: 'Italic', separator: true}]} field={<Text>Find</Text>}/>);
+    // The Windows Divider: a hairline view with the separator role, which is not an accessibility element of its own.
+    const rules = screen.container.queryAll(node => node.props.role === 'separator');
+    expect(rules).toHaveLength(1);
+    expect(rules[0]!.props['aria-orientation']).toBe('vertical');
+    // Between the two commands.
+    expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Bold', 'Italic']);
+    const row = rules[0]!.parent!;
+    expect(row.children.indexOf(rules[0]!)).toBe(1);
   });
 
   it('measures the drawn bar whether or not it folds, so a fold turned on once it is narrow takes no new layout', async () => {

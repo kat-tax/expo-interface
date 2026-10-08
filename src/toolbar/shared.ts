@@ -1,3 +1,4 @@
+import type {MenuItem} from '../menu/types';
 import type {ToolbarCommand} from './types';
 import {StyleSheet} from 'react-native';
 
@@ -16,6 +17,24 @@ export function splitCommands(commands: readonly ToolbarCommand[]): {
     primary: commands.filter(command => !command.secondary),
     secondary: commands.filter(command => command.secondary),
   };
+}
+
+/**
+ * The overflow menu's entries for the commands behind it, on every bar the
+ * kit draws. A toggle keeps its state as the menu's check while it is on: a
+ * menu has no off state, so one that is off is a plain entry, as the
+ * platforms' own menus show it.
+ */
+export function overflowItems(commands: readonly ToolbarCommand[]): MenuItem[] {
+  return commands.map(command => ({
+    label: command.label,
+    icon: command.icon,
+    active: command.active,
+    role: command.role,
+    disabled: command.disabled,
+    separator: command.separator,
+    onPress: command.onPress,
+  }));
 }
 
 /** Styles the anchored bar shares on every platform. */

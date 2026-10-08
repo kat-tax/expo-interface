@@ -16,8 +16,9 @@ export type ToolbarDensity = 'regular' | 'compact';
  *
  * The controls are one native view — a `Row` inside a single host — so a bar
  * of buttons and menus costs one bridge crossing rather than one per group.
- * Put a `Divider vertical` between groups; both slots take the kit's own
- * controls, which draw natively inside the host.
+ * Put a `Divider vertical` between groups, or give a command `separator`;
+ * both slots take the kit's own controls, which draw natively inside the
+ * host.
  *
  * A `field` breaks that in one place: a text field is a React Native input,
  * so with one the bar is a leading host, the field, and a trailing host.
@@ -43,8 +44,9 @@ export interface ToolbarCommand {
    * editor, a check that runs, a panel that is open. It is drawn filled in
    * the accent while on, and assistive technology hears the state: the kit's
    * `Button` with `pressed` on iOS, Android and web, an `AppBarToggleButton`
-   * in the Windows `CommandBar`. Leave it out for a command that is not a
-   * toggle.
+   * in the Windows `CommandBar`. Behind the overflow it is an entry with the
+   * menu's check while it is on; a menu has no off state, so one that is off
+   * is a plain entry. Leave it out for a command that is not a toggle.
    */
   active?: boolean;
   /**
@@ -64,7 +66,11 @@ export interface ToolbarCommand {
   disabled?: boolean;
   /** `destructive` draws the command in the danger color. */
   role?: 'default' | 'destructive';
-  /** A rule before this command, to group the ones after it. */
+  /**
+   * A rule before this command, to group the ones after it: a vertical
+   * `Divider` on the bar (none before the first command of a row), a rule
+   * in the overflow menu, an `AppBarSeparator` in the Windows `CommandBar`.
+   */
   separator?: boolean;
   testID?: string;
 }

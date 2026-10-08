@@ -23,4 +23,20 @@ describe('Toolbar commands (web)', () => {
     render(<Toolbar commands={commands} density="compact"/>);
     expect(getComputedStyle(screen.getByRole('button', {name: 'Pen'}).parentElement!).gap).toBe('2px');
   });
+
+  it('draws a rule before a command that asks for one, and none before the first', () => {
+    render(<Toolbar commands={[{label: 'Bold', separator: true}, {label: 'Italic'}, {label: 'Undo', separator: true}]}/>);
+    const rules = screen.getAllByRole('separator');
+    expect(rules).toHaveLength(1);
+    expect(rules[0]).toHaveAttribute('aria-orientation', 'vertical');
+    const precedes = (a: Element, b: Element) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+    expect(precedes(screen.getByRole('button', {name: 'Italic'}), rules[0]!)).toBe(true);
+    expect(precedes(rules[0]!, screen.getByRole('button', {name: 'Undo'}))).toBe(true);
+  });
+
+  it('keeps a toggle\'s state in the overflow as the menu\'s check', () => {
+    render(<Toolbar commands={[{label: 'Undo'}, {label: 'Spellcheck', secondary: true, active: true}, {label: 'Wrap', secondary: true, active: false}]}/>);
+    expect(screen.getByRole('menuitem', {name: 'Spellcheck', hidden: true})).toHaveAttribute('aria-current', 'true');
+    expect(screen.getByRole('menuitem', {name: 'Wrap', hidden: true})).not.toHaveAttribute('aria-current');
+  });
 });

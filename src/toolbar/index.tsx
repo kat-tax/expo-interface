@@ -1,10 +1,11 @@
 import type {ReactNode} from 'react';
 import type {ToolbarCommand, ToolbarProps} from './types';
 import type {LayoutChangeEvent} from 'react-native';
-import {useState} from 'react';
+import {Fragment, useState} from 'react';
 import {Platform, StyleSheet, View} from 'react-native';
 import {Row, Spacer} from '@expo/ui';
 import {Button} from '../button';
+import {Divider} from '../divider';
 import {NativeHost} from '../host';
 import {Menu} from '../menu';
 import {Surface} from '../surface';
@@ -13,7 +14,7 @@ import {MORE} from '../glyphs';
 import {isCompact} from '../size-class';
 import {spacing} from '../theme';
 import {FloatingSurface} from './floating';
-import {anchoredStyles, hasCommands, splitCommands} from './shared';
+import {anchoredStyles, hasCommands, overflowItems, splitCommands} from './shared';
 
 /**
  * Space between the controls, and at the bar's ends. `compact` is what a bar
@@ -152,27 +153,33 @@ function EdgeToolbar(props: ToolbarProps) {
   );
 }
 
-/** The commands the bar shows, as the kit's own buttons, in a row of their own at the bar's pitch. */
+/**
+ * The commands the bar shows, as the kit's own buttons, in a row of their own
+ * at the bar's pitch. A command with `separator` has a vertical rule before
+ * it, none before the first of the row, as a menu's entries do.
+ */
 function Commands({commands, gap}: {commands: ToolbarCommand[]; gap: number}) {
   if (commands.length === 0) return null;
   return (
     <Row alignment="center" spacing={COMMAND_GAP ?? gap}>
       {commands.map((command, index) => (
-        <Button
-          key={index}
-          variant="text"
-          pressed={command.active}
-          size={TOOL.size}
-          iconSize={TOOL.iconSize}
-          label={command.label}
-          prefixIcon={command.icon}
-          hideLabel={command.hideLabel}
-          tone={command.tone}
-          role={command.role}
-          disabled={command.disabled}
-          onPress={command.onPress}
-          testID={command.testID}
-        />
+        <Fragment key={index}>
+          {command.separator && index > 0 ? <Divider vertical/> : null}
+          <Button
+            variant="text"
+            pressed={command.active}
+            size={TOOL.size}
+            iconSize={TOOL.iconSize}
+            label={command.label}
+            prefixIcon={command.icon}
+            hideLabel={command.hideLabel}
+            tone={command.tone}
+            role={command.role}
+            disabled={command.disabled}
+            onPress={command.onPress}
+            testID={command.testID}
+          />
+        </Fragment>
       ))}
     </Row>
   );
@@ -189,14 +196,7 @@ function Overflow({commands}: {commands: ToolbarCommand[]}) {
       variant="text"
       size={TOOL.size}
       iconSize={TOOL.iconSize}
-      items={commands.map(command => ({
-        label: command.label,
-        icon: command.icon,
-        role: command.role,
-        disabled: command.disabled,
-        separator: command.separator,
-        onPress: command.onPress,
-      }))}
+      items={overflowItems(commands)}
     />
   );
 }

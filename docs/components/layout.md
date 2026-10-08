@@ -172,7 +172,7 @@ default) and `insets`, for a bar floating beside a rectangle; `style`,
 
 | Platform | Renders |
 | --- | --- |
-| iOS, Android, Web | A drawn `Surface` bar. The controls sit in one native host as a single row, so a bar of buttons and menus costs one host rather than one per control. With `commands`, the kit draws them as text buttons at the platform's own bar metrics (a 22pt symbol at the bar button's size on iOS, as the header's actions, spaced to the 44pt pitch of a toolbar's items; a 22dp icon in Material's 48dp icon button on Android, which is the bar's height and the pitch there; the kit's small button on web) and puts the `secondary` ones behind a `Menu` labelled "More". A command that is `active` is drawn filled; `tone` draws the others in the label color, for a row of tools where the accent marks the active one; `hideLabel` keeps the icon alone. |
+| iOS, Android, Web | A drawn `Surface` bar. The controls sit in one native host as a single row, so a bar of buttons and menus costs one host rather than one per control. With `commands`, the kit draws them as text buttons at the platform's own bar metrics (a 22pt symbol at the bar button's size on iOS, as the header's actions, spaced to the 44pt pitch of a toolbar's items; a 22dp icon in Material's 48dp icon button on Android, which is the bar's height and the pitch there; the kit's small button on web) and puts the `secondary` ones behind a `Menu` labelled "More". A command that is `active` is drawn filled; `tone` draws the others in the label color, for a row of tools where the accent marks the active one; `hideLabel` keeps the icon alone; a command's `separator` draws a vertical `Divider` before it. |
 | Windows | With `commands` and no `field`, a WinUI `CommandBar` island: the control lays the commands out, moves the ones that do not fit into its own overflow menu, and draws labels beside the icons (`compact` drops them and leaves the naming to the overflow). Otherwise a drawn bar of islands. |
 
 Differences:
@@ -193,7 +193,12 @@ Differences:
   and heard as one. The drawn bars give it the kit's `Button` with
   `pressed` (`aria-pressed` on web, the selected trait on iOS, Material's
   icon toggle button on Android); the Windows `CommandBar` makes it an
-  `AppBarToggleButton`.
+  `AppBarToggleButton`. In the overflow, a toggle that is on is an entry
+  with the menu's check; a menu has no off state, so one that is off is a
+  plain entry.
+- A command's `separator` is a vertical `Divider` before it on the drawn
+  bars, none before the first command of a row, a rule in the overflow
+  menu, and an `AppBarSeparator` in the Windows `CommandBar`.
 
 `fieldCommands` are the field's own: a find bar's previous and next, an
 assistant's send. They share the trailing group's host, so a bar with a

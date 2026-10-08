@@ -107,7 +107,7 @@ function useFormatting() {
   return [
     {label: 'Bold', icon: icons.add, hideLabel: true, active: bold, tone: 'label' as const, onPress: () => setBold(on => !on)},
     {label: 'Italic', icon: icons.star, hideLabel: true, active: italic, tone: 'label' as const, onPress: () => setItalic(on => !on)},
-    {label: 'Link', icon: icons.share, hideLabel: true, tone: 'label' as const, onPress: fn()},
+    {label: 'Link', icon: icons.share, hideLabel: true, tone: 'label' as const, separator: true, onPress: fn()},
     {label: 'Clear formatting', secondary: true, onPress: fn()},
   ];
 }

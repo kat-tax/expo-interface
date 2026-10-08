@@ -156,6 +156,34 @@ describe('commands', () => {
     expect(nodes().some(node => node.type.includes('Menu'))).toBe(true);
   });
 
+  it('draws a rule before a command that asks for one, and none before the first', async () => {
+    await render(<Toolbar commands={[{label: 'Bold', separator: true}, {label: 'Italic'}, {label: 'Undo', separator: true}]}/>);
+    const tree = nodes();
+    // iOS: SwiftUI's Divider, vertical in the row's HStack; Android: Material's VerticalDivider.
+    const rules = tree.filter(node => node.type.endsWith(isIOS ? 'DividerView' : 'VerticalDividerView'));
+    expect(rules).toHaveLength(1);
+    const at = (label: string) => tree.findIndex(node => labelOf(node) === label);
+    const rule = tree.indexOf(rules[0]!);
+    expect(at('Italic')).toBeLessThan(rule);
+    expect(rule).toBeLessThan(at('Undo'));
+    // Still one host: the rule draws inside the bar's row.
+    expect(hosts()).toHaveLength(1);
+  });
+
+  it('keeps a toggle\'s state in the overflow as the menu\'s check', async () => {
+    await render(<Toolbar commands={[{label: 'Undo'}, {label: 'Spellcheck', secondary: true, active: true}, {label: 'Wrap', secondary: true, active: false}]}/>);
+    const menu = nodes().find(node => node.type.includes('Menu'))!;
+    if (isIOS) {
+      // A checked toggle is how a SwiftUI menu shows the current state; one that is off is a plain entry.
+      expect(nodes(menu).find(node => node.props.label === 'Spellcheck')).toMatchObject({type: expect.stringContaining('Toggle'), props: {isOn: true}});
+      expect(nodes(menu).find(node => node.props.label === 'Wrap')?.type).toContain('Button');
+    } else {
+      const entry = (label: string) => nodes(menu).find(node => node.type.endsWith('DropdownMenuItemView') && nodes(node).some(child => child.props.text === label))!;
+      expect(host(p => p.text === '✓', entry('Spellcheck'))).toBeTruthy();
+      expect(nodes(entry('Wrap')).some(node => node.props.text === '✓')).toBe(false);
+    }
+  });
+
   it('still takes the two slots when it was given no commands', async () => {
     await render(<Toolbar leading={<Button label="Bold" variant="text"/>} testID="bar"/>);
     expect(onBar('Bold')).toBe(true);
