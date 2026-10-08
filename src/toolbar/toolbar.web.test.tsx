@@ -58,4 +58,12 @@ describe('Toolbar commands (web)', () => {
     expect(screen.getByRole('menuitem', {name: 'Spellcheck', hidden: true})).toHaveAttribute('aria-current', 'true');
     expect(screen.getByRole('menuitem', {name: 'Wrap', hidden: true})).not.toHaveAttribute('aria-current');
   });
+
+  it('opens the overflow on its first entry, not on a toggle that is on', () => {
+    render(<Toolbar commands={[{label: 'Undo'}, {label: 'Wrap', secondary: true, active: false}, {label: 'Spellcheck', secondary: true, active: true}]}/>);
+    const toggle = new Event('toggle');
+    Object.defineProperty(toggle, 'newState', {value: 'open'});
+    fireEvent(screen.getByRole('menu', {hidden: true}), toggle);
+    expect(document.activeElement).toBe(screen.getByRole('menuitem', {name: 'Wrap', hidden: true}));
+  });
 });
