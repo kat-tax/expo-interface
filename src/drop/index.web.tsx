@@ -19,9 +19,15 @@ function carriesFiles(event: DragEvent): boolean {
 /** How many drop targets are mounted, which together keep the page from opening a stray drop. */
 let targets = 0;
 
-/** Whether the drag is over a file input, which takes its own drops as the browser's control. */
+/**
+ * Whether the drag is over a file input, which takes its own drops as the
+ * browser's control. The path's first entry is the drag's own target, which
+ * the event's `target` is not for an input in a web component's shadow root:
+ * by the time the window hears the drag, that is the component.
+ */
 function overFileInput(event: DragEvent): boolean {
-  return event.target instanceof HTMLInputElement && event.target.type === 'file';
+  const [target] = event.composedPath();
+  return target instanceof HTMLInputElement && target.type === 'file';
 }
 
 /**

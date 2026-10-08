@@ -82,16 +82,22 @@ describe('DropZone (web)', () => {
     expect(fireEvent.dragOver(screen.getByTestId('b'), files())).toBe(false);
     // Text and links are the page's.
     expect(fireEvent.dragOver(document.body, text)).toBe(true);
-    // A file input takes its own drops; any other field does not.
+    // A file input takes its own drops, inside a web component too; any other field does not.
     const picker = document.createElement('input');
     picker.type = 'file';
     const field = document.createElement('input');
     field.type = 'text';
-    document.body.append(picker, field);
+    const component = document.createElement('div');
+    const inner = document.createElement('input');
+    inner.type = 'file';
+    component.attachShadow({mode: 'open'}).append(inner);
+    document.body.append(picker, field, component);
     expect(fireEvent.dragOver(picker, files())).toBe(true);
     expect(fireEvent.dragOver(field, files())).toBe(false);
+    expect(fireEvent.dragOver(inner, files())).toBe(true);
     picker.remove();
     field.remove();
+    component.remove();
     // The guard lasts while any zone is mounted, and goes with the last.
     rerender(zones(false, true));
     expect(fireEvent.dragOver(document.body, files())).toBe(false);
