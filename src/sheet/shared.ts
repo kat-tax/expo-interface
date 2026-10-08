@@ -2,7 +2,17 @@ import type {ReactNode} from 'react';
 import type {BottomSheetContentPadding} from '@expo/ui';
 import type {MenuItem} from '../menu/types';
 import type {ScrollInsets} from '../screen/insets';
-import type {SheetAction, SheetMaterial} from './types';
+import type {SheetAction, SheetMaterial, SheetMaxHeight} from './types';
+
+/** A fraction kept between 0 and 1. */
+export function capFraction(fraction: number): number {
+  return Math.min(Math.max(fraction, 0), 1);
+}
+
+/** The body's cap in points: `maxHeight` as given, or its fraction of `height`. */
+export function bodyCap(maxHeight: SheetMaxHeight | undefined, height: number): number | undefined {
+  return typeof maxHeight === 'object' ? capFraction(maxHeight.fraction) * height : maxHeight;
+}
 
 /**
  * What the sheet's content pads by for a bar: nothing. A sheet opens over the

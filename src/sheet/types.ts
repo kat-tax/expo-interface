@@ -12,6 +12,15 @@ import type {MenuItem} from '../menu/types';
  */
 export type SheetMaterial = 'none' | 'thin' | 'regular' | 'thick';
 
+/**
+ * A height in points, or a fraction of the window's height: `{fraction: 0.6}`
+ * is 60% of it, kept between 0 and 1. On web the fraction is of the
+ * viewport's dynamic height (`dvh`), which follows a phone browser's
+ * toolbar; on Windows it is of the area the sheet's layer covers, which is
+ * the window under the kit's `Stack`.
+ */
+export type SheetMaxHeight = number | {fraction: number};
+
 /** One of the buttons along a sheet's bottom edge: Cancel, Save, Delete. */
 export interface SheetAction {
   label: string;
@@ -109,9 +118,10 @@ export interface SheetProps extends BottomSheetProps {
    */
   actions?: SheetAction[];
   /**
-   * The most the body grows to, in points. A sheet without `snapPoints`
-   * fits its content; past this height the body scrolls inside the sheet
-   * instead, as React Native content the width of the sheet.
+   * The most the body grows to, in points or as a fraction of the window's
+   * height ({@link SheetMaxHeight}). A sheet without `snapPoints` fits its
+   * content; past this height the body scrolls inside the sheet instead, as
+   * React Native content the width of the sheet.
    */
-  maxHeight?: number;
+  maxHeight?: SheetMaxHeight;
 }

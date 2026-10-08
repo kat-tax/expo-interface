@@ -56,4 +56,4 @@ function translucent(opacity: number): string {
   return `color-mix(in srgb, var(--color-background) ${Math.round(opacity * 100)}%, transparent)`;
 }
 
-export type {SheetAction, SheetMaterial, SheetProps} from './types';
+export type {SheetAction, SheetMaterial, SheetMaxHeight, SheetProps} from './types';

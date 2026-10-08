@@ -1,11 +1,13 @@
 import type {PropsWithChildren} from 'react';
 import type {BottomSheetContentPadding} from '@expo/ui';
+import type {SheetMaxHeight} from './types';
 import {Platform, ScrollView, StyleSheet} from 'react-native';
+import {useSheetBodyCap} from './cap';
 import {SheetHosted} from './hosted';
 import {useSheetBodyWidth} from './width';
 
 interface SheetBodyProps extends PropsWithChildren {
-  maxHeight?: number;
+  maxHeight?: SheetMaxHeight;
   contentPadding?: BottomSheetContentPadding;
   testID?: string;
 }
@@ -14,16 +16,17 @@ interface SheetBodyProps extends PropsWithChildren {
  * The sheet's body: the children as they are, which on iOS and Android is
  * the sheet's native content, unless the sheet is capped. Capped, they
  * scroll inside a React Native box the width of the sheet and no taller
- * than the cap, hosted in the sheet on iOS and Android so it takes presses
- * and its width.
+ * than the cap (points, or a fraction of the window's height), hosted in
+ * the sheet on iOS and Android so it takes presses and its width.
  */
 export function SheetBody({maxHeight, contentPadding, testID, children}: SheetBodyProps) {
   const width = useSheetBodyWidth(contentPadding);
-  if (maxHeight === undefined) return <>{children}</>;
+  const cap = useSheetBodyCap(maxHeight);
+  if (cap === undefined) return <>{children}</>;
   return (
     <SheetHosted contentPadding={contentPadding}>
       <ScrollView
-        style={[styles.scroll, {maxHeight, width}]}
+        style={[styles.scroll, {maxHeight: cap, width}]}
         contentContainerStyle={styles.content}
         // Android: the hosted box hands a drag that starts here to Compose's
         // sheet, which expands before the body scrolls and collapses when the

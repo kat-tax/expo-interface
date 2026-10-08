@@ -185,6 +185,16 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).width).toBe(sheet - 16);
   });
 
+  it('caps the body at a fraction of the window\'s height', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} maxHeight={{fraction: 0.5}} testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    const height = Dimensions.get('window').height;
+    expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).maxHeight).toBe(height * 0.5);
+  });
+
   it('tells the body and the footer a tablet sheet\'s width, not the window\'s: a form sheet on an iPad, Material\'s 640 on Android', async () => {
     const phone = Dimensions.get('window');
     Dimensions.set({window: {...phone, width: 1180}});

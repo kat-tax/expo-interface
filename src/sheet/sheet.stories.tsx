@@ -164,6 +164,16 @@ export const Capped: Story = {
   },
 };
 
+/** The cap as a fraction of the window's height: half of it, whatever the device. */
+export const CappedToFraction: Story = {
+  args: {
+    title: 'History',
+    onClose: fn(),
+    maxHeight: {fraction: 0.5},
+    children: <Rows/>,
+  },
+};
+
 /**
  * Twenty comments, each a row that takes a press: on iOS and Android the
  * capped body is hosted in the sheet, which is what lets a `Pressable` in

@@ -89,4 +89,30 @@ describe('Sheet chrome (windows)', () => {
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(StyleSheet.flatten(screen.getByTestId('sheet-actions').props.style).justifyContent).toBe('flex-end');
   });
+
+  it('caps the body at a fraction of the area the layer covers, as it lays out', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} maxHeight={{fraction: 0.5}} testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    const cap = () => StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).maxHeight;
+    // Nothing until the area is measured; the card's entrance fade hides that first frame.
+    expect(cap()).toBe(0);
+    await fireEvent(screen.getByTestId('sheet-area'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 1000, height: 800}}});
+    expect(cap()).toBe(400);
+    // A resize lays the area out again, which the window's dimensions do not follow here.
+    await fireEvent(screen.getByTestId('sheet-area'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 1000, height: 600}}});
+    expect(cap()).toBe(300);
+  });
+
+  it('keeps a cap in points whatever the area', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} maxHeight={300} testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    await fireEvent(screen.getByTestId('sheet-area'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 1000, height: 800}}});
+    expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).maxHeight).toBe(300);
+  });
 });

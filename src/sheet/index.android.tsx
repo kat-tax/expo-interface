@@ -32,4 +32,4 @@ export function Sheet(props: SheetProps) {
   );
 }
 
-export type {SheetAction, SheetMaterial, SheetProps} from './types';
+export type {SheetAction, SheetMaterial, SheetMaxHeight, SheetProps} from './types';

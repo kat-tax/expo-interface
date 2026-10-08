@@ -93,4 +93,13 @@ describe('Sheet chrome (web)', () => {
     expect(text.indexOf('Filter')).toBeLessThan(text.indexOf('Body'));
     expect(text.indexOf('Body')).toBeLessThan(text.indexOf('Write'));
   });
+
+  it('caps the body at a fraction of the viewport\'s dynamic height, which follows the browser\'s toolbar', () => {
+    render(
+      <Sheet isPresented onDismiss={() => {}} maxHeight={{fraction: 0.57}} testID="sheet">
+        <span>Body</span>
+      </Sheet>,
+    );
+    expect(screen.getByTestId('sheet-body').style.maxHeight).toBe('57dvh');
+  });
 });

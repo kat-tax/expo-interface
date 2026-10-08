@@ -264,12 +264,22 @@ the bar: a `SegmentedControl` that picks what the body shows), `footer`
 (the row under the body: a `Composer`), `actions` (buttons along the bottom
 edge, trailing-aligned, the last one filled and the rest outlined; `label`,
 `onPress`, `role`, `variant`, `disabled`, `loading` each), `maxHeight` (the
-most the body grows to), `testID`.
+most the body grows to: in points, or a fraction of the window's height,
+`{fraction: 0.6}`), `testID`.
 
 The bar is drawn as soon as a title or any of its buttons is given. Without
 `snapPoints` the sheet fits its content on every platform; `maxHeight` caps
 that, and the body then scrolls inside the cap as React Native content the
-width of the sheet.
+width of the sheet. A fraction is kept between 0 and 1. On web it is of the
+viewport's dynamic height, which follows a phone browser's toolbar, and on
+Windows of the area the sheet's layer covers, which is the window under the
+kit's `Stack`.
+
+```tsx
+<Sheet isPresented={open} onDismiss={close} title="History" maxHeight={{fraction: 0.6}}>
+  <Versions/>
+</Sheet>
+```
 
 | Platform | Renders |
 | --- | --- |

@@ -33,6 +33,7 @@ export {Toolbar} from './toolbar';
 export type {ToolbarCommand, ToolbarDensity, ToolbarPlacement, ToolbarProps} from './toolbar/types';
 export {Sheet} from './sheet';
 export type {SheetAction, SheetMaterial} from './sheet/types';
+export type {SheetMaxHeight} from './sheet/types';
 export {ConstrainedStackHeader} from './stack-header';
 export {Stack} from './router/stack';
 export {TabStack} from './tab-stack';
