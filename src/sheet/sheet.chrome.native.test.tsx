@@ -121,8 +121,8 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
     );
     const body = screen.getByTestId('sheet-body');
     const window = Dimensions.get('window').width;
-    // An iPad's sheet is a form sheet, narrower than the window; a phone's is the window's width.
-    const sheet = isIOS ? Math.min(window, 540) : window;
+    // A phone's sheet is the window's width; an iPad's is a form sheet, and Material caps a sheet at 640.
+    const sheet = Math.min(window, isIOS ? 540 : 640);
     expect(StyleSheet.flatten(body.props.style)).toMatchObject({maxHeight: 300, width: sheet - 32});
     // Android hands a drag in the body to the sheet, which expands before the body scrolls.
     expect(body.props.nestedScrollEnabled).toBe(true);
@@ -181,7 +181,24 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
       </Sheet>,
     );
     const window = Dimensions.get('window').width;
-    const sheet = isIOS ? Math.min(window, 540) : window;
+    const sheet = Math.min(window, isIOS ? 540 : 640);
     expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).width).toBe(sheet - 16);
+  });
+
+  it('tells the body and the footer a tablet sheet\'s width, not the window\'s: a form sheet on an iPad, Material\'s 640 on Android', async () => {
+    const phone = Dimensions.get('window');
+    Dimensions.set({window: {...phone, width: 1180}});
+    try {
+      await render(
+        <Sheet isPresented onDismiss={() => {}} footer={<Text>Write</Text>} maxHeight={300} testID="sheet">
+          <Text>Body</Text>
+        </Sheet>,
+      );
+      const width = (isIOS ? 540 : 640) - 32;
+      expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).width).toBe(width);
+      expect(StyleSheet.flatten(screen.getByTestId('sheet-footer').props.style).width).toBe(width);
+    } finally {
+      Dimensions.set({window: phone});
+    }
   });
 });
