@@ -13,10 +13,14 @@ export interface RelativeTimeOptions {
    * The language of the words, a BCP 47 tag (`en`, `de`, `pt-BR`). On the
    * web it is the page's own language by default, the `lang` of its
    * `<html>`, so the words follow the app rather than the browser; elsewhere
-   * it is the engine's. A tag the engine cannot read falls back to the
-   * engine's default. The words come from `Intl.RelativeTimeFormat`, which
-   * Hermes does not have: on iOS, Android and Windows they are English
-   * unless the app installs a polyfill for it.
+   * it is the device's, as `Intl.DateTimeFormat` reports it. A tag the
+   * engine cannot read falls back to the engine's default. The words come
+   * from `Intl.RelativeTimeFormat`, which Hermes does not have: on iOS,
+   * Android and Windows they are English unless the app installs a polyfill
+   * for it and for the `Intl.PluralRules` it needs (FormatJS's
+   * `@formatjs/intl-relativetimeformat` and `@formatjs/intl-pluralrules`,
+   * with locale data for every language the app speaks). Where the engine's
+   * formatter cannot be made at all, the words are English.
    */
   locale?: string;
 }

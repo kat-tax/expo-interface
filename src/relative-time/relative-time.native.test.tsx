@@ -75,6 +75,25 @@ describe('relative', () => {
       vi.unstubAllGlobals();
     }
   });
+
+  it('says English where the engine cannot make a formatter, as a polyfill missing Intl.PluralRules', () => {
+    let tried = 0;
+    class Broken {
+      constructor() {
+        tried += 1;
+        throw new TypeError('Intl.PluralRules is not available');
+      }
+    }
+    vi.stubGlobal('Intl', Object.create(Intl, {RelativeTimeFormat: {value: Broken}}));
+    try {
+      expect(relative(NOW - 5 * MINUTE, NOW, 'auto', 'de').text).toBe('5 minutes ago');
+      expect(relative(NOW - DAY, NOW, 'auto', 'de').text).toBe('yesterday');
+      // Tried once with the tag and once with the default, then not again.
+      expect(tried).toBe(2);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });
 
 describe(`RelativeTime (${Platform.OS})`, () => {
@@ -136,7 +155,7 @@ describe(`useRelativeTime (${Platform.OS})`, () => {
     vi.useRealTimers();
   });
 
-  it('answers the words as a string, in the engine\'s language without a locale, and keeps them current', async () => {
+  it('answers the words as a string, in the device\'s language without a locale, and keeps them current', async () => {
     const {result} = await renderHook(() => useRelativeTime(NOW - DAY + 20 * MINUTE));
     expect(result.current).toBe('yesterday');
     await act(async () => {
@@ -152,5 +171,36 @@ describe(`useRelativeTime (${Platform.OS})`, () => {
   it('takes a Date, the numeric style and a language', async () => {
     const {result} = await renderHook(() => useRelativeTime(new Date(NOW - DAY), {numeric: 'always', locale: 'de'}));
     expect(result.current).toBe('vor 1 Tag');
+  });
+
+  it('says the device\'s language without a locale, as Intl.DateTimeFormat reports it, read once', async () => {
+    let read = 0;
+    // A device set to German, as Hermes reports it. A function, since the
+    // transform's subclass of a built-in would not keep its own methods.
+    function German() {
+      read += 1;
+      return {resolvedOptions: () => ({locale: 'de-DE'})};
+    }
+    vi.stubGlobal('Intl', Object.create(Intl, {DateTimeFormat: {value: German}}));
+    try {
+      const {result, rerender} = await renderHook(({date}: {date: number}) => useRelativeTime(date), {initialProps: {date: NOW - 2 * HOUR}});
+      expect(result.current).toBe('vor 2 Stunden');
+      await rerender({date: NOW - 3 * HOUR});
+      expect(result.current).toBe('vor 3 Stunden');
+      expect(read).toBe(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('says the engine\'s default where there is no Intl.DateTimeFormat, and English where there is no Intl', async () => {
+    vi.stubGlobal('Intl', Object.create(Intl, {DateTimeFormat: {value: undefined}}));
+    try {
+      expect((await renderHook(() => useRelativeTime(NOW - 2 * HOUR))).result.current).toBe('2 hours ago');
+      vi.stubGlobal('Intl', undefined);
+      expect((await renderHook(() => useRelativeTime(NOW - 2 * HOUR))).result.current).toBe('2 hours ago');
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

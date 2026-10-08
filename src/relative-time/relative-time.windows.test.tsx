@@ -13,9 +13,20 @@ describe('RelativeTime (windows)', () => {
     vi.useRealTimers();
   });
 
-  it('draws the time since in the engine\'s language, with no page to read one from', async () => {
+  it('draws the time since in the device\'s language, with no page to read one from', async () => {
     await render(<RelativeTime date={NOW - 2 * HOUR} testID="when"/>);
     expect(screen.getByTestId('when').props.children).toBe('2 hours ago');
+    // A device set to German, as Hermes reports it.
+    function German() {
+      return {resolvedOptions: () => ({locale: 'de-DE'})};
+    }
+    vi.stubGlobal('Intl', Object.create(Intl, {DateTimeFormat: {value: German}}));
+    try {
+      await render(<RelativeTime date={NOW - 2 * HOUR} testID="german"/>);
+      expect(screen.getByTestId('german').props.children).toBe('vor 2 Stunden');
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('answers the words as a string, in a language of its own', async () => {

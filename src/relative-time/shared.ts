@@ -44,26 +44,44 @@ export function relative(time: number, now: number, numeric: 'auto' | 'always', 
  */
 function say(value: number, unit: Unit, numeric: 'auto' | 'always', locale: string | undefined): string {
   if (typeof Intl !== 'undefined' && typeof Intl.RelativeTimeFormat === 'function') {
-    return formatter(locale, numeric).format(value, unit);
+    const format = formatter(Intl.RelativeTimeFormat, locale, numeric);
+    if (format) return format.format(value, unit);
   }
   return english(value, unit, numeric);
 }
 
-/** One formatter per language and style, so a list of times makes one rather than one per row per tick. */
-const formatters = new Map<string, Intl.RelativeTimeFormat>();
+/**
+ * One formatter per engine, language and style, so a list of times makes
+ * one rather than one per row per tick; `null` for one the engine could not
+ * make.
+ */
+const formatters = new WeakMap<typeof Intl.RelativeTimeFormat, Map<string, Intl.RelativeTimeFormat | null>>();
 
-/** The formatter for a language and style; a tag the engine cannot read (`en_US`) gets the engine's default rather than throwing during a render. */
-function formatter(locale: string | undefined, numeric: 'auto' | 'always'): Intl.RelativeTimeFormat {
-  const key = `${locale ?? ''}|${numeric}`;
-  let format = formatters.get(key);
-  if (!format) {
-    try {
-      format = new Intl.RelativeTimeFormat(locale, {numeric});
-    } catch {
-      format = new Intl.RelativeTimeFormat(undefined, {numeric});
-    }
-    formatters.set(key, format);
+/**
+ * The formatter for a language and style. A tag the engine cannot read
+ * (`en_US`) gets the engine's default, and an engine that cannot make even
+ * that, as a polyfill missing the `Intl.PluralRules` it needs, gets none:
+ * the words are English rather than an error during a render.
+ */
+function formatter(Engine: typeof Intl.RelativeTimeFormat, locale: string | undefined, numeric: 'auto' | 'always'): Intl.RelativeTimeFormat | null {
+  let made = formatters.get(Engine);
+  if (!made) {
+    made = new Map();
+    formatters.set(Engine, made);
   }
+  const key = `${locale ?? ''}|${numeric}`;
+  if (made.has(key)) return made.get(key)!;
+  let format: Intl.RelativeTimeFormat | null;
+  try {
+    format = new Engine(locale, {numeric});
+  } catch {
+    try {
+      format = new Engine(undefined, {numeric});
+    } catch {
+      format = null;
+    }
+  }
+  made.set(key, format);
   return format;
 }
 

@@ -181,7 +181,8 @@ Props: `date` (a `Date` or milliseconds), `variant` (a `Typography` style,
 `footnote` by default), `color` (a token, `secondaryLabel` by default),
 `numeric` (`auto` says "now" and "yesterday" where the language has the
 words; `always` says "1 day ago"), `locale` (the language of the words, a
-BCP 47 tag such as `de` or `pt-BR`; on web the page's language by default),
+BCP 47 tag such as `de` or `pt-BR`; by default the page's language on web
+and the device's elsewhere),
 `numberOfLines`, `testID`.
 
 ```tsx
@@ -207,6 +208,8 @@ up to 45, hours up to 22, days up to 26, months up to 11, and years.
 | Platform | Words |
 | --- | --- |
 | Web | `locale`'s, else the page's language, through `Intl.RelativeTimeFormat`. The page's language is the `lang` of its `<html>`: `web.lang` in the app config for a single-page app, or the `lang` that `+html.tsx` sets for a static one. The words follow it when it changes, so they are the app's language rather than the browser's. A server has no page to read, so it renders a static page's words in English without a `locale`, and so does the first render in the browser, which hydrates that HTML; the next render says them in the page's language. The server's words are for the moment it rendered them, so a page loaded after they change hydrates with different words, which React reports as a hydration mismatch and renders again in the browser. |
-| iOS, Android, Windows | English: Hermes has no `Intl.RelativeTimeFormat`. With a polyfill for it, such as FormatJS's `@formatjs/intl-relativetimeformat` and its locale data, `locale`'s or the device's language, with no change in the kit. |
+| iOS, Android, Windows | English: Hermes has no `Intl.RelativeTimeFormat`. With a polyfill for it and for the `Intl.PluralRules` it needs, such as FormatJS's `@formatjs/intl-relativetimeformat` and `@formatjs/intl-pluralrules` with the locale data of each language the app speaks, the words are `locale`'s, else the device's language, which the kit reads from `Intl.DateTimeFormat` and hands the polyfill. A language the polyfill has no data for gets its default, the first locale data the app loaded. |
 
-A tag the engine cannot read (`en_US`) gets the engine's default language.
+A tag the engine cannot read (`en_US`) gets the engine's default language,
+and where the engine cannot make a formatter at all, as with a polyfill
+whose `Intl.PluralRules` is missing, the words are English.

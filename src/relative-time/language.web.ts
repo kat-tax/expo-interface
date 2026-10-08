@@ -44,6 +44,6 @@ function serverLanguage(): string {
  * the server did, whatever the browser's language; the next render answers
  * the page's.
  */
-export function usePageLanguage(): string | undefined {
+export function useDefaultLanguage(): string | undefined {
   return useSyncExternalStore(subscribe, pageLanguage, serverLanguage);
 }
