@@ -106,6 +106,8 @@ export {CardGrid} from './card-grid';
 export type {CardGridProps} from './card-grid/types';
 export {useScrollInsets} from './screen/insets';
 export type {ScrollInsets} from './screen/insets';
+export {ScreenScrollView} from './screen/scroll';
+export type {ScreenScrollViewProps} from './screen/scroll';
 export {ListItem} from './list-item';
 export type {ListItemAction, ListItemProps, ListItemSwipeAction} from './list-item/types';
 export {Menu} from './menu';

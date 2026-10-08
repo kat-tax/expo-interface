@@ -37,7 +37,10 @@ export const ScrollInsetsContext = createContext<ScrollInsets>({top: 0, bottom: 
 /**
  * The insets a scrolling kit component pads its content by: the screen's
  * (a bar it passes under on a `Screen underBar`, the tab bar's floating
- * action), plus what the caller asked for itself.
+ * action), plus what the caller asked for itself. It reads the `Screen`
+ * above the caller: call it in a component the `Screen` renders (or use
+ * `ScreenScrollView`), since the component that renders the `Screen` is
+ * outside it and reads zeros.
  */
 export function useScrollInsets(own?: {top?: number; bottom?: number}): ScrollInsets {
   const screen = useContext(ScrollInsetsContext);

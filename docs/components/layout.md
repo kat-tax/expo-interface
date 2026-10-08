@@ -22,7 +22,9 @@ under the bar floating over the screen's top rather than below it, for a
 scrolling screen that passes under a material bar: the web tab bar, or on
 iOS the header of a `TabStack` with a `material`; the kit's `List` and
 `CardGrid` pad their first row by the bar themselves, as `FieldGroup` pads
-its content, and other scroll content reads `useScrollInsets()`, whose `top`
+its content, a scroll view of the app's own is a
+[`ScreenScrollView`](#screenscrollview), and other scroll content reads
+`useScrollInsets()`, whose `top`
 is the bar's inset under such a screen and whose `bottom` is the room the tab
 bar's floating action takes on any screen under the tabs (Android, and iOS
 before 26), nothing elsewhere, with any insets passed to it added; on iOS
@@ -30,6 +32,9 @@ its `automatic` says the platform insets the content itself, and `top` is
 then only what floats under the header), `fab` (a node placed at the bottom
 trailing corner, above the safe area and the tab bar, lifted above a `Toast`
 while one shows and above a bar the screen draws at its bottom).
+
+Read `useScrollInsets()` in a component the `Screen` renders: the component
+that renders the `Screen` is outside it and reads nothing.
 
 A control in the content can give the screen a bar of its own: a
 `HeaderSearch` whose placement the platform has no header for puts its row
@@ -49,6 +54,39 @@ as it pays the header's.
 | Windows | A plain view. A desktop window has no safe areas, no status bar and no `@expo/ui` host; `native` only marks the tree as hosted so self-hosting components render bare |
 
 Content is capped at 800 points and centered on every platform.
+
+## ScreenScrollView
+
+A vertical React Native `ScrollView` for a screen's own content (an
+article's text, a drawn list) that pads its content by the screen's insets:
+the bar it passes under on a `Screen underBar`, and the tab bar's floating
+action at its bottom. They are added to the top and bottom padding its
+`contentContainerStyle` gives in points; an edge with no inset keeps its
+padding as it is, and a percentage on an edge with one is replaced by the
+inset. Render it in the screen's content, under the `Screen` whose insets it
+reads.
+
+On iOS under a header the screen runs under, it takes UIKit's own inset
+(`contentInsetAdjustmentBehavior="automatic"`), which follows a native
+search bar, and pads only for a `HeaderAccessory` floating under the header.
+Its scroll indicators are inset with it unless `scrollIndicatorInsets` says
+otherwise, and a press on a control in it acts while the keyboard is up
+(`keyboardShouldPersistTaps` is `handled` unless set). It takes every
+`ScrollView` prop and a `ref`.
+
+```tsx
+<Screen underBar>
+  <ScreenScrollView contentContainerStyle={{padding: 16}}>
+    <Typography>{terms}</Typography>
+  </ScreenScrollView>
+</Screen>
+```
+
+| Platform | Renders |
+| --- | --- |
+| iOS, Android | React Native's `ScrollView`, padded by the bar on a `Screen underBar` (on iOS under a header the screen runs under, UIKit's inset and the rows floating under the header) and by the tab bar's floating action |
+| Web | react-native-web's `ScrollView`, padded by the tab bar on a `Screen underBar` |
+| Windows | React Native's `ScrollView`. The Windows `Screen` has no insets to pad by |
 
 ## ScreenHeader
 

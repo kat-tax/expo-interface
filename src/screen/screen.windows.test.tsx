@@ -1,6 +1,6 @@
 import {useContext, useEffect} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {Animated, PlatformColor, Text, View} from 'react-native';
+import {Animated, PlatformColor, StyleSheet, Text, View} from 'react-native';
 import {DrawnSearchContext} from '../header-search/shared';
 import {useNativeHost} from '../host';
 import {setColorScheme} from '../scheme';
@@ -10,6 +10,7 @@ import {ToastInsetContext} from '../toast/context';
 import {ScreenBar} from './bars';
 import {ScreenHeader} from './header';
 import {hostAccentProps} from './host-accent';
+import {ScreenScrollView} from './scroll';
 import {Screen} from '.';
 
 function Hosted() {
@@ -104,6 +105,13 @@ describe('Screen (windows)', () => {
     } finally {
       timing.mockRestore();
     }
+  });
+
+  it('gives a scroll view of the app\'s own no insets to pad by, and lets a press through the keyboard', async () => {
+    await render(<Screen><ScreenScrollView testID="s" contentContainerStyle={{padding: 16}}/></Screen>);
+    const view = screen.getByTestId('s');
+    expect(StyleSheet.flatten(view.props.contentContainerStyle)).toEqual({padding: 16});
+    expect(view.props.keyboardShouldPersistTaps).toBe('handled');
   });
 
   it('has no host to seed', () => {

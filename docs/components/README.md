@@ -15,6 +15,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | Component | What it is |
 | --- | --- |
 | [`Screen`](layout.md#screen) | The root of a route: background, safe areas, status bar, maximum width, a slot for a floating action button. |
+| [`ScreenScrollView`](layout.md#screenscrollview) | A scroll view that pads its content by the screen's insets. |
 | [`ScreenHeader`](layout.md#screenheader) | A header bar for a screen that draws its own. |
 | [`NativeHost`](layout.md#nativehost) | A native host around a group of controls. |
 | [`Surface`](layout.md#surface) | A box in the theme's colors, pressable if you like. |
@@ -110,7 +111,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 | `useWindowChrome` | Content in the Windows title bar. | [Windows](../platforms/windows.md#the-window) |
 | `useKeyboardShortcut` | A keyboard shortcut on Windows. | [Windows](../platforms/windows.md#keyboard) |
 | `nextSelection` | Which tab to select when one closes. | [TabView](navigation.md#tabview) |
-| `useScrollInsets` | The insets a screen's scroll content pays for a bar it passes under, plus its own. | [Screen](layout.md#screen) |
+| `useScrollInsets` | The insets a screen's scroll content pays for a bar it passes under and the tab bar's floating action, plus its own; read under the `Screen`. | [Screen](layout.md#screen) |
 | `useTabBarInset` | The space the bar floating over the screen takes at its top, with the rows under it. | [HeaderAccessory](navigation.md#headeraccessory) |
 | `caretPoint` | Where the caret is in a text field, on web. | [PopupMenu](overlays.md#popupmenu) |
 | `haptic` | The feel of a touch, by what it means. | [Platform services](../services.md#haptics) |

@@ -58,9 +58,10 @@ export interface ScreenProps extends PropsWithChildren {
    * or on iOS the stack header of a `TabStack` with a `material`. A kit
    * `List` or `CardGrid` in the content pads its own content and its
    * scroll indicators by the bar's inset (`useScrollInsets()`), so its first
-   * row starts clear of the bar; a scroll view of the app's own pads its
-   * content by `useTabBarInset()`. Under an opaque header (Android's always
-   * is) the top inset is already nothing, so this changes nothing.
+   * row starts clear of the bar; a scroll view of the app's own is a
+   * `ScreenScrollView`, which does the same. Under an opaque header
+   * (Android's always is) the top inset is already nothing, so this changes
+   * nothing.
    * @default false
    */
   underBar?: boolean;
