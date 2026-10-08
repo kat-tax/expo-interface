@@ -30,9 +30,9 @@ export interface ColorPickerSwatch {
  */
 export interface ColorPickerProps {
   /**
-   * Label rendered at the leading edge of the row, and the title of the
-   * picker it opens ("Colors" without one). A picker drawn in place
-   * (`inline`) has a title only when given a label.
+   * Label rendered at the leading edge of the row and, on Android and web,
+   * the title of the picker it opens ("Colors" without one); there a picker
+   * drawn in place (`inline`) has a title only when given a label.
    */
   label?: string;
   /** Selected color as `#RRGGBB` or `#RRGGBBAA`, or an empty string for no color (`allowsNone`). */
@@ -64,8 +64,9 @@ export interface ColorPickerProps {
    * How the picker opens (see `ColorPickerPresentation`), so a color is
    * chosen once from wherever it is asked: `inline` inside a sheet of the
    * app's own rather than a second sheet over it, `popover` from a toolbar,
-   * `menu` from a palette of the swatches alone. An `inline` picker adds no
-   * heading of its own under the sheet it sits in unless given a `label`.
+   * `menu` from a palette of the swatches alone. On Android and web an
+   * `inline` picker adds no heading of its own under the sheet it sits in
+   * unless given a `label`.
    * @default 'automatic'
    */
   presentation?: ColorPickerPresentation;

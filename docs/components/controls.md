@@ -421,5 +421,5 @@ it is asked:
 | `popover` | The row: the system picker is a popover on an iPad and a sheet on a phone | The picker in a Material dialog, over a sheet the row is in: Material has no popover | The picker in a native popover placed against the well | The row: the flyout is a popover already |
 | `menu` | SwiftUI's `Menu` of the swatches from a well | A Material `DropdownMenu` of the swatches from the well | The kit's menu popover from the well | A `MenuFlyout` of the swatches from a drawn well |
 
-A picker in a sheet, a dialog or a popover is titled with `label`, or Colors
-without one. A swatch picked from a menu is opaque.
+On Android and web, a picker in a sheet, a dialog or a popover is titled with
+`label`, or "Colors" without one. A swatch picked from a menu is opaque.
