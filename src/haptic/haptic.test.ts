@@ -82,13 +82,16 @@ describe('createHapticPacer', () => {
     expect(pace('step', 1120)).toBe(true);
   });
 
-  it('drops a step within 45 ms of the last step played, and a dropped step does not move the window', () => {
+  // The web's step is a 50 ms vibration that the next call cuts short, so it waits that long again at rest.
+  const gap = Platform.OS === 'web' ? 100 : 45;
+
+  it(`drops a step within ${gap} ms of the last step played, and a dropped step does not move the window`, () => {
     const pace = createHapticPacer();
     expect(pace('step', 0)).toBe(true);
-    expect(pace('step', 44)).toBe(false);
-    expect(pace('step', 45)).toBe(true);
-    expect(pace('step', 60)).toBe(false);
-    expect(pace('step', 90)).toBe(true);
+    expect(pace('step', gap - 1)).toBe(false);
+    expect(pace('step', gap)).toBe(true);
+    expect(pace('step', gap + gap / 3)).toBe(false);
+    expect(pace('step', 2 * gap)).toBe(true);
   });
 
   it('always plays a lift and a drop', () => {

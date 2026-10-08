@@ -45,15 +45,20 @@ const ANDROID = {
 /** How long after a `lift` a `step` is dropped: the lift is still playing. */
 const STEP_AFTER_LIFT_MS = 120;
 
-/** The shortest gap between two steps played: closer ones run together, and Android's vibrator plays one effect at a time. */
-const STEP_GAP_MS = 45;
+/**
+ * The shortest gap between two steps played: closer ones run together, and
+ * Android's vibrator plays one effect at a time. A web step is a 50 ms
+ * vibration that the next call cuts short, so there a step waits for the
+ * pulse to end and as long again at rest.
+ */
+const STEP_GAP_MS = Platform.OS === 'web' ? 100 : 45;
 
 /**
  * Paces the steps of a drag, which can cross slots faster than a vibrator
  * plays them apart: a `step` within 120 ms of a `lift`, or within 45 ms of
- * the last step played, is dropped. A dropped step does not move the window,
- * so a fast drag still ticks every 45 ms. `lift` and `drop` always play.
- * `now` is milliseconds on a monotonic clock.
+ * the last step played (100 ms on the web), is dropped. A dropped step does
+ * not move the window, so a fast drag still ticks every 45 ms (100 ms).
+ * `lift` and `drop` always play. `now` is milliseconds on a monotonic clock.
  */
 export function createHapticPacer(): (kind: HapticKind, now: number) => boolean {
   let lift = Number.NEGATIVE_INFINITY;

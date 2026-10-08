@@ -24,8 +24,9 @@ onDragEnd={() => haptic('drop')}
 Steps are paced, so a drag can call `haptic('step')` on every slot it
 crosses: a `step` within 120 ms of a `lift`, or within 45 ms of the last
 step played, plays nothing. A drag across many slots then ticks no faster
-than a vibrator plays effects apart, which on Android is one at a time.
-`lift` and `drop` always play.
+than a vibrator plays effects apart, which on Android is one at a time. On
+the web the gap is 100 ms: each step is a 50 ms vibration, and the next one
+would cut it short. `lift` and `drop` always play.
 
 It needs `expo-haptics`, an optional peer: without it, and on Windows,
 which has no haptic engine, it plays nothing. It never throws, so a call

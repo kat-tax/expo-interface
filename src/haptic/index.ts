@@ -17,7 +17,8 @@ const pace = createHapticPacer();
  * Steps are paced: a `step` within 120 ms of a `lift`, or within 45 ms of
  * the last step played, plays nothing, so a drag across many slots ticks no
  * faster than a vibrator plays effects apart (Android's plays one at a
- * time). `lift` and `drop` always play.
+ * time). On the web the gap is 100 ms: each step is a 50 ms vibration that
+ * the next one would cut short. `lift` and `drop` always play.
  */
 export function haptic(kind: HapticKind): void {
   // A monotonic clock: a wall clock set back would hold every step until it caught up.
