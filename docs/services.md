@@ -77,7 +77,8 @@ target and answers `{over}`, for a look of the app's own.
 
 A zone around a `List` or a `CardGrid` takes `flex: 1`, as any view
 around them does, so the list fills the zone and scrolls inside it. On the
-web a zone left at its own height grows to every row, and nothing scrolls.
+web a zone left at its own height grows to every row, and nothing scrolls;
+on iOS, Android and Windows it gives the list no height at all.
 
 A dropped file is `{name, type, size, file}`, `file` being the browser's
 `File`. The zone counts a drag's enters and leaves, since a drag crosses

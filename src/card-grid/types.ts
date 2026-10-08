@@ -19,9 +19,11 @@ import type {StyleProp, ViewStyle} from 'react-native';
  *   that fill 1200 pixels at `estimatedItemHeight`.
  *
  * Every platform's grid scrolls itself and fills the space its parent gives
- * it (a `Screen`'s content, a view with `flex: 1`). On the web, in a parent
- * with no height of its own, it grows to its cells and the parent scrolls
- * it; `style={{flexShrink: 0}}` does the same in a parent that has a height.
+ * it (a `Screen`'s content, a view with `flex: 1`). On iOS, Android and
+ * Windows that parent needs a height: inside a scroll view the grid gets
+ * none. On the web, in a parent with no height of its own, it grows to its
+ * cells and the parent scrolls it; `style={{flexShrink: 0}}` does the same
+ * in a parent that has a height.
  *
  * Drawn in React Native on every platform, like `Card`, because a card holds
  * what is not native: a preview, a thumbnail. A list of rows is `List`.

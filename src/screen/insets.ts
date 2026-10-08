@@ -3,8 +3,8 @@ import {createContext, useContext} from 'react';
 /**
  * What a `Screen` tells the scrolling content inside it: the space a bar
  * floating over its top takes, and the space the content should keep at its
- * bottom, so a kit list or grid pads its own content and its scroll
- * indicators rather than the app padding by hand. Outside a screen both are
+ * bottom, so a kit list or grid pads its content (and on iOS the grid's scroll
+ * indicators) rather than the app padding by hand. Outside a screen both are
  * zero, and so they are in a `Sheet`'s content, which passes under neither.
  */
 export interface ScrollInsets {
