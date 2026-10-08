@@ -193,6 +193,8 @@ Differences:
 - `autoCapitalize` has no Windows equivalent.
 - `submitBehavior` is honoured on web and in `inline`. Compose keeps the field
   focused after a submit, and on Windows Enter submits and keeps the focus.
+  On Windows a multi-line `inline` field that submits sends on Enter and
+  breaks the line on Shift+Enter.
 - `onKeyPress` reaches `inline` and the web and Windows rows.
 - `onFocus`, `onBlur` and the `ref` reach `inline` and the web row, the
   React Native inputs. The SwiftUI, Compose and WinUI rows report no focus

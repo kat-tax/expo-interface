@@ -28,8 +28,9 @@ export type TextFieldReturnKey = 'done' | 'go' | 'next' | 'search' | 'send';
 
 /**
  * What happens to the focus when the action key is pressed. `blurAndSubmit`
- * closes the keyboard; `submit` keeps the field focused so the next press
- * submits again (an inline search stepping through its matches).
+ * closes the keyboard (on web, gives up the focus); `submit` keeps the field
+ * focused so the next press submits again (an inline search stepping
+ * through its matches).
  */
 export type TextFieldSubmitBehavior = 'blurAndSubmit' | 'submit';
 
@@ -115,8 +116,10 @@ export interface TextFieldProps {
    */
   returnKeyType?: TextFieldReturnKey;
   /**
-   * Whether the action key closes the keyboard.
-   * @default 'blurAndSubmit'
+   * Whether the action key closes the keyboard. Left out, a one-line field
+   * closes it as it submits and a multi-line field breaks the line. On
+   * Windows a multi-line `inline` field given one submits on Enter and
+   * breaks the line on Shift+Enter.
    */
   submitBehavior?: TextFieldSubmitBehavior;
   /**

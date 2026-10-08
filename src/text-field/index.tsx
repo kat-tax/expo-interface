@@ -5,7 +5,7 @@ import {useImperativeHandle, useRef} from 'react';
 import {StyleSheet, TextInput} from 'react-native';
 import {fonts, fontWeights, theme, variants} from '../theme';
 import {InlineTextField} from './inline';
-import {keyboardTypeFor, useAutoFocus, useTextValue} from './shared';
+import {blurOnSubmitFor, keyboardTypeFor, useAutoFocus, useTextValue} from './shared';
 
 /**
  * The `row` variant is the form row below; `inline` is the borderless field
@@ -72,6 +72,8 @@ function RowTextField({
       selectionColor={cursor}
       returnKeyType={returnKeyType}
       submitBehavior={submitBehavior}
+      // react-native-web reads `blurOnSubmit`, not `submitBehavior`.
+      blurOnSubmit={blurOnSubmitFor(submitBehavior)}
       onSubmitEditing={onSubmit ? event => onSubmit(event.nativeEvent.text) : undefined}
       onKeyPress={onKeyPress ? (event: NativeSyntheticEvent<TextInputKeyPressEventData & {shiftKey?: boolean}>) =>
         onKeyPress(event.nativeEvent.key, event.nativeEvent.shiftKey === true) : undefined}

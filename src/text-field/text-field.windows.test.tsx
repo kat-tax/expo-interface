@@ -84,6 +84,21 @@ describe('TextField (windows)', () => {
     expect(screen.getByTestId('search').props.placeholder).toBe('Search');
   });
 
+  it('gives a multi-line inline field that submits the Enter key to submit on, and no other field', async () => {
+    await render(
+      <>
+        <TextField variant="inline" multiline submitBehavior="submit" onSubmit={vi.fn()} testID="submits"/>
+        <TextField variant="inline" multiline testID="lines"/>
+        <TextField variant="inline" submitBehavior="submit" onSubmit={vi.fn()} testID="one-line"/>
+      </>,
+    );
+    const submits = screen.getByTestId('submits');
+    expect(submits.props.submitKeyEvents).toEqual([{code: 'Enter'}]);
+    expect(submits.props.blurOnSubmit).toBeUndefined();
+    expect(screen.getByTestId('lines').props.submitKeyEvents).toBeUndefined();
+    expect(screen.getByTestId('one-line').props.submitKeyEvents).toBeUndefined();
+  });
+
   it('maps every keyboard variant to an input scope', () => {
     expect(inputScopeFor('email')).toBe('email');
     expect(inputScopeFor('number')).toBe('number');

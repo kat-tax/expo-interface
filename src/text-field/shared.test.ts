@@ -1,4 +1,12 @@
-import {keyboardTypeFor} from './shared';
+import {blurOnSubmitFor, keyboardTypeFor} from './shared';
+
+describe('blurOnSubmitFor', () => {
+  it('blurs for blurAndSubmit, keeps the focus for submit, and leaves the default alone', () => {
+    expect(blurOnSubmitFor('blurAndSubmit')).toBe(true);
+    expect(blurOnSubmitFor('submit')).toBe(false);
+    expect(blurOnSubmitFor(undefined)).toBeUndefined();
+  });
+});
 
 describe('keyboardTypeFor', () => {
   it('maps every conformed keyboard variant to its React Native / SwiftUI type', () => {

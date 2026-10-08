@@ -1,7 +1,7 @@
 import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
 import type {ObservableState} from '@expo/ui';
-import type {TextFieldKeyboard} from './types';
+import type {TextFieldKeyboard, TextFieldSubmitBehavior} from './types';
 import {useCallback, useEffect, useState} from 'react';
 import {Keyboard, Platform} from 'react-native';
 
@@ -88,6 +88,19 @@ export function keyboardTypeFor(type: TextFieldKeyboard | undefined): AppleKeybo
     default:
       return 'default';
   }
+}
+
+/**
+ * The `blurOnSubmit` react-native-web reads in place of `submitBehavior`,
+ * which it does not know: `submit` keeps the field focused through Enter,
+ * `blurAndSubmit` gives the focus up. Left unset, it keeps react-native-web's
+ * defaults, which are React Native's: a one-line field blurs as it submits,
+ * a multi-line one breaks the line.
+ * @param behavior - The field's `submitBehavior`.
+ * @returns Whether the field blurs on submit, or `undefined` for the default.
+ */
+export function blurOnSubmitFor(behavior: TextFieldSubmitBehavior | undefined): boolean | undefined {
+  return behavior === undefined ? undefined : behavior === 'blurAndSubmit';
 }
 
 /**

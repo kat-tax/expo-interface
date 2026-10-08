@@ -12,6 +12,8 @@ describe('Composer (windows)', () => {
     await render(<Composer onSend={onSend} testID="c"/>);
     const field = screen.getByTestId('c-field');
     expect(StyleSheet.flatten(field.props.style)).toMatchObject({paddingHorizontal: 0, fontSize: 15});
+    // react-native-windows submits a multi-line field only on the keys it is given.
+    expect(field.props.submitKeyEvents).toEqual([{code: 'Enter'}]);
     expect(island(BUTTON).props).toMatchObject({label: 'Send', disabled: true});
     await fireEvent(screen.getByTestId('c-send'), 'press');
     expect(onSend).not.toHaveBeenCalled();

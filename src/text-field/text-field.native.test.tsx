@@ -229,6 +229,9 @@ describe(`TextField (${Platform.OS})`, () => {
     const input = screen.getByPlaceholderText('Find in document');
     expect(input.props.returnKeyType).toBe('next');
     expect(input.props.submitBehavior).toBe('submit');
+    // React Native reads `submitBehavior` itself: the web's `blurOnSubmit` and Windows's submit keys stay out.
+    expect(input.props.blurOnSubmit).toBeUndefined();
+    expect(input.props.submitKeyEvents).toBeUndefined();
     expect(input.props.autoCapitalize).toBe('none');
     expect(input.props.placeholderTextColor).toBe('#9094A0');
     expect(nodes().some(n => n.type.startsWith('ViewManagerAdapter_ExpoUI'))).toBe(false);

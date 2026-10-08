@@ -150,6 +150,65 @@ describe('TextField (web)', () => {
     }
   });
 
+  describe('the focus through Enter', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    /** Types into the field, focuses it, presses Enter, and lets react-native-web's deferred blur run. */
+    function enter(input: HTMLElement, text: string) {
+      input.focus();
+      fireEvent.change(input, {target: {value: text}});
+      fireEvent.keyDown(input, {key: 'Enter', keyCode: 13});
+      vi.advanceTimersByTime(1);
+    }
+
+    it('keeps a one-line field focused with submitBehavior="submit", inline or the row', () => {
+      const onSubmit = vi.fn();
+      render(
+        <>
+          <TextField variant="inline" submitBehavior="submit" onSubmit={onSubmit} testID="inline"/>
+          <TextField submitBehavior="submit" onSubmit={onSubmit} testID="row"/>
+        </>,
+      );
+      for (const id of ['inline', 'row']) {
+        const input = screen.getByTestId(id);
+        enter(input, id);
+        expect(onSubmit).toHaveBeenLastCalledWith(id);
+        expect(document.activeElement).toBe(input);
+      }
+    });
+
+    it('gives the focus up with blurAndSubmit, and by default', () => {
+      const onSubmit = vi.fn();
+      render(
+        <>
+          <TextField variant="inline" submitBehavior="blurAndSubmit" onSubmit={onSubmit} testID="blurs"/>
+          <TextField variant="inline" onSubmit={onSubmit} testID="default"/>
+          <TextField submitBehavior="blurAndSubmit" onSubmit={onSubmit} testID="row"/>
+        </>,
+      );
+      for (const id of ['blurs', 'default', 'row']) {
+        const input = screen.getByTestId(id);
+        enter(input, id);
+        expect(onSubmit).toHaveBeenLastCalledWith(id);
+        expect(document.activeElement).not.toBe(input);
+      }
+    });
+
+    it('submits a multi-line field with blurAndSubmit on Enter, and gives the focus up', () => {
+      const onSubmit = vi.fn();
+      render(<TextField variant="inline" multiline submitBehavior="blurAndSubmit" onSubmit={onSubmit} testID="area"/>);
+      const area = screen.getByTestId('area');
+      enter(area, 'notes');
+      expect(onSubmit).toHaveBeenCalledWith('notes');
+      expect(document.activeElement).not.toBe(area);
+    });
+  });
+
   it('dims and locks the inline variant when disabled', () => {
     render(<TextField variant="inline" value="Locked" disabled testID="field"/>);
     const input = screen.getByTestId('field');
