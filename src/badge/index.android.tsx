@@ -32,7 +32,7 @@ export function Badge(props: BadgeProps) {
 /**
  * The Compose `Badge`, for a badge inside a host.
  *
- * **The label is unseen text beside the badge.** `@expo/ui`'s Compose layer
+ * **The label is unseen text over the badge.** `@expo/ui`'s Compose layer
  * exposes no modifier that sets a content description (only `Icon` takes one
  * as a prop, and `semantics` takes `contentType` and nothing else), and
  * TalkBack reads the number the badge draws. So what the label says past
