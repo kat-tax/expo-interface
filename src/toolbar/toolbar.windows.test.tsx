@@ -159,6 +159,12 @@ describe('commands (windows)', () => {
     expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Close', 'More']);
   });
 
+  it('never folds a floating bar, which is the width of its controls', async () => {
+    await render(<Toolbar floating commands={[{label: 'Bold'}, {label: 'Italic'}]} field={<Text>Find</Text>} foldCommands testID="bar"/>);
+    await fireEvent(screen.getByTestId('bar'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 48}}});
+    expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Bold', 'Italic']);
+  });
+
   it('floats a drawn bar with no spacer between its slots', async () => {
     await render(<Toolbar floating leading={<Text>Undo</Text>} trailing={<Text>Redo</Text>} testID="bar"/>);
     expect(screen.getByText('Undo')).toBeOnTheScreen();

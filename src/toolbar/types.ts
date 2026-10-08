@@ -125,7 +125,9 @@ export interface ToolbarProps extends PropsWithChildren {
    * shows its switcher), leaving the field and its commands the room: an
    * editor's status bar while a find or assistant field is open on a phone.
    * The width is the bar's own, measured whether or not it folds, so a bar
-   * that starts folding while it is narrow folds at once.
+   * that starts folding while it is narrow folds at once. Read only on a bar
+   * along an edge: a `floating` bar, or one `at` a rectangle, is the width of
+   * its controls and never folds.
    * @default false
    */
   foldCommands?: boolean;

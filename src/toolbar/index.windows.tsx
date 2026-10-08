@@ -158,8 +158,9 @@ function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], p
   // Measured whether or not it folds (see `PlacedToolbar`): a frame is
   // reported only when the bar is laid out again, so a handler added with
   // the fold would wait for the next resize. Kept as the size class, so the
-  // bar renders again only when it crosses it.
-  const folded = foldCommands && compact;
+  // bar renders again only when it crosses it. A floating bar is the width of
+  // its controls, so it never folds, as on the other platforms.
+  const folded = foldCommands && !floating && compact;
   // Commands drawn by the kit, as the other platforms draw them: a field
   // keeps them out of the CommandBar, which cannot hold one.
   const described = hasCommands(commands);

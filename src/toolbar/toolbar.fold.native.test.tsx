@@ -46,6 +46,12 @@ describe(`Toolbar field commands and folding (${Platform.OS})`, () => {
     expect(onBar('Bold')).toBe(true);
   });
 
+  it('never folds a floating bar, which is the width of its controls', async () => {
+    await render(<Toolbar floating commands={commands} foldCommands/>);
+    expect(onBar('Bold')).toBe(true);
+    expect(onBar('Italic')).toBe(true);
+  });
+
   it('keeps a folded toggle\'s state as the overflow menu\'s check', async () => {
     await render(<Toolbar commands={[{label: 'Bold', active: true}, {label: 'Italic', active: false}]} field={<Text>Find</Text>} foldCommands testID="bar"/>);
     await fireEvent(screen.getByTestId('bar'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 48}}});

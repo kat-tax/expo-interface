@@ -263,7 +263,9 @@ gives its field the room while a find or assistant field is open on a phone.
 The bar is measured from its first layout whether or not it folds, so
 turning `foldCommands` on while the bar is narrow folds it at once. On
 Windows the `CommandBar` is measured too, so the drawn bar that replaces it
-when a field opens with the fold folds at once as well.
+when a field opens with the fold folds at once as well. Only a bar along an
+edge folds: a `floating` bar, or one `at` a rectangle, is the width of its
+controls.
 
 A `floating` bar floats over the content rather than running along an edge:
 raised and rounded, the width of its controls, as the strip of tools over a
