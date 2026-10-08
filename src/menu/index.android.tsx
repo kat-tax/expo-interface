@@ -51,7 +51,12 @@ function NativeMenu({label, icon, items, testID, trigger: _trigger, onOpenChange
   );
 }
 
-/** Compose `DropdownMenu.Items` shared by `Menu`, `ContextMenu` and `Fab`. */
+/**
+ * Compose `DropdownMenu.Items` shared by `Menu`, `ContextMenu`, `PopupMenu`,
+ * `Fab` and `ColorPicker`'s menu. A pick acts and then closes the menu, so a
+ * close the menu reports follows the item's `onPress`, as on the other
+ * platforms.
+ */
 export function MenuItems({items, onClose}: {items: MenuItem[]; onClose: () => void}) {
   const colors = useMaterialColors();
   const destructive = useColor('destructive');
@@ -69,8 +74,8 @@ export function MenuItems({items, onClose}: {items: MenuItem[]; onClose: () => v
               enabled={!item.disabled}
               elementColors={{textColor: color, leadingIconColor: color, trailingIconColor: color}}
               onClick={item.disabled ? undefined : () => {
-                onClose();
                 item.onPress?.();
+                onClose();
               }}>
               {item.swatch ? (
                 <DropdownMenuItem.LeadingIcon>

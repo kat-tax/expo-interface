@@ -55,7 +55,7 @@ describe(`PopupMenu (${Platform.OS})`, () => {
     expect(onDismiss).toHaveBeenCalledWith('dismiss');
   });
 
-  it('reports a pick as a selection', async () => {
+  it('reports a pick as a selection, after the entry\'s own press', async () => {
     const onDismiss = vi.fn();
     const onPress = vi.fn();
     await render(<PopupMenu items={[{label: 'Heading', onPress}]} at={{x: 0, y: 0}} onDismiss={onDismiss} testID="popup"/>);
@@ -68,6 +68,7 @@ describe(`PopupMenu (${Platform.OS})`, () => {
     }
     expect(onPress).toHaveBeenCalledTimes(1);
     expect(onDismiss).toHaveBeenCalledWith('select');
+    expect(onPress.mock.invocationCallOrder[0]).toBeLessThan(onDismiss.mock.invocationCallOrder[0]!);
   });
 
   it('opens beside a rectangle rather than over it', async () => {

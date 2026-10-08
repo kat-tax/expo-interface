@@ -19,7 +19,8 @@ A `MenuItem` has `label`, `icon`, `swatch` (a color dot in place of the
 icon), `active` (a check mark), `role` (`default`, `destructive`),
 `disabled`, `keywords` (never drawn; read by `PopupMenu`'s filter),
 `separator` (a rule above the item), `shortcut` (`Ctrl+S`, `F2`) and
-`onPress`. `Menu`, `ContextMenu`, `PopupMenu` and `Fab` share it.
+`onPress`. `Menu`, `ContextMenu`, `PopupMenu` and `Fab` share it. A close a
+menu reports comes after the item's `onPress`.
 
 | Platform | Renders |
 | --- | --- |
@@ -101,7 +102,8 @@ web and Windows place the menu on the edge asked for and move it to stay on
 screen.
 
 `onDismiss` says why the menu closed of its own accord: `select` (an entry
-was picked) or `dismiss` (a press outside, Escape, the back gesture). A close
+was picked), which arrives after the entry's `onPress`, or `dismiss` (a press
+outside, Escape, the back gesture). A close
 the app asked for by clearing `at` is not reported. While the menu is open,
 a new `at` moves it: a menu moved from one handle to the next stays open,
 and no late close of the first reaches the second. On web, Escape closes the

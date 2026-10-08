@@ -10,7 +10,8 @@ export interface MenuRect extends MenuPoint {
 /**
  * Why a popup menu closed of its own accord: an entry was picked, or it was
  * dismissed by a press outside it, Escape or the platform's back gesture. A
- * close the app asked for, by clearing `at`, is not reported.
+ * close the app asked for, by clearing `at`, is not reported. `select`
+ * follows the picked entry's `onPress`, on every platform.
  */
 export type PopupMenuDismissReason = 'select' | 'dismiss';
 
@@ -74,7 +75,10 @@ export interface PopupMenuProps {
    * a menu that does not take the focus.
    */
   id?: string;
-  /** Called when the menu closes of its own accord, with why, so the caller can clear `at`. */
+  /**
+   * Called when the menu closes of its own accord, with why, so the caller
+   * can clear `at`; a `select` comes after the entry's `onPress`.
+   */
   onDismiss?: (reason: PopupMenuDismissReason) => void;
   /** Identifier used to locate the menu in end-to-end tests. */
   testID?: string;

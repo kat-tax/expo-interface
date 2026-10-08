@@ -44,7 +44,11 @@ export interface MenuItem {
    * ignore it.
    */
   shortcut?: string;
-  /** Called when the item is selected; the menu then closes. */
+  /**
+   * Called when the item is selected. A close the menu reports
+   * (`onOpenChange(false)`, a `ContextMenu`'s `onDismiss`, a `PopupMenu`'s
+   * `onDismiss('select')`) comes after it on every platform.
+   */
   onPress?: () => void;
 }
 

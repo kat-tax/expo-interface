@@ -56,6 +56,7 @@ describe('PopupMenu, steadier (web)', () => {
     open = false;
     toggle(menu(), 'closed');
     expect(onDismiss).toHaveBeenCalledWith('select');
+    expect(onPress.mock.invocationCallOrder[0]).toBeLessThan(onDismiss.mock.invocationCallOrder[0]!);
   });
 
   it('says nothing of a close the app asked for by clearing the point', () => {
