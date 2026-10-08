@@ -258,8 +258,11 @@ anywhere.
 sheet holds no field on any platform. The field is controlled through
 `value` and `onChangeText`, so the action that reads it has it, and an
 action that waits for a value is `disabled` until it has one: greyed out,
-it takes no press, and the alert can still be dismissed while its cancel
-action is enabled. On web and
+it takes no press. A disabled action does not hold the alert open: on
+Android the back gesture and a press outside it, on web Escape and a press
+on the backdrop, and on Windows Escape still dismiss it and report
+`onDismiss`, even with the cancel action disabled. An iOS alert closes only
+through its actions, so keep its cancel action enabled. On web and
 Windows the keyboard's action key presses the first action that is not
 `cancel`, and nothing while that action is disabled. On Windows a change
 to the actions while the dialog is open updates each button's label and

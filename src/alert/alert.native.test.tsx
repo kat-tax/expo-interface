@@ -188,17 +188,18 @@ describe(`Alert (${Platform.OS})`, () => {
 
   it('greys out a disabled action, which takes no press', async () => {
     const onRename = vi.fn();
+    const onDismiss = vi.fn();
     const actions = (disabled: boolean): AlertAction[] => [
       {label: 'Cancel', role: 'cancel', disabled: true, onPress: vi.fn()},
       {label: 'Rename', disabled, onPress: onRename},
       {label: 'Keep', onPress: vi.fn()},
     ];
-    const {rerender} = await render(<Alert title="Rename" visible testID="alert" actions={actions(true)}/>);
+    const {rerender} = await render(<Alert title="Rename" visible onDismiss={onDismiss} testID="alert" actions={actions(true)}/>);
     if (isIOS) {
       // Every button carries the modifier, so enabling one changes its value.
       const state = () => children(slot('actions')).map(b => [modifier(b.props, 'disabled')?.disabled, typeof b.props.onButtonPress]);
       expect(state()).toEqual([[true, 'undefined'], [true, 'undefined'], [false, 'function']]);
-      await rerender(<Alert title="Rename" visible testID="alert" actions={actions(false)}/>);
+      await rerender(<Alert title="Rename" visible onDismiss={onDismiss} testID="alert" actions={actions(false)}/>);
       expect(state()).toEqual([[true, 'undefined'], [false, 'function'], [false, 'function']]);
       const [rename] = screen.container.queryAll(i => i.props.label === 'Rename' && typeof i.props.onButtonPress === 'function');
       await fireEvent(rename, 'buttonPress');
@@ -208,6 +209,10 @@ describe(`Alert (${Platform.OS})`, () => {
       const state = (name: string) => buttonsIn(name).map(b => [b.label, b.props.enabled, typeof b.props.onButtonPressed]);
       expect(state('confirmButton')).toEqual([['Rename', false, 'undefined'], ['Keep', true, 'function']]);
       expect(state('dismissButton')).toEqual([['Cancel', false, 'undefined']]);
+      // The back gesture and a press outside still dismiss it.
+      const [dialog] = screen.container.queryAll(i => typeof i.props.onDismissRequest === 'function');
+      await fireEvent(dialog, 'dismissRequest');
+      expect(onDismiss).toHaveBeenCalledTimes(1);
     }
   });
 

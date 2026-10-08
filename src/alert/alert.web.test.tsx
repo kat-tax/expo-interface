@@ -218,6 +218,17 @@ describe('Alert (web)', () => {
     expect(close).toHaveBeenCalledTimes(1);
   });
 
+  it('is dismissed by Escape and the backdrop with its cancel action disabled', () => {
+    const onDismiss = vi.fn();
+    const onCancel = vi.fn();
+    render(<Alert title="Hi" visible onDismiss={onDismiss} testID="alert" actions={[{label: 'Cancel', role: 'cancel', disabled: true, onPress: onCancel}, {label: 'Rename', disabled: true}]}/>);
+    fireEvent(dialog(), new Event('close'));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    fireEvent.click(dialog());
+    expect(onDismiss).toHaveBeenCalledTimes(2);
+    expect(onCancel).not.toHaveBeenCalled();
+  });
+
   it('keeps the accessible name without a testID and omits a missing message', () => {
     render(<Alert title="Only a title" visible/>);
     const element = screen.getByRole('dialog');

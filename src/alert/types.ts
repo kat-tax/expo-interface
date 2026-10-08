@@ -45,8 +45,12 @@ export interface AlertAction {
   /**
    * Greys the action out and ignores presses: an action that waits for a
    * value, a Rename while the name is empty. The keyboard's action key in
-   * the field does not press it either, and the alert can still be
-   * dismissed while its cancel action is enabled.
+   * the field does not press it either. A disabled action does not hold
+   * the alert open: on Android the back gesture and a press outside it, on
+   * web Escape and a press on the backdrop, and on Windows Escape still
+   * dismiss it and report `onDismiss`, even with the cancel action
+   * disabled. An iOS alert closes only through its actions, so keep its
+   * cancel action enabled.
    */
   disabled?: boolean;
   /** Called when the action is pressed; the alert then closes. */
