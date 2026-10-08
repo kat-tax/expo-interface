@@ -45,10 +45,11 @@ export interface AvatarGroupPerson extends Pick<AvatarProps, 'name' | 'initials'
    */
   label?: string;
   /**
-   * What a press or a press and hold on the face does, when the label does
-   * not say: "Hold to go there once, without following". Read after the
-   * label: the accessibility hint on iOS and Android, the help text on
-   * Windows, the description on web.
+   * Read after the label: what a press or a press and hold does when the
+   * group presses ("Hold to go there once, without following"), or more
+   * about the person when it does not ("Editing the outline"). The
+   * accessibility hint on iOS and Android, the help text on Windows, the
+   * description on web.
    */
   hint?: string;
   /**
@@ -61,7 +62,7 @@ export interface AvatarGroupPerson extends Pick<AvatarProps, 'name' | 'initials'
   /**
    * The face takes no press or press and hold and is announced as
    * unavailable: a person the view cannot be taken to. It is drawn at half
-   * opacity, as every disabled control in the kit is. When the group does
+   * opacity, as a disabled `Surface` or `Card` is. When the group does
    * not press, the face is a picture rather than a control, and `disabled`
    * only dims it.
    * @default false

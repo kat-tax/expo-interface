@@ -117,8 +117,10 @@ index)`, `onLongPress(person, index)`, `onPressMore`, `testID`.
 A face is a button named for the person when the group is told what a press
 or a press and hold does, and the count a button named "3 more" with
 `onPressMore`. A person's `label` names the face in place of the name, and
-`hint` says what a press or a press and hold does: an accessibility hint on
-iOS and Android, the help text on Windows, the description on web.
+`hint` is read after it: what a press or a press and hold does, or more
+about the person when the group does not press. The hint is an
+accessibility hint on iOS and Android, the help text on Windows and the
+description on web.
 `selected` announces the face as selected (on web as the current one, since
 a button cannot be selected) and draws nothing, so show it with the person's
 `ring`. A `disabled` face takes neither press, is announced as unavailable
