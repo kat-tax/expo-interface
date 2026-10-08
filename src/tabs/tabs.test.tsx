@@ -905,6 +905,16 @@ describe(`Tabs (${Platform.OS})`, () => {
           await fireNative(screen.getByTestId('tab-accessory'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 300, height: 48}}});
           await render(accessory('inline'));
           expect(modifier(host(p => p.label === 'New').props, 'labelStyle')).toEqual({$type: 'labelStyle', style: 'iconOnly'});
+          // Only the wide copy reports its height: the inline one sits in the minimized bar, not over it.
+          const {TabAccessoryHeightContext} = await import('./action');
+          const measured = vi.fn();
+          const layout = (height: number) => ({nativeEvent: {layout: {x: 0, y: 0, width: 300, height}}});
+          await render(<TabAccessoryHeightContext.Provider value={measured}>{accessory('inline')}</TabAccessoryHeightContext.Provider>);
+          await fireNative(screen.getByTestId('tab-accessory'), 'layout', layout(30));
+          expect(measured).not.toHaveBeenCalled();
+          await render(<TabAccessoryHeightContext.Provider value={measured}>{accessory('regular')}</TabAccessoryHeightContext.Provider>);
+          await fireNative(screen.getByTestId('tab-accessory'), 'layout', layout(48));
+          expect(measured).toHaveBeenCalledExactlyOnceWith(48);
           await renderApp(await app({action: {label: 'New', icon: icons.add, items: [{label: 'Document', onPress: vi.fn()}]}}));
           const menu = nodes().find(n => n.type === 'RNSTabsHost')!.props.ios.bottomAccessory as (placement: string) => React.ReactElement;
           await render(menu('regular'));
