@@ -104,6 +104,8 @@ describe(`EmptyState (${Platform.OS})`, () => {
       const stack = nodes().find(n => n.type.includes('VStack') && modifier(n.props, 'padding'))!;
       expect(modifier(stack.props, 'padding')).toEqual({$type: 'padding', all: 'default'});
       expect(modifier(stack.props, 'frame')).toMatchObject({maxWidth: Infinity, maxHeight: Infinity});
+      // And, like the system view, its own height in the stack around it.
+      expect(modifier(stack.props, 'fixedSize')).toEqual({$type: 'fixedSize', vertical: true});
       const spinner = nodes().find(n => n.type.includes('ProgressView'))!;
       expect(modifier(spinner.props, 'frame')).toMatchObject({width: EMPTY_ICON, height: EMPTY_ICON});
       expect(modifier(host(p => p.text === 'Opening').props, 'font')).toMatchObject({textStyle: 'title2', weight: 'bold'});
@@ -126,6 +128,23 @@ describe(`EmptyState (${Platform.OS})`, () => {
       await render(<NativeHost><EmptyState title="Nothing here"/></NativeHost>);
       expect(hosts()).toHaveLength(1);
       expect(host(p => p.title === 'Nothing here')).toBeTruthy();
+    });
+
+    it('centres the view and its action as one inside a host, the view at its own height', async () => {
+      await render(
+        <NativeHost>
+          <EmptyState title="No drops" action={{label: 'New drop'}} testID="empty"/>
+        </NativeHost>,
+      );
+      // The stack fills the host and the view takes its own height, so a host
+      // of a definite size (a `Screen native`) does not push the action to its
+      // bottom edge under a view that took all the rest.
+      expect(modifier(host(p => p.testID === 'empty').props, 'frame')).toEqual({$type: 'frame', maxWidth: Infinity, maxHeight: Infinity});
+      expect(modifier(host(p => p.title === 'No drops').props, 'fixedSize')).toEqual({$type: 'fixedSize', vertical: true});
+      // In a host of its own, which fits the height, the stack fills only the width.
+      await render(<EmptyState title="No drops" action={{label: 'New drop'}} testID="own"/>);
+      const stack = nodes().find(n => n.type.includes('VStack'))!;
+      expect(modifier(stack.props, 'frame')).toEqual({$type: 'frame', maxWidth: Infinity});
     });
 
     it('hosts a node of the app\'s own in the stack inside a host, outside the host\'s context', async () => {

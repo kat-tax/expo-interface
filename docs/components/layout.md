@@ -474,12 +474,14 @@ wraps at the screen's width and can be selected and copied, unless
 On iOS and Android, outside a host the state mounts one as wide as its
 container, and `style` and `testID` go on the view around it. Inside one (a
 `Screen native`, a `NativeHost`, a `Sheet`, a hosted `List`'s `empty`) it
-renders bare: its container places it, `testID` names the native stack, and
-`style` is not applied. See [Native hosts](../hosts.md).
+renders bare: `testID` names the native stack and `style` is not applied. On
+iOS a bare state centres itself and its action as one group in the space its
+container gives it; on Android it is as wide as its container and as tall as
+itself, and the container places it. See [Native hosts](../hosts.md).
 
 | Platform | Renders |
 | --- | --- |
-| iOS 17 and later | The system's `ContentUnavailableView` and the action in one host that fills the width. While `loading` the same layout is composed in SwiftUI, padded and filling as the system view does, with a `ProgressView` the symbol's size where the symbol goes. |
+| iOS 17 and later | The system's `ContentUnavailableView` and the action in one host that fills the width. While `loading` the same layout is composed in SwiftUI, padded and sized as the system view is, with a `ProgressView` the symbol's size where the symbol goes. |
 | Older iOS | The same layout composed in SwiftUI, with the symbol as an SF Symbol image and the `ProgressView` while loading |
 | Web | A drawn column with the kit's `Icon`, the kit's `Spinner` while loading |
 | Android | A Compose column in one host: the token's drawable, the title and the description in the Material scale, the `CircularProgressIndicator` while loading, and the action as the Material button. A node of the app's own rides in the column as hosted React Native content. While `selectable`, the description is React Native text hosted in the column too, since `@expo/ui`'s Compose layer has no selection container. |

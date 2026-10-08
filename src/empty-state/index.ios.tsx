@@ -2,7 +2,7 @@ import type {SFSymbol} from 'expo-symbols';
 import type {EmptyStateProps} from './types';
 import {Platform, StyleSheet, View} from 'react-native';
 import {ContentUnavailableView, Image, ProgressView, RNHostView, Text, VStack} from '@expo/ui/swift-ui';
-import {font, foregroundStyle, frame, multilineTextAlignment, padding, progressViewStyle, textSelection} from '@expo/ui/swift-ui/modifiers';
+import {fixedSize, font, foregroundStyle, frame, multilineTextAlignment, padding, progressViewStyle, textSelection} from '@expo/ui/swift-ui/modifiers';
 import {iosSymbol} from '../button/shared';
 import {NativeHost, NativeHostContext, useNativeHost} from '../host';
 import {spacing, useColor} from '../theme';
@@ -25,6 +25,10 @@ const SUPPORTED = Number.parseInt(String(Platform.Version), 10) >= 17;
  * `List`'s `empty`) the stack renders bare, as every self-hosting control
  * does, and a node of the app's own rides in it as hosted React Native.
  *
+ * The view takes its own height and the stack is the part that fills: a
+ * system view left to fill a host of a definite size would push the action
+ * to the host's bottom edge, where the stack instead centres the two as one.
+ *
  * While `loading`, and on iOS 16 where the system view does not exist, the
  * view is composed by hand to the same layout, since the system view takes a
  * symbol and nothing else above its title.
@@ -46,14 +50,16 @@ export function EmptyState(props: EmptyStateProps) {
 function EmptyStateStack({title, description, icon, action, loading = false, selectable = true, testID, hosted}: EmptyStateProps & {hosted: boolean}) {
   const data = isActionData(action);
   const symbol = icon ? iosSymbol(icon) : undefined;
+  // Its own host fits the height, so only a bare stack has height to fill.
+  const fill = frame(hosted ? {maxWidth: Infinity, maxHeight: Infinity} : {maxWidth: Infinity});
   return (
-    <VStack spacing={spacing.three} testID={hosted ? testID : undefined} modifiers={[frame({maxWidth: Infinity})]}>
+    <VStack spacing={spacing.three} testID={hosted ? testID : undefined} modifiers={[fill]}>
       {SUPPORTED && !loading ? (
         <ContentUnavailableView
           title={title}
           description={description}
           systemImage={symbol}
-          modifiers={[textSelection(selectable)]}
+          modifiers={[fixedSize({vertical: true}), textSelection(selectable)]}
         />
       ) : (
         <Composed title={title} description={description} symbol={symbol} loading={loading} selectable={selectable}/>
@@ -77,16 +83,16 @@ function EmptyStateStack({title, description, icon, action, loading = false, sel
  * The system view's layout, composed: the symbol, or the spinner in its
  * place and its size while loading, the title in the bold title2 style and
  * the description in the secondary color, centred, as
- * `ContentUnavailableView` draws them. It pads by the system's standard inset
- * and fills what it is offered, as the system view does, so a long
- * description stops short of the edges and the state stays where it is when
- * loading ends.
+ * `ContentUnavailableView` draws them. It pads by the system's standard inset,
+ * so a long description stops short of the edges, and it is as flexible as
+ * the system view and takes its own height in the stack as the system view
+ * does, so the state stays where it is when loading ends.
  */
 function Composed({title, description, symbol, loading, selectable}: {title: string; description?: string; symbol?: SFSymbol; loading: boolean; selectable: boolean}) {
   const secondary = useColor('secondaryLabel');
   return (
     // The padding comes before the frame, so the padded content is centred in it.
-    <VStack spacing={spacing.one} modifiers={[padding({all: 'default'}), frame({maxWidth: Infinity, maxHeight: Infinity}), textSelection(selectable)]}>
+    <VStack spacing={spacing.one} modifiers={[padding({all: 'default'}), frame({maxWidth: Infinity, maxHeight: Infinity}), fixedSize({vertical: true}), textSelection(selectable)]}>
       {loading ? (
         <ProgressView modifiers={[progressViewStyle('circular'), frame({width: EMPTY_ICON, height: EMPTY_ICON})]}/>
       ) : symbol ? (
