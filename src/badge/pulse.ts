@@ -32,9 +32,10 @@ export function usePulseOpacity(active: boolean): Animated.Value {
 }
 
 /**
- * Android: which end of the pulse the badge is heading for, flipped every
- * `PULSE_HALF` while `active`, for Compose to animate the alpha toward. Up,
- * and still, under reduced motion.
+ * Android inside a native host, where the badge is Compose's: which end of
+ * the pulse the badge is heading for, flipped every `PULSE_HALF` while
+ * `active`, for Compose to animate the alpha toward. Up, and still, under
+ * reduced motion.
  */
 export function usePulsePhase(active: boolean): 'low' | 'high' {
   const reduced = useReducedMotion();

@@ -8,7 +8,10 @@ import type {StyleProp, ViewStyle} from 'react-native';
  * shape all four platforms can render honestly:
  *
  * - Windows: a WinUI `InfoBadge`, in an island of its own.
- * - Android: the Material 3 Compose `Badge`.
+ * - Android: the Material 3 Compose `Badge` inside a native host (a
+ *   `ListItem`'s slots, a `NativeHost`, `Screen native`, a `Sheet`); anywhere
+ *   else drawn in React Native to Material's geometry, since a Compose view
+ *   draws only inside a host.
  * - iOS: drawn. SwiftUI's `badge` modifier only paints inside a `List`, a
  *   `TabView` or a toolbar, so a badge anywhere else would silently render
  *   nothing; `ListItem` and `Tabs` are where that modifier belongs.
@@ -46,7 +49,8 @@ export interface BadgeProps {
   dot?: boolean;
   /**
    * What a screen reader says. Defaults to the count and what it is about —
-   * "3 unread" reads better than "3".
+   * "3 unread" reads better than "3". On Android inside a host TalkBack
+   * reads the number instead (see `docs/accessibility.md`).
    */
   label?: string;
   /** Fill color. Defaults to the kit's destructive red, as a badge is on every platform. */
@@ -55,5 +59,9 @@ export interface BadgeProps {
   textColor?: string;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
+  /**
+   * Applied to the badge's own view. The Compose badge inside a host on
+   * Android takes none.
+   */
   style?: StyleProp<ViewStyle>;
 }

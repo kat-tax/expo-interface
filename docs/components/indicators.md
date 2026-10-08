@@ -50,21 +50,24 @@ nothing), `max` (99; counts above draw as `99+`), `showZero`, `dot`, `label`
 ms: someone typing, a sync in flight; still while the user asks for less
 motion), `style`, `testID`.
 
-A pulse is each platform's own animation: Compose animates the badge's alpha
-toward each end in turn on Android, iOS and Windows loop the opacity of the
-view (on iOS on the native driver), and the web runs a CSS animation that
-`prefers-reduced-motion` stills.
+A pulse is each platform's own animation. Inside a host on Android, Compose
+animates the badge's alpha toward each end in turn. It is told which end
+from JavaScript every half pulse, since `@expo/ui`'s Compose animations do
+not repeat by themselves, so a pulsing badge there renders twice a pulse. A
+drawn badge (iOS, and Android outside a host) and the Windows island loop the
+opacity of the view, on the native driver on iOS and Android. The web runs a
+CSS animation that `prefers-reduced-motion` stills.
 
 | Platform | Renders |
 | --- | --- |
 | iOS | Drawn as the UIKit capsule. SwiftUI's `badge` modifier only paints inside a `List`, a `TabView` or a toolbar and is silently ignored anywhere else. |
-| Android | Material 3 `Badge` |
+| Android | Material 3 `Badge` inside a native host; outside one, drawn in React Native to Material's geometry (a 6 point dot, 16 points high with a number), since a Compose view draws only inside a host. |
 | Web | A `<span role="status">` |
 | Windows | WinUI `InfoBadge`. It holds a number and nothing else, so an overflowing count reads as the cap (`99`) where the others draw `99+`; the accessible name carries the true wording. |
 
-TalkBack reads the number alone on Android: `@expo/ui`'s Compose layer
-exposes no modifier that sets a content description. The other three announce
-the label.
+TalkBack reads the number alone for a badge inside a host on Android:
+`@expo/ui`'s Compose layer exposes no modifier that sets a content
+description. A drawn badge and the other three platforms announce the label.
 
 Placing a badge over a control is the caller's job. On Windows, put it beside
 a pressable control or inside it: a XAML island takes pointer input for

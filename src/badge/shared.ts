@@ -8,6 +8,42 @@ export const BADGE_PADDING = 5;
 
 export const BADGE_FONT_SIZE = 11;
 
+/** The geometry a drawn badge takes, so it matches its platform's own. */
+export interface BadgeMetrics {
+  /** The dot's diameter. */
+  dot: number;
+  /** The height of a numbered badge, and its width with one digit. */
+  count: number;
+  /** Space either side of the number. */
+  padding: number;
+  /** The weight of the number. */
+  fontWeight: '500' | '600';
+  /** The number's line height. */
+  lineHeight: number;
+}
+
+/** The capsule UIKit draws: an 8 point dot, 16 points high with a number in semibold. */
+export const UIKIT_BADGE: BadgeMetrics = {
+  dot: BADGE_SIZE.dot,
+  count: BADGE_SIZE.count,
+  padding: BADGE_PADDING,
+  fontWeight: '600',
+  lineHeight: BADGE_FONT_SIZE + 1,
+};
+
+/**
+ * Material 3's badge: a 6 dp dot, 16 dp high with a number in Label Small
+ * (11 sp medium on a 16 sp line), with 4 dp either side of it. The same as
+ * the Compose `Badge` draws, so a drawn badge and a hosted one match.
+ */
+export const MATERIAL_BADGE: BadgeMetrics = {
+  dot: 6,
+  count: 16,
+  padding: 4,
+  fontWeight: '500',
+  lineHeight: 16,
+};
+
 /**
  * What the badge draws, or `null` when it draws nothing.
  *

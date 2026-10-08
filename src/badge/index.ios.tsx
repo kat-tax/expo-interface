@@ -1,9 +1,6 @@
 import type {BadgeProps} from './types';
-import {Animated, StyleSheet, Text} from 'react-native';
-import {onAccent} from '../accent';
-import {useColor} from '../theme';
-import {usePulseOpacity} from './pulse';
-import {BADGE_FONT_SIZE, BADGE_PADDING, BADGE_SIZE, badgeLabel, badgeText} from './shared';
+import {DrawnBadge} from './drawn';
+import {UIKIT_BADGE} from './shared';
 
 /**
  * iOS draws the badge rather than hosting one.
@@ -19,52 +16,5 @@ import {BADGE_FONT_SIZE, BADGE_PADDING, BADGE_SIZE, badgeLabel, badgeText} from 
  * than on the number.
  */
 export function Badge(props: BadgeProps) {
-  const text = badgeText(props);
-  const destructive = useColor('destructive');
-  const opacity = usePulseOpacity(props.pulse === true);
-  if (text === null) return null;
-  const {dot, color, textColor, testID, style} = props;
-  const fill = color ?? destructive;
-  const size = dot ? BADGE_SIZE.dot : BADGE_SIZE.count;
-  return (
-    <Animated.View
-      accessible
-      accessibilityRole="text"
-      accessibilityLabel={badgeLabel(props, text)}
-      style={[
-        styles.badge,
-        {backgroundColor: fill, minWidth: size, height: size, borderRadius: size / 2, opacity},
-        dot ? styles.dot : null,
-        style,
-      ]}
-      testID={testID}>
-      {dot ? null : (
-        <Text
-          numberOfLines={1}
-          allowFontScaling={false}
-          style={[styles.text, {color: textColor ?? onAccent(fill)}]}>
-          {text}
-        </Text>
-      )}
-    </Animated.View>
-  );
+  return <DrawnBadge {...props} metrics={UIKIT_BADGE}/>;
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    flexShrink: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: BADGE_PADDING,
-  },
-  dot: {
-    paddingHorizontal: 0,
-  },
-  text: {
-    fontSize: BADGE_FONT_SIZE,
-    fontWeight: '600',
-    // The number must not reflow when the count changes from 1 to 7.
-    fontVariant: ['tabular-nums'],
-    lineHeight: BADGE_FONT_SIZE + 1,
-  },
-});
