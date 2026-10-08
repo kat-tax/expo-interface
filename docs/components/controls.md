@@ -417,8 +417,9 @@ it is asked:
 | `presentation` | iOS | Android | Web | Windows |
 | --- | --- | --- | --- | --- |
 | `automatic` | The row, the system picker from the well | The row, the picker in a bottom sheet | The row, the picker in a `Sheet` | The row, the picker in a flyout |
-| `inline` | The row: SwiftUI cannot draw its picker in place, and presents it its own way | The picker drawn in place, the swatches over it, for a sheet of the app's own that would otherwise open a second sheet | The same | The WinUI `ColorPicker` itself in place, under the label |
+| `inline` | The row: SwiftUI cannot draw its picker in place, and presents it its own way | The picker drawn in place, the swatches over it, titled only when given a `label`, for a sheet of the app's own that would otherwise open a second sheet | The same | The WinUI `ColorPicker` itself in place, under the label when given one |
 | `popover` | The row: the system picker is a popover on an iPad and a sheet on a phone | The picker in a Material dialog, over a sheet the row is in: Material has no popover | The picker in a native popover placed against the well | The row: the flyout is a popover already |
 | `menu` | SwiftUI's `Menu` of the swatches from a well | A Material `DropdownMenu` of the swatches from the well | The kit's menu popover from the well | A `MenuFlyout` of the swatches from a drawn well |
 
-A swatch picked from a menu is opaque.
+A picker in a sheet, a dialog or a popover is titled with `label`, or Colors
+without one. A swatch picked from a menu is opaque.

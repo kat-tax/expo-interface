@@ -31,6 +31,20 @@ describe(`ColorPickerSheet (${Platform.OS})`, () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('draws a title row only for a title or a close button', async () => {
+    const {rerender} = await render(<ColorPickerSheet value="#FF6347" supportsOpacity onValueChange={vi.fn()}/>);
+    expect(screen.queryByRole('heading')).toBeNull();
+    expect(screen.queryByLabelText('Close')).toBeNull();
+    await rerender(<ColorPickerSheet title="Ink" value="#FF6347" supportsOpacity onValueChange={vi.fn()}/>);
+    expect(screen.getByRole('heading', {name: 'Ink'})).toBeTruthy();
+    expect(screen.queryByLabelText('Close')).toBeNull();
+    const onClose = vi.fn();
+    await rerender(<ColorPickerSheet value="#FF6347" supportsOpacity onValueChange={vi.fn()} onClose={onClose}/>);
+    expect(screen.queryByRole('heading')).toBeNull();
+    await fireEvent.press(screen.getByLabelText('Close'));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it('stretches without a fixed width and hides the opacity row when unsupported', async () => {
     await render(<ColorPickerSheet title="Colors" value="#FF6347" supportsOpacity={false} onValueChange={vi.fn()} onClose={vi.fn()} testID="sheet"/>);
     expect(screen.getByTestId('sheet').props.style).toEqual([expect.objectContaining({gap: 16}), {alignSelf: 'stretch'}]);

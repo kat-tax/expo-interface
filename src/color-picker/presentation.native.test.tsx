@@ -91,7 +91,7 @@ describe(`ColorPicker presentations (${Platform.OS})`, () => {
     return;
   }
 
-  it('draws the picker in place in a hosted view, the presets over it', async () => {
+  it('draws the picker in place in a hosted view, the presets over it, titled only by a label', async () => {
     const {rerender} = await render(<ColorPicker label="Ink" value="#FF0000" presentation="inline" swatches={['#FF0000']} allowsNone onValueChange={vi.fn()} testID="cp"/>, options);
     expect(sheetProps).toMatchObject({title: 'Ink'});
     expect(sheetProps!.onClose).toBeUndefined();
@@ -99,6 +99,8 @@ describe(`ColorPicker presentations (${Platform.OS})`, () => {
     expect(byComposeTestID('cp-swatch-#FF0000')).toBeTruthy();
     await rerender(<ColorPicker value="#FF0000" presentation="inline" onValueChange={vi.fn()}/>);
     expect(ofType('FlowRow')).toHaveLength(0);
+    // Without a label the picker adds no heading under the sheet it sits in.
+    expect(sheetProps!.title).toBeUndefined();
   });
 
   it('opens the picker in a dialog for popover, and closes it from the picker or the dialog', async () => {
@@ -107,6 +109,8 @@ describe(`ColorPicker presentations (${Platform.OS})`, () => {
     await tap(byComposeTestID('cp'));
     expect(ofType('BasicAlertDialog')).toHaveLength(1);
     expect(ofType('ModalBottomSheet')).toHaveLength(0);
+    // A dialog's picker keeps its title.
+    expect(sheetProps!.title).toBe('Ink');
     await act(async () => sheetProps?.onClose?.());
     expect(ofType('BasicAlertDialog')).toHaveLength(0);
     await tap(byComposeTestID('cp'));

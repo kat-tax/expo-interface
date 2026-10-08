@@ -46,8 +46,9 @@ const DIALOG_WIDTH = 328;
  * Material has no popover: `popover` opens the picker in a dialog, which
  * also lives in a window of its own, over a sheet the row is in. `menu`
  * opens a Material `DropdownMenu` of the swatches from the well, and
- * `inline` draws the picker in the row's place. Each preset carries its
- * name as an unseen Text, which its clickable merges for TalkBack.
+ * `inline` draws the picker in the row's place, titled only by a `label`.
+ * Each preset carries its name as an unseen Text, which its clickable
+ * merges for TalkBack.
  */
 export function ColorPicker({
   label,
@@ -130,9 +131,11 @@ export function ColorPicker({
       )}
     </Box>
   );
-  const panel = (panelWidth: number, onClose?: () => void) => (
+  // A picker in a sheet or a dialog is titled; one drawn in place only by a label.
+  const title = label ?? 'Colors';
+  const panel = (panelWidth: number, heading: string | undefined, onClose?: () => void) => (
     <ColorPickerSheet
-      title={label ?? 'Colors'}
+      title={heading}
       value={toHex(current, true)}
       supportsOpacity={supportsOpacity}
       onValueChange={hex => setCurrent(parseColor(hex))}
@@ -146,7 +149,7 @@ export function ColorPicker({
     return (
       <Column verticalArrangement={{spacedBy: 12}} modifiers={[fillMaxWidth(), ...(testID ? [testIDModifier(testID)] : [])]}>
         {presetBoxes.length > 0 ? <FlowRow verticalArrangement={{spacedBy: 8}} horizontalArrangement={{spacedBy: 8}}>{presetBoxes}</FlowRow> : null}
-        <RNHostView matchContents>{panel(width - SHEET_INSET * 2)}</RNHostView>
+        <RNHostView matchContents>{panel(width - SHEET_INSET * 2, label)}</RNHostView>
       </Column>
     );
   }
@@ -172,13 +175,13 @@ export function ColorPicker({
           open ? (
             <BasicAlertDialog onDismissRequest={() => setOpen(false)}>
               <Column modifiers={[clip(Shapes.RoundedCorner(28)), background(fill), padding(SHEET_INSET, SHEET_INSET, SHEET_INSET, SHEET_INSET)]}>
-                <RNHostView matchContents>{panel(DIALOG_WIDTH - SHEET_INSET * 2, () => setOpen(false))}</RNHostView>
+                <RNHostView matchContents>{panel(DIALOG_WIDTH - SHEET_INSET * 2, title, () => setOpen(false))}</RNHostView>
               </Column>
             </BasicAlertDialog>
           ) : null
         ) : menu ? null : (
           <PickerSheet open={open} onClose={() => setOpen(false)}>
-            {panel(width - SHEET_INSET * 2, () => setOpen(false))}
+            {panel(width - SHEET_INSET * 2, title, () => setOpen(false))}
           </PickerSheet>
         )}
       </FlowRow>

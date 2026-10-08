@@ -21,15 +21,18 @@ describe('ColorPicker presentations (web)', () => {
     expect(screen.getByTestId('cp').querySelector('.ui-color-picker__well--none')).not.toBeNull();
   });
 
-  it('draws the picker in place, with no close button, the presets over it', () => {
+  it('draws the picker in place, with no close button, the presets over it, titled only by a label', () => {
     const {rerender} = render(<ColorPicker label="Ink" value="#FF0000" presentation="inline" swatches={['#FF0000']} onValueChange={vi.fn()} testID="cp"/>);
     const inline = screen.getByTestId('cp');
     expect(inline).toHaveClass('ui-color-picker-inline');
     expect(inline.contains(screen.getByTestId('cp-sheet'))).toBe(true);
+    expect(within(inline).getByRole('heading', {name: 'Ink'})).toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Close'})).toBeNull();
     expect(inline.querySelector('.ui-color-picker__presets--inline')).not.toBeNull();
     rerender(<ColorPicker value="#FF0000" presentation="inline" onValueChange={vi.fn()} testID="cp"/>);
     expect(screen.getByTestId('cp').querySelector('.ui-color-picker__presets')).toBeNull();
+    // Without a label the picker adds no heading under the sheet it sits in.
+    expect(screen.queryByRole('heading')).toBeNull();
   });
 
   it('opens the picker in a native popover from the well, and closes it from its close button', () => {
@@ -38,6 +41,8 @@ describe('ColorPicker presentations (web)', () => {
     expect(popover).toHaveAttribute('popover', 'auto');
     expect(screen.getByTestId('cp')).toHaveAttribute('popovertarget', popover.id);
     expect(screen.getByTestId('cp')).toHaveAttribute('aria-haspopup', 'dialog');
+    // A popover's picker keeps its title.
+    expect(within(popover).getByRole('heading', {name: 'Ink', hidden: true})).toBeInTheDocument();
     const hide = vi.fn();
     popover.hidePopover = hide;
     fireEvent.click(within(popover).getByRole('button', {name: 'Close', hidden: true}));

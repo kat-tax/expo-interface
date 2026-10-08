@@ -24,12 +24,16 @@ import {
  * React Native views, shown in a bottom sheet on Android and web. A title
  * row with a close button, a Grid / Spectrum / Sliders segmented control, an
  * opacity slider and a footer with the preview swatch and saved colors.
+ * A picker drawn in place without a title has no title row.
  * The spectrum and the checkerboard are static SVGs; the slider tracks are
  * bands of solid segments, so dragging never decodes an image.
  */
 export interface ColorPickerSheetProps {
-  /** Title of the picker, the row's label on iOS. */
-  title: string;
+  /**
+   * Title of the picker, drawn as a heading over it; without it there is
+   * none, as when the picker is drawn in place untitled.
+   */
+  title?: string;
   /** Selected color as `#RRGGBB` or `#RRGGBBAA`. */
   value: string;
   /** Shows the opacity slider. */
@@ -89,18 +93,20 @@ export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, 
 
   return (
     <View style={[styles.sheet, width != null ? {width} : styles.fill]} testID={testID}>
-      <View style={styles.header}>
-        <Text style={[styles.title, {color: label}]} numberOfLines={1} role="heading" accessible>{title}</Text>
-        {onClose ? (
-          <Pressable
-            role="button"
-            aria-label="Close"
-            onPress={onClose}
-            style={[styles.close, {backgroundColor: fill}]}>
-            <Text style={[styles.closeGlyph, {color: secondary}]}>✕</Text>
-          </Pressable>
-        ) : null}
-      </View>
+      {title != null || onClose ? (
+        <View style={styles.header}>
+          {title != null ? <Text style={[styles.title, {color: label}]} numberOfLines={1} role="heading" accessible>{title}</Text> : null}
+          {onClose ? (
+            <Pressable
+              role="button"
+              aria-label="Close"
+              onPress={onClose}
+              style={[styles.close, {backgroundColor: fill}]}>
+              <Text style={[styles.closeGlyph, {color: secondary}]}>✕</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
       <Tabs value={tab} onChange={setTab}/>
       <View style={styles.section}>
         {tab === 'grid' ? <Grid color={color} onChange={setColor}/> : null}
