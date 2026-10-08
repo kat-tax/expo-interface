@@ -43,7 +43,10 @@ import type {MenuItem} from '../menu/types';
 export interface TabViewProps {
   /** The open tabs, in the order they are drawn. */
   tabs: readonly TabViewTab[];
-  /** The open tab, by `id`. Nothing is drawn under the strip when no tab matches. */
+  /**
+   * The open tab, by `id`. When no tab has it, no tab is marked open; the
+   * WinUI strip, which always has one selected, marks the first.
+   */
   selected: string;
   /** A tab was pressed, or the keyboard moved to one. */
   onSelect: (id: string) => void;
