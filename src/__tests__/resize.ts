@@ -8,6 +8,12 @@
 export class TestResizeObserver {
   static all: TestResizeObserver[] = [];
   readonly observed = new Set<Element>();
+  /**
+   * Every element `observe` was handed, in order, once per call: the browser
+   * reports an element when it starts observing it, and after that only when
+   * its size changes.
+   */
+  readonly starts: Element[] = [];
   disconnected = false;
 
   constructor(readonly callback: ResizeObserverCallback) {
@@ -16,6 +22,7 @@ export class TestResizeObserver {
 
   observe(element: Element) {
     this.observed.add(element);
+    this.starts.push(element);
   }
 
   unobserve(element: Element) {

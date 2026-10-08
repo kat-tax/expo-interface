@@ -91,6 +91,38 @@ describe('CardGrid (web), windowed', () => {
     expect(spacers()[0]!.style.height).toBe(`${(first / 4 - 1) * 192 + 412}px`);
   });
 
+  it('measures a row again when the columns are counted again and its first cell stays', () => {
+    renderGrid();
+    const first = cells()[0]!;
+    expect(first.dataset.windowKey).toBe('4:Card 0');
+    // The width's observer, then the window's.
+    const observer = TestResizeObserver.all[1]!;
+    const started = observer.starts.length;
+    // The browser's first report: the grid at a phone's width, and the first row
+    // 400 px tall, read while the first cell still carries the four columns' key.
+    act(() => reportSizes([{target: screen.getByTestId('grid'), width: 390, height: boxHeight}, {target: first, height: 400}]));
+    // Two columns: Card 0 heads a row again, in the same element, at the same size.
+    expect(cells()[0]).toBe(first);
+    expect(first.dataset.windowKey).toBe('2:Card 0');
+    // An element whose size stays is reported again only once observed again.
+    expect(observer.starts.slice(started)).toContain(first);
+    // That report, under the new key: the first row's room is its own height.
+    act(() => reportSizes([{target: first, height: 400}]));
+    scrollTo(1920);
+    expect(spacers()[0]!.style.height).toBe(`${412 + 4 * 192}px`);
+  });
+
+  it('cuts its rows again for a new cap where there is no ResizeObserver', () => {
+    vi.stubGlobal('ResizeObserver', undefined);
+    // Keyed by index: the fifth cell stays one element and heads a row under both caps.
+    const {rerender} = render(<CardGrid data={CARDS} renderItem={title => <p>{title}</p>} maxColumns={4} testID="grid"/>);
+    const fifth = cells()[4]!;
+    expect(fifth.dataset.windowKey).toBe('4:4');
+    rerender(<CardGrid data={CARDS} renderItem={title => <p>{title}</p>} maxColumns={2} testID="grid"/>);
+    expect(cells()[4]).toBe(fifth);
+    expect(fifth.dataset.windowKey).toBe('2:4');
+  });
+
   it('reaches the end once the window draws the last row, and once only', () => {
     const onEndReached = vi.fn();
     renderGrid({onEndReached});

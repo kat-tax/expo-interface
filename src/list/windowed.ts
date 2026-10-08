@@ -126,17 +126,18 @@ function same(a: WindowRange, b: WindowRange): boolean {
  * are drawn at once. That part is read from the page on any scroll (the
  * list's own or an ancestor's, so a list the page scrolls is windowed too),
  * on a resize of the window or of the list, and whenever a drawn unit changes
- * height; it is kept only when it changes which units are drawn. Until the
- * page has been read, and while the list is hidden, the first units are
- * drawn and the range is not `measured`, so a list does not take its end
- * from them. The spacers are never scroll anchors, so the browser keeps the
- * drawn units still while a spacer changes.
+ * height or keeps its element under a new key; it is kept only when it
+ * changes which units are drawn. Until the page has been read, and while the
+ * list is hidden, the first units are drawn and the range is not `measured`,
+ * so a list does not take its end from them. The spacers are never scroll
+ * anchors, so the browser keeps the drawn units still while a spacer changes.
  */
 export function useWindowed(scroller: RefObject<HTMLElement | null>, {keys, estimate, gap}: WindowOptions): Windowed {
   const [view, setView] = useState<View>(() => ({from: 0, to: INITIAL_SPAN, measured: typeof ResizeObserver === 'undefined', heights: new Map()}));
   const start = useRef<HTMLDivElement>(null);
   const observer = useRef<ResizeObserver | null>(null);
-  const mounted = useRef(new Set<HTMLElement>());
+  // Each drawn unit's element, and the key it was last observed under.
+  const mounted = useRef(new Map<HTMLElement, string | undefined>());
   const rangeIn = (heights: ReadonlyMap<string, number>, from: number, to: number) => (
     rangeOf(keys.map(key => heights.get(key) ?? estimate), gap, from, to)
   );
@@ -176,7 +177,7 @@ export function useWindowed(scroller: RefObject<HTMLElement | null>, {keys, esti
       const resize = new ResizeObserver(entries => follow(entries));
       resize.observe(scroller.current!);
       // The units drawn so far attached their refs before this effect ran.
-      for (const element of mounted.current) resize.observe(element);
+      for (const element of mounted.current.keys()) resize.observe(element);
       observer.current = resize;
     }
     return () => {
@@ -187,10 +188,25 @@ export function useWindowed(scroller: RefObject<HTMLElement | null>, {keys, esti
     };
   }, [scroller]);
 
+  // An element can stay drawn while its key changes: a grid's first cell
+  // when the columns are counted again. The observer reports an element when
+  // it starts observing it and then only when its size changes, so an element
+  // under a new key is observed again, and its height is kept under that key.
+  useLayoutEffect(() => {
+    const resize = observer.current;
+    if (resize == null) return;
+    for (const [element, key] of mounted.current) {
+      if (element.dataset.windowKey === key) continue;
+      mounted.current.set(element, element.dataset.windowKey);
+      resize.unobserve(element);
+      resize.observe(element);
+    }
+  });
+
   const measure = useCallback((attached: HTMLElement | null) => {
     // A ref that returns its cleanup is called with its element alone.
     const element = attached!;
-    mounted.current.add(element);
+    mounted.current.set(element, element.dataset.windowKey);
     observer.current?.observe(element);
     return () => {
       mounted.current.delete(element);
