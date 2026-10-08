@@ -1,6 +1,6 @@
 import type {CSSProperties, ToggleEvent} from 'react';
 import type {MenuItem} from './types';
-import {useEffect, useRef} from 'react';
+import {useEffect, useRef, useSyncExternalStore} from 'react';
 import {useMatchHighlight} from '../a11y/highlight';
 import {useRovingFocus} from '../a11y/roving';
 import {Icon} from '../symbol';
@@ -10,8 +10,28 @@ const ICON_SIZE = 16;
 const VIEWPORT_GAP = 8;
 
 /** Whether the browser lays out `position-anchor` natively (Baseline 2026). */
-const ANCHOR_SUPPORTED =
-  typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('position-anchor', '--ui-menu');
+function anchorPositioning(): boolean {
+  return typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('position-anchor', '--ui-menu');
+}
+
+/** What a static export's server answers: it has no `CSS` to ask. */
+function serverAnchorPositioning(): boolean {
+  return false;
+}
+
+/** The answer never changes while the page runs, so there is nothing to subscribe to. */
+const noSubscription = () => () => {};
+
+/**
+ * Whether the browser lays out `position-anchor` natively, asked at render
+ * rather than when the module loads. A static export's server has no `CSS`,
+ * so its HTML has no anchor, and hydration renders the server's answer to
+ * match it; the render right after hydration takes the anchor, which React
+ * would not have patched into an attribute that differed.
+ */
+function useAnchorPositioning(): boolean {
+  return useSyncExternalStore(noSubscription, anchorPositioning, serverAnchorPositioning);
+}
 
 /** Turns a React `useId()` value into a valid CSS `<dashed-ident>` / HTML id. */
 export function menuIdent(id: string): string {
@@ -72,6 +92,7 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
   const localRef = useRef<HTMLDivElement>(null);
   const ref = popoverRef ?? localRef;
   const anchored = !!anchor && !position;
+  const positioned = useAnchorPositioning();
   // `role="menu"` promises the menu keyboard pattern: one tab stop on the
   // checked item (or the first), the arrows moving within, and typing jumping
   // to a label. The browser gives the top layer and the light dismiss; this is
@@ -89,7 +110,7 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
 
   const above = atPoint === true && edge === 'top';
   const style: Record<string, string | number> = {};
-  if (anchored && ANCHOR_SUPPORTED) style.positionAnchor = anchor;
+  if (anchored && positioned) style.positionAnchor = anchor;
   if (position) {
     style.left = position.x;
     style.top = position.y;
@@ -105,7 +126,7 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
       return;
     }
     // Fallback placement: below the trigger, right-aligned, kept on screen.
-    if (anchored && !ANCHOR_SUPPORTED && anchorRef?.current) {
+    if (anchored && !positioned && anchorRef?.current) {
       const rect = anchorRef.current.getBoundingClientRect();
       popover.style.left = `${Math.max(VIEWPORT_GAP, atPoint ? rect.left : rect.right - popover.offsetWidth)}px`;
       popover.style.top = above ? `${Math.max(VIEWPORT_GAP, rect.top - popover.offsetHeight - 4)}px` : `${rect.bottom + 4}px`;
@@ -129,9 +150,9 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
       popover="auto"
       className={[
         'ui-menu__list',
-        anchored && ANCHOR_SUPPORTED && 'ui-menu__list--anchored',
-        anchored && ANCHOR_SUPPORTED && atPoint && 'ui-menu__list--point',
-        anchored && ANCHOR_SUPPORTED && above && 'ui-menu__list--above',
+        anchored && positioned && 'ui-menu__list--anchored',
+        anchored && positioned && atPoint && 'ui-menu__list--point',
+        anchored && positioned && above && 'ui-menu__list--above',
       ].filter(Boolean).join(' ')}
       style={style as CSSProperties}
       onToggle={onToggle}

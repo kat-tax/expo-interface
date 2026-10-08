@@ -8,7 +8,7 @@ primitives rather than a portal and a z-index:
 | Behaviour | Where it comes from |
 | --- | --- |
 | Top layer, light dismiss, `aria-expanded` | `popover="auto"` in `Menu`, `ContextMenu`, `PopupMenu`, `Fab` |
-| Placement and flipping | CSS anchor positioning with `position-try-fallbacks`, feature-detected with a measured fallback |
+| Placement and flipping | CSS anchor positioning with `position-try-fallbacks`, feature-detected once the page is running, so a menu in a static page's HTML takes its anchor after hydration, with a measured fallback |
 | Focus trap, Escape, inert background | `<dialog>` with `showModal()` in `Alert` |
 | Hover and focus hint with the system delay | `interestfor` in `Tooltip`, feature-detected |
 | Full keyboard and the native picker on mobile | `<select>` in `Picker`, `<input type="date">` in `DateTimePicker` |
