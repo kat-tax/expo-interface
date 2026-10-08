@@ -428,7 +428,9 @@ describe('expo-interface-symbols', () => {
     expect(listed.sort()).toEqual(KIT_NAMES);
   });
 
-  it('writes the same font face the kit registers', () => {
+  it('writes the same font face the kit registers, under the kit\'s family or the app\'s', () => {
     expect(fontFaceCSS('/f.woff2')).toBe(getSymbolFontCSS('/f.woff2'));
+    expect(fontFaceCSS('/f.woff2', 'App Symbols')).toBe(getSymbolFontCSS('/f.woff2', 'App Symbols'));
+    expect(fontFaceCSS('/f.woff2', 'App Symbols')).toContain(':root { --ui-symbol-font: \'App Symbols\'; }');
   });
 });

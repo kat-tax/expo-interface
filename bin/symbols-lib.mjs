@@ -177,10 +177,12 @@ export function stubModule() {
 /**
  * The `@font-face` that registers the cut for `+html.tsx`, under
  * `FONT_FAMILY` (the family every icon draws with first) unless `family`
- * names another: the rule `getSymbolFontCSS(url, family)` writes.
+ * names another, which `:root` then names in `--ui-symbol-font` for the
+ * stylesheet to draw with: the rule `getSymbolFontCSS(url, family)` writes.
  */
 export function fontFaceCSS(url, family = FONT_FAMILY) {
-  return `@font-face { font-family: '${family}'; src: url('${url}') format('woff2-variations'); font-weight: 100 700; font-display: block; }`;
+  const face = `@font-face { font-family: '${family}'; src: url('${url}') format('woff2-variations'); font-weight: 100 700; font-display: block; }`;
+  return family === FONT_FAMILY ? face : `${face} :root { --ui-symbol-font: '${family}'; }`;
 }
 
 /**
