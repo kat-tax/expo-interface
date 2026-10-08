@@ -83,7 +83,10 @@ of text or links are left to the page.
 While a zone is mounted, a file dropped anywhere else on the page is
 refused, and the pointer shows that nothing takes it, so the browser does
 not open the file in place of the app. A disabled zone does the same. Text
-and links are left to the page, and a file input takes its own drops.
+and links are left to the page, and a file input takes its own drops. The
+refusal comes after every other listener: a page-wide target of the app's
+own, on the document or the window, hears the drag first, and a drag it
+takes keeps the effect it set and reaches its drop.
 
 This is the web's: files reach an iOS, Android or Windows app through the
 share sheet and the pickers, so there `DropZone` draws its children and

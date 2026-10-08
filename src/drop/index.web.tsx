@@ -25,10 +25,10 @@ function overFileInput(event: DragEvent): boolean {
 }
 
 /**
- * A file dragged over or dropped on the page where no target took it is
+ * A file dragged over or dropped on the page where nothing took it is
  * refused, the pointer showing that nothing takes it: left alone, the
  * browser opens the file in place of the app. A target that took the drag
- * has cancelled the event already, and keeps it.
+ * has cancelled the event already, and keeps it, its effect as it set it.
  */
 function refuseStray(event: DragEvent) {
   if (event.defaultPrevented || !carriesFiles(event) || overFileInput(event)) return;
@@ -36,18 +36,33 @@ function refuseStray(event: DragEvent) {
   event.dataTransfer!.dropEffect = 'none';
 }
 
+/**
+ * Puts the refusal behind every other listener as a drag comes in: on the
+ * window, the last stop of a drag's events, and after the window's own
+ * listeners, even one added after the first target mounted. So a page-wide
+ * target of the app's, on any element, the document or the window, hears the
+ * drag first, and keeps what it takes.
+ */
+function refuseLast() {
+  for (const type of ['dragover', 'drop'] as const) {
+    window.removeEventListener(type, refuseStray);
+    window.addEventListener(type, refuseStray);
+  }
+}
+
 /** Refuses stray file drops on the page while a target is mounted; answers the release. */
 function guardPage(): () => void {
   targets += 1;
   if (targets === 1) {
-    document.addEventListener('dragover', refuseStray);
-    document.addEventListener('drop', refuseStray);
+    window.addEventListener('dragenter', refuseLast, true);
+    refuseLast();
   }
   return () => {
     targets -= 1;
     if (targets === 0) {
-      document.removeEventListener('dragover', refuseStray);
-      document.removeEventListener('drop', refuseStray);
+      window.removeEventListener('dragenter', refuseLast, true);
+      window.removeEventListener('dragover', refuseStray);
+      window.removeEventListener('drop', refuseStray);
     }
   };
 }
@@ -61,6 +76,8 @@ function guardPage(): () => void {
  * While it is mounted, disabled or not, a file dragged over or dropped on
  * the page where no target takes it is refused, so the browser does not
  * open a stray drop in place of the app; a file input keeps its own drops.
+ * The refusal comes after every other listener, so a page-wide target of the
+ * app's own, on the document or the window, takes a drag before it.
  */
 export function useDrop(ref: RefObject<View | null>, {onDrop, disabled = false}: DropOptions): {over: boolean} {
   const [over, setOver] = useState(false);
@@ -115,7 +132,8 @@ export function useDrop(ref: RefObject<View | null>, {onDrop, disabled = false}:
  * Web: the children, taking files dropped on them, with a dashed `Surface`
  * over them and the label while files are held over the zone. While it is
  * mounted, a file dropped anywhere else on the page is refused rather than
- * opened by the browser in place of the app.
+ * opened by the browser in place of the app, unless a page-wide target of
+ * the app's own takes it (see `useDrop`).
  */
 export function DropZone({children, onDrop, disabled, label = 'Drop files here', style, testID}: DropZoneProps) {
   const zone = useRef<View>(null);

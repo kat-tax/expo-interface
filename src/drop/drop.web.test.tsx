@@ -96,6 +96,31 @@ describe('DropZone (web)', () => {
     rerender(zones(false, true));
     expect(fireEvent.dragOver(document.body, files())).toBe(false);
     rerender(zones(false, false));
+    // A drag that comes in afterwards does not bring it back.
+    fireEvent.dragEnter(document.body, files());
     expect(fireEvent.dragOver(document.body, files())).toBe(true);
+  });
+
+  it('lets a page-wide target of the app\'s take a file drag before refusing it, wherever and whenever it listens', () => {
+    render(<DropZone onDrop={vi.fn()} testID="zone"><Text>Documents</Text></DropZone>);
+    // Added after the zone mounted, as a root's effect runs after its children's.
+    const heard: boolean[] = [];
+    const take = (event: DragEvent) => {
+      heard.push(event.defaultPrevented);
+      event.preventDefault();
+    };
+    window.addEventListener('dragover', take);
+    window.addEventListener('drop', take);
+    fireEvent.dragEnter(document.body, files());
+    const taken = {dataTransfer: {types: ['Files'], files: [], dropEffect: 'copy'}};
+    expect(fireEvent.dragOver(document.body, taken)).toBe(false);
+    // The app's target takes the drag with the effect it chose, and so hears the drop.
+    expect(taken.dataTransfer.dropEffect).toBe('copy');
+    expect(fireEvent.drop(document.body, files())).toBe(false);
+    expect(heard).toEqual([false, false]);
+    window.removeEventListener('dragover', take);
+    window.removeEventListener('drop', take);
+    // What the app's target leaves, the page refuses.
+    expect(fireEvent.dragOver(document.body, files())).toBe(false);
   });
 });
