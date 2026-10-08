@@ -22,11 +22,12 @@ under the bar floating over the screen's top rather than below it, for a
 scrolling screen that passes under a material bar: the web tab bar, or on
 iOS the header of a `TabStack` with a `material`; the kit's `List` and
 `CardGrid` pad their first row by the bar themselves, as `FieldGroup` pads
-its content, and other scroll content reads `useScrollInsets()`, which is
-the bar's inset under such a screen and nothing elsewhere, with any insets
-passed to it added; on iOS its `automatic` says the platform insets the
-content itself, and `top` is then only what floats under the header), `fab` (a
-node placed at the bottom
+its content, and other scroll content reads `useScrollInsets()`, whose `top`
+is the bar's inset under such a screen and whose `bottom` is the room the tab
+bar's floating action takes on any screen under the tabs (Android, and iOS
+before 26), nothing elsewhere, with any insets passed to it added; on iOS
+its `automatic` says the platform insets the content itself, and `top` is
+then only what floats under the header), `fab` (a node placed at the bottom
 trailing corner, above the safe area and the tab bar, lifted above a `Toast`
 while one shows and above a bar the screen draws at its bottom).
 
@@ -304,6 +305,10 @@ Differences:
 - Under a `Screen underBar` the form pads its content by the bar through
   `useScrollInsets()`. On iOS the `Form` is inset by the bar through its
   safe area, which follows a native search bar as it grows and collapses.
+- Under `Tabs` with a floating `action` (Android, and iOS before 26) the
+  form ends clear of the button: Android pads its content by
+  `useScrollInsets().bottom`, and on iOS, where the `Form` takes no content
+  padding, a clear row of that height ends it.
 
 A `Sheet` full of one is how the kit does a form: the question is the
 section's title and the note under it is the footer.

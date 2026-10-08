@@ -42,7 +42,9 @@ export function useTabBarInset(): number {
 /**
  * The room the tab bar's own action takes at the bottom trailing corner,
  * where it is a floating button (`Tabs action` on Android, and on iOS
- * before 26): a `Screen`'s `fab` sits above it. Nothing elsewhere.
+ * before 26): a `Screen`'s `fab` sits above it, and a `Screen` counts it in
+ * `useScrollInsets().bottom`, so the kit's lists and grids end clear of it.
+ * Nothing elsewhere.
  */
 export const TabActionLiftContext = createContext(0);
 

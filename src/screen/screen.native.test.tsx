@@ -11,7 +11,7 @@ import {host, modifier, nodes} from 'expo-vitest/native';
 import {hostAccentProps} from './host-accent';
 import {HeaderAccessory} from '../header-accessory';
 import {FloatingHeaderContext, HeaderMaterialContext, StackHeaderContext} from '../stack-header/context';
-import {NativeTabsContext, useTabBarInset} from '../tabs/context';
+import {NativeTabsContext, TabActionLiftContext, useTabBarInset} from '../tabs/context';
 import {useScrollInsets} from './insets';
 import {AppToastInsetContext, ToastInsetContext} from '../toast/context';
 import {Screen} from '.';
@@ -200,6 +200,25 @@ describe(`Screen (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(root.props.style)).toEqual(StyleSheet.flatten(parts().root.props.style));
     expect(StyleSheet.flatten(root.props.style).paddingTop).toBe(0);
     expect(StyleSheet.flatten(root.props.style).gap).toBeUndefined();
+  });
+
+  it('keeps the room of the tab bar\'s floating action at the bottom of its scroll content, under a bar or not', async () => {
+    const seen = {bottom: -1, padded: -1};
+    function Probe() {
+      const bottom = useScrollInsets().bottom;
+      const padded = useScrollInsets({bottom: 8}).bottom;
+      useEffect(() => {
+        seen.bottom = bottom;
+        seen.padded = padded;
+      });
+      return null;
+    }
+    await render(<TabActionLiftContext.Provider value={72}><Screen><Probe/></Screen></TabActionLiftContext.Provider>);
+    expect(seen).toEqual({bottom: 72, padded: 80});
+    await render(<TabActionLiftContext.Provider value={72}><Screen underBar><Probe/></Screen></TabActionLiftContext.Provider>);
+    expect(seen).toEqual({bottom: 72, padded: 80});
+    await render(<Screen underBar><Probe/></Screen>);
+    expect(seen).toEqual({bottom: 0, padded: 8});
   });
 
   it('changes nothing for underBar, since the top inset is already nothing natively', async () => {

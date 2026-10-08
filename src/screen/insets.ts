@@ -1,14 +1,25 @@
 import {createContext, useContext} from 'react';
 
 /**
- * What a `Screen underBar` tells the scrolling content inside it: the space
- * a bar floating over its top takes, and the space the content should keep
- * at its bottom, so a kit list or grid pads its own content and its scroll
- * indicators rather than the app padding by hand. Outside such a screen
- * both are zero.
+ * What a `Screen` tells the scrolling content inside it: the space a bar
+ * floating over its top takes, and the space the content should keep at its
+ * bottom, so a kit list or grid pads its own content and its scroll
+ * indicators rather than the app padding by hand. Outside a screen both are
+ * zero, and so they are in a `Sheet`'s content, which passes under neither.
  */
 export interface ScrollInsets {
+  /**
+   * The bar floating over the screen's top, on a `Screen underBar`: the web
+   * tab bar, or the stack header of a `TabStack` with a `material` on iOS,
+   * with the rows under it. Zero on any other screen.
+   */
   top: number;
+  /**
+   * The room the tab bar's floating action takes at the screen's bottom, the
+   * button and the gap above it (`Tabs action` on Android, and on iOS before
+   * 26), on every screen under the tabs while they show, `underBar` or not.
+   * Zero elsewhere.
+   */
   bottom: number;
   /**
    * iOS under a header the screen runs under: the platform insets scroll
@@ -25,7 +36,8 @@ export const ScrollInsetsContext = createContext<ScrollInsets>({top: 0, bottom: 
 
 /**
  * The insets a scrolling kit component pads its content by: the screen's
- * under a bar (`Screen underBar`), plus what the caller asked for itself.
+ * (a bar it passes under on a `Screen underBar`, the tab bar's floating
+ * action), plus what the caller asked for itself.
  */
 export function useScrollInsets(own?: {top?: number; bottom?: number}): ScrollInsets {
   const screen = useContext(ScrollInsetsContext);

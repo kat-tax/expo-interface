@@ -1,4 +1,5 @@
 import type {TabRoute} from './types';
+import {useEffect} from 'react';
 import {Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, screen as dom, waitFor} from '@testing-library/react';
 import {fireEvent as fireNative, render, screen} from '@testing-library/react-native';
@@ -11,6 +12,7 @@ import {HeaderMenu} from '../header-menu';
 import {HeaderSearch} from '../header-search';
 import {HideTabs} from './hide';
 import {Screen} from '../screen';
+import {useScrollInsets} from '../screen/insets';
 import {colors, inset, spacing, theme} from '../theme';
 import {host, modifier, nodes} from 'expo-vitest/native';
 import {visibleText} from '../a11y/roving';
@@ -636,6 +638,15 @@ describe(`Tabs (${Platform.OS})`, () => {
   } else {
     const isIOS = Platform.OS === 'ios';
     const triggers = () => nodes().filter(n => n.type === (isIOS ? 'RNSTabsScreenIOS' : 'RNSTabsScreenAndroid'));
+    /** What a screen's scroll content keeps at its bottom, as the last render of `BottomProbe` read it. */
+    const seen = {bottom: -1};
+    function BottomProbe() {
+      const {bottom} = useScrollInsets();
+      useEffect(() => {
+        seen.bottom = bottom;
+      });
+      return null;
+    }
 
     // vitest-native's react-native-screens mock predates the `Tabs.Host` /
     // `Tabs.Screen` compound API that SDK 57's NativeTabs renders (plus the
@@ -706,8 +717,10 @@ describe(`Tabs (${Platform.OS})`, () => {
       try {
         await renderApp({
           ...(await app({action: {label: 'New', icon: icons.add, onPress}})),
-          index: () => <Screen fab={<Text testID="own">Own</Text>}><Text>Home screen</Text></Screen>,
+          index: () => <Screen fab={<Text testID="own">Own</Text>}><BottomProbe/><Text>Home screen</Text></Screen>,
         });
+        // The screen's scroll content ends clear of the button: the kit's lists and grids pad by it.
+        expect(seen.bottom).toBe(56 + spacing.three);
         const slot = screen.getByTestId('tab-action-slot');
         expect(StyleSheet.flatten(slot.props.style)).toMatchObject({position: 'absolute', right: spacing.three + 8, bottom: inset.bottomTab + 20 + spacing.three});
         if (isIOS) {
@@ -720,9 +733,13 @@ describe(`Tabs (${Platform.OS})`, () => {
         // The screen's own button sits above the tabs' one (natively over the safe area, which Android's tab host pays).
         const own = StyleSheet.flatten(screen.getByTestId('screen-fab').props.style);
         expect(own.bottom).toBe(spacing.three + 56 + spacing.three + (isIOS ? 20 : 0));
-        // Hidden tabs take their action with them.
-        await renderApp(await app({hidden: true, action: {label: 'New', icon: icons.add, onPress}}));
+        // Hidden tabs take their action with them, and the room it took.
+        await renderApp({
+          ...(await app({hidden: true, action: {label: 'New', icon: icons.add, onPress}})),
+          index: () => <Screen><BottomProbe/><Text>Home screen</Text></Screen>,
+        });
         expect(screen.queryByTestId('tab-action-slot')).toBeNull();
+        expect(seen.bottom).toBe(0);
       } finally {
         Object.defineProperty(Platform, 'Version', version);
         await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 0}));
@@ -734,8 +751,13 @@ describe(`Tabs (${Platform.OS})`, () => {
         const version = Object.getOwnPropertyDescriptor(Platform, 'Version')!;
         Object.defineProperty(Platform, 'Version', {configurable: true, get: () => '26.0'});
         try {
-          await renderApp(await app({action: {label: 'New', icon: icons.add, onPress: vi.fn()}}));
+          await renderApp({
+            ...(await app({action: {label: 'New', icon: icons.add, onPress: vi.fn()}})),
+            index: () => <Screen><BottomProbe/><Text>Home screen</Text></Screen>,
+          });
           expect(screen.queryByTestId('tab-action-slot')).toBeNull();
+          // The accessory is the tab bar's own, so the screens keep no room for it.
+          expect(seen.bottom).toBe(0);
           const accessory = nodes().find(n => n.type === 'RNSTabsHost')!.props.ios.bottomAccessory as (placement: string) => React.ReactElement;
           await render(accessory('regular'));
           expect(modifier(host(p => p.label === 'New').props, 'labelStyle')).toBeUndefined();

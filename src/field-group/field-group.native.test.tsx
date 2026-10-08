@@ -274,6 +274,33 @@ describe(`FieldGroup (${Platform.OS})`, () => {
     expect(modifier(byComposeTestID('group').props, 'padding')).toEqual({$type: 'padding', start: 16, top: 46, end: 16, bottom: 26});
   });
 
+  (isIOS ? it : it.skip)('ends the form with a clear row as tall as the room the screen keeps at its bottom', async () => {
+    await render(
+      <ScrollInsetsContext.Provider value={{top: 0, bottom: 72, automatic: false}}>
+        <FieldGroup>
+          <FieldGroup.Section title="General">
+            <Typography>Row</Typography>
+          </FieldGroup.Section>
+        </FieldGroup>
+      </ScrollInsetsContext.Provider>,
+    );
+    const [form] = nodes();
+    const last = (form.children as {type: string; props: Record<string, any>}[]).at(-1)!;
+    expect(last.type).toBe('ViewManagerAdapter_ExpoUI_SpacerView');
+    expect(modifier(last.props, 'frame')?.height).toBe(72);
+    expect(modifier(last.props, 'listRowBackground')).toEqual({$type: 'listRowBackground', color: 'clear'});
+    expect(modifier(last.props, 'listRowSeparator')).toMatchObject({visibility: 'hidden'});
+    // With no room to keep, the form ends at its last section.
+    await render(
+      <FieldGroup>
+        <FieldGroup.Section title="General">
+          <Typography>Row</Typography>
+        </FieldGroup.Section>
+      </FieldGroup>,
+    );
+    expect(nodes().some(n => n.type.includes('SpacerView'))).toBe(false);
+  });
+
   (isIOS ? it.skip : it)('takes the inset off the ListItem rows it is given, unless one asks for it', async () => {
     await render(
       <FieldGroup>

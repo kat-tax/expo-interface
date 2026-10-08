@@ -117,7 +117,15 @@ export function Screen({
   // scrolling components add only the rows floating under the header, which
   // the platform does not know of.
   const automatic = Platform.OS === 'ios' && floating && underBar;
-  const scrollInsets = useMemo(() => ({top: !underBar ? 0 : automatic ? rows : barInset, bottom: 0, automatic}), [underBar, automatic, rows, barInset]);
+  // The tab bar's own floating action, over every screen of the tabs.
+  const tabAction = useContext(TabActionLiftContext);
+  // What the content's scroll views pad by: at the top a bar it passes under
+  // (`underBar`), at the bottom the tab bar's floating action, which floats
+  // over every screen of the tabs, under a bar or not.
+  const scrollInsets = useMemo(
+    () => ({top: !underBar ? 0 : automatic ? rows : barInset, bottom: tabAction, automatic}),
+    [underBar, automatic, rows, barInset, tabAction],
+  );
   // The bottom bars' height, measured, which the fab sits above.
   const [barHeight, setBarHeight] = useState(0);
   const onBarsLayout = (event: LayoutChangeEvent) => setBarHeight(event.nativeEvent.layout.height);
@@ -134,7 +142,6 @@ export function Screen({
   // itself (`underBar`).
   const paddingTop = underBar ? 0 : !underHeader ? theme.inset.topBar + barRows : floating ? insets.top + theme.inset.header + rows : 0;
   // Above a bottom bar the screen draws, and above the tab bar's own floating action.
-  const tabAction = useContext(TabActionLiftContext);
   const fabBottom = theme.spacing.three + (hasBottom ? barHeight : 0) + tabAction;
 
   useEffect(() => {
