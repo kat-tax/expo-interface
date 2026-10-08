@@ -71,7 +71,11 @@ export interface TabViewProps {
    * element altogether, the view is the tabs alone: as tall as the strip or
    * the switcher's bar rather than growing into its parent, and on web with
    * no `tabpanel` for the tabs to control. That is the shape for a strip in a
-   * `HeaderAccessory`, whose pages are the screen's content. Children written
+   * `HeaderAccessory`, whose pages are the screen's content. The switcher's
+   * cards, having no page to take the place of, then open under its bar and
+   * make the view taller, at most half the window, scrolling past that; in a
+   * `HeaderAccessory` they push the screen's content down, or lie over it
+   * under a header the screens run under. Children written
    * but rendering nothing, `null` or the `undefined` of
    * `{current && <Editor/>}`, are a page with nothing in it, which keeps the
    * view's size when the last document closes. A component that wraps a

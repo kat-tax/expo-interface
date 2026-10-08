@@ -245,6 +245,14 @@ describe('TabView (web)', () => {
       expect(screen.queryByRole('tabpanel')).toBeNull();
     });
 
+    it('opens the cards of the tabs alone at most half the window tall, and scrolls them past that', async () => {
+      const {readFileSync} = await import('node:fs');
+      const {join} = await import('node:path');
+      const css = readFileSync(join(__dirname, 'tab-view.css'), 'utf8');
+      expect(/\n\.ui-tab-view__cards \{([^}]*)\}/.exec(css)![1]).toContain('overflow-y: auto;');
+      expect(/\n\.ui-tab-view--alone \.ui-tab-view__cards \{([^}]*)\}/.exec(css)![1]).toContain('max-height: 50vh;');
+    });
+
     it('names a card as the strip names its tab', async () => {
       const user = userEvent.setup();
       windowWidth(480);

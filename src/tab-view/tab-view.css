@@ -191,6 +191,15 @@
   overflow-y: auto;
 }
 
+/*
+ * With the tabs alone the cards replace no content: they open under the bar
+ * and make the view taller, so nothing else stops a long grid at the screen's
+ * edge. Half the window, then they scroll.
+ */
+.ui-tab-view--alone .ui-tab-view__cards {
+  max-height: 50vh;
+}
+
 .ui-tab-view__card {
   display: flex;
   align-items: flex-start;

@@ -1,4 +1,4 @@
-import {Platform, StyleSheet, Text, View} from 'react-native';
+import {Dimensions, Platform, StyleSheet, Text, View} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {colors} from '../theme';
 import {TabView} from '.';
@@ -231,6 +231,20 @@ describe(`TabView (${Platform.OS})`, () => {
       expect(root().children).toHaveLength(1);
       await fireEvent.press(screen.getByTestId('t-switcher'));
       expect(screen.getByTestId('t-cards')).toBeOnTheScreen();
+    });
+
+    it('opens the cards at most half the window tall, where no page bounds them, and scrolls past that', async () => {
+      const cards = () => StyleSheet.flatten(screen.getByTestId('t-cards').props.style) ?? {};
+      const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
+      await fireEvent.press(screen.getByTestId('t-switcher'));
+      expect(cards().maxHeight).toBe(Dimensions.get('window').height / 2);
+      // With a page, the cards take its place and are as tall as it is.
+      await rerender(
+        <TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t">
+          <Text>Page of A</Text>
+        </TabView>,
+      );
+      expect(cards().maxHeight).toBeUndefined();
     });
 
     it('lets a caller\'s style grow it all the same', async () => {

@@ -1,4 +1,4 @@
-import {StyleSheet, Text} from 'react-native';
+import {Dimensions, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {colors} from '../theme';
@@ -205,10 +205,12 @@ describe('TabView (windows)', () => {
       expect(page()).toBe(true);
     });
 
-    it('is the switcher\'s bar alone', async () => {
+    it('is the switcher\'s bar alone, whose cards open at most half the window tall', async () => {
       await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
       expect(grow()).toBe(0);
       expect(root().children).toHaveLength(1);
+      await fireEvent.press(screen.getByTestId('t-switcher'));
+      expect(StyleSheet.flatten(screen.getByTestId('t-cards').props.style).maxHeight).toBe(Dimensions.get('window').height / 2);
     });
   });
 

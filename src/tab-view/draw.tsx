@@ -193,13 +193,26 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
 }
 
 /**
+ * The most of the window's height the cards take with the tabs alone, where
+ * nothing under them bounds the grid: past it, they scroll.
+ */
+export const ALONE_CARDS = 0.5;
+
+/**
  * The switcher every platform falls back to under 640 points: a bar naming the
  * open tab with the count beside it, which opens a grid of cards over the
  * content — Safari's and Chrome's shape on a phone, on iOS and Android alike.
  *
  * The grid replaces the content rather than floating over it, which is both
  * what those browsers do and what keeps the whole thing one flow: nothing is
- * absolutely positioned, so a grid taller than the screen scrolls.
+ * absolutely positioned, so a grid taller than the view scrolls in it.
+ *
+ * With the tabs `alone` there is no content to replace: the grid opens under
+ * the bar and makes the view taller, as far as {@link ALONE_CARDS} of the
+ * window, and scrolls past that. In a `HeaderAccessory` that is the header's
+ * row growing, which pushes the screen's content down, or lies over it where
+ * the row floats under a header the screens run under; nothing under the row
+ * would stop a long grid at the screen's edge.
  */
 export function TabSwitcher({
   tabs,
@@ -211,8 +224,14 @@ export function TabSwitcher({
   fill,
   label,
   testID,
+  alone,
   children,
-}: TabDrawProps & {children?: ReactNode}) {
+}: TabDrawProps & {
+  /** The tabs alone, with no content for the cards to take the place of. */
+  alone: boolean;
+  children?: ReactNode;
+}) {
+  const {height: windowHeight} = useWindowDimensions();
   const [open, setOpen] = useState(false);
   const filled = fill !== 'none';
   const surface = useColor('backgroundElement');
@@ -256,6 +275,7 @@ export function TabSwitcher({
           <ScrollView
             accessibilityRole="tablist"
             accessibilityLabel={label}
+            style={alone ? {maxHeight: windowHeight * ALONE_CARDS} : undefined}
             contentContainerStyle={styles.grid}
             testID={sub(testID, 'cards')}>
             {tabs.map((tab, index) => {

@@ -17,7 +17,8 @@ import {ADD_LABEL, isAlone} from './shared';
  *
  * With no children at all (see `isAlone`) the view is the strip, or the
  * switcher's bar, alone: as tall as that and no taller, for a strip in a
- * `HeaderAccessory` whose pages are the screen's content.
+ * `HeaderAccessory` whose pages are the screen's content. The switcher's
+ * cards open under the bar then, bounded by the window (see `TabSwitcher`).
  */
 export function TabView(props: TabViewProps) {
   const {
@@ -46,7 +47,7 @@ export function TabView(props: TabViewProps) {
           {page}
         </>
       ) : (
-        <TabSwitcher {...draw}>{page}</TabSwitcher>
+        <TabSwitcher {...draw} alone={alone}>{page}</TabSwitcher>
       )}
     </View>
   );

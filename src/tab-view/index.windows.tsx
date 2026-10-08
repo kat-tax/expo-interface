@@ -39,7 +39,8 @@ const STRIP_HEIGHT = 40;
  *
  * With no children at all (see `isAlone`) the view is the strip, or the
  * switcher's bar, alone: as tall as that and no taller, for a strip in a
- * `HeaderAccessory` whose pages are the screen's content.
+ * `HeaderAccessory` whose pages are the screen's content. The switcher's
+ * cards open under the bar then, bounded by the window (see `TabSwitcher`).
  */
 export function TabView(props: TabViewProps) {
   const {
@@ -112,7 +113,8 @@ export function TabView(props: TabViewProps) {
           addLabel={addLabel ?? ADD_LABEL}
           fill={fill}
           label={label}
-          testID={testID}>
+          testID={testID}
+          alone={alone}>
           {page}
         </TabSwitcher>
       )}

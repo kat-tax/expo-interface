@@ -73,6 +73,7 @@ function useContainerWidth(ref: RefObject<HTMLElement | null>): number {
  *
  * With no children at all (see `isAlone`) it is the tabs alone: no
  * `tabpanel`, no `aria-controls` on the tabs, and no growth into the parent.
+ * The switcher's cards open under the bar then, at most half the window tall.
  */
 export function TabView(props: TabViewProps) {
   const {
