@@ -42,7 +42,11 @@ export const filledUrl = name => `${GSTATIC}/${name}/fill1/24px.xml`;
 export const VARIABLE_FONT_URL =
   'https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL%2CGRAD%2Copsz%2Cwght%5D.woff2';
 
-/** The family the kit's stylesheet draws filled icons with. */
+/**
+ * The family the kit's stylesheet draws every icon with first
+ * (`SYMBOL_FONT_FAMILY`). A filled token tries `SYMBOL_FILL_FONT_FAMILY`
+ * ahead of it.
+ */
 export const FONT_FAMILY = 'Material Symbols Outlined';
 
 /**
@@ -157,7 +161,11 @@ export function stubModule() {
   ].join('\n');
 }
 
-/** The `@font-face` that registers the subset for the kit's stylesheet, for `+html.tsx`. */
+/**
+ * The `@font-face` that registers the cut for `+html.tsx`, under
+ * `FONT_FAMILY` (the family every icon draws with first) unless `family`
+ * names another: the rule `getSymbolFontCSS(url, family)` writes.
+ */
 export function fontFaceCSS(url, family = FONT_FAMILY) {
   return `@font-face { font-family: '${family}'; src: url('${url}') format('woff2-variations'); font-weight: 100 700; font-display: block; }`;
 }
