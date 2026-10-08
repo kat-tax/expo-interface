@@ -459,7 +459,8 @@ Differences:
   brings its own and fills the list; under `Screen native` it is native
   content in the screen's host, centred on Android. iOS and Android show it
   without the `header` and `footer`; the web and Windows keep them around
-  it.
+  it, and there an `EmptyState` fills the list's height between them, as
+  in a `CardGrid`.
 - Under a `Screen underBar` the list pads its first row by the bar through
   `useScrollInsets()`, with `contentInset` added to that. On iOS SwiftUI
   insets the list by a header the screen runs under through its safe area,

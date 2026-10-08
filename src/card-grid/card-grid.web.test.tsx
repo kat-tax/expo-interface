@@ -80,6 +80,9 @@ describe('CardGrid (web)', () => {
     // A basis of auto: in a parent with no height of its own the grid grows to its cells.
     expect(root).toContain('flex: 1 1 auto;');
     expect(root).toContain('min-height: 0;');
+    // A flex column, so an empty state that grows fills it under the header.
+    expect(root).toContain('display: flex;');
+    expect(root).toContain('flex-direction: column;');
     expect(/\.ui-card-grid__cells \{([^}]*)\}/.exec(css)![1]).toContain('flex: none;');
     // The window has no gap of its own: the spacers carry the gaps of the rows they stand for.
     expect(/\.ui-card-grid__window \{([^}]*)\}/.exec(css)![1]).not.toContain('gap');

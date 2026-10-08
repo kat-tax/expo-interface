@@ -73,6 +73,9 @@ describe('List (web)', () => {
     // A basis of auto: in a parent with no height of its own the list grows to its rows.
     expect(root).toContain('flex: 1 1 auto;');
     expect(root).toContain('min-height: 0;');
+    // A flex column, so an empty state that grows fills it between the header and the footer.
+    expect(root).toContain('display: flex;');
+    expect(root).toContain('flex-direction: column;');
     expect(/\.ui-list__rows \{([^}]*)\}/.exec(css)![1]).toContain('flex: none;');
     // Never a scroll anchor, so the drawn rows hold still while a spacer changes.
     expect(/\.ui-list__spacer \{([^}]*)\}/.exec(css)![1]).toContain('overflow-anchor: none;');
