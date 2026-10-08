@@ -20,9 +20,12 @@ import {SHEET_SCROLL_INSETS, bodyCap, hasBar, sub} from './shared';
  * is asked when the smoke or Escape is pressed. The layer covers the whole
  * window under the kit's `Stack` (a layer host) and the nearest ancestor
  * elsewhere. The bar, the accessory, the footer and the actions stay put
- * while the body scrolls, and `maxHeight` caps the body. The content is not
- * under a screen's bar, so the screen's scroll insets stop at the sheet,
- * whether the layer draws in place or in the host's.
+ * while the body scrolls, and `maxHeight` caps the body. The frame shrinks
+ * to the card, which stops short of the layer's edges, and the body gives
+ * up the difference, so a tall body or a large cap never pushes the footer
+ * or the actions out of the card. The content is not under a screen's bar,
+ * so the screen's scroll insets stop at the sheet, whether the layer draws
+ * in place or in the host's.
  *
  * A fractional `maxHeight` is of the area the layer covers, measured as it
  * lays out: `useWindowDimensions` does not follow a resize on
@@ -64,6 +67,7 @@ export function Sheet({children, isPresented, onDismiss, title, subtitle, onBack
 
 const styles = StyleSheet.create({
   frame: {
+    flexShrink: 1,
     padding: spacing.three,
     width: '100%',
   },

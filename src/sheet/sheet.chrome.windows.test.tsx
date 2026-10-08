@@ -106,6 +106,24 @@ describe('Sheet chrome (windows)', () => {
     expect(cap()).toBe(300);
   });
 
+  it('lets the frame shrink to the card, so a large cap gives way in the body and never pushes the footer or the actions out', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} title="Comments" footer={<Text>Write</Text>} actions={[{label: 'Done'}]} maxHeight={{fraction: 0.9}} testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    await fireEvent(screen.getByTestId('sheet-area'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 1000, height: 800}}});
+    const body = screen.getByTestId('sheet-body');
+    // The card stops at 90% of the area less its padding: the frame shrinks to it, and of what it
+    // holds only the scrolling body shrinks, so the bar, the footer and the actions keep their height.
+    const frame = body.parent!;
+    expect(StyleSheet.flatten(frame.props.style)).toMatchObject({flexShrink: 1, width: '100%'});
+    expect(StyleSheet.flatten(body.props.style)).toMatchObject({flexShrink: 1, maxHeight: 720});
+    expect(within(frame).getByTestId('sheet-bar')).toBeOnTheScreen();
+    expect(within(frame).getByText('Write')).toBeOnTheScreen();
+    expect(within(frame).getByTestId('sheet-actions')).toBeOnTheScreen();
+  });
+
   it('keeps a cap in points whatever the area', async () => {
     await render(
       <Sheet isPresented onDismiss={() => {}} maxHeight={300} testID="sheet">
