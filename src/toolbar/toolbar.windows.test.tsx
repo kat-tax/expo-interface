@@ -319,4 +319,23 @@ describe('commands (windows)', () => {
     expect(islands(BAR)).toHaveLength(0);
     expect(screen.getByText('Search')).toBeOnTheScreen();
   });
+
+  it('hands a command\'s color to the bar, and draws it on the kit\'s buttons beside a field, a menu command filled while active', async () => {
+    const colored = [
+      {label: 'Ink', color: '#FF9500'},
+      {label: 'Shapes', active: true, color: '#8959EA', items: [{label: 'Circle'}]},
+      {label: 'Text', active: false, items: [{label: 'Heading'}]},
+    ];
+    const {rerender} = await render(<Toolbar commands={colored}/>);
+    const sent = JSON.parse(island(BAR).props.commands) as {label: string; color?: string; toggle: boolean; checked: boolean}[];
+    expect(sent.map(({label, color}) => ({label, color}))).toEqual([{label: 'Ink', color: '#FF9500'}, {label: 'Shapes', color: '#8959EA'}, {label: 'Text'}]);
+    // A menu command has no on state in the CommandBar: an AppBarButton with a flyout is no toggle.
+    expect(sent[1]).toMatchObject({toggle: false, checked: false});
+    await rerender(<Toolbar commands={colored} field={<Text>Find</Text>}/>);
+    expect(islands('ExpoInterfaceButton').map(button => [button.props.label, button.props.color, button.props.variant])).toEqual([
+      ['Ink', '#FF9500', 'text'],
+      ['Shapes', '#8959EA', 'filled'],
+      ['Text', undefined, 'text'],
+    ]);
+  });
 });

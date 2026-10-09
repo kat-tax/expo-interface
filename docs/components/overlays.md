@@ -13,7 +13,10 @@ differ. [All components](README.md) lists the other groups.
 A dropdown menu of actions opened from a button. Props: `label`, `icon`,
 `items`, `trigger` (`button`, or `link` for a text link in a bar),
 `onOpenChange`, `testID`, and the `Button` props `variant`, `size`, `shape`,
-`color`, `tone`, `iconSize`, `hideLabel`, `disabled`.
+`color`, `tone`, `iconSize`, `hideLabel`, `disabled` and `pressed` (the
+trigger is a toggle that is on: drawn filled in the accent, whatever the
+variant, and heard as `Button pressed` is on each platform, for a tool
+whose menu picks what it does; it opens the menu either way).
 
 A `MenuItem` has `label`, `icon`, `swatch` (a color dot in place of the
 icon), `active` (a check mark), `role` (`default`, `destructive`),

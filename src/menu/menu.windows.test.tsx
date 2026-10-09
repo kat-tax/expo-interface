@@ -56,6 +56,15 @@ describe('Menu (windows)', () => {
     await render(<Menu label="More" items={items()} trigger="link" variant="outlined"/>);
     expect(island(BUTTON).props.variant).toBe('text');
   });
+
+  it('draws a trigger that is on filled, whatever its variant, the link too', async () => {
+    const {rerender} = await render(<Menu label="Shapes" items={items()} variant="text" color="#8959EA" pressed/>);
+    expect(island(BUTTON).props).toMatchObject({variant: 'filled', color: '#8959EA'});
+    await rerender(<Menu label="Shapes" items={items()} trigger="link" pressed/>);
+    expect(island(BUTTON).props.variant).toBe('filled');
+    await rerender(<Menu label="Shapes" items={items()} trigger="link" pressed={false}/>);
+    expect(island(BUTTON).props.variant).toBe('text');
+  });
 });
 
 describe('Menu shortcuts (windows)', () => {

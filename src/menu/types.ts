@@ -67,9 +67,13 @@ export type MenuTrigger = 'button' | 'link';
  *
  * Bridges the SwiftUI `Menu` on iOS, the Jetpack Compose Material 3
  * `DropdownMenu` on Android, and a `role="menu"` popup on web. The trigger
- * looks like the kit's `Button` and takes the same styling props.
+ * looks like the kit's `Button` and takes the same styling props. `pressed`
+ * makes it a toggle that is on, as `Button pressed` is on each platform:
+ * drawn filled in the accent, whatever the variant, and heard as on, for a
+ * tool whose menu picks what it does (a drawing bar's shapes tool, with its
+ * menu of shapes). The trigger opens the menu either way.
  */
-export interface MenuProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape' | 'color' | 'tone' | 'iconSize' | 'hideLabel' | 'disabled'> {
+export interface MenuProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape' | 'color' | 'tone' | 'iconSize' | 'hideLabel' | 'disabled' | 'pressed'> {
   /** Trigger text (kept for accessibility when `hideLabel` is set). */
   label: string;
   /** Trigger icon. */

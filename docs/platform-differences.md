@@ -60,6 +60,8 @@ The differences that change what a screen can do, in one place:
 | `Popover` `label` | Ignored | Ignored | Names a modal card | Names a modal card |
 | `Toolbar` overflow decided by the platform | No | No | No | Yes |
 | `Toolbar` menu command behind the overflow | Its entries, set off by rules | Its entries, set off by rules | Its entries, set off by rules | A submenu (`CommandBar`); its entries in a drawn bar |
+| `Toolbar` menu command `active` | Filled, heard as selected | Filled, heard as checked | Filled, `aria-pressed` | Filled in a drawn bar, heard as a button; ignored by the `CommandBar`, whose `AppBarButton` with a flyout has no checked state |
+| `Toolbar` command `color` | Yes | Yes | Yes | Yes; the `CommandBar` draws the glyph and the label in it |
 | `FindBar` | Drawn, not `UIFindInteraction` | Drawn | Drawn | Drawn |
 | `Toolbar` floating | The kit's raised capsule | Material's `HorizontalFloatingToolbar` | The kit's raised capsule | The `CommandBar` in a raised card |
 | `Divider` `vertical` inside a host | The row's height | 24dp | The row's height | The row's height |

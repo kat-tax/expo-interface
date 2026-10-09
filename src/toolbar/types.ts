@@ -51,22 +51,38 @@ export interface ToolbarCommand {
    * Android, web and a drawn Windows bar) it is an entry with the menu's
    * check while it is on; a menu has no off state, so one that is off is a
    * plain entry. The `CommandBar`'s own overflow keeps the toggle button.
-   * Leave it out for a command that is not a toggle.
+   * A command with `items` that is on is the kit's `Menu` with `pressed`:
+   * drawn filled and heard as on the same way, for a tool whose menu picks
+   * what it does (a drawing bar's shapes tool), and behind the kit's
+   * overflow its entries take its place whatever its state. The Windows
+   * `CommandBar` ignores it on a menu command, since an `AppBarButton` with
+   * a flyout has no checked state. Leave it out for a command that is not a
+   * toggle.
    */
   active?: boolean;
   /**
    * Color of the command: the accent, or the label color for a tool, where
    * the accent marks the active one. The Windows `CommandBar` takes no tone
    * (a command is in the bar's own colors, a `destructive` one in the
-   * critical color) and ignores it.
+   * critical color) and ignores it. An explicit `color` wins.
    * @default 'accent'
    */
   tone?: ButtonTone;
+  /**
+   * The command's color, as `Button` and `Menu` take `color`: what a tool
+   * is drawn in, and the fill of one that is `active`, over `tone` and
+   * `role`. A drawing bar's ink tool is drawn in the ink. The Windows
+   * `CommandBar` draws the command's glyph and label in it, as it draws a
+   * `destructive` one in the critical color; a toggle that is on keeps the
+   * bar's own checked colors.
+   */
+  color?: string;
   /** Called on a press; ignored when `items` are given. */
   onPress?: () => void;
   /**
    * A menu instead of a press: the entries `Menu` takes, opened from the
-   * command; `onPress`, `active` and `role` are ignored with them. On the
+   * command; `onPress` and `role` are ignored with them, and `active` fills
+   * the command while it is on. On the
    * bar it is the kit's `Menu`, in the Windows `CommandBar` an
    * `AppBarButton` with its `MenuFlyout`. Behind the overflow its entries
    * take its place, set off by rules, since the kit's menus do not nest;

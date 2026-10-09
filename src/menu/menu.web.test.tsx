@@ -111,6 +111,20 @@ describe('Menu (web)', () => {
     expect(screen.getByRole('button', {name: 'Publish'}).style.getPropertyValue('--ui-button-accent')).toBe('#FF9500');
   });
 
+  it('marks a trigger that is on as pressed, drawn filled, on the button and on the link', () => {
+    const {rerender} = render(<Menu label="Shapes" items={items} variant="text" pressed/>);
+    const button = screen.getByRole('button', {name: 'Shapes'});
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+    expect(button).toHaveClass('ui-button--filled');
+    expect(button).toHaveAttribute('popovertarget');
+    rerender(<Menu label="Shapes" items={items} trigger="link" pressed/>);
+    const link = screen.getByRole('button', {name: 'Shapes'});
+    expect(link).toHaveClass('ui-menu__link');
+    expect(link).toHaveAttribute('aria-pressed', 'true');
+    rerender(<Menu label="Shapes" items={items} trigger="link"/>);
+    expect(screen.getByRole('button', {name: 'Shapes'})).not.toHaveAttribute('aria-pressed');
+  });
+
   it('focuses the first enabled entry and anchors the popup when it opens', () => {
     render(<Menu label="Export" items={[{label: 'Locked', disabled: true}, ...items]}/>);
     const menu = screen.getByRole('menu', {hidden: true});

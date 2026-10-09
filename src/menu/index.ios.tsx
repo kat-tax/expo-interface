@@ -3,8 +3,9 @@ import type {ViewModifier} from '@expo/ui/swift-ui/modifiers';
 
 import {Fragment} from 'react';
 import {Button, Divider, HStack, Image, Menu as SwiftUIMenu, Text, Toggle} from '@expo/ui/swift-ui';
-import {accessibilityLabel, buttonBorderShape, buttonStyle, controlSize, disabled as disabledMod, labelStyle, tint} from '@expo/ui/swift-ui/modifiers';
+import {accessibilityAddTraits, accessibilityLabel, buttonBorderShape, buttonStyle, controlSize, disabled as disabledMod, labelStyle, tint} from '@expo/ui/swift-ui/modifiers';
 import {iosSymbol, swiftBorderShape, swiftControlSize} from '../button/shared';
+import {onAccent as contrastOf} from '../accent';
 import {SelfHosted} from '../host';
 import {useColor} from '../theme';
 import {swatchImage} from './swatch-file';
@@ -33,9 +34,10 @@ export function Menu(props: MenuProps) {
 
 /**
  * The SwiftUI `Menu`, styled with the same `buttonStyle` / `tint` mapping as
- * the kit's `Button` so the trigger matches. Entries are SwiftUI `Button`s
- * (with SF Symbol and `destructive` role), checked `Toggle`s for active
- * entries, and `Divider`s.
+ * the kit's `Button` so the trigger matches: one that is `pressed` is filled
+ * whatever its variant and selected to VoiceOver, as the button is. Entries
+ * are SwiftUI `Button`s (with SF Symbol and `destructive` role), checked
+ * `Toggle`s for active entries, and `Divider`s.
  */
 function NativeMenu({
   label,
@@ -49,13 +51,21 @@ function NativeMenu({
   iconSize,
   hideLabel,
   disabled,
+  pressed,
   testID,
 }: MenuProps) {
+  // A toggle that is on is drawn filled, whatever its variant.
+  const shown = pressed ? 'filled' : variant;
   const themeTint = useColor('tint');
   const themeLabel = useColor('label');
-  const accent = color ?? (variant === 'text' && tone === 'label' ? themeLabel : themeTint);
+  const themeOnAccent = useColor('onTint');
+  // The label tone only applies to the text variant: a tool, not a call to action.
+  const accent = color ?? (shown === 'text' && tone === 'label' ? themeLabel : themeTint);
+  // A custom accent brings its own contrast color for filled content.
+  const onAccent = color ? contrastOf(color) : themeOnAccent;
+  const iconColor = shown === 'filled' ? onAccent : accent;
   const modifiers: ViewModifier[] = [
-    buttonStyle(VARIANT_STYLE[variant]),
+    buttonStyle(VARIANT_STYLE[shown]),
     controlSize(swiftControlSize(size)),
     tint(accent),
   ];
@@ -67,11 +77,13 @@ function NativeMenu({
   if (hideLabel && icon && !sizedIcon) modifiers.push(labelStyle('iconOnly'));
   if (sizedIcon) modifiers.push(accessibilityLabel(label));
   if (disabled) modifiers.push(disabledMod(true));
+  // VoiceOver says a toggle that is on is selected.
+  if (pressed) modifiers.push(accessibilityAddTraits(['isSelected']));
 
   return (
     <SwiftUIMenu
       label={sizedIcon
-        ? <Image systemName={iosSymbol(icon!)} color={accent} size={iconSize}/>
+        ? <Image systemName={iosSymbol(icon!)} color={iconColor} size={iconSize}/>
         : label}
       systemImage={icon && !sizedIcon ? iosSymbol(icon) : undefined}
       modifiers={modifiers}

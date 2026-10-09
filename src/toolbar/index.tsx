@@ -166,7 +166,8 @@ function EdgeToolbar(props: ToolbarProps) {
 /**
  * The commands the bar shows, as the kit's own buttons, in a row of their own
  * at the bar's pitch; a command with `items` is the kit's own `Menu`, at the
- * same metrics, in the same host, greyed out with no entries to open on. A
+ * same metrics, in the same host, greyed out with no entries to open on,
+ * and filled while `active`, as a toggle that is on. A
  * command with `separator` has a vertical
  * rule before it, none before the first of the row, as a menu's entries do.
  * Never drawn with no commands: `controlsOf` leaves such a side out.
@@ -180,11 +181,13 @@ function Commands({commands, gap}: {commands: ToolbarCommand[]; gap: number}) {
           {command.items ? (
             <Menu
               variant="text"
+              pressed={command.active}
               size={TOOL.size}
               iconSize={TOOL.iconSize}
               label={command.label}
               icon={command.icon}
               hideLabel={command.hideLabel}
+              color={command.color}
               tone={command.tone}
               disabled={commandDisabled(command)}
               items={command.items}
@@ -199,6 +202,7 @@ function Commands({commands, gap}: {commands: ToolbarCommand[]; gap: number}) {
               label={command.label}
               prefixIcon={command.icon}
               hideLabel={command.hideLabel}
+              color={command.color}
               tone={command.tone}
               role={command.role}
               disabled={command.disabled}

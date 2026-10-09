@@ -13,8 +13,10 @@ import {MenuList, menuIdent, useHydrated} from './list';
  * entries' native `popover`, so opening, closing, light dismiss and
  * `aria-expanded` are all handled by the browser. The trigger takes the
  * `popovertarget` once the page has hydrated: a static export's HTML has
- * none, so a press before the bundle runs opens nothing. The wrapper carries
- * the `anchor-name` that CSS anchor positioning places the popup against.
+ * none, so a press before the bundle runs opens nothing. A trigger that is
+ * `pressed` is `aria-pressed` on either, and the kit's button draws it
+ * filled. The wrapper carries the `anchor-name` that CSS anchor positioning
+ * places the popup against.
  */
 export function Menu({label, icon, items, trigger = 'button', onOpenChange, testID, ...button}: MenuProps) {
   const ident = menuIdent(useId());
@@ -28,6 +30,7 @@ export function Menu({label, icon, items, trigger = 'button', onOpenChange, test
           type="button"
           className="ui-menu__link"
           disabled={button.disabled}
+          aria-pressed={button.pressed}
           popoverTarget={hydrated ? ident : undefined}
           data-testid={testID}
           aria-label={button.hideLabel ? label : undefined}>
