@@ -11,13 +11,6 @@ const items: MenuItem[] = [
   {label: 'Import files…', icon: icons.share},
 ];
 
-/** A `ToggleEvent` for the popover; jsdom has no constructor for it. */
-function toggleEvent(newState: 'open' | 'closed') {
-  const event = new Event('toggle');
-  Object.defineProperty(event, 'newState', {value: newState});
-  return event;
-}
-
 describe('Fab (web)', () => {
   it('renders a rounded button named by its label', () => {
     const onPress = vi.fn();
@@ -99,9 +92,8 @@ describe('Fab (web)', () => {
     try {
       render(<Fab label="New" icon={icons.add} items={items}/>);
       const menu = screen.getByRole('menu', {hidden: true});
-      // Shown by the button's `popovertarget`, and the browser reports the opening.
+      // Shown by the button's `popovertarget`: the key is the menu's from then on.
       vi.spyOn(menu, 'matches').mockImplementation(selector => selector === ':popover-open');
-      fireEvent(menu, toggleEvent('open'));
       fireEvent.keyDown(screen.getByRole('menuitem', {name: 'Blank document', hidden: true}), {key: 'Escape'});
       expect(hidePopover).toHaveBeenCalledTimes(1);
       expect(heard).not.toHaveBeenCalled();

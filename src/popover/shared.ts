@@ -161,12 +161,10 @@ function chosen(): Taker | undefined {
 }
 
 /**
- * Whether a `popover` element the browser closes on Escape is open inside
- * the overlay, so the key is the browser's: the `ColorPicker`'s `popover`
- * presentation, which is no taker, or a menu whose opening the browser has
- * not reported yet, since a menu takes the key from its `toggle` event. A
- * `manual` one does not count: Escape does not close it, so the overlay
- * would never get the key.
+ * Whether a `popover` element that is no taker is open inside the overlay:
+ * the `ColorPicker`'s `popover` presentation, which the browser closes on
+ * Escape, so the key is the browser's. A `manual` one does not count:
+ * Escape does not close it, so the overlay would never get the key.
  */
 function holdsOpenMenu(node: HTMLElement): boolean {
   return Array.from(node.querySelectorAll('[popover]:not([popover="manual"])')).some(element => element.matches(':popover-open'));

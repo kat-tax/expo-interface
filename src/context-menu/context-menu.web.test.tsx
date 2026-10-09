@@ -337,9 +337,8 @@ describe('ContextMenu (web)', () => {
       );
       fireEvent.contextMenu(screen.getByTestId('row'), {clientX: 40, clientY: 60});
       const menu = screen.getByRole('menu', {hidden: true});
-      // Shown, and the browser reports the opening.
+      // Shown: the key is the menu's from then on.
       vi.spyOn(menu, 'matches').mockImplementation(selector => selector === ':popover-open');
-      fireEvent(menu, toggleEvent('open'));
       fireEvent.keyDown(screen.getByRole('menuitem', {name: 'Share', hidden: true}), {key: 'Escape'});
       expect(hidePopover).toHaveBeenCalledTimes(1);
       expect(heard).not.toHaveBeenCalled();

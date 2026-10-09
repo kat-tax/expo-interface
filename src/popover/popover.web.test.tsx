@@ -185,13 +185,6 @@ describe('Popover (web)', () => {
       expect(onDismiss).toHaveBeenCalledWith('escape');
     });
 
-    /** A `ToggleEvent`, which the browser sends a task after an opening or a close; jsdom has no constructor for it. */
-    const toggle = (element: HTMLElement, newState: 'open' | 'closed') => {
-      const event = new Event('toggle');
-      Object.defineProperty(event, 'newState', {value: newState});
-      fireEvent(element, event);
-    };
-
     it('leaves the first Escape to a Menu open in it, which closes itself, and takes the next', () => {
       const onDismiss = vi.fn();
       const heard = vi.fn();
@@ -200,10 +193,9 @@ describe('Popover (web)', () => {
           <Menu label="Sort" items={items}/>
         </Popover>,
       );
-      // The trigger's `popovertarget` opens it, as the browser would, and the browser reports the opening.
+      // The trigger's `popovertarget` opens it, as the browser would.
       const menu = screen.getByRole('menu', {hidden: true});
       open.add(menu);
-      toggle(menu, 'open');
       const listener = (event: KeyboardEvent) => heard(event.key);
       document.addEventListener('keydown', listener);
       try {
@@ -212,8 +204,7 @@ describe('Popover (web)', () => {
         expect(open.has(menu)).toBe(false);
         expect(heard).not.toHaveBeenCalled();
         expect(onDismiss).not.toHaveBeenCalled();
-        // The browser reports the close; the next Escape is the card's.
-        toggle(menu, 'closed');
+        // With the menu down, the next Escape is the card's.
         fireEvent.keyDown(document.body, {key: 'Escape'});
         expect(onDismiss).toHaveBeenCalledWith('escape');
         expect(heard).not.toHaveBeenCalled();

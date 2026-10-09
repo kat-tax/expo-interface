@@ -413,26 +413,24 @@ describe('Escape on an open menu (web)', () => {
     expect(onSheetDismiss).toHaveBeenCalledTimes(1);
   });
 
-  it('keeps the key from a listener on the document, and hides nothing once the browser has closed the menu itself', () => {
+  it('takes the key as soon as the popover shows, keeps it from the document, and gives it up once the popover is hidden', () => {
     const heard = vi.fn();
     const listener = (event: KeyboardEvent) => heard(event.key);
     document.addEventListener('keydown', listener, true);
     try {
       render(<Menu label="More" items={items}/>);
       const menu = screen.getByRole('menu', {hidden: true});
-      show(menu);
+      // Shown, and not yet reported by the browser's `toggle`: the key is the menu's already.
+      menu.showPopover();
       fireEvent.keyDown(menu, {key: 'Escape'});
       expect(hidePopover).toHaveBeenCalledTimes(1);
+      expect(open.has(menu)).toBe(false);
       expect(heard).not.toHaveBeenCalled();
-      fireEvent(menu, toggleEvent('closed'));
-      // A click outside has closed it, which the browser has not reported yet: nothing to hide.
+      // Hidden again by a click outside, whatever the browser has reported: the key is the page's.
       show(menu);
       open.delete(menu);
       fireEvent.keyDown(menu, {key: 'Escape'});
       expect(hidePopover).toHaveBeenCalledTimes(1);
-      // Closed and reported, the key is the page's again.
-      fireEvent(menu, toggleEvent('closed'));
-      fireEvent.keyDown(menu, {key: 'Escape'});
       expect(heard).toHaveBeenCalledWith('Escape');
     } finally {
       document.removeEventListener('keydown', listener, true);

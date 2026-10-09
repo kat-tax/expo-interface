@@ -20,7 +20,7 @@ const listbox = () => screen.getByRole('listbox', {hidden: true});
 function toggle(element: HTMLElement, newState: 'open' | 'closed') {
   const event = new Event('toggle');
   Object.defineProperty(event, 'newState', {value: newState});
-  fireEvent(element, event);
+  element.dispatchEvent(event);
 }
 
 describe('PopupMenu, steadier (web)', () => {

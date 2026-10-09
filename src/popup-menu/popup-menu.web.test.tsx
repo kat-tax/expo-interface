@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import type {ReactElement} from 'react';
 import type {MenuItem} from '../menu/types';
-import {fireEvent, render, screen} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import {PopupMenu} from '.';
 
 const items: MenuItem[] = [
@@ -164,7 +164,7 @@ describe('PopupMenu (web)', () => {
     const event = new Event('toggle');
     Object.defineProperty(event, 'newState', {value: 'closed'});
     open = false;
-    fireEvent(menu, event);
+    menu.dispatchEvent(event);
     expect(onDismiss).toHaveBeenCalledTimes(1);
     expect(onDismiss).toHaveBeenCalledWith('dismiss');
   });
@@ -175,7 +175,7 @@ describe('PopupMenu (web)', () => {
     const menu = screen.getByRole('menu', {hidden: true});
     const event = new Event('toggle');
     Object.defineProperty(event, 'newState', {value: 'open'});
-    fireEvent(menu, event);
+    menu.dispatchEvent(event);
     expect(onDismiss).not.toHaveBeenCalled();
   });
 
