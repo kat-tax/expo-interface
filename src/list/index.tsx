@@ -15,7 +15,7 @@ import {useWindowed} from './windowed';
  * spacers around the list keeping the room of the rest at their measured
  * heights once seen and at `estimatedItemHeight` before. A hairline between
  * the rows comes from the stylesheet. The list fills the room its parent
- * gives it, with the screen's insets as padding inside. The end is reached
+ * gives it, with the screen's insets and its own as padding inside. The end is reached
  * once the list is laid out and its window draws the last row, for a list
  * that loads more, and again when more rows arrive while it is still drawn;
  * a hidden list reaches none.
@@ -33,11 +33,16 @@ export function List<T>({data, renderItem, keyExtractor, separators = true, head
   }, [atEnd, data.length]);
   const top = insets.top || undefined;
   const bottom = insets.bottom || undefined;
+  const left = insets.left || undefined;
+  const right = insets.right || undefined;
   const vars = {
     // The insets are inside the scroller: the first row starts below the bar,
-    // and a row the keyboard focus brings into view stops clear of it.
+    // a row the keyboard focus brings into view stops clear of it, and the
+    // sides pad the rows.
     paddingTop: top,
     paddingBottom: bottom,
+    paddingLeft: left,
+    paddingRight: right,
     scrollPaddingTop: top,
     scrollPaddingBottom: bottom,
     ...flatten(StyleSheet.flatten(style) as TextStyle),

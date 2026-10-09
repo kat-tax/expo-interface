@@ -122,9 +122,9 @@ export function Screen({
   const tabAction = useContext(TabActionLiftContext);
   // What the content's scroll views pad by: at the top a bar it passes under
   // (`underBar`), at the bottom the tab bar's floating action, which floats
-  // over every screen of the tabs, under a bar or not.
+  // over every screen of the tabs, under a bar or not, and nothing at the sides.
   const scrollInsets = useMemo(
-    () => ({top: !underBar ? 0 : automatic ? rows : barInset, bottom: tabAction, automatic}),
+    () => ({top: !underBar ? 0 : automatic ? rows : barInset, bottom: tabAction, left: 0, right: 0, automatic}),
     [underBar, automatic, rows, barInset, tabAction],
   );
   // The bottom bars' height, measured, which the fab sits above.

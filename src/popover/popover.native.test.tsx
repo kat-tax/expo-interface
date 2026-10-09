@@ -48,7 +48,7 @@ describe(`Popover (${Platform.OS})`, () => {
   it('gives its content no scroll insets, whatever the screen under it pads by', async () => {
     // A screen under a floating header and over the tab bar's floating action.
     await render(
-      <ScrollInsetsContext.Provider value={{top: 40, bottom: 72, automatic: true}}>
+      <ScrollInsetsContext.Provider value={{top: 40, bottom: 72, left: 0, right: 0, automatic: true}}>
         <Insets testID="screen"/>
         <Popover at={at} title="Spelling" testID="lint">
           <Insets testID="card"/>

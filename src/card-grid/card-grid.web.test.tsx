@@ -58,13 +58,16 @@ describe('CardGrid (web)', () => {
 
   it('pads its content by the screen\'s bar and its own insets, inside the scroller', () => {
     render(
-      <ScrollInsetsContext.Provider value={{top: 80, bottom: 0, automatic: false}}>
-        <CardGrid data={items} renderItem={item => <p>{item}</p>} contentInset={{top: 8, bottom: 20}} style={{marginTop: 4}} testID="grid"/>
+      <ScrollInsetsContext.Provider value={{top: 80, bottom: 0, left: 0, right: 0, automatic: false}}>
+        <CardGrid data={items} renderItem={item => <p>{item}</p>} contentInset={{top: 8, bottom: 20, left: 16, right: 4}} style={{marginTop: 4}} testID="grid"/>
       </ScrollInsetsContext.Provider>,
     );
     const grid = screen.getByTestId('grid');
     expect(grid.style.paddingTop).toBe('88px');
     expect(grid.style.paddingBottom).toBe('20px');
+    // The sides are the grid's own, inside the scroller too.
+    expect(grid.style.paddingLeft).toBe('16px');
+    expect(grid.style.paddingRight).toBe('4px');
     // A card the keyboard focus scrolls into view stops clear of the bar.
     expect(grid.style.scrollPaddingTop).toBe('88px');
     expect(grid.style.scrollPaddingBottom).toBe('20px');
@@ -80,6 +83,8 @@ describe('CardGrid (web)', () => {
     // A basis of auto: in a parent with no height of its own the grid grows to its cells.
     expect(root).toContain('flex: 1 1 auto;');
     expect(root).toContain('min-height: 0;');
+    // Padding in `style` stays inside the full width.
+    expect(root).toContain('box-sizing: border-box;');
     // A flex column, so an empty state that grows fills it under the header.
     expect(root).toContain('display: flex;');
     expect(root).toContain('flex-direction: column;');

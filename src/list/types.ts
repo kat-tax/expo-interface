@@ -74,8 +74,13 @@ export interface ListProps<T> {
    * @default 56
    */
   estimatedItemHeight?: number;
-  /** The space inside the list before the first row and after the last, in points. */
-  contentInset?: {top?: number; bottom?: number};
+  /**
+   * The space inside the list before the first row, after the last, and at
+   * each side of the rows, in points. On iOS the top and the bottom are rows
+   * of the SwiftUI `List`, and the sides inset the list as a whole, since
+   * `@expo/ui` has no content margins for a scroll view.
+   */
+  contentInset?: {top?: number; bottom?: number; left?: number; right?: number};
   /** Identifier used to locate the list in end-to-end tests. */
   testID?: string;
   style?: StyleProp<ViewStyle>;

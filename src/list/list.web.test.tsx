@@ -51,13 +51,16 @@ describe('List (web)', () => {
 
   it('pads its content by the screen\'s bar and its own insets, inside the scroller', () => {
     render(
-      <ScrollInsetsContext.Provider value={{top: 80, bottom: 0, automatic: false}}>
-        <List data={rows} renderItem={title => <ListItem>{title}</ListItem>} contentInset={{top: 8, bottom: 20}} style={{marginTop: 4}} testID="list"/>
+      <ScrollInsetsContext.Provider value={{top: 80, bottom: 0, left: 0, right: 0, automatic: false}}>
+        <List data={rows} renderItem={title => <ListItem>{title}</ListItem>} contentInset={{top: 8, bottom: 20, left: 16, right: 4}} style={{marginTop: 4}} testID="list"/>
       </ScrollInsetsContext.Provider>,
     );
     const list = screen.getByTestId('list');
     expect(list.style.paddingTop).toBe('88px');
     expect(list.style.paddingBottom).toBe('20px');
+    // The sides are the list's own, inside the scroller too.
+    expect(list.style.paddingLeft).toBe('16px');
+    expect(list.style.paddingRight).toBe('4px');
     // A row the keyboard focus scrolls into view stops clear of the bar.
     expect(list.style.scrollPaddingTop).toBe('88px');
     expect(list.style.scrollPaddingBottom).toBe('20px');
@@ -73,6 +76,8 @@ describe('List (web)', () => {
     // A basis of auto: in a parent with no height of its own the list grows to its rows.
     expect(root).toContain('flex: 1 1 auto;');
     expect(root).toContain('min-height: 0;');
+    // Padding in `style` stays inside the full width.
+    expect(root).toContain('box-sizing: border-box;');
     // A flex column, so an empty state that grows fills it between the header and the footer.
     expect(root).toContain('display: flex;');
     expect(root).toContain('flex-direction: column;');

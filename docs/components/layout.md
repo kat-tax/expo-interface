@@ -27,7 +27,9 @@ its content, a scroll view of the app's own is a
 `useScrollInsets()`, whose `top`
 is the bar's inset under such a screen and whose `bottom` is the room the tab
 bar's floating action takes on any screen under the tabs (Android, and iOS
-before 26), nothing elsewhere, with any insets passed to it added; on iOS
+before 26), nothing elsewhere, with any insets passed to it added, and whose
+`left` and `right` are only those passed to it, since a screen keeps nothing
+at the sides; on iOS
 its `automatic` says the platform insets the content itself, and `top` is
 then only what floats under the header), `fab` (a node placed at the bottom
 trailing corner, above the safe area and the tab bar, lifted above a `Toast`
@@ -453,8 +455,9 @@ shows in place of the rows when there are none, usually an `EmptyState`),
 `onEndReached` (called once the last row has been drawn, for a list that
 loads more), `estimatedItemHeight` (default 56: what the web counts a row
 it has not drawn yet as; the other platforms measure their rows),
-`contentInset` (`top`, `bottom`, the space inside the list before the first
-row and after the last), `style`, `testID`.
+`contentInset` (`top`, `bottom`, `left`, `right`: the space inside the list
+before the first row, after the last and at each side of the rows), `style`,
+`testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -489,6 +492,11 @@ Differences:
   `useScrollInsets().bottom`, with `contentInset` added. On iOS, where the
   `List` takes no content padding, a row of that height without a separator
   ends it.
+- `contentInset`'s `left` and `right` pad the rows' sides inside the
+  scroller: the content padding of the `LazyColumn` on Android, of the
+  `FlatList` on Windows and of the scroller on the web. On iOS they inset
+  the `List` as a whole, its separators and its scroll indicator with the
+  rows, since `@expo/ui` has no content margins for a scroll view.
 - On Windows a tap on a row while a field has the touch keyboard goes to the
   row and leaves the keyboard up (`keyboardShouldPersistTaps="handled"`); a
   tap past the rows closes it.
@@ -504,8 +512,9 @@ Differences:
   `style={{flexShrink: 0}}` does the same in a parent that has a height.
   Its padding by `useScrollInsets()` is inside the scroller, and so is its
   scroll padding, so a row the keyboard focus brings into view stops clear
-  of the bar. Its scrollbar spans the whole list, under the bar, since CSS
-  cannot inset a scrollbar.
+  of the bar. Its box is its border box (`box-sizing: border-box`), so
+  padding in `style` stays inside its full width. Its scrollbar spans the
+  whole list, under the bar, since CSS cannot inset a scrollbar.
 - On the web the list draws the rows inside the part of it the window
   shows, and a viewport more above and below. Two spacers keep the room of
   the other rows, at the height each row was measured at once drawn and at
@@ -537,7 +546,9 @@ fills the cell's width), `keyExtractor`, `minItemWidth` (default 150),
 anything under 1 is 1), `gap` (default 12, on both axes), `header`,
 `footer`, `empty`, `onEndReached`, `estimatedItemHeight` (default 180: what
 the web counts a row of cells it has not drawn yet as; the `FlatList`
-measures its rows), `contentInset`, `style`, `testID`.
+measures its rows), `contentInset` (`top`, `bottom`, `left`, `right`: the
+space inside the grid before the first row, after the last and at each side
+of the cells), `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -562,6 +573,10 @@ Differences:
   grid ends clear of the button: it pads past its last row by
   `useScrollInsets().bottom`, with `contentInset` added, and on iOS its
   scroll indicators with it.
+- `contentInset`'s `left` and `right` pad the cells' sides inside the
+  scroller, and the columns are counted from the width between them: on iOS,
+  Android and Windows the measured width less the two, and on the web the
+  content box the grid measures, which leaves the padding out.
 - On iOS, Android and Windows a tap on a card while a React Native field has
   the keyboard goes to the card and leaves the keyboard up
   (`keyboardShouldPersistTaps="handled"`); a tap between the cards closes
@@ -579,7 +594,9 @@ Differences:
   `style={{flexShrink: 0}}` does the same in a parent that has a height.
   Its padding by `useScrollInsets()` is inside the scroller, and so is its
   scroll padding, but its scrollbar spans the whole grid, under the bar,
-  since CSS cannot inset a scrollbar.
+  since CSS cannot inset a scrollbar. Its box is its border box
+  (`box-sizing: border-box`), so padding in `style` stays inside its full
+  width.
 - On the web the grid draws the rows of cells inside the part of it the
   window shows, and a viewport more above and below, with two spacers for
   the room of the other rows, as the `List` does. Once its width is

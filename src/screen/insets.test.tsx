@@ -21,7 +21,7 @@ describe(`useScrollInsets (${Platform.OS})`, () => {
           </TabBarContext.Provider>
         </SafeAreaProvider>
       );
-      expect(renderDomHook(() => useScrollInsets(), {wrapper: under}).result.current).toEqual({top: inset.topBar, bottom: 0, automatic: false});
+      expect(renderDomHook(() => useScrollInsets(), {wrapper: under}).result.current).toEqual({top: inset.topBar, bottom: 0, left: 0, right: 0, automatic: false});
       const beside = ({children}: PropsWithChildren) => (
         <SafeAreaProvider>
           <TabBarContext.Provider value={true}>
@@ -29,8 +29,9 @@ describe(`useScrollInsets (${Platform.OS})`, () => {
           </TabBarContext.Provider>
         </SafeAreaProvider>
       );
-      expect(renderDomHook(() => useScrollInsets(), {wrapper: beside}).result.current).toEqual({top: 0, bottom: 0, automatic: false});
-      expect(renderDomHook(() => useScrollInsets({top: 8, bottom: 4})).result.current).toEqual({top: 8, bottom: 4, automatic: false});
+      expect(renderDomHook(() => useScrollInsets(), {wrapper: beside}).result.current).toEqual({top: 0, bottom: 0, left: 0, right: 0, automatic: false});
+      // The caller's own on every side: a screen keeps nothing at the sides.
+      expect(renderDomHook(() => useScrollInsets({top: 8, bottom: 4, left: 2, right: 6})).result.current).toEqual({top: 8, bottom: 4, left: 2, right: 6, automatic: false});
     });
     return;
   }
@@ -43,13 +44,14 @@ describe(`useScrollInsets (${Platform.OS})`, () => {
           <Screen underBar>{children}</Screen>
         </FloatingHeaderContext.Provider>
       );
-      const {result} = await renderHook(() => useScrollInsets({top: 8, bottom: 20}), {wrapper: under});
+      const {result} = await renderHook(() => useScrollInsets({top: 8, bottom: 20, left: 12, right: 4}), {wrapper: under});
       // iOS insets scroll content by the header itself, following a native search bar; the kit adds only the caller's own.
+      // The sides are the caller's alone: a screen keeps nothing there.
       expect(result.current).toEqual(Platform.OS === 'ios'
-        ? {top: 8, bottom: 20, automatic: true}
-        : {top: 47 + inset.header + 8, bottom: 20, automatic: false});
+        ? {top: 8, bottom: 20, left: 12, right: 4, automatic: true}
+        : {top: 47 + inset.header + 8, bottom: 20, left: 12, right: 4, automatic: false});
       const beside = ({children}: PropsWithChildren) => <Screen>{children}</Screen>;
-      expect((await renderHook(() => useScrollInsets(), {wrapper: beside})).result.current).toEqual({top: 0, bottom: 0, automatic: false});
+      expect((await renderHook(() => useScrollInsets(), {wrapper: beside})).result.current).toEqual({top: 0, bottom: 0, left: 0, right: 0, automatic: false});
     } finally {
       await act(async () => setInsets({top: 0, left: 0, right: 0, bottom: 0}));
     }

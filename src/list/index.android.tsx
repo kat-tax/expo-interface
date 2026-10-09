@@ -39,7 +39,7 @@ function NativeList<T>({data, renderItem, keyExtractor, separators = true, heade
   const last = data.length - 1;
   return (
     <LazyColumn
-      contentPadding={{top: insets.top, bottom: insets.bottom}}
+      contentPadding={{top: insets.top, bottom: insets.bottom, start: insets.left, end: insets.right}}
       modifiers={modifiers}>
       {header}
       {data.map((item, index) => (

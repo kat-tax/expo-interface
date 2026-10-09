@@ -58,6 +58,15 @@ describe('CardGrid (web), windowed', () => {
     expect(screen.getByRole('list').style.gridTemplateColumns).toBe('');
   });
 
+  it('counts the columns from the content box alone, whatever its side insets', () => {
+    renderGrid({contentInset: {left: 100, right: 100}});
+    expect(screen.getByTestId('grid').style.paddingLeft).toBe('100px');
+    expect(screen.getByTestId('grid').style.paddingRight).toBe('100px');
+    // The observer reports the content box, which the padding is already out of: 636 holds four.
+    width(636);
+    expect(screen.getByRole('list').style.gridTemplateColumns).toBe('repeat(4, minmax(0, 1fr))');
+  });
+
   it('draws whole rows of cells near the view, and keeps the room of the rest at the estimate', () => {
     renderGrid();
     width(636);

@@ -24,7 +24,8 @@ function RowGap() {
  * at a time: windowed and measured as it draws, so the rows off screen are
  * not drawn and the rows it draws are the rows on screen whatever the cards'
  * height, with the column count worked out from the grid's measured width
- * (the window's until the first layout). A row is a flex row of equal cells
+ * (the window's until the first layout) less its side insets, which pad the
+ * content. A row is a flex row of equal cells
  * with the gap between them, and a last row short of cells keeps its cells
  * the width of the others. A tap on a card reaches it while a field has the
  * keyboard (`keyboardShouldPersistTaps="handled"`), and while the grid is
@@ -48,7 +49,8 @@ export function CardGrid<T>({
   const {width: windowWidth} = useWindowDimensions();
   const [measured, setMeasured] = useState<number | null>(null);
   const insets = useScrollInsets(contentInset);
-  const columns = columnsFor(measured ?? windowWidth, minItemWidth, maxColumns, gap);
+  // The columns fit the width between the side insets, which pad the content.
+  const columns = columnsFor((measured ?? windowWidth) - insets.left - insets.right, minItemWidth, maxColumns, gap);
   const rows = rowsOf(data, columns);
   const onLayout = (event: LayoutChangeEvent) => setMeasured(event.nativeEvent.layout.width);
   return (
@@ -75,7 +77,7 @@ export function CardGrid<T>({
         // A tap on a card goes to the card while a field has the keyboard; a tap between the cards closes it.
         keyboardShouldPersistTaps="handled"
         // While empty the content grows to the grid's height, so an `EmptyState` fills it under the header.
-        contentContainerStyle={[{paddingTop: insets.top, paddingBottom: insets.bottom}, data.length === 0 ? styles.grow : null]}
+        contentContainerStyle={[{paddingTop: insets.top, paddingBottom: insets.bottom, paddingLeft: insets.left, paddingRight: insets.right}, data.length === 0 ? styles.grow : null]}
         scrollIndicatorInsets={{top: insets.top, bottom: insets.bottom}}
         // iOS under a header the screen runs under: UIKit's own inset, which follows a native search bar.
         contentInsetAdjustmentBehavior={insets.automatic ? 'automatic' : undefined}

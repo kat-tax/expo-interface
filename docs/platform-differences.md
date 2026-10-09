@@ -50,6 +50,7 @@ The differences that change what a screen can do, in one place:
 | `TabView` `fill="none"` | No fill | No fill | No fill | The WinUI strip in the screen's background; no fill on the switcher's bar |
 | `TabView` add button's name without `addLabel` | "New tab" | "New tab" | "New tab" | WinUI's own, in the system's language, on the strip; "New tab" on the switcher |
 | `List` | SwiftUI `List` | `LazyColumn` | DOM list, windowed | `FlatList` |
+| `List` `contentInset` sides | The whole list inset, its separators and scroll indicator with the rows | Content padding | Padding inside the scroller | Padding inside the scroller |
 | `CardGrid` | `FlatList` | `FlatList` | CSS grid, windowed | `FlatList` |
 | `Card` star while not set | Always drawn | Always drawn | Under the pointer or the keyboard where a pointer hovers; always drawn on a touch screen | Under the pointer |
 | `Sheet` bar | SwiftUI content | Compose content | Drawn | Drawn |

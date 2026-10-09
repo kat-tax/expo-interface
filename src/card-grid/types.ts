@@ -69,8 +69,12 @@ export interface CardGridProps<T> {
    * @default 180
    */
   estimatedItemHeight?: number;
-  /** The space inside the grid before the first row and after the last, in points. */
-  contentInset?: {top?: number; bottom?: number};
+  /**
+   * The space inside the grid before the first row, after the last, and at
+   * each side of the cells, in points. The sides are padding inside the
+   * scroller, and the columns are counted from the width between them.
+   */
+  contentInset?: {top?: number; bottom?: number; left?: number; right?: number};
   /** Identifier used to locate the grid in end-to-end tests. */
   testID?: string;
   style?: StyleProp<ViewStyle>;

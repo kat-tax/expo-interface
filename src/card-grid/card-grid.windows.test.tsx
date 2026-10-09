@@ -68,4 +68,13 @@ describe('CardGrid (windows)', () => {
     expect(grid.props.keyboardShouldPersistTaps).toBe('handled');
     expect(StyleSheet.flatten(grid.props.contentContainerStyle)).toMatchObject({flexGrow: 1});
   });
+
+  it('pads the sides inside the scroller, and counts the columns from the width between them', async () => {
+    await render(<CardGrid data={items} renderItem={item => <Text>{item}</Text>} contentInset={{left: 300, right: 300}} testID="grid"/>);
+    await layout(1200);
+    const grid = screen.getByTestId('grid');
+    expect(StyleSheet.flatten(grid.props.contentContainerStyle)).toEqual({paddingTop: 0, paddingBottom: 0, paddingLeft: 300, paddingRight: 300});
+    // 600 between the insets: three columns of 150, where 1200 holds four.
+    expect(grid.props.data).toEqual([['A', 'B', 'C'], ['D', 'E']]);
+  });
 });

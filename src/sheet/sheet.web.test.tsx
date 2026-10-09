@@ -60,7 +60,7 @@ describe('Sheet (web)', () => {
 
   it('gives its content no scroll insets, whatever screen it opens from', () => {
     render(
-      <ScrollInsetsContext.Provider value={{top: 96, bottom: 24, automatic: true}}>
+      <ScrollInsetsContext.Provider value={{top: 96, bottom: 24, left: 0, right: 0, automatic: true}}>
         <Insets/>
         <Sheet isPresented onDismiss={() => {}} accessory={<Insets/>} footer={<Insets/>} maxHeight={300}>
           <Insets/>

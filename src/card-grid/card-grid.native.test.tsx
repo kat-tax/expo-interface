@@ -97,19 +97,19 @@ describe(`CardGrid (${Platform.OS})`, () => {
 
   it('pads its content and its scroll indicators by the screen\'s bar and its own insets', async () => {
     await render(
-      <ScrollInsetsContext.Provider value={{top: 100, bottom: 0, automatic: false}}>
+      <ScrollInsetsContext.Provider value={{top: 100, bottom: 0, left: 0, right: 0, automatic: false}}>
         <CardGrid data={items} renderItem={item => <Text>{item}</Text>} contentInset={{top: 8, bottom: 20}} gap={0} testID="grid"/>
       </ScrollInsetsContext.Provider>,
     );
     const grid = screen.getByTestId('grid');
-    expect(StyleSheet.flatten(grid.props.contentContainerStyle)).toEqual({paddingTop: 108, paddingBottom: 20});
+    expect(StyleSheet.flatten(grid.props.contentContainerStyle)).toEqual({paddingTop: 108, paddingBottom: 20, paddingLeft: 0, paddingRight: 0});
     expect(grid.props.scrollIndicatorInsets).toEqual({top: 108, bottom: 20});
     expect(grid.props.contentInsetAdjustmentBehavior).toBeUndefined();
   });
 
   it('takes UIKit\'s own inset where the platform insets the content under the header itself', async () => {
     await render(
-      <ScrollInsetsContext.Provider value={{top: 40, bottom: 0, automatic: true}}>
+      <ScrollInsetsContext.Provider value={{top: 40, bottom: 0, left: 0, right: 0, automatic: true}}>
         <CardGrid data={items} renderItem={item => <Text>{item}</Text>} testID="grid"/>
       </ScrollInsetsContext.Provider>,
     );
@@ -117,5 +117,16 @@ describe(`CardGrid (${Platform.OS})`, () => {
     expect(grid.props.contentInsetAdjustmentBehavior).toBe('automatic');
     // What UIKit does not know of, a row floating under the header, is the grid's own.
     expect(StyleSheet.flatten(grid.props.contentContainerStyle)).toMatchObject({paddingTop: 40});
+  });
+
+  it('pads the sides inside the scroller, and counts the columns from the width between them', async () => {
+    await render(<CardGrid data={items} renderItem={item => <Text>{item}</Text>} contentInset={{left: 300, right: 300}} testID="grid"/>);
+    await layout(1200);
+    const grid = screen.getByTestId('grid');
+    expect(StyleSheet.flatten(grid.props.contentContainerStyle)).toEqual({paddingTop: 0, paddingBottom: 0, paddingLeft: 300, paddingRight: 300});
+    // 600 between the insets: three columns of 150, where 1200 holds four.
+    expect(grid.props.data).toEqual([['A', 'B', 'C'], ['D', 'E']]);
+    // The indicators keep to the grid's edges.
+    expect(grid.props.scrollIndicatorInsets).toEqual({top: 0, bottom: 0});
   });
 });

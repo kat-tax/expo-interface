@@ -2,7 +2,7 @@ import type {ListProps} from './types';
 import {Fragment} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {List as SwiftUIList, Spacer} from '@expo/ui/swift-ui';
-import {frame, listRowSeparator, listStyle, onAppear} from '@expo/ui/swift-ui/modifiers';
+import {frame, listRowSeparator, listStyle, onAppear, padding} from '@expo/ui/swift-ui/modifiers';
 import {NativeHost, useNativeHost} from '../host';
 import {useScrollInsets} from '../screen/insets';
 import {keyOf, showsEmpty} from './shared';
@@ -12,7 +12,9 @@ import {keyOf, showsEmpty} from './shared';
  * list, which recycles its rows, draws its separators and scrolls under a
  * translucent bar. The rows are the kit's `ListItem`s, which the `List`
  * insets as rows; the header and the footer are native content before and
- * after them. Outside a host the list mounts one that fills the screen, and
+ * after them. A top or bottom `contentInset` is a clear row of that height,
+ * and a side inset pads the list as a whole, since `@expo/ui` has no content
+ * margins for a scroll view. Outside a host the list mounts one that fills the screen, and
  * while it shows its `empty` content it mounts none: that content sits in
  * the list's own view, so an `EmptyState` brings its own host and fills the
  * list, where hosts may not nest.
@@ -32,8 +34,10 @@ function NativeList<T>({data, renderItem, keyExtractor, separators = true, heade
   // Under a host of the screen's: native content, as the rows are.
   if (showsEmpty({data, empty})) return <>{empty}</>;
   const last = data.length - 1;
+  // The sides inset the whole list, separators and scroll indicator with the rows: `@expo/ui` has no content margins for a scroll view.
+  const sides = insets.left > 0 || insets.right > 0 ? [padding({leading: insets.left, trailing: insets.right})] : [];
   return (
-    <SwiftUIList modifiers={[listStyle('plain'), ...(separators ? [] : [listRowSeparator('hidden')])]}>
+    <SwiftUIList modifiers={[listStyle('plain'), ...(separators ? [] : [listRowSeparator('hidden')]), ...sides]}>
       {insets.top > 0 ? <Spacer modifiers={[frame({height: insets.top}), listRowSeparator('hidden')]}/> : null}
       {header}
       {data.map((item, index) => (
