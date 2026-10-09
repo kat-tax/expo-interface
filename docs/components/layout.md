@@ -530,7 +530,9 @@ Differences:
   view wrapped around it needs `flex: 1`. On iOS, Android and Windows that
   parent needs a height of its own: inside a scroll view the iOS and
   Android list gets no height, and the Windows list grows to its rows, so
-  it draws every one of them and is no longer windowed. On the
+  it draws every one of them and is no longer windowed. As the body of a
+  `Sheet` with `maxHeight` the iOS and Android list is the cap's height
+  instead, and scrolls inside it. On the
   web the list is its own scroller (`overflow-y: auto`, `flex: 1 1 auto`),
   so it scrolls under the fixed body that `ScrollViewStyleReset` sets, and
   in a parent with no height of its own (a scroll view of the app's own, a

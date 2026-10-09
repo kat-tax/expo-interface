@@ -5,6 +5,7 @@ import {EmptyState} from '../empty-state';
 import {NativeHostContext} from '../host';
 import {ListItem} from '../list-item';
 import {ScrollInsetsContext} from '../screen/insets';
+import {SheetBodyCapContext} from '../sheet/cap-context';
 import {colors} from '../theme';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {List} from '.';
@@ -160,5 +161,25 @@ describe(`List (${Platform.OS})`, () => {
     expect(hosts()).toHaveLength(0);
     expect(screen.getByText('Nothing yet')).toBeTruthy();
     expect(screen.getByTestId('list')).toBeTruthy();
+  });
+
+  it('fills its parent, and as the body of a capped sheet is the cap tall instead, its empty content in the same box', async () => {
+    const {rerender} = await render(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} testID="list"/>);
+    expect(StyleSheet.flatten(screen.getByTestId('list').props.style)).toEqual({flex: 1, alignSelf: 'stretch'});
+    // The body's scroll view gives the box no height to fill, so the list takes the cap and its host fills that.
+    await rerender(
+      <SheetBodyCapContext.Provider value={300}>
+        <List data={rows} renderItem={title => <ListItem>{title}</ListItem>} testID="list"/>
+      </SheetBodyCapContext.Provider>,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId('list').props.style)).toEqual({alignSelf: 'stretch', height: 300});
+    expect(hostFit(hosts()[0])).toEqual({});
+    await rerender(
+      <SheetBodyCapContext.Provider value={300}>
+        <List data={[]} renderItem={() => null} empty={<Text>Nothing yet</Text>} testID="list"/>
+      </SheetBodyCapContext.Provider>,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId('list').props.style)).toEqual({alignSelf: 'stretch', height: 300});
+    expect(screen.getByText('Nothing yet')).toBeTruthy();
   });
 });

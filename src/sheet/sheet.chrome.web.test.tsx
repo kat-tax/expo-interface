@@ -1,5 +1,13 @@
+import {useContext} from 'react';
 import {fireEvent, render, screen, within} from '@testing-library/react';
+import {SheetBodyCapContext} from './cap-context';
 import {Sheet} from '.';
+
+/** Prints the cap a native list in the body would take as its height; the web list, its own scroller, reads none. */
+function Cap() {
+  const cap = useContext(SheetBodyCapContext);
+  return <span>{`cap ${cap}`}</span>;
+}
 
 describe('Sheet chrome (web)', () => {
   it('draws the bar the kit draws: the title over the subtitle, back and close at the ends, the menu before close', () => {
@@ -101,5 +109,12 @@ describe('Sheet chrome (web)', () => {
       </Sheet>,
     );
     expect(screen.getByTestId('sheet-body').style.maxHeight).toBe('57dvh');
+  });
+
+  it('tells the body a cap given in points, and nothing for a fraction, which is a viewport length', () => {
+    render(<Sheet isPresented onDismiss={() => {}} maxHeight={300}><Cap/></Sheet>);
+    expect(screen.getByText('cap 300')).toBeInTheDocument();
+    render(<Sheet isPresented onDismiss={() => {}} maxHeight={{fraction: 0.5}}><Cap/></Sheet>);
+    expect(screen.getByText('cap undefined')).toBeInTheDocument();
   });
 });

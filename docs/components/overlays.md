@@ -352,6 +352,12 @@ Android (Material's limit for a sheet), less the sheet's padding. A
 `Pressable` in them takes presses, and a control in them mounts a host of
 its own. `@expo/ui` content of the app's own draws nothing in them without
 a host: wrap it in a `NativeHost`. Give a React Native body a `maxHeight`.
+Give a `List`, or a `FieldGroup` taller than the room, one too: a native
+body takes all the room the sheet offers and leaves the footer and the
+actions none. With `maxHeight` the body is hosted, and a `List` in it is
+the cap tall and scrolls inside it; on Android a drag on that list scrolls
+the list alone, where a drag on the rest of a capped body also moves the
+sheet.
 
 On web and Windows the sheet's content counts as hosted: controls inside it
 render bare, and a React Native box inside it (a `Composer`) mounts a

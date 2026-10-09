@@ -1,10 +1,11 @@
 import type {ListProps} from './types';
-import {Fragment} from 'react';
+import {Fragment, useContext} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {List as SwiftUIList, Spacer} from '@expo/ui/swift-ui';
 import {frame, listRowSeparator, listStyle, onAppear, padding} from '@expo/ui/swift-ui/modifiers';
 import {NativeHost, useNativeHost} from '../host';
 import {useScrollInsets} from '../screen/insets';
+import {SheetBodyCapContext} from '../sheet/cap-context';
 import {keyOf, showsEmpty} from './shared';
 
 /**
@@ -17,13 +18,16 @@ import {keyOf, showsEmpty} from './shared';
  * margins for a scroll view. Outside a host the list mounts one that fills the screen, and
  * while it shows its `empty` content it mounts none: that content sits in
  * the list's own view, so an `EmptyState` brings its own host and fills the
- * list, where hosts may not nest.
+ * list, where hosts may not nest. As the body of a `Sheet` with `maxHeight`
+ * the list is the cap tall instead: the body's scroll view gives a child no
+ * height to fill, so the list takes the cap and scrolls inside it.
  */
 export function List<T>(props: ListProps<T>) {
   const hosted = useNativeHost();
+  const cap = useContext(SheetBodyCapContext);
   if (hosted) return <NativeList {...props}/>;
   return (
-    <View style={[styles.fill, props.style]} testID={props.testID}>
+    <View style={[cap === undefined ? styles.fill : {alignSelf: 'stretch', height: cap}, props.style]} testID={props.testID}>
       {showsEmpty(props) ? props.empty : <NativeHost fit="fill"><NativeList {...props}/></NativeHost>}
     </View>
   );

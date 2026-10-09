@@ -26,7 +26,9 @@ import type {StyleProp, ViewStyle} from 'react-native';
  * it (a `Screen`'s content, a view with `flex: 1`). On iOS, Android and
  * Windows that parent needs a height of its own: inside a scroll view the
  * iOS and Android list gets no height, and the Windows list grows to its
- * rows, so it draws every one of them and is no longer windowed. On the web,
+ * rows, so it draws every one of them and is no longer windowed. As the body
+ * of a `Sheet` with `maxHeight` the iOS and Android list is the cap's height
+ * instead, and scrolls inside it. On the web,
  * in a parent with no height of its own, it grows to its rows and the parent
  * scrolls it; `style={{flexShrink: 0}}` does the same in a parent that has a
  * height.

@@ -3,6 +3,7 @@ import type {BottomSheetContentPadding} from '@expo/ui';
 import type {SheetMaxHeight} from './types';
 import {Platform, ScrollView, StyleSheet} from 'react-native';
 import {useSheetBodyCap} from './cap';
+import {SheetBodyCapContext} from './cap-context';
 import {SheetHosted} from './hosted';
 import {useSheetBodyWidth} from './width';
 
@@ -17,7 +18,9 @@ interface SheetBodyProps extends PropsWithChildren {
  * the sheet's native content, unless the sheet is capped. Capped, they
  * scroll inside a React Native box the width of the sheet and no taller
  * than the cap (points, or a fraction of the window's height), hosted in
- * the sheet on iOS and Android so it takes presses and its width.
+ * the sheet on iOS and Android so it takes presses and its width. The box
+ * tells its children the cap, which a `List` in it takes as its height,
+ * since the scroll view gives it none to fill.
  */
 export function SheetBody({maxHeight, contentPadding, testID, children}: SheetBodyProps) {
   const width = useSheetBodyWidth(contentPadding);
@@ -37,7 +40,9 @@ export function SheetBody({maxHeight, contentPadding, testID, children}: SheetBo
         // the keyboard, or only a pointer can scroll it.
         tabIndex={Platform.OS === 'web' ? 0 : undefined}
         testID={testID}>
-        {children}
+        {/* The web's fraction is a `dvh` length, which is no height for a
+            React Native view; the web list scrolls itself and reads nothing. */}
+        <SheetBodyCapContext.Provider value={typeof cap === 'number' ? cap : undefined}>{children}</SheetBodyCapContext.Provider>
       </ScrollView>
     </SheetHosted>
   );

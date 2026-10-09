@@ -1,10 +1,18 @@
+import {useContext} from 'react';
 import {Platform, Text} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {AccentProvider, ACCENT_SEED} from '../accent';
 import type {HostNode} from 'expo-vitest/native';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
+import {SheetBodyCapContext} from './cap-context';
 import {Sheet} from '.';
+
+/** Prints the cap a list at this point would take as its height. */
+function Cap() {
+  const cap = useContext(SheetBodyCapContext);
+  return <Text>{`cap ${cap}`}</Text>;
+}
 
 const isIOS = Platform.OS === 'ios';
 
@@ -176,6 +184,23 @@ describe(`Sheet (${Platform.OS})`, () => {
     } else {
       expect(screen.toJSON()).toBeNull();
     }
+  });
+
+  it('tells a capped body its cap in points, for a list to take as its height, and the rest nothing', async () => {
+    const {rerender} = await render(
+      <Sheet isPresented onDismiss={() => {}} accessory={<Cap/>} footer={<Cap/>} maxHeight={300}>
+        <Cap/>
+      </Sheet>,
+    );
+    // The body alone: the accessory and the footer stand outside the capped box.
+    expect(screen.getByText('cap 300')).toBeOnTheScreen();
+    expect(screen.getAllByText('cap undefined')).toHaveLength(2);
+    await rerender(
+      <Sheet isPresented onDismiss={() => {}}>
+        <Cap/>
+      </Sheet>,
+    );
+    expect(screen.getByText('cap undefined')).toBeOnTheScreen();
   });
 });
 
