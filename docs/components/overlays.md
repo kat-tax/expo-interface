@@ -123,9 +123,13 @@ a new `at` moves it: a menu moved from one handle to the next stays open,
 and no late close of the first reaches the second. On web that holds for a
 move made by a press outside the menu too, as a context menu raised by the
 next handle's right button is: the menu is closed while the press is held
-and shown at the new place once it is over. On iOS, Android and Windows a
-press outside the open menu is the platform's dismissal, reported as
-`dismiss`. On web, Escape closes the
+and shown at the new place once it is over. A web menu raised while a
+pointer button is down opens the same way, once the press is over, in the
+task after its release: the browser settles what a press light-dismisses as
+the button goes down and carries it out at the release, so a popover shown
+before that task, even from the release's own listeners, is dismissed with
+that same press. On iOS, Android and Windows a press outside the open menu
+is the platform's dismissal, reported as `dismiss`. On web, Escape closes the
 menu wherever the focus is, even in an editor that keeps the key for itself,
 and the key goes no further, so a web `Sheet` or a `Popover` card the menu
 is in stays up.

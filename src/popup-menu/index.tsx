@@ -12,10 +12,12 @@ import {filterItems, sizeOf} from './types';
  * against an anchor placed at `at` (a point, or a box the size of the
  * rectangle), so the browser flips the popup to keep it on screen, and
  * closes it on an outside click. Escape closes it wherever the focus is.
- * A new point made by a press outside the popup (the next handle's button
- * going down) closes it as the app's own close and shows it at the new
- * place once the press is over, since the release would otherwise dismiss
- * it.
+ * A menu raised while a pointer button is down, as a context menu is from
+ * the right button's press, opens in a task after the release, since the
+ * browser dismisses with that press whatever it shows before the release is
+ * over. A new point made by such a press outside the popup (the next
+ * handle's button going down) closes it as the app's own close and shows it
+ * at the new place the same way.
  */
 export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus = true, highlighted, id, onDismiss, testID}: PopupMenuProps) {
   const generated = menuIdent(useId());
@@ -54,15 +56,13 @@ export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus
       if (!pressed.current) return;
       // Moved by a press outside the popup: its release would dismiss it, so
       // it is closed here as the app's own close and shown at the new place
-      // once the press is over.
+      // in the task after the press.
       closing.current = 'app';
       element.hidePopover();
     }
     // The only place `closing` is reset before a show: a close still to come
     // belongs to an earlier menu, and is ignored once this one is up.
     const show = () => {
-      document.removeEventListener('pointerup', show);
-      document.removeEventListener('pointercancel', show);
       closing.current = null;
       element.showPopover();
     };
@@ -70,17 +70,26 @@ export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus
       show();
       return;
     }
-    // A menu raised from a press has to outlast it. The browser draws up what
-    // a press dismisses when the pointer goes *down*, and a popover shown
-    // after that is not on the list, so the release hides it again, which is
-    // the whole gesture for a context menu on the right button's press. Open
-    // it once the pointer that is down has come up, when there is no longer a
-    // dismissal with this popover's name on it.
-    document.addEventListener('pointerup', show);
-    document.addEventListener('pointercancel', show);
+    // A menu raised from a press has to outlast it, which is the whole gesture
+    // for a context menu on the right button's press. The browser settles what
+    // a press dismisses as the pointer goes down and carries it out at the
+    // release, after the release's own listeners have run: a popover shown
+    // while the button is held is hidden again, and so is one shown from the
+    // `pointerup` listener itself, which Chrome light-dismisses with that same
+    // press, before its click. So the menu is shown in a task of its own after
+    // the release, once the press and its dismissal are over.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const released = () => {
+      document.removeEventListener('pointerup', released);
+      document.removeEventListener('pointercancel', released);
+      timer = setTimeout(show, 0);
+    };
+    document.addEventListener('pointerup', released);
+    document.addEventListener('pointercancel', released);
     return () => {
-      document.removeEventListener('pointerup', show);
-      document.removeEventListener('pointercancel', show);
+      document.removeEventListener('pointerup', released);
+      document.removeEventListener('pointercancel', released);
+      clearTimeout(timer);
     };
   }, [open, x, y, size.width, size.height, pressed]);
 
