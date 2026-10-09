@@ -201,7 +201,8 @@ before an editor that keeps the key for itself, and the key goes no further:
 neither the focused editor nor an overlay the card is in, such as a web
 `Sheet`, acts on it too. One Escape closes one overlay: a card with a menu
 open in it, or another card up inside it, leaves the key to that one and
-takes the next. Of two cards up side by side, or a card and a `PopupMenu`,
+takes the next. A menu open beside the card takes it before the card,
+since the browser draws the menu over it; of two cards up side by side,
 the one that came up last takes it. A card with no `onDismiss` leaves
 Escape alone, unless it is lingering, which Escape ends.
 

@@ -213,6 +213,24 @@ describe('Popover (web)', () => {
       }
     });
 
+    it('leaves Escape to a Menu opened beside it over a card that came up first, which the top layer draws over the card', () => {
+      const onDismiss = vi.fn();
+      render(
+        <>
+          <Menu label="Sort" items={items}/>
+          <Popover at={{x: 10, y: 10}} title="Option" onDismiss={onDismiss} testID="pop"/>
+        </>,
+      );
+      // The menu, mounted before the card came up, opens over it.
+      const menu = screen.getByRole('menu', {hidden: true});
+      open.add(menu);
+      fireEvent.keyDown(document.body, {key: 'Escape'});
+      expect(open.has(menu)).toBe(false);
+      expect(onDismiss).not.toHaveBeenCalled();
+      fireEvent.keyDown(document.body, {key: 'Escape'});
+      expect(onDismiss).toHaveBeenCalledWith('escape');
+    });
+
     it('leaves Escape to the browser for a popover open in it that takes no Escape itself, as a ColorPicker\'s is', () => {
       const onDismiss = vi.fn();
       const heard = vi.fn();

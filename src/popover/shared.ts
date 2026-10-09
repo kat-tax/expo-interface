@@ -120,7 +120,9 @@ const takers: Taker[] = [];
  * one. A `popover` element that is no taker, the `ColorPicker`'s `popover`
  * presentation, is the browser's to close on Escape: an overlay with one
  * open in it leaves the key to the browser, and nothing here takes it. Of
- * two overlays up side by side, the one that came up last takes it.
+ * two overlays up side by side, an open menu takes it before a card, since
+ * the top layer draws its popover over the card whenever it came up; of
+ * two cards, the one that came up last.
  *
  * `node` is the overlay's element (on web a view's ref is its element),
  * which is in the DOM whenever `active` is set. `wants` says whether it
@@ -151,12 +153,16 @@ function onEscapeKey(event: KeyboardEvent) {
 
 /**
  * The overlay Escape is for: of those that want it with no other one that
- * does inside them, the last to come up; none when a popover the browser
- * closes is open in that one, above it.
+ * does inside them, one whose popover is open, which the top layer draws
+ * over the rest (a menu's taker is up from its mount, so the order the
+ * takers came up in does not say when a menu opened), else the last to
+ * come up; none when a popover the browser closes is open in that one,
+ * above it.
  */
 function chosen(): Taker | undefined {
   const wanting = takers.filter(taker => taker.wants());
-  const top = wanting.findLast(taker => !wanting.some(other => other !== taker && taker.node.contains(other.node)));
+  const innermost = wanting.filter(taker => !wanting.some(other => other !== taker && taker.node.contains(other.node)));
+  const top = innermost.findLast(taker => taker.node.matches(':popover-open')) ?? innermost.at(-1);
   return top && !holdsOpenMenu(top.node) ? top : undefined;
 }
 
