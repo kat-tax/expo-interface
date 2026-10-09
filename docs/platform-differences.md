@@ -9,6 +9,7 @@ The differences that change what a screen can do, in one place:
 | Swipe actions on `ListItem` | Swipe | Context menu | Context menu | Context menu |
 | `Tooltip` | An accessibility hint, nothing visible | Long press | Hover and focus | Hover and focus, not announced |
 | `Sheet` material | Yes | No | Yes | No |
+| Overlay `material` | `Sheet` only, SwiftUI's material | Ignored | Every overlay, the bar's glass | Ignored |
 | `Alert` action sheet | Yes | Actions stacked | Anchored to the bottom | A dialog |
 | Menu `shortcut` | Ignored | Ignored | Ignored | Drawn and bound |
 | Menu `swatch` | An image with `expo-file-system`, else a monochrome symbol; a symbol in its color in `PopupMenu`; none in a native header's `HeaderMenu` | Yes; none in a native header's `HeaderMenu` whose icon has a drawable | Yes | Yes |

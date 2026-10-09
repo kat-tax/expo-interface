@@ -121,7 +121,11 @@ Props: `color` (`background`, `element`, `selected`, `none`), `border`
 (`none`, `all`, `top`, `bottom`), `dashed`, `borderColor` (a palette token
 such as `opaqueSeparator`, which follows the scheme, or any color;
 `separator` by default), `radius` (a number or `pill`), `raised` (a soft
-shadow), `padding`, `onPress`, `onLongPress`, `disabled`, `label` (the
+shadow), `material` (web only: `none`, `thin`, `regular`, `thick`; the
+surface draws on the kit's material, its fill thinned over a blur of what
+passes under it, with the hairline where `border` says, or all round with
+the floating shadow when `raised`, and paints no fill, hairline or shadow
+of its own), `padding`, `onPress`, `onLongPress`, `disabled`, `label` (the
 accessible name of a pressable surface), `suppressNativeMenu` (web only:
 the browser's context menu does not open over the surface, for a canvas or
 an editor with menus of its own), `onLayout`, `ref` (the surface's view,
@@ -135,6 +139,9 @@ Differences:
   fill while pressed), reacts to hover, takes the focus ring, and presses on
   Enter and Space.
 - On web a pressable surface is a real `<button>`.
+- `material` draws on web alone, by the stylesheet the tab bar and
+  `ScreenHeader` use. iOS, Android and Windows paint the surface as usual
+  whatever it says.
 
 ## Material
 
@@ -219,7 +226,10 @@ the rule goes on the side facing the content); `density` (`regular` or
 host); `foldCommands` (puts the `commands` behind the overflow while the bar
 is in the compact size class); `floating`; `at`, `align` (`center` by
 default, `start` or `end`), `preferredEdge` (`top` by default) and `insets`,
-for a bar floating beside a rectangle; `style`, `testID`.
+for a bar floating beside a rectangle; `material` (web only: a `floating`
+bar, or one `at` a rectangle, draws on the kit's material, as the bars do;
+the app's `overlayMaterial` unless given; a bar along an edge keeps its
+fill); `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -299,8 +309,8 @@ A `floating` bar floats over the content rather than running along an edge:
 raised and rounded, the width of its controls, as the strip of tools over a
 selection or a block. On Android it is Material 3's
 `HorizontalFloatingToolbar`; on iOS and web the kit's raised capsule holding
-one native row; on Windows the same raised card around the `CommandBar`,
-its labels left to the overflow.
+one native row, on the web on `material`; on Windows the same raised card
+around the `CommandBar`, its labels left to the overflow.
 
 `at` floats the bar over its parent beside a rectangle: lined up with it by
 `align` (centred on it by default, from its left edge with `start`, or to

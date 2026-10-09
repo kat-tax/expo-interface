@@ -66,7 +66,9 @@ Props: `label` (the accessible name, and the text of an `extended` one),
 `icon`, `onPress`, `items` (a `MenuItem` list; with items the button opens a
 menu instead of pressing), `onOpenChange`, `size` (`small`, `regular`, `large`,
 `extended`; 40, 56 and 96 point squares, and 56 tall and as wide as its label),
-`shape` (`rounded`, `circle`), `disabled`, `testID`.
+`shape` (`rounded`, `circle`), `disabled`, `material` (web only: the `items`
+menu draws on the kit's material, as `Menu`'s does; the app's
+`overlayMaterial` unless given), `testID`.
 
 | Platform | Renders |
 | --- | --- |

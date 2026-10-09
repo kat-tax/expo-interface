@@ -12,7 +12,9 @@ differ. [All components](README.md) lists the other groups.
 
 A dropdown menu of actions opened from a button. Props: `label`, `icon`,
 `items`, `trigger` (`button`, or `link` for a text link in a bar),
-`onOpenChange`, `testID`, and the `Button` props `variant`, `size`, `shape`,
+`onOpenChange`, `material` (web only: the popup draws on the kit's material,
+as the bars do; the app's `overlayMaterial` unless given), `testID`, and the
+`Button` props `variant`, `size`, `shape`,
 `color`, `tone`, `iconSize`, `hideLabel`, `disabled` and `pressed` (the
 trigger is a toggle that is on: drawn filled in the accent, whatever the
 variant, and heard as `Button pressed` is on each platform, for a tool
@@ -68,7 +70,8 @@ content on iOS and Android), `onPress` (the content's own press), `label`
 the content is what a screen reader lands on; iOS and Android name the
 content itself), `trigger` (`longPress`, the default, or `tap`), `disabled`,
 `at` (a point relative to the content's top left, or `null`), `onDismiss`,
-`onOpenChange`, `testID`. Without a press of its own the Windows wrapper is
+`onOpenChange`, `material` (web only, as `Menu` takes it), `testID`. Without
+a press of its own the Windows wrapper is
 nothing to a screen reader or the Tab key: the content's controls are what
 they land on.
 
@@ -97,7 +100,7 @@ canvas, a web view, an editor. It wraps nothing. Props: `items`, `at` (a
 point or a rectangle, or `null` to close), `preferredEdge` (`auto`, `top`,
 `bottom`), `filter` (matches the label or `keywords`, for a menu typed
 into), `onDismiss(reason)`, `takesFocus`, `highlighted` and `id` (web, for
-a menu typed into), `testID`.
+a menu typed into), `material` (web only, as `Menu` takes it), `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -158,8 +161,9 @@ a block, a warning about a link, the editor of an option. Props: `at`
 (`{x, y, width, height}` or `null`), `title`, `message`, `actions` (`label`,
 `onPress`, `role`), `onDismiss(reason)`, `preferredEdge` (`auto`, `top`,
 `bottom`), `width` (280), `modal`, `label`, `insets` (`top`, `bottom`, `left`,
-`right`), `trigger` (`manual` or `hover`), `grace` (300 ms), `children`,
-`testID`.
+`right`), `trigger` (`manual` or `hover`), `grace` (300 ms), `material` (web
+only: the card draws on the kit's material, as the bars do; the app's
+`overlayMaterial` unless given), `children`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -236,7 +240,9 @@ reports the card gone.
 
 A short hint attached to a piece of content. Props: `text`, `children` (must
 be `@expo/ui` content on Android, and non-interactive everywhere, since the
-web trigger is a button), `testID`.
+web trigger is a button), `material` (web only: the hint draws on the kit's
+material with its text in the label color; the app's `overlayMaterial`
+unless given), `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -259,8 +265,9 @@ actions. Props: `title`, `message`, `visible`, `onDismiss`, `actions`
 new thing or a rename: `placeholder`, `value`, `onChangeText`,
 `secureTextEntry`, `keyboardType`, `autoCapitalize`, `autoCorrect`,
 default true, `autoFocus`, default true, `testID`), `sheet`, `children` (an optional trigger rendered in place),
-`testID`. It mounts its own host where there is none, so it can be rendered
-anywhere.
+`material` (web only: the dialog draws on the kit's material, as the bars
+do; the app's `overlayMaterial` unless given), `testID`. It mounts its own
+host where there is none, so it can be rendered anywhere.
 
 | Platform | Renders |
 | --- | --- |
@@ -298,7 +305,8 @@ props, with a title bar, a cap on its height and the rows a sheet ends in.
 
 Props: `@expo/ui`'s (`isPresented`, `onDismiss`, `snapPoints`,
 `showDragIndicator`, `contentPadding`, `containerColor` and the rest),
-`material` (`none`, `thin`, `regular`, `thick`), `title` and `subtitle`
+`material` (`none`, `thin`, `regular`, `thick`; the app's `overlayMaterial`
+unless given), `title` and `subtitle`
 (the bar along the top), `onBack` (a back button at the bar's leading
 edge), `onClose` (a close button at its trailing edge; the app dismisses the
 sheet from it, as from `onDismiss`), `menu` (the sheet's own actions behind
@@ -375,7 +383,9 @@ opens from.
 ## Toast
 
 A brief message over the screen. Props: `message`, `visible`, `action`
-(`label`, `onPress`), `onDismiss`, `duration` (4000 ms), `testID`.
+(`label`, `onPress`), `onDismiss`, `duration` (4000 ms), `material` (web
+only: the capsule draws on the kit's material, as the bars do; the app's
+`overlayMaterial` unless given), `testID`.
 
 A duration of zero or less keeps the toast up until its action is taken or it
 is dismissed, which is what Material calls an indefinite snackbar.

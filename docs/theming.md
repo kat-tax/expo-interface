@@ -24,6 +24,12 @@ seed per scheme, or ask for a contrast and let the kit find it:
 <AccentProvider seed={userAccent} minContrast={4.5}>
 ```
 
+Put the kit's overlays on the bar's glass, once:
+
+```tsx
+<AccentProvider seed="#8959EA" overlayMaterial="regular">
+```
+
 Color your own views with tokens. In a style, use `theme`, which the platform
 resolves and keeps current with no re-render:
 
@@ -105,6 +111,16 @@ storage alone.
 `currentAccent()` returns the accent the app last provided, both schemes, for
 code outside React. `onAccent(seed)` returns black or white for content drawn
 on top of it.
+
+`overlayMaterial` (`none`, `thin`, `regular`, `thick`; `none` by default) is
+the material the kit's overlays draw on unless one is told otherwise through
+its own `material`: on the web the `Sheet`, the menus (`Menu`, `ContextMenu`,
+`PopupMenu`, `Fab`, and the menus `HeaderMenu`, a `Card` and a `Toolbar`
+open), the `Popover` card, a floating `Toolbar`, the `Alert`, the `Toast` and
+the `Tooltip`, drawn as the bars are (see [Web](platforms/web.md)); on iOS
+the `Sheet`, with SwiftUI's material; nothing on Android and Windows, where
+the system's menus and sheets bring their own. An overlay's
+`material="none"` keeps it opaque under any default.
 
 ## Color scheme
 
