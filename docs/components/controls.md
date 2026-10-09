@@ -446,3 +446,8 @@ it is asked:
 
 On Android and web, a picker in a sheet, a dialog or a popover is titled with
 `label`, or "Colors" without one. A swatch picked from a menu is opaque.
+
+A drag across the drawn picker's spectrum or a slider stays with the picker
+in a sheet. On web the `Sheet`'s drawer leaves a drag that starts on them
+alone, and on Android the picker keeps the sheet around an `inline` picker
+from intercepting it, as the sheet the row opens has its gestures off.

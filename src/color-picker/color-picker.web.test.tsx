@@ -154,6 +154,17 @@ describe('ColorPicker (web)', () => {
     expect(onValueChange).toHaveBeenLastCalledWith('#000000FF');
   });
 
+  it('keeps a drag across the spectrum and the sliders from the sheet\'s drawer', () => {
+    render(<ColorPicker value="#FF6347" onValueChange={vi.fn()}/>);
+    const dialog = open();
+    // vaul leaves a drag that starts in an element marked `data-vaul-no-drag` alone.
+    expect(within(dialog).getByRole('slider', {name: 'Opacity'})).toHaveAttribute('data-vaul-no-drag', 'true');
+    fireEvent.click(within(dialog).getAllByRole('radio')[1]);
+    expect(within(dialog).getByRole('slider', {name: 'Spectrum'})).toHaveAttribute('data-vaul-no-drag', 'true');
+    fireEvent.click(within(dialog).getAllByRole('radio')[2]);
+    expect(within(dialog).getByRole('slider', {name: 'Red'})).toHaveAttribute('data-vaul-no-drag', 'true');
+  });
+
   it('drives the channel sliders, value fields and hex field', async () => {
     const onValueChange = vi.fn();
     render(<ColorPicker value="#FF6347" onValueChange={onValueChange}/>);

@@ -98,7 +98,9 @@ describe(`ColorPickerSheet (${Platform.OS})`, () => {
     await touch(spectrum, 'responderGrant', 10, 10);
     expect(onValueChange).not.toHaveBeenCalled();
     await layout(spectrum, 200, 100);
-    await touch(spectrum, 'responderGrant', 100, 0);
+    // The grant returns true, which keeps the native parents (Compose's sheet
+    // around an inline picker) from intercepting the drag.
+    expect(await touch(spectrum, 'responderGrant', 100, 0)).toBe(true);
     expect(onValueChange).toHaveBeenLastCalledWith('#FF0000FF');
     await touch(spectrum, 'responderMove', 0, 50);
     expect(onValueChange).toHaveBeenLastCalledWith('#FFFFFFFF');
@@ -117,7 +119,7 @@ describe(`ColorPickerSheet (${Platform.OS})`, () => {
     expect(onValueChange).not.toHaveBeenCalled();
     // Track 236: 4 inset + 28 thumb → 200 of travel; x=118 → 100/200.
     await layout(red, 236);
-    await touch(red, 'responderGrant', 118);
+    expect(await touch(red, 'responderGrant', 118)).toBe(true);
     expect(onValueChange).toHaveBeenLastCalledWith('#806347FF');
     await touch(red, 'responderMove', 500);
     expect(onValueChange).toHaveBeenLastCalledWith('#FF6347FF');

@@ -2,8 +2,12 @@ import type {Meta, StoryObj} from '@storybook/react-native';
 import type {ColorPickerProps} from './types';
 import {fn} from 'storybook/test';
 import {useState} from 'react';
-import {Column} from '@expo/ui';
+import {Column, Host} from '@expo/ui';
+import {useAccentSeed} from '../accent';
+import {Button} from '../button';
 import {fillWidth} from '../fill';
+import {hostAccentProps} from '../screen/host-accent';
+import {Sheet} from '../sheet';
 import {ColorPicker} from '.';
 
 /** Keeps the controlled picker interactive while still reporting to the action log. */
@@ -33,6 +37,27 @@ function Form({onValueChange}: Pick<ColorPickerProps, 'onValueChange'>) {
       <ColorPicker label="Background" value={state.background} onValueChange={update('background')}/>
       <ColorPicker label="Text" value={state.text} supportsOpacity={false} onValueChange={update('text')}/>
     </Column>
+  );
+}
+
+/**
+ * The picker drawn in place in a sheet of the app's own, which `inline` is
+ * for: the sheet's bar titles it, and a drag across the spectrum or a slider
+ * stays with the picker rather than moving the sheet. The sheet mounts its
+ * own `Host`, so the story hosts only the button that opens it.
+ */
+function InSheet(props: ColorPickerProps) {
+  const seed = useAccentSeed();
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Host matchContents {...hostAccentProps(seed)}>
+        <Button label="Cell color" onPress={() => setOpen(true)}/>
+      </Host>
+      <Sheet isPresented={open} onDismiss={() => setOpen(false)} title="Cell color" onClose={() => setOpen(false)}>
+        <Controlled {...props} presentation="inline"/>
+      </Sheet>
+    </>
   );
 }
 
@@ -104,4 +129,10 @@ export const NoLabel: Story = {
 
 export const SettingsForm: Story = {
   render: args => <Form onValueChange={args.onValueChange}/>,
+};
+
+export const InASheet: Story = {
+  parameters: {native: false},
+  args: {label: undefined, value: '#FF6347', swatches: ['#FF6347', '#007AFF', '#34C759', '#AF52DE']},
+  render: args => <InSheet {...args}/>,
 };
