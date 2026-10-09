@@ -4,7 +4,7 @@ import type {ColorPickerProps} from './types';
 
 import {useId, useState} from 'react';
 import {StyleSheet, type TextStyle} from 'react-native';
-import {MenuList, menuIdent} from '../menu/list';
+import {MenuList, menuIdent, useHydrated} from '../menu/list';
 import {Label} from '../typography';
 import {Sheet} from '../sheet';
 import {flatten} from '../theme';
@@ -20,7 +20,10 @@ import {parseColor, toCss, toHex, useColorValue} from './shared';
  * are buttons of their own (buttons cannot nest). `inline` draws the picker
  * in place, titled only by a `label`; `popover` opens it in a native popover
  * placed against the well by CSS anchor positioning; `menu` opens the
- * swatches in the kit's menu popover from the well.
+ * swatches in the kit's menu popover from the well. A well that opens a
+ * popover through its `popovertarget` takes it once the page has hydrated,
+ * as the `Menu`'s trigger does, so a press on a static page before then
+ * opens nothing.
  */
 export function ColorPicker({
   label,
@@ -38,6 +41,7 @@ export function ColorPicker({
   const [current, setCurrent] = useColorValue(value, onValueChange, supportsOpacity);
   const ident = menuIdent(useId());
   const anchor = `--${ident}`;
+  const hydrated = useHydrated();
   // The popover's element, held in state through its ref callback, so its close button can hide it.
   const [popover, setPopover] = useState<HTMLDivElement | null>(null);
   const none = value === NO_COLOR;
@@ -116,7 +120,7 @@ export function ColorPicker({
           aria-label={label ?? 'Color'}
           aria-haspopup="menu"
           disabled={disabled}
-          popoverTarget={ident}>
+          popoverTarget={hydrated ? ident : undefined}>
           {well}
         </button>
         <MenuList id={ident} items={swatchMenu(presets, value, allowsNone, supportsOpacity, onValueChange)} anchor={anchor}/>
@@ -137,7 +141,7 @@ export function ColorPicker({
   );
   // The well opens the picker: a popover's by its `popovertarget`, a sheet's by a press.
   const opener = popped
-    ? {popoverTarget: ident, 'aria-haspopup': 'dialog' as const}
+    ? {popoverTarget: hydrated ? ident : undefined, 'aria-haspopup': 'dialog' as const}
     : {onClick: () => setOpen(true), 'aria-haspopup': 'dialog' as const, 'aria-expanded': open};
   const anchored = popped ? {anchorName: anchor} : null;
 

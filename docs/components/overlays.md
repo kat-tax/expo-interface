@@ -46,6 +46,9 @@ Differences:
   the menu is mounted on Windows, as WinUI draws an accelerator. The other
   platforms ignore it.
 - `trigger: 'link'` is a text link on web and the text variant on Windows.
+- On web the trigger takes its popover target once the page has hydrated,
+  so on a static page a press before then does nothing, rather than opening
+  a list with no anchor and entries that do nothing yet.
 - On iOS and Android a menu outside a host mounts one of its own, sized to
   its trigger, so it can be placed in a React Native layout like any
   element. See [Native hosts](../hosts.md).

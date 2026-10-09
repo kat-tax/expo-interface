@@ -76,7 +76,9 @@ menu instead of pressing), `onOpenChange`, `size` (`small`, `regular`, `large`,
 | Windows | Drawn with the same geometry, since Fluent has no such control: filled with the accent, a Segoe glyph, WinUI's state fills, the focus ring, Enter and Space. With `items` a press opens a WinUI `MenuFlyout` above the button. |
 
 `onOpenChange` is reported on Android, web and Windows. SwiftUI's `Menu` has
-no presentation binding, so iOS never reports it.
+no presentation binding, so iOS never reports it. On web a button with
+`items` takes its popover target once the page has hydrated, as the `Menu`'s
+trigger does, so on a static page a press before then does nothing.
 
 While a `Toast` under the same `Screen` shows, the button moves up by the
 toast's height and back down as it goes, as Material's scaffold moves its
@@ -445,7 +447,10 @@ it is asked:
 | `menu` | SwiftUI's `Menu` of the swatches from a well | A Material `DropdownMenu` of the swatches from the well | The kit's menu popover from the well | A `MenuFlyout` of the swatches from a drawn well |
 
 On Android and web, a picker in a sheet, a dialog or a popover is titled with
-`label`, or "Colors" without one. A swatch picked from a menu is opaque.
+`label`, or "Colors" without one. A swatch picked from a menu is opaque. On
+web the well of a `popover` or `menu` picker takes its popover target once
+the page has hydrated, as the `Menu`'s trigger does, so on a static page a
+press before then does nothing.
 
 A drag across the drawn picker's spectrum or a slider stays with the picker
 in a sheet. On web the `Sheet`'s drawer leaves a drag that starts on them

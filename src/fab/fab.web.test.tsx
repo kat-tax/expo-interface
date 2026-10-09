@@ -1,5 +1,6 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
+import type {ReactElement} from 'react';
 import type {MenuItem} from '../menu/types';
 import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
@@ -78,5 +79,25 @@ describe('Fab (web)', () => {
     expect(onPress).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('menuitem', {name: 'Blank document', hidden: true}));
     expect(onBlank).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives the button its popover target once a static page has hydrated, and not before', async () => {
+    // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
+    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
+    const tree = <Fab label="New" icon={icons.add} items={items} testID="new"/>;
+    // What a static export writes: a button with no target, so a press before the page runs opens nothing.
+    const container = document.body.appendChild(document.createElement('div'));
+    container.innerHTML = renderToString(tree);
+    expect(screen.getByTestId('new')).not.toHaveAttribute('popovertarget');
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const {unmount} = render(tree, {container, hydrate: true});
+      expect(errors).not.toHaveBeenCalled();
+      expect(screen.getByTestId('new')).toHaveAttribute('popovertarget', container.querySelector('[popover]')!.id);
+      unmount();
+    } finally {
+      errors.mockRestore();
+      container.remove();
+    }
   });
 });

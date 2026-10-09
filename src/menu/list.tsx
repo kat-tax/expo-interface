@@ -33,6 +33,28 @@ function useAnchorPositioning(): boolean {
   return useSyncExternalStore(noSubscription, anchorPositioning, serverAnchorPositioning);
 }
 
+/** What the page answers once it runs. */
+function clientHydrated(): boolean {
+  return true;
+}
+
+/** What a static export's server answers: nothing runs on its page yet. */
+function serverHydrated(): boolean {
+  return false;
+}
+
+/**
+ * Whether the page is running: false in a static export's HTML and in the
+ * render that hydrates it, true from the render right after. A trigger
+ * that opens a `popover` through its `popovertarget` takes it only then, so
+ * a press before the bundle runs opens nothing, rather than a list the
+ * browser would open by itself, with no anchor and entries that do nothing
+ * yet.
+ */
+export function useHydrated(): boolean {
+  return useSyncExternalStore(noSubscription, clientHydrated, serverHydrated);
+}
+
 /** Turns a React `useId()` value into a valid CSS `<dashed-ident>` / HTML id. */
 export function menuIdent(id: string): string {
   return `ui-menu-${id.replace(/[^A-Za-z0-9_-]/g, '_')}`;

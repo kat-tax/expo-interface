@@ -248,6 +248,8 @@ describe('Menu (web)', () => {
     const popover = () => container.querySelector('[popover]') as HTMLElement;
     const wrapper = () => container.querySelector('.ui-menu') as HTMLElement;
     expect(popover()).not.toHaveClass('ui-menu__list--anchored');
+    // A press before the page runs opens nothing: the trigger has no target yet.
+    expect(screen.getByTestId('new')).not.toHaveAttribute('popovertarget');
     const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       const {unmount} = render(tree, {container, hydrate: true});
@@ -258,6 +260,24 @@ describe('Menu (web)', () => {
       expect(screen.getByTestId('new')).toHaveAttribute('popovertarget', popover().id);
       expect(popover().style.getPropertyValue('position-anchor')).toBe(wrapper().style.getPropertyValue('anchor-name'));
       expect(popover().style.getPropertyValue('position-anchor')).toMatch(/^--ui-menu-/);
+      unmount();
+    } finally {
+      errors.mockRestore();
+      container.remove();
+    }
+  });
+
+  it('gives a link trigger its popover target once a static page has hydrated, and not before', async () => {
+    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
+    const tree = <Menu label="New" items={[{label: 'Blank document'}]} trigger="link" testID="new"/>;
+    const container = document.body.appendChild(document.createElement('div'));
+    container.innerHTML = renderToString(tree);
+    expect(screen.getByTestId('new')).not.toHaveAttribute('popovertarget');
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const {unmount} = render(tree, {container, hydrate: true});
+      expect(errors).not.toHaveBeenCalled();
+      expect(screen.getByTestId('new')).toHaveAttribute('popovertarget', container.querySelector('[popover]')!.id);
       unmount();
     } finally {
       errors.mockRestore();
