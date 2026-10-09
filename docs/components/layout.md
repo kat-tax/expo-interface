@@ -318,6 +318,12 @@ A bottom bar that sticks to the keyboard. It rides up by a transform, never a
 resize, and reports the keyboard's height through `onKeyboard` so the content
 above can pad or scroll by that much.
 
+`onKeyboard` reports the keyboard's height alone. While the bar rides it
+covers its own height above the keyboard as well, which `useKeyboardInset`
+adds for a view the bar rides over, so an editor under the bar scrolls its
+caret clear of the bar too (see
+[the keyboard over a view](../services.md#the-keyboard-over-a-view)).
+
 | Platform | How |
 | --- | --- |
 | iOS, Android | `react-native-keyboard-controller`, an optional peer the kit loads only natively. `AccentProvider` mounts its provider when the library is installed. Without it the bar is a plain view. |
