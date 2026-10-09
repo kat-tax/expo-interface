@@ -180,8 +180,9 @@ kit's Android controls use.
 `--font` also writes `MaterialSymbolsOutlined.woff2`: the variable Material
 Symbols font cut down to the ligatures of the names found, the `fill` names,
 and the names the kit's own controls draw on the web. Those are the eight
-listed above, plus `add` and `grid_view` for a `TabView` strip and `search`
-for `HeaderSearch`. The font draws most solid icons from a glyph of their
+listed above (on the web `arrow_back` is also the back button of a stack
+header and of the `Tabs` bar), plus `add` and `grid_view` for a `TabView`
+strip and `search` for `HeaderSearch`. The font draws most solid icons from a glyph of their
 own, so the cut keeps each name's glyph at `FILL 0` and at `FILL 1`. It
 keeps the `FILL` axis and pins the others. A name the font does not have is
 reported and left out. The cut is done with HarfBuzz, so the CLI needs
@@ -194,7 +195,9 @@ Serve it from the app's bundle and register it beside the palette:
 <style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2')}}/>
 ```
 
-Registered that way, every icon draws from the cut first. The cut maps
+Registered that way, every icon draws from the cut first. The kit's own web
+chrome draws through `Icon` as well, the back button of a stack header and
+of the `Tabs` bar among the rest, so a page fetches only the cut. The cut maps
 every letter its names use, so a name it does not hold draws as its letters
 rather than falling back to the static instance. A name the app builds at
 run time therefore has to appear in a token in the sources, as Android's

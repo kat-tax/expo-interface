@@ -101,7 +101,7 @@ the content is in the title bar).
 
 | Platform | Renders |
 | --- | --- |
-| iOS, Android, Web | A 64-point row under the status bar (under the floating tab bar on web), a chevron or arrow back button, a single-line title. On web `material` thins the background over a blur of what the app lays under the bar, with a hairline along the bottom edge, and is solid where the blur cannot be had or is not wanted. |
+| iOS, Android, Web | A 64-point row under the status bar (under the floating tab bar on web), a back button drawn as the kit's `Icon` (a chevron on iOS, an arrow on Android and web), a single-line title. On web `material` thins the background over a blur of what the app lays under the bar, with a hairline along the bottom edge, and is solid where the blur cannot be had or is not wanted. |
 | Windows | A 48-point row like a WinUI title row, a Segoe back glyph, the caption buttons' room left at the ends, and `titleNode` and `leading` slots |
 
 ## NativeHost

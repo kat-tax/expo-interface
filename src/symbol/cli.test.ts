@@ -369,10 +369,8 @@ describe('expo-interface-symbols', () => {
       // JSDoc examples.
       'icons.ts': ['share', 'star'],
       'tabs/types.ts': ['home', 'settings'],
-      // `SymbolView`, which draws from the static instance `expo-symbols` ships, never the cut.
-      'screen/header.tsx': ['arrow_back'],
+      // The native field's `SymbolView`; the web field is the browser's own input, with no glyph of the kit's.
       'search-field/index.tsx': ['cancel', 'search'],
-      'tabs/index.web.tsx': ['arrow_back'],
       // Windows draws Segoe, and the native strip is not the one the web draws.
       'screen/header.windows.tsx': ['arrow_back'],
       'tab-view/draw.tsx': ['add', 'close', 'grid_view'],
@@ -398,13 +396,11 @@ describe('expo-interface-symbols', () => {
       'icons.ts': ['share', 'star'],
       'tabs/types.ts': ['home', 'settings'],
       // `SymbolView` and the kit's `Icon`, which draw the font `expo-symbols` ships, never a drawable.
-      'screen/header.tsx': ['arrow_back'],
       'search-field/index.tsx': ['cancel', 'search'],
       'tab-view/draw.tsx': ['add', 'close', 'grid_view'],
       // The open action of the drawn header search, which only the web and Windows draw.
       'header-search/shared.ts': ['search'],
       // The web's and Windows' own files.
-      'tabs/index.web.tsx': ['arrow_back'],
       'tab-view/index.web.tsx': ['add', 'close', 'grid_view'],
       'screen/header.windows.tsx': ['arrow_back'],
     };

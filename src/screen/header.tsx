@@ -2,11 +2,12 @@ import type {HeaderSearchSlot} from '../header-search/types';
 import type {SheetMaterial} from '../sheet/types';
 import {Platform, Pressable, StyleSheet, Text, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {SymbolView} from 'expo-symbols';
+import {BACK} from '../glyphs';
 import {InHeaderContext} from '../header/shared';
 import {useSearchSite} from '../header-search/site';
 import {materialProps} from '../material';
 import {hasMaterial} from '../sheet/shared';
+import {Icon} from '../symbol';
 import {bound, spacing, useColor} from '../theme';
 import {useTabBarInset} from '../tabs/context';
 
@@ -52,16 +53,14 @@ export function ScreenHeader({title, onBack, trailing, search, accessory, materi
     <View style={[styles.bar, !hasMaterial(material) && {backgroundColor: background}, {paddingTop}]} {...materialProps(material, 'background', 'bottom')}>
       <View style={styles.inner}>
         {onBack ? (
+          // The kit's own glyph: on web the stylesheet draws it from the font
+          // the app registers, where `SymbolView` would fetch the static instance.
           <Pressable
             onPress={onBack}
             role="button"
             accessibilityLabel="Go back"
             style={styles.back}>
-            <SymbolView
-              name={{web: 'arrow_back', ios: 'chevron.left', android: 'arrow_back'}}
-              size={24}
-              tintColor={label}
-            />
+            <Icon icon={BACK} size={24} tone="label"/>
           </Pressable>
         ) : null}
         {/* An open search takes the row, as Android's does: the title goes until it closes. */}

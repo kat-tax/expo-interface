@@ -30,7 +30,14 @@ describe('ScreenHeader (web)', () => {
 
     const onBack = vi.fn();
     mount(<ScreenHeader title="Settings" onBack={onBack}/>);
-    fireEvent.click(screen.getByLabelText('Go back'));
+    const back = screen.getByLabelText('Go back');
+    // The kit's own glyph, which the stylesheet draws from the font the app
+    // registers: `SymbolView` would fetch the static instance for it.
+    const glyph = back.querySelector<HTMLElement>('.ui-symbol')!;
+    expect(glyph).toHaveTextContent('arrow_back');
+    expect(glyph.style.fontSize).toBe('24px');
+    expect(back.childElementCount).toBe(1);
+    fireEvent.click(back);
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 

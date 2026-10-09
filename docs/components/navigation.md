@@ -93,7 +93,9 @@ is not drawn, and an image with no `uri` is drawn as it is), `webActions`,
 On web a screen under `Tabs` has one bar, not two: `ConstrainedStackHeader`
 hands its header to the bar and draws nothing itself. A pushed screen hands
 over all of it (the back button in the mark's place, the title where the
-app's name goes, `headerRight` where `webActions` go). A tab's own screen
+app's name goes, `headerRight` where `webActions` go); the back button is the
+kit's `Icon`, drawn from the font the app registers ([The web
+font](../icons.md#the-web-font)). A tab's own screen
 hands over `headerRight` alone and keeps its title, since the tab beside it in
 the bar already says it. The bar keeps the height of its tabs, and a header
 control folded into it drops to their size. `hidden` hides the tabs and the

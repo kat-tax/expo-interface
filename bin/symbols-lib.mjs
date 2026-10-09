@@ -101,7 +101,8 @@ export const KIT_FILLED = ['star'];
  * written into the font whether or not an app's sources name them: the
  * chrome glyphs of a `Sheet`'s bar, a `Composer`, a `FindBar` and a
  * `Toolbar`, a `Card`'s menu and star, a `TabView` strip's close, add and
- * switcher buttons, and `HeaderSearch`'s open action.
+ * switcher buttons, `HeaderSearch`'s open action, and the back button of a
+ * stack header and of the `Tabs` bar.
  */
 export const KIT_WEB_NAMES = ['add', 'arrow_back', 'arrow_upward', 'close', 'grid_view', 'keyboard_arrow_down', 'keyboard_arrow_up', 'more_horiz', 'search', 'star', 'stop'];
 
