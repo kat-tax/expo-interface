@@ -1,7 +1,8 @@
 import {render, renderHook, screen} from '@testing-library/react-native';
 import {RelativeTime, useRelativeTime} from '.';
 
-const HOUR = 60 * 60 * 1000;
+const MINUTE = 60 * 1000;
+const HOUR = 60 * MINUTE;
 const NOW = Date.UTC(2026, 9, 7, 12);
 
 describe('RelativeTime (windows)', () => {
@@ -34,5 +35,12 @@ describe('RelativeTime (windows)', () => {
   it('answers the words as a string, in a language of its own', async () => {
     const {result} = await renderHook(() => useRelativeTime(NOW - 2 * HOUR, {locale: 'de'}));
     expect(result.current).toBe('vor 2 Stunden');
+  });
+
+  it('takes a style, drawn and as a string', async () => {
+    await render(<RelativeTime date={NOW - 12 * MINUTE} style="short" testID="when"/>);
+    expect(screen.getByTestId('when').props.children).toBe('12 min. ago');
+    const {result} = await renderHook(() => useRelativeTime(NOW - 12 * MINUTE, {style: 'narrow'}));
+    expect(result.current).toBe('12m ago');
   });
 });

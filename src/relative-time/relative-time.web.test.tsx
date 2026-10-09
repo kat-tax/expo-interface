@@ -1,7 +1,8 @@
 import {act, cleanup, render, renderHook, screen} from '@testing-library/react';
 import {RelativeTime, useRelativeTime} from '.';
 
-const HOUR = 60 * 60 * 1000;
+const MINUTE = 60 * 1000;
+const HOUR = 60 * MINUTE;
 const NOW = Date.UTC(2026, 9, 7, 12);
 
 beforeEach(() => {
@@ -36,6 +37,17 @@ describe('RelativeTime (web)', () => {
     );
     expect(screen.getByTestId('page').textContent).toBe('vor 2 Stunden');
     expect(screen.getByTestId('own').textContent).toBe('il y a 2 heures');
+  });
+
+  it('takes a style: short or narrow words for a line with little room', () => {
+    render(
+      <>
+        <RelativeTime date={NOW - 12 * MINUTE} style="short" testID="short"/>
+        <RelativeTime date={NOW - 12 * MINUTE} style="narrow" testID="narrow"/>
+      </>,
+    );
+    expect(screen.getByTestId('short').textContent).toBe('12 min. ago');
+    expect(screen.getByTestId('narrow').textContent).toBe('12m ago');
   });
 
   it('follows the page when it changes its language', async () => {

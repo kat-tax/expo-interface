@@ -180,25 +180,38 @@ it renders with it.
 Props: `date` (a `Date` or milliseconds), `variant` (a `Typography` style,
 `footnote` by default), `color` (a token, `secondaryLabel` by default),
 `numeric` (`auto` says "now" and "yesterday" where the language has the
-words; `always` says "1 day ago"), `locale` (the language of the words, a
-BCP 47 tag such as `de` or `pt-BR`; by default the page's language on web
-and the locale Hermes reports elsewhere, as the table below says),
-`numberOfLines`, `testID`.
+words; `always` says "1 day ago"), `style` (how long the words are: `long`
+says "12 minutes ago", `short` abbreviates the unit, "12 min. ago", and
+`narrow` sets a letter or two against the count, "12m ago"; "now",
+"yesterday" and "tomorrow" read the same in each), `locale` (the language of
+the words, a BCP 47 tag such as `de` or `pt-BR`; by default the page's
+language on web and the locale Hermes reports elsewhere, as the table below
+says), `numberOfLines`, `testID`.
 
 ```tsx
 <RelativeTime date={document.editedAt}/>
 ```
 
-`useRelativeTime(date, {numeric, locale})` answers the same words as a
-string, for text that cannot hold a view: a `ListItem`'s `value`, a `Card`'s
-`subtitle`, a label. The component that calls it renders again as the words
-may change. A `renderItem` function cannot call a hook, so a list calls it
-in the row's own component:
+`useRelativeTime(date, {numeric, locale, style})` answers the same words as
+a string, for text that cannot hold a view: a `ListItem`'s `value`, a
+`Card`'s `subtitle`, a label. The component that calls it renders again as
+the words may change. A `renderItem` function cannot call a hook, so a list
+calls it in the row's own component:
 
 ```tsx
 function NoteRow({note}: {note: Note}) {
   const edited = useRelativeTime(note.editedAt);
   return <ListItem value={edited}>{note.title}</ListItem>;
+}
+```
+
+A `Card`'s subtitle is one line, and a narrow card ends "Edited 12 minutes
+ago" in an ellipsis, so it takes the `short` style:
+
+```tsx
+function DocumentCard({doc}: {doc: Doc}) {
+  const edited = useRelativeTime(doc.editedAt, {style: 'short'});
+  return <Card title={doc.name} subtitle={`Edited ${edited}`}/>;
 }
 ```
 
@@ -212,4 +225,5 @@ up to 45, hours up to 22, days up to 26, months up to 11, and years.
 
 A tag the engine cannot read (`en_US`) gets the engine's default language,
 and where the engine cannot make a formatter at all, as with a polyfill
-whose `Intl.PluralRules` is missing, the words are English.
+whose `Intl.PluralRules` is missing, the words are English, in the `style`
+asked for: "12 min. ago" for `short`, "12m ago" for `narrow`.

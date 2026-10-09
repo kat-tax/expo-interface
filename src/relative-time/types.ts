@@ -29,6 +29,18 @@ export interface RelativeTimeOptions {
    * formatter cannot be made at all, the words are English.
    */
   locale?: string;
+  /**
+   * How long the words are. `long` says "12 minutes ago" and "in 3 months";
+   * `short` abbreviates the unit, "12 min. ago" and "in 3 mo."; `narrow`
+   * sets a letter or two against the count, "12m ago" and "in 3mo", for a
+   * line with no room to spare, such as a `Card`'s subtitle. "now",
+   * "yesterday" and "tomorrow" read the same in every style. Where the
+   * engine has `Intl.RelativeTimeFormat`, the words are its own for the
+   * style and the language; where it does not (Hermes, see `locale`), they
+   * are these English ones.
+   * @default 'long'
+   */
+  style?: 'long' | 'short' | 'narrow';
 }
 
 /** A moment as the time since or until it (see `RelativeTime`). */
