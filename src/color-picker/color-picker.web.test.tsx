@@ -144,8 +144,11 @@ describe('ColorPicker (web)', () => {
     const dialog = open();
     fireEvent.click(within(dialog).getAllByRole('radio')[1]);
     const spectrum = within(dialog).getByRole('slider', {name: 'Spectrum'});
-    // Before layout the pick is ignored.
+    // Before layout the pick is ignored. The press is released: the responder
+    // system holds a press until its release, and a second press on the
+    // element holding it is a start event for that responder, not a new press.
     fireEvent.mouseDown(spectrum, {clientX: 10, clientY: 10});
+    fireEvent.mouseUp(spectrum);
     expect(onValueChange).not.toHaveBeenCalled();
     await layout(spectrum, 200, 100);
     fireEvent.mouseDown(spectrum, {clientX: 100, clientY: 0});
@@ -172,6 +175,7 @@ describe('ColorPicker (web)', () => {
     fireEvent.click(within(dialog).getAllByRole('radio')[2]);
     const red = within(dialog).getByRole('slider', {name: 'Red'});
     fireEvent.mouseDown(red, {clientX: 100});
+    fireEvent.mouseUp(red);
     expect(onValueChange).not.toHaveBeenCalled();
     await layout(red, 236);
     // Track 236: 4px inset + 28px thumb → 200px of travel; x=118 → 100/200.
