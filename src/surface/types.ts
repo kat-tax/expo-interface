@@ -1,5 +1,6 @@
 import type {PropsWithChildren, ReactNode, Ref} from 'react';
 import type {LayoutChangeEvent, PressableProps, StyleProp, View, ViewStyle} from 'react-native';
+import type {MaterialThickness} from '../material/types';
 import type {ColorTokens} from '../theme';
 
 /** Fill of a `Surface`, from the theme's background tokens. */
@@ -67,6 +68,17 @@ export interface SurfaceProps extends PropsWithChildren {
   radius?: number | 'pill';
   /** Lift the surface off the content behind it with a soft shadow. */
   raised?: boolean;
+  /**
+   * Web only: draws the surface on one of the kit's materials, by the rules
+   * the bars use (`material.css`): the fill thinned over a blur of what
+   * passes under it, in `background` for a surface of that color and the
+   * raised fill otherwise, with the hairline where `border` says, or all
+   * round with the floating shadow for a `raised` one. The surface then
+   * paints no fill, hairline or shadow of its own. iOS, Android and Windows
+   * ignore it and draw the surface as usual.
+   * @default 'none'
+   */
+  material?: MaterialThickness;
   /** Padding inside the surface, in points. */
   padding?: number;
   /** Makes the whole surface pressable (a card). */

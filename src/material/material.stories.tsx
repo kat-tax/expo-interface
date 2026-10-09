@@ -19,7 +19,7 @@ const meta = {
   argTypes: {
     kind: {control: 'select', options: ['thin', 'regular', 'thick', 'glass']},
     fill: {control: 'select', options: ['background', 'element']},
-    edge: {control: 'select', options: ['none', 'all', 'top', 'bottom']},
+    edge: {control: 'select', options: ['none', 'all', 'top', 'bottom', 'float']},
     radius: {control: 'number'},
   },
   render: args => (

@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import {useColor} from '../theme';
 import {edgeStyle} from './edge';
 
-export {materialProps} from './inert';
+export {materialAttributes, materialProps} from './inert';
 
 /**
  * Android: the children on the palette fill, opaque. Material 3 has no
@@ -19,4 +19,4 @@ export function Material({fill = 'background', edge = 'none', radius, style, onL
   );
 }
 
-export type {MaterialEdge, MaterialFill, MaterialKind, MaterialProps} from './types';
+export type {MaterialAttributes, MaterialEdge, MaterialFill, MaterialKind, MaterialProps, MaterialThickness} from './types';

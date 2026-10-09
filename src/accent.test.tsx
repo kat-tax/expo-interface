@@ -2,6 +2,7 @@ import {Platform} from 'react-native';
 import {act, renderHook} from '@testing-library/react-native';
 import {ACCENT_SEED, ACCENT_STORAGE_KEY, AccentProvider, currentAccent, onAccent, resolveAccent, useAccentSeed} from './accent';
 import {contrastRatio} from './legible';
+import {useOverlayMaterial} from './material/context';
 import {colors} from './palette';
 import {setColorScheme} from './scheme';
 
@@ -69,6 +70,27 @@ describe('AccentProvider', () => {
     });
     expect(root.style.getPropertyValue('--color-tint')).toBe('');
     expect(root.style.getPropertyValue('--color-on-tint')).toBe('');
+  });
+});
+
+describe(`AccentProvider overlayMaterial (${Platform.OS})`, () => {
+  it('is none for the overlays without a provider, and an overlay\'s own first', async () => {
+    const {result} = await renderHook(() => [useOverlayMaterial(), useOverlayMaterial('thin')]);
+    expect(result.current).toEqual(['none', 'thin']);
+  });
+
+  it('is what the overlays take unless told otherwise', async () => {
+    const {result} = await renderHook(() => [useOverlayMaterial(), useOverlayMaterial('thick'), useOverlayMaterial('none')], {
+      wrapper: ({children}) => <AccentProvider overlayMaterial="regular">{children}</AccentProvider>,
+    });
+    expect(result.current).toEqual(['regular', 'thick', 'none']);
+  });
+
+  it('is none by default', async () => {
+    const {result} = await renderHook(() => useOverlayMaterial(), {
+      wrapper: ({children}) => <AccentProvider>{children}</AccentProvider>,
+    });
+    expect(result.current).toBe('none');
   });
 });
 

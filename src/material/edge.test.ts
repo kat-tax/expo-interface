@@ -9,4 +9,8 @@ describe(`edgeStyle (${Platform.OS})`, () => {
     expect(edgeStyle('bottom', 'red')).toEqual({borderBottomWidth: width, borderColor: 'red'});
     expect(edgeStyle('none', 'red')).toBeNull();
   });
+
+  it('draws a floating overlay\'s hairline all round, its shadow being the web\'s', () => {
+    expect(edgeStyle('float', 'red')).toEqual({borderWidth: StyleSheet.hairlineWidth, borderColor: 'red'});
+  });
 });

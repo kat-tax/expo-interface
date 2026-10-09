@@ -1,15 +1,10 @@
 import type {ReactNode} from 'react';
 import type {BottomSheetProps} from '@expo/ui';
+import type {MaterialThickness} from '../material/types';
 import type {MenuItem} from '../menu/types';
 
-/**
- * How much of what is behind the sheet shows through it.
- *
- * Named for what it does rather than for any one platform's word: `thin` lets
- * a lot through, `thick` almost nothing. `none` is the opaque sheet, the
- * default and the right answer for a sheet holding a form.
- */
-export type SheetMaterial = 'none' | 'thin' | 'regular' | 'thick';
+/** How much of what is behind the sheet shows through it: the kit's `MaterialThickness`. */
+export type SheetMaterial = MaterialThickness;
 
 /**
  * A height in points, or a fraction of the window's height: `{fraction: 0.6}`
@@ -96,6 +91,10 @@ export interface SheetProps extends BottomSheetProps {
    * Native body a `maxHeight`. On web and Windows the body can be either.
    */
   children?: ReactNode;
+  /**
+   * The material the sheet draws on, where the platform has one (see
+   * above). The app's `overlayMaterial` (`AccentProvider`) unless given.
+   */
   material?: SheetMaterial;
   /**
    * The sheet's name, in a bar along its top: native text on iOS and
