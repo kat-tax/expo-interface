@@ -21,7 +21,8 @@ export interface SymbolFontOptions {
    * A family of the app's own to register the font under. The rule then
    * also names it on `:root` in `--ui-symbol-font` (`--ui-symbol-fill-font`
    * with `filled`), the variable the stylesheet draws with, so icons take
-   * it with nothing more from the app. By default `SYMBOL_FONT_FAMILY`, or
+   * it with nothing more from the app: every icon, or with `filled` the
+   * filled ones alone. By default `SYMBOL_FONT_FAMILY`, or
    * `SYMBOL_FILL_FONT_FAMILY` with `filled`, which the stylesheet already
    * names.
    */
@@ -40,12 +41,17 @@ export interface SymbolFontOptions {
  * cut does not hold draws as its letters. With `{filled: true}` only a
  * filled icon does, and outlined icons keep the static instance
  * `expo-symbols` ships. A family name in place of the options is the same
- * as `{family}`.
+ * as `{family}`: the rule names it in `--ui-symbol-font`, and every icon,
+ * outlined and filled, draws from that cut. A cut of filled icons alone is
+ * registered with `{filled: true}`, and with `family` as well to keep a
+ * name of its own.
  *
  * ```tsx
  * <style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2')}}/>
  * // or, for filled icons alone:
  * <style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2', {filled: true})}}/>
+ * // or, for filled icons alone under a name of the app's own:
+ * <style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2', {filled: true, family: 'App Symbols Filled'})}}/>
  * ```
  */
 export function getSymbolFontCSS(url: string, options: string | SymbolFontOptions = {}): string {

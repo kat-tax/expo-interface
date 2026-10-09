@@ -215,9 +215,14 @@ cut for the stylesheet. Its options:
 | `filled` | Registers the font as `Material Symbols Filled` (`SYMBOL_FILL_FONT_FAMILY`), which the stylesheet tries first for a filled token only. `false` by default, which registers it as `Material Symbols Outlined` (`SYMBOL_FONT_FAMILY`), the family every icon tries first. |
 | `family` | A family of the app's own to register the font under. The rule also names it on `:root` in `--ui-symbol-font`, or in `--ui-symbol-fill-font` with `filled`, so icons draw with it with nothing more from the app. |
 
-A family name in place of the options is the same as `{family}`.
+A family name in place of the options is the same as `{family}`: the rule
+names it in `--ui-symbol-font`, and every icon, outlined and filled, draws
+from that cut. A cut of filled icons alone is registered with
+`{filled: true}`, and with `family` as well to keep a name of its own.
 
 ```tsx
 // for filled icons alone
 <style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2', {filled: true})}}/>
+// for filled icons alone, under a name of the app's own
+<style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2', {filled: true, family: 'App Symbols Filled'})}}/>
 ```

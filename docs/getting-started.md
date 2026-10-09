@@ -249,8 +249,11 @@ font is not registered. See [Filled icons](icons.md#filled-icons).
 that name, because no token in the sources names it, as with a name built at
 run time. Name it in a token and run the CLI again. Registering the font
 with `{filled: true}` leaves outlined icons on the static instance, which
-holds every name, but a filled icon still draws from the font. See
-[The web font](icons.md#the-web-font).
+holds every name, but a filled icon still draws from the font. A cut of
+filled icons alone registered under a family name alone is the font every
+icon draws from, since the rule names the family in `--ui-symbol-font`:
+register it with `{filled: true}`, and `family` as well to keep its name.
+See [The web font](icons.md#the-web-font).
 
 **The web build flashes the wrong scheme on load.** `app/+html.tsx` is missing
 `getThemeCSS()` or `getThemeBootScript()`.
