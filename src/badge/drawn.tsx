@@ -6,11 +6,11 @@ import {usePulseOpacity} from './pulse';
 import {BADGE_FONT_SIZE, badgeLabel, badgeText} from './shared';
 
 /**
- * The badge drawn in React Native to a platform's geometry: on iOS
- * everywhere, and on Android outside a native host, where a Compose view has
- * nothing to draw in. A single digit sits in a circle and more digits in a
- * capsule. The accessible name is on the view rather than on the number, and
- * a pulse loops the view's opacity on the native driver.
+ * The badge drawn in React Native to a platform's geometry: on iOS and
+ * Android outside a native host, where neither toolkit has anything to draw
+ * in. A single digit sits in a circle and more digits in a capsule. The
+ * accessible name is on the view rather than on the number, and a pulse
+ * loops the view's opacity on the native driver.
  */
 export function DrawnBadge({metrics, ...props}: BadgeProps & {metrics: BadgeMetrics}) {
   const text = badgeText(props);
