@@ -15,7 +15,7 @@ import {FAB_ICON} from './shared';
  * the `Menu`'s trigger does, so a press on a static page before then opens
  * nothing. Where it floats is the screen's job (`Screen`'s `fab` slot).
  */
-export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rounded', disabled, onOpenChange, testID}: FabProps) {
+export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rounded', disabled, onOpenChange, material, testID}: FabProps) {
   const ident = menuIdent(useId());
   const anchor = `--${ident}`;
   const wrapper = useRef<HTMLSpanElement>(null);
@@ -34,7 +34,7 @@ export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rou
         <Icon icon={icon} size={FAB_ICON[size]} tintColor="currentColor"/>
         {extended ? <span className="ui-fab__label">{label}</span> : null}
       </button>
-      {items ? <MenuList id={ident} items={items} anchor={anchor} anchorRef={wrapper} onOpenChange={onOpenChange}/> : null}
+      {items ? <MenuList id={ident} items={items} anchor={anchor} anchorRef={wrapper} onOpenChange={onOpenChange} material={material}/> : null}
     </span>
   );
 }

@@ -4,6 +4,7 @@ import type {ReactElement} from 'react';
 import type {MenuItem} from '../menu/types';
 import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
+import {AccentProvider} from '../accent';
 import {Fab} from '.';
 
 const items: MenuItem[] = [
@@ -61,6 +62,22 @@ describe('Fab (web)', () => {
     expect(button).toBeDisabled();
     fireEvent.click(button);
     expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('draws its menu on a material of its own, or the app\'s, and as itself otherwise', () => {
+    const menu = () => screen.getByRole('menu', {hidden: true});
+    const {rerender} = render(<Fab label="New" icon={icons.add} items={items} material="regular"/>);
+    expect(menu()).toHaveAttribute('data-material', 'regular');
+    expect(menu()).toHaveAttribute('data-material-fill', 'element');
+    expect(menu()).toHaveAttribute('data-material-edge', 'float');
+    rerender(
+      <AccentProvider overlayMaterial="thick">
+        <Fab label="New" icon={icons.add} items={items}/>
+      </AccentProvider>,
+    );
+    expect(menu()).toHaveAttribute('data-material', 'thick');
+    rerender(<Fab label="New" icon={icons.add} items={items}/>);
+    expect(menu()).not.toHaveAttribute('data-material');
   });
 
   it('opens the kit popup menu instead of pressing when given items', () => {

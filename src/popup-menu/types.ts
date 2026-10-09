@@ -1,3 +1,4 @@
+import type {MaterialThickness} from '../material/types';
 import type {MenuItem, MenuPoint} from '../menu/types';
 import {optionId} from '../menu/option-id';
 
@@ -85,6 +86,11 @@ export interface PopupMenuProps {
    * can clear `at`; a `select` comes after the entry's `onPress`.
    */
   onDismiss?: (reason: PopupMenuDismissReason) => void;
+  /**
+   * Web only: the material the menu draws on, as `Menu` takes it. The app's
+   * `overlayMaterial` (`AccentProvider`) unless given.
+   */
+  material?: MaterialThickness;
   /** Identifier used to locate the menu in end-to-end tests. */
   testID?: string;
 }

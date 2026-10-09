@@ -27,7 +27,7 @@ export const LONG_PRESS_MS = 500;
  * long-press away — on a touch screen the tap is now the gesture, and
  * leaving the long-press would open the menu twice for one intent.
  */
-export function ContextMenu({items, children, onPress, disabled, at, onDismiss, onOpenChange, trigger = 'longPress', testID}: ContextMenuProps) {
+export function ContextMenu({items, children, onPress, disabled, at, onDismiss, onOpenChange, trigger = 'longPress', material, testID}: ContextMenuProps) {
   const ident = menuIdent(useId());
   const popover = useRef<HTMLDivElement>(null);
   const wrapper = useRef<HTMLDivElement>(null);
@@ -92,6 +92,7 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
         items={items}
         position={position}
         popoverRef={popover}
+        material={material}
         onOpenChange={isOpen => {
           onOpenChange?.(isOpen);
           if (!isOpen) onDismiss?.();

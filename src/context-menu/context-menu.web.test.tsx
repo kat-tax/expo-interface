@@ -2,6 +2,7 @@
 import '@testing-library/jest-dom/vitest';
 import type {MenuItem} from '../menu/types';
 import {act, fireEvent, render, screen} from '@testing-library/react';
+import {AccentProvider} from '../accent';
 import {ContextMenu} from '.';
 
 const items: MenuItem[] = [
@@ -62,6 +63,32 @@ describe('ContextMenu (web)', () => {
     expect(screen.getAllByRole('menuitem', {hidden: true}).map(e => e.textContent)).toEqual(['Share', 'Delete']);
     expect(screen.getByRole('menuitem', {name: 'Delete', hidden: true})).toHaveClass('ui-menu__item--destructive');
     expect(screen.getByRole('separator', {hidden: true})).toBeInTheDocument();
+  });
+
+  it('draws the menu on a material of its own, or the app\'s, and as itself otherwise', () => {
+    const {rerender} = render(
+      <ContextMenu items={items} material="thick">
+        <span>Item</span>
+      </ContextMenu>,
+    );
+    const menu = () => screen.getByRole('menu', {hidden: true});
+    expect(menu()).toHaveAttribute('data-material', 'thick');
+    expect(menu()).toHaveAttribute('data-material-fill', 'element');
+    expect(menu()).toHaveAttribute('data-material-edge', 'float');
+    rerender(
+      <AccentProvider overlayMaterial="regular">
+        <ContextMenu items={items}>
+          <span>Item</span>
+        </ContextMenu>
+      </AccentProvider>,
+    );
+    expect(menu()).toHaveAttribute('data-material', 'regular');
+    rerender(
+      <ContextMenu items={items}>
+        <span>Item</span>
+      </ContextMenu>,
+    );
+    expect(menu()).not.toHaveAttribute('data-material');
   });
 
   it('opens the menu at the pointer on right-click', () => {

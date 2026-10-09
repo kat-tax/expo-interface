@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import type {ReactElement} from 'react';
 import type {MenuItem} from '../menu/types';
 import {render, screen} from '@testing-library/react';
+import {AccentProvider} from '../accent';
 import {PopupMenu} from '.';
 
 const items: MenuItem[] = [
@@ -55,6 +56,22 @@ describe('PopupMenu (web)', () => {
     expect(anchor.style.left).toBe('0px');
     expect(showPopover).not.toHaveBeenCalled();
     expect(screen.getAllByRole('menuitem', {hidden: true})).toHaveLength(3);
+  });
+
+  it('draws the menu on a material of its own, or the app\'s, and as itself otherwise', () => {
+    const menu = () => screen.getByRole('menu', {hidden: true});
+    const {rerender} = render(<PopupMenu items={items} at={{x: 120, y: 48}} material="thin"/>);
+    expect(menu()).toHaveAttribute('data-material', 'thin');
+    expect(menu()).toHaveAttribute('data-material-fill', 'element');
+    expect(menu()).toHaveAttribute('data-material-edge', 'float');
+    rerender(
+      <AccentProvider overlayMaterial="regular">
+        <PopupMenu items={items} at={{x: 120, y: 48}}/>
+      </AccentProvider>,
+    );
+    expect(menu()).toHaveAttribute('data-material', 'regular');
+    rerender(<PopupMenu items={items} at={{x: 120, y: 48}}/>);
+    expect(menu()).not.toHaveAttribute('data-material');
   });
 
   it('hydrates a static page\'s menu without a difference, and anchors the popup to its point', async () => {

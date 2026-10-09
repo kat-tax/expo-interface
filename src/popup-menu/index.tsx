@@ -19,7 +19,7 @@ import {filterItems, sizeOf} from './types';
  * handle's button going down) closes it as the app's own close and shows it
  * at the new place the same way.
  */
-export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus = true, highlighted, id, onDismiss, testID}: PopupMenuProps) {
+export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus = true, highlighted, id, onDismiss, material, testID}: PopupMenuProps) {
   const generated = menuIdent(useId());
   const ident = id ?? generated;
   const anchor = `--${generated}`;
@@ -131,6 +131,7 @@ export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus
         anchorRef={point}
         popoverRef={popover}
         takesEscape={false}
+        material={material}
         onPick={() => {
           closing.current = 'select';
         }}

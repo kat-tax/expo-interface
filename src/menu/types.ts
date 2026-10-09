@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import type {IconToken} from '../icons';
 import type {ButtonProps} from '../button/types';
+import type {MaterialThickness} from '../material/types';
 
 /** One entry of a `Menu` / `ContextMenu` / `Fab` menu. */
 export interface MenuItem {
@@ -94,6 +95,13 @@ export interface MenuProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape
    * SwiftUI's `Menu` has no presentation binding, so iOS never reports it.
    */
   onOpenChange?: (open: boolean) => void;
+  /**
+   * Web only: the material the menu draws on, by the rules the bars use
+   * (the raised fill thinned over a blur, with a hairline and a shadow all
+   * round). The app's `overlayMaterial` (`AccentProvider`) unless given.
+   * The native menus bring their own.
+   */
+  material?: MaterialThickness;
   /** Identifier used to locate the trigger in end-to-end tests. */
   testID?: string;
 }
@@ -183,6 +191,11 @@ export interface ContextMenuProps {
    * never reports it.
    */
   onOpenChange?: (open: boolean) => void;
+  /**
+   * Web only: the material the menu draws on, as `Menu` takes it. The app's
+   * `overlayMaterial` (`AccentProvider`) unless given.
+   */
+  material?: MaterialThickness;
   /** Identifier used to locate the trigger in end-to-end tests. */
   testID?: string;
 }

@@ -2,8 +2,11 @@
 import '@testing-library/jest-dom/vitest';
 import type {ReactElement} from 'react';
 import type {MenuItem} from './types';
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
 import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
+import {AccentProvider} from '../accent';
 import {Sheet} from '../sheet';
 import {MenuList} from './list';
 import {Menu} from '.';
@@ -346,6 +349,56 @@ describe('Menu (web)', () => {
     } finally {
       supports.mockRestore();
     }
+  });
+});
+
+describe('Menu on a material (web)', () => {
+  const menu = () => screen.getByRole('menu', {hidden: true});
+
+  it('draws the popup on the bar\'s glass, with the hairline and the shadow all round', () => {
+    render(<Menu label="Export" items={items} material="regular"/>);
+    expect(menu()).toHaveAttribute('data-material', 'regular');
+    expect(menu()).toHaveAttribute('data-material-fill', 'element');
+    expect(menu()).toHaveAttribute('data-material-edge', 'float');
+  });
+
+  it('draws the popup as itself without one, which is the default', () => {
+    const {rerender} = render(<Menu label="Export" items={items}/>);
+    expect(menu()).not.toHaveAttribute('data-material');
+    rerender(<Menu label="Export" items={items} material="none"/>);
+    expect(menu()).not.toHaveAttribute('data-material');
+  });
+
+  it('takes the app\'s overlay material unless told otherwise', () => {
+    const {rerender} = render(
+      <AccentProvider overlayMaterial="thin">
+        <Menu label="Export" items={items}/>
+      </AccentProvider>,
+    );
+    expect(menu()).toHaveAttribute('data-material', 'thin');
+    rerender(
+      <AccentProvider overlayMaterial="thin">
+        <Menu label="Export" items={items} material="thick"/>
+      </AccentProvider>,
+    );
+    expect(menu()).toHaveAttribute('data-material', 'thick');
+    rerender(
+      <AccentProvider overlayMaterial="thin">
+        <Menu label="Export" items={items} material="none"/>
+      </AccentProvider>,
+    );
+    expect(menu()).not.toHaveAttribute('data-material');
+  });
+
+  it('puts the list\'s own border, fill and shadow out of the material\'s way', () => {
+    render(<MenuList id="ui-menu-glass" items={items} material="regular"/>);
+    expect(menu()).toHaveAttribute('data-material', 'regular');
+    // The stylesheet draws those from the attributes; the list's rule yields to it.
+    const css = readFileSync(path.join(__dirname, 'menu.css'), 'utf8');
+    const rule = css.slice(css.indexOf('.ui-menu__list:where([data-material])'));
+    expect(rule).toMatch(/^[^}]*border: none;/);
+    expect(rule).toMatch(/^[^}]*background: transparent;/);
+    expect(rule).toMatch(/^[^}]*box-shadow: none;/);
   });
 });
 

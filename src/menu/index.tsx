@@ -18,7 +18,7 @@ import {MenuList, menuIdent, useHydrated} from './list';
  * filled. The wrapper carries the `anchor-name` that CSS anchor positioning
  * places the popup against.
  */
-export function Menu({label, icon, items, trigger = 'button', onOpenChange, testID, ...button}: MenuProps) {
+export function Menu({label, icon, items, trigger = 'button', onOpenChange, material, testID, ...button}: MenuProps) {
   const ident = menuIdent(useId());
   const anchor = `--${ident}`;
   const wrapper = useRef<HTMLSpanElement>(null);
@@ -46,7 +46,7 @@ export function Menu({label, icon, items, trigger = 'button', onOpenChange, test
           testID={testID}
         />
       )}
-      <MenuList id={ident} items={items} anchor={anchor} anchorRef={wrapper} onOpenChange={onOpenChange}/>
+      <MenuList id={ident} items={items} anchor={anchor} anchorRef={wrapper} onOpenChange={onOpenChange} material={material}/>
     </span>
   );
 }
