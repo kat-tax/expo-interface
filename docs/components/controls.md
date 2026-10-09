@@ -236,8 +236,11 @@ was held: Escape to close an assistant; on web and Windows the Enter that
 sends stays the composer's), `autoCapitalize`, `autoCorrect` and `keyboardType` (the
 field's, as on a `TextField`), `menu` (`label`, `icon`, `items`: the
 platform's menu behind an icon button at the capsule's leading edge, for
-what the message goes to), `disabled`, `autoFocus`, `maxLength`, `style`,
-`testID`.
+what the message goes to), `disabled` (writing, sending and the menu; the
+stop button stays live while `busy`, so a disabled composer can still stop
+what it runs), `autoFocus`, `maxLength`, `style`, `testID`, and a `ref`
+with the field's `focus` and `blur`, to put a phone's keyboard away as a
+message sends or give the field the focus back.
 
 Drawn in React Native on every platform: a `Surface` capsule holding a
 `bare` `TextField` and the kit's circle `Button` in a host of its own, so

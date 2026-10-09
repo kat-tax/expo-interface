@@ -1,4 +1,6 @@
-import {AccessibilityInfo, Platform, StyleSheet} from 'react-native';
+import type {TextFieldCommands} from '../text-field/types';
+import {createRef} from 'react';
+import {AccessibilityInfo, Platform, StyleSheet, TextInput} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, modifier} from 'expo-vitest/native';
 import {hosts} from '../__tests__/hosts';
@@ -179,5 +181,27 @@ describe(`Composer (${Platform.OS})`, () => {
     expect(enabled('c-send')).toBe(false);
     await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'ready'}});
     expect(onSend).not.toHaveBeenCalled();
+  });
+
+  it('leaves the stop button live while disabled, and hands the field\'s commands to the ref', async () => {
+    const ref = createRef<TextFieldCommands>();
+    const onStop = vi.fn();
+    // The ref reaches the input's own `focus` and `blur`; whether it is focused is the renderer's business.
+    const focus = vi.spyOn(TextInput.prototype, 'focus');
+    const blur = vi.spyOn(TextInput.prototype, 'blur');
+    try {
+      await render(<Composer ref={ref} value="ready" onSend={() => {}} onStop={onStop} busy disabled testID="c"/>);
+      expect(screen.getByTestId('c-field').props.editable).toBe(false);
+      expect(enabled('c-stop')).toBe(true);
+      await press('c-stop');
+      expect(onStop).toHaveBeenCalledTimes(1);
+      ref.current!.focus();
+      expect(focus).toHaveBeenCalledTimes(1);
+      ref.current!.blur();
+      expect(blur).toHaveBeenCalledTimes(1);
+    } finally {
+      focus.mockRestore();
+      blur.mockRestore();
+    }
   });
 });

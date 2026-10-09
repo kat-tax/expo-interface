@@ -1,3 +1,5 @@
+import type {TextFieldCommands} from '../text-field/types';
+import {createRef} from 'react';
 import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
 import {Composer} from '.';
@@ -170,5 +172,32 @@ describe('Composer (web)', () => {
     expect(screen.getByRole('button', {name: 'Send'})).toBeDisabled();
     fireEvent.keyDown(screen.getByRole('textbox', {name: 'Message'}), {key: 'Enter', keyCode: 13});
     expect(onSend).not.toHaveBeenCalled();
+  });
+
+  it('leaves the stop button live while disabled, and hands the field\'s commands to the ref', () => {
+    const ref = createRef<TextFieldCommands>();
+    const onStop = vi.fn();
+    render(
+      <Composer
+        ref={ref}
+        value="ready"
+        onSend={() => {}}
+        onStop={onStop}
+        busy
+        disabled
+        menu={{label: 'Send to', icon: icons.share, items: [{label: 'Everyone'}]}}
+      />,
+    );
+    const field = screen.getByRole('textbox', {name: 'Message'});
+    expect(field).toHaveAttribute('readonly');
+    expect(screen.getByRole('button', {name: 'Send to'})).toBeDisabled();
+    const stop = screen.getByRole('button', {name: 'Stop'});
+    expect(stop).toBeEnabled();
+    fireEvent.click(stop);
+    expect(onStop).toHaveBeenCalledTimes(1);
+    ref.current!.focus();
+    expect(document.activeElement).toBe(field);
+    ref.current!.blur();
+    expect(document.activeElement).not.toBe(field);
   });
 });

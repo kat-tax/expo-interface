@@ -72,6 +72,7 @@ export function Composer({
   menu,
   disabled = false,
   autoFocus,
+  ref,
   maxLength,
   testID,
   style,
@@ -128,6 +129,7 @@ export function Composer({
           keyboardType={keyboardType}
           disabled={disabled}
           autoFocus={autoFocus}
+          ref={ref}
           maxLength={maxLength}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
@@ -142,7 +144,8 @@ export function Composer({
               hideLabel
               shape="circle"
               size="small"
-              disabled={disabled || !onStop}
+              // Live whatever `disabled` says: a disabled composer can still stop what it runs.
+              disabled={!onStop}
               onPress={onStop}
               testID={testID ? `${testID}-stop` : undefined}
             />
