@@ -2,6 +2,7 @@
 import '@testing-library/jest-dom/vitest';
 import type {MenuItem} from '../menu/types';
 import {act, fireEvent, render, screen} from '@testing-library/react';
+import {AccentProvider} from '../accent';
 import {ContextMenu} from '.';
 
 const items: MenuItem[] = [
@@ -22,20 +23,27 @@ function toggleEvent(newState: 'open' | 'closed') {
   return event;
 }
 
-type PopoverElement = Omit<HTMLElement, 'showPopover'> & {showPopover?: () => void};
+type PopoverElement = Omit<HTMLElement, 'showPopover' | 'hidePopover'> & {
+  showPopover?: () => void;
+  hidePopover?: () => void;
+};
 const proto = HTMLElement.prototype as PopoverElement;
 const showPopover = vi.fn();
+const hidePopover = vi.fn();
 
 // jsdom 30's UA stylesheet hides closed popovers (`display: none`), so the
 // menu is outside the accessibility tree and role queries need `hidden: true`;
-// but it still ships no imperative Popover API, so `showPopover` is stubbed.
+// but it still ships no imperative Popover API, so `showPopover` and
+// `hidePopover` are stubbed.
 describe('ContextMenu (web)', () => {
   beforeAll(() => {
     proto.showPopover = showPopover;
+    proto.hidePopover = hidePopover;
   });
 
   afterAll(() => {
     delete proto.showPopover;
+    delete proto.hidePopover;
   });
 
   it('wraps the content and its popover menu in a layout-neutral element', () => {
@@ -55,6 +63,32 @@ describe('ContextMenu (web)', () => {
     expect(screen.getAllByRole('menuitem', {hidden: true}).map(e => e.textContent)).toEqual(['Share', 'Delete']);
     expect(screen.getByRole('menuitem', {name: 'Delete', hidden: true})).toHaveClass('ui-menu__item--destructive');
     expect(screen.getByRole('separator', {hidden: true})).toBeInTheDocument();
+  });
+
+  it('draws the menu on a material of its own, or the app\'s, and as itself otherwise', () => {
+    const {rerender} = render(
+      <ContextMenu items={items} material="thick">
+        <span>Item</span>
+      </ContextMenu>,
+    );
+    const menu = () => screen.getByRole('menu', {hidden: true});
+    expect(menu()).toHaveAttribute('data-material', 'thick');
+    expect(menu()).toHaveAttribute('data-material-fill', 'element');
+    expect(menu()).toHaveAttribute('data-material-edge', 'float');
+    rerender(
+      <AccentProvider overlayMaterial="regular">
+        <ContextMenu items={items}>
+          <span>Item</span>
+        </ContextMenu>
+      </AccentProvider>,
+    );
+    expect(menu()).toHaveAttribute('data-material', 'regular');
+    rerender(
+      <ContextMenu items={items}>
+        <span>Item</span>
+      </ContextMenu>,
+    );
+    expect(menu()).not.toHaveAttribute('data-material');
   });
 
   it('opens the menu at the pointer on right-click', () => {
@@ -316,6 +350,28 @@ describe('ContextMenu (web)', () => {
     const menu = screen.getByRole('menu', {hidden: true});
     expect(menu.style.left).toBe('5px');
     expect(menu.style.top).toBe('6px');
+  });
+
+  it('closes on Escape wherever the focus is, and keeps the key from the document', () => {
+    const heard = vi.fn();
+    const listener = (event: KeyboardEvent) => heard(event.key);
+    document.addEventListener('keydown', listener, true);
+    try {
+      render(
+        <ContextMenu items={items} testID="row">
+          <span>Item</span>
+        </ContextMenu>,
+      );
+      fireEvent.contextMenu(screen.getByTestId('row'), {clientX: 40, clientY: 60});
+      const menu = screen.getByRole('menu', {hidden: true});
+      // Shown: the key is the menu's from then on.
+      vi.spyOn(menu, 'matches').mockImplementation(selector => selector === ':popover-open');
+      fireEvent.keyDown(screen.getByRole('menuitem', {name: 'Share', hidden: true}), {key: 'Escape'});
+      expect(hidePopover).toHaveBeenCalledTimes(1);
+      expect(heard).not.toHaveBeenCalled();
+    } finally {
+      document.removeEventListener('keydown', listener, true);
+    }
   });
 
   it('ignores a lift or move without a pending long-press', () => {

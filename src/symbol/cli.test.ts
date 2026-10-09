@@ -111,7 +111,7 @@ describe('expo-interface-symbols', () => {
   });
 
   it('always writes the names the kit\'s own controls draw: the bar and composer buttons, the ellipsis and the star, filled too', () => {
-    expect(KIT_NAMES).toEqual(['arrow_back', 'arrow_upward', 'close', 'keyboard_arrow_down', 'keyboard_arrow_up', 'more_horiz', 'star', 'stop']);
+    expect(KIT_NAMES).toEqual(['arrow_back', 'arrow_upward', 'close', 'keyboard_arrow_down', 'keyboard_arrow_up', 'more_horiz', 'more_vert', 'star', 'stop']);
     expect(KIT_FILLED).toEqual(['star']);
   });
 
@@ -369,13 +369,13 @@ describe('expo-interface-symbols', () => {
       // JSDoc examples.
       'icons.ts': ['share', 'star'],
       'tabs/types.ts': ['home', 'settings'],
-      // `SymbolView`, which draws from the static instance `expo-symbols` ships, never the cut.
-      'screen/header.tsx': ['arrow_back'],
+      // The native field's `SymbolView`; the web field is the browser's own input, with no glyph of the kit's.
       'search-field/index.tsx': ['cancel', 'search'],
-      'tabs/index.web.tsx': ['arrow_back'],
       // Windows draws Segoe, and the native strip is not the one the web draws.
       'screen/header.windows.tsx': ['arrow_back'],
       'tab-view/draw.tsx': ['add', 'close', 'grid_view'],
+      // Android's card overflow; the web draws the card's menu with `more_horiz`.
+      'card/shared.ts': ['more_vert'],
     };
     const drawn = new Set<string>();
     for (const file of sourceFiles([kit])) {
@@ -398,13 +398,11 @@ describe('expo-interface-symbols', () => {
       'icons.ts': ['share', 'star'],
       'tabs/types.ts': ['home', 'settings'],
       // `SymbolView` and the kit's `Icon`, which draw the font `expo-symbols` ships, never a drawable.
-      'screen/header.tsx': ['arrow_back'],
       'search-field/index.tsx': ['cancel', 'search'],
       'tab-view/draw.tsx': ['add', 'close', 'grid_view'],
       // The open action of the drawn header search, which only the web and Windows draw.
       'header-search/shared.ts': ['search'],
       // The web's and Windows' own files.
-      'tabs/index.web.tsx': ['arrow_back'],
       'tab-view/index.web.tsx': ['add', 'close', 'grid_view'],
       'screen/header.windows.tsx': ['arrow_back'],
     };

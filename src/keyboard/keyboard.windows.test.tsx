@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {Animated, DeviceEventEmitter, Text, View} from 'react-native';
 import {colors} from '../theme';
 import {loadKeyboardController} from './library';
+import {ridingHeight} from './riding';
 import {KeyboardBar} from '.';
 
 const library = loadKeyboardController();
@@ -54,6 +55,28 @@ describe('KeyboardBar (windows)', () => {
     await hide();
     expect(onKeyboard).toHaveBeenLastCalledWith(0);
     expect(lastTarget(timing)).toBe(0);
+  });
+
+  it('publishes its own height while it rides, for useKeyboardInset, and takes it back when the keyboard goes and when it unmounts', async () => {
+    // A second reader, rendered first so the bar's tree is the one `fireEvent`
+    // sees as mounted, keeps the library following the keyboard once the bar
+    // is gone: the keyboard the bar unmounts under can then be put away again.
+    const Sticky = library!.KeyboardStickyView;
+    await render(<Sticky><Text>Reader</Text></Sticky>);
+    const {unmount} = await render(<KeyboardBar><Text>Tools</Text></KeyboardBar>);
+    const bar = screen.getByText('Tools').parent!;
+    // Laid out with the keyboard down: nothing rides yet.
+    await fireEvent(bar, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 1000, height: 48}}});
+    expect(ridingHeight()).toBe(0);
+    await show(300);
+    expect(ridingHeight()).toBe(48);
+    await hide();
+    expect(ridingHeight()).toBe(0);
+    await show(300);
+    expect(ridingHeight()).toBe(48);
+    await unmount();
+    expect(ridingHeight()).toBe(0);
+    await hide();
   });
 
   it('stops following the keyboard with its last reader', async () => {

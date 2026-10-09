@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import type {MaterialThickness} from '../material/types';
 
 /**
  * Cross-platform tooltip: a short hint attached to a piece of content.
@@ -20,6 +21,14 @@ export interface TooltipProps {
   text: string;
   /** Content the tooltip is attached to. Must be native (`@expo/ui`) content on Android. */
   children: ReactNode;
+  /**
+   * Web only: the material the hint draws on, by the rules the bars use
+   * (the raised fill thinned over a blur, with a hairline and the floating
+   * shadow all round), with the text in the label color rather than the
+   * inverted hint's. The app's `overlayMaterial` (`AccentProvider`) unless
+   * given. The native tooltips are the platforms' own.
+   */
+  material?: MaterialThickness;
   /** Identifier used to locate the trigger in end-to-end tests. */
   testID?: string;
 }

@@ -49,7 +49,10 @@ export interface CardProps extends PropsWithChildren {
    * The card's own actions (rename, share, delete), as the platform's menu
    * behind an ellipsis at the trailing edge, level with the footer: a
    * SwiftUI `Menu`, a Compose `DropdownMenu`, a popover on web, a WinUI
-   * `MenuFlyout`. Outside the card's press target, like `overlay`.
+   * `MenuFlyout`. Outside the card's press target, like `overlay`. The
+   * ellipsis is drawn in the accent at the small size, except on Android,
+   * where it is Material's card overflow: a 24 dp `more_vert` in the
+   * secondary label color, in the 40 dp icon button.
    */
   menu?: MenuItem[];
   /**
@@ -57,7 +60,9 @@ export interface CardProps extends PropsWithChildren {
    * filled while it is set. While it is not set it is drawn only while a
    * pointer is over the card or the keyboard is in it, on the platforms that
    * have a pointer (web with `(hover: hover)`, Windows), and always where
-   * nothing hovers.
+   * nothing hovers. On Android it is the tonal toggle, Material's filled
+   * tonal icon button, since it is always on the picture there, where a
+   * bare icon has nothing behind it; the other platforms draw the bare star.
    */
   favorite?: CardFavorite;
   /**

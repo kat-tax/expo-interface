@@ -78,7 +78,10 @@ export function badgeValue(props: BadgeProps): number {
 /**
  * What a screen reader says. A bare number is not worth announcing — "3" on
  * its own tells nobody anything — so a caller's `label` wins, and the fallback
- * at least says what kind of thing the number is.
+ * at least says what kind of thing the number is. A `null` label, a badge its
+ * parent speaks for, is the caller's to keep from assistive technology; here
+ * it reads as the fallback, so a badge that is named at all is never named
+ * nothing.
  */
 export function badgeLabel(props: BadgeProps, text: string): string {
   if (props.label) return props.label;

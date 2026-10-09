@@ -12,7 +12,6 @@ import {Link} from 'expo-router';
 import {Tabs as WebTabs, TabSlot, TabList, TabTrigger} from 'expo-router/ui';
 import {View, Pressable, StyleSheet} from 'react-native';
 import {useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
-import {SymbolView} from 'expo-symbols';
 import {Image} from 'expo-image';
 import {Asset} from 'expo-asset';
 import app from 'expo-constants';
@@ -23,6 +22,7 @@ import {materialProps} from '../material';
 import {hasMaterial} from '../sheet/shared';
 import {HeaderAction} from '../header-action';
 import {HeaderMenu} from '../header-menu';
+import {BACK} from '../glyphs';
 import {Icon} from '../symbol';
 import {BarRowsContext, HeaderSlotContext, InBarContext, NarrowBarContext, TabBarContext, createHeaderSlot, noSubscription, useNarrowBar} from './context';
 import {tabBadge} from './badge';
@@ -317,7 +317,11 @@ function useFit(): {row: React.RefObject<View | null>; logo: React.RefObject<Vie
   return {row, logo, narrow};
 }
 
-/** A pushed screen's back button, at the mark's size and in its place. */
+/**
+ * A pushed screen's back button, at the mark's size and in its place. The
+ * glyph is the kit's own, which the stylesheet draws from the font the app
+ * registers; `SymbolView` would fetch the static instance for it.
+ */
 function BackButton({onPress}: {onPress: () => void}) {
   return (
     <Pressable
@@ -325,11 +329,7 @@ function BackButton({onPress}: {onPress: () => void}) {
       role="button"
       accessibilityLabel="Go back"
       style={({pressed}) => [styles.back, pressed && styles.pressed]}>
-      <SymbolView
-        name={{web: 'arrow_back', ios: 'chevron.left', android: 'arrow_back'}}
-        size={20}
-        tintColor={theme.label}
-      />
+      <Icon icon={BACK} size={20} tone="label"/>
     </Pressable>
   );
 }

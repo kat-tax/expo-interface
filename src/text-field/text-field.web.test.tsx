@@ -107,6 +107,23 @@ describe('TextField (web)', () => {
     expect(area).toHaveAttribute('aria-label', 'Notes');
   });
 
+  it('starts a multi-line inline field one row tall, sized to its lines where the browser sizes a field to its content', () => {
+    render(
+      <>
+        <TextField variant="inline" multiline placeholder="Write" testID="area"/>
+        <TextField variant="inline" placeholder="Find" testID="line"/>
+      </>,
+    );
+    const area = screen.getByTestId('area');
+    expect(area.tagName).toBe('TEXTAREA');
+    expect(area).toHaveAttribute('rows', '1');
+    expect(getComputedStyle(area).getPropertyValue('field-sizing')).toBe('content');
+    // A one-line field is an `<input>`, with no rows to grow by.
+    const line = screen.getByTestId('line');
+    expect(line.tagName).toBe('INPUT');
+    expect(getComputedStyle(line).getPropertyValue('field-sizing')).not.toBe('content');
+  });
+
   it('labels the keyboard action key and reports key presses', () => {
     const onKeyPress = vi.fn();
     render(<TextField returnKeyType="search" onKeyPress={onKeyPress} testID="query"/>);

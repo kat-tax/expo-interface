@@ -1,3 +1,5 @@
+import type {MaterialThickness} from '../material/types';
+
 /**
  * A brief message over the screen: "Copied", "3 files added", "Offline".
  *
@@ -24,6 +26,14 @@ export interface ToastProps {
    * @default 4000
    */
   duration?: number;
+  /**
+   * Web only: the material the capsule draws on, by the rules the bars use
+   * (the raised fill thinned over a blur, with a hairline and the floating
+   * shadow all round). The app's `overlayMaterial` (`AccentProvider`)
+   * unless given. The iOS capsule is opaque, and the Android and Windows
+   * toasts are the platforms' own.
+   */
+  material?: MaterialThickness;
   /** Identifier used to locate the toast in end-to-end tests. */
   testID?: string;
 }

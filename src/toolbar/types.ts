@@ -3,6 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnchorAlign, AnchorInsets, AnchorRect} from '../anchored';
 import type {ButtonTone} from '../button/types';
 import type {IconToken} from '../icons';
+import type {MaterialThickness} from '../material/types';
 import type {MenuItem} from '../menu/types';
 
 /** Which edge of its content a `Toolbar` sits on, and so where its rule goes. */
@@ -22,7 +23,9 @@ export type ToolbarDensity = 'regular' | 'compact';
  * host.
  *
  * A `field` breaks that in one place: a text field is a React Native input,
- * so with one the bar is a leading host, the field, and a trailing host.
+ * so with one the bar is a host either side of the field, for the sides that
+ * have something to draw. A side with nothing to draw has no host, and the
+ * field takes its room.
  */
 /**
  * One command in a bar described as data rather than as children.
@@ -49,22 +52,38 @@ export interface ToolbarCommand {
    * Android, web and a drawn Windows bar) it is an entry with the menu's
    * check while it is on; a menu has no off state, so one that is off is a
    * plain entry. The `CommandBar`'s own overflow keeps the toggle button.
-   * Leave it out for a command that is not a toggle.
+   * A command with `items` that is on is the kit's `Menu` with `pressed`:
+   * drawn filled and heard as on the same way, for a tool whose menu picks
+   * what it does (a drawing bar's shapes tool), and behind the kit's
+   * overflow its entries take its place whatever its state. The Windows
+   * `CommandBar` ignores it on a menu command, since an `AppBarButton` with
+   * a flyout has no checked state. Leave it out for a command that is not a
+   * toggle.
    */
   active?: boolean;
   /**
    * Color of the command: the accent, or the label color for a tool, where
    * the accent marks the active one. The Windows `CommandBar` takes no tone
    * (a command is in the bar's own colors, a `destructive` one in the
-   * critical color) and ignores it.
+   * critical color) and ignores it. An explicit `color` wins.
    * @default 'accent'
    */
   tone?: ButtonTone;
+  /**
+   * The command's color, as `Button` and `Menu` take `color`: what a tool
+   * is drawn in, and the fill of one that is `active`, over `tone` and
+   * `role`. A drawing bar's ink tool is drawn in the ink. The Windows
+   * `CommandBar` draws the command's glyph and label in it, as it draws a
+   * `destructive` one in the critical color; a toggle that is on keeps the
+   * bar's own checked colors.
+   */
+  color?: string;
   /** Called on a press; ignored when `items` are given. */
   onPress?: () => void;
   /**
    * A menu instead of a press: the entries `Menu` takes, opened from the
-   * command; `onPress`, `active` and `role` are ignored with them. On the
+   * command; `onPress` and `role` are ignored with them, and `active` fills
+   * the command while it is on. On the
    * bar it is the kit's `Menu`, in the Windows `CommandBar` an
    * `AppBarButton` with its `MenuFlyout`. Behind the overflow its entries
    * take its place, set off by rules, since the kit's menus do not nest;
@@ -118,9 +137,11 @@ export interface ToolbarProps extends PropsWithChildren {
   field?: ReactNode;
   /**
    * Commands beside the field, at its trailing edge: a find bar's previous
-   * and next, an assistant's send. They share the trailing group's host, so
-   * a bar with a field is still two hosts, and they stay on the bar when it
-   * folds its other commands.
+   * and next, an assistant's send. They share the trailing host with the
+   * overflow menu, and they stay on the bar when it folds its other
+   * commands. A side with nothing to draw has no host: with no field
+   * commands, the trailing host is the overflow menu's alone, and there is
+   * none when nothing is behind it. The field takes the room.
    */
   fieldCommands?: ToolbarCommand[];
   /**
@@ -128,6 +149,9 @@ export interface ToolbarProps extends PropsWithChildren {
    * the kit's compact size class (narrower than 640 points, where `TabView`
    * shows its switcher), leaving the field and its commands the room: an
    * editor's status bar while a find or assistant field is open on a phone.
+   * A folded bar has no leading host, since nothing is drawn there, and with
+   * no `fieldCommands` and nothing behind the overflow no trailing host
+   * either: the field takes the row.
    * The width is the bar's own, measured whether or not it folds, so a bar
    * that starts folding while it is narrow folds at once. Read only on a bar
    * along an edge: a `floating` bar, or one `at` a rectangle, is the width of
@@ -187,6 +211,14 @@ export interface ToolbarProps extends PropsWithChildren {
   preferredEdge?: 'auto' | 'top' | 'bottom';
   /** What a bar at `at` keeps clear of at its parent's edges: a header, the keyboard's bar. */
   insets?: AnchorInsets;
+  /**
+   * Web only: the material a `floating` bar, or one `at` a rectangle, draws
+   * on, by the rules the kit's bars use (the raised fill thinned over a
+   * blur, with a hairline and the floating shadow all round). The app's
+   * `overlayMaterial` (`AccentProvider`) unless given. A bar along an edge
+   * keeps its fill, and the native floating bars are the platforms' own.
+   */
+  material?: MaterialThickness;
   /** Style applied to the bar. */
   style?: StyleProp<ViewStyle>;
   /** Identifier used to locate the bar in end-to-end tests. */

@@ -28,12 +28,26 @@ Styles live in a `.css` file beside each component. The palette is CSS
 custom properties from `getThemeCSS()`, the accent is `--color-tint` set by
 `AccentProvider`, and a forced scheme is `data-theme` on the root.
 
-The kit's materials (`Sheet material`, `Tabs webMaterial`, `ScreenHeader
-material`) are `backdrop-filter` under a fill thinned with `color-mix`, on
-the sheet's own scale of opacity and radius per thickness. The bar and the
-header take theirs from `src/material/material.css` through `data-material`
-attributes. `@supports` falls back to the solid fill where the blur is not
-available, and so do `prefers-reduced-transparency: reduce` and
-`forced-colors: active`.
+The kit's materials (`Tabs webMaterial`, `ScreenHeader material`, `Material`,
+`Surface material` and the `material` of every overlay) are `backdrop-filter`
+under a fill thinned with `color-mix`, on one scale of opacity and radius per
+thickness, drawn by `src/material/material.css` from `data-material`
+attributes: the thickness (`thin`, `regular`, `thick`), the fill that is
+thinned (the raised fill or the screen's) and the edge the hairline and
+shadow go on (`all`, `top`, `bottom`, `none`, or `float` for an overlay: the
+hairline all round and the shadow a raised `Surface` floats on). `@supports`
+falls back to the solid fill where the blur is not available, and so do
+`prefers-reduced-transparency: reduce` and `forced-colors: active`.
+
+Every overlay draws on `AccentProvider overlayMaterial` unless its own
+`material` says otherwise, and is opaque without either: the `Sheet`, whose
+drawer takes the attributes as it opens, since `@expo/ui` renders it in a
+portal and forwards only the props it names, and whose fill is handed in
+thinned as `containerColor`, which the drawer paints inline; the menus
+(`Menu`, `ContextMenu`, `PopupMenu`, `Fab`, and the menus `HeaderMenu`, a
+`Card`, a `Toolbar` and the `ColorPicker` open); the `Popover` card; a floating
+`Toolbar`; the `Alert`; the `Toast`; and the `Tooltip`, whose hint keeps its
+text in the label color on the fill. Each one's own border, fill and shadow
+give way to the material's.
 
 The Material Symbols font is registered by the kit on import.

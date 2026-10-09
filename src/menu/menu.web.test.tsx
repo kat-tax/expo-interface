@@ -2,8 +2,12 @@
 import '@testing-library/jest-dom/vitest';
 import type {ReactElement} from 'react';
 import type {MenuItem} from './types';
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
 import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
+import {AccentProvider} from '../accent';
+import {Sheet} from '../sheet';
 import {MenuList} from './list';
 import {Menu} from '.';
 
@@ -109,6 +113,20 @@ describe('Menu (web)', () => {
   it('passes a custom accent through to the trigger', () => {
     render(<Menu label="Publish" items={items} color="#FF9500"/>);
     expect(screen.getByRole('button', {name: 'Publish'}).style.getPropertyValue('--ui-button-accent')).toBe('#FF9500');
+  });
+
+  it('marks a trigger that is on as pressed, drawn filled, on the button and on the link', () => {
+    const {rerender} = render(<Menu label="Shapes" items={items} variant="text" pressed/>);
+    const button = screen.getByRole('button', {name: 'Shapes'});
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+    expect(button).toHaveClass('ui-button--filled');
+    expect(button).toHaveAttribute('popovertarget');
+    rerender(<Menu label="Shapes" items={items} trigger="link" pressed/>);
+    const link = screen.getByRole('button', {name: 'Shapes'});
+    expect(link).toHaveClass('ui-menu__link');
+    expect(link).toHaveAttribute('aria-pressed', 'true');
+    rerender(<Menu label="Shapes" items={items} trigger="link"/>);
+    expect(screen.getByRole('button', {name: 'Shapes'})).not.toHaveAttribute('aria-pressed');
   });
 
   it('focuses the first enabled entry and anchors the popup when it opens', () => {
@@ -248,6 +266,8 @@ describe('Menu (web)', () => {
     const popover = () => container.querySelector('[popover]') as HTMLElement;
     const wrapper = () => container.querySelector('.ui-menu') as HTMLElement;
     expect(popover()).not.toHaveClass('ui-menu__list--anchored');
+    // A press before the page runs opens nothing: the trigger has no target yet.
+    expect(screen.getByTestId('new')).not.toHaveAttribute('popovertarget');
     const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       const {unmount} = render(tree, {container, hydrate: true});
@@ -258,6 +278,24 @@ describe('Menu (web)', () => {
       expect(screen.getByTestId('new')).toHaveAttribute('popovertarget', popover().id);
       expect(popover().style.getPropertyValue('position-anchor')).toBe(wrapper().style.getPropertyValue('anchor-name'));
       expect(popover().style.getPropertyValue('position-anchor')).toMatch(/^--ui-menu-/);
+      unmount();
+    } finally {
+      errors.mockRestore();
+      container.remove();
+    }
+  });
+
+  it('gives a link trigger its popover target once a static page has hydrated, and not before', async () => {
+    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
+    const tree = <Menu label="New" items={[{label: 'Blank document'}]} trigger="link" testID="new"/>;
+    const container = document.body.appendChild(document.createElement('div'));
+    container.innerHTML = renderToString(tree);
+    expect(screen.getByTestId('new')).not.toHaveAttribute('popovertarget');
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const {unmount} = render(tree, {container, hydrate: true});
+      expect(errors).not.toHaveBeenCalled();
+      expect(screen.getByTestId('new')).toHaveAttribute('popovertarget', container.querySelector('[popover]')!.id);
       unmount();
     } finally {
       errors.mockRestore();
@@ -313,6 +351,146 @@ describe('Menu (web)', () => {
     }
   });
 });
+
+describe('Menu on a material (web)', () => {
+  const menu = () => screen.getByRole('menu', {hidden: true});
+
+  it('draws the popup on the bar\'s glass, with the hairline and the shadow all round', () => {
+    render(<Menu label="Export" items={items} material="regular"/>);
+    expect(menu()).toHaveAttribute('data-material', 'regular');
+    expect(menu()).toHaveAttribute('data-material-fill', 'element');
+    expect(menu()).toHaveAttribute('data-material-edge', 'float');
+  });
+
+  it('draws the popup as itself without one, which is the default', () => {
+    const {rerender} = render(<Menu label="Export" items={items}/>);
+    expect(menu()).not.toHaveAttribute('data-material');
+    rerender(<Menu label="Export" items={items} material="none"/>);
+    expect(menu()).not.toHaveAttribute('data-material');
+  });
+
+  it('takes the app\'s overlay material unless told otherwise', () => {
+    const {rerender} = render(
+      <AccentProvider overlayMaterial="thin">
+        <Menu label="Export" items={items}/>
+      </AccentProvider>,
+    );
+    expect(menu()).toHaveAttribute('data-material', 'thin');
+    rerender(
+      <AccentProvider overlayMaterial="thin">
+        <Menu label="Export" items={items} material="thick"/>
+      </AccentProvider>,
+    );
+    expect(menu()).toHaveAttribute('data-material', 'thick');
+    rerender(
+      <AccentProvider overlayMaterial="thin">
+        <Menu label="Export" items={items} material="none"/>
+      </AccentProvider>,
+    );
+    expect(menu()).not.toHaveAttribute('data-material');
+  });
+
+  it('puts the list\'s own border, fill and shadow out of the material\'s way', () => {
+    render(<MenuList id="ui-menu-glass" items={items} material="regular"/>);
+    expect(menu()).toHaveAttribute('data-material', 'regular');
+    // The stylesheet draws those from the attributes; the list's rule yields to it.
+    const css = readFileSync(path.join(__dirname, 'menu.css'), 'utf8');
+    const rule = css.slice(css.indexOf('.ui-menu__list:where([data-material])'));
+    expect(rule).toMatch(/^[^}]*border: none;/);
+    expect(rule).toMatch(/^[^}]*background: transparent;/);
+    expect(rule).toMatch(/^[^}]*box-shadow: none;/);
+  });
+});
+
+describe('Escape on an open menu (web)', () => {
+  type PopoverElement = Omit<HTMLElement, 'showPopover' | 'hidePopover'> & {
+    showPopover?: () => void;
+    hidePopover?: () => void;
+  };
+  const proto = HTMLElement.prototype as PopoverElement;
+  /** The popovers the browser has open; jsdom ships no imperative Popover API, so it is stubbed. */
+  const open = new Set<Element>();
+  const hidePopover = vi.fn(function (this: HTMLElement) {
+    open.delete(this);
+  });
+  let matches: {mockRestore: () => void} | undefined;
+
+  beforeAll(() => {
+    proto.showPopover = function (this: HTMLElement) {
+      open.add(this);
+    };
+    proto.hidePopover = hidePopover;
+    const original = HTMLElement.prototype.matches;
+    matches = vi.spyOn(HTMLElement.prototype, 'matches').mockImplementation(function (this: HTMLElement, selector: string) {
+      return selector === ':popover-open' ? open.has(this) : original.call(this, selector);
+    });
+  });
+
+  afterEach(() => {
+    open.clear();
+  });
+
+  afterAll(() => {
+    delete proto.showPopover;
+    delete proto.hidePopover;
+    matches?.mockRestore();
+  });
+
+  /** Opens the menu as the trigger's `popovertarget` would: shown, then reported by the browser. */
+  const show = (menu: HTMLElement) => {
+    menu.showPopover();
+    fireEvent(menu, toggleEvent('open'));
+  };
+
+  it('closes the menu and leaves a web Sheet around it up, which the next Escape is for', () => {
+    const onSheetDismiss = vi.fn();
+    const onOpenChange = vi.fn();
+    render(
+      <Sheet isPresented onDismiss={onSheetDismiss}>
+        <Menu label="More" items={items} onOpenChange={onOpenChange}/>
+      </Sheet>,
+    );
+    const menu = screen.getByRole('menu', {hidden: true});
+    show(menu);
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    // The key goes down on the focused entry and would reach the document, where the drawer listens.
+    fireEvent.keyDown(screen.getByRole('menuitem', {name: 'Share', hidden: true}), {key: 'Escape'});
+    expect(hidePopover).toHaveBeenCalledTimes(1);
+    expect(open.has(menu)).toBe(false);
+    expect(onSheetDismiss).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    // The browser reports the close; the next Escape is the sheet's.
+    fireEvent(menu, toggleEvent('closed'));
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
+    expect(onSheetDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('takes the key as soon as the popover shows, keeps it from the document, and gives it up once the popover is hidden', () => {
+    const heard = vi.fn();
+    const listener = (event: KeyboardEvent) => heard(event.key);
+    document.addEventListener('keydown', listener, true);
+    try {
+      render(<Menu label="More" items={items}/>);
+      const menu = screen.getByRole('menu', {hidden: true});
+      // Shown, and not yet reported by the browser's `toggle`: the key is the menu's already.
+      menu.showPopover();
+      fireEvent.keyDown(menu, {key: 'Escape'});
+      expect(hidePopover).toHaveBeenCalledTimes(1);
+      expect(open.has(menu)).toBe(false);
+      expect(heard).not.toHaveBeenCalled();
+      // Hidden again by a click outside, whatever the browser has reported: the key is the page's.
+      show(menu);
+      open.delete(menu);
+      fireEvent.keyDown(menu, {key: 'Escape'});
+      expect(hidePopover).toHaveBeenCalledTimes(1);
+      expect(heard).toHaveBeenCalledWith('Escape');
+    } finally {
+      document.removeEventListener('keydown', listener, true);
+    }
+  });
+});
+
 describe('the menu keyboard pattern', () => {
   /** What `role="menu"` promises anyone without a pointer. */
   const press = (key: string) => fireEvent.keyDown(screen.getByRole('menu', {hidden: true}), {key});

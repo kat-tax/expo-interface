@@ -20,6 +20,13 @@ describe(`Surface (${Platform.OS})`, () => {
     expect(screen.getByText('Body')).toBeOnTheScreen();
   });
 
+  it('ignores a material, which is the web\'s, and paints itself as usual', async () => {
+    await render(<Surface material="regular" raised border="all" testID="surface"/>);
+    expect(style()).toMatchObject({backgroundColor: colors.light.backgroundElement, borderTopWidth: StyleSheet.hairlineWidth});
+    expect(style().boxShadow).toBeTruthy();
+    expect(screen.getByTestId('surface').props.dataSet).toBeUndefined();
+  });
+
   it('takes each fill from the theme, and none at all', async () => {
     await render(
       <>

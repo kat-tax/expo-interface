@@ -6,10 +6,10 @@
  * (`thin`, `regular`, `thick`), `data-material-fill` the color that is
  * thinned (`element`, the raised fill, or `background`, the screen's) and
  * `data-material-edge` where the hairline goes (`all` around a pill, `top`
- * over a bar at the bottom, `bottom` under one at the top, `none` for no
- * hairline and no shadow). The
- * opacities and radii are the sheet's (`src/sheet/shared.ts`), so a bar and
- * a sheet of one thickness read the same.
+ * over a bar at the bottom, `bottom` under one at the top, `float` all round
+ * an overlay with the shadow that lifts it, `none` for no hairline and no
+ * shadow). The opacities and radii are `src/material/shared.ts`'s, so a
+ * bar, a sheet and a menu of one thickness read the same.
  *
  * Two attributes per rule, so the rule outranks react-native-web's atomic
  * classes, which would otherwise paint the view's own background over it.
@@ -51,6 +51,11 @@
 
 [data-material][data-material-edge="bottom"] {
   box-shadow: inset 0 -1px 0 var(--color-separator), 0 1px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* An overlay: the hairline all round and the shadow a raised `Surface` floats on. */
+[data-material][data-material-edge="float"] {
+  box-shadow: inset 0 0 0 1px var(--color-separator), 0 8px 24px rgba(0, 0, 0, 0.18);
 }
 
 /* Solid where the blur cannot be had, or is not wanted. */

@@ -37,7 +37,8 @@ function useContentWidth(scroller: RefObject<HTMLElement | null>): number | null
  * paint) the stylesheet's own `repeat(auto-fill, minmax(...))` counts the
  * same columns. Each cell says where it stands in the whole (`aria-posinset`,
  * `aria-setsize`). The grid fills the room its parent gives it, with the
- * screen's insets as padding inside. The end is reached once the grid is
+ * screen's insets and its own as padding inside, the sides left out of the
+ * width the columns are counted from. The end is reached once the grid is
  * laid out and its window draws the last row, for a grid that loads more,
  * and again when more cells arrive while it is still drawn; a hidden grid
  * reaches none.
@@ -77,6 +78,8 @@ export function CardGrid<T>({
   }, [atEnd, data.length]);
   const top = insets.top || undefined;
   const bottom = insets.bottom || undefined;
+  const left = insets.left || undefined;
+  const right = insets.right || undefined;
   const vars = {
     '--ui-card-grid-min': `${minItemWidth}px`,
     '--ui-card-grid-gap': `${gap}px`,
@@ -84,9 +87,14 @@ export function CardGrid<T>({
     // most columns, so the grid never fits more than that many.
     '--ui-card-grid-share': `calc((100% - ${cap - 1} * ${gap}px) / ${cap})`,
     // The insets are inside the scroller: the first row starts below the bar,
-    // and a card the keyboard focus brings into view stops clear of it.
+    // and a card the keyboard focus brings into view stops clear of it. The
+    // sides are out of the column count by themselves: the width the columns
+    // come from is the observer's `contentRect`, the content box, which the
+    // padding is not part of.
     paddingTop: top,
     paddingBottom: bottom,
+    paddingLeft: left,
+    paddingRight: right,
     scrollPaddingTop: top,
     scrollPaddingBottom: bottom,
     ...flatten(StyleSheet.flatten(style) as TextStyle),

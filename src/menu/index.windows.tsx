@@ -16,7 +16,7 @@ import {menuItemsProp, useMenuShortcuts} from './windows';
  * whatever React Native's hit testing says. `trigger="link"` is the text
  * variant here.
  */
-export function Menu({label, icon, items, trigger = 'button', onOpenChange, testID, ...button}: MenuProps) {
+export function Menu({label, icon, items, trigger = 'button', onOpenChange, material: _material, testID, ...button}: MenuProps) {
   const xaml = useXamlProps();
   const [open, setOpen] = useState(false);
   useMenuShortcuts(items);

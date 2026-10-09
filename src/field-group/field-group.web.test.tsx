@@ -67,7 +67,7 @@ describe('FieldGroup (web)', () => {
     const onAppear = vi.fn();
     const onDisappear = vi.fn();
     const {unmount} = render(
-      <ScrollInsetsContext.Provider value={{top: 80, bottom: 20, automatic: false}}>
+      <ScrollInsetsContext.Provider value={{top: 80, bottom: 20, left: 0, right: 0, automatic: false}}>
         <FieldGroup testID="group" onAppear={onAppear} onDisappear={onDisappear}>
           <span>Row</span>
         </FieldGroup>

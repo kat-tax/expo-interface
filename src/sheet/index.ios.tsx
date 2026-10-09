@@ -5,6 +5,7 @@ import {frame, onGeometryChange, presentationBackground, tint} from '@expo/ui/sw
 import {BottomSheet} from '@expo/ui';
 import {useAccentSeed} from '../accent';
 import {NativeHostContext} from '../host';
+import {useOverlayMaterial} from '../material/context';
 import {sheetChildren, sheetOwnProps} from './compose';
 import {IOS_MATERIAL, hasMaterial} from './shared';
 import {SheetContentWidthContext, useSheetContentWidth} from './width';
@@ -37,9 +38,11 @@ export function Sheet(props: SheetProps) {
   const seed = useAccentSeed();
   const [width, onSize] = useSheetContentWidth();
   // The real thing: SwiftUI's own blur and vibrancy, in both schemes, rather
-  // than a translucent fill pretending to be one.
-  const backdrop = hasMaterial(own.material)
-    ? [presentationBackground({type: 'material', material: IOS_MATERIAL[own.material]})]
+  // than a translucent fill pretending to be one. The app's overlay material
+  // unless the sheet says otherwise.
+  const material = useOverlayMaterial(own.material);
+  const backdrop = hasMaterial(material)
+    ? [presentationBackground({type: 'material', material: IOS_MATERIAL[material]})]
     : [];
   return (
     <NativeHostContext.Provider value={true}>

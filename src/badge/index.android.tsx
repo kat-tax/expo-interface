@@ -42,6 +42,11 @@ export function Badge(props: BadgeProps) {
  * anywhere else. When a description modifier lands, this is the first place
  * to use it.
  *
+ * A `label` of `null`, a badge its parent speaks for, puts no words in at
+ * all. The number is still a `Text` Compose reads: only the words after it
+ * can be left out here, since `@expo/ui` has no modifier that clears a
+ * node's semantics.
+ *
  * Where nothing merges them, Compose orders the two by where they are and
  * leaves out of TalkBack's tree a node that a sibling drawn above it covers.
  * So the text is a small box at the badge's end edge, inside the padding
@@ -60,7 +65,7 @@ function HostedBadge(props: BadgeProps) {
   const phase = usePulsePhase(props.pulse === true);
   if (text === null) return null;
   const {dot, testID} = props;
-  const words = badgeWordsAfter(badgeLabel(props, text), text);
+  const words = props.label === null ? '' : badgeWordsAfter(badgeLabel(props, text), text);
   return (
     <Box contentAlignment="center">
       <ComposeBadge

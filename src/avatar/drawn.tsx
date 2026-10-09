@@ -2,10 +2,7 @@ import type {AvatarProps} from './types';
 import {StyleSheet, Text, View} from 'react-native';
 import {onAccent} from '../accent';
 import {isColorToken, useColor} from '../theme';
-import {AVATAR_RING, colorOf, initialsOf} from './shared';
-
-/** Text size that keeps the initials inside the circle at any diameter. */
-const TEXT_RATIO = 0.4;
+import {AVATAR_RING, AVATAR_TEXT_RATIO, colorOf, initialsOf} from './shared';
 
 /**
  * What a face says to assistive technology in place of the bare name, or
@@ -24,7 +21,8 @@ interface FaceAnnouncement {
 
 /**
  * A person as a colored circle with their initials, drawn in React Native:
- * `Avatar` on iOS, Android and web (see {@link AvatarProps}).
+ * `Avatar` on iOS and web, and on Android outside a native host (see
+ * {@link AvatarProps}).
  */
 export function DrawnAvatar({name, initials, color, size, ring, dimmed, testID}: AvatarProps) {
   // Named, not spread: whatever else reaches `Avatar` at run time would be
@@ -55,7 +53,7 @@ export function AvatarFace({name, initials, color, size = 28, ring, dimmed = fal
       testID={testID}>
       <Text
         numberOfLines={1}
-        style={[styles.initials, {color: onAccent(fill), fontSize: Math.round(size * TEXT_RATIO)}]}>
+        style={[styles.initials, {color: onAccent(fill), fontSize: Math.round(size * AVATAR_TEXT_RATIO)}]}>
         {initials ?? initialsOf(name)}
       </Text>
     </View>

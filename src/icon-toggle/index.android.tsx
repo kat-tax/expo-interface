@@ -1,5 +1,5 @@
 import type {IconToggleProps} from './types';
-import {Icon, IconToggleButton} from '@expo/ui/jetpack-compose';
+import {FilledIconToggleButton, Icon, IconToggleButton, useMaterialColors} from '@expo/ui/jetpack-compose';
 import {alpha, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {SelfHosted} from '../host';
 import {drawableOf} from '../icons';
@@ -25,6 +25,7 @@ function NativeIconToggle({
   activeIcon,
   value,
   onValueChange,
+  variant = 'plain',
   color,
   offColor,
   size = 24,
@@ -34,6 +35,7 @@ function NativeIconToggle({
 }: IconToggleProps) {
   const tint = useColor('tint');
   const secondary = useColor('secondaryLabel');
+  const palette = useMaterialColors();
   const shown = drawableOf(value ? activeIcon ?? icon : icon);
   // Nothing in `@expo/ui`'s modifiers hides a control from TalkBack while it
   // is drawn invisibly, so an off toggle that is hidden is left out.
@@ -41,16 +43,26 @@ function NativeIconToggle({
   const modifiers = [];
   if (disabled) modifiers.push(alpha(0.4));
   if (testID) modifiers.push(testIDModifier(testID));
+  // The tonal toggle is Material's filled tonal icon button: the filled
+  // toggle in the tonal roles of the host's palette, its icon in the content
+  // color of each container unless the two colors say otherwise.
+  const tonal = variant === 'tonal';
+  const on = color ?? (tonal ? palette.onSecondaryContainer : tint);
+  const off = offColor ?? (tonal ? palette.onSurfaceVariant : secondary);
+  const Toggle = tonal ? FilledIconToggleButton : IconToggleButton;
+  const colors = tonal
+    ? {containerColor: palette.surfaceContainerHighest, contentColor: off, checkedContainerColor: palette.secondaryContainer, checkedContentColor: on}
+    : {contentColor: off, checkedContentColor: on};
   return (
-    <IconToggleButton
+    <Toggle
       checked={value}
       enabled={!disabled}
       onCheckedChange={onValueChange}
-      colors={{contentColor: offColor ?? secondary, checkedContentColor: color ?? tint}}
+      colors={colors}
       modifiers={modifiers}>
       {shown ? (
-        <Icon source={shown} size={size} tint={value ? color ?? tint : offColor ?? secondary} contentDescription={label}/>
+        <Icon source={shown} size={size} tint={value ? on : off} contentDescription={label}/>
       ) : null}
-    </IconToggleButton>
+    </Toggle>
   );
 }

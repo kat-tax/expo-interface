@@ -66,7 +66,9 @@ Props: `label` (the accessible name, and the text of an `extended` one),
 `icon`, `onPress`, `items` (a `MenuItem` list; with items the button opens a
 menu instead of pressing), `onOpenChange`, `size` (`small`, `regular`, `large`,
 `extended`; 40, 56 and 96 point squares, and 56 tall and as wide as its label),
-`shape` (`rounded`, `circle`), `disabled`, `testID`.
+`shape` (`rounded`, `circle`), `disabled`, `material` (web only: the `items`
+menu draws on the kit's material, as `Menu`'s does; the app's
+`overlayMaterial` unless given), `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -76,7 +78,10 @@ menu instead of pressing), `onOpenChange`, `size` (`small`, `regular`, `large`,
 | Windows | Drawn with the same geometry, since Fluent has no such control: filled with the accent, a Segoe glyph, WinUI's state fills, the focus ring, Enter and Space. With `items` a press opens a WinUI `MenuFlyout` above the button. |
 
 `onOpenChange` is reported on Android, web and Windows. SwiftUI's `Menu` has
-no presentation binding, so iOS never reports it.
+no presentation binding, so iOS never reports it. On web a button with
+`items` takes its popover target once the page has hydrated, as the `Menu`'s
+trigger does, so on a static page a press before then does nothing, and
+Escape closes the open menu and goes no further, as for `Menu`.
 
 While a `Toast` under the same `Screen` shows, the button moves up by the
 toast's height and back down as it goes, as Material's scaffold moves its
@@ -112,24 +117,33 @@ platform has a control for it.
 
 A round icon button with two states, the outline when off and the filled
 glyph when on. Props: `label`, `icon`, `activeIcon` (defaults to `icon`),
-`value`, `onValueChange`, `color`, `offColor`, `size` (24), `disabled`,
-`offVisibility` (`visible`, or `hidden` for a toggle that is not drawn,
-pressed or announced while it is off: what a `Card` reveals under the
-pointer), `testID`.
+`value`, `onValueChange`, `variant` (`plain`, the bare icon, or `tonal`,
+the icon on a round container of 40 points, for a toggle over a picture),
+`color`, `offColor`, `size` (24), `disabled`, `offVisibility` (`visible`,
+or `hidden` for a toggle that is not drawn, pressed or announced while it
+is off: what a `Card` reveals under the pointer), `testID`.
 
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Button` with the selected trait while on |
-| Android | Material 3 `IconToggleButton` |
+| Android | Material 3 `IconToggleButton`; `FilledIconToggleButton` when tonal |
 | Web | `<button aria-pressed>` |
 | Windows | WinUI `ToggleButton` holding a `FontIcon`, with the two colors in place of the control's checked fill |
+
+The tonal toggle is Material's filled tonal icon button on Android: the
+container in the host palette's `surfaceContainerHighest` under the icon in
+`onSurfaceVariant`, and `secondaryContainer` under `onSecondaryContainer`
+while on, unless `color` and `offColor` say otherwise. On iOS, web and
+Windows it is a circle in the `pillBackground` fill (a SwiftUI `background`
+on the button's label, a class on the button, a round view around the
+island) under the icon in its two colors.
 
 On Windows a token with no Segoe glyph renders nothing. On iOS and Android
 a toggle outside a host mounts one of its own, sized to itself. A hidden
 toggle keeps its box on iOS (SwiftUI's `hidden`), web (`visibility: hidden`)
-and Windows (`Visibility.Collapsed`, in a slot of its own), and gives it up
-on Android, where Compose has nothing that hides a control from TalkBack
-short of leaving it out.
+and Windows (`Visibility.Collapsed`, in a slot of its own, with no fill
+around it), and gives it up on Android, where Compose has nothing that
+hides a control from TalkBack short of leaving it out.
 
 ## Switch
 
@@ -206,6 +220,10 @@ Differences:
   field, every Enter), and no Shift.
 - `keyboardType` on web is also the field's `inputmode`, which a multi-line
   field takes.
+- A multi-line `inline` field on web is a `<textarea>` one row tall: a
+  browser that sizes a field to its content (`field-sizing`) grows it with
+  its lines up to its `maxHeight`, and one that does not scrolls inside the
+  row. The native inputs grow with their text.
 - `onFocus`, `onBlur` and the `ref` reach `inline` and the web row, the
   React Native inputs. The SwiftUI, Compose and WinUI rows report no focus
   and take no commands.
@@ -232,14 +250,27 @@ was held: Escape to close an assistant; on web and Windows the Enter that
 sends stays the composer's), `autoCapitalize`, `autoCorrect` and `keyboardType` (the
 field's, as on a `TextField`), `menu` (`label`, `icon`, `items`: the
 platform's menu behind an icon button at the capsule's leading edge, for
-what the message goes to), `disabled`, `autoFocus`, `maxLength`, `style`,
-`testID`.
+what the message goes to), `disabled` (writing, sending and the menu; the
+stop button stays live while `busy`, so a disabled composer can still stop
+what it runs), `autoFocus`, `maxLength`, `style`, `testID`, and a `ref`
+with the field's `focus` and `blur`, to put a phone's keyboard away as a
+message sends or give the field the focus back.
 
 Drawn in React Native on every platform: a `Surface` capsule holding a
 `bare` `TextField` and the kit's circle `Button` in a host of its own, so
 it sits in a `Sheet`'s footer or at the bottom of a screen. Enter sends and
 Shift+Enter breaks the line on web and a desktop keyboard; the keyboard's
 send key sends on a phone. While `busy` neither sends, and the text stays.
+The capsule starts one line tall and grows with the text to five lines,
+then scrolls; on web it grows where the browser sizes a field to its
+content (`field-sizing`), and where the browser does not it stays one line
+tall and scrolls inside.
+With one line in it the capsule is 44 points tall on every platform. On
+Android the buttons' hosts are boxes of the room one line leaves, 36dp,
+since Material's icon button carries a 48dp touch target that a host sized
+to it would bring into the capsule; the button is drawn as a 36dp circle,
+which is its touch target. The field centres its line and lays the
+placeholder out without the font's padding, so it sits where the text does.
 On web the capsule draws the focus ring while the field has the focus.
 A screen reader reads a new `notice` out, so an error after a failed send
 is heard. On Android and web the notice is a polite live region, and on
@@ -434,4 +465,12 @@ it is asked:
 | `menu` | SwiftUI's `Menu` of the swatches from a well | A Material `DropdownMenu` of the swatches from the well | The kit's menu popover from the well | A `MenuFlyout` of the swatches from a drawn well |
 
 On Android and web, a picker in a sheet, a dialog or a popover is titled with
-`label`, or "Colors" without one. A swatch picked from a menu is opaque.
+`label`, or "Colors" without one. A swatch picked from a menu is opaque. On
+web the well of a `popover` or `menu` picker takes its popover target once
+the page has hydrated, as the `Menu`'s trigger does, so on a static page a
+press before then does nothing.
+
+A drag across the drawn picker's spectrum or a slider stays with the picker
+in a sheet. On web the `Sheet`'s drawer leaves a drag that starts on them
+alone, and on Android the picker keeps the sheet around an `inline` picker
+from intercepting it, as the sheet the row opens has its gestures off.

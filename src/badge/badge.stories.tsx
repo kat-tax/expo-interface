@@ -12,7 +12,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A count or a dot beside the thing it is about. A WinUI `InfoBadge` on Windows; on Android the Material 3 `Badge` inside a native host, drawn to its geometry anywhere else; drawn on iOS, where SwiftUI only paints its own badge inside a `List`, a `TabView` or a toolbar. Placing one over a control is the caller\'s job.',
+          'A count or a dot beside the thing it is about. A WinUI `InfoBadge` on Windows; on Android the Material 3 `Badge` inside a native host, drawn to its geometry anywhere else; on iOS the UIKit capsule, drawn outside a host and in SwiftUI inside one, since SwiftUI only paints its own badge inside a `List`, a `TabView` or a toolbar. Placing one over a control is the caller\'s job.',
       },
     },
   },
@@ -53,7 +53,7 @@ export const Zero: Story = {
   ),
 };
 
-/** Inside a host, Android shows Compose's Material badge; anywhere else it is drawn to the same geometry. */
+/** Inside a host, Android shows Compose's Material badge and iOS a SwiftUI capsule; anywhere else it is drawn to the same geometry. */
 export const InAHost: Story = {
   render: args => (
     <NativeHost fit direction="row" spacing={12}>

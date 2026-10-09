@@ -2,6 +2,7 @@ import '@testing-library/jest-dom/vitest';
 import type {ReactElement} from 'react';
 import type {MenuItem} from '../menu/types';
 import {render, screen} from '@testing-library/react';
+import {AccentProvider} from '../accent';
 import {PopupMenu} from '.';
 
 const items: MenuItem[] = [
@@ -57,6 +58,22 @@ describe('PopupMenu (web)', () => {
     expect(screen.getAllByRole('menuitem', {hidden: true})).toHaveLength(3);
   });
 
+  it('draws the menu on a material of its own, or the app\'s, and as itself otherwise', () => {
+    const menu = () => screen.getByRole('menu', {hidden: true});
+    const {rerender} = render(<PopupMenu items={items} at={{x: 120, y: 48}} material="thin"/>);
+    expect(menu()).toHaveAttribute('data-material', 'thin');
+    expect(menu()).toHaveAttribute('data-material-fill', 'element');
+    expect(menu()).toHaveAttribute('data-material-edge', 'float');
+    rerender(
+      <AccentProvider overlayMaterial="regular">
+        <PopupMenu items={items} at={{x: 120, y: 48}}/>
+      </AccentProvider>,
+    );
+    expect(menu()).toHaveAttribute('data-material', 'regular');
+    rerender(<PopupMenu items={items} at={{x: 120, y: 48}}/>);
+    expect(menu()).not.toHaveAttribute('data-material');
+  });
+
   it('hydrates a static page\'s menu without a difference, and anchors the popup to its point', async () => {
     // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
     const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
@@ -94,38 +111,98 @@ describe('PopupMenu (web)', () => {
     expect(menu.style.getPropertyValue('position-anchor')).toBe(anchor.style.getPropertyValue('anchor-name'));
   });
 
-  it('waits for the press that raised it to end before opening', () => {
-    const {rerender} = render(<PopupMenu items={items} at={null} testID="popup"/>);
+  it('waits for the press that raised it to end, and opens in the task after its release', () => {
+    vi.useFakeTimers();
+    try {
+      const {rerender} = render(<PopupMenu items={items} at={null} testID="popup"/>);
 
-    // A context menu is raised from the right button going down. The browser
-    // settled what that press dismisses at `pointerdown`, so a popup shown
-    // while it is still held is hidden again by the release.
-    document.dispatchEvent(new Event('pointerdown'));
-    rerender(<PopupMenu items={items} at={{x: 120, y: 48}} testID="popup"/>);
-    expect(showPopover).not.toHaveBeenCalled();
+      // A context menu is raised from the right button going down. The browser
+      // settled what that press dismisses at `pointerdown` and carries it out
+      // at the release, after the release's own listeners: a popup shown while
+      // the button is held, or from the `pointerup` listener itself, is hidden
+      // again by that same press.
+      document.dispatchEvent(new Event('pointerdown'));
+      rerender(<PopupMenu items={items} at={{x: 120, y: 48}} testID="popup"/>);
+      expect(showPopover).not.toHaveBeenCalled();
 
-    document.dispatchEvent(new Event('pointerup'));
-    expect(showPopover).toHaveBeenCalledTimes(1);
+      document.dispatchEvent(new Event('pointerup'));
+      expect(showPopover).not.toHaveBeenCalled();
+      expect(vi.getTimerCount()).toBe(1);
+      vi.advanceTimersByTime(0);
+      expect(showPopover).toHaveBeenCalledTimes(1);
 
-    // And the wait is over: the next press dismisses it like any other.
-    document.dispatchEvent(new Event('pointerup'));
-    expect(showPopover).toHaveBeenCalledTimes(1);
+      // And the wait is over: the next release schedules nothing, and the next
+      // press dismisses the popup like any other.
+      document.dispatchEvent(new Event('pointerup'));
+      expect(vi.getTimerCount()).toBe(0);
+      vi.advanceTimersByTime(0);
+      expect(showPopover).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('gives up the wait when the pointer is cancelled, and when the point is', () => {
-    const {rerender} = render(<PopupMenu items={items} at={null} testID="popup"/>);
-    document.dispatchEvent(new Event('pointerdown'));
-    rerender(<PopupMenu items={items} at={{x: 1, y: 1}} testID="popup"/>);
-    document.dispatchEvent(new Event('pointercancel'));
-    expect(showPopover).toHaveBeenCalledTimes(1);
+    vi.useFakeTimers();
+    try {
+      const {rerender} = render(<PopupMenu items={items} at={null} testID="popup"/>);
+      document.dispatchEvent(new Event('pointerdown'));
+      rerender(<PopupMenu items={items} at={{x: 1, y: 1}} testID="popup"/>);
+      // A cancelled pointer ends the press as a release does: the popup opens
+      // in the task after it.
+      document.dispatchEvent(new Event('pointercancel'));
+      expect(showPopover).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(0);
+      expect(showPopover).toHaveBeenCalledTimes(1);
 
-    // A point cleared while the press is still held leaves nothing waiting.
-    const second = render(<PopupMenu items={items} at={null} testID="second"/>);
-    document.dispatchEvent(new Event('pointerdown'));
-    second.rerender(<PopupMenu items={items} at={{x: 2, y: 2}} testID="second"/>);
-    second.rerender(<PopupMenu items={items} at={null} testID="second"/>);
-    document.dispatchEvent(new Event('pointerup'));
-    expect(showPopover).toHaveBeenCalledTimes(1);
+      // A point cleared while the press is still held leaves nothing waiting.
+      const second = render(<PopupMenu items={items} at={null} testID="second"/>);
+      document.dispatchEvent(new Event('pointerdown'));
+      second.rerender(<PopupMenu items={items} at={{x: 2, y: 2}} testID="second"/>);
+      second.rerender(<PopupMenu items={items} at={null} testID="second"/>);
+      document.dispatchEvent(new Event('pointerup'));
+      expect(vi.getTimerCount()).toBe(0);
+      vi.advanceTimersByTime(0);
+      expect(showPopover).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('shows nothing and leaves no timer when the point is cleared between the release and the task', () => {
+    vi.useFakeTimers();
+    try {
+      const {rerender} = render(<PopupMenu items={items} at={null} testID="popup"/>);
+      document.dispatchEvent(new Event('pointerdown'));
+      rerender(<PopupMenu items={items} at={{x: 3, y: 3}} testID="popup"/>);
+      document.dispatchEvent(new Event('pointerup'));
+      expect(vi.getTimerCount()).toBe(1);
+      rerender(<PopupMenu items={items} at={null} testID="popup"/>);
+      expect(vi.getTimerCount()).toBe(0);
+      vi.advanceTimersByTime(0);
+      expect(showPopover).not.toHaveBeenCalled();
+      // There was nothing up to hide, either.
+      expect(hidePopover).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('shows nothing and leaves no timer when it unmounts between the release and the task', () => {
+    vi.useFakeTimers();
+    try {
+      const {rerender, unmount} = render(<PopupMenu items={items} at={null} testID="popup"/>);
+      document.dispatchEvent(new Event('pointerdown'));
+      rerender(<PopupMenu items={items} at={{x: 1, y: 1}} testID="popup"/>);
+      document.dispatchEvent(new Event('pointerup'));
+      expect(vi.getTimerCount()).toBe(1);
+      unmount();
+      expect(vi.getTimerCount()).toBe(0);
+      vi.advanceTimersByTime(0);
+      expect(showPopover).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('opens straight away when nothing is being pressed', () => {

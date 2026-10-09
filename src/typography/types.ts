@@ -81,4 +81,10 @@ export interface TypographyProps {
    * number in a stat tile, a word set large for emphasis.
    */
   level?: HeadingLevel | false;
+  /**
+   * Web: lets a script move the keyboard focus to the text (`-1`) without
+   * adding it to the Tab order, as a sheet does with its title as it opens;
+   * `0` adds it. iOS, Android and Windows leave it out.
+   */
+  tabIndex?: -1 | 0;
 }

@@ -48,12 +48,15 @@ describe('List (windows)', () => {
   it('hands the end to the list, and pads its content by the screen\'s bar and its own insets', async () => {
     const onEndReached = vi.fn();
     await render(
-      <ScrollInsetsContext.Provider value={{top: 100, bottom: 0, automatic: false}}>
+      <ScrollInsetsContext.Provider value={{top: 100, bottom: 0, left: 0, right: 0, automatic: false}}>
         <List data={rows} renderItem={title => <ListItem>{title}</ListItem>} onEndReached={onEndReached} contentInset={{top: 8, bottom: 20}} testID="list"/>
       </ScrollInsetsContext.Provider>,
     );
     const list = screen.getByTestId('list');
     expect(list.props.onEndReached).toBe(onEndReached);
-    expect(StyleSheet.flatten(list.props.contentContainerStyle)).toEqual({paddingTop: 108, paddingBottom: 20});
+    expect(StyleSheet.flatten(list.props.contentContainerStyle)).toEqual({paddingTop: 108, paddingBottom: 20, paddingLeft: 0, paddingRight: 0});
+    // The sides are the list's own, inside the scroller too.
+    await render(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} contentInset={{left: 16, right: 8}} testID="sides"/>);
+    expect(StyleSheet.flatten(screen.getByTestId('sides').props.contentContainerStyle)).toMatchObject({paddingLeft: 16, paddingRight: 8});
   });
 });

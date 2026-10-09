@@ -126,6 +126,14 @@ const covered = useKeyboardInset(editor);
 A `Surface` takes the ref as a `View` does, so one surface can keep the
 browser's menu closed and be measured.
 
+A `KeyboardBar` riding on the keyboard over the view counts as well. While
+it rides it covers its own height above the keyboard's top, so a view that
+reaches into that band is covered by that much more, and an editor under
+the bar scrolls its caret clear of the bar too; a view that ends above the
+band still reads zero. The bar's `onKeyboard` reports the keyboard's height
+alone. On the web the bar is a plain view, since the browser keeps the page
+above the keyboard, so nothing rides and nothing is added.
+
 | Platform | Reads |
 | --- | --- |
 | iOS | The keyboard's frame as it starts to change (`keyboardWillChangeFrame`), so the answer arrives with the keyboard, measured against the view in the window |

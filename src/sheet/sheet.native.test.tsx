@@ -1,10 +1,18 @@
+import {useContext} from 'react';
 import {Platform, Text} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {AccentProvider, ACCENT_SEED} from '../accent';
 import type {HostNode} from 'expo-vitest/native';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
+import {SheetBodyCapContext} from './cap-context';
 import {Sheet} from '.';
+
+/** Prints the cap a list at this point would take as its height. */
+function Cap() {
+  const cap = useContext(SheetBodyCapContext);
+  return <Text>{`cap ${cap}`}</Text>;
+}
 
 const isIOS = Platform.OS === 'ios';
 
@@ -40,7 +48,8 @@ describe(`Sheet (${Platform.OS})`, () => {
       });
     } else {
       expect(modal().props.showDragHandle).toBe(true);
-      expect(modal().props.skipPartiallyExpanded).toBe(false);
+      // Without snap points the sheet opens whole, past Material's half-way stop.
+      expect(modal().props.skipPartiallyExpanded).toBe(true);
       const {props} = byComposeTestID('sheet');
       expect(modifier(props, 'padding')).toEqual({$type: 'padding', start: 16, top: 0, end: 16, bottom: 0});
       expect(modifier(props, 'fillMaxHeight')).toBeUndefined();
@@ -57,7 +66,8 @@ describe(`Sheet (${Platform.OS})`, () => {
     if (isIOS) {
       expect(modifier(presentation().props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: ACCENT_SEED}});
     } else {
-      // Palette overlay is covered in sheet.android.test.tsx; the sheet itself takes no modifiers.
+      // The seeded host is covered in sheet.android.test.tsx; the sheet itself takes no modifiers.
+      expect(nodes()[0].props.seedColor).toBe(ACCENT_SEED);
       expect(modal().props.modifiers).toBeUndefined();
     }
   });
@@ -151,7 +161,7 @@ describe(`Sheet (${Platform.OS})`, () => {
 
   it('gives its content no scroll insets, whatever screen it opens from', async () => {
     await render(
-      <ScrollInsetsContext.Provider value={{top: 96, bottom: 24, automatic: true}}>
+      <ScrollInsetsContext.Provider value={{top: 96, bottom: 24, left: 0, right: 0, automatic: true}}>
         <Insets/>
         <Sheet isPresented onDismiss={() => {}} accessory={<Insets/>} footer={<Insets/>} maxHeight={300}>
           <Insets/>
@@ -175,6 +185,23 @@ describe(`Sheet (${Platform.OS})`, () => {
       expect(screen.toJSON()).toBeNull();
     }
   });
+
+  it('tells a capped body its cap in points, for a list to take as its height, and the rest nothing', async () => {
+    const {rerender} = await render(
+      <Sheet isPresented onDismiss={() => {}} accessory={<Cap/>} footer={<Cap/>} maxHeight={300}>
+        <Cap/>
+      </Sheet>,
+    );
+    // The body alone: the accessory and the footer stand outside the capped box.
+    expect(screen.getByText('cap 300')).toBeOnTheScreen();
+    expect(screen.getAllByText('cap undefined')).toHaveLength(2);
+    await rerender(
+      <Sheet isPresented onDismiss={() => {}}>
+        <Cap/>
+      </Sheet>,
+    );
+    expect(screen.getByText('cap undefined')).toBeOnTheScreen();
+  });
 });
 
 describe('material', () => {
@@ -196,10 +223,32 @@ describe('material', () => {
     expect(modifier(host(props => Array.isArray(props.modifiers)).props, 'presentationBackground')).toBeUndefined();
   });
 
+  (isIOS ? it : it.skip)('takes the app\'s overlay material unless told otherwise', async () => {
+    const sheet = (material?: 'none') => (
+      <AccentProvider overlayMaterial="thin">
+        <Sheet isPresented onDismiss={() => {}} material={material}><Text>Body</Text></Sheet>
+      </AccentProvider>
+    );
+    const {rerender} = await render(sheet());
+    expect(modifier(host(props => Array.isArray(props.modifiers)).props, 'presentationBackground')).toEqual({
+      $type: 'presentationBackground',
+      style: {type: 'material', material: 'thin'},
+    });
+    await rerender(sheet('none'));
+    expect(modifier(host(props => Array.isArray(props.modifiers)).props, 'presentationBackground')).toBeUndefined();
+  });
+
   (isIOS ? it.skip : it)('leaves the Android sheet opaque, because Compose has no material for it', async () => {
     await render(<Sheet isPresented onDismiss={() => {}} material="thick"><Text>Body</Text></Sheet>);
     // ModalBottomSheet takes a containerColor and nothing else; the prop is
     // documented as absent here rather than quietly doing nothing.
+    expect(nodes().every(node => node.props.presentationBackground === undefined)).toBe(true);
+    // The app's overlay material changes nothing either.
+    await render(
+      <AccentProvider overlayMaterial="thick">
+        <Sheet isPresented onDismiss={() => {}}><Text>Body</Text></Sheet>
+      </AccentProvider>,
+    );
     expect(nodes().every(node => node.props.presentationBackground === undefined)).toBe(true);
   });
 });

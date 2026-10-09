@@ -1,15 +1,10 @@
 import type {ReactNode} from 'react';
 import type {BottomSheetProps} from '@expo/ui';
+import type {MaterialThickness} from '../material/types';
 import type {MenuItem} from '../menu/types';
 
-/**
- * How much of what is behind the sheet shows through it.
- *
- * Named for what it does rather than for any one platform's word: `thin` lets
- * a lot through, `thick` almost nothing. `none` is the opaque sheet, the
- * default and the right answer for a sheet holding a form.
- */
-export type SheetMaterial = 'none' | 'thin' | 'regular' | 'thick';
+/** How much of what is behind the sheet shows through it: the kit's `MaterialThickness`. */
+export type SheetMaterial = MaterialThickness;
 
 /**
  * A height in points, or a fraction of the window's height: `{fraction: 0.6}`
@@ -74,7 +69,9 @@ export interface SheetAction {
  *
  * Without `snapPoints` the sheet fits its content on every platform:
  * SwiftUI's fitted detent, Compose's intrinsic height, the drawer's own on
- * web. `maxHeight` caps that, and the body scrolls inside the cap.
+ * web. On Android it opens whole: Material offers a sheet taller than half
+ * the window a stop half way up, and the sheet skips it. `maxHeight` caps
+ * the body, which scrolls inside the cap.
  *
  * The sheet's content is not under a screen's bar, so `useScrollInsets()`
  * answers zero inside it, whatever screen the sheet opens from.
@@ -84,13 +81,20 @@ export interface SheetProps extends BottomSheetProps {
    * The body. On iOS and Android a body without `maxHeight` is the sheet's
    * native content, as the bar is, so it must be `@expo/ui` content (a
    * `FieldGroup`, a `List`, a `ColorPicker`), where the kit's controls render
-   * bare. With `maxHeight` the body is React Native content hosted in the
-   * sheet at the sheet's width: a `Pressable` in it takes presses, a control
-   * in it mounts a host of its own, and `@expo/ui` content of the app's own
-   * needs a `NativeHost` around it. Give a React Native body a `maxHeight`.
-   * On web and Windows the body can be either.
+   * bare, and it takes all the room the sheet offers: a `List`, or a
+   * `FieldGroup` taller than the room, leaves the footer and the actions
+   * none, so give those a `maxHeight` too. With `maxHeight` the body is
+   * React Native content hosted in the sheet at the sheet's width: a
+   * `Pressable` in it takes presses, a control in it mounts a host of its
+   * own, a `List` in it is the cap tall and scrolls inside it, and `@expo/ui`
+   * content of the app's own needs a `NativeHost` around it. Give a React
+   * Native body a `maxHeight`. On web and Windows the body can be either.
    */
   children?: ReactNode;
+  /**
+   * The material the sheet draws on, where the platform has one (see
+   * above). The app's `overlayMaterial` (`AccentProvider`) unless given.
+   */
   material?: SheetMaterial;
   /**
    * The sheet's name, in a bar along its top: native text on iOS and
@@ -133,7 +137,10 @@ export interface SheetProps extends BottomSheetProps {
    * The most the body alone grows to, in points or as a fraction of the
    * window's height ({@link SheetMaxHeight}). A sheet without `snapPoints`
    * fits its content; past this height the body scrolls inside the sheet
-   * instead, as React Native content the width of the sheet.
+   * instead, as React Native content the width of the sheet. On iOS and
+   * Android a body that takes all the room it is offered (a `List`, a long
+   * `FieldGroup`) needs the cap to leave the footer and the actions theirs,
+   * and a `List` as the body is then the cap tall.
    */
   maxHeight?: SheetMaxHeight;
 }

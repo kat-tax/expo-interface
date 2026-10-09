@@ -12,7 +12,7 @@ platform gets what it can carry:
 | Web | Real elements with their native semantics, ARIA roles where the kit composes (`menu`, `radiogroup`, `tablist`, `dialog`, `tooltip`, `status`, `meter`, `heading` with a level, `navigation`), and the keyboard patterns those roles promise |
 | Windows | The islands carry WinUI's own UI Automation. For what the kit draws: the name, `AutomationId` from `testID`, the heading role, `HelpText` from `accessibilityHint`, and the position in a set through `inSet` on the tab view's drawn tabs. `IsDialog` and `LandmarkType` cannot be set from JavaScript on react-native-windows. |
 
-Three rules the kit follows:
+Five rules the kit follows:
 
 - An element referenced by `aria-labelledby` is read whole, `aria-hidden`
   descendants included, so the reference points at a title span and never at
@@ -22,6 +22,17 @@ Three rules the kit follows:
   `aria-keyshortcuts`.
 - A drawn control on Windows gets an explicit label: react-native-windows
   composes no name from the text inside a view.
+- A badge its parent speaks for (`Badge` with `label={null}`, and whatever a
+  `TabView` tab holds as its `accessory`) is no accessibility element of its
+  own, so a screen reader stops on the parent once; on Android an accessible
+  view inside another is a stop of its own, and inside a host there the
+  badge's number stays a text TalkBack reads, since `@expo/ui` has no
+  modifier that clears a node's semantics.
+- A `Sheet` on the web moves the keyboard focus into itself as it opens, to
+  its title or else to its first control, and gives it back to the control
+  that opened it once the sheet has gone: the drawer leaves the focus where
+  it was while its dialog hides the rest of the page from assistive
+  technology, so a screen reader would otherwise sit on a hidden button.
 
 Every story runs axe at the error level, and the harness reads the
 accessibility tree on web, Windows and Android, which is where names that

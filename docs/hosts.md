@@ -88,8 +88,13 @@ present natively mount a host of their own only when there is none:
   host of their own; on web and Windows they count as hosted too.
 
 `Badge` needs no host. On Android it is Compose's Material `Badge` inside one
-and is drawn in React Native to the same geometry outside one; iOS draws it
-everywhere. A badge in a row of the app's own measures like any view.
+and on iOS a SwiftUI capsule; outside one both draw it in React Native to the
+same geometry. A badge in a row of the app's own measures like any view.
+
+`Avatar` needs no host either. On Android it is Compose content inside one (a
+`ListItem`'s `leading`, a `NativeHost`, `Screen native`) and a drawn circle
+outside; iOS and web draw it everywhere, and Windows hosts a `PersonPicture`
+island.
 
 You rarely call `useNativeHost()` yourself. It is there for a component of
 your own that wraps `@expo/ui` content and has to work both inside and outside

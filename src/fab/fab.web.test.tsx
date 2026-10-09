@@ -1,8 +1,10 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
+import type {ReactElement} from 'react';
 import type {MenuItem} from '../menu/types';
 import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
+import {AccentProvider} from '../accent';
 import {Fab} from '.';
 
 const items: MenuItem[] = [
@@ -62,6 +64,22 @@ describe('Fab (web)', () => {
     expect(onPress).not.toHaveBeenCalled();
   });
 
+  it('draws its menu on a material of its own, or the app\'s, and as itself otherwise', () => {
+    const menu = () => screen.getByRole('menu', {hidden: true});
+    const {rerender} = render(<Fab label="New" icon={icons.add} items={items} material="regular"/>);
+    expect(menu()).toHaveAttribute('data-material', 'regular');
+    expect(menu()).toHaveAttribute('data-material-fill', 'element');
+    expect(menu()).toHaveAttribute('data-material-edge', 'float');
+    rerender(
+      <AccentProvider overlayMaterial="thick">
+        <Fab label="New" icon={icons.add} items={items}/>
+      </AccentProvider>,
+    );
+    expect(menu()).toHaveAttribute('data-material', 'thick');
+    rerender(<Fab label="New" icon={icons.add} items={items}/>);
+    expect(menu()).not.toHaveAttribute('data-material');
+  });
+
   it('opens the kit popup menu instead of pressing when given items', () => {
     const onPress = vi.fn();
     const onBlank = vi.fn();
@@ -78,5 +96,47 @@ describe('Fab (web)', () => {
     expect(onPress).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('menuitem', {name: 'Blank document', hidden: true}));
     expect(onBlank).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes an open menu on Escape, and the key goes no further', () => {
+    // jsdom ships no imperative Popover API: the close is what the stub sees.
+    const hidePopover = vi.fn();
+    const proto = HTMLElement.prototype as {hidePopover?: () => void};
+    proto.hidePopover = hidePopover;
+    const heard = vi.fn();
+    const listener = (event: KeyboardEvent) => heard(event.key);
+    document.addEventListener('keydown', listener, true);
+    try {
+      render(<Fab label="New" icon={icons.add} items={items}/>);
+      const menu = screen.getByRole('menu', {hidden: true});
+      // Shown by the button's `popovertarget`: the key is the menu's from then on.
+      vi.spyOn(menu, 'matches').mockImplementation(selector => selector === ':popover-open');
+      fireEvent.keyDown(screen.getByRole('menuitem', {name: 'Blank document', hidden: true}), {key: 'Escape'});
+      expect(hidePopover).toHaveBeenCalledTimes(1);
+      expect(heard).not.toHaveBeenCalled();
+    } finally {
+      document.removeEventListener('keydown', listener, true);
+      delete proto.hidePopover;
+    }
+  });
+
+  it('gives the button its popover target once a static page has hydrated, and not before', async () => {
+    // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
+    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
+    const tree = <Fab label="New" icon={icons.add} items={items} testID="new"/>;
+    // What a static export writes: a button with no target, so a press before the page runs opens nothing.
+    const container = document.body.appendChild(document.createElement('div'));
+    container.innerHTML = renderToString(tree);
+    expect(screen.getByTestId('new')).not.toHaveAttribute('popovertarget');
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const {unmount} = render(tree, {container, hydrate: true});
+      expect(errors).not.toHaveBeenCalled();
+      expect(screen.getByTestId('new')).toHaveAttribute('popovertarget', container.querySelector('[popover]')!.id);
+      unmount();
+    } finally {
+      errors.mockRestore();
+      container.remove();
+    }
   });
 });

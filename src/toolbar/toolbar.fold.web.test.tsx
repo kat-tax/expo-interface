@@ -52,4 +52,32 @@ describe('Toolbar folding (web)', () => {
     expect(screen.getByRole('button', {name: 'More'})).toBeInTheDocument();
     expect(screen.getByRole('button', {name: 'Next match'})).toBeInTheDocument();
   });
+
+  it('mounts no group for a side with nothing to draw, so the field takes its room', async () => {
+    // The row holding the groups and the field: what is in it besides the field is a group.
+    const groups = () => screen.getByText('Find').parentElement!.parentElement!.childElementCount - 1;
+    const {rerender} = render(<Toolbar commands={commands} field={<Text>Find</Text>} testID="bar"/>);
+    // No field commands and nothing secondary: the leading group alone.
+    expect(groups()).toBe(1);
+    expect(screen.getByRole('button', {name: 'Bold'})).toBeInTheDocument();
+    rerender(<Toolbar commands={commands} field={<Text>Find</Text>} foldCommands testID="bar"/>);
+    await layout(screen.getByTestId('bar'), 390);
+    // Folded: the overflow's group alone.
+    expect(groups()).toBe(1);
+    expect(screen.queryByRole('button', {name: 'Bold'})).toBeNull();
+    expect(screen.getByRole('button', {name: 'More'})).toBeInTheDocument();
+    // Folded with nothing behind the overflow: no group at all.
+    rerender(<Toolbar commands={[{label: 'Recent', items: []}]} field={<Text>Find</Text>} foldCommands testID="bar"/>);
+    expect(groups()).toBe(0);
+    expect(screen.queryByRole('button')).toBeNull();
+    // The field's commands keep their group, and folded, the overflow joins them in it.
+    rerender(bar(true));
+    expect(groups()).toBe(1);
+    expect(screen.getByRole('button', {name: 'Next match'})).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'More'})).toBeInTheDocument();
+    // Unfolded: the commands' group and the field's commands' group.
+    rerender(bar(false));
+    expect(groups()).toBe(2);
+    expect(screen.getByRole('button', {name: 'Bold'})).toBeInTheDocument();
+  });
 });

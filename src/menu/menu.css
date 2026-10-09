@@ -55,6 +55,18 @@
   overflow: visible;
 }
 
+/*
+ * On one of the kit's materials (`data-material`, drawn by `material.css`)
+ * the stylesheet paints the fill, the hairline and the shadow, so the
+ * list's own give way. `:where` keeps this under the material's rules,
+ * whichever stylesheet the bundle puts last.
+ */
+.ui-menu__list:where([data-material]) {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
 .ui-menu__list--anchored {
   position-area: bottom span-left;
   position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;

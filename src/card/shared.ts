@@ -1,7 +1,10 @@
 import {icon} from '../icons';
 
-/** The ellipsis the card's `menu` opens from. */
-export const MORE = icon({ios: 'ellipsis', android: 'more_horiz', web: 'more_horiz', windows: 'E712'});
+/**
+ * The ellipsis the card's `menu` opens from. Android draws `more_vert`,
+ * Material's card overflow; the other platforms the horizontal ellipsis.
+ */
+export const MORE = icon({ios: 'ellipsis', android: 'more_vert', web: 'more_horiz', windows: 'E712'});
 
 /** The star of `favorite`, outline and filled. */
 export const STAR = icon({ios: 'star', android: 'star', web: 'star', windows: 'E734'});
@@ -9,6 +12,9 @@ export const STAR_FILLED = icon({ios: 'star', android: 'star', web: 'star', wind
 
 /** What the footer the kit draws leaves clear at its trailing edge for the menu button. */
 export const MENU_ROOM = 40;
+
+/** The menu's glyph on Android, in dp: Material's card overflow, a 24 dp glyph in the 40 dp icon button. */
+export const MENU_GLYPH = 24;
 
 /** The card's accessible name when the app gives none: its title, and its subtitle after it. */
 export function cardName(label: string | undefined, title: string | undefined, subtitle: string | undefined): string | undefined {

@@ -84,37 +84,75 @@ describe('PopupMenu, steadier (web)', () => {
     expect(open).toBe(true);
   });
 
-  it('keeps a menu a press moves open, and shows it at the new place once the press is over', () => {
-    const onDismiss = vi.fn();
-    const {rerender} = render(<PopupMenu items={items} at={{x: 10, y: 10}} onDismiss={onDismiss}/>);
-    expect(open).toBe(true);
-    // The next handle's button goes down, and the app moves the menu to it.
-    document.dispatchEvent(new Event('pointerdown'));
-    rerender(<PopupMenu items={items} at={{x: 40, y: 10}} onDismiss={onDismiss}/>);
-    // Closed for the press, as the app's own close: the release would dismiss it.
-    expect(open).toBe(false);
-    toggle(menu(), 'closed');
-    expect(onDismiss).not.toHaveBeenCalled();
-    document.dispatchEvent(new Event('pointerup'));
-    expect(open).toBe(true);
-    // The next close is the user's again.
-    open = false;
-    toggle(menu(), 'closed');
-    expect(onDismiss).toHaveBeenCalledWith('dismiss');
+  it('keeps a menu a press moves open, and shows it at the new place in the task after the press', () => {
+    vi.useFakeTimers();
+    try {
+      const onDismiss = vi.fn();
+      const {rerender} = render(<PopupMenu items={items} at={{x: 10, y: 10}} onDismiss={onDismiss}/>);
+      expect(open).toBe(true);
+      // The next handle's button goes down, and the app moves the menu to it.
+      document.dispatchEvent(new Event('pointerdown'));
+      rerender(<PopupMenu items={items} at={{x: 40, y: 10}} onDismiss={onDismiss}/>);
+      // Closed for the press, as the app's own close: the release would dismiss it.
+      expect(open).toBe(false);
+      toggle(menu(), 'closed');
+      expect(onDismiss).not.toHaveBeenCalled();
+      // The release shows nothing itself: the browser dismisses what its own
+      // listeners show with that same press. The task after it does.
+      document.dispatchEvent(new Event('pointerup'));
+      expect(open).toBe(false);
+      vi.advanceTimersByTime(0);
+      expect(open).toBe(true);
+      // The next close is the user's again.
+      open = false;
+      toggle(menu(), 'closed');
+      expect(onDismiss).toHaveBeenCalledWith('dismiss');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('reports nothing of the first menu when the point is cleared and set again during a press', () => {
-    const onDismiss = vi.fn();
-    const {rerender} = render(<PopupMenu items={items} at={{x: 10, y: 10}} onDismiss={onDismiss}/>);
-    document.dispatchEvent(new Event('pointerdown'));
-    rerender(<PopupMenu items={items} at={null} onDismiss={onDismiss}/>);
-    expect(open).toBe(false);
-    rerender(<PopupMenu items={items} at={{x: 40, y: 10}} onDismiss={onDismiss}/>);
-    // The first menu's close arrives while the button is still down.
-    toggle(menu(), 'closed');
-    expect(onDismiss).not.toHaveBeenCalled();
-    document.dispatchEvent(new Event('pointerup'));
-    expect(open).toBe(true);
+    vi.useFakeTimers();
+    try {
+      const onDismiss = vi.fn();
+      const {rerender} = render(<PopupMenu items={items} at={{x: 10, y: 10}} onDismiss={onDismiss}/>);
+      document.dispatchEvent(new Event('pointerdown'));
+      rerender(<PopupMenu items={items} at={null} onDismiss={onDismiss}/>);
+      expect(open).toBe(false);
+      rerender(<PopupMenu items={items} at={{x: 40, y: 10}} onDismiss={onDismiss}/>);
+      // The first menu's close arrives while the button is still down.
+      toggle(menu(), 'closed');
+      expect(onDismiss).not.toHaveBeenCalled();
+      document.dispatchEvent(new Event('pointerup'));
+      vi.advanceTimersByTime(0);
+      expect(open).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('reports nothing of the first menu when its close arrives after the release, before the task that shows the second', () => {
+    vi.useFakeTimers();
+    try {
+      const onDismiss = vi.fn();
+      const {rerender} = render(<PopupMenu items={items} at={{x: 10, y: 10}} onDismiss={onDismiss}/>);
+      document.dispatchEvent(new Event('pointerdown'));
+      rerender(<PopupMenu items={items} at={{x: 40, y: 10}} onDismiss={onDismiss}/>);
+      document.dispatchEvent(new Event('pointerup'));
+      // The browser reports the close in a task queued at the hide, which runs
+      // before the task the release queued.
+      toggle(menu(), 'closed');
+      expect(onDismiss).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(0);
+      expect(open).toBe(true);
+      // The next close is the user's again.
+      open = false;
+      toggle(menu(), 'closed');
+      expect(onDismiss).toHaveBeenCalledWith('dismiss');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('leaves a press outside a dismissal when the point it is given again has not moved', () => {
@@ -133,15 +171,21 @@ describe('PopupMenu, steadier (web)', () => {
   });
 
   it('moves a rectangle\'s menu for a press when only its size changes', () => {
-    const onDismiss = vi.fn();
-    const {rerender} = render(<PopupMenu items={items} at={{x: 10, y: 10, width: 80, height: 24}} onDismiss={onDismiss}/>);
-    document.dispatchEvent(new Event('pointerdown'));
-    rerender(<PopupMenu items={items} at={{x: 10, y: 10, width: 120, height: 24}} onDismiss={onDismiss}/>);
-    expect(open).toBe(false);
-    toggle(menu(), 'closed');
-    document.dispatchEvent(new Event('pointerup'));
-    expect(open).toBe(true);
-    expect(onDismiss).not.toHaveBeenCalled();
+    vi.useFakeTimers();
+    try {
+      const onDismiss = vi.fn();
+      const {rerender} = render(<PopupMenu items={items} at={{x: 10, y: 10, width: 80, height: 24}} onDismiss={onDismiss}/>);
+      document.dispatchEvent(new Event('pointerdown'));
+      rerender(<PopupMenu items={items} at={{x: 10, y: 10, width: 120, height: 24}} onDismiss={onDismiss}/>);
+      expect(open).toBe(false);
+      toggle(menu(), 'closed');
+      document.dispatchEvent(new Event('pointerup'));
+      vi.advanceTimersByTime(0);
+      expect(open).toBe(true);
+      expect(onDismiss).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('closes on Escape wherever the focus is, and keeps the key from the editor', () => {

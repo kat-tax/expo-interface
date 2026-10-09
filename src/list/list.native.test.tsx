@@ -5,6 +5,7 @@ import {EmptyState} from '../empty-state';
 import {NativeHostContext} from '../host';
 import {ListItem} from '../list-item';
 import {ScrollInsetsContext} from '../screen/insets';
+import {SheetBodyCapContext} from '../sheet/cap-context';
 import {colors} from '../theme';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {List} from '.';
@@ -107,7 +108,7 @@ describe(`List (${Platform.OS})`, () => {
   it('pads its content by the screen\'s bar and its own insets', async () => {
     await render(
       <NativeHostContext.Provider value={true}>
-        <ScrollInsetsContext.Provider value={{top: 100, bottom: 0, automatic: false}}>
+        <ScrollInsetsContext.Provider value={{top: 100, bottom: 0, left: 0, right: 0, automatic: false}}>
           <List data={rows} renderItem={title => <ListItem>{title}</ListItem>} contentInset={{top: 8, bottom: 20}}/>
         </ScrollInsetsContext.Provider>
       </NativeHostContext.Provider>,
@@ -117,7 +118,22 @@ describe(`List (${Platform.OS})`, () => {
       expect(modifier(spacers[0].props, 'frame')?.height).toBe(108);
       expect(modifier(spacers.at(-1)!.props, 'frame')?.height).toBe(20);
     } else {
-      expect(list().props.contentPadding).toEqual({top: 108, bottom: 20});
+      expect(list().props.contentPadding).toEqual({top: 108, bottom: 20, start: 0, end: 0});
+    }
+  });
+
+  it('pads the rows\' sides: content padding on Android, and on iOS the list as a whole', async () => {
+    await render_(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} contentInset={{left: 16, right: 8}}/>);
+    if (isIOS) {
+      // `@expo/ui` has no content margins for a scroll view: the list itself is padded.
+      expect(modifier(list().props, 'padding')).toMatchObject({leading: 16, trailing: 8});
+      // No padding on a list with no side inset; one side alone pads.
+      await render_(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>}/>);
+      expect(modifier(list().props, 'padding')).toBeUndefined();
+      await render_(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} contentInset={{right: 8}}/>);
+      expect(modifier(list().props, 'padding')).toMatchObject({leading: 0, trailing: 8});
+    } else {
+      expect(list().props.contentPadding).toEqual({top: 0, bottom: 0, start: 16, end: 8});
     }
   });
 
@@ -145,5 +161,25 @@ describe(`List (${Platform.OS})`, () => {
     expect(hosts()).toHaveLength(0);
     expect(screen.getByText('Nothing yet')).toBeTruthy();
     expect(screen.getByTestId('list')).toBeTruthy();
+  });
+
+  it('fills its parent, and as the body of a capped sheet is the cap tall instead, its empty content in the same box', async () => {
+    const {rerender} = await render(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} testID="list"/>);
+    expect(StyleSheet.flatten(screen.getByTestId('list').props.style)).toEqual({flex: 1, alignSelf: 'stretch'});
+    // The body's scroll view gives the box no height to fill, so the list takes the cap and its host fills that.
+    await rerender(
+      <SheetBodyCapContext.Provider value={300}>
+        <List data={rows} renderItem={title => <ListItem>{title}</ListItem>} testID="list"/>
+      </SheetBodyCapContext.Provider>,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId('list').props.style)).toEqual({alignSelf: 'stretch', height: 300});
+    expect(hostFit(hosts()[0])).toEqual({});
+    await rerender(
+      <SheetBodyCapContext.Provider value={300}>
+        <List data={[]} renderItem={() => null} empty={<Text>Nothing yet</Text>} testID="list"/>
+      </SheetBodyCapContext.Provider>,
+    );
+    expect(StyleSheet.flatten(screen.getByTestId('list').props.style)).toEqual({alignSelf: 'stretch', height: 300});
+    expect(screen.getByText('Nothing yet')).toBeTruthy();
   });
 });

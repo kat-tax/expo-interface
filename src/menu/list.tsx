@@ -1,8 +1,12 @@
 import type {CSSProperties, ToggleEvent} from 'react';
+import type {MaterialThickness} from '../material/types';
 import type {MenuItem} from './types';
 import {useEffect, useRef, useSyncExternalStore} from 'react';
 import {useMatchHighlight} from '../a11y/highlight';
 import {useRovingFocus} from '../a11y/roving';
+import {materialAttributes} from '../material';
+import {useOverlayMaterial} from '../material/context';
+import {useEscape} from '../popover/shared';
 import {Icon} from '../symbol';
 import {optionId} from './option-id';
 
@@ -31,6 +35,28 @@ const noSubscription = () => () => {};
  */
 function useAnchorPositioning(): boolean {
   return useSyncExternalStore(noSubscription, anchorPositioning, serverAnchorPositioning);
+}
+
+/** What the page answers once it runs. */
+function clientHydrated(): boolean {
+  return true;
+}
+
+/** What a static export's server answers: nothing runs on its page yet. */
+function serverHydrated(): boolean {
+  return false;
+}
+
+/**
+ * Whether the page is running: false in a static export's HTML and in the
+ * render that hydrates it, true from the render right after. A trigger
+ * that opens a `popover` through its `popovertarget` takes it only then, so
+ * a press before the bundle runs opens nothing, rather than a list the
+ * browser would open by itself, with no anchor and entries that do nothing
+ * yet.
+ */
+export function useHydrated(): boolean {
+  return useSyncExternalStore(noSubscription, clientHydrated, serverHydrated);
 }
 
 /** Turns a React `useId()` value into a valid CSS `<dashed-ident>` / HTML id. */
@@ -77,22 +103,47 @@ interface MenuListProps {
   highlighted?: number;
   /** Called as an entry is picked, before its `onPress`. */
   onPick?: () => void;
+  /**
+   * Whether the list takes Escape while its popover is open: it closes
+   * itself and the key goes no further, so a web `Sheet` around it stays
+   * up. A caller with a taker of its own around the list turns this off.
+   * @default true
+   */
+  takesEscape?: boolean;
+  /**
+   * The material the popup draws on, by the rules the bars use
+   * (`material.css`): the raised fill thinned over a blur of what is under
+   * it, with the hairline and the shadow all round. The app's
+   * `overlayMaterial` unless given.
+   */
+  material?: MaterialThickness;
 }
 
 
 /**
  * Web `role="menu"` popup shared by `Menu`, `ContextMenu` and `Fab`, rendered
  * as a native `popover="auto"` element. The browser handles the top layer,
- * light dismiss (outside click / Escape) and the trigger's `aria-expanded`;
- * every item carries `popovertargetaction="hide"` so picking one closes the
+ * the light dismiss on an outside click and the trigger's `aria-expanded`;
+ * Escape is the list's own while it is open, through the kit's taker, so
+ * the key stops at the window and a web `Sheet` around the list stays up.
+ * Every item carries `popovertargetaction="hide"` so picking one closes the
  * menu declaratively. Placement is CSS anchor positioning (see `menu.css`),
- * with a measured fallback for engines without it.
+ * with a measured fallback for engines without it. On a material the popup
+ * carries the attributes `material.css` draws the bar's glass from, and
+ * its own border, fill and shadow give way.
  */
-export function MenuList({id, items, anchor, atPoint, anchorRef, position, popoverRef, onOpenChange, match, edge = 'auto', focusOnOpen = true, highlighted, onPick}: MenuListProps) {
+export function MenuList({id, items, anchor, atPoint, anchorRef, position, popoverRef, onOpenChange, match, edge = 'auto', focusOnOpen = true, highlighted, onPick, takesEscape = true, material}: MenuListProps) {
   const localRef = useRef<HTMLDivElement>(null);
   const ref = popoverRef ?? localRef;
   const anchored = !!anchor && !position;
   const positioned = useAnchorPositioning();
+  const glass = useOverlayMaterial(material);
+  // Escape closes the list while its popover is open, wherever the focus is,
+  // and the key goes no further. The taker reads the popover itself: it
+  // wants the key from the moment the popover shows, before the browser's
+  // `toggle` event reports the opening, and not once the browser has hidden
+  // it.
+  useEscape(takesEscape, ref, () => ref.current!.hidePopover(), () => !!ref.current?.matches(':popover-open'));
   // `role="menu"` promises the menu keyboard pattern: one tab stop on the
   // checked item (or the first), the arrows moving within, and typing jumping
   // to a label. The browser gives the top layer and the light dismiss; this is
@@ -156,7 +207,8 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
       ].filter(Boolean).join(' ')}
       style={style as CSSProperties}
       onToggle={onToggle}
-      onKeyDown={listbox ? undefined : roving.onKeyDown}>
+      onKeyDown={listbox ? undefined : roving.onKeyDown}
+      {...materialAttributes(glass, 'element', 'float')}>
       {items.map((item, index) => (
         <div key={index}>
           {item.separator && index > 0 ? <div className="ui-menu__separator" role="separator"/> : null}

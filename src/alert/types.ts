@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import type {MaterialThickness} from '../material/types';
 import type {TextFieldCapitalize, TextFieldKeyboard} from '../text-field/types';
 
 /**
@@ -92,9 +93,9 @@ export interface AlertProps {
   sheet?: boolean;
   /**
    * A text field in the alert, for the one-field prompts: SwiftUI's alert
-   * with a `TextField` among its actions, Compose's `AlertDialog` with one
-   * under the message, a field in the web dialog and one in the WinUI
-   * dialog's body. On web and Windows the keyboard's action key presses the
+   * with a `TextField` among its actions, Compose's `AlertDialog` with
+   * Material's outlined field under the message, a field in the web dialog
+   * and one in the WinUI dialog's body. On web and Windows the keyboard's action key presses the
    * first action that is not `cancel`, and nothing while that action is
    * disabled. An action sheet (`sheet`) holds no field.
    */
@@ -108,6 +109,14 @@ export interface AlertProps {
    * alert mounts one of its own for the dialog alone.
    */
   children?: ReactNode;
+  /**
+   * Web only: the material the dialog draws on, by the rules the bars use
+   * (the raised fill thinned over a blur of the page under the backdrop,
+   * with a hairline and the floating shadow all round). The app's
+   * `overlayMaterial` (`AccentProvider`) unless given. The native alerts
+   * are the platforms' own.
+   */
+  material?: MaterialThickness;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
 }

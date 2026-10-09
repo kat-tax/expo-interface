@@ -125,7 +125,7 @@ describe('Popover (windows)', () => {
 
     it('gives the content no scroll insets, whatever is around the popover', async () => {
       await render(
-        <ScrollInsetsContext.Provider value={{top: 40, bottom: 72, automatic: false}}>
+        <ScrollInsetsContext.Provider value={{top: 40, bottom: 72, left: 0, right: 0, automatic: false}}>
           <Insets testID="around"/>
           <Popover at={{x: 0, y: 0}} testID="pop">
             <Insets testID="card"/>

@@ -2,6 +2,8 @@ import type {ViewStyle} from 'react-native';
 import type {Feedback, SurfaceColor, SurfaceProps} from './types';
 import type {ColorTokens} from '../theme';
 import {Platform, StyleSheet, View} from 'react-native';
+import {materialProps} from '../material';
+import {hasMaterial} from '../material/shared';
 import {isColorToken, useColor} from '../theme';
 import {StatePressable} from './pressable';
 import {pressFeedback} from './shared';
@@ -52,6 +54,7 @@ export function Surface({
   borderColor,
   radius = 12,
   raised = false,
+  material,
   padding,
   onPress,
   onLongPress,
@@ -66,9 +69,12 @@ export function Surface({
   const fill = useColor(color === 'none' ? 'background' : FILL[color]);
   const token = useColor(borderColor != null && isColorToken(borderColor) ? borderColor : 'separator');
   const line = borderColor == null || isColorToken(borderColor) ? token : borderColor;
-  const width = border === 'none' ? undefined : StyleSheet.hairlineWidth;
+  // On a material (web only) the stylesheet draws the fill, the hairline and
+  // the shadow, and the box paints none of its own.
+  const glass = Platform.OS === 'web' && hasMaterial(material);
+  const width = border === 'none' || glass ? undefined : StyleSheet.hairlineWidth;
   const box: ViewStyle = {
-    backgroundColor: color === 'none' ? undefined : fill,
+    backgroundColor: color === 'none' || glass ? undefined : fill,
     borderRadius: radius === 'pill' ? 999 : radius,
     borderColor: line,
     borderStyle: dashed ? 'dashed' : undefined,
@@ -76,13 +82,14 @@ export function Surface({
     borderBottomWidth: border === 'all' || border === 'bottom' ? width : undefined,
     borderLeftWidth: border === 'all' ? width : undefined,
     borderRightWidth: border === 'all' ? width : undefined,
-    boxShadow: raised ? SHADOW : undefined,
+    boxShadow: raised && !glass ? SHADOW : undefined,
     padding,
     opacity: disabled ? 0.5 : undefined,
   };
+  const glassProps = glass ? materialProps(material, color === 'background' ? 'background' : 'element', raised ? 'float' : border) : null;
 
   if (!onPress && !onLongPress) {
-    return <View ref={ref} style={[box, style]} onLayout={onLayout} testID={testID} {...(suppressNativeMenu ? NO_NATIVE_MENU : null)}>{children}</View>;
+    return <View ref={ref} style={[box, style]} onLayout={onLayout} testID={testID} {...glassProps} {...(suppressNativeMenu ? NO_NATIVE_MENU : null)}>{children}</View>;
   }
 
   return (
@@ -94,6 +101,7 @@ export function Surface({
       onPress={onPress}
       onLongPress={onLongPress}
       onLayout={onLayout}
+      {...glassProps}
       style={state => [box, WEB_BUTTON, pressFeedback(state, FEEDBACK[color]), style]}
       testID={testID}
       {...(suppressNativeMenu ? NO_NATIVE_MENU : null)}>

@@ -45,7 +45,9 @@ A value within a range in the SwiftUI gauge styles. Props: `value`, `min`,
 
 A count or a dot beside the thing it is about. Props: `count` (`0` draws
 nothing), `max` (99; counts above draw as `99+`), `showZero`, `dot`, `label`
-(the accessible name; defaults to the count and what it is about), `color`
+(the accessible name; defaults to the count and what it is about; `null` for
+a badge its parent speaks for, a `TabView` accessory or a dot in a group the
+app names, which is then no accessibility element of its own), `color`
 (the fill, a palette token such as `tint`, which follows the scheme, or any
 color React Native reads; the destructive red without one, Fluent's
 critical fill on Windows), `textColor` (without one, black or white,
@@ -55,18 +57,18 @@ variable on web), `pulse` (the badge's opacity goes down and back up every 900 m
 typing, a sync in flight; still while the user asks for less motion),
 `style`, `testID`.
 
-A pulse is each platform's own animation. Inside a host on Android, Compose
-animates the badge's alpha toward each end in turn. It is told which end
-from JavaScript every half pulse, since `@expo/ui`'s Compose animations do
-not repeat by themselves, so a pulsing badge there renders twice a pulse. A
-drawn badge (iOS, and Android outside a host) and the Windows island loop the
-opacity of the view, on the native driver on iOS and Android and on
-Animated's JavaScript driver on Windows, which steps it every frame. The web
-runs a CSS animation that `prefers-reduced-motion` stills.
+A pulse is each platform's own animation. Inside a host on Android and iOS,
+Compose or SwiftUI animates the badge's opacity toward each end in turn. It
+is told which end from JavaScript every half pulse, since `@expo/ui`'s
+animations do not repeat by themselves, so a pulsing badge there renders
+twice a pulse. A drawn badge (iOS and Android outside a host) and the
+Windows island loop the opacity of the view, on the native driver on iOS and
+Android and on Animated's JavaScript driver on Windows, which steps it every
+frame. The web runs a CSS animation that `prefers-reduced-motion` stills.
 
 | Platform | Renders |
 | --- | --- |
-| iOS | Drawn as the UIKit capsule. SwiftUI's `badge` modifier only paints inside a `List`, a `TabView` or a toolbar and is silently ignored anywhere else. |
+| iOS | The UIKit capsule: drawn in React Native outside a native host, and in SwiftUI inside one (a `ListItem`'s slots, a `NativeHost`, `Screen native`, a `Sheet`'s native content), where a React Native view has no size of its own: `@expo/ui`'s list row hosts its trailing content in one view sized from its first child, so a React Native badge after the row's `value` would draw at no size. SwiftUI's `badge` modifier only paints inside a `List`, a `TabView` or a toolbar and is silently ignored anywhere else. Inside a host it takes no `style`. |
 | Android | Material 3 `Badge` inside a native host; outside one, drawn in React Native to Material's geometry (a 6 point dot, 16 points high with a number), since a Compose view draws only inside a host. Both set the number in Material's Label Small. Inside a host it takes no `style`. |
 | Web | A `<span role="status">` |
 | Windows | WinUI `InfoBadge`. It holds a number and nothing else, so an overflowing count reads as the cap (`99`) where the others draw `99+`; the accessible name carries the true wording. |
@@ -81,6 +83,16 @@ a Material `ListItem`, which merge what they hold, and as a stop of its own
 anywhere else. Where nothing merges them Compose orders the two by position
 and leaves out a node that one drawn above it covers, which is why the box
 keeps clear of the number rather than covering the badge.
+
+With `label={null}` a badge is its parent's to speak for: a drawn badge, the
+SwiftUI badge and the web span are hidden from assistive technology, so a
+screen reader stops on the parent once rather than on the parent and then on
+the badge. Inside a host on Android the number is still a `Text` TalkBack
+reads, and only the words after it are left out, since `@expo/ui` has no
+modifier that clears a node's semantics. On Windows the island has no name
+and is hidden as far as the view around the control allows; the control
+keeps WinUI's own automation. A `TabView` accessory is hidden the same way
+whatever is in it.
 
 Placing a badge over a control is the caller's job. On Windows, put it beside
 a pressable control or inside it: a XAML island takes pointer input for
@@ -97,7 +109,8 @@ away), `testID`.
 
 | Platform | Renders |
 | --- | --- |
-| iOS, Android, Web | A drawn circle |
+| iOS, Web | A drawn circle |
+| Android | A drawn circle; inside a native host (a `ListItem`'s `leading`, a `NativeHost`, `Screen native`) the same circle in Compose, since a Compose row composes its slots as Compose content with no host for a React Native view. The ring is a circle behind a smaller one, as `@expo/ui`'s `border` modifier takes no shape. TalkBack reads the hosted face by the person's name, unseen text laid over the initials, since `@expo/ui`'s Compose layer sets no content description: where nothing merges them, Compose leaves out a node that a sibling drawn above it covers, so the face is the name alone; inside a row that presses or a Material `ListItem`, which merge what they hold, it reads the initials and then the name among the row's texts. |
 | Windows | WinUI `PersonPicture`, filled with the same hashed color. A ring is the view around the picture, which is drawn the ring's width smaller inside it. |
 
 ## AvatarGroup
@@ -180,25 +193,38 @@ it renders with it.
 Props: `date` (a `Date` or milliseconds), `variant` (a `Typography` style,
 `footnote` by default), `color` (a token, `secondaryLabel` by default),
 `numeric` (`auto` says "now" and "yesterday" where the language has the
-words; `always` says "1 day ago"), `locale` (the language of the words, a
-BCP 47 tag such as `de` or `pt-BR`; by default the page's language on web
-and the locale Hermes reports elsewhere, as the table below says),
-`numberOfLines`, `testID`.
+words; `always` says "1 day ago"), `style` (how long the words are: `long`
+says "12 minutes ago", `short` abbreviates the unit, "12 min. ago", and
+`narrow` sets a letter or two against the count, "12m ago"; "now",
+"yesterday" and "tomorrow" read the same in each), `locale` (the language of
+the words, a BCP 47 tag such as `de` or `pt-BR`; by default the page's
+language on web and the locale Hermes reports elsewhere, as the table below
+says), `numberOfLines`, `testID`.
 
 ```tsx
 <RelativeTime date={document.editedAt}/>
 ```
 
-`useRelativeTime(date, {numeric, locale})` answers the same words as a
-string, for text that cannot hold a view: a `ListItem`'s `value`, a `Card`'s
-`subtitle`, a label. The component that calls it renders again as the words
-may change. A `renderItem` function cannot call a hook, so a list calls it
-in the row's own component:
+`useRelativeTime(date, {numeric, locale, style})` answers the same words as
+a string, for text that cannot hold a view: a `ListItem`'s `value`, a
+`Card`'s `subtitle`, a label. The component that calls it renders again as
+the words may change. A `renderItem` function cannot call a hook, so a list
+calls it in the row's own component:
 
 ```tsx
 function NoteRow({note}: {note: Note}) {
   const edited = useRelativeTime(note.editedAt);
   return <ListItem value={edited}>{note.title}</ListItem>;
+}
+```
+
+A `Card`'s subtitle is one line, and a narrow card ends "Edited 12 minutes
+ago" in an ellipsis, so it takes the `short` style:
+
+```tsx
+function DocumentCard({doc}: {doc: Doc}) {
+  const edited = useRelativeTime(doc.editedAt, {style: 'short'});
+  return <Card title={doc.name} subtitle={`Edited ${edited}`}/>;
 }
 ```
 
@@ -212,4 +238,5 @@ up to 45, hours up to 22, days up to 26, months up to 11, and years.
 
 A tag the engine cannot read (`en_US`) gets the engine's default language,
 and where the engine cannot make a formatter at all, as with a polyfill
-whose `Intl.PluralRules` is missing, the words are English.
+whose `Intl.PluralRules` is missing, the words are English, in the `style`
+asked for: "12 min. ago" for `short`, "12m ago" for `narrow`.

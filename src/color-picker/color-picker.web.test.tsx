@@ -144,14 +144,28 @@ describe('ColorPicker (web)', () => {
     const dialog = open();
     fireEvent.click(within(dialog).getAllByRole('radio')[1]);
     const spectrum = within(dialog).getByRole('slider', {name: 'Spectrum'});
-    // Before layout the pick is ignored.
+    // Before layout the pick is ignored. The press is released: the responder
+    // system holds a press until its release, and a second press on the
+    // element holding it is a start event for that responder, not a new press.
     fireEvent.mouseDown(spectrum, {clientX: 10, clientY: 10});
+    fireEvent.mouseUp(spectrum);
     expect(onValueChange).not.toHaveBeenCalled();
     await layout(spectrum, 200, 100);
     fireEvent.mouseDown(spectrum, {clientX: 100, clientY: 0});
     expect(onValueChange).toHaveBeenLastCalledWith('#FF0000FF');
     fireEvent.mouseMove(spectrum, {clientX: 200, clientY: 50});
     expect(onValueChange).toHaveBeenLastCalledWith('#000000FF');
+  });
+
+  it('keeps a drag across the spectrum and the sliders from the sheet\'s drawer', () => {
+    render(<ColorPicker value="#FF6347" onValueChange={vi.fn()}/>);
+    const dialog = open();
+    // vaul leaves a drag that starts in an element marked `data-vaul-no-drag` alone.
+    expect(within(dialog).getByRole('slider', {name: 'Opacity'})).toHaveAttribute('data-vaul-no-drag', 'true');
+    fireEvent.click(within(dialog).getAllByRole('radio')[1]);
+    expect(within(dialog).getByRole('slider', {name: 'Spectrum'})).toHaveAttribute('data-vaul-no-drag', 'true');
+    fireEvent.click(within(dialog).getAllByRole('radio')[2]);
+    expect(within(dialog).getByRole('slider', {name: 'Red'})).toHaveAttribute('data-vaul-no-drag', 'true');
   });
 
   it('drives the channel sliders, value fields and hex field', async () => {
@@ -161,6 +175,7 @@ describe('ColorPicker (web)', () => {
     fireEvent.click(within(dialog).getAllByRole('radio')[2]);
     const red = within(dialog).getByRole('slider', {name: 'Red'});
     fireEvent.mouseDown(red, {clientX: 100});
+    fireEvent.mouseUp(red);
     expect(onValueChange).not.toHaveBeenCalled();
     await layout(red, 236);
     // Track 236: 4px inset + 28px thumb → 200px of travel; x=118 → 100/200.

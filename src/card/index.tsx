@@ -1,12 +1,24 @@
 import type {CardProps} from './types';
 import {useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 import {IconToggle} from '../icon-toggle';
 import {Menu} from '../menu';
 import {Surface} from '../surface';
 import {Caption, Headline} from '../typography';
+import {useColor} from '../theme';
 import {useReveal} from './reveal';
-import {MENU_ROOM, MORE, STAR, STAR_FILLED, cardName} from './shared';
+import {MENU_GLYPH, MENU_ROOM, MORE, STAR, STAR_FILLED, cardName} from './shared';
+
+/**
+ * Android draws the two controls as Material's card does: the star in the
+ * tonal container, since a phone has no pointer to reveal it with and it is
+ * always on the picture, where a bare icon has nothing behind it; and the
+ * menu's overflow glyph at Material's 24 dp in the secondary color rather
+ * than the accent. The icon-only trigger is Material's 40 dp icon button
+ * whatever its `size`, which only sets the glyph. The other platforms keep
+ * the bare star and the small accent ellipsis.
+ */
+const material = Platform.OS === 'android';
 
 /**
  * A pressable surface with a picture, a title, a menu and a star, and the
@@ -33,6 +45,7 @@ export function Card({
   testID,
 }: CardProps) {
   const reveal = useReveal();
+  const secondary = useColor('secondaryLabel');
   const [footerHeight, setFooterHeight] = useState(0);
 
   // The kit's controls take the two floating slots; the app's own are
@@ -44,6 +57,8 @@ export function Card({
       hideLabel
       variant="text"
       size="small"
+      iconSize={material ? MENU_GLYPH : undefined}
+      color={material ? secondary : undefined}
       items={menu}
       testID={testID ? `${testID}-menu` : undefined}
     />
@@ -55,6 +70,7 @@ export function Card({
       activeIcon={STAR_FILLED}
       value={favorite.value}
       onValueChange={favorite.onValueChange}
+      variant={material ? 'tonal' : 'plain'}
       offVisibility={reveal.revealed ? 'visible' : 'hidden'}
       testID={testID ? `${testID}-favorite` : undefined}
     />

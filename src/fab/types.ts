@@ -1,4 +1,5 @@
 import type {IconToken} from '../icons';
+import type {MaterialThickness} from '../material/types';
 import type {MenuItem} from '../menu/types';
 
 /**
@@ -52,6 +53,11 @@ export interface FabProps {
   shape?: FabShape;
   /** Disables interaction and dims the button. */
   disabled?: boolean;
+  /**
+   * Web only: the material the `items` menu draws on, as `Menu` takes it.
+   * The app's `overlayMaterial` (`AccentProvider`) unless given.
+   */
+  material?: MaterialThickness;
   /** Identifier used to locate the button in end-to-end tests. */
   testID?: string;
 }

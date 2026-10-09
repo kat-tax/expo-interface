@@ -1,9 +1,15 @@
+import type {ReactNode} from 'react';
 import {AccessibilityInfo, Animated, Platform} from 'react-native';
 import {act, render, screen} from '@testing-library/react-native';
-import {modifier} from 'expo-vitest/native';
+import {host, modifier, nodes} from 'expo-vitest/native';
 import {NativeHostContext} from '../host';
 import {PULSE_HALF, PULSE_LOW} from './pulse';
 import {Badge} from '.';
+
+const isAndroid = Platform.OS === 'android';
+
+/** Inside a native host, where the badge is Compose's or SwiftUI's. */
+const inHost = (node: ReactNode) => <NativeHostContext.Provider value={true}>{node}</NativeHostContext.Provider>;
 
 /** Stands in for the opacity loop, to see it start and stop. */
 function watchLoop() {
@@ -15,6 +21,12 @@ function watchLoop() {
 
 /** The alpha Compose is told to animate toward, from the badge's graphics layer. */
 const alpha = () => modifier(screen.container.queryAll(i => !!modifier(i.props, 'graphicsLayer'))[0]!.props, 'graphicsLayer')!.alpha;
+
+/** The SwiftUI view whose opacity pulses. */
+const fading = () => host(p => !!modifier(p, 'opacity'));
+
+/** The end of the pulse the hosted badge is heading for: Compose's alpha target, or SwiftUI's opacity. */
+const level = () => isAndroid ? alpha().targetValue : modifier(fading().props, 'opacity')!.value;
 
 describe(`Badge pulse (${Platform.OS})`, () => {
   afterEach(() => {
@@ -48,27 +60,41 @@ describe(`Badge pulse (${Platform.OS})`, () => {
     expect(loop.stop).toHaveBeenCalledTimes(1);
   });
 
-  if (Platform.OS !== 'android') return;
-
   describe('inside a host', () => {
-    it('has Compose animate the alpha toward each end of the pulse in turn', async () => {
+    it('has the toolkit animate the opacity toward each end of the pulse in turn', async () => {
       vi.useFakeTimers();
-      await render(<NativeHostContext.Provider value={true}><Badge dot pulse testID="typing"/></NativeHostContext.Provider>);
-      expect(alpha()).toMatchObject({$animated: true, targetValue: 1});
+      await render(inHost(<Badge dot pulse testID="typing"/>));
+      expect(level()).toBe(1);
+      if (isAndroid) {
+        expect(alpha()).toMatchObject({$animated: true, targetValue: 1});
+      } else {
+        // SwiftUI tweens the opacity change the `animation` modifier after it sees.
+        expect(modifier(fading().props, 'animation')).toMatchObject({animation: {type: 'easeInOut', duration: PULSE_HALF / 1000}, animatedValue: 1});
+      }
       await act(async () => {
         await vi.advanceTimersByTimeAsync(PULSE_HALF);
       });
-      expect(alpha()).toMatchObject({targetValue: PULSE_LOW, animationSpec: {durationMillis: PULSE_HALF}});
+      expect(level()).toBe(PULSE_LOW);
+      if (isAndroid) {
+        expect(alpha()).toMatchObject({targetValue: PULSE_LOW, animationSpec: {durationMillis: PULSE_HALF}});
+      } else {
+        expect(modifier(fading().props, 'animation')?.animatedValue).toBe(PULSE_LOW);
+      }
     });
 
-    it('holds the alpha up while the user asks for less motion', async () => {
+    it('holds the opacity up while the user asks for less motion', async () => {
       vi.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockResolvedValue(true);
       vi.useFakeTimers();
-      await render(<NativeHostContext.Provider value={true}><Badge dot pulse testID="typing"/></NativeHostContext.Provider>);
+      await render(inHost(<Badge dot pulse testID="typing"/>));
       await act(async () => {
         await vi.advanceTimersByTimeAsync(PULSE_HALF);
       });
-      expect(alpha()).toMatchObject({targetValue: 1});
+      expect(level()).toBe(1);
+    });
+
+    it('animates nothing on a badge that does not pulse', async () => {
+      await render(inHost(<Badge count={3} testID="still"/>));
+      expect(nodes().some(n => modifier(n.props, 'graphicsLayer') !== undefined || modifier(n.props, 'opacity') !== undefined)).toBe(false);
     });
   });
 });

@@ -1,5 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
+import {AccentProvider} from '../accent';
 import {Toolbar} from '.';
 
 const commands = [
@@ -17,6 +18,30 @@ describe('Toolbar floating (web)', () => {
     const bar = screen.getByTestId('bar');
     expect(getComputedStyle(bar).borderTopLeftRadius).toBe('999px');
     expect(getComputedStyle(bar).boxShadow).not.toBe('');
+  });
+
+  it('floats on a material of its own, or the app\'s, beside a rectangle too, and an edge bar keeps its fill', () => {
+    const bar = () => screen.getByTestId('bar');
+    const {rerender} = render(<Toolbar floating commands={commands} material="regular" testID="bar"/>);
+    expect(bar().dataset).toMatchObject({material: 'regular', materialFill: 'element', materialEdge: 'float'});
+    expect(getComputedStyle(bar()).boxShadow).toBe('');
+    expect(getComputedStyle(bar()).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+    rerender(
+      <AccentProvider overlayMaterial="thin">
+        <Toolbar at={{x: 100, y: 200, width: 80, height: 20}} commands={commands} testID="bar"/>
+      </AccentProvider>,
+    );
+    expect(bar().dataset.material).toBe('thin');
+    rerender(
+      <AccentProvider overlayMaterial="thin">
+        <Toolbar commands={commands} testID="bar"/>
+      </AccentProvider>,
+    );
+    expect(bar().dataset.material).toBeUndefined();
+    expect(getComputedStyle(bar()).backgroundColor).toBe('var(--color-background)');
+    rerender(<Toolbar floating commands={commands} testID="bar"/>);
+    expect(bar().dataset.material).toBeUndefined();
+    expect(getComputedStyle(bar()).backgroundColor).toBe('var(--color-background-element)');
   });
 
   it('floats beside a rectangle once placed, and takes no presses before', () => {

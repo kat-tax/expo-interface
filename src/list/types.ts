@@ -26,7 +26,9 @@ import type {StyleProp, ViewStyle} from 'react-native';
  * it (a `Screen`'s content, a view with `flex: 1`). On iOS, Android and
  * Windows that parent needs a height of its own: inside a scroll view the
  * iOS and Android list gets no height, and the Windows list grows to its
- * rows, so it draws every one of them and is no longer windowed. On the web,
+ * rows, so it draws every one of them and is no longer windowed. As the body
+ * of a `Sheet` with `maxHeight` the iOS and Android list is the cap's height
+ * instead, and scrolls inside it. On the web,
  * in a parent with no height of its own, it grows to its rows and the parent
  * scrolls it; `style={{flexShrink: 0}}` does the same in a parent that has a
  * height.
@@ -74,8 +76,14 @@ export interface ListProps<T> {
    * @default 56
    */
   estimatedItemHeight?: number;
-  /** The space inside the list before the first row and after the last, in points. */
-  contentInset?: {top?: number; bottom?: number};
+  /**
+   * The space inside the list before the first row, after the last, and at
+   * each side of the rows, in points. On iOS the top and the bottom are rows
+   * of the SwiftUI `List`, which are at least 44 points tall, so an inset
+   * under 44 points shows as a 44 point row there; the sides inset the list
+   * as a whole, since `@expo/ui` has no content margins for a scroll view.
+   */
+  contentInset?: {top?: number; bottom?: number; left?: number; right?: number};
   /** Identifier used to locate the list in end-to-end tests. */
   testID?: string;
   style?: StyleProp<ViewStyle>;

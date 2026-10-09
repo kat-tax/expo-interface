@@ -2,8 +2,8 @@ import {readFileSync} from 'node:fs';
 import path from 'node:path';
 import {render, screen} from '@testing-library/react';
 import {Text} from 'react-native';
-import {BLUR_RADIUS, MATERIAL_OPACITY} from '../sheet/shared';
-import {Material, materialProps} from '.';
+import {BLUR_RADIUS, MATERIAL_OPACITY} from './shared';
+import {Material, materialAttributes, materialProps} from '.';
 
 describe('materialProps (web)', () => {
   it('names the material, its fill and its edge for the stylesheet', () => {
@@ -14,6 +14,19 @@ describe('materialProps (web)', () => {
   it('says nothing for no material, which leaves the view its own background', () => {
     expect(materialProps('none', 'element', 'all')).toEqual({});
     expect(materialProps(undefined, 'element', 'all')).toEqual({});
+  });
+
+  it('names the same three things as attributes for a DOM element, and nothing for no material', () => {
+    expect(materialAttributes('regular', 'element', 'float')).toEqual({'data-material': 'regular', 'data-material-fill': 'element', 'data-material-edge': 'float'});
+    expect(materialAttributes('thick', 'background', 'top')).toEqual({'data-material': 'thick', 'data-material-fill': 'background', 'data-material-edge': 'top'});
+    expect(materialAttributes('none', 'element', 'float')).toEqual({});
+    expect(materialAttributes(undefined, 'element', 'float')).toEqual({});
+  });
+
+  it('floats an overlay on the hairline all round and the raised surface\'s shadow', () => {
+    const css = readFileSync(path.join(__dirname, 'material.css'), 'utf8');
+    const rule = css.slice(css.indexOf('[data-material][data-material-edge="float"]'));
+    expect(rule).toContain('box-shadow: inset 0 0 0 1px var(--color-separator), 0 8px 24px rgba(0, 0, 0, 0.18);');
   });
 
   it('thins and blurs by the same scale as the sheet', () => {
@@ -33,7 +46,7 @@ describe('materialProps (web)', () => {
     expect(css).toContain('@media (prefers-reduced-transparency: reduce)');
     expect(css).toContain('@media (forced-colors: active)');
     // Each edge but none has a rule.
-    for (const edge of ['all', 'top', 'bottom']) expect(css).toContain(`[data-material][data-material-edge="${edge}"]`);
+    for (const edge of ['all', 'top', 'bottom', 'float']) expect(css).toContain(`[data-material][data-material-edge="${edge}"]`);
     expect(css).not.toContain('[data-material-edge="none"]');
   });
 });

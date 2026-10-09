@@ -1,7 +1,9 @@
-import {AccessibilityInfo, Platform, StyleSheet} from 'react-native';
+import type {TextFieldCommands} from '../text-field/types';
+import {createRef} from 'react';
+import {AccessibilityInfo, Platform, StyleSheet, TextInput} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, modifier} from 'expo-vitest/native';
-import {hosts} from '../__tests__/hosts';
+import {hostFit, hosts} from '../__tests__/hosts';
 import * as icons from '../__stories__/icons';
 import {colors} from '../theme';
 import {Composer} from '.';
@@ -172,6 +174,33 @@ describe(`Composer (${Platform.OS})`, () => {
     }
   });
 
+  it('keeps one line centred in the 44 capsule, with the buttons boxed to it on Android', async () => {
+    await render(<Composer onSend={() => {}} menu={{label: 'Send to', icon: SEND_TO, items: []}} testID="c"/>);
+    const style = StyleSheet.flatten(screen.getByTestId('c-field').props.style);
+    // A line of 20 with 8 above and below: 36, the capsule's 44 less its padding.
+    expect(style).toMatchObject({lineHeight: 20, paddingVertical: 8});
+    const [menuHost, buttonHost] = hosts();
+    if (isIOS) {
+      expect(style).not.toHaveProperty('includeFontPadding');
+      expect(style).not.toHaveProperty('textAlignVertical');
+      for (const node of [menuHost, buttonHost]) {
+        expect(hostFit(node)).toEqual({vertical: true, horizontal: true});
+        expect(StyleSheet.flatten(node.props.style)).toMatchObject({marginBottom: 2});
+      }
+    } else {
+      // The placeholder is laid out without the font's padding, and the text is centred in the field.
+      expect(style).toMatchObject({includeFontPadding: false, textAlignVertical: 'center'});
+      // Material's icon button carries a 48dp touch target, which a host sized to it would push the capsule out with:
+      // each host is a box of the 36 one line leaves, at the bottom of the row.
+      for (const node of [menuHost, buttonHost]) {
+        expect(hostFit(node)).toEqual({});
+        const box = StyleSheet.flatten(node.props.style);
+        expect(box).toMatchObject({width: 36, height: 36, flex: 0, alignSelf: 'flex-end'});
+        expect(box).not.toHaveProperty('marginBottom');
+      }
+    }
+  });
+
   it('disables writing and sending', async () => {
     const onSend = vi.fn();
     await render(<Composer value="ready" onSend={onSend} disabled testID="c"/>);
@@ -179,5 +208,27 @@ describe(`Composer (${Platform.OS})`, () => {
     expect(enabled('c-send')).toBe(false);
     await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'ready'}});
     expect(onSend).not.toHaveBeenCalled();
+  });
+
+  it('leaves the stop button live while disabled, and hands the field\'s commands to the ref', async () => {
+    const ref = createRef<TextFieldCommands>();
+    const onStop = vi.fn();
+    // The ref reaches the input's own `focus` and `blur`; whether it is focused is the renderer's business.
+    const focus = vi.spyOn(TextInput.prototype, 'focus');
+    const blur = vi.spyOn(TextInput.prototype, 'blur');
+    try {
+      await render(<Composer ref={ref} value="ready" onSend={() => {}} onStop={onStop} busy disabled testID="c"/>);
+      expect(screen.getByTestId('c-field').props.editable).toBe(false);
+      expect(enabled('c-stop')).toBe(true);
+      await press('c-stop');
+      expect(onStop).toHaveBeenCalledTimes(1);
+      ref.current!.focus();
+      expect(focus).toHaveBeenCalledTimes(1);
+      ref.current!.blur();
+      expect(blur).toHaveBeenCalledTimes(1);
+    } finally {
+      focus.mockRestore();
+      blur.mockRestore();
+    }
   });
 });

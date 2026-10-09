@@ -699,9 +699,9 @@ struct CommandBarView : winrt::implements<CommandBarView, winrt::IInspectable>,
   }
 
   /**
-   * The label, glyph, state and press every command takes, a toggle, a menu
-   * or neither. A press is the command's own (`item` -1): for a menu command
-   * it only opens the flyout, and the pick is reported from there.
+   * The label, glyph, state, color and press every command takes, a toggle,
+   * a menu or neither. A press is the command's own (`item` -1): for a menu
+   * command it only opens the flyout, and the pick is reported from there.
    */
   template <typename T>
   void Dress(T &button, const JsonObject &entry, int32_t current, bool dark) noexcept {
@@ -712,6 +712,11 @@ struct CommandBarView : winrt::implements<CommandBarView, winrt::IInspectable>,
     if (JsonString(entry, L"role") == "destructive") {
       button.Foreground(Brush(Critical(dark)));
     }
+    // The command's own color for its glyph and label, over the role's, as
+    // the kit's buttons take `color` first.
+    const auto hex = JsonString(entry, L"color");
+    Color foreground;
+    if (!hex.empty() && TryParseColor(hex, foreground)) button.Foreground(Brush(foreground));
     // The label is the accessible name: an icon-only command in a collapsed
     // bar names nothing otherwise.
     SetName(button, std::optional<std::string>{JsonString(entry, L"label")});

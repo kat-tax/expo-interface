@@ -1,7 +1,10 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
 import type {AlertAction} from './types';
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
 import {fireEvent, render, screen, within} from '@testing-library/react';
+import {AccentProvider} from '../accent';
 import {Alert} from '.';
 
 type DialogPrototype = Omit<HTMLDialogElement, 'showModal' | 'close'> & {showModal?: () => void; close?: () => void};
@@ -49,6 +52,26 @@ describe('Alert (web)', () => {
     expect(element).toHaveAttribute('aria-label', 'Delete account?');
     expect(screen.getByTestId('alert-title')).toHaveTextContent('Delete account?');
     expect(element).toHaveTextContent('This cannot be undone.');
+  });
+
+  it('draws the dialog on a material of its own, or the app\'s, and as itself otherwise', () => {
+    const {rerender} = render(<Alert title="Hi" visible material="regular" testID="alert"/>);
+    expect(dialog()).toHaveAttribute('data-material', 'regular');
+    expect(dialog()).toHaveAttribute('data-material-fill', 'element');
+    expect(dialog()).toHaveAttribute('data-material-edge', 'float');
+    rerender(
+      <AccentProvider overlayMaterial="thin">
+        <Alert title="Hi" visible testID="alert"/>
+      </AccentProvider>,
+    );
+    expect(dialog()).toHaveAttribute('data-material', 'thin');
+    rerender(<Alert title="Hi" visible testID="alert"/>);
+    expect(dialog()).not.toHaveAttribute('data-material');
+    // The stylesheet draws the fill and the shadow from the attributes; the dialog's rule yields to it.
+    const css = readFileSync(path.join(__dirname, 'alert.css'), 'utf8');
+    const rule = css.slice(css.indexOf('.ui-alert:where([data-material])'));
+    expect(rule).toMatch(/^[^}]*background: transparent;/);
+    expect(rule).toMatch(/^[^}]*box-shadow: none;/);
   });
 
   it('opens modally while visible and closes when hidden', () => {
@@ -239,5 +262,29 @@ describe('Alert (web)', () => {
   it('renders only the confirm actions without a cancel action', () => {
     render(<Alert title="Saved" visible testID="alert" actions={[{label: 'Undo'}, {label: 'Got it'}]}/>);
     expect(actionButtons().map(b => b.textContent)).toEqual(['Undo', 'Got it']);
+  });
+
+  it('closes on Escape wherever the focus is, reports the dismissal, and keeps the key from the document', () => {
+    const onDismiss = vi.fn();
+    const heard = vi.fn();
+    const listener = (event: KeyboardEvent) => heard(event.key);
+    // Where a web `Sheet`'s drawer listens for the key.
+    document.addEventListener('keydown', listener, true);
+    try {
+      const {rerender} = render(<Alert title="Hi" visible onDismiss={onDismiss} testID="alert"/>);
+      const closes = close.mock.calls.length;
+      fireEvent.keyDown(screen.getByRole('button', {name: 'OK'}), {key: 'Escape'});
+      expect(close).toHaveBeenCalledTimes(closes + 1);
+      expect(dialog()).not.toHaveAttribute('open');
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+      expect(heard).not.toHaveBeenCalled();
+      // The app clears `visible` on the report; the key is the page's again.
+      rerender(<Alert title="Hi" visible={false} onDismiss={onDismiss} testID="alert"/>);
+      fireEvent.keyDown(document.body, {key: 'Escape'});
+      expect(heard).toHaveBeenCalledWith('Escape');
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+    } finally {
+      document.removeEventListener('keydown', listener, true);
+    }
   });
 });

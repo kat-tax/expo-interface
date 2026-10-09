@@ -5,19 +5,24 @@ import {useId, useRef} from 'react';
 import {Icon} from '../symbol';
 import {Button} from '../button';
 import {SIZE_ICON} from '../button/shared';
-import {MenuList, menuIdent} from './list';
+import {MenuList, menuIdent, useHydrated} from './list';
 
 /**
  * On web the trigger is the kit's `<button>` (or, with `trigger="link"`, a
  * text link like the tab bar's tabs) with a `popovertarget` pointing at the
  * entries' native `popover`, so opening, closing, light dismiss and
- * `aria-expanded` are all handled by the browser. The wrapper carries the
- * `anchor-name` that CSS anchor positioning places the popup against.
+ * `aria-expanded` are all handled by the browser. The trigger takes the
+ * `popovertarget` once the page has hydrated: a static export's HTML has
+ * none, so a press before the bundle runs opens nothing. A trigger that is
+ * `pressed` is `aria-pressed` on either, and the kit's button draws it
+ * filled. The wrapper carries the `anchor-name` that CSS anchor positioning
+ * places the popup against.
  */
-export function Menu({label, icon, items, trigger = 'button', onOpenChange, testID, ...button}: MenuProps) {
+export function Menu({label, icon, items, trigger = 'button', onOpenChange, material, testID, ...button}: MenuProps) {
   const ident = menuIdent(useId());
   const anchor = `--${ident}`;
   const wrapper = useRef<HTMLSpanElement>(null);
+  const hydrated = useHydrated();
   return (
     <span ref={wrapper} className="ui-menu" style={{anchorName: anchor} as CSSProperties}>
       {trigger === 'link' ? (
@@ -25,7 +30,8 @@ export function Menu({label, icon, items, trigger = 'button', onOpenChange, test
           type="button"
           className="ui-menu__link"
           disabled={button.disabled}
-          popoverTarget={ident}
+          aria-pressed={button.pressed}
+          popoverTarget={hydrated ? ident : undefined}
           data-testid={testID}
           aria-label={button.hideLabel ? label : undefined}>
           {icon ? <Icon icon={icon} size={button.iconSize ?? SIZE_ICON[button.size ?? 'medium']} tintColor="currentColor"/> : null}
@@ -36,11 +42,11 @@ export function Menu({label, icon, items, trigger = 'button', onOpenChange, test
           {...button}
           label={label}
           prefixIcon={icon}
-          popoverTarget={ident}
+          popoverTarget={hydrated ? ident : undefined}
           testID={testID}
         />
       )}
-      <MenuList id={ident} items={items} anchor={anchor} anchorRef={wrapper} onOpenChange={onOpenChange}/>
+      <MenuList id={ident} items={items} anchor={anchor} anchorRef={wrapper} onOpenChange={onOpenChange} material={material}/>
     </span>
   );
 }

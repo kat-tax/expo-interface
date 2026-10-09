@@ -1,3 +1,4 @@
+import type {ReactElement} from 'react';
 import {fireEvent, render, screen, within} from '@testing-library/react';
 import {ColorPicker} from '.';
 
@@ -107,5 +108,26 @@ describe('ColorPicker presentations (web)', () => {
   it('names a menu well without a label Color', () => {
     render(<ColorPicker value="" presentation="menu" onValueChange={vi.fn()}/>);
     expect(screen.getByRole('button', {name: 'Color'})).toHaveAttribute('aria-haspopup', 'menu');
+  });
+
+  it('leaves the well without its popover target on a static page until it has hydrated', async () => {
+    // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
+    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
+    // What a static export writes for a menu of the swatches and for a picker
+    // in a popover: a well with no target, so a press before the page runs
+    // opens nothing.
+    const container = document.body.appendChild(document.createElement('div'));
+    try {
+      container.innerHTML = renderToString(
+        <>
+          <ColorPicker label="Ink" value="#FF0000" presentation="menu" swatches={['#FF0000']} onValueChange={() => {}}/>
+          <ColorPicker label="Fill" value="#FF0000" presentation="popover" onValueChange={() => {}}/>
+        </>,
+      );
+      expect(screen.getByRole('button', {name: 'Ink'})).not.toHaveAttribute('popovertarget');
+      expect(screen.getByRole('button', {name: 'Fill'})).not.toHaveAttribute('popovertarget');
+    } finally {
+      container.remove();
+    }
   });
 });

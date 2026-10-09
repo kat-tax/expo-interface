@@ -1,7 +1,8 @@
+import type {Ref} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {IconToken} from '../icons';
 import type {MenuItem} from '../menu/types';
-import type {TextFieldCapitalize, TextFieldKeyboard} from '../text-field/types';
+import type {TextFieldCapitalize, TextFieldCommands, TextFieldKeyboard} from '../text-field/types';
 
 /** The color of the line under a composer: `destructive` for an error. */
 export type ComposerNoticeColor = 'secondaryLabel' | 'destructive';
@@ -114,10 +115,18 @@ export interface ComposerProps {
    * model, an attachment. The platform's menu behind an icon button.
    */
   menu?: ComposerMenu;
-  /** Disables writing and sending. */
+  /**
+   * Disables writing and sending, and the menu. The stop button stays live
+   * while `busy`, so a disabled composer can still stop what it runs.
+   */
   disabled?: boolean;
   /** Focuses the field once it is mounted. */
   autoFocus?: boolean;
+  /**
+   * The field's commands, `focus()` and `blur()`: to put a phone's keyboard
+   * away as a message sends, or give the field the focus back.
+   */
+  ref?: Ref<TextFieldCommands>;
   /** Maximum number of characters. */
   maxLength?: number;
   /** Identifier used to locate the composer in end-to-end tests. */

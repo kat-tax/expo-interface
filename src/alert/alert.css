@@ -11,6 +11,17 @@
   font-family: var(--font-display);
 }
 
+/*
+ * On one of the kit's materials (`data-material`, drawn by `material.css`)
+ * the stylesheet paints the fill, the hairline and the shadow, so the
+ * dialog's own give way. `:where` keeps this under the material's rules,
+ * whichever stylesheet the bundle puts last.
+ */
+.ui-alert:where([data-material]) {
+  background: transparent;
+  box-shadow: none;
+}
+
 .ui-alert::backdrop {
   background: rgba(0, 0, 0, 0.4);
 }

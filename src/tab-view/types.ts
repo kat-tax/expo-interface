@@ -147,7 +147,8 @@ export interface TabViewTab {
   /**
    * The tab's own actions (rename, duplicate, close others), in the
    * platform's menu at the tab: a long press on iOS and Android, a right
-   * click or the Menu key on web and Windows, with the kit's `PopupMenu`.
+   * click or the Menu key on web and Windows, and a held touch on web too,
+   * with the kit's `PopupMenu`.
    */
   menu?: MenuItem[];
   /**
@@ -159,8 +160,10 @@ export interface TabViewTab {
   /**
    * Content of the app's own after the title: a presence dot, a count, an
    * unsaved mark. Drawn on the strips the kit draws and on the switcher's
-   * cards; the WinUI strip holds text and a glyph alone. A screen reader does
-   * not read it: say what it means in `label`.
+   * cards; the WinUI strip holds text and a glyph alone. Hidden from
+   * assistive technology: the tab is one stop that names itself from
+   * `label`, so a `Badge` in it is never a stop of its own. Say what it
+   * means in `label`.
    */
   accessory?: ReactNode;
 }

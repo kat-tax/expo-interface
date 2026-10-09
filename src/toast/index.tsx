@@ -3,6 +3,7 @@ import {useEffect, useState} from 'react';
 import {Platform, StyleSheet, View} from 'react-native';
 import {Button} from '../button';
 import {NativeHost} from '../host';
+import {useOverlayMaterial} from '../material/context';
 import {Surface} from '../surface';
 import {Footnote} from '../typography';
 import {spacing} from '../theme';
@@ -14,8 +15,11 @@ import {TOAST_DURATION} from './types';
  * the screen, announced as a live region (`role="status"` on web). Neither
  * platform has a toast control of its own — Apple's apps draw this same
  * capsule — while Android has the Material `Snackbar` (`index.android.tsx`).
+ * On the web the capsule draws on the app's overlay material unless told
+ * otherwise.
  */
-export function Toast({message, visible, action, onDismiss, duration = TOAST_DURATION, testID}: ToastProps) {
+export function Toast({message, visible, action, onDismiss, duration = TOAST_DURATION, material, testID}: ToastProps) {
+  const glass = useOverlayMaterial(material);
   useEffect(() => {
     if (!visible || !onDismiss || duration <= 0) return;
     const timer = setTimeout(onDismiss, duration);
@@ -35,6 +39,7 @@ export function Toast({message, visible, action, onDismiss, duration = TOAST_DUR
         radius="pill"
         color="element"
         border="all"
+        material={glass}
         padding={spacing.two}
         style={styles.toast}
         testID={testID}>

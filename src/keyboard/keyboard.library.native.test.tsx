@@ -4,6 +4,7 @@ import {Dimensions, Platform, Text, View} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import {colors} from '../theme';
+import {ridingHeight, subscribeRiding} from './riding';
 import {KeyboardBar} from '.';
 
 /**
@@ -102,6 +103,34 @@ describe(`KeyboardBar with the keyboard library (${Platform.OS})`, () => {
     );
     await setKeyboard({isVisible: true, height: 100});
     expect(screen.getByTestId('bar')).toBeOnTheScreen();
+  });
+
+  it('publishes its own height while it rides, for useKeyboardInset, and takes it back when the keyboard goes and when it unmounts', async () => {
+    const changes = vi.fn();
+    const unsubscribe = subscribeRiding(changes);
+    const {unmount} = await render(
+      <KeyboardBar>
+        <Text testID="bar">Bar</Text>
+      </KeyboardBar>,
+    );
+    const bar = screen.getByTestId('bar').parent!;
+    // Laid out with the keyboard down: nothing rides yet.
+    await fireEvent(bar, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 56}}});
+    expect(ridingHeight()).toBe(0);
+    expect(changes).not.toHaveBeenCalled();
+    await setKeyboard({isVisible: true, height: 300});
+    expect(ridingHeight()).toBe(56);
+    expect(changes).toHaveBeenCalledTimes(1);
+    // Grown while up, a second row of tools: the new height.
+    await fireEvent(bar, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 72}}});
+    expect(ridingHeight()).toBe(72);
+    await setKeyboard({isVisible: false, height: 0});
+    expect(ridingHeight()).toBe(0);
+    await setKeyboard({isVisible: true, height: 300});
+    expect(ridingHeight()).toBe(72);
+    await unmount();
+    expect(ridingHeight()).toBe(0);
+    unsubscribe();
   });
 
   it('mounts the keyboard provider under the accent provider', async () => {

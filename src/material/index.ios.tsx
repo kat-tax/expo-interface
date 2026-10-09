@@ -3,11 +3,11 @@ import {RoundedRectangle} from '@expo/ui/swift-ui';
 import {foregroundStyle, glassEffect} from '@expo/ui/swift-ui/modifiers';
 import {Platform, StyleSheet, View} from 'react-native';
 import {NativeHost} from '../host';
-import {IOS_MATERIAL} from '../sheet/shared';
 import {useColor} from '../theme';
 import {edgeStyle} from './edge';
+import {IOS_MATERIAL} from './shared';
 
-export {materialProps} from './inert';
+export {materialAttributes, materialProps} from './inert';
 
 /** Liquid Glass, which SwiftUI draws from iOS 26. */
 const GLASS = Number.parseInt(String(Platform.Version), 10) >= 26;
@@ -33,4 +33,4 @@ export function Material({kind = 'regular', edge = 'none', radius = 0, style, on
   );
 }
 
-export type {MaterialEdge, MaterialFill, MaterialKind, MaterialProps} from './types';
+export type {MaterialAttributes, MaterialEdge, MaterialFill, MaterialKind, MaterialProps, MaterialThickness} from './types';

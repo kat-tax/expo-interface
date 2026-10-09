@@ -35,6 +35,11 @@ describe('Toast (android)', () => {
     expect(nodes().some(n => n.type.endsWith('SnackbarView'))).toBe(true);
   });
 
+  it('takes a material, which is the web\'s, and shows the snackbar all the same', async () => {
+    await render(<Toast message="3 files added" visible material="regular"/>);
+    expect(showSnackbar).toHaveBeenCalledTimes(1);
+  });
+
   it('asks for nothing while it is not visible', async () => {
     await render(<Toast message="3 files added" visible={false}/>);
     expect(showSnackbar).not.toHaveBeenCalled();

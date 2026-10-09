@@ -93,7 +93,9 @@ is not drawn, and an image with no `uri` is drawn as it is), `webActions`,
 On web a screen under `Tabs` has one bar, not two: `ConstrainedStackHeader`
 hands its header to the bar and draws nothing itself. A pushed screen hands
 over all of it (the back button in the mark's place, the title where the
-app's name goes, `headerRight` where `webActions` go). A tab's own screen
+app's name goes, `headerRight` where `webActions` go); the back button is the
+kit's `Icon`, drawn from the font the app registers ([The web
+font](../icons.md#the-web-font)). A tab's own screen
 hands over `headerRight` alone and keeps its title, since the tab beside it in
 the bar already says it. The bar keeps the height of its tabs, and a header
 control folded into it drops to their size. `hidden` hides the tabs and the
@@ -256,10 +258,11 @@ Differences:
 - The cards are a title, an icon and a cross, not live previews.
 - A tab's `menu` (rename, duplicate, close others) opens with the gesture
   the platform uses for a context menu: a long press on iOS and Android, a
-  right click or the Menu key on web and Windows. It is the kit's
-  `PopupMenu`, under the tab on iOS and Android and at the pointer on web
-  and Windows, and one popup serves the whole strip. On web the tab says it
-  has one through `aria-haspopup`.
+  right click or the Menu key on web and Windows, and on web a touch held
+  for half a second as well, since Safari on iOS raises no context menu
+  event for a touch. It is the kit's `PopupMenu`, under the tab on iOS and
+  Android and at the pointer on web and Windows, and one popup serves the
+  whole strip. On web the tab says it has one through `aria-haspopup`.
 - `depth` indents a tab by 12 points a level, on every strip and on the
   cards, for documents that belong to one another.
 - `fill="none"` paints nothing behind the strip or the switcher's bar, for
@@ -270,10 +273,12 @@ Differences:
 - `accessory` (a presence dot, a count, an unsaved mark) is drawn after the
   title on the strips the kit draws and on the switcher's cards. The WinUI
   strip holds text and a glyph alone, so on Windows it shows on the cards
-  only. A screen reader does not read it: it reads a tab's `label`, which
-  defaults to the title, on every platform, the WinUI strip included. Say
-  what the accessory means there ("index.tsx, Ana is here"), starting with
-  the title so a voice command still finds the tab by what it shows.
+  only. A screen reader does not read it: the kit hides it from assistive
+  technology, so a `Badge` in it is never a stop of its own, and reads a
+  tab's `label`, which defaults to the title, on every platform, the WinUI
+  strip included. Say what the accessory means there ("index.tsx, Ana is
+  here"), starting with the title so a voice command still finds the tab by
+  what it shows.
 
 ## Pager
 

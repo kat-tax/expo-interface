@@ -259,8 +259,18 @@ describe(`Alert (${Platform.OS})`, () => {
       expect(field.props.keyboardOptions.autoCorrectEnabled).toBe(false);
       expect(host(p => p.text === 'Name', field)).toBeTruthy();
       expect(host(p => p.text === 'A name for the document.', slot('text'))).toBeTruthy();
-      // The kit's field shifts itself back to line up in a form; here a box undoes that.
-      expect(modifier(host(p => modifier(p, 'padding')?.start === 16, slot('text')).props, 'padding')).toMatchObject({start: 16});
+      // Material's outlined field, its outline and container Material's own (none overridden to
+      // transparent), the cursor the kit's tint; the dialog's width, with no form inset to undo.
+      expect(field.props.variant).toBe('outlined');
+      expect(field.props.colors).toEqual({
+        focusedTextColor: '#1D1B20FF',
+        unfocusedTextColor: '#1D1B20FF',
+        disabledTextColor: '#49454FFF',
+        cursorColor: '#007AFF',
+      });
+      expect(modifier(field.props, 'fillMaxWidth')).toBeDefined();
+      expect(modifier(field.props, 'offset')).toBeUndefined();
+      expect(nodes(slot('text')).some(n => modifier(n.props, 'padding'))).toBe(false);
     }
   });
 

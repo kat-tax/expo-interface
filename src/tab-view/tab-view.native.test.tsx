@@ -164,6 +164,34 @@ describe(`TabView (${Platform.OS})`, () => {
     expect(screen.getByTestId('t-tab-a').props.accessibilityLabel).toBe('Notes');
   });
 
+  it('hides the accessory from assistive technology, in the strip and on the cards: the tab speaks for it', async () => {
+    const tabs = [{id: 'a', title: 'Notes'}, {id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <View testID="mark"/>}];
+    /**
+     * The wrapper over the accessory, which hides it as the testing library
+     * models assistive technology: the accessory is found only when hidden
+     * elements are asked for.
+     */
+    const wrapper = () => {
+      expect(screen.queryByTestId('mark')).toBeNull();
+      return screen.getByTestId('mark', {includeHiddenElements: true}).parent!;
+    };
+    /** How many wrappers the tree holds: one per accessory, none for a tab without. */
+    const wrappers = () => JSON.stringify(screen.toJSON()).split('no-hide-descendants').length - 1;
+    const {rerender} = await render(<TabView tabs={tabs} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
+    // On Android an accessible view inside the tab (a Badge) would be a stop of its own.
+    expect(wrapper().props).toMatchObject({importantForAccessibility: 'no-hide-descendants', accessibilityElementsHidden: true});
+    expect(wrapper().parent!.props.testID).toBe('t-tab-b');
+    // Nothing to hide, nothing to wrap.
+    expect(wrappers()).toBe(1);
+    await rerender(<TabView tabs={tabs} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
+    await fireEvent.press(screen.getByTestId('t-switcher'));
+    expect(wrapper().props).toMatchObject({importantForAccessibility: 'no-hide-descendants', accessibilityElementsHidden: true});
+    expect(wrapper().parent!.props.testID).toBe('t-card-b');
+    // At its own size: the card's column would stretch it across the card.
+    expect(StyleSheet.flatten(wrapper().props.style)).toMatchObject({alignItems: 'flex-start'});
+    expect(wrappers()).toBe(1);
+  });
+
   describe('fill', () => {
     const style = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).parent!.props.style);
 

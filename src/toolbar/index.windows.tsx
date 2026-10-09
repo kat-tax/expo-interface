@@ -119,6 +119,8 @@ function NativeToolbar({commands = [], placement = 'bottom', density = 'regular'
             // A menu with no entries too, which would open on nothing.
             disabled: commandDisabled(command),
             role: press ? command.role ?? 'default' : 'default',
+            // The command's own color, for its glyph and label; without one the bar's own.
+            color: command.color,
             separator: command.separator ?? false,
             // A command with an on state is the bar's own toggle button.
             toggle: press && command.active !== undefined,
@@ -191,7 +193,8 @@ function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], p
  * Commands as the kit's own buttons, each an island of its own; a command
  * with `items` is the kit's own `Menu`, its button and its `MenuFlyout`,
  * whose entries are greyed out with it, so their shortcuts are not bound
- * while it is disabled; with no entries it is greyed out itself. A command
+ * while it is disabled; with no entries it is greyed out itself, and while
+ * `active` it is filled, as a toggle that is on. A command
  * with `separator` has a vertical rule
  * before it, none before the first of the group, as a menu's entries do.
  */
@@ -206,9 +209,11 @@ function CommandButtons({commands}: {commands: ToolbarCommand[]}) {
             <Menu
               variant="text"
               size="small"
+              pressed={command.active}
               label={command.label}
               icon={command.icon}
               hideLabel={command.hideLabel}
+              color={command.color}
               tone={command.tone}
               disabled={commandDisabled(command)}
               items={command.disabled ? command.items.map(item => ({...item, disabled: true})) : command.items}
@@ -222,6 +227,7 @@ function CommandButtons({commands}: {commands: ToolbarCommand[]}) {
               label={command.label}
               prefixIcon={command.icon}
               hideLabel={command.hideLabel}
+              color={command.color}
               tone={command.tone}
               role={command.role}
               disabled={command.disabled}

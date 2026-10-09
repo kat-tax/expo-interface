@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import type {IconToken} from '../icons';
 import type {ButtonProps} from '../button/types';
+import type {MaterialThickness} from '../material/types';
 
 /** One entry of a `Menu` / `ContextMenu` / `Fab` menu. */
 export interface MenuItem {
@@ -67,9 +68,13 @@ export type MenuTrigger = 'button' | 'link';
  *
  * Bridges the SwiftUI `Menu` on iOS, the Jetpack Compose Material 3
  * `DropdownMenu` on Android, and a `role="menu"` popup on web. The trigger
- * looks like the kit's `Button` and takes the same styling props.
+ * looks like the kit's `Button` and takes the same styling props. `pressed`
+ * makes it a toggle that is on, as `Button pressed` is on each platform:
+ * drawn filled in the accent, whatever the variant, and heard as on, for a
+ * tool whose menu picks what it does (a drawing bar's shapes tool, with its
+ * menu of shapes). The trigger opens the menu either way.
  */
-export interface MenuProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape' | 'color' | 'tone' | 'iconSize' | 'hideLabel' | 'disabled'> {
+export interface MenuProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape' | 'color' | 'tone' | 'iconSize' | 'hideLabel' | 'disabled' | 'pressed'> {
   /** Trigger text (kept for accessibility when `hideLabel` is set). */
   label: string;
   /** Trigger icon. */
@@ -90,6 +95,13 @@ export interface MenuProps extends Pick<ButtonProps, 'variant' | 'size' | 'shape
    * SwiftUI's `Menu` has no presentation binding, so iOS never reports it.
    */
   onOpenChange?: (open: boolean) => void;
+  /**
+   * Web only: the material the menu draws on, by the rules the bars use
+   * (the raised fill thinned over a blur, with a hairline and a shadow all
+   * round). The app's `overlayMaterial` (`AccentProvider`) unless given.
+   * The native menus bring their own.
+   */
+  material?: MaterialThickness;
   /** Identifier used to locate the trigger in end-to-end tests. */
   testID?: string;
 }
@@ -179,6 +191,11 @@ export interface ContextMenuProps {
    * never reports it.
    */
   onOpenChange?: (open: boolean) => void;
+  /**
+   * Web only: the material the menu draws on, as `Menu` takes it. The app's
+   * `overlayMaterial` (`AccentProvider`) unless given.
+   */
+  material?: MaterialThickness;
   /** Identifier used to locate the trigger in end-to-end tests. */
   testID?: string;
 }

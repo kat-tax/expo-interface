@@ -242,6 +242,13 @@ describe(`Tabs (${Platform.OS})`, () => {
         expect(bar.contains(dom.getByText('detail'))).toBe(true);
         const back = dom.getByLabelText('Go back');
         expect(bar.contains(back)).toBe(true);
+        // The kit's own glyph at the mark's size, which the stylesheet draws
+        // from the font the app registers: `SymbolView` would fetch the
+        // static instance for it.
+        const glyph = back.querySelector<HTMLElement>('.ui-symbol')!;
+        expect(glyph.textContent).toBe('arrow_back');
+        expect(glyph.style.fontSize).toBe('20px');
+        expect(back.childElementCount).toBe(1);
 
         // It dims while it is held, like the bar's own links.
         fireEvent.mouseDown(back);

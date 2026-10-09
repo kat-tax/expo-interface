@@ -1,7 +1,7 @@
 import type {MenuItem} from './types';
 import type {HostNode} from 'expo-vitest/native';
 import {Platform} from 'react-native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import * as icons from '../__stories__/icons';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
@@ -256,6 +256,42 @@ describe(`Menu (${Platform.OS})`, () => {
     } else {
       expect(props.colors).toEqual({containerColor: '#007AFF', contentColor: '#FFFFFF'});
     }
+  });
+
+  it('draws a trigger that is on filled, whatever its variant, and says it is on', async () => {
+    await render(<Menu label="Shapes" icon={icons.settings} items={items} variant="text" tone="label" pressed testID="shapes"/>);
+    const {props} = trigger('shapes');
+    if (isIOS) {
+      expect(modifier(props, 'buttonStyle')?.style).toBe('borderedProminent');
+      // Filled in the accent, not the label color: the label tone is the text variant's.
+      expect(modifier(props, 'tint')?.tint.color).toBe('#007AFF');
+      // VoiceOver hears the toggle that is on as selected.
+      expect(modifier(props, 'accessibilityAddTraits')?.traits).toEqual(['isSelected']);
+    } else {
+      // Material's toggle button, checked while on, its checked state in the semantics tree.
+      expect(props.checked).toBe(true);
+      expect(props.colors).toEqual({containerColor: '#00000000', contentColor: '#007AFF', checkedContainerColor: '#007AFF', checkedContentColor: '#FFFFFF'});
+    }
+  });
+
+  (isIOS ? it : it.skip)('draws the sized icon of a trigger that is on in the color on its fill', async () => {
+    const menu = (pressed: boolean) => <Menu label="Shapes" icon={icons.settings} iconSize={22} hideLabel items={items} variant="text" color="#8959EA" pressed={pressed} testID="shapes"/>;
+    const {rerender} = await render(menu(true));
+    expect(modifier(trigger('shapes').props, 'tint')?.tint.color).toBe('#8959EA');
+    expect(modifier(trigger('shapes').props, 'accessibilityLabel')?.label).toBe('Shapes');
+    // The symbol stands on the fill, so it takes the color's contrast, as the kit's button's does.
+    expect(modifier(host(p => p.systemName === 'gearshape').props, 'foregroundStyle')?.style.color).toBe('#FFFFFF');
+    await rerender(menu(false));
+    expect(modifier(trigger('shapes').props, 'buttonStyle')?.style).toBe('plain');
+    expect(modifier(host(p => p.systemName === 'gearshape').props, 'foregroundStyle')?.style.color).toBe('#8959EA');
+  });
+
+  (isIOS ? it.skip : it)('opens the dropdown from a press on a trigger that is a toggle', async () => {
+    await render(<Menu label="Shapes" items={items} pressed testID="shapes"/>);
+    await act(async () => {
+      byComposeTestID('shapes').props.onCheckedChange({nativeEvent: {checked: false}});
+    });
+    expect(root().props.expanded).toBe(true);
   });
 
   (isIOS ? it.skip : it)('expands the dropdown when the trigger is pressed', async () => {

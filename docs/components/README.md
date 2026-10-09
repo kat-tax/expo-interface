@@ -101,7 +101,7 @@ See them live in the [Storybook](https://kat-tax.github.io/expo-interface/).
 
 | Export | What it is | Page |
 | --- | --- | --- |
-| `AccentProvider`, `useAccentSeed`, `onAccent`, `resolveAccent`, `currentAccent`, `ACCENT_SEED`, `ACCENT_STORAGE_KEY` | The accent seed, legible in each scheme and kept on web. | [Theming](../theming.md#accent) |
+| `AccentProvider`, `useAccentSeed`, `onAccent`, `resolveAccent`, `currentAccent`, `ACCENT_SEED`, `ACCENT_STORAGE_KEY` | The accent seed, legible in each scheme and kept on web, and the material the overlays draw on. | [Theming](../theming.md#accent) |
 | `useColorScheme`, `setColorScheme`, `getColorSchemeMode`, `restoreColorScheme`, `SCHEME_STORAGE_KEY` | The light or dark scheme, and forcing it. | [Theming](../theming.md#color-scheme) |
 | `theme`, `useColor`, `usePalette`, `resolvedPalette`, `isColorToken`, `useNavTheme`, `colors`, `getThemeCSS`, `getThemeBootScript` | Reading colors. | [Theming](../theming.md#reading-colors) |
 | `spacing`, `bound`, `inset`, `fonts`, `fontWeights`, `variants` | Constants. | [Theming](../theming.md#constants) |

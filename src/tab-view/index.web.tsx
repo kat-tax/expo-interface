@@ -1,10 +1,11 @@
 import './tab-view.css';
-import type {CSSProperties, MouseEvent, RefObject} from 'react';
+import type {CSSProperties, MouseEvent, PointerEvent, RefObject} from 'react';
 import type {TabViewProps} from './types';
 import type {MenuItem, MenuPoint} from '../menu/types';
 import {useEffect, useId, useRef, useState} from 'react';
 import {StyleSheet, type TextStyle} from 'react-native';
 import {useRovingFocus} from '../a11y/roving';
+import {LONG_PRESS_MS} from '../context-menu';
 import {PopupMenu} from '../popup-menu';
 import {Icon} from '../symbol';
 import {flatten} from '../theme';
@@ -61,7 +62,9 @@ function useContainerWidth(ref: RefObject<HTMLElement | null>): number {
  * is worth knowing rather than papering over.
  *
  * A tab is a `div role="tab"` rather than a `<button>` for a related reason:
- * it is one stop in a composite, not a button in the tab order.
+ * it is one stop in a composite, not a button in the tab order. Its accessory
+ * is hidden from assistive technology: the tab names itself from `label`, so
+ * a `Badge` in it is never read on its own.
  *
  * Selection follows the arrow keys rather than waiting for Enter, the APG's
  * automatic activation, which is right here because switching tabs shows
@@ -94,19 +97,50 @@ export function TabView(props: TabViewProps) {
   const root = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
-  // A tab's menu, open at the pointer in the root's own coordinates: one
-  // popup serves every tab, as the right click and the Menu key open it.
+  // A tab's menu, open at a point of the page in the root's own coordinates:
+  // one popup serves every tab, as the right click, the Menu key and a held
+  // touch open it.
   const [menu, setMenu] = useState<{items: MenuItem[]; at: MenuPoint} | null>(null);
-  const openMenu = (tab: {menu?: MenuItem[]}, event: MouseEvent<HTMLElement>) => {
-    if (!tab.menu) return;
-    event.preventDefault();
+  const openMenuAt = (items: MenuItem[], x: number, y: number) => {
     const bounds = root.current!.getBoundingClientRect();
-    const target = event.currentTarget.getBoundingClientRect();
-    // The pointer's point, or the tab's own corner for the Menu key, which reports no point.
-    const x = event.clientX || target.left;
-    const y = event.clientY || target.bottom;
-    setMenu({items: tab.menu, at: {x: x - bounds.left, y: y - bounds.top}});
+    setMenu({items, at: {x: x - bounds.left, y: y - bounds.top}});
   };
+  // The touch held on a tab, until it has been held long enough or lifts.
+  const press = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cancelPress = () => {
+    if (press.current) clearTimeout(press.current);
+    press.current = null;
+  };
+  // A touch still held when the view goes would open a menu with no root to
+  // measure against.
+  useEffect(() => () => {
+    if (press.current) clearTimeout(press.current);
+  }, []);
+  /**
+   * What opens a tab's menu: a right click or the Menu key (`contextmenu`),
+   * and a touch held as long as the web `ContextMenu` asks, since Safari on
+   * iOS raises no `contextmenu` for a touch. A browser that raises one for
+   * the held touch as well (Chrome on Android) ends the hold with it, so the
+   * menu opens once.
+   */
+  const menuGestures = (items: MenuItem[]) => ({
+    onContextMenu: (event: MouseEvent<HTMLElement>) => {
+      event.preventDefault();
+      cancelPress();
+      const target = event.currentTarget.getBoundingClientRect();
+      // The pointer's point, or the tab's own corner for the Menu key, which reports no point.
+      openMenuAt(items, event.clientX || target.left, event.clientY || target.bottom);
+    },
+    onPointerDown: (event: PointerEvent<HTMLElement>) => {
+      if (event.pointerType !== 'touch') return;
+      const {clientX: x, clientY: y} = event;
+      cancelPress();
+      press.current = setTimeout(() => openMenuAt(items, x, y), LONG_PRESS_MS);
+    },
+    onPointerUp: cancelPress,
+    onPointerCancel: cancelPress,
+    onPointerMove: cancelPress,
+  });
   const resolved = resolveLayout(layout, useContainerWidth(root));
   const current = tabIndex(tabs, selected);
   const roving = useRovingFocus(list, {
@@ -203,7 +237,7 @@ export function TabView(props: TabViewProps) {
                   aria-keyshortcuts={cross ? 'Delete' : undefined}
                   data-testid={testID ? `${testID}-tab-${tab.id}` : undefined}
                   onClick={() => onSelect(tab.id)}
-                  onContextMenu={event => openMenu(tab, event)}
+                  {...(tab.menu ? menuGestures(tab.menu) : undefined)}
                   onKeyDown={event => {
                     if (event.key !== 'Delete' || !onClose || tab.pinned) return;
                     event.preventDefault();
@@ -214,7 +248,7 @@ export function TabView(props: TabViewProps) {
                   <span className="ui-tab-view__title" id={index === current ? openId : undefined}>
                     {tab.title}
                   </span>
-                  {tab.accessory}
+                  {tab.accessory ? <span className="ui-tab-view__accessory" aria-hidden="true">{tab.accessory}</span> : null}
                 </div>
                 {cross}
               </div>
@@ -266,7 +300,7 @@ export function TabView(props: TabViewProps) {
                   setOpen(false);
                   onSelect(tab.id);
                 }}
-                onContextMenu={event => openMenu(tab, event)}
+                {...(tab.menu ? menuGestures(tab.menu) : undefined)}
                 onKeyDown={event => {
                   if (event.key !== 'Delete' || !onClose || tab.pinned) return;
                   event.preventDefault();
@@ -275,7 +309,7 @@ export function TabView(props: TabViewProps) {
                 {...roving.itemProps(index)}>
                 {tab.icon ? <Icon icon={tab.icon} size={ICON}/> : null}
                 <span className="ui-tab-view__card-title">{tab.title}</span>
-                {tab.accessory}
+                {tab.accessory ? <span className="ui-tab-view__accessory" aria-hidden="true">{tab.accessory}</span> : null}
               </div>
               {cross}
             </div>

@@ -8,7 +8,7 @@ import {Portal} from '../windows/portal';
 import XamlMaterial from '../windows/specs/ExpoInterfaceMaterialNativeComponent';
 import {edgeStyle} from './edge';
 
-export {materialProps} from './inert';
+export {materialAttributes, materialProps} from './inert';
 
 /** Windows' acrylic for each thickness; Liquid Glass is the default acrylic. */
 const ACRYLIC: Record<MaterialKind, 'acrylicThin' | 'acrylic' | 'acrylicBase'> = {
@@ -51,4 +51,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export type {MaterialEdge, MaterialFill, MaterialKind, MaterialProps} from './types';
+export type {MaterialAttributes, MaterialEdge, MaterialFill, MaterialKind, MaterialProps, MaterialThickness} from './types';

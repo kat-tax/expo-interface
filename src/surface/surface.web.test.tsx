@@ -59,4 +59,45 @@ describe('Surface (web)', () => {
     surface.click();
     expect(onPress).toHaveBeenCalledTimes(1);
   });
+
+  describe('on a material', () => {
+    it('carries the stylesheet\'s attributes and paints no fill, hairline or shadow of its own', () => {
+      render(<Surface material="regular" raised border="all" padding={12} testID="surface"/>);
+      const surface = screen.getByTestId('surface');
+      // Raised: the hairline all round and the floating shadow are the material's.
+      expect(surface.dataset).toMatchObject({material: 'regular', materialFill: 'element', materialEdge: 'float'});
+      const style = getComputedStyle(surface);
+      expect(style.backgroundColor).toBe('rgba(0, 0, 0, 0)');
+      expect(style.borderTopWidth).toBe('0px');
+      expect(style.boxShadow).toBe('');
+      expect(style.padding).toBe('12px');
+    });
+
+    it('thins the screen fill for a surface of that color, with the hairline where the border says', () => {
+      render(
+        <>
+          <Surface material="thin" color="background" border="top" testID="bar"/>
+          <Surface material="thick" color="selected" testID="selected"/>
+        </>,
+      );
+      expect(screen.getByTestId('bar').dataset).toMatchObject({material: 'thin', materialFill: 'background', materialEdge: 'top'});
+      expect(getComputedStyle(screen.getByTestId('bar')).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+      // Any other fill thins the raised one.
+      expect(screen.getByTestId('selected').dataset).toMatchObject({material: 'thick', materialFill: 'element', materialEdge: 'none'});
+    });
+
+    it('is drawn as usual for none, and keeps the material when it presses', () => {
+      render(
+        <>
+          <Surface material="none" raised testID="plain"/>
+          <Surface material="regular" raised onPress={() => {}} label="Card" testID="card"/>
+        </>,
+      );
+      expect(screen.getByTestId('plain').dataset.material).toBeUndefined();
+      expect(getComputedStyle(screen.getByTestId('plain')).backgroundColor).toBe('var(--color-background-element)');
+      const card = screen.getByRole('button', {name: 'Card'});
+      expect(card.dataset).toMatchObject({material: 'regular', materialFill: 'element', materialEdge: 'float'});
+      expect(getComputedStyle(card).boxShadow).toBe('');
+    });
+  });
 });

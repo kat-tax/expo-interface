@@ -32,7 +32,8 @@ describe(`TabView tab menus, depth and accessories (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(sketch.props.style).paddingLeft).toBe(16 + DEPTH_INDENT);
     expect(StyleSheet.flatten(screen.getByTestId('t-tab-c').parent!.props.style).paddingLeft).toBe(16 + 2 * DEPTH_INDENT);
     expect(StyleSheet.flatten(screen.getByTestId('t-tab-a').parent!.props.style).paddingLeft).toBe(16);
-    expect(screen.getByText('typing')).toBeOnTheScreen();
+    // Drawn, and hidden from assistive technology: the tab speaks for it.
+    expect(screen.getByText('typing', {includeHiddenElements: true})).toBeOnTheScreen();
   });
 
   it('opens a tab\'s menu under the tab on a long press, from the tab\'s layout less the strip\'s scroll', async () => {
@@ -69,7 +70,7 @@ describe(`TabView tab menus, depth and accessories (${Platform.OS})`, () => {
     await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
     await fireEvent.press(screen.getByTestId('t-switcher'));
     expect(StyleSheet.flatten(screen.getByTestId('t-card-b').props.style).paddingLeft).toBe(16 + DEPTH_INDENT);
-    expect(screen.getByText('typing')).toBeOnTheScreen();
+    expect(screen.getByText('typing', {includeHiddenElements: true})).toBeOnTheScreen();
     const card = screen.getByTestId('t-card-a').parent!;
     await act(async () => card.props.onLayout({nativeEvent: {layout: {x: 16, y: 16, width: 160, height: 60}}}));
     await fireEvent(screen.getByTestId('t-card-a'), 'longPress');

@@ -167,7 +167,8 @@ written whether or not the sources name them:
 | --- | --- |
 | `arrow_back` | the back button of a `Sheet`'s bar |
 | `close` | the close button of a `Sheet`'s bar and a `FindBar`'s close |
-| `more_horiz` | a `Sheet`'s and a `Card`'s menu, and a `Toolbar`'s overflow |
+| `more_horiz` | a `Sheet`'s menu and a `Toolbar`'s overflow |
+| `more_vert` | a `Card`'s menu |
 | `arrow_upward`, `stop` | a `Composer`'s send and stop buttons |
 | `keyboard_arrow_up`, `keyboard_arrow_down` | a `FindBar`'s previous and next match |
 | `star` | a `Card`'s favorite, outlined and, while set, filled |
@@ -180,8 +181,9 @@ kit's Android controls use.
 `--font` also writes `MaterialSymbolsOutlined.woff2`: the variable Material
 Symbols font cut down to the ligatures of the names found, the `fill` names,
 and the names the kit's own controls draw on the web. Those are the eight
-listed above, plus `add` and `grid_view` for a `TabView` strip and `search`
-for `HeaderSearch`. The font draws most solid icons from a glyph of their
+listed above (on the web `arrow_back` is also the back button of a stack
+header and of the `Tabs` bar), plus `add` and `grid_view` for a `TabView`
+strip and `search` for `HeaderSearch`. The font draws most solid icons from a glyph of their
 own, so the cut keeps each name's glyph at `FILL 0` and at `FILL 1`. It
 keeps the `FILL` axis and pins the others. A name the font does not have is
 reported and left out. The cut is done with HarfBuzz, so the CLI needs
@@ -194,7 +196,9 @@ Serve it from the app's bundle and register it beside the palette:
 <style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2')}}/>
 ```
 
-Registered that way, every icon draws from the cut first. The cut maps
+Registered that way, every icon draws from the cut first. The kit's own web
+chrome draws through `Icon` as well, the back button of a stack header and
+of the `Tabs` bar among the rest, so a page fetches only the cut. The cut maps
 every letter its names use, so a name it does not hold draws as its letters
 rather than falling back to the static instance. A name the app builds at
 run time therefore has to appear in a token in the sources, as Android's
@@ -212,9 +216,14 @@ cut for the stylesheet. Its options:
 | `filled` | Registers the font as `Material Symbols Filled` (`SYMBOL_FILL_FONT_FAMILY`), which the stylesheet tries first for a filled token only. `false` by default, which registers it as `Material Symbols Outlined` (`SYMBOL_FONT_FAMILY`), the family every icon tries first. |
 | `family` | A family of the app's own to register the font under. The rule also names it on `:root` in `--ui-symbol-font`, or in `--ui-symbol-fill-font` with `filled`, so icons draw with it with nothing more from the app. |
 
-A family name in place of the options is the same as `{family}`.
+A family name in place of the options is the same as `{family}`: the rule
+names it in `--ui-symbol-font`, and every icon, outlined and filled, draws
+from that cut. A cut of filled icons alone is registered with
+`{filled: true}`, and with `family` as well to keep a name of its own.
 
 ```tsx
 // for filled icons alone
 <style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2', {filled: true})}}/>
+// for filled icons alone, under a name of the app's own
+<style dangerouslySetInnerHTML={{__html: getThemeCSS() + getSymbolFontCSS('/symbols/MaterialSymbolsOutlined.woff2', {filled: true, family: 'App Symbols Filled'})}}/>
 ```

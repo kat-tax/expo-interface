@@ -64,7 +64,11 @@ export interface ListItemProps {
    * @default 'secondary'
    */
   iconTone?: IconTone;
-  /** Leading (start) slot — icon, avatar, etc. */
+  /**
+   * Leading (start) slot: an icon, an `Avatar`. On Android the slot is
+   * Compose content, which the kit's `Avatar` and `Badge` draw themselves
+   * in; a React Native view there is not hosted.
+   */
   leading?: ReactNode;
   /**
    * Text at the trailing edge in the secondary color, before `trailing`: a

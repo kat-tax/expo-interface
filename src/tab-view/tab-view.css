@@ -52,7 +52,12 @@
   font-family: var(--font-display);
   font-size: 15px;
   line-height: 20px;
+  /*
+   * A held touch opens the tab's menu, so the hold must neither select the
+   * title nor raise Safari's callout over it.
+   */
   user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .ui-tab-view__tab[data-selected='true'] {
@@ -106,6 +111,15 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+/*
+ * The accessory is hidden from assistive technology (the tab names itself
+ * from its label) and takes no box of its own, so what it holds lays out in
+ * the tab as it would without the wrapper.
+ */
+.ui-tab-view__accessory {
+  display: contents;
 }
 
 /*
@@ -212,6 +226,9 @@
   font-family: var(--font-display);
   font-size: 15px;
   line-height: 20px;
+  /* A held touch opens the tab's menu here too. */
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .ui-tab-view__card[data-selected='true'] {

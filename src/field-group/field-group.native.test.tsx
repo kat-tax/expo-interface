@@ -265,7 +265,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
 
   (isIOS ? it.skip : it)('pads the form by the bar it passes under', async () => {
     await render(
-      <ScrollInsetsContext.Provider value={{top: 30, bottom: 10, automatic: false}}>
+      <ScrollInsetsContext.Provider value={{top: 30, bottom: 10, left: 0, right: 0, automatic: false}}>
         <FieldGroup testID="group">
           <Typography>Alpha</Typography>
         </FieldGroup>
@@ -276,7 +276,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
 
   (isIOS ? it : it.skip)('ends the form with a clear row as tall as the room the screen keeps at its bottom', async () => {
     await render(
-      <ScrollInsetsContext.Provider value={{top: 0, bottom: 72, automatic: false}}>
+      <ScrollInsetsContext.Provider value={{top: 0, bottom: 72, left: 0, right: 0, automatic: false}}>
         <FieldGroup>
           <FieldGroup.Section title="General">
             <Typography>Row</Typography>

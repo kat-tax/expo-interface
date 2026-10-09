@@ -90,10 +90,11 @@ export function sourceFiles(roots, cwd = process.cwd()) {
  * The Material names the kit's own controls draw on Android, written whether
  * or not an app's sources name them: a `Sheet` bar's back and close buttons,
  * a `Composer`'s send and stop buttons, a `FindBar`'s previous and next, the
- * ellipsis of a `Toolbar`'s overflow, a `Card`'s and a `Sheet`'s menus, and
- * the star of a `Card`'s favorite, filled while set.
+ * ellipsis of a `Toolbar`'s overflow and a `Sheet`'s menu, the vertical
+ * ellipsis of a `Card`'s menu, and the star of a `Card`'s favorite, filled
+ * while set.
  */
-export const KIT_NAMES = ['arrow_back', 'arrow_upward', 'close', 'keyboard_arrow_down', 'keyboard_arrow_up', 'more_horiz', 'star', 'stop'];
+export const KIT_NAMES = ['arrow_back', 'arrow_upward', 'close', 'keyboard_arrow_down', 'keyboard_arrow_up', 'more_horiz', 'more_vert', 'star', 'stop'];
 export const KIT_FILLED = ['star'];
 
 /**
@@ -101,7 +102,8 @@ export const KIT_FILLED = ['star'];
  * written into the font whether or not an app's sources name them: the
  * chrome glyphs of a `Sheet`'s bar, a `Composer`, a `FindBar` and a
  * `Toolbar`, a `Card`'s menu and star, a `TabView` strip's close, add and
- * switcher buttons, and `HeaderSearch`'s open action.
+ * switcher buttons, `HeaderSearch`'s open action, and the back button of a
+ * stack header and of the `Tabs` bar.
  */
 export const KIT_WEB_NAMES = ['add', 'arrow_back', 'arrow_upward', 'close', 'grid_view', 'keyboard_arrow_down', 'keyboard_arrow_up', 'more_horiz', 'search', 'star', 'stop'];
 

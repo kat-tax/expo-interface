@@ -12,8 +12,13 @@ differ. [All components](README.md) lists the other groups.
 
 A dropdown menu of actions opened from a button. Props: `label`, `icon`,
 `items`, `trigger` (`button`, or `link` for a text link in a bar),
-`onOpenChange`, `testID`, and the `Button` props `variant`, `size`, `shape`,
-`color`, `tone`, `iconSize`, `hideLabel`, `disabled`.
+`onOpenChange`, `material` (web only: the popup draws on the kit's material,
+as the bars do; the app's `overlayMaterial` unless given), `testID`, and the
+`Button` props `variant`, `size`, `shape`,
+`color`, `tone`, `iconSize`, `hideLabel`, `disabled` and `pressed` (the
+trigger is a toggle that is on: drawn filled in the accent, whatever the
+variant, and heard as `Button pressed` is on each platform, for a tool
+whose menu picks what it does; it opens the menu either way).
 
 A `MenuItem` has `label`, `icon`, `swatch` (a color dot in place of the
 icon), `active` (a check mark), `role` (`default`, `destructive`),
@@ -46,6 +51,12 @@ Differences:
   the menu is mounted on Windows, as WinUI draws an accelerator. The other
   platforms ignore it.
 - `trigger: 'link'` is a text link on web and the text variant on Windows.
+- On web the trigger takes its popover target once the page has hydrated,
+  so on a static page a press before then does nothing, rather than opening
+  a list with no anchor and entries that do nothing yet.
+- On web Escape closes an open menu wherever the focus is, and the key goes
+  no further: a web `Sheet` or a `Popover` card the menu is in stays up, and
+  takes the next one.
 - On iOS and Android a menu outside a host mounts one of its own, sized to
   its trigger, so it can be placed in a React Native layout like any
   element. See [Native hosts](../hosts.md).
@@ -59,7 +70,8 @@ content on iOS and Android), `onPress` (the content's own press), `label`
 the content is what a screen reader lands on; iOS and Android name the
 content itself), `trigger` (`longPress`, the default, or `tap`), `disabled`,
 `at` (a point relative to the content's top left, or `null`), `onDismiss`,
-`onOpenChange`, `testID`. Without a press of its own the Windows wrapper is
+`onOpenChange`, `material` (web only, as `Menu` takes it), `testID`. Without
+a press of its own the Windows wrapper is
 nothing to a screen reader or the Tab key: the content's controls are what
 they land on.
 
@@ -77,6 +89,7 @@ Differences:
 - A right click and the Menu key open the menu on web and Windows whichever
   `trigger` says; they are what the platform and its screen readers reach for.
 - `onOpenChange` is not reported on iOS.
+- On web Escape closes the open menu and goes no further, as for `Menu`.
 - There is no `doubleTap` trigger: `@expo/ui` exposes no double click from
   Compose, and SwiftUI has no way to open a context menu programmatically.
 
@@ -87,7 +100,7 @@ canvas, a web view, an editor. It wraps nothing. Props: `items`, `at` (a
 point or a rectangle, or `null` to close), `preferredEdge` (`auto`, `top`,
 `bottom`), `filter` (matches the label or `keywords`, for a menu typed
 into), `onDismiss(reason)`, `takesFocus`, `highlighted` and `id` (web, for
-a menu typed into), `testID`.
+a menu typed into), `material` (web only, as `Menu` takes it), `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -113,9 +126,13 @@ a new `at` moves it: a menu moved from one handle to the next stays open,
 and no late close of the first reaches the second. On web that holds for a
 move made by a press outside the menu too, as a context menu raised by the
 next handle's right button is: the menu is closed while the press is held
-and shown at the new place once it is over. On iOS, Android and Windows a
-press outside the open menu is the platform's dismissal, reported as
-`dismiss`. On web, Escape closes the
+and shown at the new place once it is over. A web menu raised while a
+pointer button is down opens the same way, once the press is over, in the
+task after its release: the browser settles what a press light-dismisses as
+the button goes down and carries it out at the release, so a popover shown
+before that task, even from the release's own listeners, is dismissed with
+that same press. On iOS, Android and Windows a press outside the open menu
+is the platform's dismissal, reported as `dismiss`. On web, Escape closes the
 menu wherever the focus is, even in an editor that keeps the key for itself,
 and the key goes no further, so a web `Sheet` or a `Popover` card the menu
 is in stays up.
@@ -144,8 +161,9 @@ a block, a warning about a link, the editor of an option. Props: `at`
 (`{x, y, width, height}` or `null`), `title`, `message`, `actions` (`label`,
 `onPress`, `role`), `onDismiss(reason)`, `preferredEdge` (`auto`, `top`,
 `bottom`), `width` (280), `modal`, `label`, `insets` (`top`, `bottom`, `left`,
-`right`), `trigger` (`manual` or `hover`), `grace` (300 ms), `children`,
-`testID`.
+`right`), `trigger` (`manual` or `hover`), `grace` (300 ms), `material` (web
+only: the card draws on the kit's material, as the bars do; the app's
+`overlayMaterial` unless given), `children`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -191,7 +209,8 @@ before an editor that keeps the key for itself, and the key goes no further:
 neither the focused editor nor an overlay the card is in, such as a web
 `Sheet`, acts on it too. One Escape closes one overlay: a card with a menu
 open in it, or another card up inside it, leaves the key to that one and
-takes the next. Of two cards up side by side, or a card and a `PopupMenu`,
+takes the next. A menu open beside the card takes it before the card,
+since the browser draws the menu over it; of two cards up side by side,
 the one that came up last takes it. A card with no `onDismiss` leaves
 Escape alone, unless it is lingering, which Escape ends.
 
@@ -221,7 +240,9 @@ reports the card gone.
 
 A short hint attached to a piece of content. Props: `text`, `children` (must
 be `@expo/ui` content on Android, and non-interactive everywhere, since the
-web trigger is a button), `testID`.
+web trigger is a button), `material` (web only: the hint draws on the kit's
+material with its text in the label color; the app's `overlayMaterial`
+unless given), `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -244,15 +265,19 @@ actions. Props: `title`, `message`, `visible`, `onDismiss`, `actions`
 new thing or a rename: `placeholder`, `value`, `onChangeText`,
 `secureTextEntry`, `keyboardType`, `autoCapitalize`, `autoCorrect`,
 default true, `autoFocus`, default true, `testID`), `sheet`, `children` (an optional trigger rendered in place),
-`testID`. It mounts its own host where there is none, so it can be rendered
-anywhere.
+`material` (web only: the dialog draws on the kit's material, as the bars
+do; the app's `overlayMaterial` unless given), `testID`. It mounts its own
+host where there is none, so it can be rendered anywhere.
 
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Alert`, or `ConfirmationDialog` with `sheet`. The field is a SwiftUI `TextField` among the alert's actions, which is where SwiftUI takes one. |
-| Android | Material 3 `AlertDialog`, with the actions in a column for `sheet`. The field is the kit's Compose field under the message. |
+| Android | Material 3 `AlertDialog`, with the actions in a column for `sheet`. The field is Material's outlined field under the message, the way Android's own dialogs draw an input, with the kit's placeholder colour and cursor tint. |
 | Web | A real `<dialog>` opened with `showModal()`: the top layer, a backdrop, a focus trap and Escape. `sheet` anchors it to the bottom. The field is a box under the message. |
 | Windows | A dialog in `ContentDialog`'s arrangement, smoke over the whole window and the card with the title, message and actions, drawn in a windowed popup, since a `ContentDialog` can only cover its own island. Up to three actions take the dialog's own buttons; more are stacked in the body. The field is a WinUI `TextBox` in the dialog's body, placed there through a portal. |
+
+On web Escape closes the alert alone: the key goes no further, so a web
+`Sheet` the alert opened from stays up.
 
 `sheet` has no Windows form; a dialog is drawn either way, and an action
 sheet holds no field on any platform. The field is controlled through
@@ -280,7 +305,8 @@ props, with a title bar, a cap on its height and the rows a sheet ends in.
 
 Props: `@expo/ui`'s (`isPresented`, `onDismiss`, `snapPoints`,
 `showDragIndicator`, `contentPadding`, `containerColor` and the rest),
-`material` (`none`, `thin`, `regular`, `thick`), `title` and `subtitle`
+`material` (`none`, `thin`, `regular`, `thick`; the app's `overlayMaterial`
+unless given), `title` and `subtitle`
 (the bar along the top), `onBack` (a back button at the bar's leading
 edge), `onClose` (a close button at its trailing edge; the app dismisses the
 sheet from it, as from `onDismiss`), `menu` (the sheet's own actions behind
@@ -318,8 +344,8 @@ the window and the body gives way inside it.
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI's sheet, with a real material through `presentationBackground`. The bar, the accessory and the actions are SwiftUI content: the title in the headline font, the kit's buttons at the ends. The pieces stack in one SwiftUI column with no spacing, so the sheet's padding is paid once and a sheet without `snapPoints` fits all of them. |
-| Android | Compose's `ModalBottomSheet`. It takes a container color and nothing else, so the sheet is opaque. The bar, the accessory and the actions are Compose content: Compose has no app bar in `@expo/ui`, so the bar is a row in the sheet's palette with the kit's buttons at the ends. A capped body hands a drag to the sheet, which expands before the body scrolls and collapses when the body is dragged down from its top, as a list in a Material sheet does. |
-| Web | `@expo/ui`'s drawer with `backdrop-filter` for the material. The bar is the kit's, in the `ScreenHeader` look, with the title a level 2 heading, the level of the drawer's own hidden title. A capped body takes keyboard focus, so the arrow keys scroll it. |
+| Android | Compose's `ModalBottomSheet`, presented by the kit in a host of its own. A sheet without `snapPoints` opens whole: Material offers a sheet taller than half the window a stop half way up, where the footer and the actions would sit below the screen's edge, and the sheet skips it. It takes a container color and nothing else, so the sheet is opaque. The bar, the accessory and the actions are Compose content: Compose has no app bar in `@expo/ui`, so the bar is a row in the sheet's palette with the kit's buttons at the ends. A capped body hands a drag to the sheet, which expands before the body scrolls and collapses when the body is dragged down from its top, as a list in a Material sheet does. |
+| Web | `@expo/ui`'s drawer, drawn on the material as the kit's bars are: the raised fill thinned over a blur of what passes under it, with a hairline and a soft shadow along its top edge, by the stylesheet the tab bar and the screen header use. The bar is the kit's, in the `ScreenHeader` look, with the title a level 2 heading, the level of the drawer's own hidden title. As the sheet opens the keyboard focus moves to the title, or to the first control in a sheet without one, since the drawer leaves it on the control that opened the sheet, which its dialog then hides from assistive technology; once the sheet has gone the focus returns to that control. A capped body takes keyboard focus, so the arrow keys scroll it. |
 | Windows | A layer drawn in React Native: WinUI's smoke and a centered card, the content scrolling inside, covering the whole window under the kit's `Stack` and the nearest ancestor elsewhere. A sheet's content is React Native's, which no XAML flyout or dialog can hold, and React Native's `Modal` cannot hold a XAML island on react-native-windows 0.84. No material. The bar, the accessory, the footer and the actions stay put while the body scrolls. |
 
 On iOS and Android the bar, the accessory and a body without `maxHeight`
@@ -338,6 +364,12 @@ Android (Material's limit for a sheet), less the sheet's padding. A
 `Pressable` in them takes presses, and a control in them mounts a host of
 its own. `@expo/ui` content of the app's own draws nothing in them without
 a host: wrap it in a `NativeHost`. Give a React Native body a `maxHeight`.
+Give a `List`, or a `FieldGroup` taller than the room, one too: a native
+body takes all the room the sheet offers and leaves the footer and the
+actions none. With `maxHeight` the body is hosted, and a `List` in it is
+the cap tall and scrolls inside it; on Android a drag on that list scrolls
+the list alone, where a drag on the rest of a capped body also moves the
+sheet.
 
 On web and Windows the sheet's content counts as hosted: controls inside it
 render bare, and a React Native box inside it (a `Composer`) mounts a
@@ -351,7 +383,9 @@ opens from.
 ## Toast
 
 A brief message over the screen. Props: `message`, `visible`, `action`
-(`label`, `onPress`), `onDismiss`, `duration` (4000 ms), `testID`.
+(`label`, `onPress`), `onDismiss`, `duration` (4000 ms), `material` (web
+only: the capsule draws on the kit's material, as the bars do; the app's
+`overlayMaterial` unless given), `testID`.
 
 A duration of zero or less keeps the toast up until its action is taken or it
 is dismissed, which is what Material calls an indefinite snackbar.

@@ -1,5 +1,6 @@
 import type {PropsWithChildren} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {MaterialThickness} from '../material/types';
 import {StyleSheet} from 'react-native';
 import {HorizontalFloatingToolbar} from '@expo/ui/jetpack-compose';
 import {testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
@@ -9,6 +10,8 @@ import {useColor} from '../theme';
 interface FloatingSurfaceProps extends PropsWithChildren {
   /** The space between the controls; Material's toolbar keeps its own. */
   gap: number;
+  /** The material the web's capsule draws on; Material's toolbar is opaque. */
+  material: MaterialThickness;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -17,7 +20,8 @@ interface FloatingSurfaceProps extends PropsWithChildren {
  * Android: a floating bar is Material 3's `HorizontalFloatingToolbar`, its
  * container, its elevation and its spacing, in the screen's raised fill
  * with the commands in the label color, in a host of its own the width of
- * the controls.
+ * the controls. Material has no material that shows what passes under it,
+ * so the bar is opaque whatever `material` says.
  */
 export function FloatingSurface({style, testID, children}: FloatingSurfaceProps) {
   const container = useColor('backgroundElement');

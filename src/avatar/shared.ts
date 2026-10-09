@@ -1,6 +1,9 @@
 /** The width of an avatar's ring, inside its edge. */
 export const AVATAR_RING = 2;
 
+/** Text size that keeps the initials inside the circle at any diameter. */
+export const AVATAR_TEXT_RATIO = 0.4;
+
 /** Palette a name is hashed into when an avatar is given no color of its own. */
 export const AVATAR_COLORS = [
   '#E5484D',

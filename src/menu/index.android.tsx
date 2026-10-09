@@ -29,7 +29,7 @@ export function Menu(props: MenuProps) {
  * an optional drawable leading icon (or a color dot), a trailing check when
  * active; destructive items use the theme danger color.
  */
-function NativeMenu({label, icon, items, testID, trigger: _trigger, onOpenChange, ...button}: MenuProps) {
+function NativeMenu({label, icon, items, testID, trigger: _trigger, material: _material, onOpenChange, ...button}: MenuProps) {
   const [expanded, setExpanded] = useState(false);
   const setOpen = (open: boolean) => {
     setExpanded(open);

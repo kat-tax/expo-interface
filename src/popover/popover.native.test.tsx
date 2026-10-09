@@ -1,6 +1,8 @@
 import {Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {AccentProvider} from '../accent';
 import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
+import {colors} from '../theme';
 import {PopoverRect, type PopoverProps} from './types';
 import {Popover} from '.';
 
@@ -45,10 +47,21 @@ describe(`Popover (${Platform.OS})`, () => {
     expect(style()).toMatchObject({position: 'absolute', width: 280, left: 40, top: 128});
   });
 
+  it('takes a material, which is the web\'s, and draws the card opaque all the same', async () => {
+    await render(
+      <AccentProvider overlayMaterial="thin">
+        <Popover at={at} title="Spelling" material="regular" testID="lint"/>
+      </AccentProvider>,
+    );
+    const card = screen.getByTestId('lint').children[0] as unknown as {props: {style: unknown; dataSet?: unknown}};
+    expect(StyleSheet.flatten(card.props.style as never)).toMatchObject({backgroundColor: colors.light.backgroundElement});
+    expect(card.props.dataSet).toBeUndefined();
+  });
+
   it('gives its content no scroll insets, whatever the screen under it pads by', async () => {
     // A screen under a floating header and over the tab bar's floating action.
     await render(
-      <ScrollInsetsContext.Provider value={{top: 40, bottom: 72, automatic: true}}>
+      <ScrollInsetsContext.Provider value={{top: 40, bottom: 72, left: 0, right: 0, automatic: true}}>
         <Insets testID="screen"/>
         <Popover at={at} title="Spelling" testID="lint">
           <Insets testID="card"/>

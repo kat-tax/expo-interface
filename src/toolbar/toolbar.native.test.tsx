@@ -289,4 +289,37 @@ describe('commands', () => {
       expect(host(p => p.contentDescription === 'Pen').props.size).toBe(22);
     }
   });
+
+  it('draws a command in its own color, and a menu command filled and heard as on while it is active', async () => {
+    await render(
+      <Toolbar
+        commands={[
+          {label: 'Ink', icon: icons.add, hideLabel: true, color: '#FF9500', testID: 'ink'},
+          {label: 'Shapes', icon: icons.settings, hideLabel: true, active: true, color: '#8959EA', items: [{label: 'Circle'}], testID: 'shapes'},
+          {label: 'Text', icon: icons.star, hideLabel: true, active: false, items: [{label: 'Heading'}], testID: 'text'},
+        ]}
+      />,
+    );
+    const control = (testID: string) => (isIOS ? screen.getByTestId(testID) : byComposeTestID(testID)).props;
+    if (isIOS) {
+      // The tool in its color, still a plain button.
+      expect(modifier(control('ink'), 'tint')?.tint.color).toBe('#FF9500');
+      expect(modifier(control('ink'), 'buttonStyle')?.style).toBe('plain');
+      // The menu that is on: SwiftUI's Menu, filled in its color, selected to VoiceOver.
+      expect(screen.getByTestId('shapes').type).toContain('Menu');
+      expect(modifier(control('shapes'), 'buttonStyle')?.style).toBe('borderedProminent');
+      expect(modifier(control('shapes'), 'tint')?.tint.color).toBe('#8959EA');
+      expect(modifier(control('shapes'), 'accessibilityAddTraits')?.traits).toEqual(['isSelected']);
+      // Its 22pt symbol stands on the fill, so it takes the color's contrast.
+      expect(modifier(host(p => p.systemName === 'gearshape').props, 'foregroundStyle')?.style.color).toBe('#FFFFFF');
+      expect(modifier(control('text'), 'buttonStyle')?.style).toBe('plain');
+      expect(modifier(control('text'), 'accessibilityAddTraits')).toBeUndefined();
+    } else {
+      expect(control('ink').colors).toEqual({contentColor: '#FF9500'});
+      // The menu's trigger is Material's icon toggle button, checked while on, filled in its color.
+      expect(control('shapes').checked).toBe(true);
+      expect(control('shapes').colors).toEqual({containerColor: '#00000000', contentColor: '#8959EA', checkedContainerColor: '#8959EA', checkedContentColor: '#FFFFFF'});
+      expect(control('text').checked).toBe(false);
+    }
+  });
 });

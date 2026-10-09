@@ -1,17 +1,20 @@
 /*
  * A list of rows on the web. The list is its own scroller: it fills the room
  * its parent gives it and scrolls its rows inside, with the screen's insets
- * as padding (and scroll padding) inside the scroller. In a parent with no
- * height of its own it grows to its rows and the parent scrolls it. Only the
- * rows near the view are drawn; a spacer before them and one after keep the
- * room of the rest, and neither is ever a scroll anchor, so the browser holds
- * the drawn rows still while a spacer changes. The hairline between rows is
- * the separator color, as the platforms' own lists draw it.
+ * and its own as padding (and scroll padding) inside the scroller. Its box is
+ * its border box, so padding an app puts in `style` stays inside its full
+ * width. In a parent with no height of its own it grows to its rows and the
+ * parent scrolls it. Only the rows near the view are drawn; a spacer before
+ * them and one after keep the room of the rest, and neither is ever a scroll
+ * anchor, so the browser holds the drawn rows still while a spacer changes.
+ * The hairline between rows is the separator color, as the platforms' own
+ * lists draw it.
  */
 .ui-list {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
+  box-sizing: border-box;
   width: 100%;
   min-width: 0;
   min-height: 0;

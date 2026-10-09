@@ -20,6 +20,13 @@ describe('Toast (ios)', () => {
     expect(screen.queryByTestId('toast')).toBeNull();
   });
 
+  it('takes a material, which is the web\'s, and draws the capsule opaque all the same', async () => {
+    await render(<Toast message="Copied" visible material="regular" testID="toast"/>);
+    const toast = screen.getByTestId('toast');
+    expect(StyleSheet.flatten(toast.props.style)).toMatchObject({backgroundColor: colors.light.backgroundElement, borderRadius: 999});
+    expect(toast.props.dataSet).toBeUndefined();
+  });
+
   it('tells the screen what it covers of the bottom edge, and nothing once it goes', async () => {
     const report = vi.fn();
     const {rerender} = await render(

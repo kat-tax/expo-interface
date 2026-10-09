@@ -1,10 +1,12 @@
 import type {ComponentType, PropsWithChildren} from 'react';
+import type {MaterialThickness} from './material/types';
 import type {ColorScheme} from './scheme-store';
 import {createContext, Fragment, useContext, useEffect, useMemo, useSyncExternalStore} from 'react';
 import {Platform} from 'react-native';
 import {SCHEME_BACKGROUND, SCHEME_BACKGROUND_ELEMENT} from './backgrounds';
 import {loadKeyboardController} from './keyboard/library';
 import {legibleTint} from './legible';
+import {OverlayMaterialContext} from './material/context';
 import {schemeSnapshot, serverScheme, subscribeScheme} from './scheme-store';
 
 /**
@@ -146,6 +148,17 @@ interface AccentProviderProps extends PropsWithChildren {
    * @default true
    */
   persist?: boolean;
+  /**
+   * The material the kit's overlays draw on unless told otherwise through
+   * their own `material`: on the web the `Sheet`, the menus (`Menu`,
+   * `ContextMenu`, `PopupMenu`, `Fab`, and the menus `HeaderMenu`, a `Card`
+   * and a `Toolbar` open), the `Popover` card, a floating `Toolbar`, the
+   * `Alert`, the `Toast` and the `Tooltip`; on iOS the `Sheet`; nothing on
+   * Android and Windows, where the system's menus and sheets bring their
+   * own.
+   * @default 'none'
+   */
+  overlayMaterial?: MaterialThickness;
 }
 
 /**
@@ -155,8 +168,10 @@ interface AccentProviderProps extends PropsWithChildren {
  * `--color-tint`/`--color-on-tint` custom properties (inline styles win over
  * the `:root` defaults emitted by `getThemeCSS`), so all CSS consumers react
  * without JS recomputation, and the accent is kept in the browser's storage.
+ * `overlayMaterial` is the material the kit's overlays take unless told
+ * otherwise, so an app sets its glass once.
  */
-export function AccentProvider({seed = ACCENT_SEED, minContrast, persist = true, children}: AccentProviderProps) {
+export function AccentProvider({seed = ACCENT_SEED, minContrast, persist = true, overlayMaterial, children}: AccentProviderProps) {
   const light = typeof seed === 'string' ? seed : seed.light;
   const dark = typeof seed === 'string' ? seed : seed.dark;
   const accent = useMemo(() => resolveAccent({light, dark}, minContrast), [light, dark, minContrast]);
@@ -185,7 +200,9 @@ export function AccentProvider({seed = ACCENT_SEED, minContrast, persist = true,
 
   return (
     <KeyboardProvider>
-      <AccentContext.Provider value={accent}>{children}</AccentContext.Provider>
+      <AccentContext.Provider value={accent}>
+        <OverlayMaterialContext.Provider value={overlayMaterial}>{children}</OverlayMaterialContext.Provider>
+      </AccentContext.Provider>
     </KeyboardProvider>
   );
 }

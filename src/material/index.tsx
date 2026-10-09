@@ -1,9 +1,8 @@
 import './material.css';
 import type {ViewProps} from 'react-native';
-import type {SheetMaterial} from '../sheet/types';
-import type {MaterialEdge, MaterialFill, MaterialProps} from './types';
+import type {MaterialAttributes, MaterialEdge, MaterialFill, MaterialProps, MaterialThickness} from './types';
 import {View} from 'react-native';
-import {hasMaterial} from '../sheet/shared';
+import {hasMaterial} from './shared';
 
 /**
  * The props that draw a React Native view as one of the kit's materials on
@@ -12,11 +11,21 @@ import {hasMaterial} from '../sheet/shared';
  * must paint no background of its own while it carries one. Nothing for
  * `none`, where the view paints itself as usual.
  */
-export function materialProps(material: SheetMaterial | undefined, fill: MaterialFill, edge: MaterialEdge): ViewProps {
+export function materialProps(material: MaterialThickness | undefined, fill: MaterialFill, edge: MaterialEdge): ViewProps {
   if (!hasMaterial(material)) return {};
   // react-native-web writes `dataSet` out as `data-*` attributes, which the
   // stylesheet selects; React Native's own types do not know the prop.
   return {dataSet: {material, materialFill: fill, materialEdge: edge}} as ViewProps;
+}
+
+/**
+ * The same for a DOM element the kit renders itself (a menu's popover, a
+ * dialog, a tooltip's hint): the attributes `material.css` selects, as the
+ * element takes them. Nothing for `none`.
+ */
+export function materialAttributes(material: MaterialThickness | undefined, fill: MaterialFill, edge: MaterialEdge): MaterialAttributes {
+  if (!hasMaterial(material)) return {};
+  return {'data-material': material, 'data-material-fill': fill, 'data-material-edge': edge};
 }
 
 /**
@@ -38,4 +47,4 @@ export function Material({kind = 'regular', fill = 'background', edge = 'none', 
   );
 }
 
-export type {MaterialEdge, MaterialFill, MaterialKind, MaterialProps} from './types';
+export type {MaterialAttributes, MaterialEdge, MaterialFill, MaterialKind, MaterialProps, MaterialThickness} from './types';

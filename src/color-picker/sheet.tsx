@@ -1,4 +1,4 @@
-import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, ViewProps} from 'react-native';
 import type {RGBA} from './shared';
 
 import {useCallback, useState} from 'react';
@@ -73,14 +73,32 @@ const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n
 /** Colors the user saved with the `+` button, shared by every picker for the session. */
 let savedColors: RGBA[] = [];
 
-/** Touch handlers for a drag surface; a disabled one never takes the touch. */
+/**
+ * Touch handlers for a drag surface; a disabled one never takes the touch.
+ * The grant returns `true`, which has React Native keep the native parents
+ * from intercepting the touch (Android's `requestDisallowInterceptTouchEvent`),
+ * so a drag across the surface stays with it inside Compose's sheet around
+ * an `inline` picker rather than moving the sheet.
+ */
 const responder = (handler: (x: number, y: number) => void, disabled?: boolean) => ({
   onStartShouldSetResponder: () => !disabled,
   onMoveShouldSetResponder: () => !disabled,
   onResponderTerminationRequest: () => false,
-  onResponderGrant: (event: GestureResponderEvent) => handler(event.nativeEvent.locationX, event.nativeEvent.locationY),
+  onResponderGrant: (event: GestureResponderEvent) => {
+    handler(event.nativeEvent.locationX, event.nativeEvent.locationY);
+    return true;
+  },
   onResponderMove: (event: GestureResponderEvent) => handler(event.nativeEvent.locationX, event.nativeEvent.locationY),
 });
+
+/**
+ * Marks a drag surface for the web `Sheet`'s drawer, which leaves a drag
+ * that starts in an element with `data-vaul-no-drag` alone, so a drag across
+ * the spectrum or a slider stays with the picker rather than moving the
+ * sheet. react-native-web writes `dataSet` out as `data-*` attributes, which
+ * React Native's own types do not know; the native views ignore it.
+ */
+const NO_SHEET_DRAG = {dataSet: {vaulNoDrag: 'true'}} as ViewProps;
 
 export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, onClose, disabled, width, testID}: ColorPickerSheetProps) {
   const [tab, setTab] = useState<ColorPickerTab>('grid');
@@ -242,6 +260,7 @@ function Spectrum({color, onChange, disabled}: PartProps) {
   return (
     <View
       {...responder(pick, disabled)}
+      {...NO_SHEET_DRAG}
       role="slider"
       aria-label="Spectrum"
       aria-disabled={disabled}
@@ -333,6 +352,7 @@ function Slider({label, value, colorAt, checkered, onChange, disabled}: SliderPr
   return (
     <View
       {...responder(pick, disabled)}
+      {...NO_SHEET_DRAG}
       role="slider"
       aria-label={label}
       aria-disabled={disabled}

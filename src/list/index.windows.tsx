@@ -30,7 +30,7 @@ export function List<T>({data, renderItem, keyExtractor, separators = true, head
       // A tap on a row goes to the row while a field has the touch keyboard; a tap past the rows closes it.
       keyboardShouldPersistTaps="handled"
       // While empty the content grows to the list's height, so an `EmptyState` fills it under the header.
-      contentContainerStyle={[{paddingTop: insets.top, paddingBottom: insets.bottom}, data.length === 0 ? styles.grow : null]}
+      contentContainerStyle={[{paddingTop: insets.top, paddingBottom: insets.bottom, paddingLeft: insets.left, paddingRight: insets.right}, data.length === 0 ? styles.grow : null]}
       style={[styles.list, style]}
       testID={testID}
     />

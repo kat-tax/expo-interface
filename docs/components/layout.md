@@ -27,7 +27,9 @@ its content, a scroll view of the app's own is a
 `useScrollInsets()`, whose `top`
 is the bar's inset under such a screen and whose `bottom` is the room the tab
 bar's floating action takes on any screen under the tabs (Android, and iOS
-before 26), nothing elsewhere, with any insets passed to it added; on iOS
+before 26), nothing elsewhere, with any insets passed to it added, and whose
+`left` and `right` are only those passed to it, since a screen keeps nothing
+at the sides; on iOS
 its `automatic` says the platform insets the content itself, and `top` is
 then only what floats under the header), `fab` (a node placed at the bottom
 trailing corner, above the safe area and the tab bar, lifted above a `Toast`
@@ -101,7 +103,7 @@ the content is in the title bar).
 
 | Platform | Renders |
 | --- | --- |
-| iOS, Android, Web | A 64-point row under the status bar (under the floating tab bar on web), a chevron or arrow back button, a single-line title. On web `material` thins the background over a blur of what the app lays under the bar, with a hairline along the bottom edge, and is solid where the blur cannot be had or is not wanted. |
+| iOS, Android, Web | A 64-point row under the status bar (under the floating tab bar on web), a back button drawn as the kit's `Icon` (a chevron on iOS, an arrow on Android and web), a single-line title. On web `material` thins the background over a blur of what the app lays under the bar, with a hairline along the bottom edge, and is solid where the blur cannot be had or is not wanted. |
 | Windows | A 48-point row like a WinUI title row, a Segoe back glyph, the caption buttons' room left at the ends, and `titleNode` and `leading` slots |
 
 ## NativeHost
@@ -119,7 +121,11 @@ Props: `color` (`background`, `element`, `selected`, `none`), `border`
 (`none`, `all`, `top`, `bottom`), `dashed`, `borderColor` (a palette token
 such as `opaqueSeparator`, which follows the scheme, or any color;
 `separator` by default), `radius` (a number or `pill`), `raised` (a soft
-shadow), `padding`, `onPress`, `onLongPress`, `disabled`, `label` (the
+shadow), `material` (web only: `none`, `thin`, `regular`, `thick`; the
+surface draws on the kit's material, its fill thinned over a blur of what
+passes under it, with the hairline where `border` says, or all round with
+the floating shadow when `raised`, and paints no fill, hairline or shadow
+of its own), `padding`, `onPress`, `onLongPress`, `disabled`, `label` (the
 accessible name of a pressable surface), `suppressNativeMenu` (web only:
 the browser's context menu does not open over the surface, for a canvas or
 an editor with menus of its own), `onLayout`, `ref` (the surface's view,
@@ -133,6 +139,9 @@ Differences:
   fill while pressed), reacts to hover, takes the focus ring, and presses on
   Enter and Space.
 - On web a pressable surface is a real `<button>`.
+- `material` draws on web alone, by the stylesheet the tab bar and
+  `ScreenHeader` use. iOS, Android and Windows paint the surface as usual
+  whatever it says.
 
 ## Material
 
@@ -169,7 +178,10 @@ else, clipped to its corners), `header`, `children` (the body), `title` and
 `subtitle` (the footer the kit draws: one line each, with room at the
 trailing edge for the menu), `footer` (a footer of the app's own, in place
 of `title`), `menu` (the card's own actions, as the platform's menu behind
-an ellipsis level with the footer), `favorite` (`value`, `onValueChange`,
+an ellipsis level with the footer: the small accent ellipsis, or on Android
+Material's card overflow, a 24 dp `more_vert` in the secondary label color
+in the 40 dp icon button),
+`favorite` (`value`, `onValueChange`,
 `label`: a star over the top trailing corner, filled while it is set),
 `overlay` (controls of the app's own floated over the trailing edge, level
 with the footer), `badge` (the top trailing corner), `onPress`,
@@ -179,22 +191,25 @@ with the footer), `badge` (the top trailing corner), `onPress`,
 The same file draws it on every platform. The menu and the star are the
 kit's own controls, so they are the platform's: a SwiftUI `Menu` and a
 `Button` with the selected trait, Compose's `DropdownMenu` and
-`IconToggleButton`, a popover and an `aria-pressed` button on web, a WinUI
-`MenuFlyout` and `ToggleButton`. The menu is centred on the footer once the
-footer has been laid out. `menu`, `favorite`, `overlay` and `badge` are
-siblings of the card's press target, not children, so a button inside them
-takes its own press. Put actions there, not in the body.
+`FilledIconToggleButton`, a popover and an `aria-pressed` button on web, a
+WinUI `MenuFlyout` and `ToggleButton`. The menu is centred on the footer
+once the footer has been laid out. `menu`, `favorite`, `overlay` and
+`badge` are siblings of the card's press target, not children, so a button
+inside them takes its own press. Put actions there, not in the body.
 
 While the star is not set it is drawn only while a pointer is over the card
 or the keyboard is in it, where a pointer can hover (web under
 `(hover: hover)`, Windows), and always on iOS, Android and a touch screen on
 web, where nothing hovers. On Windows the keyboard cannot reveal it, since
 the focus moves between XAML islands without the React Native tree seeing it
-go; put the same action in `menu` for a keyboard. On Android the star draws
-the `star` vector the app registers (see [Icons](../icons.md)), and the
-ellipsis `more_horiz`; `expo-interface-symbols` writes both whether or not
-the app's own sources name them. On web the card is a `<button>` whose text
-starts at the leading edge, as a box's does.
+go; put the same action in `menu` for a keyboard. On Android the star is the
+tonal `IconToggle`, Material's filled tonal icon button: it is always on
+the picture there, where a bare icon has nothing behind it, so it sits in a
+small round container. The other platforms draw the bare star. On Android
+the star draws the `star` vector the app registers (see
+[Icons](../icons.md)), and the menu `more_vert`; `expo-interface-symbols`
+writes both whether or not the app's own sources name them. On web the card
+is a `<button>` whose text starts at the leading edge, as a box's does.
 
 ## Toolbar
 
@@ -202,7 +217,7 @@ A bar of tools along a canvas: an editor's status bar, the strip over a
 drawing, the row under a preview.
 
 Props: `commands` (the bar described as data: `label`, `icon`, `hideLabel`,
-`active`, `tone`, `onPress`, `items`, `secondary`, `disabled`, `role`,
+`active`, `tone`, `color`, `onPress`, `items`, `secondary`, `disabled`, `role`,
 `separator`, `testID` per command), or `leading` and `trailing` nodes; `field` (a `TextField variant="inline"` that
 grows into the space the controls leave); `placement` (`top` or `bottom`;
 the rule goes on the side facing the content); `density` (`regular` or
@@ -211,11 +226,14 @@ the rule goes on the side facing the content); `density` (`regular` or
 host); `foldCommands` (puts the `commands` behind the overflow while the bar
 is in the compact size class); `floating`; `at`, `align` (`center` by
 default, `start` or `end`), `preferredEdge` (`top` by default) and `insets`,
-for a bar floating beside a rectangle; `style`, `testID`.
+for a bar floating beside a rectangle; `material` (web only: a `floating`
+bar, or one `at` a rectangle, draws on the kit's material, as the bars do;
+the app's `overlayMaterial` unless given; a bar along an edge keeps its
+fill); `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
-| iOS, Android, Web | A drawn `Surface` bar. The controls sit in one native host as a single row, so a bar of buttons and menus costs one host rather than one per control. With `commands`, the kit draws them as text buttons at the platform's own bar metrics (a 22pt symbol at the bar button's size on iOS, as the header's actions, spaced to the 44pt pitch of a toolbar's items; a 22dp icon in Material's 48dp icon button on Android, which is the bar's height and the pitch there; the kit's small button on web) and puts the `secondary` ones behind a `Menu` labelled "More". A command that is `active` is drawn filled; `tone` draws the others in the label color, for a row of tools where the accent marks the active one; `hideLabel` keeps the icon alone; a command's `separator` draws a vertical `Divider` before it; a command with `items` is a `Menu` of its own, in the same host. |
+| iOS, Android, Web | A drawn `Surface` bar. The controls sit in one native host as a single row, so a bar of buttons and menus costs one host rather than one per control. With `commands`, the kit draws them as text buttons at the platform's own bar metrics (a 22pt symbol at the bar button's size on iOS, as the header's actions, spaced to the 44pt pitch of a toolbar's items; a 22dp icon in Material's 48dp icon button on Android, which is the bar's height and the pitch there; the kit's small button on web) and puts the `secondary` ones behind a `Menu` labelled "More". A command that is `active` is drawn filled; `tone` draws the others in the label color, for a row of tools where the accent marks the active one, and `color` draws one in a color of its own; `hideLabel` keeps the icon alone; a command's `separator` draws a vertical `Divider` before it; a command with `items` is a `Menu` of its own, in the same host, filled while `active`. |
 | Windows | With `commands` and no `field`, a WinUI `CommandBar` island: the control lays the commands out, moves the ones that do not fit into its own overflow menu, and draws labels beside the icons (`compact` drops them and leaves the naming to the overflow). A command with `items` is an `AppBarButton` with a `MenuFlyout`: a chevron on the bar, a submenu in the overflow. Otherwise a drawn bar of islands, where a command with `items` is the kit's `Menu`. |
 
 Differences:
@@ -232,6 +250,12 @@ Differences:
   `CommandBar` decides its own labels (`density`) and takes no tone: a
   command is in the bar's own colors, a `destructive` one in the critical
   color.
+- A command's `color` is every bar's: the drawn bars hand it to the kit's
+  `Button` or `Menu`, over `tone` and `role`, so a tool is drawn in it and
+  one that is `active` is filled with it. The Windows `CommandBar` draws
+  the command's glyph and label in it, as it draws a `destructive` one in
+  the critical color; a toggle that is on keeps the bar's own checked
+  colors.
 - A command with `active` is a toggle, on or off: drawn filled while on,
   and heard as one. The drawn bars give it the kit's `Button` with
   `pressed` (`aria-pressed` on web, the selected trait on iOS, Material's
@@ -239,13 +263,19 @@ Differences:
   `AppBarToggleButton`. In the kit's overflow menu (iOS, Android, web and
   a drawn Windows bar), a toggle that is on is an entry with the menu's
   check; a menu has no off state, so one that is off is a plain entry. The
-  `CommandBar`'s own overflow keeps the `AppBarToggleButton`.
+  `CommandBar`'s own overflow keeps the `AppBarToggleButton`. A menu
+  command that is `active` is the kit's `Menu` with `pressed` on the drawn
+  bars, filled and heard the same way, for a tool whose menu picks what it
+  does (a drawing bar's shapes tool); behind the kit's overflow its entries
+  take its place whatever its state. The Windows `CommandBar` ignores
+  `active` on a menu command, since an `AppBarButton` with a flyout has no
+  checked state.
 - A command's `separator` is a vertical `Divider` before it on the drawn
   bars, a rule in the overflow menu, and an `AppBarSeparator` in the
   Windows `CommandBar`. None is drawn before the first command of a row or
   of the overflow.
 - A command with `items` is a menu, opened from the command, as `Tabs`
-  `action` takes one; it takes no `onPress`, `active` or `role`. The kit's
+  `action` takes one; it takes no `onPress` or `role`. The kit's
   menus do not nest, so behind the overflow, on iOS, Android, web and a
   drawn Windows bar, its entries take its place, set off by rules, without
   the command's own label, and greyed out with it when it is `disabled`.
@@ -258,8 +288,12 @@ Differences:
   it as a greyed-out button wherever it goes, its own overflow included.
 
 `fieldCommands` are the field's own: a find bar's previous and next, an
-assistant's send. They share the trailing group's host, so a bar with a
-field is still two hosts, and they stay on the bar when it folds.
+assistant's send. They share the trailing host with the overflow menu, and
+they stay on the bar when it folds. A side with nothing to draw has no host,
+and the field takes its room: a folded bar has no leading host, and one with
+no field commands has a trailing host only while something is behind the
+overflow. A host that empties keeps the size it last had on Android, so an
+empty one would keep the field's room.
 `foldCommands` folds the bar's `commands` behind its overflow menu while the
 bar, measured, is narrower than 640 points, the kit's compact size class
 (`COMPACT_WIDTH`, where `TabView` shows its switcher): an editor's status bar
@@ -275,8 +309,8 @@ A `floating` bar floats over the content rather than running along an edge:
 raised and rounded, the width of its controls, as the strip of tools over a
 selection or a block. On Android it is Material 3's
 `HorizontalFloatingToolbar`; on iOS and web the kit's raised capsule holding
-one native row; on Windows the same raised card around the `CommandBar`,
-its labels left to the overflow.
+one native row, on the web on `material`; on Windows the same raised card
+around the `CommandBar`, its labels left to the overflow.
 
 `at` floats the bar over its parent beside a rectangle: lined up with it by
 `align` (centred on it by default, from its left edge with `start`, or to
@@ -317,6 +351,12 @@ not, and no module the kit stands on reaches it.
 A bottom bar that sticks to the keyboard. It rides up by a transform, never a
 resize, and reports the keyboard's height through `onKeyboard` so the content
 above can pad or scroll by that much.
+
+`onKeyboard` reports the keyboard's height alone. While the bar rides it
+covers its own height above the keyboard as well, which `useKeyboardInset`
+adds for a view the bar rides over, so an editor under the bar scrolls its
+caret clear of the bar too (see
+[the keyboard over a view](../services.md#the-keyboard-over-a-view)).
 
 | Platform | How |
 | --- | --- |
@@ -420,6 +460,10 @@ Differences:
   inset.
 - On iOS a selected row in a `List` or a `FieldGroup` fills the whole row,
   through SwiftUI's row background.
+- On iOS the `value` and the `badge` are one trailing fragment, which
+  `@expo/ui` hosts in one view sized from its first child. The badge is the
+  kit's `Badge` in SwiftUI there, so it measures itself after the value
+  rather than taking the room the host offers.
 - Without a `badgeColor` the badge on Windows is Fluent's critical red, the
   `InfoBadge`'s own fill, where the other three draw `destructive`.
 - On Android TalkBack reads the row's own texts rather than a name composed
@@ -428,6 +472,11 @@ Differences:
   badge's end, so a count reads "3, new" and a dot "New". `selected` is announced
   on a row that presses by itself; an inert row, or one with
   `swipeActions`, shows the fill alone.
+- On Android the slots are Compose content. The kit's `Avatar` as `leading`
+  and the `badge` draw themselves in Compose there, and an `Avatar`'s name
+  is among the row's texts after its initials; a React Native view in
+  `leading` or `trailing` is not hosted there, so put native content in the
+  slots: the kit's controls, `Avatar`, `Badge` or `@expo/ui` content.
 - On iOS and Android a row outside a host (a React Native `ScrollView` of
   rows) mounts a host of its own, so it draws there too. See
   [Native hosts](../hosts.md).
@@ -447,8 +496,9 @@ shows in place of the rows when there are none, usually an `EmptyState`),
 `onEndReached` (called once the last row has been drawn, for a list that
 loads more), `estimatedItemHeight` (default 56: what the web counts a row
 it has not drawn yet as; the other platforms measure their rows),
-`contentInset` (`top`, `bottom`, the space inside the list before the first
-row and after the last), `style`, `testID`.
+`contentInset` (`top`, `bottom`, `left`, `right`: the space inside the list
+before the first row, after the last and at each side of the rows), `style`,
+`testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -482,7 +532,13 @@ Differences:
   list ends clear of the button: it pads past its last row by
   `useScrollInsets().bottom`, with `contentInset` added. On iOS, where the
   `List` takes no content padding, a row of that height without a separator
-  ends it.
+  ends it. A SwiftUI `List` row is at least 44 points tall, so an inset
+  under 44 points shows as a 44 point row there.
+- `contentInset`'s `left` and `right` pad the rows' sides inside the
+  scroller: the content padding of the `LazyColumn` on Android, of the
+  `FlatList` on Windows and of the scroller on the web. On iOS they inset
+  the `List` as a whole, its separators and its scroll indicator with the
+  rows, since `@expo/ui` has no content margins for a scroll view.
 - On Windows a tap on a row while a field has the touch keyboard goes to the
   row and leaves the keyboard up (`keyboardShouldPersistTaps="handled"`); a
   tap past the rows closes it.
@@ -490,7 +546,9 @@ Differences:
   view wrapped around it needs `flex: 1`. On iOS, Android and Windows that
   parent needs a height of its own: inside a scroll view the iOS and
   Android list gets no height, and the Windows list grows to its rows, so
-  it draws every one of them and is no longer windowed. On the
+  it draws every one of them and is no longer windowed. As the body of a
+  `Sheet` with `maxHeight` the iOS and Android list is the cap's height
+  instead, and scrolls inside it. On the
   web the list is its own scroller (`overflow-y: auto`, `flex: 1 1 auto`),
   so it scrolls under the fixed body that `ScrollViewStyleReset` sets, and
   in a parent with no height of its own (a scroll view of the app's own, a
@@ -498,8 +556,9 @@ Differences:
   `style={{flexShrink: 0}}` does the same in a parent that has a height.
   Its padding by `useScrollInsets()` is inside the scroller, and so is its
   scroll padding, so a row the keyboard focus brings into view stops clear
-  of the bar. Its scrollbar spans the whole list, under the bar, since CSS
-  cannot inset a scrollbar.
+  of the bar. Its box is its border box (`box-sizing: border-box`), so
+  padding in `style` stays inside its full width. Its scrollbar spans the
+  whole list, under the bar, since CSS cannot inset a scrollbar.
 - On the web the list draws the rows inside the part of it the window
   shows, and a viewport more above and below. Two spacers keep the room of
   the other rows, at the height each row was measured at once drawn and at
@@ -531,7 +590,9 @@ fills the cell's width), `keyExtractor`, `minItemWidth` (default 150),
 anything under 1 is 1), `gap` (default 12, on both axes), `header`,
 `footer`, `empty`, `onEndReached`, `estimatedItemHeight` (default 180: what
 the web counts a row of cells it has not drawn yet as; the `FlatList`
-measures its rows), `contentInset`, `style`, `testID`.
+measures its rows), `contentInset` (`top`, `bottom`, `left`, `right`: the
+space inside the grid before the first row, after the last and at each side
+of the cells), `style`, `testID`.
 
 | Platform | Renders |
 | --- | --- |
@@ -543,6 +604,9 @@ Differences:
 - Drawn in React Native on every platform, like `Card`, because a card
   holds what is not native: a preview, a thumbnail. A list of rows is
   `List`.
+- On iOS, Android and Windows a width that changes the column count (a
+  rotation, a split view resized) cuts the rows again in the same list, so
+  the scroll position survives the resize.
 - Under a `Screen underBar` the grid pads its first row by the bar through
   `useScrollInsets()`, and on iOS its scroll indicators with it. Under an
   iOS header the screen runs under, the grid takes UIKit's own inset
@@ -553,6 +617,10 @@ Differences:
   grid ends clear of the button: it pads past its last row by
   `useScrollInsets().bottom`, with `contentInset` added, and on iOS its
   scroll indicators with it.
+- `contentInset`'s `left` and `right` pad the cells' sides inside the
+  scroller, and the columns are counted from the width between them: on iOS,
+  Android and Windows the measured width less the two, and on the web the
+  content box the grid measures, which leaves the padding out.
 - On iOS, Android and Windows a tap on a card while a React Native field has
   the keyboard goes to the card and leaves the keyboard up
   (`keyboardShouldPersistTaps="handled"`); a tap between the cards closes
@@ -570,7 +638,9 @@ Differences:
   `style={{flexShrink: 0}}` does the same in a parent that has a height.
   Its padding by `useScrollInsets()` is inside the scroller, and so is its
   scroll padding, but its scrollbar spans the whole grid, under the bar,
-  since CSS cannot inset a scrollbar.
+  since CSS cannot inset a scrollbar. Its box is its border box
+  (`box-sizing: border-box`), so padding in `style` stays inside its full
+  width.
 - On the web the grid draws the rows of cells inside the part of it the
   window shows, and a viewport more above and below, with two spacers for
   the room of the other rows, as the `List` does. Once its width is

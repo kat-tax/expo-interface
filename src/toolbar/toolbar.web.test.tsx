@@ -72,4 +72,27 @@ describe('Toolbar commands (web)', () => {
     fireEvent(screen.getByRole('menu', {hidden: true}), toggle);
     expect(document.activeElement).toBe(screen.getByRole('menuitem', {name: 'Wrap', hidden: true}));
   });
+
+  it('draws a command in its own color, and a menu command filled and pressed while it is active', () => {
+    render(
+      <Toolbar
+        commands={[
+          {label: 'Ink', icon: icons.add, hideLabel: true, color: '#FF9500'},
+          {label: 'Shapes', icon: icons.settings, hideLabel: true, active: true, color: '#8959EA', items: [{label: 'Circle'}]},
+          {label: 'Text', icon: icons.star, hideLabel: true, active: false, items: [{label: 'Heading'}]},
+        ]}
+      />,
+    );
+    const ink = screen.getByRole('button', {name: 'Ink'});
+    expect(ink).toHaveClass('ui-button--text');
+    expect(ink.style.getPropertyValue('--ui-button-accent')).toBe('#FF9500');
+    const shapes = screen.getByRole('button', {name: 'Shapes'});
+    expect(shapes).toHaveAttribute('popovertarget');
+    expect(shapes).toHaveAttribute('aria-pressed', 'true');
+    expect(shapes).toHaveClass('ui-button--filled');
+    expect(shapes.style.getPropertyValue('--ui-button-accent')).toBe('#8959EA');
+    const text = screen.getByRole('button', {name: 'Text'});
+    expect(text).toHaveAttribute('aria-pressed', 'false');
+    expect(text).toHaveClass('ui-button--text');
+  });
 });

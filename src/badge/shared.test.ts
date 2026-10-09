@@ -52,6 +52,10 @@ describe('badgeLabel', () => {
     expect(badgeLabel({count: 150}, '99+')).toBe('99+ new');
     expect(badgeLabel({dot: true}, '')).toBe('New');
   });
+
+  it('reads as the fallback for a null label, which is the caller\'s to keep from a screen reader', () => {
+    expect(badgeLabel({count: 3, label: null}, '3')).toBe('3 new');
+  });
 });
 
 describe('badgeWordsAfter', () => {
