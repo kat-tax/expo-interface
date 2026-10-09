@@ -5,13 +5,16 @@ import {IconToggle} from '../icon-toggle';
 import {Menu} from '../menu';
 import {Surface} from '../surface';
 import {Caption, Headline} from '../typography';
+import {useColor} from '../theme';
 import {useReveal} from './reveal';
 import {MENU_ROOM, MORE, STAR, STAR_FILLED, cardName} from './shared';
 
 /**
- * Android draws the star in Material's tonal container: a phone has no
- * pointer to reveal it with, so it is always on the picture, where a bare
- * icon has nothing behind it. The other platforms keep the bare star.
+ * Android draws the two controls as Material's card does: the star in the
+ * tonal container, since a phone has no pointer to reveal it with and it is
+ * always on the picture, where a bare icon has nothing behind it; and the
+ * menu's overflow glyph in the secondary color rather than the accent. The
+ * other platforms keep the bare star and the accent ellipsis.
  */
 const material = Platform.OS === 'android';
 
@@ -40,6 +43,7 @@ export function Card({
   testID,
 }: CardProps) {
   const reveal = useReveal();
+  const secondary = useColor('secondaryLabel');
   const [footerHeight, setFooterHeight] = useState(0);
 
   // The kit's controls take the two floating slots; the app's own are
@@ -51,6 +55,7 @@ export function Card({
       hideLabel
       variant="text"
       size="small"
+      color={material ? secondary : undefined}
       items={menu}
       testID={testID ? `${testID}-menu` : undefined}
     />

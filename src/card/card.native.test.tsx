@@ -3,15 +3,18 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {drawables} from '../__stories__/icons.drawables';
 import {registerDrawables} from '../icons';
-import {MENU_ROOM} from './shared';
+import {colors} from '../theme';
+import {MENU_ROOM, MORE} from './shared';
 import {Card} from '.';
 
 const isIOS = Platform.OS === 'ios';
 
 describe(`Card (${Platform.OS})`, () => {
   beforeAll(() => {
-    // Compose draws the star from the app's registered vector.
-    registerDrawables({star: drawables.star, more_horiz: drawables.settings}, {star: drawables.star_fill});
+    // Compose draws the star and the menu's glyph from the app's registered
+    // vectors: the card's overflow is `more_vert` there, so that is the name
+    // registered, under a vector standing in for it.
+    registerDrawables({star: drawables.star, more_vert: drawables.settings}, {star: drawables.star_fill});
   });
 
   it('draws the title and subtitle as its footer, names itself from them, and keeps room for the menu', async () => {
@@ -29,6 +32,19 @@ describe(`Card (${Platform.OS})`, () => {
     // The platform's menu, in the overlay slot.
     expect(host(p => p.text === 'Rename' || p.label === 'Rename')).toBeTruthy();
     expect(screen.getByTestId('card-overlay')).toBeOnTheScreen();
+    if (isIOS) {
+      // The accent ellipsis, as the docs describe it: no color of the kit's own on the trigger.
+      expect(screen.getByTestId('card-menu').props.systemImage).toBe('ellipsis');
+      expect(modifier(screen.getByTestId('card-menu').props, 'tint')?.tint.color).toBe(colors.light.tint);
+    } else {
+      // Material's card overflow: `more_vert` in the secondary color rather than the accent.
+      expect(MORE.symbol).toMatchObject({android: 'more_vert'});
+      expect(byComposeTestID('card-menu').props.colors).toEqual({contentColor: colors.light.secondaryLabel});
+      // Only `more_vert` is registered, and the trigger collapses to its icon
+      // only when the token finds a drawable: the label is gone, the glyph is there.
+      expect(nodes().some(n => n.props.text === 'More')).toBe(false);
+      expect(host(p => p.contentDescription === 'More').props.tint).toBe(colors.light.secondaryLabel);
+    }
     // Once the footer has been laid out, the slot is as tall as the footer
     // and the card's padding around it, so the menu is centred on the title.
     await fireEvent(screen.getByText('Holiday photos'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 200, height: 36}}});

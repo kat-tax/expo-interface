@@ -111,7 +111,7 @@ describe('expo-interface-symbols', () => {
   });
 
   it('always writes the names the kit\'s own controls draw: the bar and composer buttons, the ellipsis and the star, filled too', () => {
-    expect(KIT_NAMES).toEqual(['arrow_back', 'arrow_upward', 'close', 'keyboard_arrow_down', 'keyboard_arrow_up', 'more_horiz', 'star', 'stop']);
+    expect(KIT_NAMES).toEqual(['arrow_back', 'arrow_upward', 'close', 'keyboard_arrow_down', 'keyboard_arrow_up', 'more_horiz', 'more_vert', 'star', 'stop']);
     expect(KIT_FILLED).toEqual(['star']);
   });
 
@@ -374,6 +374,8 @@ describe('expo-interface-symbols', () => {
       // Windows draws Segoe, and the native strip is not the one the web draws.
       'screen/header.windows.tsx': ['arrow_back'],
       'tab-view/draw.tsx': ['add', 'close', 'grid_view'],
+      // Android's card overflow; the web draws the card's menu with `more_horiz`.
+      'card/shared.ts': ['more_vert'],
     };
     const drawn = new Set<string>();
     for (const file of sourceFiles([kit])) {

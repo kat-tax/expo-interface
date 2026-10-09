@@ -1,7 +1,10 @@
 import {icon} from '../icons';
 
-/** The ellipsis the card's `menu` opens from. */
-export const MORE = icon({ios: 'ellipsis', android: 'more_horiz', web: 'more_horiz', windows: 'E712'});
+/**
+ * The ellipsis the card's `menu` opens from. Android draws `more_vert`,
+ * Material's card overflow; the other platforms the horizontal ellipsis.
+ */
+export const MORE = icon({ios: 'ellipsis', android: 'more_vert', web: 'more_horiz', windows: 'E712'});
 
 /** The star of `favorite`, outline and filled. */
 export const STAR = icon({ios: 'star', android: 'star', web: 'star', windows: 'E734'});

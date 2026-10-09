@@ -167,7 +167,8 @@ written whether or not the sources name them:
 | --- | --- |
 | `arrow_back` | the back button of a `Sheet`'s bar |
 | `close` | the close button of a `Sheet`'s bar and a `FindBar`'s close |
-| `more_horiz` | a `Sheet`'s and a `Card`'s menu, and a `Toolbar`'s overflow |
+| `more_horiz` | a `Sheet`'s menu and a `Toolbar`'s overflow |
+| `more_vert` | a `Card`'s menu |
 | `arrow_upward`, `stop` | a `Composer`'s send and stop buttons |
 | `keyboard_arrow_up`, `keyboard_arrow_down` | a `FindBar`'s previous and next match |
 | `star` | a `Card`'s favorite, outlined and, while set, filled |
