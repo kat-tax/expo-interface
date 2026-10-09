@@ -22,7 +22,9 @@ export type ToolbarDensity = 'regular' | 'compact';
  * host.
  *
  * A `field` breaks that in one place: a text field is a React Native input,
- * so with one the bar is a leading host, the field, and a trailing host.
+ * so with one the bar is a host either side of the field, for the sides that
+ * have something to draw. A side with nothing to draw has no host, and the
+ * field takes its room.
  */
 /**
  * One command in a bar described as data rather than as children.
@@ -118,9 +120,11 @@ export interface ToolbarProps extends PropsWithChildren {
   field?: ReactNode;
   /**
    * Commands beside the field, at its trailing edge: a find bar's previous
-   * and next, an assistant's send. They share the trailing group's host, so
-   * a bar with a field is still two hosts, and they stay on the bar when it
-   * folds its other commands.
+   * and next, an assistant's send. They share the trailing host with the
+   * overflow menu, and they stay on the bar when it folds its other
+   * commands. A side with nothing to draw has no host: with no field
+   * commands, the trailing host is the overflow menu's alone, and there is
+   * none when nothing is behind it. The field takes the room.
    */
   fieldCommands?: ToolbarCommand[];
   /**
@@ -128,6 +132,9 @@ export interface ToolbarProps extends PropsWithChildren {
    * the kit's compact size class (narrower than 640 points, where `TabView`
    * shows its switcher), leaving the field and its commands the room: an
    * editor's status bar while a find or assistant field is open on a phone.
+   * A folded bar has no leading host, since nothing is drawn there, and with
+   * no `fieldCommands` and nothing behind the overflow no trailing host
+   * either: the field takes the row.
    * The width is the bar's own, measured whether or not it folds, so a bar
    * that starts folding while it is narrow folds at once. Read only on a bar
    * along an edge: a `floating` bar, or one `at` a rectangle, is the width of

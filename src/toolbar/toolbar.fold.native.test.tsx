@@ -78,3 +78,50 @@ describe(`Toolbar field commands and folding (${Platform.OS})`, () => {
     expect(onBar('Next match')).toBe(true);
   });
 });
+
+/**
+ * A host beside a field is sized to its content, and one that empties keeps
+ * the size it last had on Android: a side with nothing to draw mounts none,
+ * so the field takes its room.
+ */
+describe(`Toolbar hosts around a field (${Platform.OS})`, () => {
+  const plain = [{label: 'Bold'}, {label: 'Italic'}];
+  const narrow = () => fireEvent(screen.getByTestId('bar'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 48}}});
+
+  it('mounts the leading host alone when no command trails the field', async () => {
+    await render(<Toolbar commands={plain} field={<Text>Find</Text>} testID="bar"/>);
+    expect(hosts()).toHaveLength(1);
+    expect(onBar('Bold')).toBe(true);
+    expect(nodes().some(node => node.type.includes('Menu'))).toBe(false);
+  });
+
+  it('mounts the trailing host alone once folded, holding the overflow', async () => {
+    await render(<Toolbar commands={plain} field={<Text>Find</Text>} foldCommands testID="bar"/>);
+    await narrow();
+    expect(hosts()).toHaveLength(1);
+    expect(onBar('Bold')).toBe(false);
+    expect(nodes().some(node => node.type.includes('Menu'))).toBe(true);
+  });
+
+  it('mounts no host once folded with nothing to put behind the overflow', async () => {
+    // A menu command with no entries is greyed out on the bar, and puts nothing behind the overflow.
+    await render(<Toolbar commands={[{label: 'Recent', items: []}]} field={<Text>Find</Text>} foldCommands testID="bar"/>);
+    expect(hosts()).toHaveLength(1);
+    await narrow();
+    expect(hosts()).toHaveLength(0);
+    expect(screen.getByText('Find')).toBeOnTheScreen();
+  });
+
+  it('mounts both hosts with the field\'s commands, and folding leaves the trailing one', async () => {
+    await render(<Toolbar commands={plain} field={<Text>Find</Text>} fieldCommands={fieldCommands} foldCommands testID="bar"/>);
+    expect(hosts()).toHaveLength(2);
+    // Nothing behind the overflow, so no ellipsis beside the field's commands.
+    expect(nodes().some(node => node.type.includes('Menu'))).toBe(false);
+    await narrow();
+    // Folded: the leading host goes, and the overflow joins the field's commands in the trailing one.
+    expect(hosts()).toHaveLength(1);
+    expect(onBar('Next match')).toBe(true);
+    expect(onBar('Bold')).toBe(false);
+    expect(nodes().some(node => node.type.includes('Menu'))).toBe(true);
+  });
+});

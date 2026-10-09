@@ -260,8 +260,12 @@ Differences:
   it as a greyed-out button wherever it goes, its own overflow included.
 
 `fieldCommands` are the field's own: a find bar's previous and next, an
-assistant's send. They share the trailing group's host, so a bar with a
-field is still two hosts, and they stay on the bar when it folds.
+assistant's send. They share the trailing host with the overflow menu, and
+they stay on the bar when it folds. A side with nothing to draw has no host,
+and the field takes its room: a folded bar has no leading host, and one with
+no field commands has a trailing host only while something is behind the
+overflow. A host that empties keeps the size it last had on Android, so an
+empty one would keep the field's room.
 `foldCommands` folds the bar's `commands` behind its overflow menu while the
 bar, measured, is narrower than 640 points, the kit's compact size class
 (`COMPACT_WIDTH`, where `TabView` shows its switcher): an editor's status bar

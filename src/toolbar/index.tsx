@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import type {MenuItem} from '../menu/types';
 import type {ToolbarCommand, ToolbarProps} from './types';
 import type {LayoutChangeEvent} from 'react-native';
 import {Fragment, useState} from 'react';
@@ -71,14 +72,22 @@ export function Toolbar(props: ToolbarProps) {
  * The controls a bar holds: its commands and their overflow, or its two
  * slots, with the field's commands first in the trailing group. A folded bar
  * puts every command behind the overflow.
+ *
+ * A side with nothing to draw is `null`, not an element that draws nothing:
+ * beside a field each side is a host of its own, and a host that empties
+ * keeps the size it last had on Android, which is the field's room.
  */
-function controlsOf({commands, leading, trailing, fieldCommands = []}: ToolbarProps, gap: number, folded = false) {
+function controlsOf({commands, leading, trailing, fieldCommands = []}: ToolbarProps, gap: number, folded = false): {start: ReactNode; end: ReactNode} {
   const besideField = fieldCommands.length > 0 ? <Commands commands={fieldCommands} gap={gap}/> : null;
   // Commands replace the two slots: a bar is described either way round, not
   // both. Here the kit draws them; on Windows the platform's own bar does.
   if (!hasCommands(commands)) return {start: leading, end: besideField ? <>{besideField}{trailing}</> : trailing};
   const {primary, secondary} = folded ? {primary: [], secondary: commands} : splitCommands(commands);
-  return {start: <Commands commands={primary} gap={gap}/>, end: <>{besideField}<Overflow commands={secondary}/></>};
+  const overflow = overflowItems(secondary);
+  return {
+    start: primary.length > 0 ? <Commands commands={primary} gap={gap}/> : null,
+    end: besideField || overflow.length > 0 ? <>{besideField}<Overflow items={overflow}/></> : null,
+  };
 }
 
 /** A floating bar where it is laid out. */
@@ -160,9 +169,9 @@ function EdgeToolbar(props: ToolbarProps) {
  * same metrics, in the same host, greyed out with no entries to open on. A
  * command with `separator` has a vertical
  * rule before it, none before the first of the row, as a menu's entries do.
+ * Never drawn with no commands: `controlsOf` leaves such a side out.
  */
 function Commands({commands, gap}: {commands: ToolbarCommand[]; gap: number}) {
-  if (commands.length === 0) return null;
   return (
     <Row alignment="center" spacing={COMMAND_GAP ?? gap}>
       {commands.map((command, index) => (
@@ -204,12 +213,12 @@ function Commands({commands, gap}: {commands: ToolbarCommand[]; gap: number}) {
 }
 
 /**
- * The commands that asked to live behind the ellipsis, or were folded there.
- * With no entries to show, no commands or only menus with none, there is no
- * ellipsis: it would open on nothing.
+ * The ellipsis over the entries of the commands that asked to live behind
+ * it, or were folded there (`overflowItems`). With no entries to show, no
+ * commands or only menus with none, there is no ellipsis: it would open on
+ * nothing.
  */
-function Overflow({commands}: {commands: ToolbarCommand[]}) {
-  const items = overflowItems(commands);
+function Overflow({items}: {items: MenuItem[]}) {
   if (items.length === 0) return null;
   return (
     <Menu
