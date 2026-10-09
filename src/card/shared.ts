@@ -13,6 +13,9 @@ export const STAR_FILLED = icon({ios: 'star', android: 'star', web: 'star', wind
 /** What the footer the kit draws leaves clear at its trailing edge for the menu button. */
 export const MENU_ROOM = 40;
 
+/** The menu's glyph on Android, in dp: Material's card overflow, a 24 dp glyph in the 40 dp icon button. */
+export const MENU_GLYPH = 24;
+
 /** The card's accessible name when the app gives none: its title, and its subtitle after it. */
 export function cardName(label: string | undefined, title: string | undefined, subtitle: string | undefined): string | undefined {
   if (label !== undefined) return label;

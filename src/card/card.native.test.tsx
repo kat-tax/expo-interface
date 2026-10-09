@@ -4,7 +4,7 @@ import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {drawables} from '../__stories__/icons.drawables';
 import {registerDrawables} from '../icons';
 import {colors} from '../theme';
-import {MENU_ROOM, MORE} from './shared';
+import {MENU_GLYPH, MENU_ROOM, MORE} from './shared';
 import {Card} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -36,6 +36,8 @@ describe(`Card (${Platform.OS})`, () => {
       // The accent ellipsis, as the docs describe it: no color of the kit's own on the trigger.
       expect(screen.getByTestId('card-menu').props.systemImage).toBe('ellipsis');
       expect(modifier(screen.getByTestId('card-menu').props, 'tint')?.tint.color).toBe(colors.light.tint);
+      // At the small size: the trigger's own symbol, not an image sized by the kit.
+      expect(nodes().some(n => n.props.systemName === 'ellipsis')).toBe(false);
     } else {
       // Material's card overflow: `more_vert` in the secondary color rather than the accent.
       expect(MORE.symbol).toMatchObject({android: 'more_vert'});
@@ -43,7 +45,10 @@ describe(`Card (${Platform.OS})`, () => {
       // Only `more_vert` is registered, and the trigger collapses to its icon
       // only when the token finds a drawable: the label is gone, the glyph is there.
       expect(nodes().some(n => n.props.text === 'More')).toBe(false);
-      expect(host(p => p.contentDescription === 'More').props.tint).toBe(colors.light.secondaryLabel);
+      const glyph = host(p => p.contentDescription === 'More');
+      expect(glyph.props.tint).toBe(colors.light.secondaryLabel);
+      // Material's 24 dp glyph in the 40 dp icon button, rather than the small size's 16.
+      expect(glyph.props.size).toBe(MENU_GLYPH);
     }
     // Once the footer has been laid out, the slot is as tall as the footer
     // and the card's padding around it, so the menu is centred on the title.

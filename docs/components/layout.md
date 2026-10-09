@@ -171,8 +171,9 @@ else, clipped to its corners), `header`, `children` (the body), `title` and
 `subtitle` (the footer the kit draws: one line each, with room at the
 trailing edge for the menu), `footer` (a footer of the app's own, in place
 of `title`), `menu` (the card's own actions, as the platform's menu behind
-an ellipsis level with the footer: the accent ellipsis, or on Android
-Material's card overflow, `more_vert` in the secondary label color),
+an ellipsis level with the footer: the small accent ellipsis, or on Android
+Material's card overflow, a 24 dp `more_vert` in the secondary label color
+in the 40 dp icon button),
 `favorite` (`value`, `onValueChange`,
 `label`: a star over the top trailing corner, filled while it is set),
 `overlay` (controls of the app's own floated over the trailing edge, level

@@ -56,7 +56,7 @@ The differences that change what a screen can do, in one place:
 | `CardGrid` | `FlatList` | `FlatList` | CSS grid, windowed | `FlatList` |
 | `Card` star while not set | Always drawn | Always drawn | Under the pointer or the keyboard where a pointer hovers; always drawn on a touch screen | Under the pointer |
 | `Card` star's container | None | Material's tonal container | None | None |
-| `Card` menu button | The accent ellipsis | `more_vert` in the secondary label color | The accent ellipsis | The accent ellipsis |
+| `Card` menu button | The small accent ellipsis | A 24 dp `more_vert` in the secondary label color | The small accent ellipsis | The small accent ellipsis |
 | `Sheet` bar | SwiftUI content | Compose content | Drawn | Drawn |
 | `Alert` field | Among the actions | Material's outlined field under the message | Under the message | In the dialog's body, through a portal |
 | `Alert` field's action key | Nothing | Nothing | The first action that is not the cancel, unless it is disabled | The first action that is not the cancel, unless it is disabled |

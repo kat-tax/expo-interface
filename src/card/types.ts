@@ -50,8 +50,9 @@ export interface CardProps extends PropsWithChildren {
    * behind an ellipsis at the trailing edge, level with the footer: a
    * SwiftUI `Menu`, a Compose `DropdownMenu`, a popover on web, a WinUI
    * `MenuFlyout`. Outside the card's press target, like `overlay`. The
-   * ellipsis is drawn in the accent, except on Android, where it is
-   * Material's card overflow: `more_vert` in the secondary label color.
+   * ellipsis is drawn in the accent at the small size, except on Android,
+   * where it is Material's card overflow: a 24 dp `more_vert` in the
+   * secondary label color, in the 40 dp icon button.
    */
   menu?: MenuItem[];
   /**
