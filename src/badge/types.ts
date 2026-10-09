@@ -64,8 +64,17 @@ export interface BadgeProps {
    * "unread"), which is unseen text at the badge's end edge, since
    * `@expo/ui`'s Compose layer sets no content description (see
    * `docs/accessibility.md`).
+   *
+   * `null` for a badge its parent speaks for: a `TabView` accessory, a dot
+   * in a group the app names ("On Notes: Ada, Claude"). The badge is then no
+   * accessibility element of its own, so a screen reader stops on the parent
+   * once rather than on the parent and then on the badge. On Android inside
+   * a host the number is still a `Text` Compose reads, and only the words
+   * after it are left out; on Windows the island has no name and is hidden
+   * as far as the view around the control allows, while the control keeps
+   * WinUI's own automation.
    */
-  label?: string;
+  label?: string | null;
   /**
    * The fill: a palette token (`tint` for an unread dot in the accent), which
    * follows the scheme, or any color React Native reads. Defaults to the

@@ -106,6 +106,20 @@ describe(`Badge (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(screen.getByTestId('styled').props.style)).toMatchObject({marginStart: 4});
   });
 
+  it('is no element of its own with a null label, for a parent that speaks for it', async () => {
+    await render(<Badge count={3} label={null} testID="spoken"/>);
+    // Hidden as the testing library models assistive technology: found only
+    // when hidden elements are asked for.
+    expect(screen.queryByTestId('spoken')).toBeNull();
+    const badge = screen.getByTestId('spoken', {includeHiddenElements: true});
+    // On Android an accessible view inside another is a stop of its own, so
+    // the parent and then the badge would each be read.
+    expect(badge.props).toMatchObject({accessible: false, importantForAccessibility: 'no-hide-descendants', accessibilityElementsHidden: true});
+    expect(badge.props.accessibilityLabel).toBeUndefined();
+    expect(badge.props.accessibilityRole).toBeUndefined();
+    expect(screen.getByText('3', {includeHiddenElements: true})).toBeOnTheScreen();
+  });
+
   it('stands on its own in a React Native row, with no host of its own', async () => {
     await render(<Badge count={2} testID="free"/>);
     // Sized by Yoga like any view, so a strip of presence dots costs no hosts.
@@ -179,6 +193,15 @@ describe(`Badge (${Platform.OS})`, () => {
         await render(inHost(<Badge count={2}/>));
         expect(host(p => p.text === '2').props.testID).toBeUndefined();
       });
+
+      it('is hidden from VoiceOver with a null label, for a parent that speaks for it', async () => {
+        await render(inHost(<Badge count={3} label={null} testID="spoken"/>));
+        expect(modifier(number('spoken').props, 'accessibilityHidden')?.hidden).toBe(true);
+        expect(modifier(number('spoken').props, 'accessibilityLabel')).toBeUndefined();
+        await render(inHost(<Badge dot label={null} testID="quiet"/>));
+        expect(modifier(circle('quiet').props, 'accessibilityHidden')?.hidden).toBe(true);
+        expect(modifier(circle('quiet').props, 'accessibilityLabel')).toBeUndefined();
+      });
     });
     return;
   }
@@ -216,6 +239,16 @@ describe(`Badge (${Platform.OS})`, () => {
     it('adds no unseen text when the label is the number alone', async () => {
       await render(inHost(<Badge count={3} label="3" testID="bare"/>));
       expect(composeText()).toEqual(['3']);
+      expect(unseenText()).toEqual([]);
+    });
+
+    it('puts in no words at all with a null label, and keeps the number Compose reads', async () => {
+      await render(inHost(<Badge count={3} label={null} testID="spoken"/>));
+      expect(composeText()).toEqual(['3']);
+      expect(unseenText()).toEqual([]);
+      // A dot's whole label is its words, so a dot its parent speaks for says nothing.
+      await render(inHost(<Badge dot label={null} testID="quiet"/>));
+      expect(byComposeTestID('quiet')).toBeTruthy();
       expect(unseenText()).toEqual([]);
     });
 

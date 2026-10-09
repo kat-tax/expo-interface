@@ -62,7 +62,9 @@ function useContainerWidth(ref: RefObject<HTMLElement | null>): number {
  * is worth knowing rather than papering over.
  *
  * A tab is a `div role="tab"` rather than a `<button>` for a related reason:
- * it is one stop in a composite, not a button in the tab order.
+ * it is one stop in a composite, not a button in the tab order. Its accessory
+ * is hidden from assistive technology: the tab names itself from `label`, so
+ * a `Badge` in it is never read on its own.
  *
  * Selection follows the arrow keys rather than waiting for Enter, the APG's
  * automatic activation, which is right here because switching tabs shows
@@ -246,7 +248,7 @@ export function TabView(props: TabViewProps) {
                   <span className="ui-tab-view__title" id={index === current ? openId : undefined}>
                     {tab.title}
                   </span>
-                  {tab.accessory}
+                  {tab.accessory ? <span className="ui-tab-view__accessory" aria-hidden="true">{tab.accessory}</span> : null}
                 </div>
                 {cross}
               </div>
@@ -307,7 +309,7 @@ export function TabView(props: TabViewProps) {
                 {...roving.itemProps(index)}>
                 {tab.icon ? <Icon icon={tab.icon} size={ICON}/> : null}
                 <span className="ui-tab-view__card-title">{tab.title}</span>
-                {tab.accessory}
+                {tab.accessory ? <span className="ui-tab-view__accessory" aria-hidden="true">{tab.accessory}</span> : null}
               </div>
               {cross}
             </div>

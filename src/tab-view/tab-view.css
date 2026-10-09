@@ -114,6 +114,15 @@
 }
 
 /*
+ * The accessory is hidden from assistive technology (the tab names itself
+ * from its label) and takes no box of its own, so what it holds lays out in
+ * the tab as it would without the wrapper.
+ */
+.ui-tab-view__accessory {
+  display: contents;
+}
+
+/*
  * The cross keeps its room whether or not it is shown, so hovering a tab does
  * not shuffle the ones beside it. It is always in the accessibility tree —
  * only the paint is held back — because a control a screen reader is told

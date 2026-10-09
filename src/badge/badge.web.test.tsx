@@ -20,6 +20,15 @@ describe('Badge (web)', () => {
     expect(screen.getByTestId('unread')).toHaveAccessibleName('3 unread messages');
   });
 
+  it('is hidden from assistive technology with a null label, for a parent that speaks for it', () => {
+    render(<Badge count={3} label={null} testID="spoken"/>);
+    const badge = screen.getByTestId('spoken');
+    expect(badge).toHaveAttribute('aria-hidden', 'true');
+    expect(badge).not.toHaveAttribute('role');
+    expect(badge).not.toHaveAttribute('aria-label');
+    expect(badge).toHaveTextContent('3');
+  });
+
   it('pulses through the stylesheet, which stills it under reduced motion', async () => {
     render(<Badge dot pulse testID="typing"/>);
     expect(screen.getByTestId('typing')).toHaveClass('ui-badge', 'ui-badge--dot', 'ui-badge--pulse');

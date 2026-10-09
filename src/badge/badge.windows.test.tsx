@@ -30,6 +30,14 @@ describe('Badge (windows)', () => {
     expect(StyleSheet.flatten(island(BADGE).props.style)).toMatchObject({minWidth: 8, height: 8});
   });
 
+  it('gives the island no name and hides it with a null label, as far as the view around the control allows', async () => {
+    await render(<Badge count={3} label={null} testID="spoken"/>);
+    expect(island(BADGE).props).toMatchObject({value: 3, label: '', accessible: false, importantForAccessibility: 'no-hide-descendants', testID: 'spoken'});
+    await render(<Badge count={3} testID="named"/>);
+    expect(island(BADGE).props.accessible).toBeUndefined();
+    expect(island(BADGE).props.importantForAccessibility).toBeUndefined();
+  });
+
   it('hands its colors to the island as the hex it parses, and leaves them to the control when there are none', async () => {
     await render(<Badge count={1} color="#0A84FF" textColor="black"/>);
     expect(island(BADGE).props).toMatchObject({color: '#0A84FFFF', textColor: '#000000FF'});

@@ -273,10 +273,12 @@ Differences:
 - `accessory` (a presence dot, a count, an unsaved mark) is drawn after the
   title on the strips the kit draws and on the switcher's cards. The WinUI
   strip holds text and a glyph alone, so on Windows it shows on the cards
-  only. A screen reader does not read it: it reads a tab's `label`, which
-  defaults to the title, on every platform, the WinUI strip included. Say
-  what the accessory means there ("index.tsx, Ana is here"), starting with
-  the title so a voice command still finds the tab by what it shows.
+  only. A screen reader does not read it: the kit hides it from assistive
+  technology, so a `Badge` in it is never a stop of its own, and reads a
+  tab's `label`, which defaults to the title, on every platform, the WinUI
+  strip included. Say what the accessory means there ("index.tsx, Ana is
+  here"), starting with the title so a voice command still finds the tab by
+  what it shows.
 
 ## Pager
 

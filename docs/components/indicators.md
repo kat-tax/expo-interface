@@ -45,7 +45,9 @@ A value within a range in the SwiftUI gauge styles. Props: `value`, `min`,
 
 A count or a dot beside the thing it is about. Props: `count` (`0` draws
 nothing), `max` (99; counts above draw as `99+`), `showZero`, `dot`, `label`
-(the accessible name; defaults to the count and what it is about), `color`
+(the accessible name; defaults to the count and what it is about; `null` for
+a badge its parent speaks for, a `TabView` accessory or a dot in a group the
+app names, which is then no accessibility element of its own), `color`
 (the fill, a palette token such as `tint`, which follows the scheme, or any
 color React Native reads; the destructive red without one, Fluent's
 critical fill on Windows), `textColor` (without one, black or white,
@@ -81,6 +83,16 @@ a Material `ListItem`, which merge what they hold, and as a stop of its own
 anywhere else. Where nothing merges them Compose orders the two by position
 and leaves out a node that one drawn above it covers, which is why the box
 keeps clear of the number rather than covering the badge.
+
+With `label={null}` a badge is its parent's to speak for: a drawn badge, the
+SwiftUI badge and the web span are hidden from assistive technology, so a
+screen reader stops on the parent once rather than on the parent and then on
+the badge. Inside a host on Android the number is still a `Text` TalkBack
+reads, and only the words after it are left out, since `@expo/ui` has no
+modifier that clears a node's semantics. On Windows the island has no name
+and is hidden as far as the view around the control allows; the control
+keeps WinUI's own automation. A `TabView` accessory is hidden the same way
+whatever is in it.
 
 Placing a badge over a control is the caller's job. On Windows, put it beside
 a pressable control or inside it: a XAML island takes pointer input for

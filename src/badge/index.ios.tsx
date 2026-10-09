@@ -1,6 +1,6 @@
 import type {BadgeProps} from './types';
 import {Spacer, Text, ZStack} from '@expo/ui/swift-ui';
-import {Animation, accessibilityElement, accessibilityLabel, animation, background, font, foregroundStyle, frame, monospacedDigit, opacity, padding, shapes} from '@expo/ui/swift-ui/modifiers';
+import {Animation, accessibilityElement, accessibilityHidden, accessibilityLabel, animation, background, font, foregroundStyle, frame, monospacedDigit, opacity, padding, shapes} from '@expo/ui/swift-ui/modifiers';
 import {useNativeHost} from '../host';
 import {useBadgeColors} from './colors';
 import {DrawnBadge} from './drawn';
@@ -45,7 +45,8 @@ export function Badge(props: BadgeProps) {
  * Its pulse is paced from JavaScript, as the Android badge's is: the opacity
  * is told which end to head for each half pulse, and SwiftUI's `animation`
  * modifier tweens the change, since opacity is animatable and the modifier
- * applies to what comes before it in the chain.
+ * applies to what comes before it in the chain. With a `label` of `null` it
+ * is hidden from VoiceOver, for a parent that speaks for it.
  */
 function HostedBadge(props: BadgeProps) {
   const text = badgeText(props);
@@ -56,7 +57,8 @@ function HostedBadge(props: BadgeProps) {
   const level = phase === 'low' ? PULSE_LOW : 1;
   const common = [
     ...(props.pulse ? [opacity(level), animation(Animation.easeInOut({duration: PULSE_HALF / 1000}), level)] : []),
-    accessibilityLabel(badgeLabel(props, text)),
+    // A badge its parent speaks for is hidden from VoiceOver; any other is named.
+    ...(props.label === null ? [accessibilityHidden(true)] : [accessibilityLabel(badgeLabel(props, text))]),
   ];
   if (dot) {
     // A filled circle, as the kit draws one in SwiftUI; one element to

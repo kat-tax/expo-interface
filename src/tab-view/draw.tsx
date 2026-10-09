@@ -113,6 +113,10 @@ export function useTabMenus(testID: string | undefined): {
  * pressable in another makes a tab whose cross is also a press of the tab, and
  * hands a screen reader a button inside a tab that it cannot reach on its own;
  * two controls in a row is what the platforms draw and what they announce.
+ *
+ * The accessory is hidden from assistive technology, in the strip and on the
+ * cards: the tab is one stop that names itself from `label`, and on Android
+ * an accessible view inside it (a `Badge`) would be a stop of its own.
  */
 export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fill, label, testID}: TabDrawProps) {
   // With no fill of its own the strip is on a material or a header's fill,
@@ -161,7 +165,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
                 <Body numberOfLines={1} color={on ? 'label' : 'secondaryLabel'} style={styles.title}>
                   {tab.title}
                 </Body>
-                {tab.accessory}
+                {tab.accessory ? <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={styles.accessory}>{tab.accessory}</View> : null}
               </Pressable>
               {onClose && !tab.pinned ? (
                 <Pressable
@@ -299,7 +303,7 @@ export function TabSwitcher({
                     {...inSet(index + 1, tabs.length)}>
                     {tab.icon ? <Glyph icon={tab.icon} size={ICON} tintColor={secondary}/> : null}
                     <Body numberOfLines={2}>{tab.title}</Body>
-                    {tab.accessory}
+                    {tab.accessory ? <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={styles.accessory}>{tab.accessory}</View> : null}
                   </Pressable>
                   {onClose && !tab.pinned ? (
                     <Pressable
@@ -356,6 +360,13 @@ const styles = StyleSheet.create({
   },
   title: {
     flexShrink: 1,
+  },
+  /**
+   * The accessory, hidden from assistive technology, at its own size: a
+   * card's column would stretch it across the card.
+   */
+  accessory: {
+    alignItems: 'flex-start',
   },
   cross: {
     padding: spacing.one,

@@ -1,6 +1,6 @@
 import type {BadgeProps} from './types';
 import type {BadgeMetrics} from './shared';
-import {Animated, StyleSheet, Text} from 'react-native';
+import {Animated, StyleSheet, Text, type ViewProps} from 'react-native';
 import {useBadgeColors} from './colors';
 import {usePulseOpacity} from './pulse';
 import {BADGE_FONT_SIZE, badgeLabel, badgeText} from './shared';
@@ -10,7 +10,9 @@ import {BADGE_FONT_SIZE, badgeLabel, badgeText} from './shared';
  * Android outside a native host, where neither toolkit has anything to draw
  * in. A single digit sits in a circle and more digits in a capsule. The
  * accessible name is on the view rather than on the number, and a pulse
- * loops the view's opacity on the native driver.
+ * loops the view's opacity on the native driver. With a `label` of `null`
+ * the badge is no element at all, hidden with its number from assistive
+ * technology, for a parent that speaks for it.
  */
 export function DrawnBadge({metrics, ...props}: BadgeProps & {metrics: BadgeMetrics}) {
   const text = badgeText(props);
@@ -19,11 +21,15 @@ export function DrawnBadge({metrics, ...props}: BadgeProps & {metrics: BadgeMetr
   if (text === null) return null;
   const {dot, testID, style} = props;
   const size = dot ? metrics.dot : metrics.count;
+  // A badge its parent speaks for is no element of its own: on Android an
+  // accessible view inside another is a stop of its own, so the parent and
+  // then the badge would each be read.
+  const announced: ViewProps = props.label === null
+    ? {accessible: false, importantForAccessibility: 'no-hide-descendants', accessibilityElementsHidden: true}
+    : {accessible: true, accessibilityRole: 'text', accessibilityLabel: badgeLabel(props, text)};
   return (
     <Animated.View
-      accessible
-      accessibilityRole="text"
-      accessibilityLabel={badgeLabel(props, text)}
+      {...announced}
       style={[
         styles.badge,
         {backgroundColor: fill, minWidth: size, height: size, borderRadius: size / 2, paddingHorizontal: dot ? 0 : metrics.padding, opacity},

@@ -21,6 +21,7 @@ The differences that change what a screen can do, in one place:
 | `Progress` `trackColor` | Ignored | Yes | Yes | Yes |
 | `Badge` `99+` | Yes | Yes | Yes | Shows the cap |
 | `Badge` announced name | Label | Label; inside a host the number, then the rest of the label | Label | Label |
+| `Badge` `label={null}` | No element of its own | No element of its own; inside a host the number is still read | No element of its own | No name; hidden as far as the view around the island allows |
 | `Badge` `style` | Not applied inside a host | Not applied inside a host | Yes | Yes |
 | `ListItem` named from its slots | Yes | The row's own texts | Yes | Yes |
 | `ListItem` `selected` announced | Yes | On a row that presses, without `swipeActions` | Yes | Yes |

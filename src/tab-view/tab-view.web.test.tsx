@@ -61,6 +61,22 @@ describe('TabView (web)', () => {
     expect(screen.getByTestId('t-tab-c')).toHaveAccessibleName('Inbox');
   });
 
+  it('hides the accessory from assistive technology: the tab speaks for it', async () => {
+    const tabs = [{id: 'a', title: 'Notes'}, {id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <em>edited</em>}];
+    render(<TabView tabs={tabs} selected="a" onSelect={() => {}} testID="t"/>);
+    const wrapper = screen.getByText('edited').parentElement!;
+    expect(wrapper).toHaveAttribute('aria-hidden', 'true');
+    expect(wrapper).toHaveClass('ui-tab-view__accessory');
+    expect(screen.getByTestId('t-tab-b').contains(wrapper)).toBe(true);
+    // Nothing to hide, nothing to wrap.
+    expect(screen.getByTestId('t-tab-a').querySelector('[aria-hidden]')).toBeNull();
+    // No box of its own, so what it holds lays out as it would unwrapped.
+    const {readFileSync} = await import('node:fs');
+    const {join} = await import('node:path');
+    const css = readFileSync(join(__dirname, 'tab-view.css'), 'utf8');
+    expect(/\n\.ui-tab-view__accessory \{([^}]*)\}/.exec(css)![1]).toContain('display: contents;');
+  });
+
   it('draws no panel and controls none without children: the tabs alone', () => {
     render(<TabView tabs={TABS} selected="b" onSelect={() => {}} testID="t"/>);
     expect(screen.queryByRole('tabpanel')).toBeNull();
@@ -281,6 +297,19 @@ describe('TabView (web)', () => {
       await user.click(screen.getByTestId('t-switcher'));
       expect(screen.getByTestId('t-card-a')).toHaveAccessibleName('Notes');
       expect(screen.getByTestId('t-card-b')).toHaveAccessibleName('Sketch, edited');
+    });
+
+    it('hides a card\'s accessory as the strip hides a tab\'s', async () => {
+      const user = userEvent.setup();
+      windowWidth(480);
+      const tabs = [{id: 'a', title: 'Notes'}, {id: 'b', title: 'Sketch', label: 'Sketch, edited', accessory: <em>edited</em>}];
+      render(<TabView tabs={tabs} selected="a" onSelect={() => {}} testID="t"/>);
+      await user.click(screen.getByTestId('t-switcher'));
+      const wrapper = screen.getByText('edited').parentElement!;
+      expect(wrapper).toHaveAttribute('aria-hidden', 'true');
+      expect(wrapper).toHaveClass('ui-tab-view__accessory');
+      expect(screen.getByTestId('t-card-b').contains(wrapper)).toBe(true);
+      expect(screen.getByTestId('t-card-a').querySelector('[aria-hidden]')).toBeNull();
     });
 
     it('names itself after the group when no tab is open', () => {

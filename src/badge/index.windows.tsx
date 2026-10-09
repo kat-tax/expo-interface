@@ -21,6 +21,11 @@ import {BADGE_SIZE, badgeLabel, badgeText, badgeValue} from './shared';
  * The island is sized here rather than left to the control, because a badge
  * sits in a row beside other things and Yoga needs a width before XAML has
  * measured anything.
+ *
+ * With a `label` of `null`, a badge its parent speaks for, the island has no
+ * name and is hidden from UI Automation as far as it allows: the React
+ * Native view around the control takes the flags, and the control keeps
+ * WinUI's own automation.
  */
 export function Badge(props: BadgeProps) {
   const text = badgeText(props);
@@ -36,14 +41,17 @@ export function Badge(props: BadgeProps) {
   // color. With one, the number's color is worked out here as on the other
   // platforms, a translucent fill as it shows over the screen's background:
   // the island would judge the fill without its alpha.
+  const announced = props.label === null
+    ? {label: '', accessible: false, importantForAccessibility: 'no-hide-descendants' as const}
+    : {label: badgeLabel(props, text)};
   const badge = (
     <XamlInfoBadge
       value={badgeValue(props)}
       color={color === undefined ? undefined : hexColor(fill)}
       textColor={hexColor(color === undefined ? textColor : content)}
-      label={badgeLabel(props, text)}
       style={[{minWidth: height, height}, style]}
       testID={testID}
+      {...announced}
       {...xaml}
     />
   );
