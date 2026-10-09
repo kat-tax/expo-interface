@@ -206,6 +206,10 @@ Differences:
   field, every Enter), and no Shift.
 - `keyboardType` on web is also the field's `inputmode`, which a multi-line
   field takes.
+- A multi-line `inline` field on web is a `<textarea>` one row tall: a
+  browser that sizes a field to its content (`field-sizing`) grows it with
+  its lines up to its `maxHeight`, and one that does not scrolls inside the
+  row. The native inputs grow with their text.
 - `onFocus`, `onBlur` and the `ref` reach `inline` and the web row, the
   React Native inputs. The SwiftUI, Compose and WinUI rows report no focus
   and take no commands.
@@ -240,6 +244,10 @@ Drawn in React Native on every platform: a `Surface` capsule holding a
 it sits in a `Sheet`'s footer or at the bottom of a screen. Enter sends and
 Shift+Enter breaks the line on web and a desktop keyboard; the keyboard's
 send key sends on a phone. While `busy` neither sends, and the text stays.
+The capsule starts one line tall and grows with the text to five lines,
+then scrolls; on web it grows where the browser sizes a field to its
+content (`field-sizing`), and where the browser does not it stays one line
+tall and scrolls inside.
 On web the capsule draws the focus ring while the field has the focus.
 A screen reader reads a new `notice` out, so an error after a failed send
 is heard. On Android and web the notice is a polite live region, and on

@@ -11,7 +11,7 @@ import {useTextValue} from '../text-field/shared';
 import {useColor} from '../theme';
 import {Footnote} from '../typography';
 
-/** The capsule's height before the text wraps, in points. */
+/** The capsule's height before the text wraps, in points: a line of 20, the field's 8 above and below it, and the capsule's 4. */
 const MIN_HEIGHT = 44;
 
 /**

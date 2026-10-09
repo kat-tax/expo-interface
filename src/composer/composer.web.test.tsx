@@ -8,6 +8,8 @@ describe('Composer (web)', () => {
     render(<Composer onSend={onSend} testID="c"/>);
     const field = screen.getByRole('textbox', {name: 'Message'});
     const send = screen.getByRole('button', {name: 'Send'});
+    // One line tall to start: the capsule's 44 is a line of 20 between the paddings.
+    expect(field).toHaveAttribute('rows', '1');
     // Nothing to send: the button waits.
     expect(send).toBeDisabled();
     fireEvent.click(send);

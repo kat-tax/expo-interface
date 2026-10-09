@@ -85,6 +85,8 @@ export function InlineTextField({
       // `spellCheck` from `autoCorrect`, so this changes nothing there.
       spellCheck={autoCorrect}
       multiline={multiline}
+      // On web a multi-line field is a `<textarea>`, which is as tall as its `rows` until the text wraps: one line.
+      {...(web && multiline === true ? {rows: 1} : null)}
       maxLength={maxLength}
       cursorColor={cursor}
       selectionColor={cursor}
@@ -99,7 +101,7 @@ export function InlineTextField({
       onBlur={onBlur}
       aria-label={placeholder}
       testID={testID}
-      style={[styles.input, variant === 'bare' && styles.bare, {color: label}, disabled && styles.disabled, style]}
+      style={[styles.input, variant === 'bare' && styles.bare, multiline === true && styles.multiline, {color: label}, disabled && styles.disabled, style]}
     />
   );
 }
@@ -112,11 +114,23 @@ export function InlineTextField({
  */
 const NO_RING = Platform.select<TextStyle>({web: {outlineStyle: 'none'} as unknown as TextStyle, default: {}});
 
+/**
+ * The native inputs grow with their text by themselves. On web a
+ * `<textarea>` is as tall as its `rows` whatever it holds, so a browser
+ * that sizes a field to its content (`field-sizing`) is asked to: the
+ * field then grows with its lines up to its `maxHeight`. A browser without
+ * it keeps the one row the field starts with and scrolls inside it.
+ */
+const SIZED_TO_CONTENT = Platform.select<TextStyle>({web: {fieldSizing: 'content'} as unknown as TextStyle, default: {}});
+
 const styles = StyleSheet.create({
   bare: {
     paddingVertical: 0,
     paddingHorizontal: 0,
     ...NO_RING,
+  },
+  multiline: {
+    ...SIZED_TO_CONTENT,
   },
   input: {
     flexGrow: 1,

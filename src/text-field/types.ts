@@ -108,7 +108,12 @@ export interface TextFieldProps {
    * @default true
    */
   autoCorrect?: boolean;
-  /** Allows multiple lines of input that grow vertically. */
+  /**
+   * Allows multiple lines of input that grow vertically. On web an `inline`
+   * field is a `<textarea>` one row tall: a browser that sizes a field to
+   * its content (`field-sizing`) grows it with its lines up to its
+   * `maxHeight`, and one that does not scrolls inside the row.
+   */
   multiline?: boolean;
   /**
    * Focuses the field once it is mounted, and makes sure its keyboard came:
