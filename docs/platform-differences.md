@@ -66,6 +66,7 @@ The differences that change what a screen can do, in one place:
 | `Toolbar` floating | The kit's raised capsule | Material's `HorizontalFloatingToolbar` | The kit's raised capsule | The `CommandBar` in a raised card |
 | `Divider` `vertical` inside a host | The row's height | 24dp | The row's height | The row's height |
 | `Button` `pressed` heard as | Selected | Checked, by Material's toggle buttons | Pressed | A button |
+| `Avatar` inside a host | Drawn | Compose, read as the name; in a row that merges, the initials, then the name | Drawn | `PersonPicture` |
 | `AvatarGroup` `selected` heard as | Selected | Selected | Current | Selected |
 | `EmptyState` | The system's view on iOS 17 and later; composed in SwiftUI before, and while `loading` | Composed in Compose, the description hosted React Native text while `selectable` | Drawn | Drawn |
 | `Collapsible` children | `@expo/ui` | `@expo/ui` | Any | Any |

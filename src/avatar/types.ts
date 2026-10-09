@@ -4,9 +4,13 @@ import type {ColorTokens} from '../theme';
  * A person as a colored circle with their initials: the peers on a document,
  * the members of a space.
  *
- * Drawn in React Native on every platform, like `Surface`: an avatar is a
- * picture in a row of them, not a control, and it belongs wherever the row
- * is.
+ * Drawn in React Native on iOS, web and Android outside a native host, like
+ * `Surface`: an avatar is a picture in a row of them, not a control, and it
+ * belongs wherever the row is. Inside a host on Android (a `ListItem`'s
+ * `leading`, a `NativeHost`, `Screen native`) it is Compose content, since a
+ * Compose row draws no React Native view in its slots; TalkBack reads it by
+ * the name, as unseen text over the initials. Windows hosts WinUI's
+ * `PersonPicture`.
  */
 export interface AvatarProps {
   /** The person's name: the initials and the accessible name come from it. */

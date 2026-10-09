@@ -1,6 +1,8 @@
 import {Platform, Text} from 'react-native';
 import {act, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
+import {Avatar} from '../avatar';
+import {colorOf} from '../avatar/shared';
 import {NativeHostContext} from '../host';
 import {colors} from '../theme';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
@@ -36,6 +38,20 @@ describe(`ListItem slots (${Platform.OS})`, () => {
       expect(star.props.tint).toBe(colors.light.tint);
       expect(JSON.stringify(slot('leadingContent')[0])).toContain('"L"');
     }
+  });
+
+  (isIOS ? it.skip : it)('draws an Avatar in the leading slot in Compose, where a React Native view is not hosted', async () => {
+    await render(<ListItem leading={<Avatar name="Ada Lovelace"/>} testID="row">Essay</ListItem>, options);
+    const face = nodes(slot('leadingContent')[0]).find(n => n.type.endsWith('BoxView'))!;
+    expect(modifier(face.props, 'clip')?.shape).toEqual({type: 'circle'});
+    expect(modifier(face.props, 'background')?.color).toBe(colorOf('Ada Lovelace'));
+    expect(screen.queryByLabelText('Ada Lovelace')).toBeNull();
+    // The texts TalkBack reads the row by: the initials and the person's name
+    // among them, the name unseen text over the face. In the tree's order,
+    // which holds the headline slot first; Compose lays the leading slot out
+    // first and reads it so.
+    expect(texts('row')).toEqual(['Essay', 'AL', 'Ada Lovelace']);
+    expect(host(p => p.text === 'Ada Lovelace').props.color).toBe('#00000000');
   });
 
   it('draws a value and a badge at the end, before the trailing content', async () => {

@@ -456,6 +456,11 @@ Differences:
   badge's end, so a count reads "3, new" and a dot "New". `selected` is announced
   on a row that presses by itself; an inert row, or one with
   `swipeActions`, shows the fill alone.
+- On Android the slots are Compose content. The kit's `Avatar` as `leading`
+  and the `badge` draw themselves in Compose there, and an `Avatar`'s name
+  is among the row's texts after its initials; a React Native view in
+  `leading` or `trailing` is not hosted there, so put native content in the
+  slots: the kit's controls, `Avatar`, `Badge` or `@expo/ui` content.
 - On iOS and Android a row outside a host (a React Native `ScrollView` of
   rows) mounts a host of its own, so it draws there too. See
   [Native hosts](../hosts.md).

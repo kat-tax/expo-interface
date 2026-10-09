@@ -60,7 +60,9 @@ export function ListItem({swipeActions, ...props}: ListItemProps) {
  * from the slots has nowhere to go: `@expo/ui`'s Compose `semantics` takes
  * `contentType` alone, so TalkBack reads the row's own texts. The badge's
  * words are among them: the hosted `Badge` puts the rest of its label at its
- * end edge as unseen text, read after its number.
+ * end edge as unseen text, read after its number. The slots are Compose
+ * content, which the kit's `Avatar` as `leading` and the `Badge` draw
+ * themselves in; a React Native view in a slot is not hosted there.
  */
 function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, badgeColor, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
   const label = useColor('label');
