@@ -3,6 +3,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnchorAlign, AnchorInsets, AnchorRect} from '../anchored';
 import type {ButtonTone} from '../button/types';
 import type {IconToken} from '../icons';
+import type {MaterialThickness} from '../material/types';
 import type {MenuItem} from '../menu/types';
 
 /** Which edge of its content a `Toolbar` sits on, and so where its rule goes. */
@@ -210,6 +211,14 @@ export interface ToolbarProps extends PropsWithChildren {
   preferredEdge?: 'auto' | 'top' | 'bottom';
   /** What a bar at `at` keeps clear of at its parent's edges: a header, the keyboard's bar. */
   insets?: AnchorInsets;
+  /**
+   * Web only: the material a `floating` bar, or one `at` a rectangle, draws
+   * on, by the rules the kit's bars use (the raised fill thinned over a
+   * blur, with a hairline and the floating shadow all round). The app's
+   * `overlayMaterial` (`AccentProvider`) unless given. A bar along an edge
+   * keeps its fill, and the native floating bars are the platforms' own.
+   */
+  material?: MaterialThickness;
   /** Style applied to the bar. */
   style?: StyleProp<ViewStyle>;
   /** Identifier used to locate the bar in end-to-end tests. */

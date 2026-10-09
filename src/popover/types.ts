@@ -1,5 +1,6 @@
 import type {PropsWithChildren, ReactNode} from 'react';
 import type {AnchorInsets, AnchorRect} from '../anchored';
+import type {MaterialThickness} from '../material/types';
 
 /** A rectangle in the coordinates of the content a `Popover` is laid over. */
 export type PopoverRect = AnchorRect;
@@ -116,6 +117,14 @@ export interface PopoverProps extends PropsWithChildren {
    * @default 300
    */
   grace?: number;
+  /**
+   * Web only: the material the card draws on, by the rules the bars use
+   * (the raised fill thinned over a blur, with a hairline and the floating
+   * shadow all round). The app's `overlayMaterial` (`AccentProvider`)
+   * unless given. iOS and Android draw the card opaque, and the Windows tip
+   * is the platform's own.
+   */
+  material?: MaterialThickness;
   /**
    * Extra content under the message, above the actions. It floats over the
    * screen rather than under its bars, so `useScrollInsets()` answers zero

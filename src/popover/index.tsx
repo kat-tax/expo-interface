@@ -5,6 +5,7 @@ import {Row} from '@expo/ui';
 import {useAnchored} from '../anchored';
 import {Button} from '../button';
 import {NativeHost} from '../host';
+import {useOverlayMaterial} from '../material/context';
 import {NO_SCROLL_INSETS, ScrollInsetsContext} from '../screen/insets';
 import {Surface} from '../surface';
 import {Footnote, Subheadline} from '../typography';
@@ -19,12 +20,14 @@ import {MODAL_CARD, useEscape, useLinger} from './shared';
  * when the bottom is too close. The card is drawn once it has been measured
  * with its actions, and its parent with it, each time it comes up. A modal
  * one takes the presses on the rest of the parent as its backdrop; a hover
- * one lingers once the pointer has gone.
+ * one lingers once the pointer has gone. On the web the card draws on the
+ * app's overlay material unless told otherwise.
  */
-export function Popover({at, title, message, actions, onDismiss, width = 280, preferredEdge = 'auto', modal = false, label, insets, trigger = 'manual', grace, children, testID}: PopoverProps) {
+export function Popover({at, title, message, actions, onDismiss, width = 280, preferredEdge = 'auto', modal = false, label, insets, trigger = 'manual', grace, material, children, testID}: PopoverProps) {
   const linger = useLinger(at, trigger === 'hover', grace, () => onDismiss?.('leave'));
   const shown = linger.shown;
   const anchored = useAnchored({at: shown, preferredEdge, width, insets});
+  const glass = useOverlayMaterial(material);
   // Whether the parent has been measured at all, whatever its size. On web
   // each layout lands in a timeout of its own, and a card that mounts with
   // the parent is reported first, so it waits for the parent, a task at
@@ -77,7 +80,7 @@ export function Popover({at, title, message, actions, onDismiss, width = 280, pr
           testID={testID}
           {...linger.props}
           {...(modal ? {...MODAL_CARD, 'aria-label': Platform.OS === 'web' ? label ?? title : undefined, onAccessibilityEscape: () => dismiss('escape')} : null)}>
-          <Surface raised border="all" padding={spacing.three} style={styles.body}>
+          <Surface raised border="all" material={glass} padding={spacing.three} style={styles.body}>
             {title ? <Subheadline color="label" weight="semibold">{title}</Subheadline> : null}
             {message ? <Footnote color="secondaryLabel">{message}</Footnote> : null}
             {/* The card floats over the screen, under none of its bars: a list or a form in it pads by its own insets alone. */}

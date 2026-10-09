@@ -1,6 +1,8 @@
 import {Platform, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {AccentProvider} from '../accent';
 import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
+import {colors} from '../theme';
 import {PopoverRect, type PopoverProps} from './types';
 import {Popover} from '.';
 
@@ -43,6 +45,17 @@ describe(`Popover (${Platform.OS})`, () => {
     expect(screen.getByText('“teh” is not a word.')).toBeOnTheScreen();
     expect(screen.getByText('Suggestions')).toBeOnTheScreen();
     expect(style()).toMatchObject({position: 'absolute', width: 280, left: 40, top: 128});
+  });
+
+  it('takes a material, which is the web\'s, and draws the card opaque all the same', async () => {
+    await render(
+      <AccentProvider overlayMaterial="thin">
+        <Popover at={at} title="Spelling" material="regular" testID="lint"/>
+      </AccentProvider>,
+    );
+    const card = screen.getByTestId('lint').children[0] as unknown as {props: {style: unknown; dataSet?: unknown}};
+    expect(StyleSheet.flatten(card.props.style as never)).toMatchObject({backgroundColor: colors.light.backgroundElement});
+    expect(card.props.dataSet).toBeUndefined();
   });
 
   it('gives its content no scroll insets, whatever the screen under it pads by', async () => {

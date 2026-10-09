@@ -1,7 +1,24 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
+import {AccentProvider} from '../accent';
 import {Toast} from '.';
 
 describe('Toast (web)', () => {
+  it('draws the capsule on a material of its own, or the app\'s, and as itself otherwise', () => {
+    const toast = () => screen.getByTestId('toast');
+    const {rerender} = render(<Toast message="Copied" visible material="thin" testID="toast"/>);
+    expect(toast().dataset).toMatchObject({material: 'thin', materialFill: 'element', materialEdge: 'float'});
+    expect(getComputedStyle(toast()).boxShadow).toBe('');
+    rerender(
+      <AccentProvider overlayMaterial="regular">
+        <Toast message="Copied" visible testID="toast"/>
+      </AccentProvider>,
+    );
+    expect(toast().dataset.material).toBe('regular');
+    rerender(<Toast message="Copied" visible testID="toast"/>);
+    expect(toast().dataset.material).toBeUndefined();
+    expect(getComputedStyle(toast()).backgroundColor).toBe('var(--color-background-element)');
+  });
+
   it('announces the message as a live region', () => {
     render(<Toast message="3 files added" visible testID="toast"/>);
     const status = screen.getByRole('status');

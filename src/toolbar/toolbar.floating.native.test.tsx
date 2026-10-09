@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {hosts} from '../__tests__/hosts';
+import {AccentProvider} from '../accent';
 import {colors} from '../theme';
 import {Button} from '../button';
 import {Toolbar} from '.';
@@ -32,6 +33,20 @@ describe(`Toolbar floating (${Platform.OS})`, () => {
     }
     // The overflow goes behind one menu at the end, as on the edge bar.
     expect(host(p => p.text === 'Clear formatting' || p.label === 'Clear formatting')).toBeTruthy();
+  });
+
+  it('takes a material, which is the web\'s, and keeps its own fill', async () => {
+    await render(
+      <AccentProvider overlayMaterial="thin">
+        <Toolbar floating commands={commands} material="regular" testID="bar"/>
+      </AccentProvider>,
+    );
+    if (isIOS) {
+      expect(flat('bar')).toMatchObject({backgroundColor: colors.light.backgroundElement, borderRadius: 999});
+      expect(flat('bar').boxShadow).toBeTruthy();
+    } else {
+      expect(byComposeTestID('bar').props.colors).toEqual({toolbarContainerColor: colors.light.backgroundElement, toolbarContentColor: colors.light.label});
+    }
   });
 
   it('floats the two slots without commands, and needs no testID', async () => {

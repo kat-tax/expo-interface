@@ -1,10 +1,29 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
+import {AccentProvider} from '../accent';
 import {Menu} from '../menu';
 import {PopupMenu} from '../popup-menu';
 import {Sheet} from '../sheet';
 import {Popover} from '.';
 
 describe('Popover (web)', () => {
+  it('draws the card on a material of its own, or the app\'s, and as itself otherwise', () => {
+    /** The card: the surface in the placed box. */
+    const card = () => screen.getByTestId('pop').firstElementChild as HTMLElement;
+    const {rerender} = render(<Popover at={{x: 10, y: 10}} title="Spelling" material="regular" testID="pop"/>);
+    expect(card().dataset).toMatchObject({material: 'regular', materialFill: 'element', materialEdge: 'float'});
+    expect(getComputedStyle(card()).boxShadow).toBe('');
+    rerender(
+      <AccentProvider overlayMaterial="thin">
+        <Popover at={{x: 10, y: 10}} title="Spelling" testID="pop"/>
+      </AccentProvider>,
+    );
+    expect(card().dataset.material).toBe('thin');
+    rerender(<Popover at={{x: 10, y: 10}} title="Spelling" testID="pop"/>);
+    expect(card().dataset.material).toBeUndefined();
+    expect(getComputedStyle(card()).backgroundColor).toBe('var(--color-background-element)');
+    expect(getComputedStyle(card()).boxShadow).toContain('rgba(0, 0, 0, 0.18)');
+  });
+
   it('reports Escape wherever the focus is, before an editor that keeps the key can', () => {
     const onDismiss = vi.fn();
     render(

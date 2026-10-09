@@ -8,6 +8,7 @@ import {Row, Spacer} from '@expo/ui';
 import {Button} from '../button';
 import {Divider} from '../divider';
 import {NativeHost} from '../host';
+import {useOverlayMaterial} from '../material/context';
 import {Menu} from '../menu';
 import {Surface} from '../surface';
 import {fromLeft, useAnchored} from '../anchored';
@@ -90,12 +91,13 @@ function controlsOf({commands, leading, trailing, fieldCommands = []}: ToolbarPr
   };
 }
 
-/** A floating bar where it is laid out. */
+/** A floating bar where it is laid out, on the app's overlay material unless told otherwise. */
 function FloatingToolbar(props: ToolbarProps) {
   const {gap} = DENSITY[props.density ?? 'regular'];
   const {start, end} = controlsOf(props, gap);
+  const material = useOverlayMaterial(props.material);
   return (
-    <FloatingSurface gap={gap} style={props.style} testID={props.testID}>
+    <FloatingSurface gap={gap} material={material} style={props.style} testID={props.testID}>
       {start}
       {end}
     </FloatingSurface>
