@@ -40,7 +40,8 @@ describe(`Sheet (${Platform.OS})`, () => {
       });
     } else {
       expect(modal().props.showDragHandle).toBe(true);
-      expect(modal().props.skipPartiallyExpanded).toBe(false);
+      // Without snap points the sheet opens whole, past Material's half-way stop.
+      expect(modal().props.skipPartiallyExpanded).toBe(true);
       const {props} = byComposeTestID('sheet');
       expect(modifier(props, 'padding')).toEqual({$type: 'padding', start: 16, top: 0, end: 16, bottom: 0});
       expect(modifier(props, 'fillMaxHeight')).toBeUndefined();
@@ -57,7 +58,8 @@ describe(`Sheet (${Platform.OS})`, () => {
     if (isIOS) {
       expect(modifier(presentation().props, 'tint')).toEqual({$type: 'tint', tint: {type: 'color', color: ACCENT_SEED}});
     } else {
-      // Palette overlay is covered in sheet.android.test.tsx; the sheet itself takes no modifiers.
+      // The seeded host is covered in sheet.android.test.tsx; the sheet itself takes no modifiers.
+      expect(nodes()[0].props.seedColor).toBe(ACCENT_SEED);
       expect(modal().props.modifiers).toBeUndefined();
     }
   });

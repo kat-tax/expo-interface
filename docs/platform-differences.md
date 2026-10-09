@@ -73,6 +73,7 @@ The differences that change what a screen can do, in one place:
 | `Collapsible` children | `@expo/ui` | `@expo/ui` | Any | Any |
 | `Sheet` body without `maxHeight` | `@expo/ui` | `@expo/ui` | Any | Any |
 | `Sheet` `maxHeight` fraction of | The window's height | The window's height | The viewport's dynamic height | The area the sheet's layer covers |
+| `Sheet` without `snapPoints` opens | At its content's height | Whole, past the stop half way up the window Material offers a tall sheet | At its content's height, at most 85% of the viewport | As a card that stops short of the window |
 | `ExternalLink` | In-app browser | In-app browser | New tab | Default browser |
 | `saveFile` | A folder; the file keeps `name` | A folder; the file keeps `name` | The folder and the name in the Chromium browsers, else a download | A folder; the file keeps `name` |
 | `RelativeTime` words without `locale` | English; with a polyfill, the language iOS runs the app in, one the app is localized for | English; the device's language with a polyfill | The page's `lang` | English; the user's regional format with a polyfill |
