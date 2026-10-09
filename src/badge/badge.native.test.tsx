@@ -115,9 +115,70 @@ describe(`Badge (${Platform.OS})`, () => {
   });
 
   if (isIOS) {
-    it('is drawn inside a host too, where SwiftUI\'s own badge would paint nothing', async () => {
-      await render(inHost(<Badge count={3} testID="hosted"/>));
-      expect(screen.getByTestId('hosted').props.accessibilityLabel).toBe('3 new');
+    describe('inside a host', () => {
+      /** The SwiftUI text that is a hosted badge's number, by its testID. */
+      const number = (testID: string) => host(p => p.testID === testID && typeof p.text === 'string');
+      /** The SwiftUI circle that is a hosted dot, by its testID. */
+      const circle = (testID: string) => host(p => p.testID === testID && p.text === undefined);
+
+      it('is the capsule in SwiftUI, named for a screen reader, with no React Native view', async () => {
+        await render(inHost(<Badge count={3} testID="unread"/>));
+        // Not a React Native view, which the row's host would draw at no size
+        // of its own: nothing carries the label as a prop.
+        expect(screen.queryByLabelText('3 new')).toBeNull();
+        expect(hosts()).toHaveLength(0);
+        const badge = number('unread');
+        expect(badge.type.endsWith('TextView')).toBe(true);
+        expect(badge.props.text).toBe('3');
+        expect(modifier(badge.props, 'accessibilityLabel')?.label).toBe('3 new');
+        expect(modifier(badge.props, 'font')).toMatchObject({size: 11, weight: 'semibold'});
+        // The number must not reflow when the count changes from 1 to 7.
+        expect(modifier(badge.props, 'monospacedDigit')).toBeDefined();
+        expect(modifier(badge.props, 'foregroundStyle')?.style.color).toBe('#FFFFFF');
+        expect(modifier(badge.props, 'padding')?.horizontal).toBe(UIKIT_BADGE.padding);
+        expect(modifier(badge.props, 'frame')).toMatchObject({minWidth: UIKIT_BADGE.count, height: UIKIT_BADGE.count});
+        expect(modifier(badge.props, 'background')).toMatchObject({style: {type: 'color', color: colors.light.destructive}, shape: 'capsule'});
+        // Still: nothing to animate.
+        expect(modifier(badge.props, 'opacity')).toBeUndefined();
+        expect(modifier(badge.props, 'animation')).toBeUndefined();
+      });
+
+      it('draws a dot as a circle of its own size: one element, named', async () => {
+        await render(inHost(<Badge dot label="Unsaved" testID="dot"/>));
+        const dot = circle('dot');
+        expect(dot.type.endsWith('ZStackView')).toBe(true);
+        expect(modifier(dot.props, 'frame')).toMatchObject({width: UIKIT_BADGE.dot, height: UIKIT_BADGE.dot});
+        expect(modifier(dot.props, 'background')).toMatchObject({style: {type: 'color', color: colors.light.destructive}, shape: 'circle'});
+        // The circle itself is what VoiceOver stops on, not the spacer that fills it.
+        expect(modifier(dot.props, 'accessibilityElement')).toBeDefined();
+        expect(modifier(dot.props, 'accessibilityLabel')?.label).toBe('Unsaved');
+        expect(nodes().some(n => typeof n.props.text === 'string')).toBe(false);
+      });
+
+      it('takes a fill and a text color of its own, and a palette token resolved for the scheme', async () => {
+        await render(inHost(<Badge count={1} color="#FFFFFF" testID="light"/>));
+        // White fill, so the number must be black to be readable.
+        expect(modifier(number('light').props, 'background')?.style.color).toBe('#FFFFFF');
+        expect(modifier(number('light').props, 'foregroundStyle')?.style.color).toBe('#000000');
+        await render(inHost(<Badge count={1} color="#FFFFFF" textColor="#FF0000" testID="told"/>));
+        expect(modifier(number('told').props, 'foregroundStyle')?.style.color).toBe('#FF0000');
+        await render(inHost(<Badge count={4} color="highlight" testID="token"/>));
+        expect(modifier(number('token').props, 'background')?.style.color).toBe(colors.light.highlight);
+        expect(modifier(number('token').props, 'foregroundStyle')?.style.color).toBe('#000000');
+      });
+
+      it('stops at the cap, takes the caller\'s wording, and draws nothing for a count of nothing', async () => {
+        await render(inHost(<Badge count={150} label="Many unread" testID="many"/>));
+        expect(number('many').props.text).toBe('99+');
+        expect(modifier(number('many').props, 'accessibilityLabel')?.label).toBe('Many unread');
+        const {toJSON} = await render(inHost(<Badge count={0}/>));
+        expect(toJSON()).toBeNull();
+      });
+
+      it('renders without a testID at all', async () => {
+        await render(inHost(<Badge count={2}/>));
+        expect(host(p => p.text === '2').props.testID).toBeUndefined();
+      });
     });
     return;
   }

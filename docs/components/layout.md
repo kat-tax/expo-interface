@@ -444,6 +444,10 @@ Differences:
   inset.
 - On iOS a selected row in a `List` or a `FieldGroup` fills the whole row,
   through SwiftUI's row background.
+- On iOS the `value` and the `badge` are one trailing fragment, which
+  `@expo/ui` hosts in one view sized from its first child. The badge is the
+  kit's `Badge` in SwiftUI there, so it measures itself after the value
+  rather than taking the room the host offers.
 - Without a `badgeColor` the badge on Windows is Fluent's critical red, the
   `InfoBadge`'s own fill, where the other three draw `destructive`.
 - On Android TalkBack reads the row's own texts rather than a name composed

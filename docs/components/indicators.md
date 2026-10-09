@@ -55,18 +55,18 @@ variable on web), `pulse` (the badge's opacity goes down and back up every 900 m
 typing, a sync in flight; still while the user asks for less motion),
 `style`, `testID`.
 
-A pulse is each platform's own animation. Inside a host on Android, Compose
-animates the badge's alpha toward each end in turn. It is told which end
-from JavaScript every half pulse, since `@expo/ui`'s Compose animations do
-not repeat by themselves, so a pulsing badge there renders twice a pulse. A
-drawn badge (iOS, and Android outside a host) and the Windows island loop the
-opacity of the view, on the native driver on iOS and Android and on
-Animated's JavaScript driver on Windows, which steps it every frame. The web
-runs a CSS animation that `prefers-reduced-motion` stills.
+A pulse is each platform's own animation. Inside a host on Android and iOS,
+Compose or SwiftUI animates the badge's opacity toward each end in turn. It
+is told which end from JavaScript every half pulse, since `@expo/ui`'s
+animations do not repeat by themselves, so a pulsing badge there renders
+twice a pulse. A drawn badge (iOS and Android outside a host) and the
+Windows island loop the opacity of the view, on the native driver on iOS and
+Android and on Animated's JavaScript driver on Windows, which steps it every
+frame. The web runs a CSS animation that `prefers-reduced-motion` stills.
 
 | Platform | Renders |
 | --- | --- |
-| iOS | Drawn as the UIKit capsule. SwiftUI's `badge` modifier only paints inside a `List`, a `TabView` or a toolbar and is silently ignored anywhere else. |
+| iOS | The UIKit capsule: drawn in React Native outside a native host, and in SwiftUI inside one (a `ListItem`'s slots, a `NativeHost`, `Screen native`, a `Sheet`'s native content), where a React Native view has no size of its own: `@expo/ui`'s list row hosts its trailing content in one view sized from its first child, so a React Native badge after the row's `value` would draw at no size. SwiftUI's `badge` modifier only paints inside a `List`, a `TabView` or a toolbar and is silently ignored anywhere else. Inside a host it takes no `style`. |
 | Android | Material 3 `Badge` inside a native host; outside one, drawn in React Native to Material's geometry (a 6 point dot, 16 points high with a number), since a Compose view draws only inside a host. Both set the number in Material's Label Small. Inside a host it takes no `style`. |
 | Web | A `<span role="status">` |
 | Windows | WinUI `InfoBadge`. It holds a number and nothing else, so an overflowing count reads as the cap (`99`) where the others draw `99+`; the accessible name carries the true wording. |

@@ -21,7 +21,7 @@ The differences that change what a screen can do, in one place:
 | `Progress` `trackColor` | Ignored | Yes | Yes | Yes |
 | `Badge` `99+` | Yes | Yes | Yes | Shows the cap |
 | `Badge` announced name | Label | Label; inside a host the number, then the rest of the label | Label | Label |
-| `Badge` `style` | Yes | Not applied inside a host | Yes | Yes |
+| `Badge` `style` | Not applied inside a host | Not applied inside a host | Yes | Yes |
 | `ListItem` named from its slots | Yes | The row's own texts | Yes | Yes |
 | `ListItem` `selected` announced | Yes | On a row that presses, without `swipeActions` | Yes | Yes |
 | `ColorPicker` `inline` | The row, the system picker from the well | Drawn in place | Drawn in place | The WinUI `ColorPicker` in place |

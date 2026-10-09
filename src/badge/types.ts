@@ -13,9 +13,12 @@ import type {ColorTokens} from '../theme';
  *   `ListItem`'s slots, a `NativeHost`, `Screen native`); anywhere else drawn
  *   in React Native to Material's geometry, since a Compose view draws only
  *   inside a host.
- * - iOS: drawn. SwiftUI's `badge` modifier only paints inside a `List`, a
- *   `TabView` or a toolbar, so a badge anywhere else would silently render
- *   nothing; `ListItem` and `Tabs` are where that modifier belongs.
+ * - iOS: drawn outside a host, and the same capsule in SwiftUI inside one (a
+ *   `ListItem`'s slots, a `NativeHost`, `Screen native`, a `Sheet`'s native
+ *   content), where a React Native view has no size of its own. SwiftUI's
+ *   `badge` modifier only paints inside a `List`, a `TabView` or a toolbar,
+ *   so a badge anywhere else would silently render nothing; `ListItem` and
+ *   `Tabs` are where that modifier belongs.
  * - Web: a `<span>` with the count as its accessible name.
  *
  * **Placing one over a control is the caller's job**, with absolute
@@ -44,8 +47,9 @@ export interface BadgeProps {
    * on iOS and Android loops on the native driver and web runs a CSS
    * animation, neither of which renders anything for it. The Windows island
    * loops on Animated's JavaScript driver, which steps it every frame. Inside
-   * a native host on Android it is paced from JavaScript, a render each half
-   * pulse, since `@expo/ui`'s Compose animations do not repeat.
+   * a native host on Android and iOS it is paced from JavaScript, a render
+   * each half pulse that Compose or SwiftUI tweens toward, since `@expo/ui`'s
+   * animations do not repeat.
    */
   pulse?: boolean;
   /**
@@ -79,8 +83,8 @@ export interface BadgeProps {
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
   /**
-   * Applied to the badge's own view. The Compose badge inside a host on
-   * Android takes none.
+   * Applied to the badge's own view. The badge inside a host on Android
+   * (Compose) and iOS (SwiftUI) takes none.
    */
   style?: StyleProp<ViewStyle>;
 }

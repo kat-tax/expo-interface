@@ -18,6 +18,11 @@ import {ROW_ICON, rowLabel} from './shared';
  * here: the row is a bare `HStack` and every inset comes from the SwiftUI
  * `Form` around it.
  *
+ * The `value` and the `badge` are one trailing fragment, which `@expo/ui`
+ * hosts in one view sized from its first child. The badge is the kit's
+ * `Badge`, which inside the row is SwiftUI, so it measures itself after the
+ * value rather than taking whatever room the host offers.
+ *
  * A selected row draws the selected fill behind its content and as the
  * row's own background, which a SwiftUI `List` or `Form` draws edge to edge.
  *

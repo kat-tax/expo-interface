@@ -46,8 +46,15 @@ describe(`ListItem slots (${Platform.OS})`, () => {
     if (isIOS) {
       const value = host(p => p.text === '2 KB');
       expect(modifier(value.props, 'foregroundStyle')?.style.color).toBe(colors.light.secondaryLabel);
-      // The kit's drawn badge, inside the trailing accessory.
-      expect(screen.getByLabelText('3 new')).toBeOnTheScreen();
+      // The kit's badge in SwiftUI after the value, not a React Native view:
+      // the row hosts the two in one view sized from the value, where a
+      // React Native badge would draw at no size of its own.
+      expect(screen.queryByLabelText('3 new')).toBeNull();
+      const badge = host(p => p.text === '3');
+      expect(modifier(badge.props, 'accessibilityLabel')?.label).toBe('3 new');
+      expect(modifier(badge.props, 'background')?.shape).toBe('capsule');
+      const texts = nodes().map(n => n.props.text);
+      expect(texts.indexOf('2 KB')).toBeLessThan(texts.indexOf('3'));
       expect(screen.getByText('T')).toBeOnTheScreen();
     } else {
       expect(host(p => p.text === '2 KB').props.color).toBe(colors.light.secondaryLabel);
@@ -64,7 +71,9 @@ describe(`ListItem slots (${Platform.OS})`, () => {
   it('draws a dot for a badge of true, and names the row from its slots', async () => {
     await render(<ListItem supporting="Edited" value="2 KB" badge testID="row">Essay</ListItem>, options);
     if (isIOS) {
-      expect(screen.getByLabelText('New')).toBeOnTheScreen();
+      // A SwiftUI circle, one element named for a screen reader.
+      const dot = host(p => modifier(p, 'accessibilityLabel')?.label === 'New');
+      expect(modifier(dot.props, 'background')?.shape).toBe('circle');
       expect(modifier(row('row').props, 'accessibilityLabel')?.label).toBe('Essay, Edited, 2 KB, new');
     } else {
       const badge = nodes().find(n => n.type.includes('Badge'))!;
@@ -85,7 +94,7 @@ describe(`ListItem slots (${Platform.OS})`, () => {
       options,
     );
     expect(host(p => p.text === '2 KB')).toBeTruthy();
-    const badges = nodes().filter(n => isIOS ? n.props.accessibilityLabel === '2 new' : n.type.includes('Badge'));
+    const badges = nodes().filter(n => isIOS ? modifier(n.props, 'accessibilityLabel')?.label === '2 new' : n.type.includes('Badge'));
     expect(badges).toHaveLength(1);
     if (isIOS) {
       expect(modifier(row('valued').props, 'accessibilityLabel')?.label).toBe('Essay, 2 KB');
@@ -104,10 +113,12 @@ describe(`ListItem slots (${Platform.OS})`, () => {
       options,
     );
     if (isIOS) {
-      expect(screen.getByLabelText('3 new')).toHaveStyle({backgroundColor: colors.light.highlight});
+      const count = host(p => p.text === '3');
+      expect(modifier(count.props, 'background')?.style.color).toBe(colors.light.highlight);
       // A count on a pale token is drawn in black, which reads on it.
-      expect(screen.getByText('3')).toHaveStyle({color: '#000000'});
-      expect(screen.getByLabelText('New')).toHaveStyle({backgroundColor: '#123456'});
+      expect(modifier(count.props, 'foregroundStyle')?.style.color).toBe('#000000');
+      const dot = host(p => modifier(p, 'accessibilityLabel')?.label === 'New');
+      expect(modifier(dot.props, 'background')?.style.color).toBe('#123456');
     } else {
       const [token, raw] = nodes().filter(n => n.type.includes('Badge'));
       expect(token.props).toMatchObject({containerColor: colors.light.highlight, contentColor: '#000000'});
