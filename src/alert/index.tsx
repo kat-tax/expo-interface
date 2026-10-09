@@ -3,13 +3,16 @@ import type {SyntheticEvent} from 'react';
 import type {AlertProps} from './types';
 import {useEffect, useRef} from 'react';
 import {Button} from '../button';
+import {useEscape} from '../popover/shared';
 import {TextField} from '../text-field';
 import {Body, Headline} from '../typography';
 import {DEFAULT_ACTIONS, defaultAction, splitActions} from './shared';
 
 /**
  * On web the alert is a real `<dialog>` opened with `showModal()`, so it sits
- * in the top layer with a backdrop, traps focus, and closes on Escape.
+ * in the top layer with a backdrop, traps focus, and closes on Escape. The
+ * kit takes the Escape itself, so the key goes no further: a web `Sheet`
+ * the alert opened from stays up.
  * Actions render as the kit's text buttons; `sheet` anchors the dialog to
  * the bottom edge with the actions stacked, like an iOS action sheet. A
  * disabled action is a disabled `<button>`, which the dialog's first focus
@@ -37,6 +40,11 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
       dialog.close();
     }
   }, [visible]);
+
+  // Escape closes the alert alone: the key is taken at the window and goes
+  // no further, so a web `Sheet` the alert opened from stays up. The close
+  // is reported through the dialog's close event, as an action's is.
+  useEscape(visible, ref, () => ref.current?.close());
 
   // The dialog's close event, after an action, Escape or a backdrop click,
   // and after the app's own close, which is not reported.

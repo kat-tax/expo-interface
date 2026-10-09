@@ -4,6 +4,7 @@ import type {ReactElement} from 'react';
 import type {MenuItem} from './types';
 import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
+import {Sheet} from '../sheet';
 import {MenuList} from './list';
 import {Menu} from '.';
 
@@ -347,6 +348,98 @@ describe('Menu (web)', () => {
     }
   });
 });
+
+describe('Escape on an open menu (web)', () => {
+  type PopoverElement = Omit<HTMLElement, 'showPopover' | 'hidePopover'> & {
+    showPopover?: () => void;
+    hidePopover?: () => void;
+  };
+  const proto = HTMLElement.prototype as PopoverElement;
+  /** The popovers the browser has open; jsdom ships no imperative Popover API, so it is stubbed. */
+  const open = new Set<Element>();
+  const hidePopover = vi.fn(function (this: HTMLElement) {
+    open.delete(this);
+  });
+  let matches: {mockRestore: () => void} | undefined;
+
+  beforeAll(() => {
+    proto.showPopover = function (this: HTMLElement) {
+      open.add(this);
+    };
+    proto.hidePopover = hidePopover;
+    const original = HTMLElement.prototype.matches;
+    matches = vi.spyOn(HTMLElement.prototype, 'matches').mockImplementation(function (this: HTMLElement, selector: string) {
+      return selector === ':popover-open' ? open.has(this) : original.call(this, selector);
+    });
+  });
+
+  afterEach(() => {
+    open.clear();
+  });
+
+  afterAll(() => {
+    delete proto.showPopover;
+    delete proto.hidePopover;
+    matches?.mockRestore();
+  });
+
+  /** Opens the menu as the trigger's `popovertarget` would: shown, then reported by the browser. */
+  const show = (menu: HTMLElement) => {
+    menu.showPopover();
+    fireEvent(menu, toggleEvent('open'));
+  };
+
+  it('closes the menu and leaves a web Sheet around it up, which the next Escape is for', () => {
+    const onSheetDismiss = vi.fn();
+    const onOpenChange = vi.fn();
+    render(
+      <Sheet isPresented onDismiss={onSheetDismiss}>
+        <Menu label="More" items={items} onOpenChange={onOpenChange}/>
+      </Sheet>,
+    );
+    const menu = screen.getByRole('menu', {hidden: true});
+    show(menu);
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    // The key goes down on the focused entry and would reach the document, where the drawer listens.
+    fireEvent.keyDown(screen.getByRole('menuitem', {name: 'Share', hidden: true}), {key: 'Escape'});
+    expect(hidePopover).toHaveBeenCalledTimes(1);
+    expect(open.has(menu)).toBe(false);
+    expect(onSheetDismiss).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    // The browser reports the close; the next Escape is the sheet's.
+    fireEvent(menu, toggleEvent('closed'));
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
+    expect(onSheetDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the key from a listener on the document, and hides nothing once the browser has closed the menu itself', () => {
+    const heard = vi.fn();
+    const listener = (event: KeyboardEvent) => heard(event.key);
+    document.addEventListener('keydown', listener, true);
+    try {
+      render(<Menu label="More" items={items}/>);
+      const menu = screen.getByRole('menu', {hidden: true});
+      show(menu);
+      fireEvent.keyDown(menu, {key: 'Escape'});
+      expect(hidePopover).toHaveBeenCalledTimes(1);
+      expect(heard).not.toHaveBeenCalled();
+      fireEvent(menu, toggleEvent('closed'));
+      // A click outside has closed it, which the browser has not reported yet: nothing to hide.
+      show(menu);
+      open.delete(menu);
+      fireEvent.keyDown(menu, {key: 'Escape'});
+      expect(hidePopover).toHaveBeenCalledTimes(1);
+      // Closed and reported, the key is the page's again.
+      fireEvent(menu, toggleEvent('closed'));
+      fireEvent.keyDown(menu, {key: 'Escape'});
+      expect(heard).toHaveBeenCalledWith('Escape');
+    } finally {
+      document.removeEventListener('keydown', listener, true);
+    }
+  });
+});
+
 describe('the menu keyboard pattern', () => {
   /** What `role="menu"` promises anyone without a pointer. */
   const press = (key: string) => fireEvent.keyDown(screen.getByRole('menu', {hidden: true}), {key});

@@ -240,4 +240,28 @@ describe('Alert (web)', () => {
     render(<Alert title="Saved" visible testID="alert" actions={[{label: 'Undo'}, {label: 'Got it'}]}/>);
     expect(actionButtons().map(b => b.textContent)).toEqual(['Undo', 'Got it']);
   });
+
+  it('closes on Escape wherever the focus is, reports the dismissal, and keeps the key from the document', () => {
+    const onDismiss = vi.fn();
+    const heard = vi.fn();
+    const listener = (event: KeyboardEvent) => heard(event.key);
+    // Where a web `Sheet`'s drawer listens for the key.
+    document.addEventListener('keydown', listener, true);
+    try {
+      const {rerender} = render(<Alert title="Hi" visible onDismiss={onDismiss} testID="alert"/>);
+      const closes = close.mock.calls.length;
+      fireEvent.keyDown(screen.getByRole('button', {name: 'OK'}), {key: 'Escape'});
+      expect(close).toHaveBeenCalledTimes(closes + 1);
+      expect(dialog()).not.toHaveAttribute('open');
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+      expect(heard).not.toHaveBeenCalled();
+      // The app clears `visible` on the report; the key is the page's again.
+      rerender(<Alert title="Hi" visible={false} onDismiss={onDismiss} testID="alert"/>);
+      fireEvent.keyDown(document.body, {key: 'Escape'});
+      expect(heard).toHaveBeenCalledWith('Escape');
+      expect(onDismiss).toHaveBeenCalledTimes(1);
+    } finally {
+      document.removeEventListener('keydown', listener, true);
+    }
+  });
 });

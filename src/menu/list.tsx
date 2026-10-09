@@ -1,8 +1,9 @@
 import type {CSSProperties, ToggleEvent} from 'react';
 import type {MenuItem} from './types';
-import {useEffect, useRef, useSyncExternalStore} from 'react';
+import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {useMatchHighlight} from '../a11y/highlight';
 import {useRovingFocus} from '../a11y/roving';
+import {useEscape} from '../popover/shared';
 import {Icon} from '../symbol';
 import {optionId} from './option-id';
 
@@ -99,22 +100,40 @@ interface MenuListProps {
   highlighted?: number;
   /** Called as an entry is picked, before its `onPress`. */
   onPick?: () => void;
+  /**
+   * Whether the list takes Escape while it is open: it closes itself and
+   * the key goes no further, so a web `Sheet` around it stays up. A caller
+   * with a taker of its own around the list turns this off.
+   * @default true
+   */
+  takesEscape?: boolean;
 }
 
 
 /**
  * Web `role="menu"` popup shared by `Menu`, `ContextMenu` and `Fab`, rendered
  * as a native `popover="auto"` element. The browser handles the top layer,
- * light dismiss (outside click / Escape) and the trigger's `aria-expanded`;
- * every item carries `popovertargetaction="hide"` so picking one closes the
+ * the light dismiss on an outside click and the trigger's `aria-expanded`;
+ * Escape is the list's own while it is open, through the kit's taker, so
+ * the key stops at the window and a web `Sheet` around the list stays up.
+ * Every item carries `popovertargetaction="hide"` so picking one closes the
  * menu declaratively. Placement is CSS anchor positioning (see `menu.css`),
  * with a measured fallback for engines without it.
  */
-export function MenuList({id, items, anchor, atPoint, anchorRef, position, popoverRef, onOpenChange, match, edge = 'auto', focusOnOpen = true, highlighted, onPick}: MenuListProps) {
+export function MenuList({id, items, anchor, atPoint, anchorRef, position, popoverRef, onOpenChange, match, edge = 'auto', focusOnOpen = true, highlighted, onPick, takesEscape = true}: MenuListProps) {
   const localRef = useRef<HTMLDivElement>(null);
   const ref = popoverRef ?? localRef;
   const anchored = !!anchor && !position;
   const positioned = useAnchorPositioning();
+  // Open from the browser's `toggle` event, which reports an opening or a
+  // close a task after it. Escape then closes the list wherever the focus
+  // is, and the key goes no further; a close the browser has made itself,
+  // not yet reported, leaves nothing to hide.
+  const [open, setOpen] = useState(false);
+  useEscape(open && takesEscape, ref, () => {
+    const popover = ref.current;
+    if (popover?.matches(':popover-open')) popover.hidePopover();
+  });
   // `role="menu"` promises the menu keyboard pattern: one tab stop on the
   // checked item (or the first), the arrows moving within, and typing jumping
   // to a label. The browser gives the top layer and the light dismiss; this is
@@ -144,6 +163,7 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
       // The browser reports a close in a task of its own, by which time the
       // popup may be open again for the next anchor: that close is over.
       if (popover.matches(':popover-open')) return;
+      setOpen(false);
       onOpenChange?.(false);
       return;
     }
@@ -161,6 +181,7 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
       popover.style.top = `${Math.max(VIEWPORT_GAP, Math.min(position.y, maxY))}px`;
     }
     if (focusOnOpen) (popover.querySelector('button:not(:disabled)') as HTMLButtonElement | null)?.focus();
+    setOpen(true);
     onOpenChange?.(true);
   };
 

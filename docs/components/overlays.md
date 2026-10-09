@@ -52,6 +52,9 @@ Differences:
 - On web the trigger takes its popover target once the page has hydrated,
   so on a static page a press before then does nothing, rather than opening
   a list with no anchor and entries that do nothing yet.
+- On web Escape closes an open menu wherever the focus is, and the key goes
+  no further: a web `Sheet` or a `Popover` card the menu is in stays up, and
+  takes the next one.
 - On iOS and Android a menu outside a host mounts one of its own, sized to
   its trigger, so it can be placed in a React Native layout like any
   element. See [Native hosts](../hosts.md).
@@ -83,6 +86,7 @@ Differences:
 - A right click and the Menu key open the menu on web and Windows whichever
   `trigger` says; they are what the platform and its screen readers reach for.
 - `onOpenChange` is not reported on iOS.
+- On web Escape closes the open menu and goes no further, as for `Menu`.
 - There is no `doubleTap` trigger: `@expo/ui` exposes no double click from
   Compose, and SwiftUI has no way to open a context menu programmatically.
 
@@ -259,6 +263,9 @@ anywhere.
 | Android | Material 3 `AlertDialog`, with the actions in a column for `sheet`. The field is the kit's Compose field under the message. |
 | Web | A real `<dialog>` opened with `showModal()`: the top layer, a backdrop, a focus trap and Escape. `sheet` anchors it to the bottom. The field is a box under the message. |
 | Windows | A dialog in `ContentDialog`'s arrangement, smoke over the whole window and the card with the title, message and actions, drawn in a windowed popup, since a `ContentDialog` can only cover its own island. Up to three actions take the dialog's own buttons; more are stacked in the body. The field is a WinUI `TextBox` in the dialog's body, placed there through a portal. |
+
+On web Escape closes the alert alone: the key goes no further, so a web
+`Sheet` the alert opened from stays up.
 
 `sheet` has no Windows form; a dialog is drawn either way, and an action
 sheet holds no field on any platform. The field is controlled through

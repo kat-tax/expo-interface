@@ -185,7 +185,14 @@ describe('Popover (web)', () => {
       expect(onDismiss).toHaveBeenCalledWith('escape');
     });
 
-    it('lets the browser close a menu open in it first, and takes the next Escape', () => {
+    /** A `ToggleEvent`, which the browser sends a task after an opening or a close; jsdom has no constructor for it. */
+    const toggle = (element: HTMLElement, newState: 'open' | 'closed') => {
+      const event = new Event('toggle');
+      Object.defineProperty(event, 'newState', {value: newState});
+      fireEvent(element, event);
+    };
+
+    it('leaves the first Escape to a Menu open in it, which closes itself, and takes the next', () => {
       const onDismiss = vi.fn();
       const heard = vi.fn();
       render(
@@ -193,20 +200,51 @@ describe('Popover (web)', () => {
           <Menu label="Sort" items={items}/>
         </Popover>,
       );
-      // The trigger's `popovertarget` opens it, as the browser would.
+      // The trigger's `popovertarget` opens it, as the browser would, and the browser reports the opening.
       const menu = screen.getByRole('menu', {hidden: true});
       open.add(menu);
+      toggle(menu, 'open');
       const listener = (event: KeyboardEvent) => heard(event.key);
       document.addEventListener('keydown', listener);
-      // The key is not taken: it goes on, uncancelled, to the browser's close of the menu.
-      expect(fireEvent.keyDown(document.body, {key: 'Escape'})).toBe(true);
-      expect(heard).toHaveBeenCalledWith('Escape');
-      expect(onDismiss).not.toHaveBeenCalled();
-      open.delete(menu);
-      fireEvent.keyDown(document.body, {key: 'Escape'});
-      expect(onDismiss).toHaveBeenCalledWith('escape');
-      expect(heard).toHaveBeenCalledTimes(1);
-      document.removeEventListener('keydown', listener);
+      try {
+        // The menu takes the key and closes; the key stops at the window.
+        fireEvent.keyDown(document.body, {key: 'Escape'});
+        expect(open.has(menu)).toBe(false);
+        expect(heard).not.toHaveBeenCalled();
+        expect(onDismiss).not.toHaveBeenCalled();
+        // The browser reports the close; the next Escape is the card's.
+        toggle(menu, 'closed');
+        fireEvent.keyDown(document.body, {key: 'Escape'});
+        expect(onDismiss).toHaveBeenCalledWith('escape');
+        expect(heard).not.toHaveBeenCalled();
+      } finally {
+        document.removeEventListener('keydown', listener);
+      }
+    });
+
+    it('leaves Escape to the browser for a popover open in it that takes no Escape itself, as a ColorPicker\'s is', () => {
+      const onDismiss = vi.fn();
+      const heard = vi.fn();
+      render(
+        <Popover at={{x: 10, y: 10}} title="Option" onDismiss={onDismiss} testID="pop">
+          <div popover="auto" data-testid="picker"/>
+        </Popover>,
+      );
+      open.add(screen.getByTestId('picker'));
+      const listener = (event: KeyboardEvent) => heard(event.key);
+      document.addEventListener('keydown', listener);
+      try {
+        // The key is not taken: it goes on, uncancelled, to the browser's close of the popover.
+        expect(fireEvent.keyDown(document.body, {key: 'Escape'})).toBe(true);
+        expect(heard).toHaveBeenCalledWith('Escape');
+        expect(onDismiss).not.toHaveBeenCalled();
+        open.clear();
+        fireEvent.keyDown(document.body, {key: 'Escape'});
+        expect(onDismiss).toHaveBeenCalledWith('escape');
+        expect(heard).toHaveBeenCalledTimes(1);
+      } finally {
+        document.removeEventListener('keydown', listener);
+      }
     });
 
     it('leaves Escape to a popup menu that comes up beside it after it', () => {

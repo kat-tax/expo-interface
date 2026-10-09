@@ -22,20 +22,27 @@ function toggleEvent(newState: 'open' | 'closed') {
   return event;
 }
 
-type PopoverElement = Omit<HTMLElement, 'showPopover'> & {showPopover?: () => void};
+type PopoverElement = Omit<HTMLElement, 'showPopover' | 'hidePopover'> & {
+  showPopover?: () => void;
+  hidePopover?: () => void;
+};
 const proto = HTMLElement.prototype as PopoverElement;
 const showPopover = vi.fn();
+const hidePopover = vi.fn();
 
 // jsdom 30's UA stylesheet hides closed popovers (`display: none`), so the
 // menu is outside the accessibility tree and role queries need `hidden: true`;
-// but it still ships no imperative Popover API, so `showPopover` is stubbed.
+// but it still ships no imperative Popover API, so `showPopover` and
+// `hidePopover` are stubbed.
 describe('ContextMenu (web)', () => {
   beforeAll(() => {
     proto.showPopover = showPopover;
+    proto.hidePopover = hidePopover;
   });
 
   afterAll(() => {
     delete proto.showPopover;
+    delete proto.hidePopover;
   });
 
   it('wraps the content and its popover menu in a layout-neutral element', () => {
@@ -316,6 +323,29 @@ describe('ContextMenu (web)', () => {
     const menu = screen.getByRole('menu', {hidden: true});
     expect(menu.style.left).toBe('5px');
     expect(menu.style.top).toBe('6px');
+  });
+
+  it('closes on Escape wherever the focus is, and keeps the key from the document', () => {
+    const heard = vi.fn();
+    const listener = (event: KeyboardEvent) => heard(event.key);
+    document.addEventListener('keydown', listener, true);
+    try {
+      render(
+        <ContextMenu items={items} testID="row">
+          <span>Item</span>
+        </ContextMenu>,
+      );
+      fireEvent.contextMenu(screen.getByTestId('row'), {clientX: 40, clientY: 60});
+      const menu = screen.getByRole('menu', {hidden: true});
+      // Shown, and the browser reports the opening.
+      vi.spyOn(menu, 'matches').mockImplementation(selector => selector === ':popover-open');
+      fireEvent(menu, toggleEvent('open'));
+      fireEvent.keyDown(screen.getByRole('menuitem', {name: 'Share', hidden: true}), {key: 'Escape'});
+      expect(hidePopover).toHaveBeenCalledTimes(1);
+      expect(heard).not.toHaveBeenCalled();
+    } finally {
+      document.removeEventListener('keydown', listener, true);
+    }
   });
 
   it('ignores a lift or move without a pending long-press', () => {

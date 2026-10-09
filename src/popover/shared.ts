@@ -90,7 +90,11 @@ function samePlace(a: PopoverRect | null, b: PopoverRect | null): boolean {
   return a.x === b.x && a.y === b.y && (a.width ?? 0) === (b.width ?? 0) && (a.height ?? 0) === (b.height ?? 0);
 }
 
-/** An overlay that takes Escape on web: a `Popover` card or a `PopupMenu`. */
+/**
+ * An overlay that takes Escape on web: a `Popover` card, a menu (the
+ * `MenuList` of a `Menu`, a `ContextMenu` or a `Fab`, or a `PopupMenu`) or
+ * an `Alert`.
+ */
 interface Taker {
   node: HTMLElement;
   /** Whether it would take the key now. */
@@ -112,10 +116,11 @@ const takers: Taker[] = [];
  * One Escape closes one overlay, the innermost. One window listener chooses
  * it for all of them before any acts, since a menu that closes on the key
  * would no longer be open by the time a card around it looked. A card with a
- * `PopupMenu` open in it, or another card up inside it, leaves the key to
- * that one. So does a card with a menu open in it that the browser closes on
- * Escape (a `popover` element: a `Menu`), and then nothing here takes the
- * key. Of two overlays up side by side, the one that came up last takes it.
+ * menu open in it, or another card up inside it, leaves the key to that
+ * one. A `popover` element that is no taker, the `ColorPicker`'s `popover`
+ * presentation, is the browser's to close on Escape: an overlay with one
+ * open in it leaves the key to the browser, and nothing here takes it. Of
+ * two overlays up side by side, the one that came up last takes it.
  *
  * `node` is the overlay's element (on web a view's ref is its element),
  * which is in the DOM whenever `active` is set. `wants` says whether it
@@ -146,8 +151,8 @@ function onEscapeKey(event: KeyboardEvent) {
 
 /**
  * The overlay Escape is for: of those that want it with no other one that
- * does inside them, the last to come up; none when a menu the browser closes
- * is open in that one, above it.
+ * does inside them, the last to come up; none when a popover the browser
+ * closes is open in that one, above it.
  */
 function chosen(): Taker | undefined {
   const wanting = takers.filter(taker => taker.wants());
@@ -156,9 +161,12 @@ function chosen(): Taker | undefined {
 }
 
 /**
- * Whether a popover element is open inside the overlay. A `manual` one does
- * not count: Escape does not close it, so the overlay would never get the
- * key.
+ * Whether a `popover` element the browser closes on Escape is open inside
+ * the overlay, so the key is the browser's: the `ColorPicker`'s `popover`
+ * presentation, which is no taker, or a menu whose opening the browser has
+ * not reported yet, since a menu takes the key from its `toggle` event. A
+ * `manual` one does not count: Escape does not close it, so the overlay
+ * would never get the key.
  */
 function holdsOpenMenu(node: HTMLElement): boolean {
   return Array.from(node.querySelectorAll('[popover]:not([popover="manual"])')).some(element => element.matches(':popover-open'));

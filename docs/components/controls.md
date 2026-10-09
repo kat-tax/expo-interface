@@ -78,7 +78,8 @@ menu instead of pressing), `onOpenChange`, `size` (`small`, `regular`, `large`,
 `onOpenChange` is reported on Android, web and Windows. SwiftUI's `Menu` has
 no presentation binding, so iOS never reports it. On web a button with
 `items` takes its popover target once the page has hydrated, as the `Menu`'s
-trigger does, so on a static page a press before then does nothing.
+trigger does, so on a static page a press before then does nothing, and
+Escape closes the open menu and goes no further, as for `Menu`.
 
 While a `Toast` under the same `Screen` shows, the button moves up by the
 toast's height and back down as it goes, as Material's scaffold moves its

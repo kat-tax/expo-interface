@@ -87,7 +87,10 @@ export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus
   // Escape closes the menu while it shows, wherever the focus is: an editor
   // that holds it and keeps the key for itself would otherwise leave the
   // menu up. The key is the menu's then, and goes no further, so neither a
-  // web `Sheet` nor a `Popover` card around the menu closes with it.
+  // web `Sheet` nor a `Popover` card around the menu closes with it. The
+  // taker is this one rather than the list's own, which is off: it is up
+  // from the point, reading the popover itself, before the browser has
+  // reported the opening.
   useEscape(
     open,
     popover,
@@ -118,6 +121,7 @@ export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus
         highlighted={highlighted}
         anchorRef={point}
         popoverRef={popover}
+        takesEscape={false}
         onPick={() => {
           closing.current = 'select';
         }}

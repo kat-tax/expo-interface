@@ -11,6 +11,13 @@ const items: MenuItem[] = [
   {label: 'Import files…', icon: icons.share},
 ];
 
+/** A `ToggleEvent` for the popover; jsdom has no constructor for it. */
+function toggleEvent(newState: 'open' | 'closed') {
+  const event = new Event('toggle');
+  Object.defineProperty(event, 'newState', {value: newState});
+  return event;
+}
+
 describe('Fab (web)', () => {
   it('renders a rounded button named by its label', () => {
     const onPress = vi.fn();
@@ -79,6 +86,29 @@ describe('Fab (web)', () => {
     expect(onPress).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('menuitem', {name: 'Blank document', hidden: true}));
     expect(onBlank).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes an open menu on Escape, and the key goes no further', () => {
+    // jsdom ships no imperative Popover API: the close is what the stub sees.
+    const hidePopover = vi.fn();
+    const proto = HTMLElement.prototype as {hidePopover?: () => void};
+    proto.hidePopover = hidePopover;
+    const heard = vi.fn();
+    const listener = (event: KeyboardEvent) => heard(event.key);
+    document.addEventListener('keydown', listener, true);
+    try {
+      render(<Fab label="New" icon={icons.add} items={items}/>);
+      const menu = screen.getByRole('menu', {hidden: true});
+      // Shown by the button's `popovertarget`, and the browser reports the opening.
+      vi.spyOn(menu, 'matches').mockImplementation(selector => selector === ':popover-open');
+      fireEvent(menu, toggleEvent('open'));
+      fireEvent.keyDown(screen.getByRole('menuitem', {name: 'Blank document', hidden: true}), {key: 'Escape'});
+      expect(hidePopover).toHaveBeenCalledTimes(1);
+      expect(heard).not.toHaveBeenCalled();
+    } finally {
+      document.removeEventListener('keydown', listener, true);
+      delete proto.hidePopover;
+    }
   });
 
   it('gives the button its popover target once a static page has hydrated, and not before', async () => {
