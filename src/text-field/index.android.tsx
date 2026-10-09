@@ -1,13 +1,24 @@
 import type {TextFieldKeyboard, TextFieldProps, TextFieldReturnKey} from './types';
 import type {TextFieldColors, TextFieldImeAction, TextFieldKeyboardActions, TextFieldKeyboardType} from '@expo/ui/jetpack-compose';
 
-import {TextField as ComposeTextField, Text, useMaterialColors, useNativeState} from '@expo/ui/jetpack-compose';
+import {OutlinedTextField, TextField as ComposeTextField, Text, useMaterialColors, useNativeState} from '@expo/ui/jetpack-compose';
 import {fillMaxWidth, offset, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {useColor} from '../theme';
 import {InlineTextField} from './inline';
 import {useSyncedState} from './shared';
 
 const TRANSPARENT = 'transparent';
+
+/** The row's Material container and indicator, in every state, stripped to transparent. */
+const BORDERLESS: TextFieldColors = {
+  focusedContainerColor: TRANSPARENT,
+  unfocusedContainerColor: TRANSPARENT,
+  disabledContainerColor: TRANSPARENT,
+  errorContainerColor: TRANSPARENT,
+  focusedIndicatorColor: TRANSPARENT,
+  unfocusedIndicatorColor: TRANSPARENT,
+  disabledIndicatorColor: TRANSPARENT,
+};
 
 /**
  * Material 3's filled `TextField` bakes a 16dp horizontal content padding into
@@ -29,11 +40,24 @@ export function TextField(props: TextFieldProps) {
 }
 
 /**
+ * The field in a dialog, the `Alert`'s: Material's `OutlinedTextField`, the
+ * way Android's own dialogs draw an input, with Material's outline and
+ * container and the row field's keyboard, state and submit logic, placeholder
+ * colour and cursor tint. A dialog has no form inset to line up with, so the
+ * field is not shifted. Android only.
+ */
+export function DialogTextField(props: TextFieldProps) {
+  return <RowTextField {...props} dialog/>;
+}
+
+/**
  * Android's Material `TextField` ships with a filled background and a bottom
  * indicator line that clash with the iOS `Form` look. Here those are stripped
- * to transparent so the field reads as a plain borderless row — the placeholder
- * doubles as the label — living natively inside the surrounding
- * `Host`/`FieldGroup`. The keyboard's action key is `returnKeyType` (`done`
+ * to transparent so the field reads as a plain borderless row, the placeholder
+ * doubling as the label, living natively inside the surrounding
+ * `Host`/`FieldGroup`. In a `dialog` the field is Material's outlined one
+ * with its own outline and container kept: there the outline is what shows
+ * it is a field. The keyboard's action key is `returnKeyType` (`done`
  * when there is only an `onSubmit`); Compose keeps the field focused after
  * it, so `submitBehavior` has nothing to add here.
  */
@@ -53,7 +77,8 @@ function RowTextField({
   maxLength,
   accentColor,
   testID,
-}: TextFieldProps) {
+  dialog,
+}: TextFieldProps & {dialog?: boolean}) {
   const colors = useMaterialColors();
   const tint = useColor('tint');
   // Placeholder uses the app palette's tertiaryLabel (like web and iOS's
@@ -63,24 +88,19 @@ function RowTextField({
   const text = useNativeState(value ?? '');
   useSyncedState(text, value);
 
+  const Field = dialog ? OutlinedTextField : ComposeTextField;
   const fieldColors: TextFieldColors = {
-    focusedContainerColor: TRANSPARENT,
-    unfocusedContainerColor: TRANSPARENT,
-    disabledContainerColor: TRANSPARENT,
-    errorContainerColor: TRANSPARENT,
-    focusedIndicatorColor: TRANSPARENT,
-    unfocusedIndicatorColor: TRANSPARENT,
-    disabledIndicatorColor: TRANSPARENT,
+    ...(dialog ? {} : BORDERLESS),
     focusedTextColor: colors.onSurface,
     unfocusedTextColor: colors.onSurface,
     disabledTextColor: colors.onSurfaceVariant,
-    // Live accent seed by default — matches the web cursor (`theme.tint`) and
+    // Live accent seed by default, matching the web cursor (`theme.tint`) and
     // the iOS field tint, even inside sheets whose native host is unseeded.
     cursorColor: accentColor ?? tint,
   };
 
   return (
-    <ComposeTextField
+    <Field
       value={text}
       onValueChange={onChangeText}
       enabled={disabled !== true}
@@ -99,15 +119,15 @@ function RowTextField({
       textStyle={{fontSize: 16, color: colors.onSurface}}
       modifiers={[
         fillMaxWidth(),
-        offset(-CONTENT_PADDING, 0),
+        ...(dialog ? [] : [offset(-CONTENT_PADDING, 0)]),
         ...(testID ? [testIDModifier(testID)] : []),
       ]}>
       {placeholder != null ? (
-        <ComposeTextField.Placeholder>
+        <Field.Placeholder>
           <Text color={placeholderColor}>{placeholder}</Text>
-        </ComposeTextField.Placeholder>
+        </Field.Placeholder>
       ) : null}
-    </ComposeTextField>
+    </Field>
   );
 }
 

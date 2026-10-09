@@ -92,9 +92,9 @@ export interface AlertProps {
   sheet?: boolean;
   /**
    * A text field in the alert, for the one-field prompts: SwiftUI's alert
-   * with a `TextField` among its actions, Compose's `AlertDialog` with one
-   * under the message, a field in the web dialog and one in the WinUI
-   * dialog's body. On web and Windows the keyboard's action key presses the
+   * with a `TextField` among its actions, Compose's `AlertDialog` with
+   * Material's outlined field under the message, a field in the web dialog
+   * and one in the WinUI dialog's body. On web and Windows the keyboard's action key presses the
    * first action that is not `cancel`, and nothing while that action is
    * disabled. An action sheet (`sheet`) holds no field.
    */

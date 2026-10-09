@@ -261,7 +261,7 @@ anywhere.
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Alert`, or `ConfirmationDialog` with `sheet`. The field is a SwiftUI `TextField` among the alert's actions, which is where SwiftUI takes one. |
-| Android | Material 3 `AlertDialog`, with the actions in a column for `sheet`. The field is the kit's Compose field under the message. |
+| Android | Material 3 `AlertDialog`, with the actions in a column for `sheet`. The field is Material's outlined field under the message, the way Android's own dialogs draw an input, with the kit's placeholder colour and cursor tint. |
 | Web | A real `<dialog>` opened with `showModal()`: the top layer, a backdrop, a focus trap and Escape. `sheet` anchors it to the bottom. The field is a box under the message. |
 | Windows | A dialog in `ContentDialog`'s arrangement, smoke over the whole window and the card with the title, message and actions, drawn in a windowed popup, since a `ContentDialog` can only cover its own island. Up to three actions take the dialog's own buttons; more are stacked in the body. The field is a WinUI `TextBox` in the dialog's body, placed there through a portal. |
 
