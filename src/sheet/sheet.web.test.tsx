@@ -1,6 +1,6 @@
-import {afterEach} from 'vitest';
 import {useState} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react';
+import {AccentProvider} from '../accent';
 import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
 import {Sheet} from '.';
 
@@ -86,34 +86,69 @@ describe('Sheet (web)', () => {
 });
 
 describe('material (web)', () => {
-  afterEach(() => {
-    document.documentElement.style.removeProperty('--ui-sheet-blur');
-  });
+  /** The drawer: vaul's dialog, which carries the material's attributes and paints the fill inline. */
+  const drawer = () => screen.getByRole('dialog');
+  /** The raised fill thinned by the material's opacity, as `material.css` thins a bar's. */
+  const thinned = (percent: number) => `color-mix(in srgb, var(--color-background-element) ${percent}%, transparent)`;
 
-  it('blurs what is behind it, and thins its own fill so the blur shows', async () => {
+  it('draws the drawer as the bar: the raised fill thinned, and the stylesheet\'s blur, hairline and shadow along its top', () => {
     render(<Sheet isPresented onDismiss={() => {}} material="regular"><span>Body</span></Sheet>);
-    // `backdrop-filter` reaches vaul's portal through a custom property on the
-    // root, because @expo/ui's sheet forwards only the props it names.
-    expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('20px');
+    // @expo/ui's sheet forwards only the props it names, so the attributes
+    // `material.css` reads go onto vaul's drawer once the content is in the page.
+    expect(drawer()).toHaveAttribute('data-material', 'regular');
+    expect(drawer()).toHaveAttribute('data-material-fill', 'element');
+    expect(drawer()).toHaveAttribute('data-material-edge', 'top');
+    // The drawer paints its fill inline, where the stylesheet cannot reach: the thinned fill is handed in.
+    expect(drawer().style.backgroundColor).toBe(thinned(72));
   });
 
-  it('asks for a thicker blur for a thicker material', async () => {
-    render(<Sheet isPresented onDismiss={() => {}} material="thick"><span>Body</span></Sheet>);
-    expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('40px');
+  it('thins the fill less for a thicker material, and more for a thinner one', () => {
+    const {rerender} = render(<Sheet isPresented onDismiss={() => {}} material="thick"><span>Body</span></Sheet>);
+    expect(drawer()).toHaveAttribute('data-material', 'thick');
+    expect(drawer().style.backgroundColor).toBe(thinned(88));
+    rerender(<Sheet isPresented onDismiss={() => {}} material="thin"><span>Body</span></Sheet>);
+    expect(drawer()).toHaveAttribute('data-material', 'thin');
+    expect(drawer().style.backgroundColor).toBe(thinned(50));
   });
 
-  it('sets nothing at all for the opaque sheet, which is the default', async () => {
-    render(<Sheet isPresented onDismiss={() => {}}><span>Body</span></Sheet>);
-    expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('');
-    render(<Sheet isPresented onDismiss={() => {}} material="none"><span>Body</span></Sheet>);
-    expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('');
+  it('draws the opaque sheet, the default, with nothing of the material\'s', () => {
+    const {rerender} = render(<Sheet isPresented onDismiss={() => {}}><span>Body</span></Sheet>);
+    expect(drawer()).not.toHaveAttribute('data-material');
+    expect(drawer()).not.toHaveAttribute('data-material-edge');
+    expect(drawer().style.backgroundColor).toBe('white');
+    rerender(<Sheet isPresented onDismiss={() => {}} material="none"><span>Body</span></Sheet>);
+    expect(drawer()).not.toHaveAttribute('data-material');
+    expect(drawer().style.backgroundColor).toBe('white');
   });
 
-  it('gives the property back when the sheet goes', async () => {
-    const {unmount} = render(<Sheet isPresented onDismiss={() => {}} material="thin"><span>Body</span></Sheet>);
-    expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('8px');
-    unmount();
-    expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('');
+  it('takes the attributes off the drawer when the material goes while the sheet is up', () => {
+    const {rerender} = render(<Sheet isPresented onDismiss={() => {}} material="regular"><span>Body</span></Sheet>);
+    expect(drawer()).toHaveAttribute('data-material', 'regular');
+    rerender(<Sheet isPresented onDismiss={() => {}} material="none"><span>Body</span></Sheet>);
+    expect(drawer()).not.toHaveAttribute('data-material');
+    expect(drawer()).not.toHaveAttribute('data-material-fill');
+    expect(drawer()).not.toHaveAttribute('data-material-edge');
+    expect(drawer().style.backgroundColor).toBe('white');
+  });
+
+  it('takes the app\'s overlay material unless told otherwise', () => {
+    const sheet = (material?: 'none') => (
+      <AccentProvider overlayMaterial="thin">
+        <Sheet isPresented onDismiss={() => {}} material={material}><span>Body</span></Sheet>
+      </AccentProvider>
+    );
+    const {rerender} = render(sheet());
+    expect(drawer()).toHaveAttribute('data-material', 'thin');
+    expect(drawer().style.backgroundColor).toBe(thinned(50));
+    rerender(sheet('none'));
+    expect(drawer()).not.toHaveAttribute('data-material');
+    expect(drawer().style.backgroundColor).toBe('white');
+  });
+
+  it('keeps a container color the app gives, on the material', () => {
+    render(<Sheet isPresented onDismiss={() => {}} material="regular" containerColor="#123456"><span>Body</span></Sheet>);
+    expect(drawer().style.backgroundColor).toBe('rgb(18, 52, 86)');
+    expect(drawer()).toHaveAttribute('data-material', 'regular');
   });
 });
 

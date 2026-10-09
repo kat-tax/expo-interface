@@ -223,10 +223,32 @@ describe('material', () => {
     expect(modifier(host(props => Array.isArray(props.modifiers)).props, 'presentationBackground')).toBeUndefined();
   });
 
+  (isIOS ? it : it.skip)('takes the app\'s overlay material unless told otherwise', async () => {
+    const sheet = (material?: 'none') => (
+      <AccentProvider overlayMaterial="thin">
+        <Sheet isPresented onDismiss={() => {}} material={material}><Text>Body</Text></Sheet>
+      </AccentProvider>
+    );
+    const {rerender} = await render(sheet());
+    expect(modifier(host(props => Array.isArray(props.modifiers)).props, 'presentationBackground')).toEqual({
+      $type: 'presentationBackground',
+      style: {type: 'material', material: 'thin'},
+    });
+    await rerender(sheet('none'));
+    expect(modifier(host(props => Array.isArray(props.modifiers)).props, 'presentationBackground')).toBeUndefined();
+  });
+
   (isIOS ? it.skip : it)('leaves the Android sheet opaque, because Compose has no material for it', async () => {
     await render(<Sheet isPresented onDismiss={() => {}} material="thick"><Text>Body</Text></Sheet>);
     // ModalBottomSheet takes a containerColor and nothing else; the prop is
     // documented as absent here rather than quietly doing nothing.
+    expect(nodes().every(node => node.props.presentationBackground === undefined)).toBe(true);
+    // The app's overlay material changes nothing either.
+    await render(
+      <AccentProvider overlayMaterial="thick">
+        <Sheet isPresented onDismiss={() => {}}><Text>Body</Text></Sheet>
+      </AccentProvider>,
+    );
     expect(nodes().every(node => node.props.presentationBackground === undefined)).toBe(true);
   });
 });

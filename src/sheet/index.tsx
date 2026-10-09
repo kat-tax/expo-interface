@@ -3,8 +3,10 @@ import {BottomSheet} from '@expo/ui';
 import {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {NativeHostContext} from '../host';
+import {materialAttributes} from '../material';
+import {useOverlayMaterial} from '../material/context';
 import {sheetChildren, sheetOwnProps} from './compose';
-import {BLUR_RADIUS, MATERIAL_OPACITY, hasMaterial} from './shared';
+import {MATERIAL_OPACITY, hasMaterial} from './shared';
 
 /** The heading in the bar's title box, which the drawn bar marks on web. */
 const TITLE = '[data-ui-sheet-title] [role="heading"]';
@@ -22,7 +24,8 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select
  * - `.android.tsx`: presents Material's sheet in a host of the kit's own,
  *   seeded with the accent as `NativeHost` seeds its hosts.
  * - Web (this file): accent flows through CSS custom properties; vaul sheet
- *   width is constrained via `global.css`.
+ *   width is constrained via `global.css`. The material is the bar's, drawn
+ *   on the drawer by `material.css`.
  * The bar, the accessory, the body, the footer and the actions are drawn by
  * the kit inside the drawer.
  *
@@ -37,7 +40,7 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select
 export function Sheet(props: SheetProps) {
   const {own, rest} = sheetOwnProps(props);
   const {containerColor, ...sheet} = rest;
-  const material = own.material;
+  const material = useOverlayMaterial(own.material);
   const blurred = hasMaterial(material);
   // The content's element, in state rather than a ref: it arrives after the
   // sheet itself (the drawer's portal mounts a commit later), and the
@@ -49,20 +52,22 @@ export function Sheet(props: SheetProps) {
   const [content, setContent] = useState<View | null>(null);
   // What had the focus as the sheet opened, which gets it back.
   const opener = useRef<Element | null>(null);
-  // The blur reaches the sheet through a custom property on the root, because
-  // `@expo/ui`'s web sheet renders vaul in a portal outside this tree and
-  // forwards only the props it names, so there is no element of ours to put
-  // `backdrop-filter` on. `global.css` reads the property; with no sheet open
-  // it is absent and the rule is a no-op. One sheet at a time, which is what a
-  // bottom sheet is.
+  // The material is the bar's, drawn by `material.css` from the attributes
+  // the bar carries. `@expo/ui`'s web sheet renders vaul in a portal outside
+  // this tree and forwards only the props it names, so there is no element
+  // of ours to put them on: they go onto the drawer itself once the content
+  // is in the page, and come off with the material. The fill is the one
+  // thing the stylesheet cannot draw there, since the drawer paints its own
+  // inline, so it is handed in as `containerColor`, thinned the same way.
   useEffect(() => {
-    if (!blurred) return;
-    const root = document.documentElement;
-    root.style.setProperty('--ui-sheet-blur', `${BLUR_RADIUS[material]}px`);
+    if (!blurred || content === null) return;
+    const drawer = (content as unknown as HTMLElement).closest('[data-vaul-drawer]')!;
+    const attributes = Object.entries(materialAttributes(material, 'element', 'top')) as [string, string][];
+    for (const [name, value] of attributes) drawer.setAttribute(name, value);
     return () => {
-      root.style.removeProperty('--ui-sheet-blur');
+      for (const [name] of attributes) drawer.removeAttribute(name);
     };
-  }, [blurred, material]);
+  }, [blurred, material, content]);
   useEffect(() => {
     if (!sheet.isPresented || content === null) return;
     const root = content as unknown as HTMLElement;
@@ -84,8 +89,9 @@ export function Sheet(props: SheetProps) {
   }, [content]);
   return (
     <NativeHostContext.Provider value={true}>
-      {/* A material is a blur and a fill over it, so the sheet's own colour
-          has to let some of the blur through. */}
+      {/* A material is a blur and a fill over it, so the drawer's own colour
+          has to let some of the blur through: the bar's raised fill, thinned
+          by the material's opacity. */}
       <BottomSheet
         {...sheet}
         containerColor={containerColor ?? (blurred ? translucent(MATERIAL_OPACITY[material]) : undefined)}>
@@ -95,9 +101,9 @@ export function Sheet(props: SheetProps) {
   );
 }
 
-/** The scheme's background, thinned so the blur behind it shows through. */
+/** The raised fill, thinned so the blur behind it shows through, as `material.css` thins it. */
 function translucent(opacity: number): string {
-  return `color-mix(in srgb, var(--color-background) ${Math.round(opacity * 100)}%, transparent)`;
+  return `color-mix(in srgb, var(--color-background-element) ${Math.round(opacity * 100)}%, transparent)`;
 }
 
 export type {SheetAction, SheetMaterial, SheetMaxHeight, SheetProps} from './types';
