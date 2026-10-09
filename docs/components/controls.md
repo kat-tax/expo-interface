@@ -263,6 +263,12 @@ The capsule starts one line tall and grows with the text to five lines,
 then scrolls; on web it grows where the browser sizes a field to its
 content (`field-sizing`), and where the browser does not it stays one line
 tall and scrolls inside.
+With one line in it the capsule is 44 points tall on every platform. On
+Android the buttons' hosts are boxes of the room one line leaves, 36dp,
+since Material's icon button carries a 48dp touch target that a host sized
+to it would bring into the capsule; the button is drawn as a 36dp circle,
+which is its touch target. The field centres its line and lays the
+placeholder out without the font's padding, so it sits where the text does.
 On web the capsule draws the focus ring while the field has the focus.
 A screen reader reads a new `notice` out, so an error after a failed send
 is heard. On Android and web the notice is a polite live region, and on
