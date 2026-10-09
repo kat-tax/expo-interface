@@ -5,6 +5,7 @@ import {colors} from '../theme';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {hostFit, hosts} from '../__tests__/hosts';
 import {NativeHostContext} from '../host';
+import {TONAL_SIZE} from './shared';
 import {IconToggle} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -129,6 +130,23 @@ describe(`IconToggle (${Platform.OS})`, () => {
       expect(nodes().some(n => n.props.contentDescription === 'Favourite')).toBe(false);
       expect(byComposeTestID('on').props.checked).toBe(true);
     }
+  });
+
+  (isIOS ? it : it.skip)('draws the tonal toggle on a circle in the pill fill, as the button\'s label', async () => {
+    await render(
+      <>
+        <IconToggle label="Favourite" icon={icons.star} variant="tonal" value={false} onValueChange={vi.fn()} testID="tonal"/>
+        <IconToggle label="Pin" icon={icons.star} value={false} onValueChange={vi.fn()} testID="plain"/>
+      </>,
+    );
+    // The circle is the label of the plain button, so the whole of it presses.
+    const circle = host(p => modifier(p, 'background') !== undefined);
+    expect(modifier(circle.props, 'frame')).toMatchObject({width: TONAL_SIZE, height: TONAL_SIZE});
+    expect(modifier(circle.props, 'background')).toMatchObject({style: {type: 'color', color: colors.light.pillBackground}, shape: 'circle'});
+    expect(circle.children?.some(child => typeof child !== 'string' && typeof child.props.systemName === 'string')).toBe(true);
+    expect(modifier(screen.getByTestId('tonal').props, 'background')).toBeUndefined();
+    // The plain toggle is the bare image.
+    expect(nodes().filter(n => modifier(n.props, 'background') !== undefined)).toHaveLength(1);
   });
 
   (isIOS ? it.skip : it)('draws nothing where an icon has no Android drawable', async () => {

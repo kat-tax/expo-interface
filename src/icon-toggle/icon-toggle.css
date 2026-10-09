@@ -31,6 +31,20 @@
   cursor: default;
 }
 
+/* Tonal: the icon on a round container in the pill fill, 40px across, which the hover and the focus darken a touch. */
+.ui-icon-toggle--tonal {
+  box-sizing: border-box;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: var(--color-pill-background);
+}
+
+.ui-icon-toggle--tonal:hover:not(:disabled),
+.ui-icon-toggle--tonal:focus-visible {
+  background: color-mix(in srgb, var(--color-label) 8%, var(--color-pill-background));
+}
+
 /* Off and hidden: the box stays, the button is gone from the pointer, the keyboard and the accessibility tree. */
 .ui-icon-toggle--hidden {
   visibility: hidden;

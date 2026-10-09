@@ -77,10 +77,15 @@ describe(`Card (${Platform.OS})`, () => {
       // Nothing hovers on a phone, so the off star is never hidden.
       expect(modifier(star.props, 'hidden')).toBeUndefined();
       expect(host(p => p.systemName === 'star')).toBeTruthy();
+      // The bare star: no container around the symbol.
+      expect(nodes().some(n => modifier(n.props, 'background') !== undefined)).toBe(false);
       await fireEvent(star, 'buttonPress');
     } else {
       const star = byComposeTestID('card-favorite');
       expect(star.props.checked).toBe(false);
+      // Material's tonal container behind the star, since it is always on the picture here.
+      expect(star.type).toContain('FilledIconToggleButton');
+      expect(star.props.colors).toHaveProperty('containerColor');
       expect(host(p => p.contentDescription === 'Favorite')).toBeTruthy();
       // The Compose view reports through its own event prop.
       await act(async () => {

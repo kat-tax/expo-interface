@@ -181,22 +181,25 @@ with the footer), `badge` (the top trailing corner), `onPress`,
 The same file draws it on every platform. The menu and the star are the
 kit's own controls, so they are the platform's: a SwiftUI `Menu` and a
 `Button` with the selected trait, Compose's `DropdownMenu` and
-`IconToggleButton`, a popover and an `aria-pressed` button on web, a WinUI
-`MenuFlyout` and `ToggleButton`. The menu is centred on the footer once the
-footer has been laid out. `menu`, `favorite`, `overlay` and `badge` are
-siblings of the card's press target, not children, so a button inside them
-takes its own press. Put actions there, not in the body.
+`FilledIconToggleButton`, a popover and an `aria-pressed` button on web, a
+WinUI `MenuFlyout` and `ToggleButton`. The menu is centred on the footer
+once the footer has been laid out. `menu`, `favorite`, `overlay` and
+`badge` are siblings of the card's press target, not children, so a button
+inside them takes its own press. Put actions there, not in the body.
 
 While the star is not set it is drawn only while a pointer is over the card
 or the keyboard is in it, where a pointer can hover (web under
 `(hover: hover)`, Windows), and always on iOS, Android and a touch screen on
 web, where nothing hovers. On Windows the keyboard cannot reveal it, since
 the focus moves between XAML islands without the React Native tree seeing it
-go; put the same action in `menu` for a keyboard. On Android the star draws
-the `star` vector the app registers (see [Icons](../icons.md)), and the
-ellipsis `more_horiz`; `expo-interface-symbols` writes both whether or not
-the app's own sources name them. On web the card is a `<button>` whose text
-starts at the leading edge, as a box's does.
+go; put the same action in `menu` for a keyboard. On Android the star is the
+tonal `IconToggle`, Material's filled tonal icon button: it is always on
+the picture there, where a bare icon has nothing behind it, so it sits in a
+small round container. The other platforms draw the bare star. On Android
+the star draws the `star` vector the app registers (see
+[Icons](../icons.md)), and the ellipsis `more_horiz`; `expo-interface-symbols`
+writes both whether or not the app's own sources name them. On web the card
+is a `<button>` whose text starts at the leading edge, as a box's does.
 
 ## Toolbar
 

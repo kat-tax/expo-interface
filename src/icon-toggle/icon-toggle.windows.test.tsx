@@ -1,10 +1,16 @@
+import {StyleSheet} from 'react-native';
 import {render} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
 import {icon} from '../icons';
+import {colors} from '../theme';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
+import {TONAL_SIZE} from './shared';
 import {IconToggle} from '.';
 
 const TOGGLE = 'ExpoInterfaceToggleButton';
+
+/** The style of the view around the island. */
+const around = () => StyleSheet.flatten(island(TOGGLE).parent!.props.style);
 
 describe('IconToggle (windows)', () => {
   it('renders a ToggleButton island with the two glyphs', async () => {
@@ -34,5 +40,29 @@ describe('IconToggle (windows)', () => {
   it('renders nothing for an icon with no Fluent glyph', async () => {
     await render(<IconToggle label="Odd" icon={icon('questionmark')} value={false} onValueChange={vi.fn()}/>);
     expect(islands(TOGGLE)).toHaveLength(0);
+  });
+
+  it('draws the tonal toggle in a round view in the pill fill, which keeps its box without the fill while hidden', async () => {
+    await render(<IconToggle label="Favourite" icon={icons.star} variant="tonal" value={false} onValueChange={vi.fn()}/>);
+    expect(around()).toMatchObject({
+      width: TONAL_SIZE,
+      height: TONAL_SIZE,
+      borderRadius: TONAL_SIZE / 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.light.pillBackground,
+    });
+    // The island is centred in the view rather than hugging the start.
+    expect(island(TOGGLE).props.style).toBeUndefined();
+    await render(<IconToggle label="Favourite" icon={icons.star} variant="tonal" value={false} offVisibility="hidden" onValueChange={vi.fn()}/>);
+    expect(island(TOGGLE).props.hidden).toBe(true);
+    expect(around()).toMatchObject({width: TONAL_SIZE, backgroundColor: 'transparent'});
+  });
+
+  it('keeps the plain toggle bare, hugging the start of its row', async () => {
+    await render(<IconToggle label="Favourite" icon={icons.star} value={false} onValueChange={vi.fn()}/>);
+    expect(StyleSheet.flatten(island(TOGGLE).props.style)).toEqual({alignSelf: 'flex-start'});
+    // No view of the kit's around it: the island sits in the test's root.
+    expect(around()).toBeUndefined();
   });
 });

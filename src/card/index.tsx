@@ -1,12 +1,19 @@
 import type {CardProps} from './types';
 import {useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 import {IconToggle} from '../icon-toggle';
 import {Menu} from '../menu';
 import {Surface} from '../surface';
 import {Caption, Headline} from '../typography';
 import {useReveal} from './reveal';
 import {MENU_ROOM, MORE, STAR, STAR_FILLED, cardName} from './shared';
+
+/**
+ * Android draws the star in Material's tonal container: a phone has no
+ * pointer to reveal it with, so it is always on the picture, where a bare
+ * icon has nothing behind it. The other platforms keep the bare star.
+ */
+const material = Platform.OS === 'android';
 
 /**
  * A pressable surface with a picture, a title, a menu and a star, and the
@@ -55,6 +62,7 @@ export function Card({
       activeIcon={STAR_FILLED}
       value={favorite.value}
       onValueChange={favorite.onValueChange}
+      variant={material ? 'tonal' : 'plain'}
       offVisibility={reveal.revealed ? 'visible' : 'hidden'}
       testID={testID ? `${testID}-favorite` : undefined}
     />

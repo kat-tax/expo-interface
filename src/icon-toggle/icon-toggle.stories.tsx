@@ -37,6 +37,11 @@ export const Disabled: Story = {
   args: {value: true, disabled: true},
 };
 
+/** The icon on a round container: Material's filled tonal icon button on Android, a circle in the pill fill elsewhere. */
+export const Tonal: Story = {
+  args: {variant: 'tonal'},
+};
+
 export const Interactive: Story = {
   render: function Interactive(args) {
     const [value, setValue] = useState(false);

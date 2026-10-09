@@ -115,24 +115,33 @@ platform has a control for it.
 
 A round icon button with two states, the outline when off and the filled
 glyph when on. Props: `label`, `icon`, `activeIcon` (defaults to `icon`),
-`value`, `onValueChange`, `color`, `offColor`, `size` (24), `disabled`,
-`offVisibility` (`visible`, or `hidden` for a toggle that is not drawn,
-pressed or announced while it is off: what a `Card` reveals under the
-pointer), `testID`.
+`value`, `onValueChange`, `variant` (`plain`, the bare icon, or `tonal`,
+the icon on a round container of 40 points, for a toggle over a picture),
+`color`, `offColor`, `size` (24), `disabled`, `offVisibility` (`visible`,
+or `hidden` for a toggle that is not drawn, pressed or announced while it
+is off: what a `Card` reveals under the pointer), `testID`.
 
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Button` with the selected trait while on |
-| Android | Material 3 `IconToggleButton` |
+| Android | Material 3 `IconToggleButton`; `FilledIconToggleButton` when tonal |
 | Web | `<button aria-pressed>` |
 | Windows | WinUI `ToggleButton` holding a `FontIcon`, with the two colors in place of the control's checked fill |
+
+The tonal toggle is Material's filled tonal icon button on Android: the
+container in the host palette's `surfaceContainerHighest` under the icon in
+`onSurfaceVariant`, and `secondaryContainer` under `onSecondaryContainer`
+while on, unless `color` and `offColor` say otherwise. On iOS, web and
+Windows it is a circle in the `pillBackground` fill (a SwiftUI `background`
+on the button's label, a class on the button, a round view around the
+island) under the icon in its two colors.
 
 On Windows a token with no Segoe glyph renders nothing. On iOS and Android
 a toggle outside a host mounts one of its own, sized to itself. A hidden
 toggle keeps its box on iOS (SwiftUI's `hidden`), web (`visibility: hidden`)
-and Windows (`Visibility.Collapsed`, in a slot of its own), and gives it up
-on Android, where Compose has nothing that hides a control from TalkBack
-short of leaving it out.
+and Windows (`Visibility.Collapsed`, in a slot of its own, with no fill
+around it), and gives it up on Android, where Compose has nothing that
+hides a control from TalkBack short of leaving it out.
 
 ## Switch
 

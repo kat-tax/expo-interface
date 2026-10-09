@@ -1,6 +1,12 @@
 import type {IconToken} from '../icons';
 
 /**
+ * How the toggle is drawn: `plain` is the bare icon, `tonal` the icon on a
+ * small round container.
+ */
+export type IconToggleVariant = 'plain' | 'tonal';
+
+/**
  * A round icon button with two states: the star on a document, the pin on a
  * note, a tool that stays down while it is on.
  *
@@ -20,6 +26,18 @@ export interface IconToggleProps {
   value: boolean;
   /** Called with the new state when the toggle is pressed. */
   onValueChange: (value: boolean) => void;
+  /**
+   * `plain` is the bare icon, with the hit target around it. `tonal` puts
+   * the icon on a round container of 40 points, for a toggle over a picture,
+   * where a bare icon has nothing behind it: on Android it is Material's
+   * filled tonal icon button, the container in the palette's
+   * `surfaceContainerHighest` and the icon in `onSurfaceVariant`, and
+   * `secondaryContainer` under `onSecondaryContainer` while on; on iOS, web
+   * and Windows a circle in the `pillBackground` fill under the icon in its
+   * two colors. `color` and `offColor` still win.
+   * @default 'plain'
+   */
+  variant?: IconToggleVariant;
   /** Color while on. Defaults to the theme tint. */
   color?: string;
   /** Color while off. Defaults to the theme `secondaryLabel`. */

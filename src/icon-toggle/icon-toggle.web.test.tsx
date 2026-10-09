@@ -60,4 +60,15 @@ describe('IconToggle (web)', () => {
     render(<IconToggle label="Pin" icon={icons.star} value onValueChange={vi.fn()}/>);
     expect(screen.getByRole('button', {name: 'Pin'})).toHaveAttribute('aria-pressed', 'true');
   });
+
+  it('draws the tonal toggle on its round container, which hides with it', () => {
+    const {rerender} = render(<IconToggle label="Favourite" icon={icons.star} variant="tonal" value={false} onValueChange={vi.fn()}/>);
+    const toggle = () => screen.getByRole('button', {name: 'Favourite', hidden: true});
+    expect(toggle()).toHaveClass('ui-icon-toggle', 'ui-icon-toggle--tonal');
+    expect(toggle()).not.toHaveClass('ui-icon-toggle--hidden');
+    rerender(<IconToggle label="Favourite" icon={icons.star} variant="tonal" value={false} offVisibility="hidden" onValueChange={vi.fn()}/>);
+    expect(toggle()).toHaveClass('ui-icon-toggle--tonal', 'ui-icon-toggle--hidden');
+    rerender(<IconToggle label="Favourite" icon={icons.star} value={false} onValueChange={vi.fn()}/>);
+    expect(toggle()).not.toHaveClass('ui-icon-toggle--tonal');
+  });
 });

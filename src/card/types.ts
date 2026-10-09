@@ -57,7 +57,9 @@ export interface CardProps extends PropsWithChildren {
    * filled while it is set. While it is not set it is drawn only while a
    * pointer is over the card or the keyboard is in it, on the platforms that
    * have a pointer (web with `(hover: hover)`, Windows), and always where
-   * nothing hovers.
+   * nothing hovers. On Android it is the tonal toggle, Material's filled
+   * tonal icon button, since it is always on the picture there, where a
+   * bare icon has nothing behind it; the other platforms draw the bare star.
    */
   favorite?: CardFavorite;
   /**

@@ -14,6 +14,7 @@ export function IconToggle({
   activeIcon,
   value,
   onValueChange,
+  variant = 'plain',
   color,
   offColor,
   size = 24,
@@ -25,13 +26,15 @@ export function IconToggle({
   const secondary = useColor('secondaryLabel');
   const on = color ?? tint;
   const off = offColor ?? secondary;
+  const classes = ['ui-icon-toggle'];
+  if (variant === 'tonal') classes.push('ui-icon-toggle--tonal');
   // `visibility: hidden` keeps the box and takes the button out of the
   // accessibility tree and the tab order at once.
-  const hidden = offVisibility === 'hidden' && !value;
+  if (offVisibility === 'hidden' && !value) classes.push('ui-icon-toggle--hidden');
   return (
     <button
       type="button"
-      className={hidden ? 'ui-icon-toggle ui-icon-toggle--hidden' : 'ui-icon-toggle'}
+      className={classes.join(' ')}
       style={{'--ui-icon-toggle-size': `${size}px`} as CSSProperties}
       aria-label={label}
       aria-pressed={value}
