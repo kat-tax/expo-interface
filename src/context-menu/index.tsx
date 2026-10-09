@@ -4,7 +4,12 @@ import type {ContextMenuProps} from '../menu/types';
 import {useEffect, useId, useRef, useState} from 'react';
 import {MenuList, menuIdent} from '../menu/list';
 
-const LONG_PRESS_MS = 500;
+/**
+ * How long a touch is held before it opens a menu on web, where Safari on
+ * iOS raises no `contextmenu` for a touch: the `ContextMenu` and the
+ * `TabView` strip's tabs and cards time their held touch by it.
+ */
+export const LONG_PRESS_MS = 500;
 
 /**
  * On web the entries live in the same native `popover="auto"` element as

@@ -147,7 +147,8 @@ export interface TabViewTab {
   /**
    * The tab's own actions (rename, duplicate, close others), in the
    * platform's menu at the tab: a long press on iOS and Android, a right
-   * click or the Menu key on web and Windows, with the kit's `PopupMenu`.
+   * click or the Menu key on web and Windows, and a held touch on web too,
+   * with the kit's `PopupMenu`.
    */
   menu?: MenuItem[];
   /**

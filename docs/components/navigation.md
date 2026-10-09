@@ -258,10 +258,11 @@ Differences:
 - The cards are a title, an icon and a cross, not live previews.
 - A tab's `menu` (rename, duplicate, close others) opens with the gesture
   the platform uses for a context menu: a long press on iOS and Android, a
-  right click or the Menu key on web and Windows. It is the kit's
-  `PopupMenu`, under the tab on iOS and Android and at the pointer on web
-  and Windows, and one popup serves the whole strip. On web the tab says it
-  has one through `aria-haspopup`.
+  right click or the Menu key on web and Windows, and on web a touch held
+  for half a second as well, since Safari on iOS raises no context menu
+  event for a touch. It is the kit's `PopupMenu`, under the tab on iOS and
+  Android and at the pointer on web and Windows, and one popup serves the
+  whole strip. On web the tab says it has one through `aria-haspopup`.
 - `depth` indents a tab by 12 points a level, on every strip and on the
   cards, for documents that belong to one another.
 - `fill="none"` paints nothing behind the strip or the switcher's bar, for

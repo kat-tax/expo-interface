@@ -45,7 +45,7 @@ The differences that change what a screen can do, in one place:
 | `FieldGroup` `titleUppercase` | Ignored | Yes | Yes | Yes |
 | `TabView` reordering | No | No | No | Off |
 | `TabView` close on the keyboard | Button | Button | Delete | The control's cross |
-| `TabView` tab menu | Long press | Long press | Right click, Menu key | Right click, Menu key |
+| `TabView` tab menu | Long press | Long press | Right click, Menu key, a held touch | Right click, Menu key |
 | `TabView` accessory in the strip | Yes | Yes | Yes | Cards only |
 | `TabView` `fill="none"` | No fill | No fill | No fill | The WinUI strip in the screen's background; no fill on the switcher's bar |
 | `TabView` add button's name without `addLabel` | "New tab" | "New tab" | "New tab" | WinUI's own, in the system's language, on the strip; "New tab" on the switcher |

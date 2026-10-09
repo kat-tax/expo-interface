@@ -159,10 +159,10 @@ function Presence() {
 
 /**
  * Tabs that belong to one another, each with its own menu: a long press on
- * iOS and Android, a right click or the Menu key on web and Windows opens
- * it, under the tab or at the pointer. The nested tabs are indented by
- * their depth, and the second one carries a presence dot after its title,
- * which its `label` says out loud.
+ * iOS and Android, a right click or the Menu key on web and Windows, or a
+ * touch held on web opens it, under the tab or at the pointer. The nested
+ * tabs are indented by their depth, and the second one carries a presence
+ * dot after its title, which its `label` says out loud.
  */
 export const Nested: Story = {
   args: {
