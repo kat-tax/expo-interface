@@ -1,7 +1,10 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
 import type {ReactElement} from 'react';
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
 import {render, screen} from '@testing-library/react';
+import {AccentProvider} from '../accent';
 import {Tooltip} from '.';
 
 /** Gives jsdom the Interest Invoker API for the length of `run`. */
@@ -54,6 +57,30 @@ describe('Tooltip (web)', () => {
       expect(hint).toHaveClass('ui-tooltip__hint');
       expect(hint).toHaveTextContent('Hint text');
     });
+  });
+
+  it('draws the hint on a material of its own, or the app\'s, in the label color, and as itself otherwise', async () => {
+    await withInterest(() => {
+      const hint = () => screen.getByRole('tooltip', {hidden: true});
+      const {rerender} = render(<Tooltip text="Hint text" material="regular">Public</Tooltip>);
+      expect(hint()).toHaveAttribute('data-material', 'regular');
+      expect(hint()).toHaveAttribute('data-material-fill', 'element');
+      expect(hint()).toHaveAttribute('data-material-edge', 'float');
+      rerender(
+        <AccentProvider overlayMaterial="thick">
+          <Tooltip text="Hint text">Public</Tooltip>
+        </AccentProvider>,
+      );
+      expect(hint()).toHaveAttribute('data-material', 'thick');
+      rerender(<Tooltip text="Hint text">Public</Tooltip>);
+      expect(hint()).not.toHaveAttribute('data-material');
+    });
+    // The stylesheet draws the fill and the shadow from the attributes; the hint's rule yields and keeps the text legible on the fill.
+    const css = readFileSync(path.join(__dirname, 'tooltip.css'), 'utf8');
+    const rule = css.slice(css.indexOf('.ui-tooltip__hint:where([data-material])'));
+    expect(rule).toMatch(/^[^}]*background: transparent;/);
+    expect(rule).toMatch(/^[^}]*color: var\(--color-label\);/);
+    expect(rule).toMatch(/^[^}]*box-shadow: none;/);
   });
 
   it('takes the hint once a static page has hydrated', async () => {

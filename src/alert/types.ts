@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import type {MaterialThickness} from '../material/types';
 import type {TextFieldCapitalize, TextFieldKeyboard} from '../text-field/types';
 
 /**
@@ -108,6 +109,14 @@ export interface AlertProps {
    * alert mounts one of its own for the dialog alone.
    */
   children?: ReactNode;
+  /**
+   * Web only: the material the dialog draws on, by the rules the bars use
+   * (the raised fill thinned over a blur of the page under the backdrop,
+   * with a hairline and the floating shadow all round). The app's
+   * `overlayMaterial` (`AccentProvider`) unless given. The native alerts
+   * are the platforms' own.
+   */
+  material?: MaterialThickness;
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
 }

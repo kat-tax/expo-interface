@@ -3,6 +3,8 @@ import type {SyntheticEvent} from 'react';
 import type {AlertProps} from './types';
 import {useEffect, useRef} from 'react';
 import {Button} from '../button';
+import {materialAttributes} from '../material';
+import {useOverlayMaterial} from '../material/context';
 import {useEscape} from '../popover/shared';
 import {TextField} from '../text-field';
 import {Body, Headline} from '../typography';
@@ -18,9 +20,12 @@ import {DEFAULT_ACTIONS, defaultAction, splitActions} from './shared';
  * disabled action is a disabled `<button>`, which the dialog's first focus
  * passes over. A field goes under the message, and Enter in it presses the
  * first action that is not the cancel, unless that action is disabled.
+ * On a material the dialog carries the attributes `material.css` draws the
+ * bar's glass from, and its own fill and shadow give way (`alert.css`).
  */
-export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACTIONS, sheet, input, children, testID}: AlertProps) {
+export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACTIONS, sheet, input, material, children, testID}: AlertProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  const glass = useOverlayMaterial(material);
   // Set while the app closes the dialog by clearing `visible`: that close is not reported.
   const silent = useRef(false);
   const {cancel, others} = splitActions(actions);
@@ -69,7 +74,8 @@ export function Alert({title, message, visible, onDismiss, actions = DEFAULT_ACT
         aria-label={title}
         onClose={onClose}
         onClick={onBackdrop}
-        data-testid={testID}>
+        data-testid={testID}
+        {...materialAttributes(glass, 'element', 'float')}>
         <div className="ui-alert__body">
           <Headline testID={testID ? `${testID}-title` : undefined}>{title}</Headline>
           {message ? <Body color="secondaryLabel">{message}</Body> : null}

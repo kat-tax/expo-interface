@@ -1,7 +1,10 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
 import type {AlertAction} from './types';
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
 import {fireEvent, render, screen, within} from '@testing-library/react';
+import {AccentProvider} from '../accent';
 import {Alert} from '.';
 
 type DialogPrototype = Omit<HTMLDialogElement, 'showModal' | 'close'> & {showModal?: () => void; close?: () => void};
@@ -49,6 +52,26 @@ describe('Alert (web)', () => {
     expect(element).toHaveAttribute('aria-label', 'Delete account?');
     expect(screen.getByTestId('alert-title')).toHaveTextContent('Delete account?');
     expect(element).toHaveTextContent('This cannot be undone.');
+  });
+
+  it('draws the dialog on a material of its own, or the app\'s, and as itself otherwise', () => {
+    const {rerender} = render(<Alert title="Hi" visible material="regular" testID="alert"/>);
+    expect(dialog()).toHaveAttribute('data-material', 'regular');
+    expect(dialog()).toHaveAttribute('data-material-fill', 'element');
+    expect(dialog()).toHaveAttribute('data-material-edge', 'float');
+    rerender(
+      <AccentProvider overlayMaterial="thin">
+        <Alert title="Hi" visible testID="alert"/>
+      </AccentProvider>,
+    );
+    expect(dialog()).toHaveAttribute('data-material', 'thin');
+    rerender(<Alert title="Hi" visible testID="alert"/>);
+    expect(dialog()).not.toHaveAttribute('data-material');
+    // The stylesheet draws the fill and the shadow from the attributes; the dialog's rule yields to it.
+    const css = readFileSync(path.join(__dirname, 'alert.css'), 'utf8');
+    const rule = css.slice(css.indexOf('.ui-alert:where([data-material])'));
+    expect(rule).toMatch(/^[^}]*background: transparent;/);
+    expect(rule).toMatch(/^[^}]*box-shadow: none;/);
   });
 
   it('opens modally while visible and closes when hidden', () => {

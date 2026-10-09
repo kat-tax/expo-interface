@@ -38,3 +38,16 @@
   position-area: top;
   position-try-fallbacks: flip-block;
 }
+
+/*
+ * On one of the kit's materials (`data-material`, drawn by `material.css`)
+ * the hint is the raised fill thinned, not the label color inverted, so the
+ * text goes back to the label color, and the stylesheet paints the fill and
+ * the shadow. `:where` keeps this under the material's rules, whichever
+ * stylesheet the bundle puts last.
+ */
+.ui-tooltip__hint:where([data-material]) {
+  background: transparent;
+  color: var(--color-label);
+  box-shadow: none;
+}

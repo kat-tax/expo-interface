@@ -2,6 +2,8 @@ import './tooltip.css';
 import type {CSSProperties} from 'react';
 import type {TooltipProps} from './types';
 import {useId, useSyncExternalStore} from 'react';
+import {materialAttributes} from '../material';
+import {useOverlayMaterial} from '../material/context';
 
 /**
  * Whether the browser implements the Interest Invoker API (`interestfor`).
@@ -31,10 +33,16 @@ function useInterestSupported(): boolean {
   return useSyncExternalStore(noSubscription, interestSupported, serverInterestSupported);
 }
 
-export function Tooltip({text, children, testID}: TooltipProps) {
+/**
+ * The trigger and, where the browser has the Interest Invoker API, its hint.
+ * On a material the hint carries the attributes `material.css` draws the
+ * bar's glass from, with the text in the label color (`tooltip.css`).
+ */
+export function Tooltip({text, children, material, testID}: TooltipProps) {
   const ident = `ui-tooltip-${useId().replace(/[^A-Za-z0-9_-]/g, '_')}`;
   const anchor = `--${ident}`;
   const interest = useInterestSupported();
+  const glass = useOverlayMaterial(material);
   return (
     <>
       <button
@@ -52,7 +60,8 @@ export function Tooltip({text, children, testID}: TooltipProps) {
           role="tooltip"
           popover="hint"
           className="ui-tooltip__hint"
-          style={{positionAnchor: anchor} as CSSProperties}>
+          style={{positionAnchor: anchor} as CSSProperties}
+          {...materialAttributes(glass, 'element', 'float')}>
           {text}
         </div>
       ) : null}
