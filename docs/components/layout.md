@@ -491,7 +491,8 @@ Differences:
   list ends clear of the button: it pads past its last row by
   `useScrollInsets().bottom`, with `contentInset` added. On iOS, where the
   `List` takes no content padding, a row of that height without a separator
-  ends it.
+  ends it. A SwiftUI `List` row is at least 44 points tall, so an inset
+  under 44 points shows as a 44 point row there.
 - `contentInset`'s `left` and `right` pad the rows' sides inside the
   scroller: the content padding of the `LazyColumn` on Android, of the
   `FlatList` on Windows and of the scroller on the web. On iOS they inset
