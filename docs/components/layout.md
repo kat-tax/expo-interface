@@ -549,6 +549,9 @@ Differences:
 - Drawn in React Native on every platform, like `Card`, because a card
   holds what is not native: a preview, a thumbnail. A list of rows is
   `List`.
+- On iOS, Android and Windows a width that changes the column count (a
+  rotation, a split view resized) cuts the rows again in the same list, so
+  the scroll position survives the resize.
 - Under a `Screen underBar` the grid pads its first row by the bar through
   `useScrollInsets()`, and on iOS its scroll indicators with it. Under an
   iOS header the screen runs under, the grid takes UIKit's own inset
