@@ -145,4 +145,18 @@ describe('headings', () => {
     // A number set large is not a heading, however big it is.
     expect(screen.getByTestId('stat')).not.toHaveAttribute('role', 'heading');
   });
+
+  it('takes the keyboard focus from a script when asked, as a sheet gives it to its title', () => {
+    render(
+      <>
+        <Headline tabIndex={-1} testID="title">History</Headline>
+        <Headline testID="plain">Notes</Headline>
+      </>,
+    );
+    const title = screen.getByTestId('title');
+    expect(title).toHaveAttribute('tabindex', '-1');
+    title.focus();
+    expect(document.activeElement).toBe(title);
+    expect(screen.getByTestId('plain')).not.toHaveAttribute('tabindex');
+  });
 });

@@ -14,6 +14,7 @@ export function Typography({
   level,
   style,
   testID,
+  tabIndex,
 }: TypographyProps) {
   const flat = StyleSheet.flatten(style);
   const vars = variants[variant];
@@ -27,6 +28,7 @@ export function Typography({
       data-testid={testID}
       role={heading ? 'heading' : undefined}
       aria-level={heading}
+      tabIndex={tabIndex}
       style={{
         textAlign: align,
         letterSpacing: vars.letterSpacing,

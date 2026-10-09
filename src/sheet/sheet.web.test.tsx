@@ -1,5 +1,6 @@
 import {afterEach} from 'vitest';
-import {fireEvent, render, screen} from '@testing-library/react';
+import {useState} from 'react';
+import {act, fireEvent, render, screen} from '@testing-library/react';
 import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
 import {Sheet} from '.';
 
@@ -113,5 +114,99 @@ describe('material (web)', () => {
     expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('8px');
     unmount();
     expect(document.documentElement.style.getPropertyValue('--ui-sheet-blur')).toBe('');
+  });
+});
+
+describe('focus (web)', () => {
+  /** A page with a button that opens the sheet, which `onDismiss` closes and, when asked, takes the button away with it. */
+  function Page({removeOpener = false}: {removeOpener?: boolean}) {
+    const [open, setOpen] = useState(false);
+    const [gone, setGone] = useState(false);
+    return (
+      <>
+        {gone ? null : <button onClick={() => setOpen(true)}>Open</button>}
+        <Sheet
+          isPresented={open}
+          onDismiss={() => {
+            setOpen(false);
+            if (removeOpener) setGone(true);
+          }}
+          title="History">
+          <span>Content</span>
+        </Sheet>
+      </>
+    );
+  }
+
+  /** Radix returns the focus a tick after the dialog has gone; waits that tick out. */
+  const tick = () => act(async () => {
+    await new Promise(resolve => setTimeout(resolve, 0));
+  });
+
+  it('moves the keyboard focus to the title as the sheet opens, since the drawer leaves it on a control the dialog hides', () => {
+    render(
+      <Sheet isPresented onDismiss={() => {}} title="History" onClose={() => {}}>
+        <button>Restore</button>
+      </Sheet>,
+    );
+    expect(document.activeElement).toBe(screen.getByRole('heading', {name: 'History'}));
+  });
+
+  it('moves it to the first control that can take it when the sheet has no title', () => {
+    render(
+      <Sheet isPresented onDismiss={() => {}}>
+        <button disabled>Skip</button>
+        <button>Restore</button>
+      </Sheet>,
+    );
+    expect(document.activeElement).toBe(screen.getByRole('button', {name: 'Restore'}));
+  });
+
+  it('leaves the focus alone when the sheet has neither', () => {
+    render(
+      <Sheet isPresented onDismiss={() => {}}>
+        <span>Content</span>
+      </Sheet>,
+    );
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it('does not move the focus again while the sheet stays open', () => {
+    const {rerender} = render(
+      <Sheet isPresented onDismiss={() => {}} title="History" onClose={() => {}}>
+        <span>Content</span>
+      </Sheet>,
+    );
+    const close = screen.getByRole('button', {name: 'Close'});
+    close.focus();
+    rerender(
+      <Sheet isPresented onDismiss={() => {}} title="History" subtitle="12 versions" onClose={() => {}}>
+        <span>Content</span>
+      </Sheet>,
+    );
+    expect(document.activeElement).toBe(close);
+  });
+
+  it('moves the focus into a sheet that opens from a button, and gives it back to the button once the sheet has gone', async () => {
+    render(<Page/>);
+    const opener = screen.getByRole('button', {name: 'Open'});
+    opener.focus();
+    fireEvent.click(opener);
+    expect(document.activeElement).toBe(screen.getByRole('heading', {name: 'History'}));
+    fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
+    await tick();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it('gives the focus to nothing when the button that opened the sheet has gone with it', async () => {
+    render(<Page removeOpener/>);
+    const opener = screen.getByRole('button', {name: 'Open'});
+    opener.focus();
+    fireEvent.click(opener);
+    fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
+    await tick();
+    expect(opener.isConnected).toBe(false);
+    expect(document.activeElement).toBe(document.body);
   });
 });
