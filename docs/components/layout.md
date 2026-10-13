@@ -601,26 +601,29 @@ Differences:
   of the bar. Its box is its border box (`box-sizing: border-box`), so
   padding in `style` stays inside its full width. Its scrollbar spans the
   whole list, under the bar, since CSS cannot inset a scrollbar.
-- On the web the list draws the rows inside the part of it the window
-  shows, and a viewport more above and below. Two spacers keep the room of
-  the other rows, at the height each row was measured at once drawn and at
-  `estimatedItemHeight` before, and neither is a scroll anchor, so the drawn
-  rows hold still while a spacer changes. Each row says where it stands in
-  the whole (`aria-posinset`, `aria-setsize`). `onEndReached` fires once the
-  list is laid out and the window draws the last row, and again when more
-  rows arrive while it is still drawn, so a list that loads more fills the
-  view; a hidden list reports no end. The list reads the page again when a
-  transition or an animation ends anywhere in it, so a list that slides in
-  with a sheet draws its rows once it has arrived; until then, as while it
-  is hidden, it draws its first rows. Safari has no scroll anchoring, so
-  there a scroll up into rows never drawn can move what shows by the
-  difference between their height and the estimate. A row scrolled out of
-  the window is removed, as a native lazy list removes it, and the focus
-  with it. Only the rows drawn are in the page: the browser's find in page,
-  printing, a screen reader's browse mode, and a link or a script that
-  scrolls to a row's element reach only those. A static page, and a test
-  renderer that lays nothing out, hold only the rows that fill 1200 pixels
-  at `estimatedItemHeight`.
+- On the web the list draws the rows inside the part of it that the window
+  and any scrolling box around it show (a capped `Sheet` body, a scroll
+  view of the app's own), and as much again above and below, so a list in
+  a capped body draws its cap and a cap more on each side. Two spacers keep
+  the room of the other rows, at the height each row was measured at once
+  drawn and at `estimatedItemHeight` before, and neither is a scroll
+  anchor, so the drawn rows hold still while a spacer changes. Each row
+  says where it stands in the whole (`aria-posinset`, `aria-setsize`).
+  `onEndReached` fires once the list is laid out and the rows drawn for
+  that part reach the last row, and again when more rows arrive while it
+  is still drawn, so a list that loads more fills the view; a hidden list
+  reports no end. The list reads the page again when a transition or an
+  animation ends anywhere in it, so a list that slides in with a sheet
+  draws its rows once it has arrived; until then, as while it is hidden,
+  it draws its first rows. Safari has no scroll anchoring, so there a
+  scroll up into rows never drawn can move what shows by the difference
+  between their height and the estimate. A row scrolled out of view is
+  removed, as a native lazy list removes it, and the focus with it. Only
+  the rows drawn are in the page: the browser's find in page, printing, a
+  screen reader's browse mode, and a link or a script that scrolls to a
+  row's element reach only those. A static page, and a test renderer that
+  lays nothing out, hold only the rows that fill 1200 pixels at
+  `estimatedItemHeight`.
 
 ## CardGrid
 
@@ -686,21 +689,21 @@ Differences:
   since CSS cannot inset a scrollbar. Its box is its border box
   (`box-sizing: border-box`), so padding in `style` stays inside its full
   width.
-- On the web the grid draws the rows of cells inside the part of it the
-  window shows, and a viewport more above and below, with two spacers for
-  the room of the other rows, as the `List` does. Once its width is
-  measured it counts the columns the way the native grid does and writes
-  them into the grid, so a row of cells it draws is one row of the grid;
-  until then (a static page, the first paint) the stylesheet counts the
-  same columns. Each cell says where it stands in the whole
-  (`aria-posinset`, `aria-setsize`), and `onEndReached` fires as the
-  `List`'s does: once the grid is laid out and the window draws the last
-  row, and again when more cards arrive while it is still drawn. As with
-  the `List`, a row of cards scrolled out of the window is removed, and the
-  focus with it. Only the cards drawn are in the page, for find in page,
-  printing, a screen reader's browse mode and a scroll to a card's
-  element, and a static page holds only the rows that fill 1200 pixels at
-  `estimatedItemHeight`.
+- On the web the grid draws the rows of cells inside the part of it that
+  the window and any scrolling box around it show, and as much again above
+  and below, with two spacers for the room of the other rows, as the
+  `List` does. Once its width is measured it counts the columns the way
+  the native grid does and writes them into the grid, so a row of cells it
+  draws is one row of the grid; until then (a static page, the first
+  paint) the stylesheet counts the same columns. Each cell says where it
+  stands in the whole (`aria-posinset`, `aria-setsize`), and
+  `onEndReached` fires as the `List`'s does: once the grid is laid out and
+  the rows drawn for that part reach the last row, and again when more
+  cards arrive while it is still drawn. As with the `List`, a row of cards
+  scrolled out of view is removed, and the focus with it. Only the cards
+  drawn are in the page, for find in page, printing, a screen reader's
+  browse mode and a scroll to a card's element, and a static page holds
+  only the rows that fill 1200 pixels at `estimatedItemHeight`.
 
 ## Collapsible
 

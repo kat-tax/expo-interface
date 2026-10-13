@@ -153,7 +153,7 @@ describe('TextField (web)', () => {
     expect(onSubmit).toHaveBeenCalledWith('hello');
   });
 
-  it('renders the bare variant with no padding and no focus ring of its own', () => {
+  it('draws no browser focus ring on the inline and bare variants, and no padding on the bare one', () => {
     // Chrome's focus ring is `outline-style: auto`, which no width turns off.
     const ring = document.createElement('style');
     ring.textContent = 'input, textarea { outline-style: auto; }';
@@ -163,14 +163,19 @@ describe('TextField (web)', () => {
         <>
           <TextField variant="bare" placeholder="Write" testID="bare"/>
           <TextField variant="inline" placeholder="Find" testID="inline"/>
+          <TextField variant="inline" multiline placeholder="Ask" testID="prompt"/>
         </>,
       );
-      const style = getComputedStyle(screen.getByTestId('bare'));
-      expect(style.paddingLeft).toBe('0px');
-      expect(style.paddingTop).toBe('0px');
-      expect(style.outlineStyle).toBe('none');
-      // The inline field keeps the browser's ring.
-      expect(getComputedStyle(screen.getByTestId('inline')).outlineStyle).toBe('auto');
+      const bare = getComputedStyle(screen.getByTestId('bare'));
+      expect(bare.paddingLeft).toBe('0px');
+      expect(bare.paddingTop).toBe('0px');
+      expect(bare.outlineStyle).toBe('none');
+      // The inline field keeps its padding and draws no ring either: in a bar the caret marks it.
+      for (const id of ['inline', 'prompt']) {
+        const inline = getComputedStyle(screen.getByTestId(id));
+        expect(inline.paddingLeft).toBe('8px');
+        expect(inline.outlineStyle).toBe('none');
+      }
     } finally {
       ring.remove();
     }

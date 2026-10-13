@@ -54,6 +54,7 @@ export function TabView(props: TabViewProps) {
     label = 'Tabs',
     layout = 'auto',
     fill = 'element',
+    size = 'regular',
     testID,
     style,
   } = props;
@@ -61,8 +62,11 @@ export function TabView(props: TabViewProps) {
   const xaml = useXamlProps();
   // An island cannot be see-through (its root is white wherever its content
   // is transparent), so no fill of its own is the screen's background: the
-  // fill of the Windows header row a strip sits in.
-  const background = useColor(fill === 'none' ? 'background' : 'backgroundElement');
+  // fill of the Windows header row a strip sits in. The accent's capsule is
+  // the drawn strips' own; WinUI marks its open tab itself, so `accent`
+  // paints the strip as `none` does. `size` is the drawn switcher's alone:
+  // the WinUI strip keeps WinUI's height.
+  const background = useColor(fill === 'element' ? 'backgroundElement' : 'background');
   const index = Math.max(0, tabs.findIndex(tab => tab.id === selected));
   // A tab's menu, open where the island said the right click or the Menu
   // key landed, in the island's coordinates, which are the root's.
@@ -112,6 +116,7 @@ export function TabView(props: TabViewProps) {
           onAdd={onAdd}
           addLabel={addLabel ?? ADD_LABEL}
           fill={fill}
+          size={size}
           label={label}
           testID={testID}
           alone={alone}>

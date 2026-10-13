@@ -186,9 +186,11 @@ label), `value`, `onChangeText`, `onSubmit`, `onKeyPress`, `onFocus`,
 `ref` with `focus` and `blur`.
 
 The `row` variant is the platform's field with a form row's borderless look.
-The `bare` variant is `inline` without the field's own padding and, on web,
-without the browser's focus ring, for a field inside a box that draws both:
-a `Composer`'s capsule, an `Alert`'s field. A multi-line field that submits
+The `bare` variant is `inline` without the field's own padding, for a field
+inside a box that draws it: a `Composer`'s capsule, an `Alert`'s field.
+`inline` and `bare` both draw no browser focus ring on web, for a field
+inside a box that marks the focus itself or in a bar where the caret does.
+A multi-line field that submits
 (`submitBehavior="submit"`) sends on Enter and breaks the line on Shift+Enter
 on web, keeping the focus; an Enter that commits an input method's text, a
 Japanese or Chinese word, commits it and sends nothing.
@@ -265,7 +267,10 @@ The capsule starts one line tall and grows with the text to five lines,
 then scrolls; on web it grows where the browser sizes a field to its
 content (`field-sizing`), and where the browser does not it stays one line
 tall and scrolls inside.
-With one line in it the capsule is 44 points tall on every platform. As a
+With one line in it the capsule is 44 points tall on every platform. The
+button sits centred in the capsule's round end, as far from the end as from
+the top and the bottom, and stays on the last line as the text wraps; a
+`menu`'s button sits the same way in the leading end. As a
 `Toolbar`'s `field` it is the height of the bar's controls where that is
 shorter: 30 on the web and 24 on Windows, the kit's small button there, with
 the capsule's own padding closed, the field's alone centring the line and
@@ -346,7 +351,9 @@ On Windows `size` and `shape` are not applied, since the control has one of
 each, and `accentColor` colors the underline. On iOS `shape` matters for
 `pill` only, since `rounded` is the system's own corner. On iOS and Android
 a control outside a host mounts one of its own: the width of its container
-with a label, of the segments without.
+with a label, of the segments without. On Android a control without a label
+is the segments' width under a host too, so it can sit beside other content,
+as in a sheet's bar.
 
 ## Slider
 

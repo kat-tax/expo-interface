@@ -32,11 +32,12 @@ export function TabView(props: TabViewProps) {
     label = 'Tabs',
     layout = 'auto',
     fill = 'element',
+    size = 'regular',
     testID,
     style,
   } = props;
   const {resolved, onLayout} = useResolvedLayout(layout);
-  const draw = {tabs, selected, onSelect, onClose, onAdd, addLabel, fill, label, testID};
+  const draw = {tabs, selected, onSelect, onClose, onAdd, addLabel, fill, size, label, testID};
   const alone = isAlone(props);
   const page = alone ? null : <View style={styles.content}>{children}</View>;
   return (

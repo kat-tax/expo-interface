@@ -87,7 +87,7 @@ is not drawn, and an image with no `uri` is drawn as it is), `webActions`,
 | Platform | Renders |
 | --- | --- |
 | iOS, Android | Expo Router's native tabs: the platform's own tab bar at the bottom, with `badge` as the bar's badge. On iOS 26 the `action` is a button or a menu in the tab bar's bottom accessory, its icon alone while the accessory is inline in a minimized bar. On Android and on iOS before 26 it is a floating action button above the tab bar at the bottom trailing corner, over every tab's screens, and a `Screen`'s own `fab` sits above it. A `Screen` counts the floating action in `useScrollInsets().bottom`, so the kit's `List`, `CardGrid`, `FieldGroup` and [`ScreenScrollView`](layout.md#screenscrollview) end clear of it. The app's toast (`ToastProvider` around the tabs) stands above the bar, and above its accessory on iOS 26, and the floating action lifts above the toast while it shows. The `action` goes with the tabs while they are hidden, from the accessory as from above the bar. |
-| Web | A floating bar along the top with the app's logo, the tabs and action slots. A route's `badge` is a pill beside the label. In a window too narrow for the row, a phone's width, the tabs show their icons alone with their names as accessible names, and a `HeaderMenu` or `HeaderAction` in the bar with an icon shows that alone. A folded header's `HeaderSearch` is a frameless field beside the logo, after the app's name or a pushed screen's title, that takes the bar's spare width and shrinks with the bar; in a narrow bar it takes the name's room beside the mark. An `action` placement is a magnifier among the actions, and `stacked` a second pill under the bar. The tabs' own `action` is a `HeaderAction`, or a `HeaderMenu` with `items`, among the bar's actions after whatever a screen folds in, and goes with the tabs while they are hidden. The row clips what it cannot hold, so the page never scrolls sideways. |
+| Web | A floating bar along the top with the app's logo, the tabs and action slots. A route's `badge` is a pill beside the label. In a window too narrow for the row, a phone's width, the tabs show their icons alone with their names as accessible names, and a `HeaderMenu` or `HeaderAction` in the bar with an icon shows that alone. A folded header's `HeaderSearch` is a frameless field beside the logo, after the app's name or a pushed screen's title, that takes the bar's spare width and shrinks with the bar; in a narrow bar it takes the name's room beside the mark. An `action` placement is a magnifier among the actions, and `stacked` a second pill under the bar. The tabs' own `action` is a `HeaderAction`, or a `HeaderMenu` with `items`, among the bar's actions after whatever a screen folds in, and goes with the tabs while they are hidden. It comes with the first render after the page runs, as a `Menu`'s popover target does, so a static export's page draws the bar without it. The row clips what it cannot hold, so the page never scrolls sideways. |
 | Windows | A WinUI `NavigationView` in any of its pane display modes: the top bar (`top`), or with `windowsPane` the navigation pane down the left side, expanded (`left`), at its glyph-only width (`compact`), or as its toggle button alone (`minimal`); `auto` picks by the window's width at WinUI's own breakpoints, the expanded pane from 1008 points, the compact one from 641 and the minimal one below that. The expanded pane's toggle button collapses it to its glyphs beside the content and back. The compact pane's opens the pane over the content, and so does the minimal pane's, which is drawn at the top start of the content with the screen's header beside it; a selection, a press beside the open pane or Escape closes it. A count `badge` is an `InfoBadge`; other text is its dot. The `InfoBadge` holds a number alone, so a count past `badgeMax` is drawn as the cap. The `action` is the first item, invoked rather than selected, and with `items` it opens a `MenuFlyout`. `windowsPlacement` puts a route at the pane's foot (`footer`) or makes it WinUI's own settings item (`settings`). The control's own back button, at the top of the pane or the start of the top bar, pops a card the stack above pushed over the tabs, or a screen a stack inside a tab pushed; a selection in the pane leaves the drilled-in screens. The button is drawn whenever a stack is around the tabs, disabled at the root as a WinUI app's is, and only while something can pop when the tabs are the root. A press on the selected item returns to its root, as the Settings app does. A selection slides the content along the top bar in the order of the items, or refreshes it in a side pane; back from a card, the content returns as the card leaves. |
 
 On web a screen under `Tabs` has one bar, not two: `ConstrainedStackHeader`
@@ -205,16 +205,19 @@ selected one's content under it. These are not the tabs `Tabs` draws.
 
 Props: `tabs` (`id`, `title`, `label`, `icon`, `pinned`, `menu`, `depth`,
 `accessory`), `selected`, `onSelect`,
-`onClose` (leaving it out takes the crosses away), `onAdd` (leaving it out
-takes the add button away), `addLabel` (what the add button is called to a
-screen reader and in Windows' tooltip; "New tab", except on the WinUI strip,
-which keeps WinUI's own words, in the system's language; words given once
-stay there if `addLabel` is later left out), `children` (the selected
+`onClose` (leaving it out takes the crosses away), `onAdd` (the add button,
+after the last tab and at the strip's end once the tabs fill it, at the far
+end of the switcher's bar; leaving it out takes it away), `addLabel` (what
+the add button is called to a screen reader and in Windows' tooltip; "New
+tab", except on the WinUI strip, which keeps WinUI's own words, in the
+system's language; words given once stay there if `addLabel` is later left
+out), `children` (the selected
 tab's content; left out, the tabs alone), `content` (whether there is a page
 under the tabs, whatever `children` are), `label` ("Tabs"), `layout`
-(`auto`, `strip`, `switcher`), `fill` (`element`, the default, or `none`),
-`activation` (`automatic`, the default, or `manual`: how the keyboard
-selects on web), `style`, `testID`.
+(`auto`, `strip`, `switcher`), `fill` (`element`, the default, `none` or
+`accent`), `size` (`regular`, the default, or `small`: the strip's and the
+switcher's bar's metrics), `activation` (`automatic`, the default, or
+`manual`: how the keyboard selects on web), `style`, `testID`.
 `nextSelection(tabs, closing, selected)` is exported for a caller that closes
 the open tab: it moves to the next tab, or the previous one when the last was
 closed.
@@ -280,9 +283,20 @@ Differences:
   cards, for documents that belong to one another.
 - `fill="none"` paints nothing behind the strip or the switcher's bar, for
   tabs on a material that a fill of their own would cover, and marks the
-  open tab with a pill in the palette's pill fill. The WinUI strip is an
-  island, which cannot be see-through, so on Windows it is painted in the
-  screen's background, the fill of the header row it sits in there.
+  open tab with a pill in the palette's pill fill. `fill="accent"` paints
+  nothing behind them either and draws the open tab as the kit's filled
+  button, a capsule in the tint with its title, icon and cross in `onTint`,
+  for a strip on a page, where the translucent pill reads faint; the
+  switcher's bar names the open tab rather than drawing it, so it is bare as
+  with `none`. The WinUI strip is an island, which cannot be see-through, so
+  on Windows both paint it in the screen's background, the fill of the
+  header row it sits in there, and WinUI marks the open tab its own way.
+- `size="small"` draws the strip and the switcher's bar at the kit's small
+  button's metrics, for a strip on a page under the bar rather than in it:
+  13 point type on an 18 point line with 6 above and below, 30 tall, the
+  tab's icon 14 and its cross 12. The cards keep their size, since a grid is
+  not a bar. The WinUI strip keeps WinUI's height; the switcher Windows draws
+  takes the size, in Fluent's footnote, 12 on 16.
 - `accessory` (a presence dot, a count, an unsaved mark) is drawn after the
   title on the strips the kit draws and on the switcher's cards. The WinUI
   strip holds text and a glyph alone, so on Windows it shows on the cards

@@ -5,25 +5,27 @@ import {SheetBar} from './bar';
 import {SheetBody} from './body';
 import {SheetHosted} from './hosted';
 import {NO_SCROLL_INSETS, ScrollInsetsContext} from '../screen/insets';
-import {drawsSomething, hasBar, sub} from './shared';
+import {barAccessory, drawsSomething, hasBar, sub} from './shared';
 
 /**
  * What goes inside the platform's sheet, in order: the bar when anything
- * asks for it, the accessory under it, the body, the footer, and the
- * actions along the bottom edge, stacked in one column (Compose's on
+ * asks for it, the accessory under it (or in the bar, which puts it in a
+ * row under itself where it has no room for it), the body, the footer, and
+ * the actions along the bottom edge, stacked in one column (Compose's on
  * Android, a `VStack` on iOS, a box on web). On iOS and Android the bar,
  * the accessory and a body without `maxHeight` are the sheet's native
  * content, while a capped body and the footer are React Native content,
  * each hosted in the sheet at the sheet's width. None of it is under a
  * screen's bar, so the screen's scroll insets stop at the sheet.
  */
-export function sheetChildren({title, subtitle, onBack, onClose, menu, accessory, footer, actions, maxHeight, contentPadding, testID, children}: SheetProps): ReactNode {
+export function sheetChildren({title, subtitle, onBack, onClose, menu, accessory, accessoryPlacement, footer, actions, maxHeight, contentPadding, testID, children}: SheetProps): ReactNode {
+  const inBar = barAccessory(accessory, accessoryPlacement);
   return (
     <ScrollInsetsContext.Provider value={NO_SCROLL_INSETS}>
-      {hasBar({title, onBack, onClose, menu}) ? (
-        <SheetBar title={title} subtitle={subtitle} onBack={onBack} onClose={onClose} menu={menu} testID={sub(testID, 'bar')}/>
+      {hasBar({title, onBack, onClose, menu, accessory: inBar}) ? (
+        <SheetBar title={title} subtitle={subtitle} onBack={onBack} onClose={onClose} menu={menu} accessory={inBar} testID={sub(testID, 'bar')}/>
       ) : null}
-      {accessory}
+      {inBar === undefined ? accessory : null}
       <SheetBody maxHeight={maxHeight} contentPadding={contentPadding} testID={sub(testID, 'body')}>{children}</SheetBody>
       {drawsSomething(footer) ? (
         <SheetHosted contentPadding={contentPadding} testID={sub(testID, 'footer')}>{footer}</SheetHosted>
@@ -34,6 +36,6 @@ export function sheetChildren({title, subtitle, onBack, onClose, menu, accessory
 }
 
 /** The sheet's own props and its children, apart from what the platform's sheet takes. */
-export function sheetOwnProps({title, subtitle, onBack, onClose, menu, accessory, footer, actions, maxHeight, material, children, ...rest}: SheetProps) {
-  return {own: {title, subtitle, onBack, onClose, menu, accessory, footer, actions, maxHeight, material}, children, rest};
+export function sheetOwnProps({title, subtitle, onBack, onClose, menu, accessory, accessoryPlacement, footer, actions, maxHeight, material, children, ...rest}: SheetProps) {
+  return {own: {title, subtitle, onBack, onClose, menu, accessory, accessoryPlacement, footer, actions, maxHeight, material}, children, rest};
 }

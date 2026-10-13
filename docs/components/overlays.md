@@ -315,15 +315,28 @@ unless given), `title` and `subtitle`
 edge), `onClose` (a close button at its trailing edge; the app dismisses the
 sheet from it, as from `onDismiss`), `menu` (the sheet's own actions behind
 an ellipsis in the bar, before the close button), `accessory` (a row under
-the bar: a `SegmentedControl` that picks what the body shows), `footer`
+the bar: a `SegmentedControl` that picks what the body shows),
+`accessoryPlacement` (`row`, the default, or `bar`, which puts the
+accessory in the bar), `footer`
 (the row under the body: a `Composer`), `actions` (buttons along the bottom
 edge, trailing-aligned, the last one filled and the rest outlined; `label`,
 `onPress`, `role`, `variant`, `disabled`, `loading` each), `maxHeight` (the
 most the body alone grows to: in points, or a fraction of the window's
 height, `{fraction: 0.6}`), `testID`.
 
-The bar is drawn as soon as a title or any of its buttons is given. Without
-`snapPoints` the sheet fits its content on every platform; `maxHeight` caps
+The bar is drawn as soon as a title, any of its buttons or an accessory
+placed in it is given. Its two ends are as wide as the wider of them,
+whichever holds a button, so the title stays centred, on one line in the
+room left between them. With `accessoryPlacement="bar"` the accessory sits
+at the bar's leading end, after the back button. Where the ends would then
+leave a title or a subtitle less than 96 points, the bar has no room for
+it, and it goes to its own row under the bar, as with `row`, until the bar
+is wide enough again. A sheet with no title and no subtitle has nothing to
+centre and keeps it in the bar whatever the widths. On iOS the accessory in
+the bar takes its own ideal width, as a toolbar item does, so a control
+that grows to the room it is offered stays its own size there.
+
+Without `snapPoints` the sheet fits its content on every platform; `maxHeight` caps
 that, and the body then scrolls inside the cap as React Native content the
 width of the sheet. A fraction is kept between 0 and 1. On web it is of the
 viewport's dynamic height, which follows a phone browser's toolbar, and on

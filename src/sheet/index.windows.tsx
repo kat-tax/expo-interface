@@ -8,7 +8,7 @@ import {ModalLayer} from '../windows/modal-layer';
 import {spacing} from '../theme';
 import {SheetActions} from './actions';
 import {SheetBar} from './bar';
-import {bodyCap, hasBar, sub} from './shared';
+import {barAccessory, bodyCap, hasBar, sub} from './shared';
 
 /**
  * Windows: a sheet's content is React Native's, which no XAML flyout or
@@ -32,10 +32,11 @@ import {bodyCap, hasBar, sub} from './shared';
  * react-native-windows 0.84, and a layout event does. Until the first one
  * the body is capped at zero height, which the card's entrance fade hides.
  */
-export function Sheet({children, isPresented, onDismiss, title, subtitle, onBack, onClose, menu, accessory, footer, actions, maxHeight, testID}: SheetProps) {
+export function Sheet({children, isPresented, onDismiss, title, subtitle, onBack, onClose, menu, accessory, accessoryPlacement, footer, actions, maxHeight, testID}: SheetProps) {
   const [area, setArea] = useState(0);
   if (!isPresented) return null;
   const cap = bodyCap(maxHeight, area);
+  const inBar = barAccessory(accessory, accessoryPlacement);
   return (
     <Layer>
       <View
@@ -47,10 +48,10 @@ export function Sheet({children, isPresented, onDismiss, title, subtitle, onBack
           <NativeHostContext.Provider value={true}>
             <ScrollInsetsContext.Provider value={NO_SCROLL_INSETS}>
               <View style={styles.frame}>
-                {hasBar({title, onBack, onClose, menu}) ? (
-                  <SheetBar title={title} subtitle={subtitle} onBack={onBack} onClose={onClose} menu={menu} testID={sub(testID, 'bar')}/>
+                {hasBar({title, onBack, onClose, menu, accessory: inBar}) ? (
+                  <SheetBar title={title} subtitle={subtitle} onBack={onBack} onClose={onClose} menu={menu} accessory={inBar} testID={sub(testID, 'bar')}/>
                 ) : null}
-                {accessory}
+                {inBar === undefined ? accessory : null}
                 <ScrollView style={[styles.scroll, cap !== undefined ? {maxHeight: cap} : null]} testID={sub(testID, 'body')}>
                   <View style={styles.content}>{children}</View>
                 </ScrollView>

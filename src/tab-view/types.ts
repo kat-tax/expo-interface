@@ -56,7 +56,11 @@ export interface TabViewProps {
    * they can. See {@link nextSelection} for which tab to open afterwards.
    */
   onClose?: (id: string) => void;
-  /** The add button at the end of the strip. Leaving this out takes it away. */
+  /**
+   * The add button, after the last tab, and at the strip's end once the tabs
+   * fill it. The switcher's bar holds it at its far end. Leaving this out
+   * takes it away.
+   */
   onAdd?: () => void;
   /**
    * What the add button is called, to a screen reader and in Windows'
@@ -110,12 +114,27 @@ export interface TabViewProps {
    * against which the open tab is the page's own colour, or nothing, for tabs
    * on a material (a `HeaderAccessory` under a header the screens run under,
    * the web bar's pill) that a fill of their own would cover. With `none` the
-   * open tab is a pill in the palette's pill fill. The WinUI strip is an
-   * island, which cannot be see-through, so on Windows `none` paints it in
-   * the screen's background, the fill of the header it sits in there.
+   * open tab is a pill in the palette's pill fill. `accent` paints nothing
+   * behind the tabs either, and draws the open tab as the kit's filled
+   * button: a capsule in the tint, its title, icon and cross in `onTint`, for
+   * a strip on a page, where the translucent pill reads faint. The
+   * switcher's bar has no open tab to mark, so `accent` leaves it bare as
+   * `none` does. The WinUI strip is an island, which cannot be see-through,
+   * so on Windows `none` and `accent` paint it in the screen's background,
+   * the fill of the header it sits in there, and its open tab is WinUI's own.
    * @default 'element'
    */
   fill?: TabViewFill;
+  /**
+   * The strip's and the switcher's bar's metrics. `small` is the kit's small
+   * button's: footnote type (13 on an 18 line) with 6 above and below, 30
+   * tall, the tab's icon 14 and its cross 12, for a strip on a page under
+   * the bar rather than in it. The cards keep their size: a grid is not a
+   * bar. The WinUI strip keeps WinUI's height and ignores it; the switcher
+   * Windows draws below 640 points takes it, in Fluent's footnote, 12 on 16.
+   * @default 'regular'
+   */
+  size?: 'regular' | 'small';
   /**
    * How the keyboard selects on web. With `automatic` the arrow keys move
    * the focus and select the tab they land on, the APG's pattern for tabs
@@ -183,5 +202,9 @@ export interface TabViewTab {
 /** What {@link TabViewProps.layout} asks for, before a width has decided it. */
 export type TabViewLayout = 'auto' | 'strip' | 'switcher';
 
-/** What {@link TabViewProps.fill} paints behind the tabs: the raised fill, or nothing. */
-export type TabViewFill = 'element' | 'none';
+/**
+ * What {@link TabViewProps.fill} paints behind the tabs: the raised fill, or
+ * nothing, the open tab then a pill in the pill fill (`none`) or a capsule in
+ * the tint (`accent`).
+ */
+export type TabViewFill = 'element' | 'none' | 'accent';

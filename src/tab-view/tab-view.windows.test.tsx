@@ -1,7 +1,7 @@
 import {Dimensions, StyleSheet, Text} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
-import {colors} from '../theme';
+import {colors, variants} from '../theme';
 import {TabView, tabItems, tabLabels} from './index.windows';
 
 const XAML = 'ExpoInterfaceTabView';
@@ -117,19 +117,34 @@ describe('TabView (windows)', () => {
     expect(screen.getByTestId('t-add').props.accessibilityLabel).toBe('New tab');
   });
 
-  it('paints the island in the raised fill, or in the screen\'s background with none, since an island cannot be see-through', async () => {
+  it('paints the island in the raised fill, or in the screen\'s background with none and with accent, since an island cannot be see-through', async () => {
     const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
     expect(island(XAML).props.background).toBe(colors.light.backgroundElement);
     await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" fill="none" testID="t"/>);
     expect(island(XAML).props.background).toBe(colors.light.background);
+    // WinUI marks its open tab itself; the capsule is the drawn strips' own.
+    await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" fill="accent" testID="t"/>);
+    expect(island(XAML).props.background).toBe(colors.light.background);
   });
 
-  it('leaves the drawn switcher\'s bar bare with none', async () => {
+  it('leaves the drawn switcher\'s bar bare with none and with accent', async () => {
     const bar = () => StyleSheet.flatten(screen.getByTestId('t-switcher').parent!.props.style);
     const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
     expect(bar().backgroundColor).toBe(colors.light.backgroundElement);
     await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" fill="none" testID="t"/>);
     expect(bar().backgroundColor).toBeUndefined();
+    await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" fill="accent" testID="t"/>);
+    expect(bar().backgroundColor).toBeUndefined();
+  });
+
+  it('keeps WinUI\'s height for the strip with small, and draws the switcher\'s bar small', async () => {
+    const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" size="small" testID="t"/>);
+    expect(island(XAML).props).not.toHaveProperty('size');
+    expect(StyleSheet.flatten(island(XAML).props.style).height).toBe(40);
+    await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" size="small" testID="t"/>);
+    expect(StyleSheet.flatten(screen.getByTestId('t-switcher').props.style).paddingVertical).toBe(6);
+    // The footnote, which is Fluent's 12 on 16 on Windows.
+    expect(StyleSheet.flatten(screen.getByText('Notes').props.style)).toMatchObject({fontSize: variants.footnote.fontSize, lineHeight: variants.footnote.lineHeight});
   });
 
   it('puts the first tab at the front when the selected id names none', async () => {

@@ -62,10 +62,13 @@ describe('Composer (web)', () => {
     const sendHost = () => capsule().lastElementChild!;
     expect(menuHost().contains(screen.getByRole('button', {name: 'Send to'}))).toBe(true);
     expect(sendHost().contains(screen.getByRole('button', {name: 'Send'}))).toBe(true);
-    // The small buttons are 30: the capsule closes its padding, the field's centres the line of 20, and the buttons sit on it.
+    // The small buttons are 30: the capsule closes its padding, the field's centres the line of 20, and the buttons
+    // fill the round ends, with no padding at the ends and no margin under them.
     expect(getComputedStyle(capsule()).minHeight).toBe('30px');
     expect(getComputedStyle(capsule()).paddingTop).toBe('0px');
     expect(getComputedStyle(capsule()).paddingBottom).toBe('0px');
+    expect(getComputedStyle(capsule()).paddingLeft).toBe('0px');
+    expect(getComputedStyle(capsule()).paddingRight).toBe('0px');
     expect(getComputedStyle(field()).paddingTop).toBe('5px');
     expect(getComputedStyle(field()).paddingBottom).toBe('5px');
     expect(getComputedStyle(sendHost()).marginBottom).toBe('0px');
@@ -73,13 +76,21 @@ describe('Composer (web)', () => {
     // Still one line that grows with the text.
     expect(field()).toHaveAttribute('rows', '1');
     expect(getComputedStyle(field()).maxHeight).toBe('120px');
-    // On its own: the line, 8 above and below, and the capsule's 4.
+    // On its own: the line, 8 above and below, and the capsule's 4. Each 30 button is centred in its round end, 7 from
+    // the end as from the top and the bottom: 3 up from the capsule's padding, centred on the last line of 20 and its 8.
     rerender(composer);
     expect(getComputedStyle(capsule()).minHeight).toBe('44px');
     expect(getComputedStyle(capsule()).paddingTop).toBe('4px');
+    expect(getComputedStyle(capsule()).paddingLeft).toBe('7px');
+    expect(getComputedStyle(capsule()).paddingRight).toBe('7px');
     expect(getComputedStyle(field()).paddingTop).toBe('8px');
-    expect(getComputedStyle(sendHost()).marginBottom).toBe('2px');
-    expect(getComputedStyle(menuHost()).marginBottom).toBe('2px');
+    expect(getComputedStyle(sendHost()).marginBottom).toBe('3px');
+    expect(getComputedStyle(menuHost()).marginBottom).toBe('3px');
+    // Without a menu the field's own 16 leads, and the send button keeps the trailing end's 7.
+    rerender(<Composer onSend={() => {}} testID="c"/>);
+    expect(getComputedStyle(capsule()).paddingLeft).toBe('16px');
+    expect(getComputedStyle(capsule()).paddingRight).toBe('7px');
+    expect(getComputedStyle(sendHost()).marginBottom).toBe('3px');
   });
 
   it('is a stop button while busy, and leaves a controlled text to the app', () => {

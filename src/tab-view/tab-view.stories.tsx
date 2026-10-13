@@ -132,6 +132,44 @@ export const TabsAlone: Story = {
   },
 };
 
+/**
+ * A small strip on a page, under the bar rather than in it, as the tabs
+ * alone: the small button's metrics, 30 points tall, and the open tab a
+ * capsule in the tint, as the kit's filled button, where the translucent
+ * pill would read faint on the page. The WinUI strip keeps WinUI's height
+ * and marks its open tab itself.
+ */
+export const SmallAccent: Story = {
+  args: {layout: 'strip', size: 'small', fill: 'accent'},
+  render: function Render(args) {
+    const [tabs, setTabs] = useState(args.tabs);
+    const [selected, setSelected] = useState(args.selected);
+    const [made, setMade] = useState(0);
+    const background = useColor('background');
+    return (
+      <View style={[styles.frame, styles.onPage, {backgroundColor: background}]}>
+        <TabView
+          {...args}
+          tabs={tabs}
+          selected={selected}
+          onSelect={setSelected}
+          onClose={id => {
+            setSelected(current => nextSelection(tabs, id, current) ?? '');
+            setTabs(current => current.filter(tab => tab.id !== id));
+          }}
+          onAdd={() => {
+            const id = `new-${made + 1}`;
+            setMade(made + 1);
+            setTabs(current => [...current, {id, title: `Untitled ${made + 1}`}]);
+            setSelected(id);
+          }}
+        />
+        <Page tab={tabs.find(tab => tab.id === selected)}/>
+      </View>
+    );
+  },
+};
+
 /** Colours for the material to show, as content passing under a header would. */
 const SWATCHES = ['#FF9500', '#34C759', '#007AFF', '#AF52DE'];
 
@@ -188,6 +226,11 @@ const styles = StyleSheet.create({
   frame: {
     height: 260,
     alignSelf: 'stretch',
+  },
+  /** A page with the strip on it, inset from the page's edges. */
+  onPage: {
+    paddingTop: spacing.three,
+    paddingHorizontal: spacing.three,
   },
   page: {
     flexGrow: 1,

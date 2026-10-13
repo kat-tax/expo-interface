@@ -8,6 +8,8 @@ const ROWS = Array.from({length: 300}, (_, index) => `Row ${index}`);
 let scrolled = 0;
 let boxHeight = 600;
 let boxTop = 0;
+/** The boxes around the list a test lays out, and where each is in the window. */
+const around = new Map<Element, DOMRect>();
 
 const items = () => screen.getAllByRole('listitem');
 const spacers = () => [...screen.getByTestId('list').querySelectorAll<HTMLElement>('.ui-list__spacer')];
@@ -31,13 +33,14 @@ describe('List (web), windowed', () => {
     scrolled = 0;
     boxHeight = 600;
     boxTop = 0;
+    around.clear();
     TestResizeObserver.all = [];
     vi.stubGlobal('ResizeObserver', TestResizeObserver);
     // A list 600 px tall at the top of the window; the spacer before the rows moves up as it scrolls.
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
       if (this.classList.contains('ui-list')) return rectAt(boxTop, boxHeight);
       if (this.classList.contains('ui-list__spacer')) return rectAt(boxTop - scrolled, 0);
-      return rectAt(0, 0);
+      return around.get(this) ?? rectAt(0, 0);
     });
   });
 
@@ -157,6 +160,103 @@ describe('List (web), windowed', () => {
     scrolled = 5600;
     fireEvent.animationEnd(screen.getByTestId('drawer'));
     expect(items()[0]).toHaveTextContent('Row 89');
+  });
+
+  describe('in a box that scrolls', () => {
+    /** A list in a box with its own `overflow-y`, such as a capped sheet body, which is 320 px tall 100 px down the window. */
+    function inBody(overflowY: React.CSSProperties['overflowY'], props: Partial<React.ComponentProps<typeof List<string>>> = {}) {
+      const result = render(<div data-testid="body" style={{overflowY}}>{list(props)}</div>);
+      around.set(screen.getByTestId('body'), rectAt(100, 320));
+      return result;
+    }
+
+    beforeEach(() => {
+      // The list is as tall as its rows and does not scroll: the body does, and moves it.
+      boxTop = 100;
+      boxHeight = 2000;
+    });
+
+    it('draws what the box shows and as much again on each side, not what the window shows', () => {
+      inBody('auto');
+      laidOut();
+      // 320 px of the list show, and 320 more below them: the rows that start above 640 px.
+      expect(items()).toHaveLength(12);
+      expect(items().at(-1)).toHaveTextContent('Row 11');
+      // The body scrolled 1000 px: 320 px above the 320 that show, and 320 below.
+      boxTop = -900;
+      fireEvent.scroll(screen.getByTestId('body'));
+      expect(items()[0]).toHaveTextContent('Row 12');
+      expect(items().at(-1)).toHaveTextContent('Row 29');
+    });
+
+    it('reaches no end as the box opens on a page of rows, and reaches it once the rows drawn for what it shows include the last', () => {
+      const onEndReached = vi.fn();
+      // A page of twenty 44 px rows: 880 px of list behind a body of 320.
+      boxHeight = 880;
+      inBody('auto', {data: ROWS.slice(0, 20), estimatedItemHeight: 44, onEndReached});
+      laidOut();
+      expect(items()).toHaveLength(15);
+      expect(onEndReached).not.toHaveBeenCalled();
+      // The body scrolled to the end of the list.
+      boxTop = 100 - (880 - 320);
+      fireEvent.scroll(screen.getByTestId('body'));
+      expect(items().at(-1)).toHaveTextContent('Row 19');
+      expect(onEndReached).toHaveBeenCalledTimes(1);
+    });
+
+    it('takes every value of overflow-y but visible as clipping', () => {
+      for (const overflowY of ['scroll', 'hidden', 'clip'] as const) {
+        const {unmount} = inBody(overflowY);
+        laidOut();
+        expect(items()).toHaveLength(12);
+        unmount();
+      }
+    });
+
+    it('draws a single row while the box shows none of the list, until a scroll brings it in', () => {
+      inBody('auto');
+      // The list starts below what the body shows: a heading above it fills the body.
+      boxTop = 500;
+      laidOut();
+      expect(items()).toHaveLength(1);
+      expect(items()[0]).toHaveTextContent('Row 0');
+      boxTop = 100;
+      fireEvent.scroll(screen.getByTestId('body'));
+      expect(items()).toHaveLength(12);
+    });
+
+    it('is clipped by nothing around it whose overflow-y is visible, only by the window', () => {
+      inBody('visible');
+      laidOut();
+      // 668 px show in the window, from 100 px down, and 668 more below them.
+      expect(items()).toHaveLength(24);
+    });
+
+    it('is clipped by a fixed box around it, which the window places, and by nothing around that', () => {
+      render(
+        <div data-testid="page" style={{overflowY: 'auto'}}>
+          <div data-testid="drawer" style={{position: 'fixed', overflowY: 'auto'}}>{list()}</div>
+        </div>,
+      );
+      // The page's scroll view the drawer sits in shows none of where the drawer is.
+      around.set(screen.getByTestId('page'), rectAt(0, 100));
+      around.set(screen.getByTestId('drawer'), rectAt(100, 320));
+      laidOut();
+      expect(items()).toHaveLength(12);
+    });
+  });
+
+  it('takes no clip from the body, whose overflow is the window\'s', () => {
+    document.body.style.overflowY = 'hidden';
+    // The body's own box, scrolled away with the page.
+    around.set(document.body, rectAt(-4000, 768));
+    try {
+      renderList();
+      laidOut();
+      expect(items()).toHaveLength(22);
+    } finally {
+      document.body.style.overflowY = '';
+    }
   });
 
   it('windows by the scroll and the estimate alone where there is no ResizeObserver', () => {

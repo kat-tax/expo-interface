@@ -18,6 +18,7 @@ import app from 'expo-constants';
 
 import {theme, spacing, bound} from '../theme';
 import {useSearchSite} from '../header-search/site';
+import {useHydrated} from '../hydrated';
 import {materialProps} from '../material';
 import {hasMaterial} from '../sheet/shared';
 import {HeaderAction} from '../header-action';
@@ -170,10 +171,16 @@ export function WebTabList({logo, icon, tintIcon = false, slot, hidden = false, 
     onRows?.(rows);
   }, [onRows, rows]);
   const fill = hasMaterial(material) ? null : styles.solid;
+  // The app's action waits for the page to run, as a menu's ids do: a static
+  // page and the render that hydrates it draw the bar without it, so its room
+  // is the labels' on a phone's bar, which drops them only once the page runs
+  // (`useFit`), and its menu could not open before then anyway. The render
+  // after hydration brings it, with its ids.
+  const hydrated = useHydrated();
   // The app's action stays whatever the screen folds in, since it is the
   // app's, not the screen's; it goes with the tabs while they are hidden, as
   // it does natively.
-  const appAction = action == null || hidden ? null : action.items ? (
+  const appAction = action == null || hidden || !hydrated ? null : action.items ? (
     <HeaderMenu label={action.label} icon={action.icon} items={action.items} testID="tab-action"/>
   ) : (
     <HeaderAction label={action.label} icon={action.icon} onPress={action.onPress ?? noop} testID="tab-action"/>

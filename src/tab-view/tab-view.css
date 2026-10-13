@@ -23,10 +23,16 @@
   background: var(--color-background-element);
 }
 
+/*
+ * The strip is as wide as its tabs and no wider, so the add button after it
+ * follows the last tab, as a browser's does. Once the tabs fill the bar the
+ * strip shrinks to the room the button leaves and scrolls, with the button
+ * at the bar's end.
+ */
 .ui-tab-view__strip {
   display: flex;
   align-items: stretch;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -68,15 +74,33 @@
 /*
  * No fill of its own, for tabs on a material or a header's fill: the page's
  * colour no longer marks the open tab there, so a pill in the translucent
- * pill fill does, which reads on either.
+ * pill fill does, which reads on either. The accent paints nothing behind
+ * the tabs either.
  */
-.ui-tab-view--no-fill .ui-tab-view__bar {
+.ui-tab-view--no-fill .ui-tab-view__bar,
+.ui-tab-view--accent .ui-tab-view__bar {
   background: transparent;
 }
 
 .ui-tab-view--no-fill .ui-tab-view__tab[data-selected='true'] {
   background: var(--color-pill-background);
   border-radius: 8px;
+}
+
+/*
+ * The accent, for a strip on a page, where the translucent pill reads faint:
+ * the open tab is the kit's filled button, a capsule in the tint with its
+ * text and glyphs in the colour that reads on it.
+ */
+.ui-tab-view--accent .ui-tab-view__tab[data-selected='true'] {
+  background: var(--color-tint);
+  color: var(--color-on-tint);
+  border-radius: 999px;
+}
+
+/* The focus ring is drawn in the tint, which the capsule would swallow. */
+.ui-tab-view--accent .ui-tab-view__tab[data-selected='true'] .ui-tab-view__tab-body:focus-visible {
+  outline-color: var(--color-on-tint);
 }
 
 .ui-tab-view__tab-body,
@@ -187,6 +211,32 @@
   line-height: 18px;
   text-align: center;
   font-variant-numeric: tabular-nums;
+}
+
+/*
+ * The small size, for a strip on a page under the bar: the kit's small
+ * button's metrics, 13 px type on an 18 px line with 6 above and below, 30
+ * tall. The plus sits in a square as tall as the bar, as in the small circle
+ * button. The cards keep their size: a grid is not a bar.
+ */
+.ui-tab-view--small .ui-tab-view__tab,
+.ui-tab-view--small .ui-tab-view__add,
+.ui-tab-view--small .ui-tab-view__switcher {
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.ui-tab-view--small .ui-tab-view__title {
+  padding: 6px 0;
+}
+
+.ui-tab-view--small .ui-tab-view__add {
+  padding: 0 7px;
+}
+
+.ui-tab-view--small .ui-tab-view__count {
+  min-width: 20px;
+  line-height: 16px;
 }
 
 .ui-tab-view__cards {

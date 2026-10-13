@@ -1,5 +1,7 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
 import type {ComponentProps} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -23,6 +25,19 @@ function windowWidth(width: number) {
 beforeEach(() => {
   windowWidth(1024);
 });
+
+/**
+ * `tab-view.css` reaches jsdom as nothing: for a test that reads the
+ * cascade, the sheet goes into the page by hand, and jsdom applies its rules
+ * to what is rendered. `getComputedStyle` then answers a rule's value as
+ * written (`var(--color-tint)`).
+ */
+function stylesheet(): () => void {
+  const sheet = document.createElement('style');
+  sheet.textContent = readFileSync(path.join(__dirname, 'tab-view.css'), 'utf8');
+  document.head.append(sheet);
+  return () => sheet.remove();
+}
 
 describe('TabView (web)', () => {
   it('is a tab list over a tab panel, with the open tab marked and naming the panel', () => {
@@ -253,6 +268,22 @@ describe('TabView (web)', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  it('puts the add button after the last tab: the strip is as wide as its tabs, and shrinks and scrolls once they fill the bar', () => {
+    const remove = stylesheet();
+    try {
+      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} testID="t"/>);
+      const strip = screen.getByTestId('t-strip');
+      expect(strip.nextElementSibling).toBe(screen.getByTestId('t-add'));
+      const style = getComputedStyle(strip);
+      expect(style.flexGrow).toBe('0');
+      expect(style.flexShrink).toBe('1');
+      expect(style.minWidth).toBe('0px');
+      expect(style.overflowX).toBe('auto');
+    } finally {
+      remove();
+    }
+  });
+
   it('adds a tab from the end of the strip, and shows no button without a handler', async () => {
     const user = userEvent.setup();
     const onAdd = vi.fn();
@@ -263,29 +294,119 @@ describe('TabView (web)', () => {
     expect(onAdd).toHaveBeenCalled();
   });
 
-  it('takes no fill of its own with none, and the raised fill by default', () => {
+  it('takes no fill of its own with none or accent, and the raised fill by default', () => {
     const {rerender} = render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
     expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--no-fill');
+    expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--accent');
     rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} fill="none" testID="t"/>);
     expect(screen.getByTestId('t')).toHaveClass('ui-tab-view--no-fill');
+    expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--accent');
+    rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} fill="accent" testID="t"/>);
+    expect(screen.getByTestId('t')).toHaveClass('ui-tab-view--accent');
+    expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--no-fill');
   });
 
-  it('clears the bar with none and marks the open tab with a pill instead', async () => {
-    const {readFileSync} = await import('node:fs');
-    const {join} = await import('node:path');
-    const css = readFileSync(join(__dirname, 'tab-view.css'), 'utf8');
-    // The body of a rule by its exact selector; each of these is one class
-    // more specific than the rule it overrides, so order does not matter.
-    const rule = (selector: string) => {
-      const at = css.indexOf(`\n${selector} {`);
-      expect(at).toBeGreaterThan(-1);
-      return css.slice(at, css.indexOf('}', at));
-    };
-    expect(rule('.ui-tab-view__bar')).toContain('background: var(--color-background-element);');
-    expect(rule('.ui-tab-view--no-fill .ui-tab-view__bar')).toContain('background: transparent;');
-    const pill = rule(".ui-tab-view--no-fill .ui-tab-view__tab[data-selected='true']");
-    expect(pill).toContain('background: var(--color-pill-background);');
-    expect(pill).toContain('border-radius: 8px;');
+  it('takes the small size\'s class with small, and none by default', () => {
+    const {rerender} = render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
+    expect(screen.getByTestId('t')).not.toHaveClass('ui-tab-view--small');
+    rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} size="small" testID="t"/>);
+    expect(screen.getByTestId('t')).toHaveClass('ui-tab-view--small');
+  });
+
+  describe('with the stylesheet applied', () => {
+    let remove: () => void;
+
+    beforeEach(() => {
+      remove = stylesheet();
+    });
+
+    afterEach(() => {
+      remove();
+    });
+
+    // The fills are written with the `background` shorthand, which jsdom
+    // answers as written there (`transparent` as `rgba(0, 0, 0, 0)`) and not
+    // in `backgroundColor`.
+    /** The shell a tab is drawn in, which carries its fill. */
+    const shell = (testID: string) => screen.getByTestId(testID).parentElement!;
+    const bar = () => screen.getByTestId('t-strip').parentElement!;
+    /** The glyphs drawn in an element, in order. */
+    const glyphs = (element: Element) => [...element.querySelectorAll<HTMLElement>('.ui-symbol')];
+
+    it('paints the bar in the raised fill and the open tab in the page\'s colour by default', () => {
+      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
+      expect(getComputedStyle(bar()).background).toBe('var(--color-background-element)');
+      expect(getComputedStyle(shell('t-tab-a')).background).toBe('var(--color-background)');
+    });
+
+    it('clears the bar with none and marks the open tab with a pill instead', () => {
+      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} fill="none" testID="t"/>);
+      expect(getComputedStyle(bar()).background).toBe('rgba(0, 0, 0, 0)');
+      const pill = getComputedStyle(shell('t-tab-a'));
+      expect(pill.background).toBe('var(--color-pill-background)');
+      expect(pill.borderRadius).toBe('8px');
+    });
+
+    it('clears the bar with accent too, and marks the open tab with a capsule in the tint, its title, icon and cross in onTint', () => {
+      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onClose={() => {}} fill="accent" testID="t"/>);
+      expect(getComputedStyle(bar()).background).toBe('rgba(0, 0, 0, 0)');
+      const capsule = getComputedStyle(shell('t-tab-a'));
+      expect(capsule.background).toBe('var(--color-tint)');
+      expect(capsule.color).toBe('var(--color-on-tint)');
+      expect(capsule.borderRadius).toBe('999px');
+      // The icon and the cross draw in the text's colour, which the capsule's rule sets.
+      expect(glyphs(shell('t-tab-a')).map(glyph => glyph.style.color)).toEqual(['currentcolor', 'currentcolor']);
+      // A tab that is not open keeps the strip's look.
+      expect(getComputedStyle(shell('t-tab-b')).background).toBe('');
+      expect(getComputedStyle(shell('t-tab-b')).color).toBe('var(--color-secondary-label)');
+      expect(glyphs(shell('t-tab-b')).map(glyph => glyph.style.color)).toEqual(['var(--color-label)']);
+    });
+
+    it('draws the focus ring on the accent\'s capsule in onTint, where the tint would vanish', () => {
+      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} fill="accent" testID="t"/>);
+      // The rule by its selector: jsdom's `:focus-visible` follows a guess at
+      // how the focus came, so the ring is read from the sheet instead.
+      const selector = ".ui-tab-view--accent .ui-tab-view__tab[data-selected='true'] .ui-tab-view__tab-body";
+      const css = readFileSync(path.join(__dirname, 'tab-view.css'), 'utf8');
+      const ring = css.indexOf(`\n${selector}:focus-visible {`);
+      expect(ring).toBeGreaterThan(-1);
+      expect(css.slice(ring, css.indexOf('}', ring))).toContain('outline-color: var(--color-on-tint);');
+      // It names the open tab's body, and no other tab's.
+      expect(screen.getByTestId('t-tab-a').matches(selector)).toBe(true);
+      expect(screen.getByTestId('t-tab-b').matches(selector)).toBe(false);
+    });
+
+    it('draws the strip at the small button\'s metrics with small: 13 px on 18 with 6 above and below, the icon 14 and the cross 12', () => {
+      const strip = (size?: 'small') => <TabView tabs={TABS} selected="a" onSelect={() => {}} onClose={() => {}} onAdd={() => {}} size={size} testID="t"/>;
+      const {rerender} = render(strip());
+      const title = () => getComputedStyle(screen.getByText('Notes'));
+      expect(title().paddingTop).toBe('10px');
+      rerender(strip('small'));
+      expect(title().fontSize).toBe('13px');
+      expect(title().lineHeight).toBe('18px');
+      expect(title().paddingTop).toBe('6px');
+      expect(title().paddingBottom).toBe('6px');
+      expect(glyphs(shell('t-tab-a')).map(glyph => glyph.style.fontSize)).toEqual(['14px', '12px']);
+      // The plus keeps the small circle button's 16, in a square as tall as the bar.
+      expect(glyphs(screen.getByTestId('t-add')).map(glyph => glyph.style.fontSize)).toEqual(['16px']);
+      expect(getComputedStyle(screen.getByTestId('t-add')).paddingLeft).toBe('7px');
+    });
+
+    it('draws the switcher\'s bar small too, and the cards at their own size', async () => {
+      const user = userEvent.setup();
+      windowWidth(480);
+      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onClose={() => {}} size="small" testID="t"/>);
+      const switcher = screen.getByTestId('t-switcher');
+      const title = getComputedStyle(switcher.querySelector('.ui-tab-view__title')!);
+      expect(title.fontSize).toBe('13px');
+      expect(title.paddingTop).toBe('6px');
+      expect(glyphs(switcher).map(glyph => glyph.style.fontSize)).toEqual(['14px']);
+      expect(getComputedStyle(switcher.querySelector('.ui-tab-view__count')!).minWidth).toBe('20px');
+      await user.click(switcher);
+      // A grid is not a bar.
+      expect(glyphs(screen.getByTestId('t-card-a').parentElement!).map(glyph => glyph.style.fontSize)).toEqual(['16px', '14px']);
+      expect(getComputedStyle(screen.getByTestId('t-card-a').parentElement!).fontSize).toBe('15px');
+    });
   });
 
   it('calls the add button what it is asked to', () => {
@@ -449,17 +570,27 @@ describe('TabView (web)', () => {
       delete (Element.prototype as {scrollIntoView?: unknown}).scrollIntoView;
     });
 
+    /**
+     * The shell a tab or a card is drawn in: the element around the
+     * `role="tab"` body that carries `data-selected` and draws the padding,
+     * the pill or the card's border.
+     */
+    const shell = (testID: string) => screen.getByTestId(testID).parentElement!;
+
     it('scrolls the selected tab into view as the strip shows it and when it changes, only as far as it must', () => {
       const {rerender} = render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
       expect(scrollIntoView).toHaveBeenCalledTimes(1);
-      expect(scrollIntoView.mock.contexts[0]).toBe(screen.getByTestId('t-tab-a'));
       expect(scrollIntoView).toHaveBeenCalledWith({block: 'nearest', inline: 'nearest'});
       rerender(<TabView tabs={TABS} selected="c" onSelect={() => {}} testID="t"/>);
       expect(scrollIntoView).toHaveBeenCalledTimes(2);
-      expect(scrollIntoView.mock.contexts[1]).toBe(screen.getByTestId('t-tab-c'));
       // A render with the same selection moves nothing.
       rerender(<TabView tabs={[...TABS]} selected="c" onSelect={() => {}} testID="t"/>);
       expect(scrollIntoView).toHaveBeenCalledTimes(2);
+      // The shell, not the tab inside it: the body is inset by the shell's
+      // padding, so scrolling the body alone would leave the pill's ends cut
+      // at the strip's edges.
+      expect(shell('t-tab-a')).toHaveClass('ui-tab-view__tab');
+      expect(scrollIntoView.mock.contexts).toEqual([shell('t-tab-a'), shell('t-tab-c')]);
     });
 
     it('waits for a tab selected before it is in the list, and scrolls to it once it is', () => {
@@ -467,7 +598,7 @@ describe('TabView (web)', () => {
       expect(scrollIntoView).not.toHaveBeenCalled();
       rerender(<TabView tabs={[...TABS, {id: 'd', title: 'Draft'}]} selected="d" onSelect={() => {}} testID="t"/>);
       expect(scrollIntoView).toHaveBeenCalledTimes(1);
-      expect(scrollIntoView.mock.contexts[0]).toBe(screen.getByTestId('t-tab-d'));
+      expect(scrollIntoView.mock.contexts[0]).toBe(shell('t-tab-d'));
     });
 
     it('scrolls the selected card into view as the switcher opens', async () => {
@@ -478,7 +609,8 @@ describe('TabView (web)', () => {
       expect(scrollIntoView).not.toHaveBeenCalled();
       await user.click(screen.getByTestId('t-switcher'));
       expect(scrollIntoView).toHaveBeenCalledTimes(1);
-      expect(scrollIntoView.mock.contexts[0]).toBe(screen.getByTestId('t-card-b'));
+      expect(shell('t-card-b')).toHaveClass('ui-tab-view__card');
+      expect(scrollIntoView.mock.contexts[0]).toBe(shell('t-card-b'));
     });
   });
 });

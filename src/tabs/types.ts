@@ -56,7 +56,9 @@ export interface TabBarProps {
    * at the bottom of its scroll content, `useScrollInsets().bottom`); on web
    * a header control in the bar's actions slot; on Windows an item first
    * among the `NavigationView`'s, which invokes rather than selects. It goes
-   * with the tabs while they are hidden, on every platform.
+   * with the tabs while they are hidden, on every platform. On web it comes
+   * with the first render after the page runs, so a static export's page
+   * draws the bar without it.
    */
   action?: TabBarAction;
   /**

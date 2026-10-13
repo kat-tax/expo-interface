@@ -23,10 +23,11 @@ const SUBMIT_KEYS: readonly WindowsSubmitKey[] = [{code: 'Enter'}];
  * The `inline` variant: a borderless React Native `TextInput` on every
  * platform, for a field that sits inside a React Native layout (a search
  * row in a toolbar, a prompt in a bar) where the native form control would
- * need a host of its own. It grows to the room it is given, focuses on
- * mount when asked (and makes sure the keyboard came on Android), steps
- * with the keyboard's action key (`returnKeyType` with `submitBehavior`),
- * reports the focus coming and going, and takes it through the `ref`.
+ * need a host of its own. It grows to the room it is given, draws no focus
+ * ring of its own (`NO_RING`), focuses on mount when asked (and makes sure
+ * the keyboard came on Android), steps with the keyboard's action key
+ * (`returnKeyType` with `submitBehavior`), reports the focus coming and
+ * going, and takes it through the `ref`.
  */
 export function InlineTextField({
   placeholder,
@@ -107,10 +108,13 @@ export function InlineTextField({
 }
 
 /**
- * The box around a bare field draws the padding and the focus ring. The
- * browser draws its ring with `outline-style: auto`, which no width turns
- * off, so on web the style itself is turned off. The native renderers parse
- * only a solid, dotted or dashed outline, and draw none unless told.
+ * The field draws no focus ring, `inline` or `bare`: in a bar, a search row
+ * or a capsule the caret marks the focused field, as in the platforms' own
+ * bar fields, and a kit control that wants a ring draws its own around the
+ * box (the `Composer`'s capsule). The browser draws its ring with
+ * `outline-style: auto`, which no width turns off, so on web the style
+ * itself is turned off. The native renderers parse only a solid, dotted or
+ * dashed outline, and draw none unless told.
  */
 const NO_RING = Platform.select<TextStyle>({web: {outlineStyle: 'none'} as unknown as TextStyle, default: {}});
 
@@ -127,7 +131,6 @@ const styles = StyleSheet.create({
   bare: {
     paddingVertical: 0,
     paddingHorizontal: 0,
-    ...NO_RING,
   },
   multiline: {
     ...SIZED_TO_CONTENT,
@@ -142,6 +145,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fonts?.sans,
     fontWeight: fontWeights.normal,
+    ...NO_RING,
   },
   disabled: {
     opacity: 0.4,

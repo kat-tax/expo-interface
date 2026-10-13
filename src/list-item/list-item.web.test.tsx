@@ -1,3 +1,5 @@
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
 import {fireEvent, render, screen} from '@testing-library/react';
 import {ListItem} from '.';
 
@@ -32,13 +34,11 @@ describe('ListItem (web)', () => {
     expect(main.children[1]).toHaveTextContent('Connected');
   });
 
-  it('keeps the supporting text\'s line breaks', async () => {
+  it('keeps the supporting text\'s line breaks', () => {
     render(<ListItem supporting={'Edited yesterday\nShared with Ana'} testID="row">Essay</ListItem>);
     expect(screen.getByTestId('row').querySelector('.ui-list-item__supporting')!.textContent).toBe('Edited yesterday\nShared with Ana');
     // The project does not apply imported stylesheets, so the rule is read from the file.
-    const {readFileSync} = await import('node:fs');
-    const {join} = await import('node:path');
-    const css = readFileSync(join(__dirname, 'list-item.css'), 'utf8');
+    const css = readFileSync(path.join(__dirname, 'list-item.css'), 'utf8');
     expect(css).toMatch(/\.ui-list-item__supporting \{[^}]*white-space: pre-line;/);
   });
 
@@ -117,6 +117,39 @@ describe('ListItem (web)', () => {
     const action = screen.getByRole('button', {name: 'Sign in'});
     expect(action).toHaveClass('ui-button--filled', 'ui-button--rounded', 'ui-button--small');
     expect(action).not.toHaveClass('ui-button--text');
+  });
+
+  it('fills a selected row that presses, over the reset that strips its button\'s own fill', () => {
+    // Vitest processes no stylesheet in this project, so the sheet goes into
+    // the page by hand, and jsdom's cascade applies its rules to the rows.
+    const sheet = document.createElement('style');
+    sheet.textContent = readFileSync(path.join(__dirname, 'list-item.css'), 'utf8');
+    document.head.append(sheet);
+    try {
+      render(
+        <>
+          <ListItem selected onPress={vi.fn()} testID="pressable">Version 3</ListItem>
+          <ListItem selected onPress={vi.fn()} action={{label: 'Restore', onPress: vi.fn()}} testID="acting">Version 2</ListItem>
+          <ListItem selected testID="inert">Version 1</ListItem>
+          <ListItem onPress={vi.fn()} testID="plain">Version 0</ListItem>
+        </>,
+      );
+      const fill = (element: Element) => getComputedStyle(element).backgroundColor;
+      const pressable = screen.getByTestId('pressable');
+      expect(pressable.tagName).toBe('BUTTON');
+      expect(fill(pressable)).toBe('var(--color-background-selected)');
+      // With an action the row is a `<div>` around its own `<button>`, which
+      // stays clear, so the row's fill shows through it.
+      const acting = screen.getByTestId('acting');
+      expect(acting.tagName).toBe('DIV');
+      expect(fill(acting)).toBe('var(--color-background-selected)');
+      expect(fill(acting.querySelector('button.ui-list-item__row')!)).toBe('rgba(0, 0, 0, 0)');
+      expect(fill(screen.getByTestId('inert'))).toBe('var(--color-background-selected)');
+      // A pressable row that is not selected keeps the reset: `transparent`, as jsdom serializes it.
+      expect(fill(screen.getByTestId('plain'))).toBe('rgba(0, 0, 0, 0)');
+    } finally {
+      sheet.remove();
+    }
   });
 
   it('drops its own padding when the container draws the inset', () => {

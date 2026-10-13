@@ -2,25 +2,27 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'r
 import type {ReactNode, RefObject} from 'react';
 import type {IconToken} from '../icons';
 import type {MenuItem, MenuPoint} from '../menu/types';
-import type {ResolvedLayout} from './shared';
+import type {ResolvedLayout, TabViewSize} from './shared';
 import type {TabViewFill, TabViewLayout, TabViewTab} from './types';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {Pressable, ScrollView, StyleSheet, View, useWindowDimensions} from 'react-native';
 import {inSet} from '../a11y/set';
 import {PopupMenu} from '../popup-menu';
 import {Icon as Glyph} from '../symbol';
-import {Body, Caption} from '../typography';
+import {Body, Caption, Footnote} from '../typography';
 import {spacing, useColor} from '../theme';
-import {closeLabel, resolveLayout, revealOffset, switcherLabel, tabIndex, tabLabel} from './shared';
+import {GLYPHS, closeLabel, resolveLayout, revealOffset, switcherLabel, tabIndex, tabLabel} from './shared';
 
 /** The cross on a tab, the plus at the end of the strip, and the switcher's own glyph. */
 const CLOSE: IconToken = {symbol: {ios: 'xmark', android: 'close', web: 'close'}};
 const ADD: IconToken = {symbol: {ios: 'plus', android: 'add', web: 'add'}};
 const GRID: IconToken = {symbol: {ios: 'square.grid.2x2', android: 'grid_view', web: 'grid_view'}};
 
-/** Glyph sizes: a tab's own icon beside its text, and the cross, which sits inside it. */
-const ICON = 16;
-const CROSS = 14;
+/**
+ * The text of a tab and of the switcher's bar at each size: the body, or
+ * the footnote, which is the small button's 13 on 18 on iOS and Android.
+ */
+const TEXT = {regular: Body, small: Footnote} as const;
 
 /** How far each level of `depth` moves a tab in. */
 export const DEPTH_INDENT = 12;
@@ -62,6 +64,8 @@ export interface TabDrawProps {
   addLabel: string;
   /** What the strip or the bar is painted with. */
   fill: TabViewFill;
+  /** The strip's and the bar's metrics; the cards keep theirs. */
+  size: TabViewSize;
   label: string;
   testID?: string;
 }
@@ -189,7 +193,8 @@ export function useTabMenus(testID: string | undefined, places: TabPlaces): {
 
 /**
  * The strip iOS and Android draw: a scrolling row of tabs, each with its close
- * cross, and the add button at the end.
+ * cross, and the add button after the last tab, which stays at the strip's
+ * end once the tabs fill it.
  *
  * The cross is a control beside the tab rather than inside it. Nesting one
  * pressable in another makes a tab whose cross is also a press of the tab, and
@@ -200,15 +205,21 @@ export function useTabMenus(testID: string | undefined, places: TabPlaces): {
  * cards: the tab is one stop that names itself from `label`, and on Android
  * an accessible view inside it (a `Badge`) would be a stop of its own.
  */
-export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fill, label, testID}: TabDrawProps) {
+export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fill, size, label, testID}: TabDrawProps) {
   // With no fill of its own the strip is on a material or a header's fill,
   // where the page's colour no longer marks the open tab; the translucent
-  // pill fill reads on either.
-  const filled = fill !== 'none';
+  // pill fill reads on either. The accent marks it with a capsule in the
+  // tint instead, for a strip on a page, where that pill reads faint.
+  const filled = fill === 'element';
+  const accent = fill === 'accent';
   const surface = useColor('backgroundElement');
-  const open = useColor(filled ? 'background' : 'pillBackground');
+  const open = useColor(filled ? 'background' : accent ? 'tint' : 'pillBackground');
+  const onTint = useColor('onTint');
   const labelColor = useColor('label');
   const secondary = useColor('secondaryLabel');
+  const small = size === 'small';
+  const glyphs = GLYPHS[size];
+  const TabText = TEXT[size];
   const scroller = useRef<ScrollView>(null);
   const places = useTabPlaces(selected, 'x', true, scroller);
   const menus = useTabMenus(testID, places);
@@ -220,6 +231,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
         showsHorizontalScrollIndicator={false}
         accessibilityRole="tablist"
         accessibilityLabel={label}
+        style={styles.scroller}
         contentContainerStyle={styles.stripRow}
         onLayout={places.onFrame}
         onScroll={places.onScroll}
@@ -227,10 +239,18 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
         testID={sub(testID, 'strip')}>
         {tabs.map((tab, index) => {
           const on = tab.id === selected;
+          // The accent's open tab, whose text and glyphs read on the tint.
+          const capsule = on && accent;
           return (
             <View
               key={tab.id}
-              style={[styles.tab, on && {backgroundColor: open}, on && !filled && styles.pill, tab.depth ? {paddingLeft: spacing.three + tab.depth * DEPTH_INDENT} : null]}
+              style={[
+                styles.tab,
+                on && {backgroundColor: open},
+                on && fill === 'none' && styles.pill,
+                capsule && styles.capsule,
+                tab.depth ? {paddingLeft: spacing.three + tab.depth * DEPTH_INDENT} : null,
+              ]}
               onLayout={event => places.onPlace(tab.id, event)}>
               <Pressable
                 accessibilityRole="tab"
@@ -244,13 +264,13 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
                 accessibilityState={{selected: on}}
                 onPress={() => onSelect(tab.id)}
                 onLongPress={tab.menu ? () => menus.open(tab) : undefined}
-                style={styles.tabBody}
+                style={[styles.tabBody, small && styles.small]}
                 testID={sub(testID, `tab-${tab.id}`)}
                 {...inSet(index + 1, tabs.length)}>
-                {tab.icon ? <Glyph icon={tab.icon} size={ICON} tintColor={on ? labelColor : secondary}/> : null}
-                <Body numberOfLines={1} color={on ? 'label' : 'secondaryLabel'} style={styles.title}>
+                {tab.icon ? <Glyph icon={tab.icon} size={glyphs.icon} tintColor={capsule ? onTint : on ? labelColor : secondary}/> : null}
+                <TabText numberOfLines={1} color={capsule ? 'onTint' : on ? 'label' : 'secondaryLabel'} style={styles.title}>
                   {tab.title}
-                </Body>
+                </TabText>
                 {tab.accessory ? <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={styles.accessory}>{tab.accessory}</View> : null}
               </Pressable>
               {onClose && !tab.pinned ? (
@@ -260,7 +280,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
                   onPress={() => onClose(tab.id)}
                   style={styles.cross}
                   testID={sub(testID, `close-${tab.id}`)}>
-                  <Glyph icon={CLOSE} size={CROSS} tintColor={secondary}/>
+                  <Glyph icon={CLOSE} size={glyphs.cross} tintColor={capsule ? onTint : secondary}/>
                 </Pressable>
               ) : null}
             </View>
@@ -272,9 +292,9 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
           accessibilityRole="button"
           accessibilityLabel={addLabel}
           onPress={onAdd}
-          style={styles.add}
+          style={[styles.add, small && styles.addSmall]}
           testID={sub(testID, 'add')}>
-          <Glyph icon={ADD} size={ICON} tintColor={labelColor}/>
+          <Glyph icon={ADD} size={glyphs.add} tintColor={labelColor}/>
         </Pressable>
       ) : null}
       {menus.menu}
@@ -312,6 +332,7 @@ export function TabSwitcher({
   onAdd,
   addLabel,
   fill,
+  size,
   label,
   testID,
   alone,
@@ -323,7 +344,11 @@ export function TabSwitcher({
 }) {
   const {height: windowHeight} = useWindowDimensions();
   const [open, setOpen] = useState(false);
-  const filled = fill !== 'none';
+  // The bar names the open tab rather than drawing it, so the accent's
+  // capsule has nothing to mark here, and the bar is bare as with `none`.
+  const filled = fill === 'element';
+  const small = size === 'small';
+  const TabText = TEXT[size];
   const surface = useColor('backgroundElement');
   const card = useColor('background');
   const labelColor = useColor('label');
@@ -340,11 +365,11 @@ export function TabSwitcher({
           accessibilityLabel={switcherLabel(tabs, selected)}
           accessibilityState={{expanded: open}}
           onPress={() => setOpen(!open)}
-          style={styles.barBody}
+          style={[styles.barBody, small && styles.small]}
           testID={sub(testID, 'switcher')}>
-          <Glyph icon={GRID} size={ICON} tintColor={labelColor}/>
-          <Body numberOfLines={1} style={styles.title}>{current ? current.title : label}</Body>
-          <View style={[styles.count, {borderColor: secondary}]}>
+          <Glyph icon={GRID} size={GLYPHS[size].icon} tintColor={labelColor}/>
+          <TabText numberOfLines={1} style={styles.title}>{current ? current.title : label}</TabText>
+          <View style={[styles.count, small && styles.countSmall, {borderColor: secondary}]}>
             <Caption color="secondaryLabel">{tabs.length}</Caption>
           </View>
         </Pressable>
@@ -356,9 +381,9 @@ export function TabSwitcher({
               setOpen(false);
               onAdd();
             }}
-            style={styles.add}
+            style={[styles.add, small && styles.addSmall]}
             testID={sub(testID, 'add')}>
-            <Glyph icon={ADD} size={ICON} tintColor={labelColor}/>
+            <Glyph icon={ADD} size={GLYPHS[size].add} tintColor={labelColor}/>
           </Pressable>
         ) : null}
       </View>
@@ -393,7 +418,7 @@ export function TabSwitcher({
                     style={[styles.cardBody, tab.depth ? {paddingLeft: spacing.three + tab.depth * DEPTH_INDENT} : null]}
                     testID={sub(testID, `card-${tab.id}`)}
                     {...inSet(index + 1, tabs.length)}>
-                    {tab.icon ? <Glyph icon={tab.icon} size={ICON} tintColor={secondary}/> : null}
+                    {tab.icon ? <Glyph icon={tab.icon} size={GLYPHS.regular.icon} tintColor={secondary}/> : null}
                     <Body numberOfLines={2}>{tab.title}</Body>
                     {tab.accessory ? <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={styles.accessory}>{tab.accessory}</View> : null}
                   </Pressable>
@@ -404,7 +429,7 @@ export function TabSwitcher({
                       onPress={() => onClose(tab.id)}
                       style={styles.cardCross}
                       testID={sub(testID, `close-${tab.id}`)}>
-                      <Glyph icon={CLOSE} size={CROSS} tintColor={secondary}/>
+                      <Glyph icon={CLOSE} size={GLYPHS.regular.cross} tintColor={secondary}/>
                     </Pressable>
                   ) : null}
                 </View>
@@ -425,6 +450,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'stretch',
   },
+  /**
+   * The tabs' width and no more, where a `ScrollView` grows by default: the
+   * add button after it then follows the last tab, and once the tabs fill
+   * the row the scroller shrinks to the room the button leaves and scrolls.
+   */
+  scroller: {
+    flexGrow: 0,
+    flexShrink: 1,
+  },
   stripRow: {
     alignItems: 'stretch',
   },
@@ -443,12 +477,23 @@ const styles = StyleSheet.create({
   pill: {
     borderRadius: 8,
   },
+  /** The accent's open tab: a capsule, as the kit's filled button. */
+  capsule: {
+    borderRadius: 999,
+  },
   tabBody: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.two,
     flexShrink: 1,
     paddingVertical: spacing.three,
+  },
+  /**
+   * The small size's tab and bar: the small button's 6 above and below the
+   * footnote's 18 point line, 30 tall.
+   */
+  small: {
+    paddingVertical: 6,
   },
   title: {
     flexShrink: 1,
@@ -467,6 +512,10 @@ const styles = StyleSheet.create({
   add: {
     justifyContent: 'center',
     paddingHorizontal: spacing.three,
+  },
+  /** The plus in a square as tall as the small strip, as in the small circle button. */
+  addSmall: {
+    paddingHorizontal: 7,
   },
   bar: {
     flexDirection: 'row',
@@ -488,6 +537,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     alignItems: 'center',
     paddingHorizontal: spacing.one,
+  },
+  countSmall: {
+    minWidth: 20,
   },
   /** The cards and the menu over them: the menu is placed against this box. */
   cardsRoot: {

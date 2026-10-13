@@ -1,13 +1,32 @@
+import {createElement} from 'react';
 import {Dimensions, Platform, StyleSheet, Text, View} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {colors} from '../theme';
+import {colors, variants} from '../theme';
 import {TabView} from '.';
+
+// `SymbolView` as a host view carrying its props, so a test reads the size
+// and the colour the kit hands a glyph: Android's draws nothing of its own
+// until its font has loaded.
+vi.mock('expo-symbols', () => ({SymbolView: (props: object) => createElement('SymbolView', props)}));
 
 const TABS = [
   {id: 'a', title: 'Notes', icon: {symbol: {ios: 'doc', android: 'description', web: 'description'}}} as const,
   {id: 'b', title: 'Sketch'},
   {id: 'c', title: 'Readme', pinned: true},
 ];
+
+type Host = ReturnType<typeof screen.getByTestId>;
+
+/** The glyphs drawn inside an element, in order, as the props `SymbolView` was handed. */
+function glyphs(element: Host): {size: number; tintColor: string}[] {
+  return element.children.flatMap(child => {
+    if (typeof child === 'string') return [];
+    return child.type === 'SymbolView' ? [child.props as {size: number; tintColor: string}] : glyphs(child);
+  });
+}
+
+/** A text's own style, flattened. */
+const textStyle = (text: string) => StyleSheet.flatten(screen.getByText(text).props.style);
 
 /** The width the root reports, which is what decides the shape. */
 async function layout(width: number) {
@@ -65,6 +84,15 @@ describe(`TabView (${Platform.OS})`, () => {
     );
     await fireEvent.press(screen.getByLabelText('New tab'));
     expect(onAdd).toHaveBeenCalled();
+  });
+
+  it('puts the add button after the last tab: the scroller is as wide as its tabs, and shrinks to the room once they fill the row', async () => {
+    await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} layout="strip" testID="t"/>);
+    // A ScrollView grows by default, which would take the row and push the
+    // button to its far end.
+    expect(StyleSheet.flatten(screen.getByTestId('t-strip').props.style)).toMatchObject({flexGrow: 0, flexShrink: 1});
+    const row = screen.getByTestId('t-strip').parent!;
+    expect(row.children.indexOf(screen.getByTestId('t-add'))).toBe(row.children.indexOf(screen.getByTestId('t-strip')) + 1);
   });
 
   describe('switcher', () => {
@@ -215,11 +243,64 @@ describe(`TabView (${Platform.OS})`, () => {
       expect(style('t-tab-b').borderRadius).toBeUndefined();
     });
 
-    it('paints the switcher\'s bar, or leaves it bare with none', async () => {
+    it('draws no fill of its own with accent either, and marks the open tab with a capsule in the tint, its title, icon and cross in onTint', async () => {
+      await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onClose={() => {}} layout="strip" fill="accent" testID="t"/>);
+      expect(style('t-strip').backgroundColor).toBeUndefined();
+      expect(style('t-tab-a')).toMatchObject({backgroundColor: colors.light.tint, borderRadius: 999});
+      expect(textStyle('Notes').color).toBe(colors.light.onTint);
+      expect(glyphs(screen.getByTestId('t-tab-a')).map(glyph => glyph.tintColor)).toEqual([colors.light.onTint]);
+      expect(glyphs(screen.getByTestId('t-close-a')).map(glyph => glyph.tintColor)).toEqual([colors.light.onTint]);
+      // A tab that is not open keeps the strip's look.
+      expect(style('t-tab-b').backgroundColor).toBeUndefined();
+      expect(style('t-tab-b').borderRadius).toBeUndefined();
+      expect(textStyle('Sketch').color).toBe(colors.light.secondaryLabel);
+      expect(glyphs(screen.getByTestId('t-close-b')).map(glyph => glyph.tintColor)).toEqual([colors.light.secondaryLabel]);
+    });
+
+    it('paints the switcher\'s bar, or leaves it bare with none and with accent', async () => {
       const {rerender} = await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
       expect(style('t-switcher').backgroundColor).toBe(colors.light.backgroundElement);
       await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" fill="none" testID="t"/>);
       expect(style('t-switcher').backgroundColor).toBeUndefined();
+      // The bar names the open tab rather than drawing it: no capsule to mark.
+      await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" fill="accent" testID="t"/>);
+      expect(style('t-switcher').backgroundColor).toBeUndefined();
+    });
+  });
+
+  describe('size', () => {
+    const own = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style);
+
+    it('draws the strip at the small button\'s metrics with small: the footnote with 6 above and below, the icon 14 and the cross 12', async () => {
+      const strip = (size?: 'small') => <TabView tabs={TABS} selected="a" onSelect={() => {}} onClose={() => {}} onAdd={() => {}} layout="strip" size={size} testID="t"/>;
+      const {rerender} = await render(strip());
+      expect(own('t-tab-a').paddingVertical).toBe(16);
+      expect(textStyle('Notes')).toMatchObject({fontSize: variants.body.fontSize, lineHeight: variants.body.lineHeight});
+      expect(glyphs(screen.getByTestId('t-tab-a'))[0]!.size).toBe(16);
+      expect(glyphs(screen.getByTestId('t-close-a'))[0]!.size).toBe(14);
+      await rerender(strip('small'));
+      expect(own('t-tab-a').paddingVertical).toBe(6);
+      expect(textStyle('Notes')).toMatchObject({fontSize: 13, lineHeight: 18});
+      expect(textStyle('Sketch')).toMatchObject({fontSize: 13, lineHeight: 18});
+      expect(glyphs(screen.getByTestId('t-tab-a'))[0]!.size).toBe(14);
+      expect(glyphs(screen.getByTestId('t-close-a'))[0]!.size).toBe(12);
+      // The plus keeps the small circle button's 16, in a square as tall as the strip.
+      expect(glyphs(screen.getByTestId('t-add'))[0]!.size).toBe(16);
+      expect(own('t-add').paddingHorizontal).toBe(7);
+    });
+
+    it('draws the switcher\'s bar small too, and the cards at their own size', async () => {
+      await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onClose={() => {}} onAdd={() => {}} layout="switcher" size="small" testID="t"/>);
+      expect(own('t-switcher').paddingVertical).toBe(6);
+      expect(textStyle('Notes')).toMatchObject({fontSize: 13, lineHeight: 18});
+      expect(glyphs(screen.getByTestId('t-switcher'))[0]!.size).toBe(14);
+      expect(StyleSheet.flatten(screen.getByText('3').parent!.props.style).minWidth).toBe(20);
+      expect(own('t-add').paddingHorizontal).toBe(7);
+      await fireEvent.press(screen.getByTestId('t-switcher'));
+      // A grid is not a bar.
+      expect(glyphs(screen.getByTestId('t-card-a'))[0]!.size).toBe(16);
+      expect(glyphs(screen.getByTestId('t-close-a'))[0]!.size).toBe(14);
+      expect(textStyle('Sketch')).toMatchObject({fontSize: variants.body.fontSize, lineHeight: variants.body.lineHeight});
     });
   });
 

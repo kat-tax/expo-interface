@@ -101,8 +101,10 @@ export interface SheetProps extends BottomSheetProps {
   /**
    * The sheet's name, in a bar along its top: native text on iOS and
    * Android, the kit's on web and Windows. The bar holds the back button,
-   * the menu and the close button too, and is drawn as soon as any of them
-   * is given.
+   * the menu and the close button too, and the accessory with
+   * `accessoryPlacement="bar"`, and is drawn as soon as any of them is
+   * given. The title takes one line, and is cut short where the ends leave
+   * it less room.
    */
   title?: string;
   /** A second line under the title, in the secondary color. */
@@ -117,11 +119,26 @@ export interface SheetProps extends BottomSheetProps {
   /** The sheet's own actions, as the platform's menu behind an ellipsis in the bar, before the close button. */
   menu?: MenuItem[];
   /**
-   * A row under the bar and above the body: a `SegmentedControl` that picks
-   * what the body shows, a search field. Native content on iOS and Android,
-   * as the bar is.
+   * A control for what the body shows: a `SegmentedControl` that picks it, a
+   * search field. A row under the bar and above the body, or a place in the
+   * bar itself with `accessoryPlacement="bar"`. Native content on iOS and
+   * Android, as the bar is; React Native content on web and Windows.
    */
   accessory?: ReactNode;
+  /**
+   * Where the accessory goes. `row` is a row of its own under the bar. `bar`
+   * puts it in the bar, at its leading end after the back button, and draws
+   * the bar for it alone. The title stays centred: both ends of the bar are
+   * as wide as the wider of them, and the title takes what is left. Where
+   * that would leave a title or a subtitle less than 96 points, the bar has
+   * no room for the accessory, and it goes to its own row under the bar, as
+   * with `row`, until the bar is wide enough for it again. With no title
+   * and no subtitle there is nothing to centre, and it stays in the bar
+   * whatever the widths. On iOS it takes its own ideal width in the bar, as
+   * a toolbar item does.
+   * @default 'row'
+   */
+  accessoryPlacement?: 'row' | 'bar';
   /**
    * The row along the bottom edge, under the body: a `Composer`, a notice.
    * React Native content on every platform; on iOS and Android it is hosted
