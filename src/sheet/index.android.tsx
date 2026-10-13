@@ -8,6 +8,7 @@ import {NativeHostContext} from '../host';
 import {hostAccentProps} from '../screen/host-accent';
 import {sheetChildren, sheetOwnProps} from './compose';
 import {SIDE_INSET, contentPaddingEdges, fillsMaxHeight, skipsPartiallyExpanded} from './shared';
+import {InSheetContext} from './inside';
 import {SheetContentWidthContext, useSheetContentWidth} from './width';
 
 /**
@@ -94,7 +95,9 @@ export function Sheet(props: SheetProps) {
         <Column modifiers={content}>
           <NativeHostContext.Provider value={true}>
             <Column modifiers={[fillMaxWidth(), onSizeChanged(onSize)]}>
-              <SheetContentWidthContext.Provider value={width}>{sheetChildren(props)}</SheetContentWidthContext.Provider>
+              <InSheetContext.Provider value={true}>
+                <SheetContentWidthContext.Provider value={width}>{sheetChildren(props)}</SheetContentWidthContext.Provider>
+              </InSheetContext.Provider>
             </Column>
           </NativeHostContext.Provider>
         </Column>

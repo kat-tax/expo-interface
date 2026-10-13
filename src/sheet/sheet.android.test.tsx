@@ -3,7 +3,9 @@ import {act, render, screen} from '@testing-library/react-native';
 import {useMaterialColors} from '@expo/ui/jetpack-compose';
 import {alpha} from '@expo/ui/jetpack-compose/modifiers';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {useContext} from 'react';
 import {AccentProvider, ACCENT_SEED} from '../accent';
+import {InSheetContext} from './inside';
 import {Sheet} from '.';
 
 /**
@@ -107,6 +109,20 @@ describe('Sheet (android presentation)', () => {
     expect(modifier(modal().props, 'alpha')).toEqual({$type: 'alpha', alpha: 0.5});
     await act(async () => modal().props.onDismissRequest());
     expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('tells its content it is in a sheet, a window of its own, which nothing outside one is', async () => {
+    function Where() {
+      return <Text>{useContext(InSheetContext) ? 'in a sheet' : 'outside'}</Text>;
+    }
+    await render(
+      <>
+        <Where/>
+        <Sheet isPresented onDismiss={() => {}}><Where/></Sheet>
+      </>,
+    );
+    expect(screen.getByText('outside')).toBeOnTheScreen();
+    expect(screen.getByText('in a sheet')).toBeOnTheScreen();
   });
 
   it('pads the content as asked: a number on every edge, or an object\'s edges with 0 for one left out', async () => {

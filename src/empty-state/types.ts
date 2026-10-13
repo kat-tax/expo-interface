@@ -81,8 +81,11 @@ export interface EmptyStateProps {
    * Whether the description can be selected and copied: the reason a
    * document failed to open is worth pasting somewhere. On Android the
    * description is then React Native text hosted in the Compose column, since
-   * `@expo/ui`'s Compose layer cannot select text.
-   * @default true
+   * `@expo/ui`'s Compose layer cannot select text. In a `Sheet` on Android
+   * it is off unless asked for: a selectable description takes the sheet's
+   * window's first focus in touch mode, and Android draws its focus
+   * highlight over it.
+   * @default true, and false in a `Sheet` on Android
    */
   selectable?: boolean;
   /**

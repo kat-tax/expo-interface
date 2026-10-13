@@ -5,6 +5,7 @@ import * as icons from '../__stories__/icons';
 import {hostFit, hosts} from '../__tests__/hosts';
 import {iosSymbol} from '../button/shared';
 import {NativeHost, useNativeHost} from '../host';
+import {InSheetContext} from '../sheet/inside';
 import {colors, spacing} from '../theme';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {EMPTY_ICON} from './shared';
@@ -234,6 +235,20 @@ describe(`EmptyState (${Platform.OS})`, () => {
     // Not selectable: the Compose text, with no React Native text beside it.
     expect(host(p => p.text === 'No reason.').props.textAlign).toBe('center');
     expect(screen.queryByText('No reason.')).toBeNull();
+  });
+
+  it('keeps the description plain in a sheet, where a selectable one takes the focus of the window, unless asked', async () => {
+    await render(
+      <InSheetContext.Provider value>
+        <EmptyState title="No comments" description="Select text to comment." testID="a"/>
+        <EmptyState title="Failed" description="The file is gone." selectable testID="b"/>
+      </InSheetContext.Provider>,
+    );
+    // The Compose text, with no React Native text beside it.
+    expect(host(p => p.text === 'Select text to comment.').props.textAlign).toBe('center');
+    expect(screen.queryByText('Select text to comment.')).toBeNull();
+    // Asked for, it is selectable all the same.
+    expect(screen.getByText('The file is gone.').props.selectable).toBe(true);
   });
 
   it('renders bare inside a host, the test ID on the column', async () => {

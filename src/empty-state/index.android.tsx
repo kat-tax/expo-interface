@@ -1,9 +1,10 @@
 import type {EmptyStateProps} from './types';
-import {useState} from 'react';
+import {useContext, useState} from 'react';
 import {StyleSheet, View, useWindowDimensions} from 'react-native';
 import {Box, CircularProgressIndicator, Column, Icon, RNHostView, Text} from '@expo/ui/jetpack-compose';
 import {fillMaxWidth, onSizeChanged, padding, size, testID as testIDModifier, wrapContentHeight} from '@expo/ui/jetpack-compose/modifiers';
 import {NativeHost, NativeHostContext, useNativeHost} from '../host';
+import {InSheetContext} from '../sheet/inside';
 import {drawableOf} from '../icons';
 import {spacing, useColor} from '../theme';
 import {Subheadline} from '../typography';
@@ -41,7 +42,12 @@ export function EmptyState(props: EmptyStateProps) {
 }
 
 /** The state as one Compose column, with the test ID on it when there is no view around it. */
-function EmptyStateColumn({title, description, icon, action, loading = false, selectable = true, testID, hosted}: EmptyStateProps & {hosted: boolean}) {
+function EmptyStateColumn({title, description, icon, action, loading = false, selectable, testID, hosted}: EmptyStateProps & {hosted: boolean}) {
+  // In a sheet a selectable description would take the window's first
+  // focus, and Android draws its focus highlight over it: plain text there
+  // unless the app asks.
+  const inSheet = useContext(InSheetContext);
+  const selectableText = selectable ?? !inSheet;
   const label = useColor('label');
   const muted = useColor('secondaryLabel');
   const tint = useColor('tint');
@@ -63,7 +69,7 @@ function EmptyStateColumn({title, description, icon, action, loading = false, se
       ) : null}
       <Text color={label} style={{typography: 'titleLarge', textAlign: 'center'}} modifiers={[fillMaxWidth()]}>{title}</Text>
       {description ? (
-        selectable ? (
+        selectableText ? (
           <SelectableDescription>{description}</SelectableDescription>
         ) : (
           <Text color={muted} style={{typography: 'bodyMedium', textAlign: 'center'}} modifiers={[fillMaxWidth()]}>{description}</Text>

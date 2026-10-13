@@ -756,7 +756,9 @@ below the view, and the web and Windows draw it under the description.
 `loading` puts the platform's spinner in the icon's place, so a screen waiting
 for its record is the same empty state as one that has none. The description
 wraps at the screen's width and can be selected and copied, unless
-`selectable` is off.
+`selectable` is off. In a `Sheet` on Android it is off unless asked for: a
+selectable description takes the sheet's window's first focus in touch
+mode, and Android draws its focus highlight over it.
 
 On iOS and Android, outside a host the state mounts one as wide as its
 container, and `style` and `testID` go on the view around it. Inside one (a
