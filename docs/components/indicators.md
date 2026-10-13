@@ -230,13 +230,15 @@ function NoteRow({note}: {note: Note}) {
 }
 ```
 
-A `Card`'s subtitle is one line, and a narrow card ends "Edited 12 minutes
-ago" in an ellipsis, so it takes the `short` style:
+A `Card`'s subtitle is one line, and a phone's two-column card leaves it
+about 100 points, which `short`'s "Edited 10 days ago" overruns, so it takes
+the `narrow` style, whose widest, "Edited 10mo ago", fits. The card is named
+in the long words through `label`, its whole accessible name:
 
 ```tsx
 function DocumentCard({doc}: {doc: Doc}) {
-  const edited = useRelativeTime(doc.editedAt, {style: 'short'});
-  return <Card title={doc.name} subtitle={`Edited ${edited}`}/>;
+  const {text, spoken} = useRelativeTime(doc.editedAt, {style: 'narrow', spoken: true});
+  return <Card title={doc.name} subtitle={`Edited ${text}`} label={`${doc.name}, Edited ${spoken}`}/>;
 }
 ```
 
