@@ -9,9 +9,10 @@ import {BAR_HEIGHT, BAR_SIDE, sub} from './shared';
 
 /**
  * Web: marks the box the title sits in, for the sheet to find the heading
- * and move the keyboard focus to it as it opens. react-native-web writes
- * `dataSet` out as a `data-*` attribute, which React Native's own types do
- * not know; Windows has no use for it.
+ * and move the keyboard focus to it as it opens, and for `sheet.css` to
+ * draw no focus ring on it there. react-native-web writes `dataSet` out as
+ * a `data-*` attribute, which React Native's own types do not know; Windows
+ * has no use for it.
  */
 const TITLES: ViewProps = Platform.OS === 'web' ? ({dataSet: {uiSheetTitle: ''}} as ViewProps) : {};
 

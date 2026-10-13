@@ -1,3 +1,4 @@
+import './sheet.css';
 import type {SheetProps} from './types';
 import {BottomSheet} from '@expo/ui';
 import {useEffect, useRef, useState} from 'react';
@@ -83,7 +84,7 @@ export function Sheet(props: SheetProps) {
     if (!sheet.isPresented || content === null) return;
     const root = content as unknown as HTMLElement;
     // A field in the content that asked for the focus (`autoFocus`) has it
-    // by now, and keeps it: the move is for a focus the dialog would hide.
+    // already, and keeps it: the move is for a focus the dialog would hide.
     if (root.contains(document.activeElement)) return;
     const target = root.querySelector<HTMLElement>(TITLE) ?? root.querySelector<HTMLElement>(FOCUSABLE);
     target?.focus({preventScroll: true});

@@ -1,0 +1,9 @@
+/* The sheet moves the keyboard focus to its title as it opens, a heading with
+   `tabindex="-1"` that no Tab reaches on its own: the move says where the
+   focus went, and the next Tab shows the ring on the first control. A ring on
+   the heading itself reads as a stray outline, above all when the sheet opens
+   from a text editor, which always matches `:focus-visible` and hands that on
+   to the element a script focuses next. */
+[data-ui-sheet-title] [role="heading"]:focus {
+  outline: none;
+}
