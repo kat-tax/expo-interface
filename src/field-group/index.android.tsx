@@ -1,7 +1,7 @@
 import type {ReactNode, ReactElement} from 'react';
 import type {FieldSectionHeaderProps, FieldSectionFooterProps} from '@expo/ui';
 import type {FieldGroupProps, FieldGroupSectionProps} from './types';
-import {Children, Fragment, isValidElement, useContext} from 'react';
+import {Children, Fragment, isValidElement, useContext, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {Box, Column, Text} from '@expo/ui/jetpack-compose';
 import {
@@ -9,10 +9,12 @@ import {
   clip,
   defaultMinSize,
   fillMaxWidth,
+  onSizeChanged,
   padding,
   Shapes,
   testID as testIDModifier,
   verticalScroll,
+  wrapContentHeight,
   type ModifierConfig,
 } from '@expo/ui/jetpack-compose/modifiers';
 import {NativeHost, useNativeHost} from '../host';
@@ -50,19 +52,29 @@ import {flushRow} from './rows';
 function FieldGroupBase(props: FieldGroupProps) {
   const hosted = useNativeHost();
   const cap = useContext(SheetBodyCapContext);
+  // In a capped body the form is as tall as its rows, up to the cap, and
+  // scrolls inside the cap past it: what the scroll holds reports its own
+  // height, which the cap does not limit.
+  const [content, setContent] = useState<number>();
   if (props.hidden) return null;
   if (hosted) return <NativeGroup {...props}/>;
+  const height = cap === undefined ? undefined : Math.min(content ?? cap, cap);
   // The group's own props stay on the Compose column (`testID`, `style`); the box only sizes the host.
   return (
-    <View style={cap === undefined ? styles.fill : {alignSelf: 'stretch', height: cap}}>
-      <NativeHost fit="fill"><NativeGroup {...props}/></NativeHost>
+    <View style={height === undefined ? styles.fill : {alignSelf: 'stretch', height}}>
+      <NativeHost fit="fill"><NativeGroup {...props} onContentHeight={cap === undefined ? undefined : setContent}/></NativeHost>
     </View>
   );
 }
 
-function NativeGroup({children, style, testID}: FieldGroupProps) {
+function NativeGroup({children, style, testID, onContentHeight}: FieldGroupProps & {onContentHeight?: (height: number) => void}) {
   const insets = useScrollInsets();
-  const modifiers: ModifierConfig[] = [fillMaxWidth(), verticalScroll(), padding(16, 16 + insets.top, 16, 16 + insets.bottom)];
+  const pad = padding(16, 16 + insets.top, 16, 16 + insets.bottom);
+  // Measuring itself (a capped body): no minimum, so it can be shorter than
+  // the cap, and the size inside the scroll, which is the content's own.
+  const modifiers: ModifierConfig[] = onContentHeight
+    ? [fillMaxWidth(), wrapContentHeight('top'), verticalScroll(), onSizeChanged(next => onContentHeight(next.height)), pad]
+    : [fillMaxWidth(), verticalScroll(), pad];
   if (style?.backgroundColor) modifiers.push(background(String(style.backgroundColor)));
   if (testID) modifiers.push(testIDModifier(testID));
   return (

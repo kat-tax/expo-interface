@@ -5,8 +5,9 @@ import type {MenuItem, MenuPoint} from '../menu/types';
 import type {ResolvedLayout, TabViewSize} from './shared';
 import type {TabViewFill, TabViewLayout, TabViewTab} from './types';
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {Pressable, ScrollView, StyleSheet, View, useWindowDimensions} from 'react-native';
+import {Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions} from 'react-native';
 import {inSet} from '../a11y/set';
+import {androidContentPadding} from '../button/shared';
 import {PopupMenu} from '../popup-menu';
 import {Icon as Glyph} from '../symbol';
 import {Body, Caption, Footnote} from '../typography';
@@ -26,6 +27,24 @@ const TEXT = {regular: Body, small: Footnote} as const;
 
 /** How far each level of `depth` moves a tab in. */
 export const DEPTH_INDENT = 12;
+
+/** The add button's padding a side: the small circle button's square at the small size. */
+const ADD_PAD = {regular: spacing.three, small: 7} as const;
+
+/**
+ * What the accent's tabs take of the kit's buttons, as the platform draws
+ * them: on Android Material's, at its content padding a side (the small
+ * button's for `small`, the medium's otherwise), at least its 40 tall, in
+ * its label's medium weight; on iOS the drawn button's 12 a side (18 at the
+ * regular size), semibold. Every tab takes the open one's padding, so a
+ * change of tab moves none of them.
+ */
+export function accentTab(size: TabViewSize): {paddingHorizontal: number; minHeight?: number; fontWeight: '500' | '600'} {
+  if (Platform.OS === 'android') {
+    return {paddingHorizontal: androidContentPadding(size === 'small' ? 'small' : 'medium').end, minHeight: 40, fontWeight: '500'};
+  }
+  return {paddingHorizontal: size === 'small' ? 12 : 18, fontWeight: '600'};
+}
 
 /**
  * The shape the tabs come out as, and the measurement that decides it.
@@ -220,6 +239,10 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
   const small = size === 'small';
   const glyphs = GLYPHS[size];
   const TabText = TEXT[size];
+  // The accent's tabs are the kit's buttons: the open one filled, the others
+  // text buttons in the label tone, in a row 8 apart that keeps the screen's
+  // margin at its ends, as a row of buttons on a page does.
+  const button = accent ? accentTab(size) : null;
   const scroller = useRef<ScrollView>(null);
   const places = useTabPlaces(selected, 'x', true, scroller);
   const menus = useTabMenus(testID, places);
@@ -232,7 +255,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
         accessibilityRole="tablist"
         accessibilityLabel={label}
         style={styles.scroller}
-        contentContainerStyle={styles.stripRow}
+        contentContainerStyle={[styles.stripRow, accent && styles.accentRow]}
         onLayout={places.onFrame}
         onScroll={places.onScroll}
         scrollEventThrottle={16}
@@ -246,10 +269,13 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
               key={tab.id}
               style={[
                 styles.tab,
+                button && {paddingLeft: button.paddingHorizontal, paddingRight: button.paddingHorizontal, minHeight: button.minHeight},
                 on && {backgroundColor: open},
                 on && fill === 'none' && styles.pill,
                 capsule && styles.capsule,
-                tab.depth ? {paddingLeft: spacing.three + tab.depth * DEPTH_INDENT} : null,
+                // The accent's tab is a button, whose padding is its own: a
+                // step in a level stands before it rather than inside it.
+                tab.depth ? (accent ? {marginLeft: tab.depth * DEPTH_INDENT} : {paddingLeft: spacing.three + tab.depth * DEPTH_INDENT}) : null,
               ]}
               onLayout={event => places.onPlace(tab.id, event)}>
               <Pressable
@@ -267,8 +293,8 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
                 style={[styles.tabBody, small && styles.small]}
                 testID={sub(testID, `tab-${tab.id}`)}
                 {...inSet(index + 1, tabs.length)}>
-                {tab.icon ? <Glyph icon={tab.icon} size={glyphs.icon} tintColor={capsule ? onTint : on ? labelColor : secondary}/> : null}
-                <TabText numberOfLines={1} color={capsule ? 'onTint' : on ? 'label' : 'secondaryLabel'} style={styles.title}>
+                {tab.icon ? <Glyph icon={tab.icon} size={glyphs.icon} tintColor={capsule ? onTint : on || accent ? labelColor : secondary}/> : null}
+                <TabText numberOfLines={1} color={capsule ? 'onTint' : on || accent ? 'label' : 'secondaryLabel'} style={[styles.title, button && {fontWeight: button.fontWeight}]}>
                   {tab.title}
                 </TabText>
                 {tab.accessory ? <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={styles.accessory}>{tab.accessory}</View> : null}
@@ -280,7 +306,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
                   onPress={() => onClose(tab.id)}
                   style={styles.cross}
                   testID={sub(testID, `close-${tab.id}`)}>
-                  <Glyph icon={CLOSE} size={glyphs.cross} tintColor={capsule ? onTint : secondary}/>
+                  <Glyph icon={CLOSE} size={glyphs.cross} tintColor={capsule ? onTint : accent ? labelColor : secondary}/>
                 </Pressable>
               ) : null}
             </View>
@@ -292,7 +318,8 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
           accessibilityRole="button"
           accessibilityLabel={addLabel}
           onPress={onAdd}
-          style={[styles.add, small && styles.addSmall]}
+          // The accent's row keeps the screen's 16 at its end, the plus too.
+          style={[styles.add, small && styles.addSmall, accent && {marginRight: spacing.three - ADD_PAD[size]}]}
           testID={sub(testID, 'add')}>
           <Glyph icon={ADD} size={glyphs.add} tintColor={labelColor}/>
         </Pressable>
@@ -462,6 +489,13 @@ const styles = StyleSheet.create({
   stripRow: {
     alignItems: 'stretch',
   },
+  /** The accent's row of buttons: 8 apart, the screen's 16 at its ends, 8 above and below. */
+  accentRow: {
+    alignItems: 'center',
+    gap: spacing.two,
+    paddingHorizontal: spacing.three,
+    paddingVertical: spacing.two,
+  },
   /**
    * The open tab is the page's own colour and the strip behind it is not,
    * which is how every browser says which tab the content below belongs to.
@@ -511,11 +545,11 @@ const styles = StyleSheet.create({
   },
   add: {
     justifyContent: 'center',
-    paddingHorizontal: spacing.three,
+    paddingHorizontal: ADD_PAD.regular,
   },
   /** The plus in a square as tall as the small strip, as in the small circle button. */
   addSmall: {
-    paddingHorizontal: 7,
+    paddingHorizontal: ADD_PAD.small,
   },
   bar: {
     flexDirection: 'row',

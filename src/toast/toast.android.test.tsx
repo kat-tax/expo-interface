@@ -3,7 +3,7 @@ import {byComposeTestID, nodes} from 'expo-vitest/native';
 import {ToastInsetContext} from './context';
 import {Toast} from '.';
 
-const {showSnackbar} = vi.hoisted(() => ({showSnackbar: vi.fn()}));
+const {showSnackbar, host} = vi.hoisted(() => ({showSnackbar: vi.fn(), host: {bound: true}}));
 
 // The Material snackbar is asked for through the host's ref, which only
 // exists on a device: stand a fake one in its place.
@@ -12,7 +12,7 @@ vi.mock('@expo/ui/jetpack-compose', async importOriginal => {
   return {
     ...actual,
     SnackbarHost: ({ref, children, modifiers}: any) => {
-      if (ref && typeof ref === 'object') ref.current = {showSnackbar};
+      if (ref && typeof ref === 'object') ref.current = host.bound ? {showSnackbar} : null;
       return <actual.Box modifiers={modifiers}>{children}</actual.Box>;
     },
   };
@@ -20,7 +20,13 @@ vi.mock('@expo/ui/jetpack-compose', async importOriginal => {
 
 describe('Toast (android)', () => {
   beforeEach(() => {
+    host.bound = true;
+    showSnackbar.mockReset();
     showSnackbar.mockResolvedValue('dismissed');
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('shows the Material snackbar while visible, in the inverse surface colors', async () => {
@@ -109,6 +115,65 @@ describe('Toast (android)', () => {
     await act(async () => {
       resolve('dismissed');
     });
+    expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it('asks the host again when it refuses the call, as one Compose has not yet composed does, and shows the snackbar', async () => {
+    const onDismiss = vi.fn();
+    showSnackbar.mockRejectedValueOnce(new Error('No handler registered for AsyncFunction showSnackbar'));
+    await render(<Toast message="Link copied" visible onDismiss={onDismiss}/>);
+    await waitFor(() => expect(onDismiss).toHaveBeenCalledTimes(1));
+    expect(showSnackbar).toHaveBeenCalledTimes(2);
+  });
+
+  it('gives the toast up when the host never takes the call, so the toasts after it still show', async () => {
+    vi.useFakeTimers();
+    const onDismiss = vi.fn();
+    showSnackbar.mockRejectedValue(new Error('No handler registered for AsyncFunction showSnackbar'));
+    await render(<Toast message="Link copied" visible onDismiss={onDismiss}/>);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+    expect(onDismiss).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
+    });
+    expect(showSnackbar).toHaveBeenCalledTimes(40);
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits for a host that is not there yet, and lets go of it when the toast goes', async () => {
+    vi.useFakeTimers();
+    host.bound = false;
+    const onDismiss = vi.fn();
+    const {unmount} = await render(<Toast message="Link copied" visible onDismiss={onDismiss}/>);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(500);
+    });
+    await act(async () => {
+      unmount();
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+    expect(showSnackbar).not.toHaveBeenCalled();
+    expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it('drops a refusal that lands after the toast is gone', async () => {
+    const onDismiss = vi.fn();
+    let refuse: (error: Error) => void = () => {};
+    showSnackbar.mockReturnValue(new Promise((_, fail) => {
+      refuse = fail;
+    }));
+    const {unmount} = await render(<Toast message="Saved" visible onDismiss={onDismiss}/>);
+    await act(async () => {
+      unmount();
+    });
+    await act(async () => {
+      refuse(new Error('No handler registered'));
+    });
+    expect(showSnackbar).toHaveBeenCalledTimes(1);
     expect(onDismiss).not.toHaveBeenCalled();
   });
 

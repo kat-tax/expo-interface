@@ -1,6 +1,6 @@
 import type {ReactTestRendererJSON} from 'react-test-renderer';
 import {Platform, StyleSheet} from 'react-native';
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import {hostFit, hosts} from '../__tests__/hosts';
 import {NativeHostContext} from '../host';
 import {colors} from '../theme';
@@ -482,6 +482,25 @@ describe(`FieldGroup (${Platform.OS})`, () => {
     expect(hosts()).toHaveLength(1);
     expect(hostFit(hosts()[0])).toEqual({});
     expect(form()).toBeTruthy();
+  });
+
+  it.skipIf(isIOS)('as the body of a capped sheet is as tall as its content up to the cap', async () => {
+    await render(
+      <SheetBodyCapContext.Provider value={300}>
+        <FieldGroup>
+          <FieldGroup.Section title="General">
+            <Typography>Row</Typography>
+          </FieldGroup.Section>
+        </FieldGroup>
+      </SheetBodyCapContext.Provider>,
+    );
+    const column = form()!;
+    // No minimum, then the scroll, then the size of what it holds, padding and all.
+    expect(column.props.modifiers.map((m: {$type: string}) => m.$type)).toEqual(['fillMaxWidth', 'wrapContentHeight', 'verticalScroll', 'onSizeChanged', 'padding']);
+    await act(async () => modifier(column.props, 'onSizeChanged')!.eventListener({width: 360, height: 180}));
+    expect(StyleSheet.flatten(root().props.style)).toEqual({alignSelf: 'stretch', height: 180});
+    await act(async () => modifier(column.props, 'onSizeChanged')!.eventListener({width: 360, height: 900}));
+    expect(StyleSheet.flatten(root().props.style)).toEqual({alignSelf: 'stretch', height: 300});
   });
 
   it('draws nothing outside a host while hidden', async () => {

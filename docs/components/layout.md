@@ -388,12 +388,12 @@ caret clear of the bar too (see
 
 | Platform | How |
 | --- | --- |
-| iOS, Android | `react-native-keyboard-controller`, an optional peer the kit loads only natively. `AccentProvider` mounts its provider when the library is installed. Without it the bar is a plain view. |
+| iOS, Android | `react-native-keyboard-controller`, an optional peer the kit loads only natively, 1.22.7 or later: before it the library missed the keyboard closing while another window had the focus (a menu, a sheet, a dialog) on Android, and the bar stayed where it had ridden. `AccentProvider` mounts its provider when the library is installed. Without it the bar is a plain view. |
 | Web | A plain view. The browser keeps the page above the keyboard itself, and the library never reaches the web bundle. |
 | Windows | React Native's keyboard events, which `expo-windows` raises from the window's touch keyboard with the rectangle it covers. The bar measures its own bottom edge, so the two meet whatever the window's height has become. Without the runtime nothing fires and the bar stays put. |
 
 ```sh
-npx expo install react-native-keyboard-controller
+npx expo install react-native-keyboard-controller@^1.22.7
 ```
 
 ## FieldGroup
@@ -432,7 +432,8 @@ Differences:
   padding, a clear row of that height ends it.
 - On iOS and Android a form outside a host mounts one of its own, as `List`
   does: it fills its parent, or, as the body of a `Sheet` with `maxHeight`,
-  it is the cap tall and scrolls inside it, so the sheet's `footer` and
+  it is as tall as its rows up to the cap on Android (the cap tall on iOS)
+  and scrolls inside the cap past it, so the sheet's `footer` and
   `actions` keep their room. Under a host (a `Screen native`, a `NativeHost`,
   a sheet's native content) it renders bare.
 - On the web the form paints the screen's colour behind its sections, except
@@ -444,8 +445,8 @@ A `Sheet` full of one is how the kit does a form: the question is the
 section's title and the note under it is the footer. In a sheet the form
 pads by nothing for the screen's bar or the tab bar's action:
 `useScrollInsets()` answers zero there. A form taller than the sheet offers
-takes a `maxHeight` on the sheet, and is then the cap tall and scrolls
-inside it.
+takes a `maxHeight` on the sheet, and then scrolls inside the cap: on
+Android it is as tall as its rows up to the cap, on iOS the cap tall.
 
 ```tsx
 <Sheet isPresented={open} onDismiss={close}>
@@ -589,8 +590,9 @@ Differences:
   parent needs a height of its own: inside a scroll view the iOS and
   Android list gets no height, and the Windows list grows to its rows, so
   it draws every one of them and is no longer windowed. As the body of a
-  `Sheet` with `maxHeight` the iOS and Android list is the cap's height
-  instead, and scrolls inside it. On the
+  `Sheet` with `maxHeight` the Android list is as tall as its rows up to
+  the cap, measured again when the number of rows changes, and the iOS list
+  the cap's height; both scroll inside the cap. On the
   web the list is its own scroller (`overflow-y: auto`, `flex: 1 1 auto`),
   so it scrolls under the fixed body that `ScrollViewStyleReset` sets, and
   in a parent with no height of its own (a scroll view of the app's own, a
@@ -756,7 +758,9 @@ below the view, and the web and Windows draw it under the description.
 `loading` puts the platform's spinner in the icon's place, so a screen waiting
 for its record is the same empty state as one that has none. The description
 wraps at the screen's width and can be selected and copied, unless
-`selectable` is off.
+`selectable` is off. In a `Sheet` on Android it is off unless asked for: a
+selectable description takes the sheet's window's first focus in touch
+mode, and Android draws its focus highlight over it.
 
 On iOS and Android, outside a host the state mounts one as wide as its
 container, and `style` and `testID` go on the view around it. Inside one (a

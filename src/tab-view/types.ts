@@ -115,11 +115,15 @@ export interface TabViewProps {
    * on a material (a `HeaderAccessory` under a header the screens run under,
    * the web bar's pill) that a fill of their own would cover. With `none` the
    * open tab is a pill in the palette's pill fill. `accent` paints nothing
-   * behind the tabs either, and draws the open tab as the kit's filled
-   * button: a capsule in the tint, its title, icon and cross in `onTint`, for
-   * a strip on a page, where the translucent pill reads faint. The
-   * switcher's bar has no open tab to mark, so `accent` leaves it bare as
-   * `none` does. The WinUI strip is an island, which cannot be see-through,
+   * behind the tabs either, and draws them as the kit's buttons, for a strip
+   * on a page, where the translucent pill reads faint: the open tab its
+   * filled button, a capsule in the tint with its title, icon and cross in
+   * `onTint`, and the others its text buttons in the label tone, each with
+   * its button's padding and weight on the platform (Material's on Android,
+   * at least 40 tall), 8 apart; natively the row keeps the screen's 16 at its
+   * ends. A nested tab stands off by its depth rather than padding its
+   * button. The switcher's bar has no open tab to mark, so `accent` leaves
+   * it bare as `none` does. The WinUI strip is an island, which cannot be see-through,
    * so on Windows `none` and `accent` paint it in the screen's background,
    * the fill of the header it sits in there, and its open tab is WinUI's own.
    * @default 'element'

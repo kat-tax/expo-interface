@@ -284,11 +284,17 @@ Differences:
 - `fill="none"` paints nothing behind the strip or the switcher's bar, for
   tabs on a material that a fill of their own would cover, and marks the
   open tab with a pill in the palette's pill fill. `fill="accent"` paints
-  nothing behind them either and draws the open tab as the kit's filled
-  button, a capsule in the tint with its title, icon and cross in `onTint`,
-  for a strip on a page, where the translucent pill reads faint; the
-  switcher's bar names the open tab rather than drawing it, so it is bare as
-  with `none`. The WinUI strip is an island, which cannot be see-through, so
+  nothing behind them either and draws the tabs as the kit's buttons, for a
+  strip on a page, where the translucent pill reads faint: the open tab its
+  filled button, a capsule in the tint with its title, icon and cross in
+  `onTint`, and the others its text buttons in the label tone, each with
+  its button's padding and weight, 8 apart. On web that is 18 and 10 a
+  side, 12 and 6 with `size="small"`, semibold; on Android Material's
+  content padding, at least 40 tall, in its label's medium weight; on iOS
+  18 a side, 12 with `size="small"`, semibold. Natively the row keeps the
+  screen's 16 at its ends. A nested tab stands off by its depth rather than
+  padding its button. The switcher's bar names the open tab rather than
+  drawing it, so it is bare as with `none`. The WinUI strip is an island, which cannot be see-through, so
   on Windows both paint it in the screen's background, the fill of the
   header row it sits in there, and WinUI marks the open tab its own way.
 - `size="small"` draws the strip and the switcher's bar at the kit's small
@@ -413,7 +419,10 @@ drawn fields), and Android's `SearchView` opening and closing.
 
 When the search goes (its screen unmounts, or the app stops rendering it),
 `onChangeText` is called with an empty query, so whatever it filtered is
-whole again without the app clearing it by hand.
+whole again without the app clearing it by hand. On iOS and Android the
+field gives up the focus when its screen does, as when a result is opened
+on a screen pushed over it, so the keyboard does not stay up over a screen
+that did not ask for it; the query stays.
 
 A `placeholder` function is called with the search's state, `{size}`:
 `short` while the web bar is too narrow for its labels and its inline field

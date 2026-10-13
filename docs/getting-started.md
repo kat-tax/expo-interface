@@ -209,11 +209,15 @@ what is different at a desk.
 ## Optional: a bar that follows the keyboard
 
 `KeyboardBar` uses `react-native-keyboard-controller` on iOS and Android when
-it is installed:
+it is installed, 1.22.7 or later:
 
 ```sh
-npx expo install react-native-keyboard-controller
+npx expo install react-native-keyboard-controller@^1.22.7
 ```
+
+Before 1.22.7 the library missed the keyboard closing while another window
+had the focus (a menu, a sheet, a dialog) on Android, and the bar stayed
+where it had ridden until the keyboard came and went again.
 
 ## Next steps
 

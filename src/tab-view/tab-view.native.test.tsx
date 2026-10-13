@@ -250,11 +250,37 @@ describe(`TabView (${Platform.OS})`, () => {
       expect(textStyle('Notes').color).toBe(colors.light.onTint);
       expect(glyphs(screen.getByTestId('t-tab-a')).map(glyph => glyph.tintColor)).toEqual([colors.light.onTint]);
       expect(glyphs(screen.getByTestId('t-close-a')).map(glyph => glyph.tintColor)).toEqual([colors.light.onTint]);
-      // A tab that is not open keeps the strip's look.
+      // A tab that is not open is a text button in the label tone: no fill, the label's colour.
       expect(style('t-tab-b').backgroundColor).toBeUndefined();
       expect(style('t-tab-b').borderRadius).toBeUndefined();
+      expect(textStyle('Sketch').color).toBe(colors.light.label);
+      expect(glyphs(screen.getByTestId('t-close-b')).map(glyph => glyph.tintColor)).toEqual([colors.light.label]);
+    });
+
+    it('draws the accent tabs as the platform buttons: their padding a side, the open one as wide, in a row 8 apart inset 16', async () => {
+      const strip = (size?: 'small') => <TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} layout="strip" fill="accent" size={size} testID="t"/>;
+      const {rerender} = await render(strip('small'));
+      const android = Platform.OS === 'android';
+      // The plus keeps the row's 16 from the edge: its 7 a side and 9 more.
+      expect(StyleSheet.flatten(screen.getByTestId('t-add').props.style)).toMatchObject({paddingHorizontal: 7, marginRight: 9});
+      // Material on Android: the small button's 16 a side and at least its 40 tall, medium; 12 and semibold on iOS.
+      for (const id of ['t-tab-a', 't-tab-b']) {
+        expect(style(id)).toMatchObject({paddingLeft: android ? 16 : 12, paddingRight: android ? 16 : 12});
+        expect(style(id).minHeight).toBe(android ? 40 : undefined);
+      }
+      expect(textStyle('Notes').fontWeight).toBe(android ? '500' : '600');
+      expect(textStyle('Sketch').fontWeight).toBe(android ? '500' : '600');
+      expect(glyphs(screen.getByTestId('t-tab-a')).map(glyph => glyph.tintColor)).toEqual([colors.light.onTint]);
+      expect(StyleSheet.flatten(screen.getByTestId('t-strip').props.contentContainerStyle)).toMatchObject({alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingVertical: 8});
+      // The medium button at the regular size: Material's 24, or 18.
+      await rerender(strip());
+      expect(style('t-tab-b')).toMatchObject({paddingLeft: android ? 24 : 18, paddingRight: android ? 24 : 18});
+      expect(StyleSheet.flatten(screen.getByTestId('t-add').props.style)).toMatchObject({paddingHorizontal: 16, marginRight: 0});
+      // Without the accent the row keeps the strip's own.
+      await rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" fill="none" testID="t"/>);
+      expect(StyleSheet.flatten(screen.getByTestId('t-strip').props.contentContainerStyle).gap).toBeUndefined();
       expect(textStyle('Sketch').color).toBe(colors.light.secondaryLabel);
-      expect(glyphs(screen.getByTestId('t-close-b')).map(glyph => glyph.tintColor)).toEqual([colors.light.secondaryLabel]);
+      expect(textStyle('Sketch').fontWeight).toBe('400');
     });
 
     it('paints the switcher\'s bar, or leaves it bare with none and with accent', async () => {

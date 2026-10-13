@@ -384,8 +384,8 @@ a host: wrap it in a `NativeHost`. Give a React Native body a `maxHeight`.
 Give a `List`, or a `FieldGroup` taller than the room, one too: a native
 body takes all the room the sheet offers and leaves the footer and the
 actions none. With `maxHeight` the body is hosted, and a `List` or a
-`FieldGroup` in it is the cap tall and scrolls inside it, the form in a
-host of its own, since the capped body is not the sheet's native content;
+`FieldGroup` in it scrolls inside the cap, on Android as tall as what it
+holds up to the cap and on iOS the cap tall, the form in a host of its own, since the capped body is not the sheet's native content;
 on Android a drag on that list scrolls the list alone, where a drag on the
 rest of a capped body also moves the sheet.
 
