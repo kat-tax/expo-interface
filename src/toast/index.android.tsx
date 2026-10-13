@@ -20,6 +20,16 @@ function snackbarLength(duration: number): 'short' | 'long' | 'indefinite' {
 }
 
 /**
+ * The host binds `showSnackbar` once Compose has composed it, a frame or a
+ * few after the toast mounted, and refuses a call before that ("No handler
+ * registered"). The toast asks again this often, this many times (two
+ * seconds), and then gives itself up, so the toasts queued after it still
+ * show.
+ */
+const HOST_RETRY_MS = 50;
+const HOST_ATTEMPTS = 40;
+
+/**
  * Android shows the Material 3 `Snackbar`, asked for imperatively through
  * the host's ref while `visible`; Compose owns its timing, its animation and
  * its queue, and resolves the call when the message goes away. The host is a
@@ -41,17 +51,36 @@ export function Toast({message, visible, action, onDismiss, duration = TOAST_DUR
   useEffect(() => {
     if (!visible) return;
     let cancelled = false;
-    host.current?.showSnackbar({
-      message,
-      actionLabel: action?.label,
-      duration: snackbarLength(duration),
-    }).then(result => {
+    let attempts = 0;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    // The host not there yet, or not yet taking calls: ask again shortly, and
+    // past the last attempt let the toast go as if it had been dismissed.
+    const again = () => {
       if (cancelled) return;
-      if (result === 'actionPerformed') latest.current.action?.onPress();
-      latest.current.onDismiss?.();
-    });
+      if (attempts < HOST_ATTEMPTS) retry = setTimeout(show, HOST_RETRY_MS);
+      else latest.current.onDismiss?.();
+    };
+    function show() {
+      attempts += 1;
+      const call = host.current?.showSnackbar({
+        message,
+        actionLabel: action?.label,
+        duration: snackbarLength(duration),
+      });
+      if (!call) {
+        again();
+        return;
+      }
+      call.then(result => {
+        if (cancelled) return;
+        if (result === 'actionPerformed') latest.current.action?.onPress();
+        latest.current.onDismiss?.();
+      }, again);
+    }
+    show();
     return () => {
       cancelled = true;
+      if (retry !== undefined) clearTimeout(retry);
     };
     // The message is what is shown; the callbacks are read through `latest`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
