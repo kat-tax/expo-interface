@@ -1,7 +1,7 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
 import {act, fireEvent, render, screen} from '@testing-library/react';
-import {HELD_GRACE_MS, LONG_PRESS_MS, useHeldTouch} from './held';
+import {HELD_GRACE_MS, HOLD_SLOP, LONG_PRESS_MS, useHeldTouch} from './held';
 
 /** A pointer event with a `pointerType`; jsdom has no `PointerEvent` constructor. */
 function pointerEvent(type: string, pointerType: string, init: MouseEventInit = {}) {
@@ -115,22 +115,34 @@ describe('useHeldTouch', () => {
     expect(onHeld).not.toHaveBeenCalled();
   });
 
-  it('ends the hold at a move before it, and keeps the arm through a drift after it', () => {
+  it('ends the hold at a move past the slop before it, keeps it through a drift, and keeps the arm through a move after it', () => {
     render(<Held/>);
+    // A travel of more than the slop before the hold: a scroll.
     down(el());
-    fireEvent(el(), pointerEvent('pointermove', 'touch'));
+    fireEvent(el(), pointerEvent('pointermove', 'touch', {clientX: 10, clientY: 20 + HOLD_SLOP + 1}));
     wait(LONG_PRESS_MS);
     up(el());
     expect(fireEvent.click(el())).toBe(true);
     wait(HELD_GRACE_MS);
     expect(onHeld).not.toHaveBeenCalled();
+    // A finger held still drifts a pixel or two: still a hold.
     down(el());
+    fireEvent(el(), pointerEvent('pointermove', 'touch', {clientX: 12, clientY: 21}));
+    fireEvent(el(), pointerEvent('pointermove', 'touch', {clientX: 9, clientY: 19}));
     wait(LONG_PRESS_MS);
-    fireEvent(el(), pointerEvent('pointermove', 'touch'));
     up(el());
     expect(fireEvent.click(el())).toBe(false);
     wait(0);
     expect(onHeld).toHaveBeenCalledTimes(1);
+    expect(onHeld).toHaveBeenLastCalledWith(10, 20, 'tab');
+    // A move once armed changes nothing.
+    down(el());
+    wait(LONG_PRESS_MS);
+    fireEvent(el(), pointerEvent('pointermove', 'touch', {clientX: 100, clientY: 100}));
+    up(el());
+    expect(fireEvent.click(el())).toBe(false);
+    wait(0);
+    expect(onHeld).toHaveBeenCalledTimes(2);
   });
 
   it('ignores a mouse, whose press clears a standing arm', () => {

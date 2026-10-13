@@ -18,6 +18,14 @@ export const LONG_PRESS_MS = 500;
  */
 export const HELD_GRACE_MS = 300;
 
+/**
+ * How far a touch may drift from where it went down and still be a hold, in
+ * CSS pixels. A finger held still reports moves of a pixel or two, and a
+ * hold that ended at the first of them would never arm on a phone; a touch
+ * that travels further is a scroll.
+ */
+export const HOLD_SLOP = 10;
+
 type Timer = ReturnType<typeof setTimeout>;
 
 /** The handlers for an element a touch can be held on. */
@@ -25,7 +33,7 @@ export interface HeldTouchHandlers {
   onPointerDown: (event: PointerEvent<HTMLElement>) => void;
   onPointerUp: () => void;
   onPointerCancel: () => void;
-  onPointerMove: () => void;
+  onPointerMove: (event: PointerEvent<HTMLElement>) => void;
   onClickCapture: (event: MouseEvent<HTMLElement>) => void;
 }
 
@@ -50,7 +58,8 @@ export interface HeldTouch<T> {
  * after the release instead, and the arm stands so a click that still comes
  * is swallowed too; the next press on the element clears it. A touch the
  * browser cancels (a pan, a system gesture) opens nothing, and a touch that
- * moves before the hold is a scroll, not a hold. A press inside a popover
+ * travels further than {@link HOLD_SLOP} before the hold is a scroll, not a
+ * hold, where the drift of a finger held still is. A press inside a popover
  * nested in the element (the menu itself, for a `ContextMenu`) is the
  * popover's, so it neither holds nor is swallowed.
  *
@@ -64,6 +73,8 @@ export function useHeldTouch<T = void>(onHeld: (x: number, y: number, payload: T
   const armed = useRef<(() => void) | null>(null);
   // The grace after the release, or the task after the release's click.
   const after = useRef<Timer | null>(null);
+  // Where the touch went down, while the hold is timed.
+  const origin = useRef<{x: number; y: number} | null>(null);
 
   // A touch still held, or a menu still to come, when the element goes would
   // open a menu with nothing to open it on.
@@ -88,14 +99,20 @@ export function useHeldTouch<T = void>(onHeld: (x: number, y: number, payload: T
         cancel();
         if (!enabled || event.pointerType !== 'touch' || inPopover(event)) return;
         const {clientX: x, clientY: y} = event;
+        origin.current = {x, y};
         hold.current = setTimeout(() => {
           hold.current = null;
           armed.current = () => onHeld(x, y, payload);
         }, LONG_PRESS_MS);
       },
-      // A touch that moves before the hold is a scroll; one that drifts once
-      // armed still opens the menu when it lifts.
-      onPointerMove: () => stop(hold),
+      // A touch that travels before the hold is a scroll, where a finger held
+      // still drifts a pixel or two; one that moves once armed still opens
+      // the menu when it lifts.
+      onPointerMove: event => {
+        const from = origin.current;
+        if (!hold.current || !from) return;
+        if (Math.hypot(event.clientX - from.x, event.clientY - from.y) > HOLD_SLOP) stop(hold);
+      },
       // The browser took the touch, for a pan or a gesture of its own: there
       // is no release to open on.
       onPointerCancel: cancel,
