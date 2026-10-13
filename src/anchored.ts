@@ -75,6 +75,12 @@ interface Anchored {
   above: boolean;
   /** Whether both the parent and the card have been measured, so the place is final. */
   placed: boolean;
+  /**
+   * The width a card is kept inside: the parent's less its insets and the
+   * gap at each side, the same numbers `left` is clamped with. 0 until the
+   * parent has been measured.
+   */
+  room: number;
 }
 
 /**
@@ -126,8 +132,9 @@ export function useAnchored({at, preferredEdge = 'auto', width, insets, gap = 8,
   const span = at?.width ?? 0;
   const from = align === 'center' ? x + span / 2 - card.width / 2 : align === 'end' ? x + span - card.width : x;
   const left = at ? Math.max(left0, Math.min(from, rightMost)) : 0;
+  const room = bounds.width > 0 ? Math.max(0, rightEdge - left0) : 0;
 
-  return {onBounds, onCard, left, top, above, placed: bounds.height > 0 && card.height > 0};
+  return {onBounds, onCard, left, top, above, placed: bounds.height > 0 && card.height > 0, room};
 }
 
 /**

@@ -52,6 +52,14 @@ describe(`Toolbar field commands and folding (${Platform.OS})`, () => {
     expect(onBar('Italic')).toBe(true);
   });
 
+  it('folds nothing of the two slots, which are the app\'s to fold', async () => {
+    await render(<Toolbar leading={<Text>Bold</Text>} field={<Text>Find</Text>} trailing={<Text>Next</Text>} foldCommands testID="bar"/>);
+    await fireEvent(screen.getByTestId('bar'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 48}}});
+    expect(screen.getByText('Bold')).toBeOnTheScreen();
+    expect(screen.getByText('Next')).toBeOnTheScreen();
+    expect(nodes().some(node => node.type.includes('Menu'))).toBe(false);
+  });
+
   it('keeps a folded toggle\'s state as the overflow menu\'s check', async () => {
     await render(<Toolbar commands={[{label: 'Bold', active: true}, {label: 'Italic', active: false}]} field={<Text>Find</Text>} foldCommands testID="bar"/>);
     await fireEvent(screen.getByTestId('bar'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 390, height: 48}}});

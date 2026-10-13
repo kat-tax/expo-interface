@@ -245,8 +245,10 @@ fill); `style`, `testID`.
 
 Differences:
 
-- A command marked `secondary` is in the overflow on every platform. Only
-  Windows moves further commands there as the bar narrows.
+- A command marked `secondary` is in the overflow on every platform. Along
+  an edge, only Windows moves further commands there as the bar narrows; `at`
+  a rectangle, every platform moves the trailing commands that do not fit
+  the parent there.
 - A `field` sends every platform to the drawn path: a text field is a React
   Native input and cannot live inside a `CommandBar`.
 - `leading` and `trailing` are ignored when `commands` are given.
@@ -308,9 +310,10 @@ gives its field the room while a find or assistant field is open on a phone.
 The bar is measured from its first layout whether or not it folds, so
 turning `foldCommands` on while the bar is narrow folds it at once. On
 Windows the `CommandBar` is measured too, so the drawn bar that replaces it
-when a field opens with the fold folds at once as well. Only a bar along an
-edge folds: a `floating` bar, or one `at` a rectangle, is the width of its
-controls.
+when a field opens with the fold folds at once as well. `foldCommands` is
+read on a bar along an edge alone. A `floating` bar is the width of its
+controls and never folds; a bar `at` a rectangle folds the commands that do
+not fit its parent whether or not `foldCommands` is set (below).
 
 A `floating` bar floats over the content rather than running along an edge:
 raised and rounded, the width of its controls, as the strip of tools over a
@@ -331,6 +334,19 @@ them too, though React Native on iOS and Android swaps a view's `left` and
 `right` there. The bar is laid over the parent
 as an overlay that takes no presses but the bar's, is drawn only once it has
 been measured and placed, and goes when `at` is `null`.
+
+A bar `at` a rectangle is the width of its controls up to the room between
+the parent's edges less `insets` and the gap at each side, the room it is
+kept inside. The trailing `commands` that do not fit it go behind the
+overflow menu, before the `secondary` ones, as `foldCommands` folds along
+an edge: the bar is measured, one more command folds each time it is laid
+out wider than the room, and it is drawn once it fits or every command is
+behind the menu. The first fold adds the More button, so it may gain
+nothing by itself; the next takes care of that. A folded bar unfolds when
+the room grows, and starts over when the commands change. On Windows the
+`CommandBar` is given the room as the widest it may be and moves what does
+not fit into its own overflow; a drawn Windows bar at a rectangle folds as
+the others do. `leading`, `trailing` and `fieldCommands` never fold.
 
 ## FindBar
 

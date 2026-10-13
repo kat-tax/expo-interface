@@ -150,6 +150,25 @@ export const AtASelection: Story = {
 };
 
 /**
+ * The strip over a selection on a narrow canvas: the trailing tools that do
+ * not fit the room between the canvas's edges go behind More, first among
+ * its entries, and the bar is drawn once it fits.
+ */
+export const AtASelectionFolding: Story = {
+  render: function AtASelectionFolding(args) {
+    const fill = useColor('backgroundSelected');
+    return (
+      <View style={[styles.canvas, styles.narrow]}>
+        <View style={[styles.selection, {backgroundColor: fill}]}>
+          <Footnote color="label">the selected words</Footnote>
+        </View>
+        <Toolbar {...args} at={{x: 60, y: 120, width: 140, height: 22}} commands={TOOLS.map(tool => ({...tool, hideLabel: true, tone: 'label' as const, onPress: fn()}))}/>
+      </View>
+    );
+  },
+};
+
+/**
  * Tools hanging from a block's corner: lined up with the block's right edge
  * (`align="end"`), under it, with a menu among the commands. The menu is the
  * kit's `Menu` on the bar, an `AppBarButton` with its flyout in the Windows
@@ -206,6 +225,7 @@ export const FoldingAroundAField: Story = {
 const styles = StyleSheet.create({
   stage: {gap: 24},
   canvas: {height: 220, alignSelf: 'stretch'},
+  narrow: {alignSelf: 'flex-start', width: 220},
   selection: {position: 'absolute', left: 60, top: 120, width: 140, height: 22, justifyContent: 'center', paddingHorizontal: 4, borderRadius: 4},
   block: {position: 'absolute', left: 24, top: 40, width: 280, height: 64, justifyContent: 'center', paddingHorizontal: 12, borderWidth: 1, borderRadius: 8},
 });

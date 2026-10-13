@@ -115,3 +115,103 @@ describe(`Toolbar floating (${Platform.OS})`, () => {
     expect(nodes().length).toBeGreaterThan(0);
   });
 });
+
+/**
+ * A bar at a rectangle folds the trailing commands that do not fit the room
+ * between its parent's edges, less the insets and the gap, behind More: one
+ * per layout, each in a view of its own, until it fits.
+ */
+describe(`Toolbar at a rectangle folds (${Platform.OS})`, () => {
+  // Labelled, so the tree shows which are on the bar on Android too, where an icon-only button has no text.
+  const tools = [
+    {label: 'Bold', icon: icons.add},
+    {label: 'Italic'},
+    {label: 'Link', separator: true},
+    {label: 'Export', secondary: true},
+  ];
+  const labelOf = (node: {props: Record<string, unknown>}) => (isIOS ? node.props.label : node.props.text) as string | undefined;
+  const menu = () => nodes().find(node => node.type.includes('Menu'));
+  /** The overflow menu's entries, in order. */
+  const entries = () => {
+    const found = menu();
+    return found ? nodes(found).map(labelOf).filter(label => label && label !== 'More') : [];
+  };
+  /** Whether a command is drawn on the bar itself, not among the overflow menu's entries. */
+  const onBar = (label: string) => nodes().some(node => labelOf(node) === label) && !entries().includes(label);
+  const card = () => screen.getByTestId('bar-bounds').children[0] as unknown as {props: {style: unknown; onLayout: (event: unknown) => void}};
+  const style = () => StyleSheet.flatten(card().props.style as never) as Record<string, unknown>;
+  const bounds = (width: number) => fireEvent(screen.getByTestId('bar-bounds'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width, height: 600}}});
+  const measure = (width: number) => act(async () => card().props.onLayout({nativeEvent: {layout: {x: 0, y: 0, width, height: 44}}}));
+  const at = {x: 100, y: 200, width: 80, height: 20};
+
+  it('folds the trailing commands that do not fit the room behind More, first among its entries, until the bar fits', async () => {
+    await render(<Toolbar at={at} commands={tools} testID="bar"/>);
+    // The room: 200 less 8 at each side.
+    await bounds(200);
+    await measure(240);
+    // Link is behind More, before the secondary Export; the bar is not drawn until it fits.
+    expect(onBar('Link')).toBe(false);
+    expect(onBar('Italic')).toBe(true);
+    expect(entries()).toEqual(['Link', 'Export']);
+    expect(style()).toMatchObject({opacity: 0, pointerEvents: 'none'});
+    // The first fold swapped Link for More and the width stayed: the next takes Italic.
+    await measure(240);
+    expect(onBar('Italic')).toBe(false);
+    expect(onBar('Bold')).toBe(true);
+    expect(entries()).toEqual(['Italic', 'Link', 'Export']);
+    expect(style().opacity).toBe(0);
+    // Fits: drawn, kept inside the parent by its own width, 200 - 8 - 170.
+    await measure(170);
+    expect(style()).toMatchObject({left: 22});
+    expect(style().opacity).toBeUndefined();
+  });
+
+  it('keeps the fold as the rectangle moves, and starts over with more room', async () => {
+    const {rerender} = await render(<Toolbar at={at} commands={tools} testID="bar"/>);
+    await bounds(200);
+    await measure(240);
+    await measure(240);
+    await measure(170);
+    expect(onBar('Italic')).toBe(false);
+    await rerender(<Toolbar at={{...at, x: 20}} commands={tools} testID="bar"/>);
+    expect(onBar('Italic')).toBe(false);
+    expect(style()).toMatchObject({left: 8});
+    expect(style().opacity).toBeUndefined();
+    // More room: every command comes back, and the bar waits for its layout.
+    await bounds(400);
+    expect(onBar('Italic')).toBe(true);
+    expect(onBar('Link')).toBe(true);
+    expect(style().opacity).toBe(0);
+    await measure(240);
+    expect(style().opacity).toBeUndefined();
+    expect(entries()).toEqual(['Export']);
+  });
+
+  it('folds every command when none fits, and the bar is then More alone', async () => {
+    await render(<Toolbar at={at} commands={tools} testID="bar"/>);
+    await bounds(100);
+    await measure(240);
+    await measure(240);
+    expect(onBar('Bold')).toBe(true);
+    await measure(240);
+    expect(onBar('Bold')).toBe(false);
+    expect(entries()).toEqual(['Bold', 'Italic', 'Link', 'Export']);
+    // Nothing left to fold: drawn as it is.
+    expect(style().opacity).toBeUndefined();
+  });
+
+  it('draws every command when the bar fits, and folds nothing of the two slots', async () => {
+    await render(<Toolbar at={at} commands={tools} testID="bar"/>);
+    await bounds(400);
+    await measure(240);
+    expect(onBar('Bold')).toBe(true);
+    expect(onBar('Link')).toBe(true);
+    expect(entries()).toEqual(['Export']);
+    expect(style().opacity).toBeUndefined();
+    await render(<Toolbar at={at} leading={<Button label="Undo" variant="text"/>} testID="slots"/>);
+    await fireEvent(screen.getByTestId('slots-bounds'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 100, height: 600}}});
+    const slots = () => screen.getByTestId('slots-bounds').children[0] as unknown as {props: {style: unknown; onLayout: (event: unknown) => void}};
+    await act(async () => slots().props.onLayout({nativeEvent: {layout: {x: 0, y: 0, width: 240, height: 44}}}));
+    expect((StyleSheet.flatten(slots().props.style as never) as Record<string, unknown>).opacity).toBeUndefined();
+  });
+});

@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {ToolbarCommand, ToolbarProps} from './types';
+import type {CommandSplit} from './fold';
 import {Fragment, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import XamlCommandBar from '../windows/specs/ExpoInterfaceCommandBarNativeComponent';
@@ -14,6 +15,7 @@ import {menuEntries, useMenuShortcuts} from '../menu/windows';
 import {isCompact} from '../size-class';
 import {spacing} from '../theme';
 import {MORE} from '../glyphs';
+import {useFold} from './fold';
 import {anchoredStyles, commandDisabled, hasCommands, overflowItems, splitCommands} from './shared';
 
 const DENSITY = {
@@ -45,9 +47,9 @@ export function Toolbar(props: ToolbarProps) {
   return <PlacedToolbar {...props}/>;
 }
 
-/** How a placed bar reports its width, to the size class `foldCommands` reads. */
+/** How a placed bar reports its width, to the size class `foldCommands` reads; a bar at a rectangle is measured by its overlay instead. */
 interface Measured {
-  onMeasure: (event: LayoutChangeEvent) => void;
+  onMeasure?: (event: LayoutChangeEvent) => void;
 }
 
 /**
@@ -72,18 +74,31 @@ function PlacedToolbar(props: ToolbarProps) {
  * A floating bar beside a rectangle, laid over its parent: lined up with the
  * rectangle by `align` (centred on it unless asked otherwise), over it unless
  * there is no room, inside the parent less its insets, and drawn only once it
- * has been measured and placed.
+ * has been measured, fits and is placed.
+ *
+ * What does not fit the room goes behind the overflow. The `CommandBar` does
+ * that itself: given the room as the widest it may be, WinUI's dynamic
+ * overflow moves the trailing commands that do not fit into its own overflow
+ * menu. The drawn bar, around a field or holding the two slots, folds as the
+ * other platforms' bars do (`useFold`), one command per layout.
  */
 function AnchoredToolbar(props: ToolbarProps) {
-  const {at = null, align = 'center', preferredEdge = 'top', insets, testID} = props;
+  const {at = null, align = 'center', preferredEdge = 'top', insets, commands, field, testID} = props;
   const anchored = useAnchored({at, preferredEdge, insets, align});
+  const native = hasCommands(commands) && field == null;
+  const fold = useFold(native ? undefined : commands, anchored.room);
+  const placed = anchored.placed && fold.fits;
   return (
     <View style={anchoredStyles.bounds} onLayout={anchored.onBounds} testID={testID ? `${testID}-bounds` : undefined}>
       {at ? (
         <View
-          onLayout={anchored.onCard}
-          style={[anchoredStyles.bar, fromLeft(anchored.left), {top: anchored.top}, anchored.placed ? null : anchoredStyles.unplaced]}>
-          <PlacedToolbar {...props} floating/>
+          key={fold.key}
+          onLayout={event => {
+            anchored.onCard(event);
+            fold.onLayout(event);
+          }}
+          style={[anchoredStyles.bar, fromLeft(anchored.left), {top: anchored.top}, placed ? null : anchoredStyles.unplaced]}>
+          {native ? <NativeToolbar {...props} floating room={anchored.room}/> : <DrawnToolbar {...props} floating compact={false} split={fold.split}/>}
         </View>
       ) : null}
     </View>
@@ -97,7 +112,13 @@ function barSurface(floating: boolean, placement: 'top' | 'bottom') {
     : {color: 'background' as const, radius: 0, border: placement === 'bottom' ? 'top' as const : 'bottom' as const, raised: false};
 }
 
-function NativeToolbar({commands = [], placement = 'bottom', density = 'regular', floating = false, children, style, testID, onMeasure}: ToolbarProps & Measured) {
+/**
+ * The `CommandBar`. A bar at a rectangle is given its `room`, the widest it
+ * may be: the island is clamped to it, less the hairline the surface draws
+ * at each side, and the control, arranged at that width, moves what does not
+ * fit into its overflow.
+ */
+function NativeToolbar({commands = [], placement = 'bottom', density = 'regular', floating = false, children, style, testID, onMeasure, room = 0}: ToolbarProps & Measured & {room?: number}) {
   const xaml = useXamlProps();
   // A menu command's entries bind their shortcuts while the bar is up, as
   // WinUI's accelerators are; a disabled command's do not.
@@ -143,7 +164,7 @@ function NativeToolbar({commands = [], placement = 'bottom', density = 'regular'
           if (command?.items) command.items[item]?.onPress?.();
           else command?.onPress?.();
         }}
-        style={floating ? styles.floatingCommandBar : styles.commandBar}
+        style={[floating ? styles.floatingCommandBar : styles.commandBar, room > 0 ? {maxWidth: room - 2 * StyleSheet.hairlineWidth} : null]}
         {...xaml}
       />
       {children}
@@ -155,20 +176,22 @@ function NativeToolbar({commands = [], placement = 'bottom', density = 'regular'
  * The bar the kit draws: the same `Surface`, with its controls as React Native
  * rows — every kit control is a XAML island of its own here, so there is no
  * single native row to gather them in, and a `field` needs no host either side.
+ * `split` is the fold of a bar at a rectangle.
  */
-function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], placement = 'bottom', density = 'regular', floating = false, foldCommands = false, children, style, testID, compact, onMeasure}: ToolbarProps & Measured & {compact: boolean}) {
+function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], placement = 'bottom', density = 'regular', floating = false, foldCommands = false, children, style, testID, compact, onMeasure, split}: ToolbarProps & Measured & {compact: boolean; split?: CommandSplit}) {
   const {gap, edge} = DENSITY[density];
   // Measured whether or not it folds (see `PlacedToolbar`): a frame is
   // reported only when the bar is laid out again, so a handler added with
   // the fold would wait for the next resize. Kept as the size class, so the
   // bar renders again only when it crosses it. A floating bar is the width of
-  // its controls, so it never folds, as on the other platforms.
+  // its controls, so it never folds by the size class, as on the other
+  // platforms; one at a rectangle folds what does not fit its room (`split`).
   const folded = foldCommands && !floating && compact;
   // Commands drawn by the kit, as the other platforms draw them: a field
   // keeps them out of the CommandBar, which cannot hold one.
   const described = hasCommands(commands);
   const {primary, secondary} = described
-    ? folded ? {primary: [], secondary: commands} : splitCommands(commands)
+    ? split ?? (folded ? {primary: [], secondary: commands} : splitCommands(commands))
     : {primary: [], secondary: []};
   return (
     <Surface

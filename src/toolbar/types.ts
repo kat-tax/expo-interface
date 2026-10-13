@@ -97,7 +97,9 @@ export interface ToolbarCommand {
   items?: MenuItem[];
   /**
    * Put this one in the overflow menu rather than on the bar. On Windows the
-   * platform may move others there too, as the bar narrows.
+   * platform may move others there too, as the bar narrows; a bar `at` a
+   * rectangle moves the trailing commands that do not fit its parent there
+   * on every platform, before these.
    */
   secondary?: boolean;
   disabled?: boolean;
@@ -154,8 +156,9 @@ export interface ToolbarProps extends PropsWithChildren {
    * either: the field takes the row.
    * The width is the bar's own, measured whether or not it folds, so a bar
    * that starts folding while it is narrow folds at once. Read only on a bar
-   * along an edge: a `floating` bar, or one `at` a rectangle, is the width of
-   * its controls and never folds.
+   * along an edge. A `floating` bar is the width of its controls and never
+   * folds; one `at` a rectangle folds the trailing commands that do not fit
+   * its parent whether or not this is set (see `at`).
    * @default false
    */
   foldCommands?: boolean;
@@ -189,6 +192,15 @@ export interface ToolbarProps extends PropsWithChildren {
    * laid over the parent as an overlay that takes no presses but the bar's,
    * and is drawn only once it has been measured and placed. Implies
    * `floating`.
+   *
+   * The bar is the width of its controls up to the room between the
+   * parent's edges less `insets` and the gap at each side. The trailing
+   * `commands` that do not fit that room go behind the overflow menu, before
+   * the `secondary` ones, as `foldCommands` folds along an edge: one command
+   * per layout, from the measured bar, until it fits or every command is
+   * behind the menu, and the bar is drawn once it fits. On Windows the
+   * `CommandBar` is given the room and moves what does not fit into its own
+   * overflow. `leading`, `trailing` and `fieldCommands` never fold.
    */
   at?: AnchorRect | null;
   /**
