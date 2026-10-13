@@ -40,13 +40,26 @@ describe('Composer (windows)', () => {
       while (node && StyleSheet.flatten(node.props.style)?.minHeight === undefined) node = node.parent;
       return StyleSheet.flatten(node!.props.style) as Record<string, unknown>;
     };
-    const composer = <Composer onSend={() => {}} testID="c"/>;
+    /** The margin under a button's host: the first view up from the button that sets one. */
+    const marginUnder = (testID: string) => {
+      let node = screen.getByTestId(testID).parent;
+      while (node && StyleSheet.flatten(node.props.style)?.marginBottom === undefined) node = node.parent;
+      return StyleSheet.flatten(node!.props.style)!.marginBottom;
+    };
+    const composer = <Composer onSend={() => {}} menu={{label: 'Send to', icon: icons.share, items: [{label: 'Everyone'}]}} testID="c"/>;
     const {rerender} = await render(<Toolbar field={composer}/>);
-    expect(capsuleOf('c-field')).toMatchObject({minHeight: 24, paddingVertical: 0});
+    // The 24 buttons fill the round ends of a 24 capsule: no padding at the ends, no margin under them.
+    expect(capsuleOf('c-field')).toMatchObject({minHeight: 24, paddingVertical: 0, paddingLeft: 0, paddingRight: 0});
     expect(StyleSheet.flatten(screen.getByTestId('c-field').props.style)).toMatchObject({paddingVertical: 2, lineHeight: 20});
+    expect(marginUnder('c-send')).toBe(0);
+    expect(marginUnder('c-menu')).toBe(0);
+    // On its own each 24 button is centred in the 44 capsule's round end, 10 from the end as from the top and the
+    // bottom: 6 up from the capsule's padding, centred on the last line of 20 and its 8.
     await rerender(composer);
-    expect(capsuleOf('c-field')).toMatchObject({minHeight: 44, paddingVertical: 4});
+    expect(capsuleOf('c-field')).toMatchObject({minHeight: 44, paddingVertical: 4, paddingLeft: 10, paddingRight: 10});
     expect(StyleSheet.flatten(screen.getByTestId('c-field').props.style)).toMatchObject({paddingVertical: 8});
+    expect(marginUnder('c-send')).toBe(6);
+    expect(marginUnder('c-menu')).toBe(6);
   });
 
   it('takes its own labels, icons and keys, colors an error notice, and passes the field its traits', async () => {

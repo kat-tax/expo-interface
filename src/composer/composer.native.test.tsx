@@ -67,7 +67,7 @@ describe(`Composer (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(field.props.style)).toMatchObject({paddingVertical: 8, lineHeight: 20});
     let capsule = field.parent;
     while (capsule && StyleSheet.flatten(capsule.props.style)?.minHeight === undefined) capsule = capsule.parent;
-    expect(StyleSheet.flatten(capsule!.props.style)).toMatchObject({minHeight: 44, paddingVertical: 4});
+    expect(StyleSheet.flatten(capsule!.props.style)).toMatchObject({minHeight: 44, paddingVertical: 4, paddingLeft: 16, paddingRight: isIOS ? 7 : 4});
   });
 
   it('is a stop button while busy, and leaves a controlled text to the app', async () => {
@@ -184,29 +184,35 @@ describe(`Composer (${Platform.OS})`, () => {
     }
   });
 
-  it('keeps one line centred in the 44 capsule, with the buttons boxed to it on Android', async () => {
+  it('keeps one line centred in the 44 capsule, with the buttons centred in its round ends and boxed to it on Android', async () => {
     await render(<Composer onSend={() => {}} menu={{label: 'Send to', icon: SEND_TO, items: []}} testID="c"/>);
-    const style = StyleSheet.flatten(screen.getByTestId('c-field').props.style);
+    const field = screen.getByTestId('c-field');
+    const style = StyleSheet.flatten(field.props.style);
     // A line of 20 with 8 above and below: 36, the capsule's 44 less its padding.
     expect(style).toMatchObject({lineHeight: 20, paddingVertical: 8});
+    let capsule = field.parent;
+    while (capsule && StyleSheet.flatten(capsule.props.style)?.minHeight !== 44) capsule = capsule.parent;
     const [menuHost, buttonHost] = hosts();
     if (isIOS) {
       expect(style).not.toHaveProperty('includeFontPadding');
       expect(style).not.toHaveProperty('textAlignVertical');
+      // Each 30 button is 7 from its end as from the top and the bottom: 3 up from the capsule's padding, centred on
+      // the last line of 20 and its 8.
+      expect(StyleSheet.flatten(capsule!.props.style)).toMatchObject({paddingLeft: 7, paddingRight: 7});
       for (const node of [menuHost, buttonHost]) {
         expect(hostFit(node)).toEqual({vertical: true, horizontal: true});
-        expect(StyleSheet.flatten(node.props.style)).toMatchObject({marginBottom: 2});
+        expect(StyleSheet.flatten(node.props.style)).toMatchObject({marginBottom: 3});
       }
     } else {
       // The placeholder is laid out without the font's padding, and the text is centred in the field.
       expect(style).toMatchObject({includeFontPadding: false, textAlignVertical: 'center'});
       // Material's icon button carries a 48dp touch target, which a host sized to it would push the capsule out with:
-      // each host is a box of the 36 one line leaves, at the bottom of the row.
+      // each host is a box of the 36 one line leaves, at the bottom of the row, 4 from its end as from the top and the
+      // bottom.
+      expect(StyleSheet.flatten(capsule!.props.style)).toMatchObject({paddingLeft: 4, paddingRight: 4});
       for (const node of [menuHost, buttonHost]) {
         expect(hostFit(node)).toEqual({});
-        const box = StyleSheet.flatten(node.props.style);
-        expect(box).toMatchObject({width: 36, height: 36, flex: 0, alignSelf: 'flex-end'});
-        expect(box).not.toHaveProperty('marginBottom');
+        expect(StyleSheet.flatten(node.props.style)).toMatchObject({width: 36, height: 36, flex: 0, alignSelf: 'flex-end', marginBottom: 0});
       }
     }
   });

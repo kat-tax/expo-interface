@@ -22,8 +22,9 @@ const LINE_HEIGHT = 20;
  * field's 8 above and below it, and the capsule's 4. As a `Toolbar`'s field
  * the capsule is the height of the bar's controls where that is shorter
  * (`useToolbarControlHeight`: the web's small buttons are 30, Windows's 24),
- * closing its own padding, with the field's alone centring the line and the
- * buttons sitting on the line with no margin.
+ * closing its own padding, with the field's alone centring the line, and the
+ * buttons, as tall as the capsule then, filling its round ends with no
+ * padding or margin around them.
  */
 const MIN_HEIGHT = 44;
 
@@ -35,25 +36,37 @@ const CAPSULE_PADDING = 4;
  * the capsule's padding, 36. Material's icon button is a 40dp container in
  * a 48dp touch target (`minimumInteractiveComponentSize`, which the
  * `MaterialTheme` in `@expo/ui`'s host applies), and a host sized to its
- * content takes the 48, so the row grows to it: 48, the button's 2 of
- * margin and the capsule's 4 above and below is 58, with the field at the
- * bottom of it and its line 7 below the middle. Compose's `size` keeps to
- * the room it is measured in, so in a box of 36 the button is drawn as a
- * 36 circle centred on the line, and the capsule stays 44. The touch target
- * is the circle, as it is on the other platforms.
+ * content takes the 48, so the row grows to it: 48 and the capsule's 4
+ * above and below is 56, with the field at the bottom of it and its line 6
+ * below the middle. Compose's `size` keeps to the room it is measured in,
+ * so in a box of 36 the button is drawn as a 36 circle centred on the line,
+ * and the capsule stays 44. The touch target is the circle, as it is on the
+ * other platforms.
  */
 const ANDROID_BUTTON_BOX = MIN_HEIGHT - 2 * CAPSULE_PADDING;
+
+/**
+ * The button the capsule centres in its round end, in points: the kit's
+ * small circle button, 30 on the web (a 16 glyph, 6 of padding and a 1 px
+ * border each side) and on iOS, the small button island's 24 on Windows,
+ * and on Android the box its host is. The capsule's padding at that end is
+ * half of what the button leaves of the capsule's one-line height, so the
+ * button is as far from the end as from the top and the bottom; its margin
+ * centres it on the last line, which keeps it there as the text wraps.
+ */
+const BUTTON_SIZE = Platform.OS === 'android' ? ANDROID_BUTTON_BOX : Platform.OS === 'windows' ? 24 : 30;
 
 /** The hosts take the size the layout gives on Android, and the button's own size elsewhere. */
 const BUTTON_FIT: NativeHostFit = Platform.OS === 'android' ? 'fill' : true;
 
 /**
- * Where the buttons sit: in the box on Android, and 2 up from the capsule's
- * padding elsewhere, which centres a button of about 30 on the line.
+ * The buttons' hosts: a box of `ANDROID_BUTTON_BOX` at the bottom of the row
+ * on Android, and the button's own size elsewhere. The margin that puts them
+ * on the last line comes from `BUTTON_SIZE` and the field's padding.
  */
 const BUTTON: ViewStyle = Platform.OS === 'android'
   ? {width: ANDROID_BUTTON_BOX, height: ANDROID_BUTTON_BOX, flex: 0, alignSelf: 'flex-end'}
-  : {marginBottom: 2};
+  : {};
 
 /**
  * The field's Android metrics. The line is measured through its
@@ -139,9 +152,13 @@ export function Composer({
   // their height: its own padding closes, the field's centres the line.
   const controls = useToolbarControlHeight();
   const height = controls !== undefined && controls < MIN_HEIGHT ? controls : MIN_HEIGHT;
-  const shrunk = height < MIN_HEIGHT;
-  const capsulePadding = shrunk ? 0 : CAPSULE_PADDING;
+  const capsulePadding = height < MIN_HEIGHT ? 0 : CAPSULE_PADDING;
   const fieldPadding = (height - 2 * capsulePadding - LINE_HEIGHT) / 2;
+  // The button in the capsule's round end: as far from the end as from the
+  // top and the bottom of one line's capsule, and centred on the last line.
+  // Both are 0 in a capsule the height of a bar's controls, the button's own.
+  const endPadding = (height - BUTTON_SIZE) / 2;
+  const button = [styles.button, {marginBottom: (LINE_HEIGHT + 2 * fieldPadding - BUTTON_SIZE) / 2}];
   const ready = text.trim().length > 0;
   const send = () => {
     const trimmed = text.trim();
@@ -156,13 +173,14 @@ export function Composer({
         radius="pill"
         style={[
           styles.capsule,
-          {minHeight: height, paddingVertical: capsulePadding},
-          menu ? styles.withMenu : null,
+          {minHeight: height, paddingVertical: capsulePadding, paddingRight: endPadding},
+          // The menu's button sits in the leading end, where the field's own padding would be.
+          menu ? {paddingLeft: endPadding} : null,
           Platform.OS === 'web' && focused ? [styles.focusRing, {outlineColor: tint}] : null,
         ]}
       >
         {menu ? (
-          <NativeHost fit={BUTTON_FIT} style={[styles.button, shrunk ? styles.flush : null]}>
+          <NativeHost fit={BUTTON_FIT} style={button}>
             <Menu
               label={menu.label}
               icon={menu.icon}
@@ -198,7 +216,7 @@ export function Composer({
           style={[styles.field, {paddingVertical: fieldPadding}]}
           testID={testID ? `${testID}-field` : undefined}
         />
-        <NativeHost fit={BUTTON_FIT} style={[styles.button, shrunk ? styles.flush : null]}>
+        <NativeHost fit={BUTTON_FIT} style={button}>
           {busy ? (
             <Button
               label={stopLabel}
@@ -245,12 +263,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingLeft: 16,
-    paddingRight: CAPSULE_PADDING,
     gap: 8,
-  },
-  // The menu's button sits where the field's leading padding would.
-  withMenu: {
-    paddingLeft: CAPSULE_PADDING,
   },
   // The web focus ring, as the SearchField draws it, in the tint.
   focusRing: {
@@ -266,10 +279,6 @@ const styles = StyleSheet.create({
     ...ANDROID_FIELD,
   },
   button: BUTTON,
-  // On the line, in a capsule the height of a bar's controls.
-  flush: {
-    marginBottom: 0,
-  },
   // The gap under the capsule goes with the notice: the empty live region takes no room.
   notice: {
     marginTop: 6,

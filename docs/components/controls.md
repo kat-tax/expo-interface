@@ -267,7 +267,10 @@ The capsule starts one line tall and grows with the text to five lines,
 then scrolls; on web it grows where the browser sizes a field to its
 content (`field-sizing`), and where the browser does not it stays one line
 tall and scrolls inside.
-With one line in it the capsule is 44 points tall on every platform. As a
+With one line in it the capsule is 44 points tall on every platform. The
+button sits centred in the capsule's round end, as far from the end as from
+the top and the bottom, and stays on the last line as the text wraps; a
+`menu`'s button sits the same way in the leading end. As a
 `Toolbar`'s `field` it is the height of the bar's controls where that is
 shorter: 30 on the web and 24 on Windows, the kit's small button there, with
 the capsule's own padding closed, the field's alone centring the line and
