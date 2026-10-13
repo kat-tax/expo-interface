@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 import {useState} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import {AccentProvider} from '../accent';
+import {Menu} from '../menu';
 import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
 import {TextField} from '../text-field';
 import {Sheet} from '.';
@@ -175,9 +176,32 @@ describe('focus (web)', () => {
     );
   }
 
+  /** A page with a menu whose item opens the sheet, as a document's menu does. */
+  function MenuPage() {
+    const [open, setOpen] = useState(false);
+    return (
+      <>
+        <Menu label="More" items={[{label: 'History', onPress: () => setOpen(true)}]}/>
+        <Sheet isPresented={open} onDismiss={() => setOpen(false)} title="History">
+          <span>Content</span>
+        </Sheet>
+      </>
+    );
+  }
+
   /** Radix returns the focus a tick after the dialog has gone; waits that tick out. */
   const tick = () => act(async () => {
     await new Promise(resolve => setTimeout(resolve, 0));
+  });
+
+  // The focus goes back only to a control that is drawn, read from its client
+  // rects; jsdom lays nothing out, so every element is given one.
+  let rects: ReturnType<typeof vi.spyOn>;
+  beforeAll(() => {
+    rects = vi.spyOn(Element.prototype, 'getClientRects').mockReturnValue([new DOMRect(0, 0, 40, 20)] as unknown as DOMRectList);
+  });
+  afterAll(() => {
+    rects.mockRestore();
   });
 
   it('moves the keyboard focus to the title as the sheet opens, since the drawer leaves it on a control the dialog hides', () => {
@@ -270,5 +294,17 @@ describe('focus (web)', () => {
     await tick();
     expect(opener.isConnected).toBe(false);
     expect(document.activeElement).toBe(document.body);
+  });
+
+  it('gives the focus to the menu\'s trigger when an item of the menu opened the sheet, since the item is hidden with its menu by then', async () => {
+    render(<MenuPage/>);
+    const item = screen.getByRole('menuitem', {name: 'History', hidden: true});
+    item.focus();
+    fireEvent.click(item);
+    expect(document.activeElement).toBe(screen.getByRole('heading', {name: 'History'}));
+    fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
+    await tick();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(screen.getByRole('button', {name: 'More'}));
   });
 });

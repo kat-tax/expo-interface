@@ -6,6 +6,7 @@ import {NativeHostContext} from '../host';
 import {materialAttributes} from '../material';
 import {useOverlayMaterial} from '../material/context';
 import {sheetChildren, sheetOwnProps} from './compose';
+import {focusReturn} from './focus-return';
 import {MATERIAL_OPACITY, hasMaterial} from './shared';
 
 /** The heading in the bar's title box, which the drawn bar marks on web. */
@@ -36,7 +37,8 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select
  * heading it can land on, or else to the first control in the content,
  * unless a field in the content has taken it already (`autoFocus`), and
  * goes back to the control that opened the sheet once the content has left
- * the page.
+ * the page: to that control while it can take the focus, else to the
+ * trigger of the menu it was an item of (`focusReturn`).
  */
 export function Sheet(props: SheetProps) {
   const {own, rest} = sheetOwnProps(props);
@@ -92,9 +94,9 @@ export function Sheet(props: SheetProps) {
       // The content has left the page, and the focus with it. The drawer
       // gives nothing back by itself: Radix's dialog returns the focus to a
       // trigger of its own, which a sheet opened from a prop has none of.
-      const previous = opener.current as HTMLElement | null;
+      const previous = opener.current;
       opener.current = null;
-      if (previous?.isConnected) previous.focus({preventScroll: true});
+      focusReturn(previous)?.focus({preventScroll: true});
     };
   }, [content]);
   return (
