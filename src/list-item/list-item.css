@@ -97,7 +97,12 @@ button.ui-list-item,
   white-space: nowrap;
 }
 
-/* The current row: the open document, the chosen version. */
-.ui-list-item--selected {
-  background: var(--color-background-selected);
+/*
+ * The current row: the open document, the chosen version. The reset above
+ * strips a pressable row's `<button>` of its own fill, so the selected fill
+ * outranks it (two classes over a class and an element) and shows on a
+ * button row as on any other.
+ */
+.ui-list-item.ui-list-item--selected {
+  background-color: var(--color-background-selected);
 }
