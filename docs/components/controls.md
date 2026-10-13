@@ -465,7 +465,9 @@ it is asked:
 | `menu` | SwiftUI's `Menu` of the swatches from a well | A Material `DropdownMenu` of the swatches from the well | The kit's menu popover from the well | A `MenuFlyout` of the swatches from a drawn well |
 
 On Android and web, a picker in a sheet, a dialog or a popover is titled with
-`label`, or "Colors" without one. A swatch picked from a menu is opaque. On
+`label`, or "Colors" without one. On web the title is a level 3 heading, one
+below the level 2 title of the sheet it sits in, the kit's own or an app's
+around an `inline` picker. A swatch picked from a menu is opaque. On
 web the well of a `popover` or `menu` picker takes its popover target once
 the page has hydrated, as the `Menu`'s trigger does, so on a static page a
 press before then does nothing.

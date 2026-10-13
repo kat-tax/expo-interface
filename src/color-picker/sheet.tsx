@@ -1,4 +1,4 @@
-import type {GestureResponderEvent, LayoutChangeEvent, ViewProps} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, TextProps, ViewProps} from 'react-native';
 import type {RGBA} from './shared';
 
 import {useCallback, useState} from 'react';
@@ -100,6 +100,15 @@ const responder = (handler: (x: number, y: number) => void, disabled?: boolean) 
  */
 const NO_SHEET_DRAG = {dataSet: {vaulNoDrag: 'true'}} as ViewProps;
 
+/**
+ * Marks the drawn title as a level 3 heading. The sheet the picker sits in
+ * titles itself at level 2 (the kit's drawn sheet bar, the web drawer's
+ * hidden title), and a heading goes at most one level below the one before
+ * it. React Native's `Text` types no heading level; react-native-web writes
+ * `aria-level` to the DOM, and the native views ignore it.
+ */
+const HEADING_LEVEL = {'aria-level': 3} as TextProps;
+
 export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, onClose, disabled, width, testID}: ColorPickerSheetProps) {
   const [tab, setTab] = useState<ColorPickerTab>('grid');
   const [color, setColor] = useColorValue(value, onValueChange, supportsOpacity);
@@ -119,7 +128,7 @@ export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, 
     <View style={[styles.sheet, width != null ? {width} : styles.fill, ...(disabled ? [styles.disabled] : [])]} testID={testID}>
       {title != null || onClose ? (
         <View style={styles.header}>
-          {title != null ? <Text style={[styles.title, {color: label}]} numberOfLines={1} role="heading" accessible>{title}</Text> : null}
+          {title != null ? <Text style={[styles.title, {color: label}]} numberOfLines={1} role="heading" {...HEADING_LEVEL} accessible>{title}</Text> : null}
           {onClose ? (
             <Pressable
               role="button"

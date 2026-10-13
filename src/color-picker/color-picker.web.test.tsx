@@ -77,7 +77,8 @@ describe('ColorPicker (web)', () => {
     const dialog = open();
     // The drawer hides the rest of the page from assistive technology while open.
     expect(screen.getByTestId('cp')).toHaveAttribute('aria-expanded', 'true');
-    expect(within(dialog).getByRole('heading', {name: 'Accent'})).toBeInTheDocument();
+    // The picker's title sits one level under the drawer's hidden level 2 title.
+    expect(within(dialog).getByRole('heading', {name: 'Accent', level: 3})).toHaveAttribute('aria-level', '3');
     expect(screen.getByTestId('cp-sheet')).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', {name: 'Close'}));
     expect(screen.getByTestId('cp')).toHaveAttribute('aria-expanded', 'false');

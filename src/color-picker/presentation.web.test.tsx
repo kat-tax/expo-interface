@@ -27,7 +27,8 @@ describe('ColorPicker presentations (web)', () => {
     const inline = screen.getByTestId('cp');
     expect(inline).toHaveClass('ui-color-picker-inline');
     expect(inline.contains(screen.getByTestId('cp-sheet'))).toBe(true);
-    expect(within(inline).getByRole('heading', {name: 'Ink'})).toBeInTheDocument();
+    // One level under the level 2 title of the app's sheet it is drawn in.
+    expect(within(inline).getByRole('heading', {name: 'Ink', level: 3})).toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Close'})).toBeNull();
     expect(inline.querySelector('.ui-color-picker__presets--inline')).not.toBeNull();
     rerender(<ColorPicker value="#FF0000" presentation="inline" onValueChange={vi.fn()} testID="cp"/>);
