@@ -356,9 +356,9 @@ describe('TabView (web)', () => {
       expect(capsule.borderRadius).toBe('999px');
       // The icon and the cross draw in the text's colour, which the capsule's rule sets.
       expect(glyphs(shell('t-tab-a')).map(glyph => glyph.style.color)).toEqual(['currentcolor', 'currentcolor']);
-      // A tab that is not open keeps the strip's look.
+      // A tab that is not open is a text button in the label tone: no fill, the label's colour.
       expect(getComputedStyle(shell('t-tab-b')).background).toBe('');
-      expect(getComputedStyle(shell('t-tab-b')).color).toBe('var(--color-secondary-label)');
+      expect(getComputedStyle(shell('t-tab-b')).color).toBe('var(--color-label)');
       expect(glyphs(shell('t-tab-b')).map(glyph => glyph.style.color)).toEqual(['var(--color-label)']);
     });
 
@@ -374,6 +374,31 @@ describe('TabView (web)', () => {
       // It names the open tab's body, and no other tab's.
       expect(screen.getByTestId('t-tab-a').matches(selector)).toBe(true);
       expect(screen.getByTestId('t-tab-b').matches(selector)).toBe(false);
+    });
+
+    it('draws the accent tabs as the kit buttons: their padding with the 1 px border, semibold, 8 apart', () => {
+      const strip = (size?: 'small') => <TabView tabs={TABS} selected="a" onSelect={() => {}} fill="accent" size={size} testID="t"/>;
+      const {rerender} = render(strip());
+      const tab = (id: string) => getComputedStyle(shell(`t-tab-${id}`));
+      // The filled medium button and the text one: 18 and 10 a side, each with its border.
+      expect(tab('a').paddingLeft).toBe('19px');
+      expect(tab('a').paddingRight).toBe('19px');
+      expect(tab('b').paddingLeft).toBe('11px');
+      expect(tab('b').paddingRight).toBe('11px');
+      expect(tab('b').fontWeight).toBe('600');
+      expect(tab('b').borderRadius).toBe('999px');
+      expect(getComputedStyle(screen.getByTestId('t-strip')).gap).toBe('8px');
+      // The small ones: 12 and 6.
+      rerender(strip('small'));
+      expect(tab('a').paddingLeft).toBe('13px');
+      expect(tab('a').paddingRight).toBe('13px');
+      expect(tab('b').paddingLeft).toBe('7px');
+      expect(tab('b').paddingRight).toBe('7px');
+      // Without the accent a tab keeps the strip's own padding, the room for its cross on the right.
+      rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} size="small" testID="t"/>);
+      expect(tab('b').paddingLeft).toBe('12px');
+      expect(tab('b').paddingRight).toBe('8px');
+      expect(tab('b').fontWeight).toBe('normal');
     });
 
     it('draws the strip at the small button\'s metrics with small: 13 px on 18 with 6 above and below, the icon 14 and the cross 12', () => {

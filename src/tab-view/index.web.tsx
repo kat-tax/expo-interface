@@ -250,7 +250,9 @@ export function TabView(props: TabViewProps) {
               const tint = fill === 'accent' && index === current ? 'currentColor' : undefined;
               const cross = close(tab, glyphs.cross, tint);
               return (
-              <div key={tab.id} className="ui-tab-view__tab" data-selected={index === current} style={tab.depth ? {paddingLeft: 12 + tab.depth * DEPTH_INDENT} : undefined}>
+              // The accent's tab is a button, whose padding is its own: a step in a
+              // level stands before it rather than inside it.
+              <div key={tab.id} className="ui-tab-view__tab" data-selected={index === current} style={tab.depth ? (fill === 'accent' ? {marginLeft: tab.depth * DEPTH_INDENT} : {paddingLeft: 12 + tab.depth * DEPTH_INDENT}) : undefined}>
                 <div
                   role="tab"
                   id={tabId(tab)}

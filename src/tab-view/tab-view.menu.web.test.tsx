@@ -50,6 +50,14 @@ describe('TabView tab menus, depth and accessories (web)', () => {
     expect(sketch).toHaveTextContent('typing');
   });
 
+  it('stands a nested tab of the accent strip off by its depth rather than padding its button', () => {
+    render(<TabView tabs={TABS} selected="a" onSelect={() => {}} fill="accent" testID="t"/>);
+    const [notes, sketch] = screen.getAllByRole('tab');
+    expect(sketch.parentElement!.style.marginLeft).toBe(`${DEPTH_INDENT}px`);
+    expect(sketch.parentElement!.style.paddingLeft).toBe('');
+    expect(notes.parentElement!.style.marginLeft).toBe('');
+  });
+
   it('opens a tab\'s menu at the pointer on a right click, in the strip\'s own coordinates', () => {
     render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
     const [notes, sketch] = screen.getAllByRole('tab');

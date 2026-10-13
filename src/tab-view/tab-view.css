@@ -89,13 +89,36 @@
 
 /*
  * The accent, for a strip on a page, where the translucent pill reads faint:
- * the open tab is the kit's filled button, a capsule in the tint with its
- * text and glyphs in the colour that reads on it.
+ * its tabs are the kit's buttons. The open tab is the filled button, a
+ * capsule in the tint with its text and glyphs in the colour that reads on
+ * it, and the others are text buttons in the label tone. Each takes its
+ * button's padding, the button's 1 px border folded in (18 and 10 a side,
+ * 12 and 6 at the small size), and its weight, and they stand 8 apart, as a
+ * row of buttons does.
  */
+.ui-tab-view--accent .ui-tab-view__strip {
+  gap: 8px;
+}
+
+.ui-tab-view--accent .ui-tab-view__tab {
+  padding: 0 11px;
+  border-radius: 999px;
+  color: var(--color-label);
+  font-weight: 600;
+}
+
 .ui-tab-view--accent .ui-tab-view__tab[data-selected='true'] {
+  padding: 0 19px;
   background: var(--color-tint);
   color: var(--color-on-tint);
-  border-radius: 999px;
+}
+
+.ui-tab-view--accent.ui-tab-view--small .ui-tab-view__tab {
+  padding: 0 7px;
+}
+
+.ui-tab-view--accent.ui-tab-view--small .ui-tab-view__tab[data-selected='true'] {
+  padding: 0 13px;
 }
 
 /* The focus ring is drawn in the tint, which the capsule would swallow. */

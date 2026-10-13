@@ -36,6 +36,15 @@ describe(`TabView tab menus, depth and accessories (${Platform.OS})`, () => {
     expect(screen.getByText('typing', {includeHiddenElements: true})).toBeOnTheScreen();
   });
 
+  it('stands a nested tab of the accent strip off by its depth rather than padding its button', async () => {
+    await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" fill="accent" testID="t"/>);
+    const shell = (id: string) => StyleSheet.flatten(screen.getByTestId(`t-tab-${id}`).parent!.props.style);
+    expect(shell('b').marginLeft).toBe(DEPTH_INDENT);
+    expect(shell('c').marginLeft).toBe(2 * DEPTH_INDENT);
+    expect(shell('b').paddingLeft).toBe(shell('a').paddingLeft);
+    expect(shell('a').marginLeft).toBeUndefined();
+  });
+
   it('opens a tab\'s menu under the tab on a long press, from the tab\'s layout less the strip\'s scroll', async () => {
     await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
     expect(menuOpen()).toBe(false);
