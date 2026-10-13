@@ -1,7 +1,9 @@
+import type {ReactNode} from 'react';
 import {useState} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import {AccentProvider} from '../accent';
 import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
+import {TextField} from '../text-field';
 import {Sheet} from '.';
 
 /** Prints the scroll insets a list or a form at this point pads by. */
@@ -154,7 +156,7 @@ describe('material (web)', () => {
 
 describe('focus (web)', () => {
   /** A page with a button that opens the sheet, which `onDismiss` closes and, when asked, takes the button away with it. */
-  function Page({removeOpener = false}: {removeOpener?: boolean}) {
+  function Page({removeOpener = false, children = <span>Content</span>}: {removeOpener?: boolean; children?: ReactNode}) {
     const [open, setOpen] = useState(false);
     const [gone, setGone] = useState(false);
     return (
@@ -167,7 +169,7 @@ describe('focus (web)', () => {
             if (removeOpener) setGone(true);
           }}
           title="History">
-          <span>Content</span>
+          {children}
         </Sheet>
       </>
     );
@@ -204,6 +206,31 @@ describe('focus (web)', () => {
       </Sheet>,
     );
     expect(document.activeElement).toBe(document.body);
+  });
+
+  it('leaves the focus in a field of the content that asked for it, title or not', () => {
+    render(
+      <Sheet isPresented onDismiss={() => {}} title="New comment" onClose={() => {}}>
+        <TextField value="" onChangeText={() => {}} placeholder="Comment" autoFocus/>
+      </Sheet>,
+    );
+    expect(document.activeElement).toBe(screen.getByPlaceholderText('Comment'));
+  });
+
+  it('gives the focus back to the button that opened a sheet whose field took it, not to the field, which left with the sheet', async () => {
+    render(
+      <Page>
+        <TextField value="" onChangeText={() => {}} placeholder="Comment" autoFocus/>
+      </Page>,
+    );
+    const opener = screen.getByRole('button', {name: 'Open'});
+    opener.focus();
+    fireEvent.click(opener);
+    expect(document.activeElement).toBe(screen.getByPlaceholderText('Comment'));
+    fireEvent.keyDown(screen.getByRole('dialog'), {key: 'Escape'});
+    await tick();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(document.activeElement).toBe(opener);
   });
 
   it('does not move the focus again while the sheet stays open', () => {
