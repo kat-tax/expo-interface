@@ -21,8 +21,9 @@ export const OVERSCAN = 1;
 
 /**
  * How far down the units are drawn before anything is measured: the static
- * page, the first client render and a list that is hidden. It depends on the
- * props alone, so the server and the client draw the same units.
+ * page, the first client render, a list that is hidden and one wholly
+ * outside the window. It depends on the props alone, so the server and the
+ * client draw the same units.
  */
 export const INITIAL_SPAN = 1200;
 
@@ -70,10 +71,10 @@ export interface Windowed {
   range: WindowRange;
   /**
    * Whether `range` comes from the list as the page lays it out: false
-   * before the page has been read and while the list is hidden, when the
-   * first units are drawn whatever shows. Where there is no
-   * `ResizeObserver` the first units count as read, since nothing reads the
-   * page before a scroll.
+   * before the page has been read, while the list is hidden and while it
+   * lies wholly outside the window, when the first units are drawn whatever
+   * shows. Where there is no `ResizeObserver` the first units count as read,
+   * since nothing reads the page before a scroll.
    */
   measured: boolean;
   /** The spacer before the drawn units, where the first unit's top would be. */
@@ -125,12 +126,16 @@ function same(a: WindowRange, b: WindowRange): boolean {
  * of the list the window shows, so new data, a new estimate or new columns
  * are drawn at once. That part is read from the page on any scroll (the
  * list's own or an ancestor's, so a list the page scrolls is windowed too),
- * on a resize of the window or of the list, and whenever a drawn unit changes
- * height or keeps its element under a new key; it is kept only when it
- * changes which units are drawn. Until the page has been read, and while the
- * list is hidden, the first units are drawn and the range is not `measured`,
- * so a list does not take its end from them. The spacers are never scroll
- * anchors, so the browser keeps the drawn units still while a spacer changes.
+ * on a resize of the window or of the list, when a CSS transition or
+ * animation ends anywhere in the document (a sheet's drawer slides in by a
+ * transform, which none of the others report), and whenever a drawn unit
+ * changes height or keeps its element under a new key; it is kept only when
+ * it changes which units are drawn. Until the page has been read, while the
+ * list is hidden, and while it lies wholly outside the window (the drawer
+ * still on its way in), the first units are drawn and the range is not
+ * `measured`, so a list does not take its end from them and a list that
+ * arrives later has rows to show. The spacers are never scroll anchors, so
+ * the browser keeps the drawn units still while a spacer changes.
  */
 export function useWindowed(scroller: RefObject<HTMLElement | null>, {keys, estimate, gap}: WindowOptions): Windowed {
   const [view, setView] = useState<View>(() => ({from: 0, to: INITIAL_SPAN, measured: typeof ResizeObserver === 'undefined', heights: new Map()}));
@@ -147,8 +152,10 @@ export function useWindowed(scroller: RefObject<HTMLElement | null>, {keys, esti
     // The element is attached by the time an effect runs.
     const box = scroller.current!.getBoundingClientRect();
     const startTop = start.current?.getBoundingClientRect().top;
-    // Hidden, not laid out, or showing its empty content: the first units.
-    const measured = box.height > 0 && startTop != null;
+    // Hidden, not laid out, showing its empty content, or wholly above or
+    // below the window: the first units. Clipped by the window, a box
+    // outside it would hold one unit, and nothing would show once it slid in.
+    const measured = box.height > 0 && startTop != null && box.bottom > 0 && box.top < globalThis.innerHeight;
     let from = 0;
     let to = INITIAL_SPAN;
     if (measured) {
@@ -170,6 +177,12 @@ export function useWindowed(scroller: RefObject<HTMLElement | null>, {keys, esti
   useLayoutEffect(() => {
     const onChange = () => follow([]);
     document.addEventListener('scroll', onChange, {capture: true, passive: true});
+    // A transform moves the list without a scroll, a resize or a report
+    // from the observer: the page is read again when a transition or an
+    // animation ends anywhere in it, which is cheap, since a read that
+    // changes nothing sets nothing.
+    document.addEventListener('transitionend', onChange, {capture: true});
+    document.addEventListener('animationend', onChange, {capture: true});
     globalThis.addEventListener('resize', onChange);
     if (typeof ResizeObserver !== 'undefined') {
       // It reports every element it is given once at the start, so the
@@ -182,6 +195,8 @@ export function useWindowed(scroller: RefObject<HTMLElement | null>, {keys, esti
     }
     return () => {
       document.removeEventListener('scroll', onChange, true);
+      document.removeEventListener('transitionend', onChange, true);
+      document.removeEventListener('animationend', onChange, true);
       globalThis.removeEventListener('resize', onChange);
       observer.current?.disconnect();
       observer.current = null;

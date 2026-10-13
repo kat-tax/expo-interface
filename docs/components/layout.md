@@ -567,7 +567,10 @@ Differences:
   the whole (`aria-posinset`, `aria-setsize`). `onEndReached` fires once the
   list is laid out and the window draws the last row, and again when more
   rows arrive while it is still drawn, so a list that loads more fills the
-  view; a hidden list reports no end. Safari has no scroll anchoring, so
+  view; a hidden list reports no end. The list reads the page again when a
+  transition or an animation ends anywhere in it, so a list that slides in
+  with a sheet draws its rows once it has arrived; until then, as while it
+  is hidden, it draws its first rows. Safari has no scroll anchoring, so
   there a scroll up into rows never drawn can move what shows by the
   difference between their height and the estimate. A row scrolled out of
   the window is removed, as a native lazy list removes it, and the focus
