@@ -265,7 +265,13 @@ The capsule starts one line tall and grows with the text to five lines,
 then scrolls; on web it grows where the browser sizes a field to its
 content (`field-sizing`), and where the browser does not it stays one line
 tall and scrolls inside.
-With one line in it the capsule is 44 points tall on every platform. On
+With one line in it the capsule is 44 points tall on every platform. As a
+`Toolbar`'s `field` it is the height of the bar's controls where that is
+shorter: 30 on the web and 24 on Windows, the kit's small button there, with
+the capsule's own padding closed, the field's alone centring the line and
+the buttons sitting on the line with no margin; on iOS and Android the bar's
+controls are 44 and 48, so the capsule keeps its 44. It grows with the lines
+either way. On
 Android the buttons' hosts are boxes of the room one line leaves, 36dp,
 since Material's icon button carries a 48dp touch target that a host sized
 to it would bring into the capsule; the button is drawn as a 36dp circle,

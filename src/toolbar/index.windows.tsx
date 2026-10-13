@@ -15,6 +15,7 @@ import {menuEntries, useMenuShortcuts} from '../menu/windows';
 import {isCompact} from '../size-class';
 import {spacing} from '../theme';
 import {MORE} from '../glyphs';
+import {ToolbarFieldContext} from './field-context';
 import {useFold} from './fold';
 import {anchoredStyles, commandDisabled, hasCommands, overflowItems, splitCommands} from './shared';
 
@@ -28,6 +29,14 @@ const BAR_HEIGHT = 68;
 
 /** The height of a `CommandBar` with no labels: a floating bar's. */
 const COMPACT_HEIGHT = 48;
+
+/**
+ * How tall a command of the drawn bar is: the kit's small button island, a
+ * 12px label or a 16 glyph with 3 above and below, at WinUI's minimum of 24
+ * (`Controls.cpp`). What the bar hands its `field` (`ToolbarFieldContext`),
+ * so a field drawn to the bar's size is as tall as the controls beside it.
+ */
+const CONTROL_HEIGHT = 24;
 
 /**
  * Windows has two toolbars, and which one this is depends on how the bar was
@@ -201,7 +210,11 @@ function DrawnToolbar({commands, leading, trailing, field, fieldCommands = [], p
       testID={testID}>
       <View style={[styles.row, {gap}]}>
         <Group gap={gap}>{described ? <CommandButtons commands={primary}/> : leading}</Group>
-        {field != null ? <View style={styles.field}>{field}</View> : floating ? null : <View style={styles.spacer}/>}
+        {field != null ? (
+          <View style={styles.field}>
+            <ToolbarFieldContext.Provider value={CONTROL_HEIGHT}>{field}</ToolbarFieldContext.Provider>
+          </View>
+        ) : floating ? null : <View style={styles.spacer}/>}
         <Group gap={gap}>
           {fieldCommands.length > 0 ? <CommandButtons commands={fieldCommands}/> : null}
           {described ? <Overflow commands={secondary}/> : trailing}

@@ -6,6 +6,7 @@ import {byComposeTestID, host, modifier} from 'expo-vitest/native';
 import {hostFit, hosts} from '../__tests__/hosts';
 import * as icons from '../__stories__/icons';
 import {colors} from '../theme';
+import {Toolbar} from '../toolbar';
 import {Composer} from '.';
 
 const SEND_TO = icons.share;
@@ -58,6 +59,15 @@ describe(`Composer (${Platform.OS})`, () => {
     await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'again'}});
     expect(onSend).toHaveBeenLastCalledWith('again');
     expect(onSend).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps its 44 as a Toolbar\'s field, since the bar\'s controls are no shorter', async () => {
+    await render(<Toolbar field={<Composer onSend={() => {}} testID="c"/>}/>);
+    const field = screen.getByTestId('c-field');
+    expect(StyleSheet.flatten(field.props.style)).toMatchObject({paddingVertical: 8, lineHeight: 20});
+    let capsule = field.parent;
+    while (capsule && StyleSheet.flatten(capsule.props.style)?.minHeight === undefined) capsule = capsule.parent;
+    expect(StyleSheet.flatten(capsule!.props.style)).toMatchObject({minHeight: 44, paddingVertical: 4});
   });
 
   it('is a stop button while busy, and leaves a controlled text to the app', async () => {

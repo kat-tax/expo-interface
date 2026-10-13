@@ -11,9 +11,20 @@ import {Surface} from '../surface';
 import {TextField} from '../text-field';
 import {useTextValue} from '../text-field/shared';
 import {useColor} from '../theme';
+import {useToolbarControlHeight} from '../toolbar/field-context';
 import {Footnote} from '../typography';
 
-/** The capsule's height before the text wraps, in points: a line of 20, the field's 8 above and below it, and the capsule's 4. */
+/** The field's line, in points. */
+const LINE_HEIGHT = 20;
+
+/**
+ * The capsule's height before the text wraps, in points: a line of 20, the
+ * field's 8 above and below it, and the capsule's 4. As a `Toolbar`'s field
+ * the capsule is the height of the bar's controls where that is shorter
+ * (`useToolbarControlHeight`: the web's small buttons are 30, Windows's 24),
+ * closing its own padding, with the field's alone centring the line and the
+ * buttons sitting on the line with no margin.
+ */
 const MIN_HEIGHT = 44;
 
 /** The capsule's own padding above and below its content. */
@@ -124,6 +135,13 @@ export function Composer({
   const [focused, setFocused] = useState(false);
   const tint = useColor('tint');
   useAnnounced(notice);
+  // In a bar whose controls are shorter than the capsule, the capsule is
+  // their height: its own padding closes, the field's centres the line.
+  const controls = useToolbarControlHeight();
+  const height = controls !== undefined && controls < MIN_HEIGHT ? controls : MIN_HEIGHT;
+  const shrunk = height < MIN_HEIGHT;
+  const capsulePadding = shrunk ? 0 : CAPSULE_PADDING;
+  const fieldPadding = (height - 2 * capsulePadding - LINE_HEIGHT) / 2;
   const ready = text.trim().length > 0;
   const send = () => {
     const trimmed = text.trim();
@@ -138,12 +156,13 @@ export function Composer({
         radius="pill"
         style={[
           styles.capsule,
+          {minHeight: height, paddingVertical: capsulePadding},
           menu ? styles.withMenu : null,
           Platform.OS === 'web' && focused ? [styles.focusRing, {outlineColor: tint}] : null,
         ]}
       >
         {menu ? (
-          <NativeHost fit={BUTTON_FIT} style={styles.button}>
+          <NativeHost fit={BUTTON_FIT} style={[styles.button, shrunk ? styles.flush : null]}>
             <Menu
               label={menu.label}
               icon={menu.icon}
@@ -176,10 +195,10 @@ export function Composer({
           maxLength={maxLength}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          style={styles.field}
+          style={[styles.field, {paddingVertical: fieldPadding}]}
           testID={testID ? `${testID}-field` : undefined}
         />
-        <NativeHost fit={BUTTON_FIT} style={styles.button}>
+        <NativeHost fit={BUTTON_FIT} style={[styles.button, shrunk ? styles.flush : null]}>
           {busy ? (
             <Button
               label={stopLabel}
@@ -223,12 +242,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   capsule: {
-    minHeight: MIN_HEIGHT,
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingLeft: 16,
     paddingRight: CAPSULE_PADDING,
-    paddingVertical: CAPSULE_PADDING,
     gap: 8,
   },
   // The menu's button sits where the field's leading padding would.
@@ -244,12 +261,15 @@ const styles = StyleSheet.create({
   field: {
     flex: 1,
     fontSize: 15,
-    lineHeight: 20,
-    paddingVertical: 8,
+    lineHeight: LINE_HEIGHT,
     maxHeight: 120,
     ...ANDROID_FIELD,
   },
   button: BUTTON,
+  // On the line, in a capsule the height of a bar's controls.
+  flush: {
+    marginBottom: 0,
+  },
   // The gap under the capsule goes with the notice: the empty live region takes no room.
   notice: {
     marginTop: 6,

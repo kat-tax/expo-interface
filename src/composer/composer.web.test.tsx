@@ -2,6 +2,7 @@ import type {TextFieldCommands} from '../text-field/types';
 import {createRef} from 'react';
 import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
+import {Toolbar} from '../toolbar';
 import {Composer} from '.';
 
 describe('Composer (web)', () => {
@@ -49,6 +50,36 @@ describe('Composer (web)', () => {
     } finally {
       ring.remove();
     }
+  });
+
+  it('is the height of a bar\'s controls as a Toolbar\'s field, 30 on the web, and 44 on its own', () => {
+    const composer = <Composer onSend={() => {}} menu={{label: 'Send to', icon: icons.share, items: [{label: 'Everyone'}]}} testID="c"/>;
+    const {rerender} = render(<Toolbar field={composer}/>);
+    const field = () => screen.getByRole('textbox', {name: 'Message'});
+    const capsule = () => field().parentElement!;
+    // The buttons' hosts: the menu's before the field, the send button's after it.
+    const menuHost = () => capsule().firstElementChild!;
+    const sendHost = () => capsule().lastElementChild!;
+    expect(menuHost().contains(screen.getByRole('button', {name: 'Send to'}))).toBe(true);
+    expect(sendHost().contains(screen.getByRole('button', {name: 'Send'}))).toBe(true);
+    // The small buttons are 30: the capsule closes its padding, the field's centres the line of 20, and the buttons sit on it.
+    expect(getComputedStyle(capsule()).minHeight).toBe('30px');
+    expect(getComputedStyle(capsule()).paddingTop).toBe('0px');
+    expect(getComputedStyle(capsule()).paddingBottom).toBe('0px');
+    expect(getComputedStyle(field()).paddingTop).toBe('5px');
+    expect(getComputedStyle(field()).paddingBottom).toBe('5px');
+    expect(getComputedStyle(sendHost()).marginBottom).toBe('0px');
+    expect(getComputedStyle(menuHost()).marginBottom).toBe('0px');
+    // Still one line that grows with the text.
+    expect(field()).toHaveAttribute('rows', '1');
+    expect(getComputedStyle(field()).maxHeight).toBe('120px');
+    // On its own: the line, 8 above and below, and the capsule's 4.
+    rerender(composer);
+    expect(getComputedStyle(capsule()).minHeight).toBe('44px');
+    expect(getComputedStyle(capsule()).paddingTop).toBe('4px');
+    expect(getComputedStyle(field()).paddingTop).toBe('8px');
+    expect(getComputedStyle(sendHost()).marginBottom).toBe('2px');
+    expect(getComputedStyle(menuHost()).marginBottom).toBe('2px');
   });
 
   it('is a stop button while busy, and leaves a controlled text to the app', () => {

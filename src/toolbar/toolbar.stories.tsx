@@ -3,6 +3,7 @@ import {fn} from 'storybook/test';
 import {useState} from 'react';
 import {Pressable, StyleSheet, View} from 'react-native';
 import {Button} from '../button';
+import {Composer} from '../composer';
 import {Divider} from '../divider';
 import {Footnote} from '../typography';
 import {useColor} from '../theme';
@@ -95,6 +96,24 @@ export const WithAField: Story = {
         leading={<Button label="Search" prefixIcon={icons.add} hideLabel variant="text" tone="label" size="inline" onPress={fn()}/>}
         field={<TextField placeholder="Search the document" variant="inline"/>}
         trailing={<Button label="Next" variant="text" size="inline" onPress={fn()}/>}
+      />
+    </View>
+  ),
+};
+
+/**
+ * An editor's status bar with an assistant's prompt as its field: the
+ * capsule is the height of the bar's controls where they are shorter than
+ * its own 44 (the web, Windows), so the bar keeps its height.
+ */
+export const WithAComposer: Story = {
+  render: args => (
+    <View style={styles.stage}>
+      <Footnote color="tertiaryLabel">A canvas above the bar</Footnote>
+      <Toolbar
+        {...args}
+        commands={[{label: 'Close the assistant', icon: icons.trash, hideLabel: true, tone: 'label', onPress: fn()}]}
+        field={<Composer placeholder="Ask about this document" sendLabel="Ask" onSend={fn()}/>}
       />
     </View>
   ),

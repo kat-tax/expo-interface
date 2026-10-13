@@ -296,6 +296,11 @@ Differences:
   behind it the bar draws no overflow menu. The Windows `CommandBar` keeps
   it as a greyed-out button wherever it goes, its own overflow included.
 
+The bar hands its `field` the height of its controls through a context the
+kit's fields read: the kit's small button on the web (30) and Windows (24),
+the bar button on iOS (44), Material's icon button on Android (48). A
+`Composer` as the field takes it as its capsule's height where it is
+shorter than its own 44, so the bar stays the height of its controls.
 `fieldCommands` are the field's own: a find bar's previous and next, an
 assistant's send. They share the trailing host with the overflow menu, and
 they stay on the bar when it folds. A side with nothing to draw has no host,

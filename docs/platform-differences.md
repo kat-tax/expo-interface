@@ -36,6 +36,7 @@ The differences that change what a screen can do, in one place:
 | `onKeyPress` in `inline` and `Composer` | Keys that write, Enter, Backspace | Keys that write, Enter, Backspace | Every key but an Enter that submits a multi-line field | Keys that write, Escape, Backspace, an Enter that does not submit; no Shift |
 | `keyboardType`, `autoCapitalize` in `inline` and `Composer` | Yes | Yes | Yes | `keyboardType` ignored, `autoCapitalize` only `characters` |
 | `Composer` button touch target | The button | The 36dp circle it is drawn as, not Material's 48dp | The button | The button |
+| `Composer` capsule as a `Toolbar` `field`, one line | 44 | 44 | 30, the small button | 24, the small button island |
 | `SearchField` `clearable` | Yes | Yes | The control's own | The control's own |
 | `SearchField` suggestions with icons | Yes | Yes | Text only | Text only |
 | `HeaderSearch` `stacked` | Native | Drawn under the app bar | Drawn under the header | Drawn under the header |

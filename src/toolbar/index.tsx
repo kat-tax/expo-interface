@@ -16,6 +16,7 @@ import {fromLeft, useAnchored} from '../anchored';
 import {MORE} from '../glyphs';
 import {isCompact} from '../size-class';
 import {spacing} from '../theme';
+import {ToolbarFieldContext} from './field-context';
 import {FloatingSurface} from './floating';
 import {useFold} from './fold';
 import {anchoredStyles, commandDisabled, hasCommands, overflowItems, splitCommands} from './shared';
@@ -42,6 +43,16 @@ const TOOL = Platform.select({
   android: {size: 'medium', iconSize: 22},
   default: {size: 'small', iconSize: undefined},
 } as const);
+
+/**
+ * How tall a command is, at `TOOL.size`: what the bar hands its `field`
+ * (`ToolbarFieldContext`), so a field drawn to the bar's size is as tall as
+ * the controls beside it. On iOS the bar button at the large control size,
+ * the 44 of a toolbar's items; on Android Material's 48dp icon button
+ * container; on web the kit's small button, a 16px icon or a 13px label in
+ * its 1.2 line with 6px above and below and a 1px border (`button.css`).
+ */
+const CONTROL_HEIGHT = Platform.select({ios: 44, android: 48, default: 30});
 
 /**
  * Between the commands: the bar's own pitch, whatever the density. On iOS a
@@ -172,7 +183,9 @@ function EdgeToolbar(props: ToolbarProps) {
       ) : (
         <View style={[styles.row, {gap}]}>
           <Group gap={gap}>{start}</Group>
-          <View style={styles.field}>{field}</View>
+          <View style={styles.field}>
+            <ToolbarFieldContext.Provider value={CONTROL_HEIGHT}>{field}</ToolbarFieldContext.Provider>
+          </View>
           <Group gap={gap}>{end}</Group>
         </View>
       )}

@@ -134,7 +134,12 @@ export interface ToolbarProps extends PropsWithChildren {
   trailing?: ReactNode;
   /**
    * A field between the two groups — a `TextField variant="inline"` for a
-   * search or a prompt. It grows into the space the controls leave.
+   * search or a prompt. It grows into the space the controls leave. The bar
+   * hands it the height of its controls (the kit's small button on the web,
+   * 30, and Windows, 24; the bar button on iOS, 44; Material's icon button
+   * on Android, 48), which a `Composer` takes as its capsule's height where
+   * that is shorter than its own 44, so the bar stays the height of its
+   * controls.
    */
   field?: ReactNode;
   /**
