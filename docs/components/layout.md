@@ -432,7 +432,8 @@ Differences:
   padding, a clear row of that height ends it.
 - On iOS and Android a form outside a host mounts one of its own, as `List`
   does: it fills its parent, or, as the body of a `Sheet` with `maxHeight`,
-  it is the cap tall and scrolls inside it, so the sheet's `footer` and
+  it is as tall as its rows up to the cap on Android (the cap tall on iOS)
+  and scrolls inside the cap past it, so the sheet's `footer` and
   `actions` keep their room. Under a host (a `Screen native`, a `NativeHost`,
   a sheet's native content) it renders bare.
 - On the web the form paints the screen's colour behind its sections, except
@@ -444,8 +445,8 @@ A `Sheet` full of one is how the kit does a form: the question is the
 section's title and the note under it is the footer. In a sheet the form
 pads by nothing for the screen's bar or the tab bar's action:
 `useScrollInsets()` answers zero there. A form taller than the sheet offers
-takes a `maxHeight` on the sheet, and is then the cap tall and scrolls
-inside it.
+takes a `maxHeight` on the sheet, and then scrolls inside the cap: on
+Android it is as tall as its rows up to the cap, on iOS the cap tall.
 
 ```tsx
 <Sheet isPresented={open} onDismiss={close}>
@@ -589,8 +590,9 @@ Differences:
   parent needs a height of its own: inside a scroll view the iOS and
   Android list gets no height, and the Windows list grows to its rows, so
   it draws every one of them and is no longer windowed. As the body of a
-  `Sheet` with `maxHeight` the iOS and Android list is the cap's height
-  instead, and scrolls inside it. On the
+  `Sheet` with `maxHeight` the Android list is as tall as its rows up to
+  the cap, measured again when the number of rows changes, and the iOS list
+  the cap's height; both scroll inside the cap. On the
   web the list is its own scroller (`overflow-y: auto`, `flex: 1 1 auto`),
   so it scrolls under the fixed body that `ScrollViewStyleReset` sets, and
   in a parent with no height of its own (a scroll view of the app's own, a

@@ -182,4 +182,38 @@ describe(`List (${Platform.OS})`, () => {
     expect(StyleSheet.flatten(screen.getByTestId('list').props.style)).toEqual({alignSelf: 'stretch', height: 300});
     expect(screen.getByText('Nothing yet')).toBeTruthy();
   });
+
+  it.skipIf(Platform.OS !== 'android')('as the body of a capped sheet is as tall as its rows up to the cap, measuring again when they change', async () => {
+    const list = (data: string[]) => (
+      <SheetBodyCapContext.Provider value={300}>
+        <List data={data} renderItem={title => <ListItem>{title}</ListItem>} testID="list"/>
+      </SheetBodyCapContext.Provider>
+    );
+    const {rerender} = await render(list(rows));
+    const height = () => StyleSheet.flatten(screen.getByTestId('list').props.style).height;
+    const column = () => nodes().find(n => n.type.includes('LazyColumn'))!;
+    // The box around the column: the column's own modifier events never reach JavaScript.
+    const box = () => nodes().find(n => n.type.includes('Box') && modifier(n.props, 'onSizeChanged'))!;
+    const measure = (next: number) => act(async () => modifier(box().props, 'onSizeChanged')!.eventListener({width: 360, height: next}));
+    // Under the cap with no minimum, the box says how tall the column came out.
+    expect(box().props.modifiers.map((m: {$type: string}) => m.$type)).toEqual(['fillMaxWidth', 'wrapContentHeight', 'onSizeChanged']);
+    expect(modifier(box().props, 'wrapContentHeight')).toEqual({$type: 'wrapContentHeight', alignment: 'top'});
+    expect(column().props.modifiers.map((m: {$type: string}) => m.$type)).toEqual(['fillMaxWidth', 'testID']);
+    expect(height()).toBe(300);
+    await measure(120);
+    expect(height()).toBe(120);
+    // Past the cap it is the cap, and scrolls.
+    await measure(420);
+    expect(height()).toBe(300);
+    await measure(120);
+    // More rows: the cap again until they are measured.
+    await rerender(list([...rows, 'Draft']));
+    expect(height()).toBe(300);
+    await measure(160);
+    expect(height()).toBe(160);
+    // Outside a capped body the column fills its host, with no box around it.
+    await rerender(<List data={rows} renderItem={title => <ListItem>{title}</ListItem>} testID="list"/>);
+    expect(modifier(column().props, 'fillMaxSize')).toBeTruthy();
+    expect(box()).toBeUndefined();
+  });
 });
