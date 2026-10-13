@@ -409,11 +409,18 @@ Differences:
   form ends clear of the button: Android pads its content by
   `useScrollInsets().bottom`, and on iOS, where the `Form` takes no content
   padding, a clear row of that height ends it.
+- On iOS and Android a form outside a host mounts one of its own, as `List`
+  does: it fills its parent, or, as the body of a `Sheet` with `maxHeight`,
+  it is the cap tall and scrolls inside it, so the sheet's `footer` and
+  `actions` keep their room. Under a host (a `Screen native`, a `NativeHost`,
+  a sheet's native content) it renders bare.
 
 A `Sheet` full of one is how the kit does a form: the question is the
 section's title and the note under it is the footer. In a sheet the form
 pads by nothing for the screen's bar or the tab bar's action:
-`useScrollInsets()` answers zero there.
+`useScrollInsets()` answers zero there. A form taller than the sheet offers
+takes a `maxHeight` on the sheet, and is then the cap tall and scrolls
+inside it.
 
 ```tsx
 <Sheet isPresented={open} onDismiss={close}>

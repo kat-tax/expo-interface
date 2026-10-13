@@ -79,9 +79,10 @@ present natively mount a host of their own only when there is none:
 - `PopupMenu`, `Fab` (iOS and Android) and `ShareLink` (iOS)
   mount one where they need it.
 - `Toast` and `Toolbar` do the same for their native parts.
-- `List` (iOS and Android) mounts one that fills the screen, and none while
-  it shows its `empty` content: that sits in the list's own view, so an
-  `EmptyState` in it mounts its own.
+- `List` and `FieldGroup` (iOS and Android) mount one that fills the screen,
+  or the cap tall as the body of a `Sheet` with `maxHeight`. The list mounts
+  none while it shows its `empty` content: that sits in the list's own view,
+  so an `EmptyState` in it mounts its own.
 - A `Sheet`'s bar, accessory and uncapped body count as hosted, so controls
   there render bare. On iOS and Android its capped body and its footer are
   React Native content hosted in an `RNHostView`, where controls mount a
