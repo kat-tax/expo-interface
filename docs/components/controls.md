@@ -186,9 +186,11 @@ label), `value`, `onChangeText`, `onSubmit`, `onKeyPress`, `onFocus`,
 `ref` with `focus` and `blur`.
 
 The `row` variant is the platform's field with a form row's borderless look.
-The `bare` variant is `inline` without the field's own padding and, on web,
-without the browser's focus ring, for a field inside a box that draws both:
-a `Composer`'s capsule, an `Alert`'s field. A multi-line field that submits
+The `bare` variant is `inline` without the field's own padding, for a field
+inside a box that draws it: a `Composer`'s capsule, an `Alert`'s field.
+`inline` and `bare` both draw no browser focus ring on web, for a field
+inside a box that marks the focus itself or in a bar where the caret does.
+A multi-line field that submits
 (`submitBehavior="submit"`) sends on Enter and breaks the line on Shift+Enter
 on web, keeping the focus; an Enter that commits an input method's text, a
 Japanese or Chinese word, commits it and sends nothing.

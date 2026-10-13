@@ -40,9 +40,10 @@ export type TextFieldSubmitBehavior = 'blurAndSubmit' | 'submit';
  * `FieldGroup.Section`; `inline` is a borderless React Native `TextInput` on
  * every platform, for a field that sits inside a React Native layout (a
  * search row in a toolbar) where the native control would need a host;
- * `bare` is `inline` without the field's own padding and, on web, without
- * the browser's focus ring, for a field inside a box that draws both (a
- * `Composer`'s capsule, a prompt's field).
+ * `bare` is `inline` without the field's own padding, for a field inside a
+ * box that draws it (a `Composer`'s capsule, a prompt's field). Neither
+ * draws the browser's focus ring on web: the box around the field marks the
+ * focus itself, or in a bar the caret does.
  */
 export type TextFieldVariant = 'row' | 'inline' | 'bare';
 
