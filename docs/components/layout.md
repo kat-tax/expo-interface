@@ -388,12 +388,12 @@ caret clear of the bar too (see
 
 | Platform | How |
 | --- | --- |
-| iOS, Android | `react-native-keyboard-controller`, an optional peer the kit loads only natively. `AccentProvider` mounts its provider when the library is installed. Without it the bar is a plain view. |
+| iOS, Android | `react-native-keyboard-controller`, an optional peer the kit loads only natively, 1.22.7 or later: before it the library missed the keyboard closing while another window had the focus (a menu, a sheet, a dialog) on Android, and the bar stayed where it had ridden. `AccentProvider` mounts its provider when the library is installed. Without it the bar is a plain view. |
 | Web | A plain view. The browser keeps the page above the keyboard itself, and the library never reaches the web bundle. |
 | Windows | React Native's keyboard events, which `expo-windows` raises from the window's touch keyboard with the rectangle it covers. The bar measures its own bottom edge, so the two meet whatever the window's height has become. Without the runtime nothing fires and the bar stays put. |
 
 ```sh
-npx expo install react-native-keyboard-controller
+npx expo install react-native-keyboard-controller@^1.22.7
 ```
 
 ## FieldGroup
