@@ -415,9 +415,9 @@ Differences:
   `actions` keep their room. Under a host (a `Screen native`, a `NativeHost`,
   a sheet's native content) it renders bare.
 - On the web the form paints the screen's colour behind its sections, except
-  inside a `Sheet`'s drawer, a card on a material or a dialog (a `Popover`'s
-  card), where it paints no fill of its own: the overlay draws the fill,
-  glass or not, and a box of the screen's colour inside it would be a box.
+  inside a `Sheet`'s drawer, a `Popover`'s card or a surface on a material,
+  where it paints no fill of its own: the overlay draws the fill, glass or
+  not, and a box of the screen's colour inside it would be a box.
 
 A `Sheet` full of one is how the kit does a form: the question is the
 section's title and the note under it is the footer. In a sheet the form

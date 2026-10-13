@@ -85,7 +85,7 @@ describe('FieldGroup (web)', () => {
     expect(getComputedStyle(screen.getByTestId('hidden')).display).toBe('none');
   });
 
-  it('paints no fill of its own inside an overlay: a sheet\'s drawer, a card on a material, a dialog', () => {
+  it('paints no fill of its own inside an overlay: a sheet\'s drawer, a popover\'s card, a card on a material', () => {
     // Vitest processes no stylesheet in these projects, so the import of
     // `field-group.css` reaches jsdom as nothing: the sheet goes into the page
     // by hand, and jsdom's cascade applies its rules to the rendered groups.
@@ -99,7 +99,7 @@ describe('FieldGroup (web)', () => {
           <FieldGroup testID="page"><span>Row</span></FieldGroup>
           <div data-vaul-drawer=""><FieldGroup testID="drawer"><span>Row</span></FieldGroup></div>
           <div data-material="regular" data-material-fill="element"><FieldGroup testID="glass"><span>Row</span></FieldGroup></div>
-          <div role="dialog"><FieldGroup testID="dialog"><span>Row</span></FieldGroup></div>
+          <div data-ui-popover=""><FieldGroup testID="card"><span>Row</span></FieldGroup></div>
         </>,
       );
       const group = (id: string) => screen.getByTestId(id).closest('.field-group') as HTMLElement;
@@ -107,7 +107,7 @@ describe('FieldGroup (web)', () => {
       expect(getComputedStyle(group('page')).backgroundColor).toBe('var(--color-background)');
       // In an overlay the overlay draws the fill, glass or not, and the group
       // none of its own: `transparent`, as jsdom serializes it.
-      for (const id of ['drawer', 'glass', 'dialog']) {
+      for (const id of ['drawer', 'glass', 'card']) {
         expect(getComputedStyle(group(id)).backgroundColor).toBe('rgba(0, 0, 0, 0)');
       }
     } finally {

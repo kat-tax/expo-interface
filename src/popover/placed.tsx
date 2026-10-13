@@ -2,7 +2,7 @@ import type {Ref} from 'react';
 import type {LayoutChangeEvent, ViewProps} from 'react-native';
 import type {useAnchored} from '../anchored';
 import {createContext, useContext, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {Platform, StyleSheet, View} from 'react-native';
 
 export interface PlacedCardProps extends Omit<ViewProps, 'onLayout' | 'style'> {
   ref?: Ref<View>;
@@ -32,6 +32,15 @@ export interface PlacedCardProps extends Omit<ViewProps, 'onLayout' | 'style'> {
 const RowLayout = createContext<((event: LayoutChangeEvent) => void) | undefined>(undefined);
 
 /**
+ * Web: marks the card for the stylesheets that draw their content
+ * differently inside a popover (a `FieldGroup` paints no fill of its own
+ * there). react-native-web writes `dataSet` out as a `data-*` attribute,
+ * which React Native's own types do not know; the native views have no use
+ * for it.
+ */
+const CARD_MARK: ViewProps = Platform.OS === 'web' ? ({dataSet: {uiPopover: ''}} as ViewProps) : {};
+
+/**
  * The box a drawn popover's card sits in, at the place the anchoring gives
  * it. It is mounted each time the card comes up, and is neither seen nor
  * pressed until it has been measured, so the place it shows at is worked out
@@ -53,6 +62,7 @@ export function PlacedCard({anchored, width, sizedLater = false, awaitingBounds 
         if (event.nativeEvent.layout.height > 0) setRowSized(true);
       }}>
       <View
+        {...CARD_MARK}
         {...props}
         onLayout={event => {
           anchored.onCard(event);
