@@ -1,9 +1,9 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
-import type {ReactElement} from 'react';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
 import {render, screen} from '@testing-library/react';
+import {staticPage} from '../__tests__/static-page';
 import {AccentProvider} from '../accent';
 import {Tooltip} from '.';
 
@@ -31,6 +31,8 @@ describe('Tooltip (web)', () => {
     expect(trigger).toHaveClass('ui-tooltip');
     expect(trigger).toHaveAttribute('title', 'Anyone with the link can view');
     expect(trigger).not.toHaveAttribute('interestfor');
+    // No hint to place, so no name to place it against.
+    expect(trigger.style.getPropertyValue('anchor-name')).toBe('');
     expect(trigger).toHaveTextContent('Public');
     expect(screen.queryByRole('tooltip')).toBeNull();
   });
@@ -56,6 +58,9 @@ describe('Tooltip (web)', () => {
       expect(hint).toHaveAttribute('popover', 'hint');
       expect(hint).toHaveClass('ui-tooltip__hint');
       expect(hint).toHaveTextContent('Hint text');
+      // The hint is placed against the trigger's name.
+      expect(trigger.style.getPropertyValue('anchor-name')).toBe(`--${hint.id}`);
+      expect(hint.style.getPropertyValue('position-anchor')).toBe(`--${hint.id}`);
     });
   });
 
@@ -83,27 +88,34 @@ describe('Tooltip (web)', () => {
     expect(rule).toMatch(/^[^}]*box-shadow: none;/);
   });
 
-  it('takes the hint once a static page has hydrated', async () => {
-    // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
-    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
+  it('takes the hint, and the name it is placed against, once a static page has hydrated', async () => {
+    const tree = <Tooltip text="Hint text" testID="hint">Public</Tooltip>;
+    // What a static export writes: the page rendered inside the whole
+    // document, where `useId` answers other values than the hydration of
+    // `#root` alone does. The server has no browser to ask, so the title
+    // fallback, and no name from the server's id for a hint to be placed
+    // against.
+    const html = await staticPage(tree);
     await withInterest(() => {
-      const tree = <Tooltip text="Hint text" testID="hint">Public</Tooltip>;
-      // What a static export writes: the server has no browser to ask, so the title fallback.
       const container = document.body.appendChild(document.createElement('div'));
-      container.innerHTML = renderToString(tree);
+      container.innerHTML = html;
       const trigger = () => container.querySelector('[data-testid="hint"]') as HTMLElement;
       expect(trigger()).toHaveAttribute('title', 'Hint text');
+      expect(trigger().style.getPropertyValue('anchor-name')).toBe('');
       expect(container.querySelector('[role="tooltip"]')).toBeNull();
       const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
       try {
         const {unmount} = render(tree, {container, hydrate: true});
         // Hydration matches the HTML, so React reports no difference, and the
-        // render after it takes the hint.
+        // render after it takes the hint, named and placed from one id.
         expect(errors).not.toHaveBeenCalled();
         const hint = container.querySelector('[role="tooltip"]') as HTMLElement;
         expect(hint).toHaveAttribute('popover', 'hint');
+        expect(hint.id).toMatch(/^ui-tooltip-/);
         expect(trigger()).toHaveAttribute('interestfor', hint.id);
         expect(trigger()).not.toHaveAttribute('title');
+        expect(trigger().style.getPropertyValue('anchor-name')).toBe(`--${hint.id}`);
+        expect(hint.style.getPropertyValue('position-anchor')).toBe(`--${hint.id}`);
         unmount();
       } finally {
         errors.mockRestore();
