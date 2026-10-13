@@ -34,10 +34,15 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
   const rowClass = ['ui-list-item', !inset && 'ui-list-item--flush', selected && 'ui-list-item--selected'].filter(Boolean).join(' ');
   const label = rowLabel({children, supporting, value, badge});
   const current = selected ? ('true' as const) : undefined;
+  // A row named from its slots says what the badge says, so the badge is no
+  // element of its own there: a status region inside a named button would be
+  // announced on top of the name, and again each time the window drew the
+  // row. Where the headline is content of the app's own the badge names itself.
+  const spoken = label ? null : undefined;
   const marks = value != null || badge ? (
     <>
       {value != null ? <span className="ui-list-item__value">{value}</span> : null}
-      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} color={badgeColor}/> : null}
+      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} color={badgeColor} label={spoken}/> : null}
     </>
   ) : null;
   const content = (

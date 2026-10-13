@@ -67,7 +67,10 @@ describe(`ListItem slots (${Platform.OS})`, () => {
       // React Native badge would draw at no size of its own.
       expect(screen.queryByLabelText('3 new')).toBeNull();
       const badge = host(p => p.text === '3');
-      expect(modifier(badge.props, 'accessibilityLabel')?.label).toBe('3 new');
+      // The row's name ends with the badge's words, so the badge is hidden
+      // from VoiceOver: one stop on the row, not a second on the badge.
+      expect(modifier(badge.props, 'accessibilityHidden')?.hidden).toBe(true);
+      expect(modifier(badge.props, 'accessibilityLabel')).toBeUndefined();
       expect(modifier(badge.props, 'background')?.shape).toBe('capsule');
       const texts = nodes().map(n => n.props.text);
       expect(texts.indexOf('2 KB')).toBeLessThan(texts.indexOf('3'));
@@ -87,9 +90,10 @@ describe(`ListItem slots (${Platform.OS})`, () => {
   it('draws a dot for a badge of true, and names the row from its slots', async () => {
     await render(<ListItem supporting="Edited" value="2 KB" badge testID="row">Essay</ListItem>, options);
     if (isIOS) {
-      // A SwiftUI circle, one element named for a screen reader.
-      const dot = host(p => modifier(p, 'accessibilityLabel')?.label === 'New');
-      expect(modifier(dot.props, 'background')?.shape).toBe('circle');
+      // A SwiftUI circle, hidden from the screen reader: the row's name says it.
+      const dot = host(p => modifier(p, 'background')?.shape === 'circle');
+      expect(modifier(dot.props, 'accessibilityHidden')?.hidden).toBe(true);
+      expect(modifier(dot.props, 'accessibilityLabel')).toBeUndefined();
       expect(modifier(row('row').props, 'accessibilityLabel')?.label).toBe('Essay, Edited, 2 KB, new');
     } else {
       const badge = nodes().find(n => n.type.includes('Badge'))!;
@@ -110,7 +114,7 @@ describe(`ListItem slots (${Platform.OS})`, () => {
       options,
     );
     expect(host(p => p.text === '2 KB')).toBeTruthy();
-    const badges = nodes().filter(n => isIOS ? modifier(n.props, 'accessibilityLabel')?.label === '2 new' : n.type.includes('Badge'));
+    const badges = nodes().filter(n => isIOS ? modifier(n.props, 'background')?.shape === 'capsule' : n.type.includes('Badge'));
     expect(badges).toHaveLength(1);
     if (isIOS) {
       expect(modifier(row('valued').props, 'accessibilityLabel')?.label).toBe('Essay, 2 KB');
@@ -133,7 +137,7 @@ describe(`ListItem slots (${Platform.OS})`, () => {
       expect(modifier(count.props, 'background')?.style.color).toBe(colors.light.highlight);
       // A count on a pale token is drawn in black, which reads on it.
       expect(modifier(count.props, 'foregroundStyle')?.style.color).toBe('#000000');
-      const dot = host(p => modifier(p, 'accessibilityLabel')?.label === 'New');
+      const dot = host(p => modifier(p, 'background')?.shape === 'circle');
       expect(modifier(dot.props, 'background')?.style.color).toBe('#123456');
     } else {
       const [token, raw] = nodes().filter(n => n.type.includes('Badge'));
@@ -206,6 +210,20 @@ describe(`ListItem slots (${Platform.OS})`, () => {
     } else {
       expect(slot('leadingContent')).toHaveLength(0);
       expect(slot('trailingContent')).toHaveLength(0);
+    }
+  });
+
+  it('leaves the badge its own name in a row whose headline is content of the app\'s own', async () => {
+    await render(<ListItem badge={3} testID="row"><Text>Rich</Text></ListItem>, options);
+    const badge = host(p => p.text === '3');
+    if (isIOS) {
+      // No name of the row's to speak for the badge, so the badge names itself.
+      expect(modifier(row('row').props, 'accessibilityLabel')).toBeUndefined();
+      expect(modifier(badge.props, 'accessibilityLabel')?.label).toBe('3 new');
+      expect(modifier(badge.props, 'accessibilityHidden')).toBeUndefined();
+    } else {
+      // Compose reads the row by its texts, the badge's words among them, whatever the headline.
+      expect(texts('row')).toEqual(['3', 'new']);
     }
   });
 });

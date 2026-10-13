@@ -40,6 +40,10 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
   const filled = action?.variant === 'filled';
   const headline = textOf(children);
   const label = rowLabel({children, supporting, value, badge});
+  // The name says what the badge says, so in a named row the badge's island
+  // has no name and is hidden as far as the view around it allows; it names
+  // itself where the headline is content of the app's own.
+  const spoken = label ? null : undefined;
   const content = (
     <>
       {icon || leading != null ? (
@@ -59,7 +63,7 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
       {value != null || badge || trailing != null ? (
         <View style={styles.slot}>
           {value != null ? <Footnote color="secondaryLabel">{value}</Footnote> : null}
-          {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} color={badgeColor}/> : null}
+          {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} color={badgeColor} label={spoken}/> : null}
           {trailing}
         </View>
       ) : null}

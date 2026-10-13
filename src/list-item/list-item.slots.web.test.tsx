@@ -29,8 +29,32 @@ describe('ListItem slots (web)', () => {
     expect(row.querySelectorAll('.ui-list-item__slot')).toHaveLength(1);
     const trailing = row.querySelector('.ui-list-item__slot')!;
     expect(trailing.querySelector('.ui-list-item__value')).toHaveTextContent('2 KB');
-    expect(trailing.querySelector('.ui-badge')).toHaveAttribute('aria-label', '3 new');
+    // The name ends with the badge's words: the badge is no element of its
+    // own, not a status region announced inside the button.
+    const badge = trailing.querySelector('.ui-badge')!;
+    expect(badge).toHaveAttribute('aria-hidden', 'true');
+    expect(badge).not.toHaveAttribute('role');
+    expect(badge).not.toHaveAttribute('aria-label');
+    expect(screen.queryByRole('status')).toBeNull();
     expect(trailing.textContent?.endsWith('T')).toBe(true);
+  });
+
+  it('leaves the badge its own name in a row whose headline is content of the app\'s own, and hides it in the named row beside an action', () => {
+    render(
+      <>
+        <ListItem badge={3} testID="rich"><em>Rich</em></ListItem>
+        <ListItem badge action={{label: 'Open', onPress: () => {}}} testID="acting">Acting</ListItem>
+      </>,
+    );
+    const rich = screen.getByTestId('rich');
+    expect(rich).not.toHaveAttribute('aria-label');
+    expect(rich.querySelector('.ui-badge')).toHaveAttribute('role', 'status');
+    expect(rich.querySelector('.ui-badge')).toHaveAttribute('aria-label', '3 new');
+    // With an action the inner row is the named control, and the badge is inside it.
+    const acting = screen.getByTestId('acting');
+    expect(acting.querySelector('.ui-list-item__row')).toHaveAttribute('aria-label', 'Acting, new');
+    expect(acting.querySelector('.ui-badge')).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getAllByRole('status')).toHaveLength(1);
   });
 
   it('draws a dot for a badge of true, and marks the current row', () => {

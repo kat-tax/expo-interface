@@ -25,6 +25,7 @@ The differences that change what a screen can do, in one place:
 | `Badge` `label={null}` | No element of its own | No element of its own; inside a host the number is still read | No element of its own | No name; hidden as far as the view around the island allows |
 | `Badge` `style` | Not applied inside a host | Not applied inside a host | Yes | Yes |
 | `ListItem` named from its slots | Yes | The row's own texts | Yes | Yes |
+| `ListItem` badge in a row named from its slots | No element of its own | Read among the row's texts | No element of its own | No name; hidden as far as the view around the island allows |
 | `ListItem` `selected` announced | Yes | On a row that presses, without `swipeActions` | Yes | Yes |
 | `ColorPicker` `inline` | The row, the system picker from the well | Drawn in place | Drawn in place | The WinUI `ColorPicker` in place |
 | `ColorPicker` swatches of a disabled picker heard | Unavailable | Not at all | Unavailable | Unavailable |

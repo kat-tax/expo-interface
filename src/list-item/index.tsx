@@ -50,6 +50,10 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
   const modifiers: ViewModifier[] = [];
   const label = rowLabel({children, supporting, value, badge});
   if (label) modifiers.push(accessibilityLabel(label));
+  // The name says what the badge says, so the badge is hidden from VoiceOver
+  // in a named row, which is one stop; it names itself where the headline is
+  // content of the app's own.
+  const spoken = label ? null : undefined;
   // In a SwiftUI List or Form the row keeps the list's insets around its
   // content, so a fill on the content alone stops short of the row's edges:
   // `listRowBackground` fills the row, and SwiftUI ignores it anywhere else,
@@ -66,7 +70,7 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
   const marks = value != null || badge ? (
     <>
       {value != null ? <Text modifiers={[foregroundStyle({type: 'color', color: subtle})]}>{value}</Text> : null}
-      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} color={badgeColor}/> : null}
+      {badge ? <Badge count={typeof badge === 'number' ? badge : undefined} dot={badge === true} color={badgeColor} label={spoken}/> : null}
     </>
   ) : null;
   const trailingContent = marks || action ? (

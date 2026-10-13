@@ -441,7 +441,10 @@ selected fill and announced as selected), `action` (`label`, `onPress`, `disable
 A row whose headline is a string is named from its slots on iOS, web and
 Windows: "Essay, Edited, 2 KB, 3 new" for a headline, supporting text, value and
 badge, so a screen reader hears the row as one thing. A headline of the
-app's own content keeps whatever name that content has.
+app's own content keeps whatever name that content has. The badge in a row
+named from its slots is no element of its own on those three platforms,
+since the name already says what it says, and keeps its own name in a row
+whose headline is the app's own content.
 
 | Platform | Renders |
 | --- | --- |
