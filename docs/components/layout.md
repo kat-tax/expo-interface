@@ -143,6 +143,13 @@ Differences:
   `ScreenHeader` use. iOS, Android and Windows paint the surface as usual
   whatever it says.
 
+A popup the app draws itself as a `Surface` follows the app's
+`overlayMaterial` through `useOverlayMaterial()`, which answers the
+material the kit's own overlays draw on (the app's, else `none`; see
+[Theming](../theming.md)): `material={useOverlayMaterial()}` for one that
+takes the default, `useOverlayMaterial(own)` for one with a thickness of
+its own.
+
 ## Material
 
 A view on the platform's material, with its children on top: a strip of tabs

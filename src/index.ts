@@ -29,6 +29,7 @@ export {NativeHost, useNativeHost} from './host';
 export type {NativeHostFit, NativeHostProps} from './host';
 export {Material} from './material';
 export type {MaterialEdge, MaterialFill, MaterialKind, MaterialProps, MaterialThickness} from './material';
+export {useOverlayMaterial} from './material/context';
 export {Surface} from './surface';
 export type {SurfaceBorder, SurfaceColor, SurfaceProps} from './surface/types';
 export {Toolbar} from './toolbar';

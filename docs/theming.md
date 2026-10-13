@@ -122,6 +122,14 @@ the `Sheet`, with SwiftUI's material; nothing on Android and Windows, where
 the system's menus and sheets bring their own. An overlay's
 `material="none"` keeps it opaque under any default.
 
+`useOverlayMaterial(material?)` answers the material an overlay draws on:
+the one it is given, else the app's `overlayMaterial`, else `none`. It is
+how the kit's overlays read the default, and how a popup the app draws
+itself follows it: a `Surface` given `useOverlayMaterial()` as its
+`material` draws on the app's material where a `Surface` can (see
+[Surface](components/layout.md#surface)), and one given its own thickness
+keeps it.
+
 ## Color scheme
 
 `useColorScheme()` answers `'light'` or `'dark'` from one stable subscription.
