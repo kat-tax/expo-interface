@@ -10,15 +10,12 @@ import {PopupMenu} from '../popup-menu';
 import {Icon} from '../symbol';
 import {flatten} from '../theme';
 import {DEPTH_INDENT} from './draw';
-import {ADD_LABEL, closeLabel, isAlone, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
+import {ADD_LABEL, GLYPHS, closeLabel, isAlone, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
 
 /** The glyphs, as Material Symbols names — the family `Icon` draws with on web. */
 const CLOSE = {symbol: {ios: 'xmark', android: 'close', web: 'close'}} as const;
 const ADD = {symbol: {ios: 'plus', android: 'add', web: 'add'}} as const;
 const GRID = {symbol: {ios: 'square.grid.2x2', android: 'grid_view', web: 'grid_view'}} as const;
-
-const ICON = 16;
-const CROSS = 14;
 
 /**
  * How wide the tabs actually are, which is not how wide the window is: a
@@ -93,10 +90,12 @@ export function TabView(props: TabViewProps) {
     label = 'Tabs',
     layout = 'auto',
     fill = 'element',
+    size = 'regular',
     activation = 'automatic',
     testID,
     style,
   } = props;
+  const glyphs = GLYPHS[size];
   const id = useId().replaceAll(/[^A-Za-z0-9_-]/g, '_');
   const root = useRef<HTMLDivElement>(null);
   const list = useRef<HTMLDivElement>(null);
@@ -183,7 +182,11 @@ export function TabView(props: TabViewProps) {
    */
   const openId = `${id}-open`;
 
-  const close = (tab: {id: string; title: string; pinned?: boolean}) =>
+  /**
+   * A tab's cross, at the glyph size of the strip or of the cards, and in
+   * the text's colour where the tab is the accent's capsule.
+   */
+  const close = (tab: {id: string; title: string; pinned?: boolean}, glyph: number, color?: string) =>
     onClose && !tab.pinned ? (
       <span
         className="ui-tab-view__cross"
@@ -202,7 +205,7 @@ export function TabView(props: TabViewProps) {
           event.stopPropagation();
           onClose(tab.id);
         }}>
-        <Icon icon={CLOSE} size={CROSS}/>
+        <Icon icon={CLOSE} size={glyph} tintColor={color}/>
       </span>
     ) : null;
 
@@ -216,14 +219,20 @@ export function TabView(props: TabViewProps) {
         setOpen(false);
         onAdd();
       }}>
-      <Icon icon={ADD} size={ICON}/>
+      <Icon icon={ADD} size={glyphs.add}/>
     </button>
   ) : null;
 
   return (
     <div
       ref={root}
-      className={['ui-tab-view', alone && 'ui-tab-view--alone', fill === 'none' && 'ui-tab-view--no-fill'].filter(Boolean).join(' ')}
+      className={[
+        'ui-tab-view',
+        alone && 'ui-tab-view--alone',
+        fill === 'none' && 'ui-tab-view--no-fill',
+        fill === 'accent' && 'ui-tab-view--accent',
+        size === 'small' && 'ui-tab-view--small',
+      ].filter(Boolean).join(' ')}
       style={flatten(StyleSheet.flatten(style) as TextStyle) as CSSProperties}
       data-testid={testID}>
       {resolved === 'strip' ? (
@@ -236,7 +245,10 @@ export function TabView(props: TabViewProps) {
             onKeyDown={roving.onKeyDown}
             data-testid={testID ? `${testID}-strip` : undefined}>
             {tabs.map((tab, index) => {
-              const cross = close(tab);
+              // The open tab of an accent strip is a capsule in the tint, and
+              // its glyphs take the `onTint` its stylesheet rule gives the text.
+              const tint = fill === 'accent' && index === current ? 'currentColor' : undefined;
+              const cross = close(tab, glyphs.cross, tint);
               return (
               <div key={tab.id} className="ui-tab-view__tab" data-selected={index === current} style={tab.depth ? {paddingLeft: 12 + tab.depth * DEPTH_INDENT} : undefined}>
                 <div
@@ -257,7 +269,7 @@ export function TabView(props: TabViewProps) {
                   {...(tab.menu ? menuGestures(tab.menu) : undefined)}
                   onKeyDown={keys(tab, () => onSelect(tab.id))}
                   {...roving.itemProps(index)}>
-                  {tab.icon ? <Icon icon={tab.icon} size={ICON}/> : null}
+                  {tab.icon ? <Icon icon={tab.icon} size={glyphs.icon} tintColor={tint}/> : null}
                   <span className="ui-tab-view__title" id={index === current ? openId : undefined}>
                     {tab.title}
                   </span>
@@ -279,7 +291,7 @@ export function TabView(props: TabViewProps) {
             aria-expanded={open}
             data-testid={testID ? `${testID}-switcher` : undefined}
             onClick={() => setOpen(!open)}>
-            <Icon icon={GRID} size={ICON}/>
+            <Icon icon={GRID} size={glyphs.icon}/>
             <span className="ui-tab-view__title" id={openId}>{tabs[current] ? tabs[current].title : label}</span>
             <span className="ui-tab-view__count">{tabs.length}</span>
           </button>
@@ -295,7 +307,7 @@ export function TabView(props: TabViewProps) {
           onKeyDown={roving.onKeyDown}
           data-testid={testID ? `${testID}-cards` : undefined}>
           {tabs.map((tab, index) => {
-            const cross = close(tab);
+            const cross = close(tab, GLYPHS.regular.cross);
             return (
             <div key={tab.id} className="ui-tab-view__card" data-selected={index === current}>
               <div
@@ -319,7 +331,7 @@ export function TabView(props: TabViewProps) {
                   onSelect(tab.id);
                 })}
                 {...roving.itemProps(index)}>
-                {tab.icon ? <Icon icon={tab.icon} size={ICON}/> : null}
+                {tab.icon ? <Icon icon={tab.icon} size={GLYPHS.regular.icon}/> : null}
                 <span className="ui-tab-view__card-title">{tab.title}</span>
                 {tab.accessory ? <span className="ui-tab-view__accessory" aria-hidden="true">{tab.accessory}</span> : null}
               </div>

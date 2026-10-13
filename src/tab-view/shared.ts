@@ -113,3 +113,17 @@ export function closeLabel(tab: TabViewTab): string {
 
 /** What the add button is called when `addLabel` is not given. */
 export const ADD_LABEL = 'New tab';
+
+/** The strip's and the switcher's bar's metrics, once `size` is resolved. */
+export type TabViewSize = NonNullable<TabViewProps['size']>;
+
+/**
+ * The glyphs' sizes at each `size`, in points: a tab's own icon (and the
+ * switcher's grid), the cross inside a tab, and the add button's plus, which
+ * is the small circle button's 16 at either size. The cards keep the regular
+ * sizes whatever `size` says: a grid is not a bar.
+ */
+export const GLYPHS: Record<TabViewSize, {icon: number; cross: number; add: number}> = {
+  regular: {icon: 16, cross: 14, add: 16},
+  small: {icon: 14, cross: 12, add: 16},
+};

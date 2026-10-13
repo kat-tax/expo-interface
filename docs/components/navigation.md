@@ -214,9 +214,10 @@ system's language; words given once stay there if `addLabel` is later left
 out), `children` (the selected
 tab's content; left out, the tabs alone), `content` (whether there is a page
 under the tabs, whatever `children` are), `label` ("Tabs"), `layout`
-(`auto`, `strip`, `switcher`), `fill` (`element`, the default, or `none`),
-`activation` (`automatic`, the default, or `manual`: how the keyboard
-selects on web), `style`, `testID`.
+(`auto`, `strip`, `switcher`), `fill` (`element`, the default, `none` or
+`accent`), `size` (`regular`, the default, or `small`: the strip's and the
+switcher's bar's metrics), `activation` (`automatic`, the default, or
+`manual`: how the keyboard selects on web), `style`, `testID`.
 `nextSelection(tabs, closing, selected)` is exported for a caller that closes
 the open tab: it moves to the next tab, or the previous one when the last was
 closed.
@@ -282,9 +283,20 @@ Differences:
   cards, for documents that belong to one another.
 - `fill="none"` paints nothing behind the strip or the switcher's bar, for
   tabs on a material that a fill of their own would cover, and marks the
-  open tab with a pill in the palette's pill fill. The WinUI strip is an
-  island, which cannot be see-through, so on Windows it is painted in the
-  screen's background, the fill of the header row it sits in there.
+  open tab with a pill in the palette's pill fill. `fill="accent"` paints
+  nothing behind them either and draws the open tab as the kit's filled
+  button, a capsule in the tint with its title, icon and cross in `onTint`,
+  for a strip on a page, where the translucent pill reads faint; the
+  switcher's bar names the open tab rather than drawing it, so it is bare as
+  with `none`. The WinUI strip is an island, which cannot be see-through, so
+  on Windows both paint it in the screen's background, the fill of the
+  header row it sits in there, and WinUI marks the open tab its own way.
+- `size="small"` draws the strip and the switcher's bar at the kit's small
+  button's metrics, for a strip on a page under the bar rather than in it:
+  13 point type on an 18 point line with 6 above and below, 30 tall, the
+  tab's icon 14 and its cross 12. The cards keep their size, since a grid is
+  not a bar. The WinUI strip keeps WinUI's height; the switcher Windows draws
+  takes the size, in Fluent's footnote, 12 on 16.
 - `accessory` (a presence dot, a count, an unsaved mark) is drawn after the
   title on the strips the kit draws and on the switcher's cards. The WinUI
   strip holds text and a glyph alone, so on Windows it shows on the cards

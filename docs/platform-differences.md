@@ -53,7 +53,8 @@ The differences that change what a screen can do, in one place:
 | `TabView` tab menu | Long press | Long press | Right click, Menu key, a held touch | Right click, Menu key |
 | `TabView` `activation` | Ignored | Ignored | Yes | Ignored |
 | `TabView` accessory in the strip | Yes | Yes | Yes | Cards only |
-| `TabView` `fill="none"` | No fill | No fill | No fill | The WinUI strip in the screen's background; no fill on the switcher's bar |
+| `TabView` `fill="none"` and `"accent"` | No fill | No fill | No fill | The WinUI strip in the screen's background, its open tab WinUI's own; no fill on the switcher's bar |
+| `TabView` `size` | Yes | Yes | Yes | Ignored on the strip |
 | `TabView` add button's name without `addLabel` | "New tab" | "New tab" | "New tab" | WinUI's own, in the system's language, on the strip; "New tab" on the switcher |
 | `List` | SwiftUI `List` | `LazyColumn` | DOM list, windowed | `FlatList` |
 | `List` `contentInset` sides | The whole list inset, its separators and scroll indicator with the rows | Content padding | Padding inside the scroller | Padding inside the scroller |
