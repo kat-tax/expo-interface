@@ -4,6 +4,7 @@ import {createRef, useEffect, useState} from 'react';
 import {Platform, Text, View} from 'react-native';
 import {act as actDom, fireEvent as fireDom, render as renderDom, screen as dom} from '@testing-library/react';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {router} from 'expo-router';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {barItems, searchBar} from '../__stories__/header';
 import * as icons from '../__stories__/icons';
@@ -395,6 +396,21 @@ describe(`HeaderSearch (${Platform.OS})`, () => {
       expect(onOpen).toHaveBeenCalledTimes(1);
       expect(onClose).toHaveBeenCalledTimes(1);
     }
+  });
+
+  it('lets go of the focus when a screen is pushed over its own, so the keyboard does not stay up over that one', async () => {
+    await renderApp({
+      _layout: () => <TabStack title="Drops"/>,
+      index: () => <HeaderSearch/>,
+      result: () => <Text>Result</Text>,
+    });
+    const bar = searchBar('Drops')!;
+    const commands = {focus: vi.fn(), blur: vi.fn(), setText: vi.fn(), clearText: vi.fn(), cancelSearch: vi.fn(), toggleCancelButton: vi.fn()};
+    bar.ref.current = commands;
+    expect(commands.blur).not.toHaveBeenCalled();
+    await act(async () => router.push('/result'));
+    expect(screen.getByText('Result')).toBeOnTheScreen();
+    expect(commands.blur).toHaveBeenCalledTimes(1);
   });
 
   it('survives the events without handlers', async () => {

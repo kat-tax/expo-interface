@@ -419,7 +419,10 @@ drawn fields), and Android's `SearchView` opening and closing.
 
 When the search goes (its screen unmounts, or the app stops rendering it),
 `onChangeText` is called with an empty query, so whatever it filtered is
-whole again without the app clearing it by hand.
+whole again without the app clearing it by hand. On iOS and Android the
+field gives up the focus when its screen does, as when a result is opened
+on a screen pushed over it, so the keyboard does not stay up over a screen
+that did not ask for it; the query stays.
 
 A `placeholder` function is called with the search's state, `{size}`:
 `short` while the web bar is too narrow for its labels and its inline field

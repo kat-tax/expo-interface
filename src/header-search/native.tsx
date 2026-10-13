@@ -1,8 +1,8 @@
 import type {SearchBarCommands} from 'react-native-screens';
 import type {HeaderSearchProps} from './types';
-import {useImperativeHandle, useRef} from 'react';
+import {useEffect, useImperativeHandle, useRef} from 'react';
 import {Platform} from 'react-native';
-import {Stack} from 'expo-router';
+import {Stack, useNavigation} from 'expo-router';
 import {useHeaderTints} from '../header/toolbar';
 import {ScreenBar} from '../screen/bars';
 import {useColor} from '../theme';
@@ -56,6 +56,11 @@ function NativeSearch({
   ref,
 }: HeaderSearchProps) {
   const bar = useRef<SearchBarCommands>(null);
+  const navigation = useNavigation();
+  // A screen pushed over this one (a result opened) takes no focus of its
+  // own, so Android's field kept the keyboard up over it, its suggestions
+  // still the search's: the field lets go of the focus as its screen does.
+  useEffect(() => navigation.addListener('blur', () => bar.current?.blur()), [navigation]);
   const tints = useHeaderTints();
   const hint = useColor('tertiaryLabel');
   const ios = Platform.OS === 'ios';
