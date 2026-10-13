@@ -189,7 +189,8 @@ export function useTabMenus(testID: string | undefined, places: TabPlaces): {
 
 /**
  * The strip iOS and Android draw: a scrolling row of tabs, each with its close
- * cross, and the add button at the end.
+ * cross, and the add button after the last tab, which stays at the strip's
+ * end once the tabs fill it.
  *
  * The cross is a control beside the tab rather than inside it. Nesting one
  * pressable in another makes a tab whose cross is also a press of the tab, and
@@ -220,6 +221,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
         showsHorizontalScrollIndicator={false}
         accessibilityRole="tablist"
         accessibilityLabel={label}
+        style={styles.scroller}
         contentContainerStyle={styles.stripRow}
         onLayout={places.onFrame}
         onScroll={places.onScroll}
@@ -424,6 +426,15 @@ const styles = StyleSheet.create({
   strip: {
     flexDirection: 'row',
     alignItems: 'stretch',
+  },
+  /**
+   * The tabs' width and no more, where a `ScrollView` grows by default: the
+   * add button after it then follows the last tab, and once the tabs fill
+   * the row the scroller shrinks to the room the button leaves and scrolls.
+   */
+  scroller: {
+    flexGrow: 0,
+    flexShrink: 1,
   },
   stripRow: {
     alignItems: 'stretch',

@@ -67,6 +67,15 @@ describe(`TabView (${Platform.OS})`, () => {
     expect(onAdd).toHaveBeenCalled();
   });
 
+  it('puts the add button after the last tab: the scroller is as wide as its tabs, and shrinks to the room once they fill the row', async () => {
+    await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} layout="strip" testID="t"/>);
+    // A ScrollView grows by default, which would take the row and push the
+    // button to its far end.
+    expect(StyleSheet.flatten(screen.getByTestId('t-strip').props.style)).toMatchObject({flexGrow: 0, flexShrink: 1});
+    const row = screen.getByTestId('t-strip').parent!;
+    expect(row.children.indexOf(screen.getByTestId('t-add'))).toBe(row.children.indexOf(screen.getByTestId('t-strip')) + 1);
+  });
+
   describe('switcher', () => {
     it('names the open tab and the count, and hides the tabs until it is opened', async () => {
       await render(

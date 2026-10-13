@@ -1,5 +1,7 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
 import type {ComponentProps} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -23,6 +25,19 @@ function windowWidth(width: number) {
 beforeEach(() => {
   windowWidth(1024);
 });
+
+/**
+ * `tab-view.css` reaches jsdom as nothing: for a test that reads the
+ * cascade, the sheet goes into the page by hand, and jsdom applies its rules
+ * to what is rendered. `getComputedStyle` then answers a rule's value as
+ * written (`var(--color-tint)`).
+ */
+function stylesheet(): () => void {
+  const sheet = document.createElement('style');
+  sheet.textContent = readFileSync(path.join(__dirname, 'tab-view.css'), 'utf8');
+  document.head.append(sheet);
+  return () => sheet.remove();
+}
 
 describe('TabView (web)', () => {
   it('is a tab list over a tab panel, with the open tab marked and naming the panel', () => {
@@ -251,6 +266,22 @@ describe('TabView (web)', () => {
     rerender(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
     fireEvent.keyDown(screen.getByTestId('t-tab-b'), {key: 'Delete'});
     expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('puts the add button after the last tab: the strip is as wide as its tabs, and shrinks and scrolls once they fill the bar', () => {
+    const remove = stylesheet();
+    try {
+      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onAdd={() => {}} testID="t"/>);
+      const strip = screen.getByTestId('t-strip');
+      expect(strip.nextElementSibling).toBe(screen.getByTestId('t-add'));
+      const style = getComputedStyle(strip);
+      expect(style.flexGrow).toBe('0');
+      expect(style.flexShrink).toBe('1');
+      expect(style.minWidth).toBe('0px');
+      expect(style.overflowX).toBe('auto');
+    } finally {
+      remove();
+    }
   });
 
   it('adds a tab from the end of the strip, and shows no button without a handler', async () => {

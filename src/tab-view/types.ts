@@ -56,7 +56,11 @@ export interface TabViewProps {
    * they can. See {@link nextSelection} for which tab to open afterwards.
    */
   onClose?: (id: string) => void;
-  /** The add button at the end of the strip. Leaving this out takes it away. */
+  /**
+   * The add button, after the last tab, and at the strip's end once the tabs
+   * fill it. The switcher's bar holds it at its far end. Leaving this out
+   * takes it away.
+   */
   onAdd?: () => void;
   /**
    * What the add button is called, to a screen reader and in Windows'
