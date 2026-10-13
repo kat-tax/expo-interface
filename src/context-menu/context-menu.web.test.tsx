@@ -134,37 +134,95 @@ describe('ContextMenu (web)', () => {
     expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
-  it('opens after a touch long-press and cancels when the finger lifts or moves', () => {
-    vi.useFakeTimers();
-    try {
+  describe('a held touch', () => {
+    const onPress = vi.fn();
+    const row = () => screen.getByTestId('row');
+
+    beforeEach(() => {
+      vi.useFakeTimers();
       render(
-        <ContextMenu items={items} testID="row">
+        <ContextMenu items={items} onPress={onPress} testID="row">
           <span>Item</span>
         </ContextMenu>,
       );
-      const row = screen.getByTestId('row');
-      fireEvent(row, pointerEvent('pointerdown', 'touch', {clientX: 10, clientY: 20}));
-      act(() => vi.advanceTimersByTime(499));
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('opens once the touch lifts, in a task after the release\'s click, which does not press the content', () => {
+      fireEvent(row(), pointerEvent('pointerdown', 'touch', {clientX: 10, clientY: 20}));
+      act(() => vi.advanceTimersByTime(500));
+      // Armed, not shown: a menu shown while the touch is down would be
+      // dismissed by the release.
       expect(showPopover).not.toHaveBeenCalled();
-      act(() => vi.advanceTimersByTime(1));
+      fireEvent(row(), pointerEvent('pointerup', 'touch'));
+      expect(fireEvent.click(screen.getByText('Item'))).toBe(false);
+      expect(onPress).not.toHaveBeenCalled();
+      expect(showPopover).not.toHaveBeenCalled();
+      act(() => vi.advanceTimersByTime(0));
       expect(showPopover).toHaveBeenCalledTimes(1);
       const menu = screen.getByRole('menu', {hidden: true});
       expect(menu.style.left).toBe('10px');
       expect(menu.style.top).toBe('20px');
+      act(() => vi.advanceTimersByTime(300));
+      expect(showPopover).toHaveBeenCalledTimes(1);
+    });
 
-      showPopover.mockClear();
-      fireEvent(row, pointerEvent('pointerdown', 'touch'));
-      fireEvent(row, pointerEvent('pointerup', 'touch'));
+    it('opens a grace after a release no click follows, and swallows a click that comes late', () => {
+      fireEvent(row(), pointerEvent('pointerdown', 'touch', {clientX: 10, clientY: 20}));
       act(() => vi.advanceTimersByTime(500));
+      fireEvent(row(), pointerEvent('pointerup', 'touch'));
+      act(() => vi.advanceTimersByTime(299));
+      expect(showPopover).not.toHaveBeenCalled();
+      act(() => vi.advanceTimersByTime(1));
+      expect(showPopover).toHaveBeenCalledTimes(1);
+      expect(fireEvent.click(screen.getByText('Item'))).toBe(false);
+      expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('opens nothing for a touch lifted or moved before the hold, or cancelled after it, and leaves the click to the content', () => {
+      fireEvent(row(), pointerEvent('pointerdown', 'touch'));
+      fireEvent(row(), pointerEvent('pointerup', 'touch'));
+      expect(fireEvent.click(screen.getByText('Item'))).toBe(true);
+      expect(onPress).toHaveBeenCalledTimes(1);
+      act(() => vi.advanceTimersByTime(1000));
       expect(showPopover).not.toHaveBeenCalled();
 
-      fireEvent(row, pointerEvent('pointerdown', 'touch'));
-      fireEvent(row, pointerEvent('pointermove', 'touch'));
-      act(() => vi.advanceTimersByTime(500));
+      fireEvent(row(), pointerEvent('pointerdown', 'touch'));
+      fireEvent(row(), pointerEvent('pointermove', 'touch'));
+      act(() => vi.advanceTimersByTime(1000));
       expect(showPopover).not.toHaveBeenCalled();
-    } finally {
-      vi.useRealTimers();
-    }
+
+      fireEvent(row(), pointerEvent('pointerdown', 'touch'));
+      act(() => vi.advanceTimersByTime(500));
+      fireEvent(row(), pointerEvent('pointercancel', 'touch'));
+      act(() => vi.advanceTimersByTime(1000));
+      expect(showPopover).not.toHaveBeenCalled();
+    });
+
+    it('opens once where the browser raises contextmenu for the held touch as well', () => {
+      fireEvent(row(), pointerEvent('pointerdown', 'touch', {clientX: 10, clientY: 20}));
+      act(() => vi.advanceTimersByTime(500));
+      fireEvent.contextMenu(row(), {clientX: 11, clientY: 21});
+      expect(showPopover).toHaveBeenCalledTimes(1);
+      fireEvent(row(), pointerEvent('pointerup', 'touch'));
+      act(() => vi.advanceTimersByTime(300));
+      expect(showPopover).toHaveBeenCalledTimes(1);
+      const menu = screen.getByRole('menu', {hidden: true});
+      expect(menu.style.left).toBe('11px');
+    });
+
+    it('leaves a press on an entry of its own menu to the menu', () => {
+      const entry = screen.getByRole('menuitem', {name: 'Share', hidden: true});
+      fireEvent(entry, pointerEvent('pointerdown', 'touch', {clientX: 10, clientY: 20}));
+      act(() => vi.advanceTimersByTime(500));
+      fireEvent(entry, pointerEvent('pointerup', 'touch'));
+      expect(fireEvent.click(entry)).toBe(true);
+      act(() => vi.advanceTimersByTime(300));
+      expect(showPopover).not.toHaveBeenCalled();
+    });
   });
 
   it('ignores mouse pointers for the long-press', () => {

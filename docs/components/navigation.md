@@ -260,7 +260,9 @@ Differences:
   the platform uses for a context menu: a long press on iOS and Android, a
   right click or the Menu key on web and Windows, and on web a touch held
   for half a second as well, since Safari on iOS raises no context menu
-  event for a touch. It is the kit's `PopupMenu`, under the tab on iOS and
+  event for a touch. The held touch opens the menu once it lifts: the
+  release's click is the menu's and selects nothing, and a release no click
+  follows opens it a moment later. It is the kit's `PopupMenu`, under the tab on iOS and
   Android and at the pointer on web and Windows, and one popup serves the
   whole strip. On web the tab says it has one through `aria-haspopup`.
 - `depth` indents a tab by 12 points a level, on every strip and on the

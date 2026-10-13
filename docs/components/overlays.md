@@ -83,7 +83,7 @@ they land on.
 | --- | --- |
 | iOS | SwiftUI `contextMenu` on a long press, or a SwiftUI `Menu` with the content as its label for `tap` |
 | Android | Material 3 `DropdownMenu` from `combinedClickable`'s long click, or its click for `tap` |
-| Web | The same menu popover as `Menu`, opened at the pointer by `contextmenu` or a 500 ms touch press, or by a click for `tap` |
+| Web | The same menu popover as `Menu`, opened at the pointer by `contextmenu`, once a touch held for 500 ms lifts (the release's click is then the menu's, not the content's press), or by a click for `tap` |
 | Windows | WinUI `MenuFlyout` at the pointer, from the right mouse button, a long press, the Menu key or Shift+F10, or a press for `tap` |
 
 Differences:

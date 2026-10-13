@@ -1,11 +1,11 @@
 import './tab-view.css';
-import type {CSSProperties, MouseEvent, PointerEvent, RefObject} from 'react';
+import type {CSSProperties, MouseEvent, RefObject} from 'react';
 import type {TabViewProps} from './types';
 import type {MenuItem, MenuPoint} from '../menu/types';
 import {useEffect, useId, useRef, useState} from 'react';
 import {StyleSheet, type TextStyle} from 'react-native';
 import {useRovingFocus} from '../a11y/roving';
-import {LONG_PRESS_MS} from '../context-menu';
+import {useHeldTouch} from '../context-menu/held';
 import {PopupMenu} from '../popup-menu';
 import {Icon} from '../symbol';
 import {flatten} from '../theme';
@@ -105,17 +105,9 @@ export function TabView(props: TabViewProps) {
     const bounds = root.current!.getBoundingClientRect();
     setMenu({items, at: {x: x - bounds.left, y: y - bounds.top}});
   };
-  // The touch held on a tab, until it has been held long enough or lifts.
-  const press = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const cancelPress = () => {
-    if (press.current) clearTimeout(press.current);
-    press.current = null;
-  };
-  // A touch still held when the view goes would open a menu with no root to
-  // measure against.
-  useEffect(() => () => {
-    if (press.current) clearTimeout(press.current);
-  }, []);
+  // A touch held on a tab or a card opens its menu once it lifts, after the
+  // release's click, which is then the menu's and selects nothing.
+  const held = useHeldTouch<MenuItem[]>((x, y, items) => openMenuAt(items, x, y));
   /**
    * What opens a tab's menu: a right click or the Menu key (`contextmenu`),
    * and a touch held as long as the web `ContextMenu` asks, since Safari on
@@ -126,20 +118,12 @@ export function TabView(props: TabViewProps) {
   const menuGestures = (items: MenuItem[]) => ({
     onContextMenu: (event: MouseEvent<HTMLElement>) => {
       event.preventDefault();
-      cancelPress();
+      held.cancel();
       const target = event.currentTarget.getBoundingClientRect();
       // The pointer's point, or the tab's own corner for the Menu key, which reports no point.
       openMenuAt(items, event.clientX || target.left, event.clientY || target.bottom);
     },
-    onPointerDown: (event: PointerEvent<HTMLElement>) => {
-      if (event.pointerType !== 'touch') return;
-      const {clientX: x, clientY: y} = event;
-      cancelPress();
-      press.current = setTimeout(() => openMenuAt(items, x, y), LONG_PRESS_MS);
-    },
-    onPointerUp: cancelPress,
-    onPointerCancel: cancelPress,
-    onPointerMove: cancelPress,
+    ...held.handlers(items),
   });
   const resolved = resolveLayout(layout, useContainerWidth(root));
   const current = tabIndex(tabs, selected);
