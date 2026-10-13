@@ -473,4 +473,7 @@ press before then does nothing.
 A drag across the drawn picker's spectrum or a slider stays with the picker
 in a sheet. On web the `Sheet`'s drawer leaves a drag that starts on them
 alone, and on Android the picker keeps the sheet around an `inline` picker
-from intercepting it, as the sheet the row opens has its gestures off.
+from intercepting it, as the sheet the row opens has its gestures off. The
+spectrum and the checkerboard under the opacity slider take no pointer
+events, so the surface under the pointer is the drag's target and a browser
+never drags them as images.

@@ -267,7 +267,7 @@ function Spectrum({color, onChange, disabled}: PartProps) {
       aria-valuetext={toHex(color, false)}
       onLayout={(event: LayoutChangeEvent) => setSize(event.nativeEvent.layout)}
       style={styles.spectrum}>
-      <Image source={{uri: SPECTRUM}} style={StyleSheet.absoluteFill} contentFit="fill"/>
+      <Image source={{uri: SPECTRUM}} style={styles.image} contentFit="fill"/>
       {size.width > 0 ? (
         <View
           style={[
@@ -361,7 +361,7 @@ function Slider({label, value, colorAt, checkered, onChange, disabled}: SliderPr
       aria-valuenow={Math.round(value * 100)}
       onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}
       style={styles.track}>
-      {checkered ? <Image source={{uri: CHECKER}} style={StyleSheet.absoluteFill} contentFit="cover"/> : null}
+      {checkered ? <Image source={{uri: CHECKER}} style={styles.image} contentFit="cover"/> : null}
       <View style={styles.band}>
         {Array.from({length: SEGMENTS}, (_, i) => (
           <View key={i} style={[styles.segment, {backgroundColor: colorAt((i + 0.5) / SEGMENTS)}]}/>
@@ -441,6 +441,12 @@ const styles = StyleSheet.create({
   gridCell: {flex: 1},
   gridSelected: {flex: 1, borderWidth: 3, borderColor: '#ffffff', outlineWidth: 1, outlineColor: 'rgba(0, 0, 0, 0.35)', outlineOffset: -1},
   spectrum: {aspectRatio: 361 / 337, borderRadius: 10, overflow: 'hidden'},
+  // The image filling a drag surface takes no pointer events, so the surface
+  // is the pointer's target: an image that took it would be dragged as an
+  // image by a browser after the first move, which cancels the pointer. On
+  // the web expo-image puts this style on the box around its `<img>`, and
+  // `pointer-events` inherits down to it.
+  image: {position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, pointerEvents: 'none'},
   handle: {
     position: 'absolute',
     width: HANDLE,

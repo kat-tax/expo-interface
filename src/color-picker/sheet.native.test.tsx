@@ -92,6 +92,9 @@ describe(`ColorPickerSheet (${Platform.OS})`, () => {
     expect(screen.queryByLabelText('Color #FFFFFF')).toBeNull();
     const spectrum = screen.getByLabelText('Spectrum');
     expect(spectrum.props.accessibilityValue).toEqual({text: '#FF6347'});
+    // The spectrum image takes no pointer events: the surface is the target.
+    const image = nodes().find(n => n.props?.contentFit === 'fill');
+    expect(StyleSheet.flatten(image?.props.style)).toMatchObject({position: 'absolute', pointerEvents: 'none'});
     // The drag is never handed over to an enclosing responder (a sheet, a list).
     expect(spectrum.props.onResponderTerminationRequest()).toBe(false);
     expect(spectrum.props.onMoveShouldSetResponder()).toBe(true);
@@ -146,6 +149,10 @@ describe(`ColorPickerSheet (${Platform.OS})`, () => {
     const onValueChange = vi.fn();
     await render(<ColorPickerSheet title="Accent" value="#FF6347" supportsOpacity onValueChange={onValueChange} onClose={vi.fn()}/>);
     const opacity = screen.getByLabelText('Opacity');
+    // The checkerboard under the track takes no pointer events either.
+    const checker = nodes().filter(n => n.props?.contentFit === 'cover');
+    expect(checker).toHaveLength(1);
+    expect(StyleSheet.flatten(checker[0].props.style)).toMatchObject({position: 'absolute', pointerEvents: 'none'});
     await layout(opacity, 236);
     await touch(opacity, 'responderGrant', 18);
     expect(onValueChange).toHaveBeenLastCalledWith('#FF634700');
