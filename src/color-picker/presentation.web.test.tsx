@@ -1,5 +1,5 @@
-import type {ReactElement} from 'react';
 import {fireEvent, render, screen, within} from '@testing-library/react';
+import {staticPage} from '../__tests__/static-page';
 import {ColorPicker} from '.';
 
 describe('ColorPicker presentations (web)', () => {
@@ -27,7 +27,8 @@ describe('ColorPicker presentations (web)', () => {
     const inline = screen.getByTestId('cp');
     expect(inline).toHaveClass('ui-color-picker-inline');
     expect(inline.contains(screen.getByTestId('cp-sheet'))).toBe(true);
-    expect(within(inline).getByRole('heading', {name: 'Ink'})).toBeInTheDocument();
+    // One level under the level 2 title of the app's sheet it is drawn in.
+    expect(within(inline).getByRole('heading', {name: 'Ink', level: 3})).toBeInTheDocument();
     expect(screen.queryByRole('button', {name: 'Close'})).toBeNull();
     expect(inline.querySelector('.ui-color-picker__presets--inline')).not.toBeNull();
     rerender(<ColorPicker value="#FF0000" presentation="inline" onValueChange={vi.fn()} testID="cp"/>);
@@ -110,23 +111,49 @@ describe('ColorPicker presentations (web)', () => {
     expect(screen.getByRole('button', {name: 'Color'})).toHaveAttribute('aria-haspopup', 'menu');
   });
 
-  it('leaves the well without its popover target on a static page until it has hydrated', async () => {
-    // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
-    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
+  it('gives the wells their popover targets, and the popovers their ids and anchors, together once a static page has hydrated', async () => {
+    const tree = (
+      <>
+        <ColorPicker label="Ink" value="#FF0000" presentation="menu" swatches={['#FF0000']} onValueChange={() => {}} testID="ink"/>
+        <ColorPicker label="Fill" value="#FF0000" presentation="popover" onValueChange={() => {}} testID="fill"/>
+      </>
+    );
     // What a static export writes for a menu of the swatches and for a picker
-    // in a popover: a well with no target, so a press before the page runs
-    // opens nothing.
+    // in a popover: the page rendered inside the whole document, where
+    // `useId` answers other values than the hydration of `#root` alone does.
+    // Nothing from the server's ids is in the HTML, so a press before the
+    // page runs opens nothing.
     const container = document.body.appendChild(document.createElement('div'));
+    container.innerHTML = await staticPage(tree);
+    const menu = () => container.querySelector('[role="menu"]') as HTMLElement;
+    const popover = () => container.querySelector('.ui-color-picker__popover') as HTMLElement;
+    const inkWell = () => screen.getByRole('button', {name: 'Ink'});
+    const fillWell = () => screen.getByRole('button', {name: 'Fill'});
+    expect(inkWell()).not.toHaveAttribute('popovertarget');
+    expect(fillWell()).not.toHaveAttribute('popovertarget');
+    expect(menu()).not.toHaveAttribute('id');
+    expect(popover()).not.toHaveAttribute('id');
+    expect(screen.getByTestId('ink').style.getPropertyValue('anchor-name')).toBe('');
+    expect(menu().style.getPropertyValue('position-anchor')).toBe('');
+    expect(fillWell().style.getPropertyValue('anchor-name')).toBe('');
+    expect(popover().style.getPropertyValue('position-anchor')).toBe('');
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
-      container.innerHTML = renderToString(
-        <>
-          <ColorPicker label="Ink" value="#FF0000" presentation="menu" swatches={['#FF0000']} onValueChange={() => {}}/>
-          <ColorPicker label="Fill" value="#FF0000" presentation="popover" onValueChange={() => {}}/>
-        </>,
-      );
-      expect(screen.getByRole('button', {name: 'Ink'})).not.toHaveAttribute('popovertarget');
-      expect(screen.getByRole('button', {name: 'Fill'})).not.toHaveAttribute('popovertarget');
+      const {unmount} = render(tree, {container, hydrate: true});
+      expect(errors).not.toHaveBeenCalled();
+      // Each from one id, in the render after hydration.
+      expect(menu().id).toMatch(/^ui-menu-/);
+      expect(inkWell()).toHaveAttribute('popovertarget', menu().id);
+      expect(screen.getByTestId('ink').style.getPropertyValue('anchor-name')).toBe(`--${menu().id}`);
+      expect(menu().style.getPropertyValue('position-anchor')).toBe(`--${menu().id}`);
+      expect(popover().id).toMatch(/^ui-menu-/);
+      expect(popover().id).not.toBe(menu().id);
+      expect(fillWell()).toHaveAttribute('popovertarget', popover().id);
+      expect(fillWell().style.getPropertyValue('anchor-name')).toBe(`--${popover().id}`);
+      expect(popover().style.getPropertyValue('position-anchor')).toBe(`--${popover().id}`);
+      unmount();
     } finally {
+      errors.mockRestore();
       container.remove();
     }
   });

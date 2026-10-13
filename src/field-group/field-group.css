@@ -23,6 +23,21 @@
 }
 
 /*
+ * No fill of the group's own inside an overlay. The web `Sheet`'s drawer
+ * (vaul's element, which carries the sheet's material), a `Popover`'s card
+ * (the box the kit marks, on the overlay material or the raised fill) and
+ * any surface on a material draw the fill, glass or not, and a box of the
+ * screen's colour inside them is a box: a white panel in a light glass
+ * sheet, a black one in the dark. The section cards keep their raised
+ * colour.
+ */
+[data-vaul-drawer] .field-group,
+[data-ui-popover] .field-group,
+[data-material] .field-group {
+  background-color: transparent;
+}
+
+/*
  * Row dividers: @expo/ui paints them in its gray-100, which is within a few
  * shades of the card color above in both schemes. The selected-background
  * token is one step away from the card in either scheme: visible, not heavy.

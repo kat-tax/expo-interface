@@ -19,6 +19,7 @@ export function Typography({
   numberOfLines,
   selectable,
   level,
+  accessibilityLabel,
   testID,
 }: TypographyProps) {
   const v = variants[variant];
@@ -31,6 +32,7 @@ export function Typography({
       numberOfLines={numberOfLines}
       selectable={selectable}
       accessibilityRole={heading ? 'header' : undefined}
+      accessibilityLabel={accessibilityLabel}
       testID={testID}
       style={[
         {

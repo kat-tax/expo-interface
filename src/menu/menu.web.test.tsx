@@ -1,11 +1,11 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
-import type {ReactElement} from 'react';
 import type {MenuItem} from './types';
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
 import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
+import {staticPage} from '../__tests__/static-page';
 import {AccentProvider} from '../accent';
 import {Sheet} from '../sheet';
 import {MenuList} from './list';
@@ -256,28 +256,39 @@ describe('Menu (web)', () => {
     }
   });
 
-  it('hydrates a static page\'s Menu without a difference, and anchors its popup to its own trigger', async () => {
-    // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
-    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
+  it('hydrates a static page\'s Menu without a difference, and names the popup for the trigger and the anchor together once it has', async () => {
     const tree = <Menu label="New" items={[{label: 'Blank document'}, {label: 'Import files'}]} testID="new"/>;
-    // What a static export writes: the server's render, with the server's answer for the anchor.
+    // What a static export writes: the page rendered inside the whole
+    // document, where `useId` answers other values than the hydration of
+    // `#root` alone does, and React keeps the server's attributes.
     const container = document.body.appendChild(document.createElement('div'));
-    container.innerHTML = renderToString(tree);
+    container.innerHTML = await staticPage(tree);
     const popover = () => container.querySelector('[popover]') as HTMLElement;
     const wrapper = () => container.querySelector('.ui-menu') as HTMLElement;
+    const entries = () => [...container.querySelectorAll('.ui-menu__item')];
+    const trigger = () => screen.getByTestId('new');
+    // Nothing from the server's id is in the HTML: a press before the page
+    // runs opens nothing, and no name of the server's is left for the trigger
+    // to point at.
+    expect(trigger()).not.toHaveAttribute('popovertarget');
+    expect(popover()).not.toHaveAttribute('id');
     expect(popover()).not.toHaveClass('ui-menu__list--anchored');
-    // A press before the page runs opens nothing: the trigger has no target yet.
-    expect(screen.getByTestId('new')).not.toHaveAttribute('popovertarget');
+    expect(popover().style.getPropertyValue('position-anchor')).toBe('');
+    expect(wrapper().style.getPropertyValue('anchor-name')).toBe('');
+    expect(entries()).toHaveLength(2);
+    for (const entry of entries()) expect(entry).not.toHaveAttribute('popovertarget');
     const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       const {unmount} = render(tree, {container, hydrate: true});
       expect(errors).not.toHaveBeenCalled();
+      // The render after hydration writes them all from one id: the trigger
+      // and the entries open this popup, and it is placed against this trigger.
+      expect(popover().id).toMatch(/^ui-menu-/);
+      expect(trigger()).toHaveAttribute('popovertarget', popover().id);
+      for (const entry of entries()) expect(entry).toHaveAttribute('popovertarget', popover().id);
       expect(popover()).toHaveClass('ui-menu__list--anchored');
-      // The ids `useId` gave the server are the ones hydration keeps, so the
-      // trigger opens this popup and the popup is placed against this trigger.
-      expect(screen.getByTestId('new')).toHaveAttribute('popovertarget', popover().id);
-      expect(popover().style.getPropertyValue('position-anchor')).toBe(wrapper().style.getPropertyValue('anchor-name'));
-      expect(popover().style.getPropertyValue('position-anchor')).toMatch(/^--ui-menu-/);
+      expect(wrapper().style.getPropertyValue('anchor-name')).toBe(`--${popover().id}`);
+      expect(popover().style.getPropertyValue('position-anchor')).toBe(`--${popover().id}`);
       unmount();
     } finally {
       errors.mockRestore();
@@ -286,15 +297,16 @@ describe('Menu (web)', () => {
   });
 
   it('gives a link trigger its popover target once a static page has hydrated, and not before', async () => {
-    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
     const tree = <Menu label="New" items={[{label: 'Blank document'}]} trigger="link" testID="new"/>;
     const container = document.body.appendChild(document.createElement('div'));
-    container.innerHTML = renderToString(tree);
+    container.innerHTML = await staticPage(tree);
     expect(screen.getByTestId('new')).not.toHaveAttribute('popovertarget');
+    expect(container.querySelector('[popover]')).not.toHaveAttribute('id');
     const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       const {unmount} = render(tree, {container, hydrate: true});
       expect(errors).not.toHaveBeenCalled();
+      expect(container.querySelector('[popover]')!.id).toMatch(/^ui-menu-/);
       expect(screen.getByTestId('new')).toHaveAttribute('popovertarget', container.querySelector('[popover]')!.id);
       unmount();
     } finally {

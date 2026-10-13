@@ -23,7 +23,10 @@ export interface ComposerMenu {
  *
  * Drawn in React Native on every platform, in a `Surface` capsule holding a
  * bare `TextField` and the kit's circle `Button`, so it can sit in a
- * `Sheet`'s footer or at the bottom of a screen.
+ * `Sheet`'s footer or at the bottom of a screen. The capsule is 44 points
+ * tall with one line in it; as a `Toolbar`'s `field` it is the height of
+ * the bar's controls where that is shorter (30 on the web, 24 on Windows),
+ * and it grows with the lines either way.
  */
 export interface ComposerProps {
   /** Current text (controlled). When omitted the composer keeps its own state and clears it on send. */

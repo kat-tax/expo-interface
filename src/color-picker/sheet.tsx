@@ -1,4 +1,4 @@
-import type {GestureResponderEvent, LayoutChangeEvent, ViewProps} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, TextProps, ViewProps} from 'react-native';
 import type {RGBA} from './shared';
 
 import {useCallback, useState} from 'react';
@@ -100,6 +100,15 @@ const responder = (handler: (x: number, y: number) => void, disabled?: boolean) 
  */
 const NO_SHEET_DRAG = {dataSet: {vaulNoDrag: 'true'}} as ViewProps;
 
+/**
+ * Marks the drawn title as a level 3 heading. The sheet the picker sits in
+ * titles itself at level 2 (the kit's drawn sheet bar, the web drawer's
+ * hidden title), and a heading goes at most one level below the one before
+ * it. React Native's `Text` types no heading level; react-native-web writes
+ * `aria-level` to the DOM, and the native views ignore it.
+ */
+const HEADING_LEVEL = {'aria-level': 3} as TextProps;
+
 export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, onClose, disabled, width, testID}: ColorPickerSheetProps) {
   const [tab, setTab] = useState<ColorPickerTab>('grid');
   const [color, setColor] = useColorValue(value, onValueChange, supportsOpacity);
@@ -119,7 +128,7 @@ export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, 
     <View style={[styles.sheet, width != null ? {width} : styles.fill, ...(disabled ? [styles.disabled] : [])]} testID={testID}>
       {title != null || onClose ? (
         <View style={styles.header}>
-          {title != null ? <Text style={[styles.title, {color: label}]} numberOfLines={1} role="heading" accessible>{title}</Text> : null}
+          {title != null ? <Text style={[styles.title, {color: label}]} numberOfLines={1} role="heading" {...HEADING_LEVEL} accessible>{title}</Text> : null}
           {onClose ? (
             <Pressable
               role="button"
@@ -267,7 +276,7 @@ function Spectrum({color, onChange, disabled}: PartProps) {
       aria-valuetext={toHex(color, false)}
       onLayout={(event: LayoutChangeEvent) => setSize(event.nativeEvent.layout)}
       style={styles.spectrum}>
-      <Image source={{uri: SPECTRUM}} style={StyleSheet.absoluteFill} contentFit="fill"/>
+      <Image source={{uri: SPECTRUM}} style={styles.image} contentFit="fill"/>
       {size.width > 0 ? (
         <View
           style={[
@@ -361,7 +370,7 @@ function Slider({label, value, colorAt, checkered, onChange, disabled}: SliderPr
       aria-valuenow={Math.round(value * 100)}
       onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}
       style={styles.track}>
-      {checkered ? <Image source={{uri: CHECKER}} style={StyleSheet.absoluteFill} contentFit="cover"/> : null}
+      {checkered ? <Image source={{uri: CHECKER}} style={styles.image} contentFit="cover"/> : null}
       <View style={styles.band}>
         {Array.from({length: SEGMENTS}, (_, i) => (
           <View key={i} style={[styles.segment, {backgroundColor: colorAt((i + 0.5) / SEGMENTS)}]}/>
@@ -441,6 +450,12 @@ const styles = StyleSheet.create({
   gridCell: {flex: 1},
   gridSelected: {flex: 1, borderWidth: 3, borderColor: '#ffffff', outlineWidth: 1, outlineColor: 'rgba(0, 0, 0, 0.35)', outlineOffset: -1},
   spectrum: {aspectRatio: 361 / 337, borderRadius: 10, overflow: 'hidden'},
+  // The image filling a drag surface takes no pointer events, so the surface
+  // is the pointer's target: an image that took it would be dragged as an
+  // image by a browser after the first move, which cancels the pointer. On
+  // the web expo-image puts this style on the box around its `<img>`, and
+  // `pointer-events` inherits down to it.
+  image: {position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, pointerEvents: 'none'},
   handle: {
     position: 'absolute',
     width: HANDLE,

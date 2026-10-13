@@ -5,6 +5,7 @@ import {useState} from 'react';
 import {Text} from '@expo/ui';
 import {Button} from '../button';
 import {ListItem} from '../list-item';
+import {Sheet} from '../sheet';
 import {Switch} from '../switch';
 import {TextField} from '../text-field';
 import {Footnote} from '../typography';
@@ -116,4 +117,37 @@ export const ImplicitSection: Story = {
 
 export const Hidden: Story = {
   args: {hidden: true},
+};
+
+/**
+ * The settings form as the body of a sheet with `maxHeight`: the form is the
+ * cap tall and scrolls inside it, so the sheet's actions keep their room. On
+ * iOS and Android the capped body is React Native content, where the form
+ * mounts a host of its own. The story hosts nothing itself (`native: false`):
+ * the sheet mounts its own host, and the button that opens it mounts one of
+ * its own.
+ */
+function CappedSheet(props: FieldGroupProps & {onPress: () => void}) {
+  const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
+  return (
+    <>
+      <Button label="Edit settings" onPress={() => setOpen(true)}/>
+      <Sheet
+        isPresented={open}
+        onDismiss={close}
+        title="Settings"
+        onClose={close}
+        maxHeight={{fraction: 0.5}}
+        actions={[{label: 'Cancel', onPress: close}, {label: 'Save', onPress: close}]}>
+        <Settings {...props}/>
+      </Sheet>
+    </>
+  );
+}
+
+export const InACappedSheet: Story = {
+  name: 'In a capped sheet',
+  parameters: {native: false},
+  render: args => <CappedSheet {...args}/>,
 };

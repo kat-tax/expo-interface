@@ -48,6 +48,9 @@ describe('RelativeTime (web)', () => {
     );
     expect(screen.getByTestId('short').textContent).toBe('12 min. ago');
     expect(screen.getByTestId('narrow').textContent).toBe('12m ago');
+    // The text alone: an aria-label on plain text is not read, and axe flags it.
+    expect(screen.getByTestId('short')).not.toHaveAttribute('aria-label');
+    expect(screen.getByTestId('narrow')).not.toHaveAttribute('aria-label');
   });
 
   it('follows the page when it changes its language', async () => {
@@ -104,6 +107,15 @@ describe('useRelativeTime (web)', () => {
       await vi.advanceTimersByTimeAsync(HOUR / 2);
     });
     expect(result.current).toBe('3 hours ago');
+  });
+
+  it('hands the long words over beside the style asked for with spoken, kept current together', async () => {
+    const {result} = renderHook(() => useRelativeTime(NOW - 12 * MINUTE, {style: 'narrow', spoken: true}));
+    expect(result.current).toEqual({text: '12m ago', spoken: '12 minutes ago'});
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(MINUTE / 2);
+    });
+    expect(result.current).toEqual({text: '13m ago', spoken: '13 minutes ago'});
   });
 
   it('hydrates a static page in English, as the server rendered it, whatever the browser\'s language, then says the words in the page\'s', async () => {

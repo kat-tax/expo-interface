@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import type {MenuItem} from '../menu/types';
 import type {ToolbarCommand, ToolbarProps} from './types';
+import type {CommandSplit} from './fold';
 import type {LayoutChangeEvent} from 'react-native';
 import {Fragment, useState} from 'react';
 import {Platform, StyleSheet, View} from 'react-native';
@@ -15,7 +16,9 @@ import {fromLeft, useAnchored} from '../anchored';
 import {MORE} from '../glyphs';
 import {isCompact} from '../size-class';
 import {spacing} from '../theme';
+import {ToolbarFieldContext} from './field-context';
 import {FloatingSurface} from './floating';
+import {useFold} from './fold';
 import {anchoredStyles, commandDisabled, hasCommands, overflowItems, splitCommands} from './shared';
 
 /**
@@ -40,6 +43,16 @@ const TOOL = Platform.select({
   android: {size: 'medium', iconSize: 22},
   default: {size: 'small', iconSize: undefined},
 } as const);
+
+/**
+ * How tall a command is, at `TOOL.size`: what the bar hands its `field`
+ * (`ToolbarFieldContext`), so a field drawn to the bar's size is as tall as
+ * the controls beside it. On iOS the bar button at the large control size,
+ * the 44 of a toolbar's items; on Android Material's 48dp icon button
+ * container; on web the kit's small button, a 16px icon or a 13px label in
+ * its 1.2 line with 6px above and below and a 1px border (`button.css`).
+ */
+const CONTROL_HEIGHT = Platform.select({ios: 44, android: 48, default: 30});
 
 /**
  * Between the commands: the bar's own pitch, whatever the density. On iOS a
@@ -71,19 +84,22 @@ export function Toolbar(props: ToolbarProps) {
 
 /**
  * The controls a bar holds: its commands and their overflow, or its two
- * slots, with the field's commands first in the trailing group. A folded bar
- * puts every command behind the overflow.
+ * slots, with the field's commands first in the trailing group. A `split`
+ * says which commands are on the bar and which behind the overflow where
+ * the bar has folded some (an edge bar folds every one, a bar at a
+ * rectangle the trailing ones that do not fit); without one the commands
+ * that asked to be `secondary` are behind it.
  *
  * A side with nothing to draw is `null`, not an element that draws nothing:
  * beside a field each side is a host of its own, and a host that empties
  * keeps the size it last had on Android, which is the field's room.
  */
-function controlsOf({commands, leading, trailing, fieldCommands = []}: ToolbarProps, gap: number, folded = false): {start: ReactNode; end: ReactNode} {
+function controlsOf({commands, leading, trailing, fieldCommands = []}: ToolbarProps, gap: number, split?: CommandSplit): {start: ReactNode; end: ReactNode} {
   const besideField = fieldCommands.length > 0 ? <Commands commands={fieldCommands} gap={gap}/> : null;
   // Commands replace the two slots: a bar is described either way round, not
   // both. Here the kit draws them; on Windows the platform's own bar does.
   if (!hasCommands(commands)) return {start: leading, end: besideField ? <>{besideField}{trailing}</> : trailing};
-  const {primary, secondary} = folded ? {primary: [], secondary: commands} : splitCommands(commands);
+  const {primary, secondary} = split ?? splitCommands(commands);
   const overflow = overflowItems(secondary);
   return {
     start: primary.length > 0 ? <Commands commands={primary} gap={gap}/> : null,
@@ -91,10 +107,13 @@ function controlsOf({commands, leading, trailing, fieldCommands = []}: ToolbarPr
   };
 }
 
-/** A floating bar where it is laid out, on the app's overlay material unless told otherwise. */
-function FloatingToolbar(props: ToolbarProps) {
+/**
+ * A floating bar where it is laid out, on the app's overlay material unless
+ * told otherwise; `split` is the fold of a bar at a rectangle.
+ */
+function FloatingToolbar({split, ...props}: ToolbarProps & {split?: CommandSplit}) {
   const {gap} = DENSITY[props.density ?? 'regular'];
-  const {start, end} = controlsOf(props, gap);
+  const {start, end} = controlsOf(props, gap, split);
   const material = useOverlayMaterial(props.material);
   return (
     <FloatingSurface gap={gap} material={material} style={props.style} testID={props.testID}>
@@ -107,19 +126,26 @@ function FloatingToolbar(props: ToolbarProps) {
 /**
  * A floating bar beside a rectangle, laid over its parent: lined up with the
  * rectangle by `align` (centred on it unless asked otherwise), over it unless
- * there is no room, inside the parent less its insets, and drawn only once it
- * has been measured and placed.
+ * there is no room, inside the parent less its insets, folding the trailing
+ * commands that do not fit that room behind the overflow (`useFold`), and
+ * drawn only once it has been measured, fits and is placed.
  */
 function AnchoredToolbar(props: ToolbarProps) {
-  const {at = null, align = 'center', preferredEdge = 'top', insets, testID} = props;
+  const {at = null, align = 'center', preferredEdge = 'top', insets, commands, testID} = props;
   const anchored = useAnchored({at, preferredEdge, insets, align});
+  const fold = useFold(commands, anchored.room);
+  const placed = anchored.placed && fold.fits;
   return (
     <View style={anchoredStyles.bounds} onLayout={anchored.onBounds} testID={testID ? `${testID}-bounds` : undefined}>
       {at ? (
         <View
-          onLayout={anchored.onCard}
-          style={[anchoredStyles.bar, fromLeft(anchored.left), {top: anchored.top}, anchored.placed ? null : anchoredStyles.unplaced]}>
-          <FloatingToolbar {...props}/>
+          key={fold.key}
+          onLayout={event => {
+            anchored.onCard(event);
+            fold.onLayout(event);
+          }}
+          style={[anchoredStyles.bar, fromLeft(anchored.left), {top: anchored.top}, placed ? null : anchoredStyles.unplaced]}>
+          <FloatingToolbar {...props} split={fold.split}/>
         </View>
       ) : null}
     </View>
@@ -135,7 +161,8 @@ function EdgeToolbar(props: ToolbarProps) {
   // mount, so a handler added with the fold would wait for the next resize.
   // Kept as the size class, so the bar renders again only when it crosses it.
   const [compact, setCompact] = useState(false);
-  const {start, end} = controlsOf(props, gap, foldCommands && compact);
+  // Folded, every command is behind the overflow.
+  const {start, end} = controlsOf(props, gap, foldCommands && compact ? {primary: [], secondary: props.commands ?? []} : undefined);
   return (
     <Surface
       color="background"
@@ -156,7 +183,9 @@ function EdgeToolbar(props: ToolbarProps) {
       ) : (
         <View style={[styles.row, {gap}]}>
           <Group gap={gap}>{start}</Group>
-          <View style={styles.field}>{field}</View>
+          <View style={styles.field}>
+            <ToolbarFieldContext.Provider value={CONTROL_HEIGHT}>{field}</ToolbarFieldContext.Provider>
+          </View>
           <Group gap={gap}>{end}</Group>
         </View>
       )}

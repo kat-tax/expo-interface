@@ -1,9 +1,9 @@
 // Matchers are registered by expo-vitest's web setup; imported for the types.
 import '@testing-library/jest-dom/vitest';
-import type {ReactElement} from 'react';
 import type {MenuItem} from '../menu/types';
 import {fireEvent, render, screen} from '@testing-library/react';
 import * as icons from '../__stories__/icons';
+import {staticPage} from '../__tests__/static-page';
 import {AccentProvider} from '../accent';
 import {Fab} from '.';
 
@@ -120,19 +120,29 @@ describe('Fab (web)', () => {
     }
   });
 
-  it('gives the button its popover target once a static page has hydrated, and not before', async () => {
-    // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
-    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
+  it('gives the button its popover target, and the popup its id and anchor, together once a static page has hydrated', async () => {
     const tree = <Fab label="New" icon={icons.add} items={items} testID="new"/>;
-    // What a static export writes: a button with no target, so a press before the page runs opens nothing.
+    // What a static export writes: the page rendered inside the whole
+    // document, where `useId` answers other values than the hydration of
+    // `#root` alone does. Nothing from the server's id is in the HTML, so a
+    // press before the page runs opens nothing.
     const container = document.body.appendChild(document.createElement('div'));
-    container.innerHTML = renderToString(tree);
+    container.innerHTML = await staticPage(tree);
+    const popover = () => container.querySelector('[popover]') as HTMLElement;
+    const anchor = () => container.querySelector('.ui-fab__anchor') as HTMLElement;
     expect(screen.getByTestId('new')).not.toHaveAttribute('popovertarget');
+    expect(popover()).not.toHaveAttribute('id');
+    expect(anchor().style.getPropertyValue('anchor-name')).toBe('');
+    expect(popover().style.getPropertyValue('position-anchor')).toBe('');
     const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       const {unmount} = render(tree, {container, hydrate: true});
       expect(errors).not.toHaveBeenCalled();
-      expect(screen.getByTestId('new')).toHaveAttribute('popovertarget', container.querySelector('[popover]')!.id);
+      // All from one id, in the render after hydration.
+      expect(popover().id).toMatch(/^ui-menu-/);
+      expect(screen.getByTestId('new')).toHaveAttribute('popovertarget', popover().id);
+      expect(anchor().style.getPropertyValue('anchor-name')).toBe(`--${popover().id}`);
+      expect(popover().style.getPropertyValue('position-anchor')).toBe(`--${popover().id}`);
       unmount();
     } finally {
       errors.mockRestore();

@@ -35,8 +35,14 @@ function useInterestSupported(): boolean {
 
 /**
  * The trigger and, where the browser has the Interest Invoker API, its hint.
- * On a material the hint carries the attributes `material.css` draws the
- * bar's glass from, with the text in the label color (`tooltip.css`).
+ * The trigger carries its `anchor-name` only with the hint, so the name,
+ * the hint's `id` and `position-anchor` and the `interestfor` are written
+ * together, from one `useId`, in the render after hydration: a static
+ * export renders the page inside the whole document and the browser
+ * hydrates `#root` alone, where `useId` answers other values, and React
+ * keeps a server attribute the hydration render disagrees with. On a
+ * material the hint carries the attributes `material.css` draws the bar's
+ * glass from, with the text in the label color (`tooltip.css`).
  */
 export function Tooltip({text, children, material, testID}: TooltipProps) {
   const ident = `ui-tooltip-${useId().replace(/[^A-Za-z0-9_-]/g, '_')}`;
@@ -49,7 +55,7 @@ export function Tooltip({text, children, material, testID}: TooltipProps) {
         type="button"
         className="ui-tooltip"
         title={interest ? undefined : text}
-        style={{anchorName: anchor} as CSSProperties}
+        style={interest ? {anchorName: anchor} as CSSProperties : undefined}
         data-testid={testID}
         {...(interest ? {interestfor: ident} : null)}>
         {children}

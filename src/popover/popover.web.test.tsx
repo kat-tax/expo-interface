@@ -22,6 +22,9 @@ describe('Popover (web)', () => {
     expect(card().dataset.material).toBeUndefined();
     expect(getComputedStyle(card()).backgroundColor).toBe('var(--color-background-element)');
     expect(getComputedStyle(card()).boxShadow).toContain('rgba(0, 0, 0, 0.18)');
+    // The placed box marks itself as a popover's card for the stylesheets
+    // that draw their content differently in one, on a material or not.
+    expect(screen.getByTestId('pop')).toHaveAttribute('data-ui-popover', '');
   });
 
   it('reports Escape wherever the focus is, before an editor that keeps the key can', () => {

@@ -170,7 +170,11 @@ variants as components: `LargeTitle`, `Title`, `Title2`, `Title3`,
 `numberOfLines`, `selectable` (the text can be selected and copied: a
 licence, a reason, an address; off by default, as the platforms' own labels
 are), `level` (the heading level, overriding the one the variant implies;
-`false` for a large line that is not a heading), `style`, `testID`.
+`false` for a large line that is not a heading), `accessibilityLabel` (iOS,
+Android and Windows: what a screen reader says in place of the text, for
+words abbreviated for the eye, as `RelativeTime` says "12 minutes ago" for
+"12m ago"; the web leaves it out, since an `aria-label` on plain text is not
+read), `style`, `testID`.
 
 The title variants are headings: `largeTitle` is level 1, `title` 2, `title2`
 3, `title3` 4, `headline` 5. On web they carry `role="heading"` with
@@ -205,11 +209,19 @@ says), `numberOfLines`, `testID`.
 <RelativeTime date={document.editedAt}/>
 ```
 
-`useRelativeTime(date, {numeric, locale, style})` answers the same words as
-a string, for text that cannot hold a view: a `ListItem`'s `value`, a
-`Card`'s `subtitle`, a label. The component that calls it renders again as
-the words may change. A `renderItem` function cannot call a hook, so a list
-calls it in the row's own component:
+The short and narrow words are for the eye. In `short` or `narrow` the
+component names itself with the long words on iOS, Android and Windows, so a
+screen reader says "12 minutes ago" for "12m ago". On the web it is the text
+alone, since an `aria-label` on plain text is not read.
+
+`useRelativeTime(date, {numeric, locale, style, spoken})` answers the same
+words as a string, for text that cannot hold a view: a `ListItem`'s `value`,
+a `Card`'s `subtitle`, a label. With `spoken: true` it answers `{text,
+spoken}` instead: the words in `style`, and the long ones for the same
+moment beside them, from one timer, for text shown narrow and spoken in
+full. The component that calls it renders again as the words may change. A
+`renderItem` function cannot call a hook, so a list calls it in the row's
+own component:
 
 ```tsx
 function NoteRow({note}: {note: Note}) {
@@ -218,13 +230,15 @@ function NoteRow({note}: {note: Note}) {
 }
 ```
 
-A `Card`'s subtitle is one line, and a narrow card ends "Edited 12 minutes
-ago" in an ellipsis, so it takes the `short` style:
+A `Card`'s subtitle is one line, and a phone's two-column card leaves it
+about 100 points, which `short`'s "Edited 10 days ago" overruns, so it takes
+the `narrow` style, whose widest, "Edited 10mo ago", fits. The card is named
+in the long words through `label`, its whole accessible name:
 
 ```tsx
 function DocumentCard({doc}: {doc: Doc}) {
-  const edited = useRelativeTime(doc.editedAt, {style: 'short'});
-  return <Card title={doc.name} subtitle={`Edited ${edited}`}/>;
+  const {text, spoken} = useRelativeTime(doc.editedAt, {style: 'narrow', spoken: true});
+  return <Card title={doc.name} subtitle={`Edited ${text}`} label={`${doc.name}, Edited ${spoken}`}/>;
 }
 ```
 

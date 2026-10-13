@@ -1,3 +1,5 @@
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
 import {render, screen} from '@testing-library/react';
 import {ListItem} from '../list-item';
 import {ScrollInsetsContext} from '../screen/insets';
@@ -81,6 +83,36 @@ describe('FieldGroup (web)', () => {
     expect(onDisappear).toHaveBeenCalledTimes(1);
     render(<FieldGroup testID="hidden" hidden><span>Row</span></FieldGroup>);
     expect(getComputedStyle(screen.getByTestId('hidden')).display).toBe('none');
+  });
+
+  it('paints no fill of its own inside an overlay: a sheet\'s drawer, a popover\'s card, a card on a material', () => {
+    // Vitest processes no stylesheet in these projects, so the import of
+    // `field-group.css` reaches jsdom as nothing: the sheet goes into the page
+    // by hand, and jsdom's cascade applies its rules to the rendered groups.
+    const css = readFileSync(path.join(__dirname, 'field-group.css'), 'utf8');
+    const sheet = document.createElement('style');
+    sheet.textContent = css;
+    document.head.append(sheet);
+    try {
+      render(
+        <>
+          <FieldGroup testID="page"><span>Row</span></FieldGroup>
+          <div data-vaul-drawer=""><FieldGroup testID="drawer"><span>Row</span></FieldGroup></div>
+          <div data-material="regular" data-material-fill="element"><FieldGroup testID="glass"><span>Row</span></FieldGroup></div>
+          <div data-ui-popover=""><FieldGroup testID="card"><span>Row</span></FieldGroup></div>
+        </>,
+      );
+      const group = (id: string) => screen.getByTestId(id).closest('.field-group') as HTMLElement;
+      // On the page the group paints the screen's colour behind its sections.
+      expect(getComputedStyle(group('page')).backgroundColor).toBe('var(--color-background)');
+      // In an overlay the overlay draws the fill, glass or not, and the group
+      // none of its own: `transparent`, as jsdom serializes it.
+      for (const id of ['drawer', 'glass', 'card']) {
+        expect(getComputedStyle(group(id)).backgroundColor).toBe('rgba(0, 0, 0, 0)');
+      }
+    } finally {
+      sheet.remove();
+    }
   });
 
   it('keeps user styles while forcing the transparent background', () => {

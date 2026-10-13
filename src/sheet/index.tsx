@@ -1,3 +1,4 @@
+import './sheet.css';
 import type {SheetProps} from './types';
 import {BottomSheet} from '@expo/ui';
 import {useEffect, useRef, useState} from 'react';
@@ -6,6 +7,7 @@ import {NativeHostContext} from '../host';
 import {materialAttributes} from '../material';
 import {useOverlayMaterial} from '../material/context';
 import {sheetChildren, sheetOwnProps} from './compose';
+import {focusReturn} from './focus-return';
 import {MATERIAL_OPACITY, hasMaterial} from './shared';
 
 /** The heading in the bar's title box, which the drawn bar marks on web. */
@@ -33,9 +35,11 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select
  * opened the sheet, while its dialog hides the rest of the page from
  * assistive technology, so a screen reader would sit on a hidden button.
  * The focus moves into the sheet as it opens instead, to the bar's title, a
- * heading it can land on, or else to the first control in the content, and
+ * heading it can land on, or else to the first control in the content,
+ * unless a field in the content has taken it already (`autoFocus`), and
  * goes back to the control that opened the sheet once the content has left
- * the page.
+ * the page: to that control while it can take the focus, else to the
+ * trigger of the menu it was an item of (`focusReturn`).
  */
 export function Sheet(props: SheetProps) {
   const {own, rest} = sheetOwnProps(props);
@@ -50,8 +54,16 @@ export function Sheet(props: SheetProps) {
   // after the scope's, and a render while the sheet stays open does not move
   // the focus again.
   const [content, setContent] = useState<View | null>(null);
-  // What had the focus as the sheet opened, which gets it back.
+  // What had the focus as the sheet opened, which gets it back. It is read
+  // as `isPresented` turns true, before the content is in the page: once the
+  // content has arrived, a field in it that asked for the focus has it, and
+  // the field leaves with the sheet. The drawer's scope reads its own only
+  // then, and gives nothing back by itself (see below), so the two never
+  // disagree over where the focus goes.
   const opener = useRef<Element | null>(null);
+  useEffect(() => {
+    if (sheet.isPresented) opener.current = document.activeElement;
+  }, [sheet.isPresented]);
   // The material is the bar's, drawn by `material.css` from the attributes
   // the bar carries. `@expo/ui`'s web sheet renders vaul in a portal outside
   // this tree and forwards only the props it names, so there is no element
@@ -71,10 +83,11 @@ export function Sheet(props: SheetProps) {
   useEffect(() => {
     if (!sheet.isPresented || content === null) return;
     const root = content as unknown as HTMLElement;
+    // A field in the content that asked for the focus (`autoFocus`) has it
+    // already, and keeps it: the move is for a focus the dialog would hide.
+    if (root.contains(document.activeElement)) return;
     const target = root.querySelector<HTMLElement>(TITLE) ?? root.querySelector<HTMLElement>(FOCUSABLE);
-    if (target === null) return;
-    opener.current = document.activeElement;
-    target.focus({preventScroll: true});
+    target?.focus({preventScroll: true});
   }, [sheet.isPresented, content]);
   useEffect(() => {
     if (content === null) return;
@@ -82,9 +95,9 @@ export function Sheet(props: SheetProps) {
       // The content has left the page, and the focus with it. The drawer
       // gives nothing back by itself: Radix's dialog returns the focus to a
       // trigger of its own, which a sheet opened from a prop has none of.
-      const previous = opener.current as HTMLElement | null;
+      const previous = opener.current;
       opener.current = null;
-      if (previous?.isConnected) previous.focus({preventScroll: true});
+      focusReturn(previous)?.focus({preventScroll: true});
     };
   }, [content]);
   return (

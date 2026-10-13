@@ -209,6 +209,28 @@ describe(`RelativeTime (${Platform.OS})`, () => {
     await render(<RelativeTime date={NOW - 12 * MINUTE} style="short" testID="when"/>);
     expect(screen.getByTestId('when').props.children).toBe('12 min. ago');
   });
+
+  it('names itself with the long words in short or narrow, and not in long, whose text says them', async () => {
+    await render(
+      <>
+        <RelativeTime date={NOW - 12 * MINUTE} style="narrow" testID="narrow"/>
+        <RelativeTime date={NOW - 12 * MINUTE} style="short" testID="short"/>
+        <RelativeTime date={NOW - 12 * MINUTE} testID="long"/>
+      </>,
+    );
+    expect(screen.getByTestId('narrow').props.children).toBe('12m ago');
+    expect(screen.getByTestId('narrow').props.accessibilityLabel).toBe('12 minutes ago');
+    expect(screen.getByTestId('short').props.children).toBe('12 min. ago');
+    expect(screen.getByTestId('short').props.accessibilityLabel).toBe('12 minutes ago');
+    expect(screen.getByTestId('long').props.children).toBe('12 minutes ago');
+    expect(screen.getByTestId('long').props.accessibilityLabel).toBeUndefined();
+    // The name keeps up with the text.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30 * SECOND);
+    });
+    expect(screen.getByTestId('narrow').props.children).toBe('13m ago');
+    expect(screen.getByTestId('narrow').props.accessibilityLabel).toBe('13 minutes ago');
+  });
 });
 
 describe(`useRelativeTime (${Platform.OS})`, () => {
@@ -241,6 +263,24 @@ describe(`useRelativeTime (${Platform.OS})`, () => {
   it('takes a style', async () => {
     const {result} = await renderHook(() => useRelativeTime(NOW - 12 * MINUTE, {style: 'narrow'}));
     expect(result.current).toBe('12m ago');
+  });
+
+  it('hands the long words over beside the style asked for with spoken, from one timer', async () => {
+    const {result} = await renderHook(() => useRelativeTime(NOW - 12 * MINUTE, {style: 'narrow', spoken: true}));
+    expect(result.current).toEqual({text: '12m ago', spoken: '12 minutes ago'});
+    expect(vi.getTimerCount()).toBe(1);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30 * SECOND);
+    });
+    expect(result.current).toEqual({text: '13m ago', spoken: '13 minutes ago'});
+    expect(vi.getTimerCount()).toBe(1);
+  });
+
+  it('says the long words once where the style is long, and the string alone where spoken is not asked for', async () => {
+    const long = await renderHook(() => useRelativeTime(NOW - 12 * MINUTE, {spoken: true}));
+    expect(long.result.current).toEqual({text: '12 minutes ago', spoken: '12 minutes ago'});
+    const plain = await renderHook(() => useRelativeTime(NOW - 12 * MINUTE, {style: 'narrow', spoken: false}));
+    expect(plain.result.current).toBe('12m ago');
   });
 
   it('says the locale Intl.DateTimeFormat reports without a locale, read once', async () => {

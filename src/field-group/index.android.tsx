@@ -1,7 +1,8 @@
 import type {ReactNode, ReactElement} from 'react';
 import type {FieldSectionHeaderProps, FieldSectionFooterProps} from '@expo/ui';
 import type {FieldGroupProps, FieldGroupSectionProps} from './types';
-import {Children, Fragment, isValidElement} from 'react';
+import {Children, Fragment, isValidElement, useContext} from 'react';
+import {StyleSheet, View} from 'react-native';
 import {Box, Column, Text} from '@expo/ui/jetpack-compose';
 import {
   background,
@@ -14,14 +15,23 @@ import {
   verticalScroll,
   type ModifierConfig,
 } from '@expo/ui/jetpack-compose/modifiers';
+import {NativeHost, useNativeHost} from '../host';
 import {useScrollInsets} from '../screen/insets';
+import {SheetBodyCapContext} from '../sheet/cap-context';
 import {useColor} from '../theme';
 import {SectionGroups, useReportSection} from './collect';
 import {flushRow} from './rows';
 
 /**
- * Android `FieldGroup`. Mirrors `@expo/ui`'s Material 3 connected-list
- * layout, with app deviations for web parity:
+ * Android `FieldGroup`. Under a host (a `Screen native`, a `NativeHost`, a
+ * `Sheet`'s native content) it is bare Compose content. Outside one it
+ * mounts a host of its own, as `List` does: filling its parent, or, as the
+ * body of a `Sheet` with `maxHeight`, the cap tall, since the body's scroll
+ * view gives a child no height to fill. The group then scrolls inside the
+ * cap and leaves the sheet's footer and actions their room.
+ *
+ * The group mirrors `@expo/ui`'s Material 3 connected-list layout, with app
+ * deviations for web parity:
  * - the group is a scrolling `Column`, not a `LazyColumn`: a lazy list
  *   disposes and recomposes its items as it scrolls and on any state change,
  *   and every React Native view hosted inside an item is then added to the
@@ -37,9 +47,21 @@ import {flushRow} from './rows';
  *   inflate rows holding a Material `TextField` (a rigid 56dp itself) to
  *   72dp, taller than their text-row siblings.
  */
-function FieldGroupBase({children, style, hidden, testID}: FieldGroupProps) {
+function FieldGroupBase(props: FieldGroupProps) {
+  const hosted = useNativeHost();
+  const cap = useContext(SheetBodyCapContext);
+  if (props.hidden) return null;
+  if (hosted) return <NativeGroup {...props}/>;
+  // The group's own props stay on the Compose column (`testID`, `style`); the box only sizes the host.
+  return (
+    <View style={cap === undefined ? styles.fill : {alignSelf: 'stretch', height: cap}}>
+      <NativeHost fit="fill"><NativeGroup {...props}/></NativeHost>
+    </View>
+  );
+}
+
+function NativeGroup({children, style, testID}: FieldGroupProps) {
   const insets = useScrollInsets();
-  if (hidden) return null;
   const modifiers: ModifierConfig[] = [fillMaxWidth(), verticalScroll(), padding(16, 16 + insets.top, 16, 16 + insets.bottom)];
   if (style?.backgroundColor) modifiers.push(background(String(style.backgroundColor)));
   if (testID) modifiers.push(testIDModifier(testID));
@@ -117,6 +139,10 @@ export const FieldGroup = Object.assign(FieldGroupBase, {
 });
 
 export type {FieldGroupProps, FieldGroupSectionProps};
+
+const styles = StyleSheet.create({
+  fill: {flex: 1, alignSelf: 'stretch'},
+});
 
 /**
  * Per-position corner radii producing the Material 3 grouped-list look:

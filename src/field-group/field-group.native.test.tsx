@@ -1,10 +1,14 @@
-import {Platform} from 'react-native';
+import type {ReactTestRendererJSON} from 'react-test-renderer';
+import {Platform, StyleSheet} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
+import {hostFit, hosts} from '../__tests__/hosts';
+import {NativeHostContext} from '../host';
 import {colors} from '../theme';
 import {Typography} from '../typography';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
 import {ListItem} from '../list-item';
 import {ScrollInsetsContext} from '../screen/insets';
+import {SheetBodyCapContext} from '../sheet/cap-context';
 import {FieldGroup} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -12,10 +16,16 @@ const isIOS = Platform.OS === 'ios';
 /** Android section rows are `Box`es aligned `centerStart`; iOS rows live in the Section `content` slot. */
 const rows = () => nodes().filter(n => n.props?.contentAlignment === 'centerStart');
 const radii = (props: Record<string, any>) => modifier(props, 'clip')?.shape;
+/** The native form: SwiftUI's `Form`, or the Compose column on Android. */
+const form = () => nodes().find(n => n.type.includes(isIOS ? 'FormView' : 'ColumnView'));
+/** The rendered root, the box the form mounts its host in outside one. */
+const root = () => screen.toJSON() as ReactTestRendererJSON;
+/** Renders under a host, where the form is bare native content. */
+const render_ = (ui: React.ReactElement) => render(<NativeHostContext.Provider value={true}>{ui}</NativeHostContext.Provider>);
 
 describe(`FieldGroup (${Platform.OS})`, () => {
   it('renders the native form container', async () => {
-    await render(
+    await render_(
       <FieldGroup testID="group">
         <FieldGroup.Section title="General">
           <Typography>Row</Typography>
@@ -42,7 +52,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   it('renders the footer prop under the rows in the secondary color', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <FieldGroup.Section title="Connection" footer="Optional. When signed in, documents are backed up.">
           <Typography>Row</Typography>
@@ -64,7 +74,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   it('colors the footer for an error', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <FieldGroup.Section title="Connection" footer="The server could not be reached." footerColor="destructive">
           <Typography>Row</Typography>
@@ -80,7 +90,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   it('lets a SectionFooter slot win over the footer prop', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <FieldGroup.Section title="About" footer="Ignored">
           <Typography>Row</Typography>
@@ -95,7 +105,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   it('renders a standalone section with its footer', async () => {
-    await render(
+    await render_(
       <FieldGroup.Section title="Alone" footer="Note">
         <Typography>Row</Typography>
       </FieldGroup.Section>,
@@ -107,7 +117,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   it('keeps sections with a footer inside a fragment', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <>
           <FieldGroup.Section title="One" footer="First note">
@@ -125,7 +135,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   it('renders the section title and rows', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <FieldGroup.Section title="General">
           <Typography>One</Typography>
@@ -156,7 +166,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   (isIOS ? it.skip : it)('rounds every corner of a single-row section', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <FieldGroup.Section title="Only">
           <Typography>Row</Typography>
@@ -167,7 +177,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   (isIOS ? it.skip : it)('uppercases the title on request', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <FieldGroup.Section title="Support" titleUppercase>
           <Typography>Row</Typography>
@@ -179,7 +189,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   it('renders custom header and footer slots', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <FieldGroup.Section title="Ignored">
           <FieldGroup.SectionHeader>
@@ -212,7 +222,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   it('groups loose children into an implicit section', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <Typography>Alpha</Typography>
         <Typography>Beta</Typography>
@@ -250,7 +260,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
         </FieldGroup.Section>
       );
     }
-    await render(
+    await render_(
       <FieldGroup>
         <Typography>Alpha</Typography>
         <Appearance/>
@@ -264,7 +274,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   (isIOS ? it.skip : it)('pads the form by the bar it passes under', async () => {
-    await render(
+    await render_(
       <ScrollInsetsContext.Provider value={{top: 30, bottom: 10, left: 0, right: 0, automatic: false}}>
         <FieldGroup testID="group">
           <Typography>Alpha</Typography>
@@ -275,7 +285,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   (isIOS ? it : it.skip)('ends the form with a clear row as tall as the room the screen keeps at its bottom', async () => {
-    await render(
+    await render_(
       <ScrollInsetsContext.Provider value={{top: 0, bottom: 72, left: 0, right: 0, automatic: false}}>
         <FieldGroup>
           <FieldGroup.Section title="General">
@@ -291,7 +301,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
     expect(modifier(last.props, 'listRowBackground')).toEqual({$type: 'listRowBackground', color: 'clear'});
     expect(modifier(last.props, 'listRowSeparator')).toMatchObject({visibility: 'hidden'});
     // With no room to keep, the form ends at its last section.
-    await render(
+    await render_(
       <FieldGroup>
         <FieldGroup.Section title="General">
           <Typography>Row</Typography>
@@ -302,7 +312,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   (isIOS ? it.skip : it)('takes the inset off the ListItem rows it is given, unless one asks for it', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <FieldGroup.Section title="Connection">
           <ListItem testID="flushed">Account</ListItem>
@@ -316,7 +326,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   it('hides the group and sections', async () => {
-    await render(
+    await render_(
       <FieldGroup hidden testID="group">
         <FieldGroup.Section title="General">
           <Typography>Row</Typography>
@@ -332,7 +342,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   it('hides a single section', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <FieldGroup.Section title="Visible">
           <Typography>Row</Typography>
@@ -353,7 +363,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   it('forwards a background color to the container', async () => {
-    await render(
+    await render_(
       <FieldGroup style={{backgroundColor: '#123456'}} testID="group">
         <Typography>Row</Typography>
       </FieldGroup>,
@@ -363,7 +373,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   (isIOS ? it.skip : it)('renders a section with only a header and no rows', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <FieldGroup.Section title="Empty"/>
       </FieldGroup>,
@@ -373,7 +383,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   (isIOS ? it.skip : it)('flattens fragments inside a section, drops empty children and wraps raw text', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <FieldGroup.Section title="Mixed">
           <>
@@ -396,7 +406,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   (isIOS ? it.skip : it)('unwraps fragments at the group level around explicit sections', async () => {
-    await render(
+    await render_(
       <FieldGroup>
         <></>
         <>
@@ -418,7 +428,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
   });
 
   (isIOS ? it.skip : it)('renders the slot markers transparently on their own', async () => {
-    await render(
+    await render_(
       <>
         <FieldGroup.SectionHeader><Typography>Header</Typography></FieldGroup.SectionHeader>
         <FieldGroup.SectionFooter><Typography>Footer</Typography></FieldGroup.SectionFooter>
@@ -426,5 +436,68 @@ describe(`FieldGroup (${Platform.OS})`, () => {
     );
     expect(screen.getByText('Header')).toBeOnTheScreen();
     expect(screen.getByText('Footer')).toBeOnTheScreen();
+  });
+
+  it('mounts a host of its own that fills its parent outside one, and none inside', async () => {
+    await render(
+      <FieldGroup testID="group">
+        <FieldGroup.Section title="General">
+          <Typography>Row</Typography>
+        </FieldGroup.Section>
+      </FieldGroup>,
+    );
+    // One host, taking the size the box gives it on both axes, and the form inside it.
+    expect(hosts()).toHaveLength(1);
+    expect(hostFit(hosts()[0])).toEqual({});
+    expect(root().type).toBe('RCTView');
+    expect(StyleSheet.flatten(root().props.style)).toEqual({flex: 1, alignSelf: 'stretch'});
+    expect(form()).toBeTruthy();
+    // The form keeps its own props: the box takes no test id, and on Android the Compose column carries it.
+    expect(root().props.testID).toBeUndefined();
+    if (!isIOS) expect(byComposeTestID('group')).toEqual(form());
+    // Under a host it is bare native content: nothing is added around it.
+    await render_(
+      <FieldGroup testID="group">
+        <FieldGroup.Section title="General">
+          <Typography>Row</Typography>
+        </FieldGroup.Section>
+      </FieldGroup>,
+    );
+    expect(hosts()).toHaveLength(0);
+    expect(root().type).toBe(form()!.type);
+  });
+
+  it('is the cap tall as the body of a capped sheet, its host filling the cap', async () => {
+    await render(
+      <SheetBodyCapContext.Provider value={300}>
+        <FieldGroup>
+          <FieldGroup.Section title="General">
+            <Typography>Row</Typography>
+          </FieldGroup.Section>
+        </FieldGroup>
+      </SheetBodyCapContext.Provider>,
+    );
+    // The body's scroll view gives the box no height to fill, so the form takes the cap and scrolls inside it.
+    expect(StyleSheet.flatten(root().props.style)).toEqual({alignSelf: 'stretch', height: 300});
+    expect(hosts()).toHaveLength(1);
+    expect(hostFit(hosts()[0])).toEqual({});
+    expect(form()).toBeTruthy();
+  });
+
+  it('draws nothing outside a host while hidden', async () => {
+    await render(
+      <FieldGroup hidden>
+        <FieldGroup.Section title="General">
+          <Typography>Row</Typography>
+        </FieldGroup.Section>
+      </FieldGroup>,
+    );
+    if (isIOS) {
+      // The box goes with the form, which carries the hidden modifier itself.
+      expect(StyleSheet.flatten(root().props.style)).toMatchObject({display: 'none'});
+      expect(modifier(form()!.props, 'hidden')).toMatchObject({$type: 'hidden'});
+    } else {
+      expect(screen.toJSON()).toBeNull();
+    }
   });
 });

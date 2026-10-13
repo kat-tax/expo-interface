@@ -4,9 +4,10 @@ import {List} from '.';
 
 const ROWS = Array.from({length: 300}, (_, index) => `Row ${index}`);
 
-/** How far the list has scrolled, and how tall it is: what the page's layout answers. */
+/** How far the list has scrolled, how tall it is and where its top is in the window: what the page's layout answers. */
 let scrolled = 0;
 let boxHeight = 600;
+let boxTop = 0;
 
 const items = () => screen.getAllByRole('listitem');
 const spacers = () => [...screen.getByTestId('list').querySelectorAll<HTMLElement>('.ui-list__spacer')];
@@ -29,12 +30,13 @@ describe('List (web), windowed', () => {
   beforeEach(() => {
     scrolled = 0;
     boxHeight = 600;
+    boxTop = 0;
     TestResizeObserver.all = [];
     vi.stubGlobal('ResizeObserver', TestResizeObserver);
     // A list 600 px tall at the top of the window; the spacer before the rows moves up as it scrolls.
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
-      if (this.classList.contains('ui-list')) return rectAt(0, boxHeight);
-      if (this.classList.contains('ui-list__spacer')) return rectAt(-scrolled, 0);
+      if (this.classList.contains('ui-list')) return rectAt(boxTop, boxHeight);
+      if (this.classList.contains('ui-list__spacer')) return rectAt(boxTop - scrolled, 0);
       return rectAt(0, 0);
     });
   });
@@ -121,6 +123,42 @@ describe('List (web), windowed', () => {
     expect(items()[0]).toHaveTextContent('Row 89');
   });
 
+  it('draws the first rows of a list wholly outside the window, as of a hidden one, and reaches no end there', () => {
+    const onEndReached = vi.fn();
+    renderList({onEndReached});
+    // Below the window, where a sheet's drawer holds the list before it
+    // slides in: clipped by the window, the box would hold one row.
+    boxTop = 800;
+    laidOut();
+    expect(items()).toHaveLength(22);
+    expect(items()[0]).toHaveTextContent('Row 0');
+    // Above it.
+    boxTop = -700;
+    laidOut();
+    expect(items()).toHaveLength(22);
+    expect(onEndReached).not.toHaveBeenCalled();
+  });
+
+  it('reads the page again when a transition ends anywhere in it, so a list that slides in with a sheet draws its rows once it has arrived', () => {
+    boxTop = 800;
+    render(<div data-testid="drawer">{list()}</div>);
+    laidOut();
+    expect(items()).toHaveLength(22);
+    // The drawer's transform transition ends with the list's top 300 px above
+    // the window's bottom edge: those 300 px, and a viewport of them more.
+    boxTop = 468;
+    fireEvent.transitionEnd(screen.getByTestId('drawer'));
+    expect(items()).toHaveLength(11);
+    expect(items()[0]).toHaveTextContent('Row 0');
+  });
+
+  it('reads the page again when an animation ends anywhere in it', () => {
+    render(<div data-testid="drawer">{list()}</div>);
+    scrolled = 5600;
+    fireEvent.animationEnd(screen.getByTestId('drawer'));
+    expect(items()[0]).toHaveTextContent('Row 89');
+  });
+
   it('windows by the scroll and the estimate alone where there is no ResizeObserver', () => {
     vi.stubGlobal('ResizeObserver', undefined);
     renderList({estimatedItemHeight: 100});
@@ -189,6 +227,8 @@ describe('List (web), windowed', () => {
     const [observer] = TestResizeObserver.all;
     unmount();
     expect(removeFromDocument).toHaveBeenCalledWith('scroll', expect.any(Function), true);
+    expect(removeFromDocument).toHaveBeenCalledWith('transitionend', expect.any(Function), true);
+    expect(removeFromDocument).toHaveBeenCalledWith('animationend', expect.any(Function), true);
     expect(removeFromWindow).toHaveBeenCalledWith('resize', expect.any(Function));
     expect(observer!.disconnected).toBe(true);
   });

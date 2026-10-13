@@ -67,7 +67,7 @@ describe('commands (windows)', () => {
   it('floats the bar raised and rounded, its labels left to the overflow', async () => {
     await render(<Toolbar floating commands={commands} testID="bar"/>);
     expect(island(BAR).props.labels).toBe('collapsed');
-    expect(island(BAR).props.style).toMatchObject({height: 48});
+    expect(StyleSheet.flatten(island(BAR).props.style)).toMatchObject({height: 48});
     const bar = StyleSheet.flatten(screen.getByTestId('bar').props.style);
     expect(bar).toMatchObject({borderRadius: 12, alignSelf: 'flex-start'});
     expect(bar.borderTopWidth).toBeGreaterThan(0);
@@ -89,6 +89,38 @@ describe('commands (windows)', () => {
     expect(StyleSheet.flatten(screen.getByTestId('drawn').props.style)).toMatchObject({borderRadius: 12, alignSelf: 'flex-start'});
     await rerender(<Toolbar at={null} commands={commands}/>);
     expect(islands(BAR)).toHaveLength(0);
+  });
+
+  it('gives a CommandBar at a rectangle the room as its widest, so the control moves what does not fit into its own overflow', async () => {
+    await render(<Toolbar at={{x: 100, y: 200, width: 80, height: 20}} commands={commands} testID="bar"/>);
+    expect(StyleSheet.flatten(island(BAR).props.style).maxWidth).toBeUndefined();
+    await fireEvent(screen.getByTestId('bar-bounds'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 400, height: 600}}});
+    // The room, 400 less 8 at each side, less the hairline the surface draws at each side.
+    expect(StyleSheet.flatten(island(BAR).props.style).maxWidth).toBe(384 - 2 * StyleSheet.hairlineWidth);
+    // Drawn once measured: the control has folded for itself.
+    const placed = () => screen.getByTestId('bar-bounds').children[0] as unknown as {props: {style: unknown; onLayout: (event: unknown) => void}};
+    await act(async () => placed().props.onLayout({nativeEvent: {layout: {x: 0, y: 0, width: 384, height: 48}}}));
+    expect((StyleSheet.flatten(placed().props.style as never) as Record<string, unknown>).opacity).toBeUndefined();
+  });
+
+  it('folds a drawn bar at a rectangle, around a field, one command per layout until it fits', async () => {
+    const tools = [{label: 'Bold'}, {label: 'Italic'}, {label: 'Link'}, {label: 'Export', secondary: true}];
+    await render(<Toolbar at={{x: 100, y: 200, width: 80, height: 20}} commands={tools} field={<Text>Find</Text>} testID="bar"/>);
+    const placed = () => screen.getByTestId('bar-bounds').children[0] as unknown as {props: {style: unknown; onLayout: (event: unknown) => void}};
+    const style = () => StyleSheet.flatten(placed().props.style as never) as Record<string, unknown>;
+    const measure = (width: number) => act(async () => placed().props.onLayout({nativeEvent: {layout: {x: 0, y: 0, width, height: 48}}}));
+    const entries = () => JSON.parse(island('ExpoInterfaceMenuFlyout').props.items).map((item: {label: string}) => item.label);
+    await fireEvent(screen.getByTestId('bar-bounds'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 200, height: 600}}});
+    await measure(240);
+    expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Bold', 'Italic', 'More']);
+    expect(entries()).toEqual(['Link', 'Export']);
+    expect(style().opacity).toBe(0);
+    await measure(240);
+    expect(islands('ExpoInterfaceButton').map(button => button.props.label)).toEqual(['Bold', 'More']);
+    expect(entries()).toEqual(['Italic', 'Link', 'Export']);
+    await measure(170);
+    expect(style().opacity).toBeUndefined();
+    expect(style().left).toBe(22);
   });
 
   it('keeps left under a right-to-left layout, since react-native-windows swaps no left and right', async () => {

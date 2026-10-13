@@ -1,24 +1,23 @@
 import '../menu/menu.css';
-import type {MouseEvent, PointerEvent} from 'react';
+import type {MouseEvent} from 'react';
 import type {ContextMenuProps} from '../menu/types';
 import {useEffect, useId, useRef, useState} from 'react';
 import {MenuList, menuIdent} from '../menu/list';
-
-/**
- * How long a touch is held before it opens a menu on web, where Safari on
- * iOS raises no `contextmenu` for a touch: the `ContextMenu` and the
- * `TabView` strip's tabs and cards time their held touch by it.
- */
-export const LONG_PRESS_MS = 500;
+import {useHeldTouch} from './held';
 
 /**
  * On web the entries live in the same native `popover="auto"` element as
- * `Menu`, opened with `showPopover()` on right-click (`contextmenu`), a touch
- * long-press, or the `at` prop, and placed at the pointer. The browser still
- * owns the top layer and light dismiss. The wrapper is `display: contents`,
- * so it doesn't affect the layout of `children`; `at` is measured against
- * the content's first element (its own coordinates), falling back to the
- * viewport when the content has no box of its own.
+ * `Menu`, opened with `showPopover()` on right-click (`contextmenu`), once a
+ * held touch lifts, or from the `at` prop, and placed at the pointer. The
+ * browser still owns the top layer and light dismiss. The wrapper is
+ * `display: contents`, so it doesn't affect the layout of `children`; `at` is
+ * measured against the content's first element (its own coordinates), falling
+ * back to the viewport when the content has no box of its own.
+ *
+ * The held touch is `useHeldTouch`'s: the hold arms the menu, the release's
+ * click is taken as the menu's rather than the content's press, and the menu
+ * shows in a task after it, since one shown while the touch is down is
+ * light-dismissed by the release.
  *
  * **`contextmenu` opens the menu whichever `trigger` says**, because a right
  * click is what a pointer user and every assistive technology on this
@@ -31,7 +30,6 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
   const ident = menuIdent(useId());
   const popover = useRef<HTMLDivElement>(null);
   const wrapper = useRef<HTMLDivElement>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [position, setPosition] = useState<{x: number; y: number} | null>(null);
 
   const open = (x: number, y: number) => {
@@ -39,15 +37,14 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
     const element = popover.current;
     if (element && !element.matches(':popover-open')) element.showPopover();
   };
+  const held = useHeldTouch(open, !disabled && trigger !== 'tap');
   const onContextMenu = (event: MouseEvent) => {
     if (disabled) return;
     event.preventDefault();
+    // A browser that raises `contextmenu` for the held touch as well (Chrome
+    // on Android) opens the menu with it, once.
+    held.cancel();
     open(event.clientX, event.clientY);
-  };
-  const onPointerDown = (event: PointerEvent) => {
-    if (disabled || trigger === 'tap' || event.pointerType !== 'touch') return;
-    const {clientX: x, clientY: y} = event;
-    timer.current = setTimeout(() => open(x, y), LONG_PRESS_MS);
   };
   const onClick = (event: MouseEvent) => {
     if (disabled) return;
@@ -56,10 +53,6 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
       return;
     }
     open(event.clientX, event.clientY);
-  };
-  const cancelPress = () => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = null;
   };
 
   // A point the content reports (a canvas's own right click): relative to
@@ -80,11 +73,8 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
       ref={wrapper}
       className="ui-context-menu"
       onContextMenu={onContextMenu}
-      onPointerDown={onPointerDown}
-      onPointerUp={cancelPress}
-      onPointerCancel={cancelPress}
-      onPointerMove={cancelPress}
       onClick={onClick}
+      {...held.handlers()}
       data-testid={testID}>
       {children}
       <MenuList

@@ -25,6 +25,7 @@ The differences that change what a screen can do, in one place:
 | `Badge` `label={null}` | No element of its own | No element of its own; inside a host the number is still read | No element of its own | No name; hidden as far as the view around the island allows |
 | `Badge` `style` | Not applied inside a host | Not applied inside a host | Yes | Yes |
 | `ListItem` named from its slots | Yes | The row's own texts | Yes | Yes |
+| `ListItem` badge in a row named from its slots | No element of its own | Read among the row's texts | No element of its own | No name; hidden as far as the view around the island allows |
 | `ListItem` `selected` announced | Yes | On a row that presses, without `swipeActions` | Yes | Yes |
 | `ColorPicker` `inline` | The row, the system picker from the well | Drawn in place | Drawn in place | The WinUI `ColorPicker` in place |
 | `ColorPicker` swatches of a disabled picker heard | Unavailable | Not at all | Unavailable | Unavailable |
@@ -35,6 +36,7 @@ The differences that change what a screen can do, in one place:
 | `onKeyPress` in `inline` and `Composer` | Keys that write, Enter, Backspace | Keys that write, Enter, Backspace | Every key but an Enter that submits a multi-line field | Keys that write, Escape, Backspace, an Enter that does not submit; no Shift |
 | `keyboardType`, `autoCapitalize` in `inline` and `Composer` | Yes | Yes | Yes | `keyboardType` ignored, `autoCapitalize` only `characters` |
 | `Composer` button touch target | The button | The 36dp circle it is drawn as, not Material's 48dp | The button | The button |
+| `Composer` capsule as a `Toolbar` `field`, one line | 44 | 44 | 30, the small button | 24, the small button island |
 | `SearchField` `clearable` | Yes | Yes | The control's own | The control's own |
 | `SearchField` suggestions with icons | Yes | Yes | Text only | Text only |
 | `HeaderSearch` `stacked` | Native | Drawn under the app bar | Drawn under the header | Drawn under the header |
@@ -49,6 +51,7 @@ The differences that change what a screen can do, in one place:
 | `TabView` reordering | No | No | No | Off |
 | `TabView` close on the keyboard | Button | Button | Delete | The control's cross |
 | `TabView` tab menu | Long press | Long press | Right click, Menu key, a held touch | Right click, Menu key |
+| `TabView` `activation` | Ignored | Ignored | Yes | Ignored |
 | `TabView` accessory in the strip | Yes | Yes | Yes | Cards only |
 | `TabView` `fill="none"` | No fill | No fill | No fill | The WinUI strip in the screen's background; no fill on the switcher's bar |
 | `TabView` add button's name without `addLabel` | "New tab" | "New tab" | "New tab" | WinUI's own, in the system's language, on the strip; "New tab" on the switcher |
@@ -81,6 +84,7 @@ The differences that change what a screen can do, in one place:
 | `ExternalLink` | In-app browser | In-app browser | New tab | Default browser |
 | `saveFile` | A folder; the file keeps `name` | A folder; the file keeps `name` | The folder and the name in the Chromium browsers, else a download | A folder; the file keeps `name` |
 | `RelativeTime` words without `locale` | English; with a polyfill, the language iOS runs the app in, one the app is localized for | English; the device's language with a polyfill | The page's `lang` | English; the user's regional format with a polyfill |
+| `RelativeTime` in `short` or `narrow`, to a screen reader | The long words | The long words | The text as drawn | The long words |
 | A screen pushed over `Tabs` | Over the tab bar | Over the tab bar | Replaces the bar | Inside the pane, its back button |
 | `Stack` `animation` | Native | Native | None | WinUI's motions: drill in, slides, page refresh, fade |
 | A press on the selected tab | Nothing | Nothing | Nothing | Back to the section's root |

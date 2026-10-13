@@ -75,6 +75,12 @@ interface Anchored {
   above: boolean;
   /** Whether both the parent and the card have been measured, so the place is final. */
   placed: boolean;
+  /**
+   * The width a card is kept inside: the parent's less its insets and the
+   * gap at each side, the same numbers `left` is clamped with. 0 until the
+   * parent has been measured.
+   */
+  room: number;
 }
 
 /**
@@ -85,11 +91,18 @@ interface Anchored {
  *
  * The parent and the card are measured as they lay out; until both have
  * been, the card is placed from what is known, and it settles once they
- * are (`placed`).
+ * are (`placed`). While `at` is `null` the card's size is forgotten: a card
+ * that comes back is placed by its own layout, not by the last one's, since
+ * a bar over another selection is another width.
  */
 export function useAnchored({at, preferredEdge = 'auto', width, insets, gap = 8, align = 'start'}: AnchoredOptions): Anchored {
   const [bounds, setBounds] = useState({width: 0, height: 0});
   const [card, setCard] = useState({width: width ?? 0, height: 0});
+  // Nothing to place: forget the card, so `placed` waits for the next one's
+  // layout. Set during the render, guarded, so the forgetting is in the very
+  // render `at` goes, before anything could be placed from the old size.
+  const unknown = width ?? 0;
+  if (!at && (card.width !== unknown || card.height !== 0)) setCard({width: unknown, height: 0});
   const onBounds = (event: LayoutChangeEvent) => {
     const {width: w, height: h} = event.nativeEvent.layout;
     if (w !== bounds.width || h !== bounds.height) setBounds({width: w, height: h});
@@ -119,8 +132,9 @@ export function useAnchored({at, preferredEdge = 'auto', width, insets, gap = 8,
   const span = at?.width ?? 0;
   const from = align === 'center' ? x + span / 2 - card.width / 2 : align === 'end' ? x + span - card.width : x;
   const left = at ? Math.max(left0, Math.min(from, rightMost)) : 0;
+  const room = bounds.width > 0 ? Math.max(0, rightEdge - left0) : 0;
 
-  return {onBounds, onCard, left, top, above, placed: bounds.height > 0 && card.height > 0};
+  return {onBounds, onCard, left, top, above, placed: bounds.height > 0 && card.height > 0, room};
 }
 
 /**

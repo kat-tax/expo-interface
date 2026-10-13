@@ -78,9 +78,11 @@ export interface ListItemProps {
   /**
    * A mark at the trailing edge: `true` for a dot (something unread, something
    * changed), a number for a count. The kit's `Badge`, and part of the row's
-   * accessible name on iOS, web and Windows. On Android TalkBack reads the
-   * row's own texts, the badge's among them: its number and then unseen text
-   * that says "new", so a count reads "3, new" and a dot "New".
+   * accessible name on iOS, web and Windows, where a row named from its slots
+   * speaks for the badge and the badge is no element of its own. On Android
+   * TalkBack reads the row's own texts, the badge's among them: its number
+   * and then unseen text that says "new", so a count reads "3, new" and a dot
+   * "New".
    */
   badge?: boolean | number;
   /**

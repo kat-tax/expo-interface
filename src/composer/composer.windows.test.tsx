@@ -6,6 +6,7 @@ import {island} from 'expo-vitest/windows';
 import * as icons from '../__stories__/icons';
 import {NEXT, STOP} from '../glyphs';
 import {colors} from '../theme';
+import {Toolbar} from '../toolbar';
 import {glyphOf} from '../windows';
 import {Composer} from '.';
 
@@ -30,6 +31,22 @@ describe('Composer (windows)', () => {
     await fireEvent.changeText(screen.getByTestId('c-field'), 'again');
     await fireEvent(screen.getByTestId('c-field'), 'submitEditing', {nativeEvent: {text: 'again'}});
     expect(onSend).toHaveBeenLastCalledWith('again');
+  });
+
+  it('is the height of the bar\'s controls as a Toolbar\'s field, the small button island\'s 24, and 44 on its own', async () => {
+    /** The capsule around the field: the first view up from it with a minimum height. */
+    const capsuleOf = (testID: string) => {
+      let node = screen.getByTestId(testID).parent;
+      while (node && StyleSheet.flatten(node.props.style)?.minHeight === undefined) node = node.parent;
+      return StyleSheet.flatten(node!.props.style) as Record<string, unknown>;
+    };
+    const composer = <Composer onSend={() => {}} testID="c"/>;
+    const {rerender} = await render(<Toolbar field={composer}/>);
+    expect(capsuleOf('c-field')).toMatchObject({minHeight: 24, paddingVertical: 0});
+    expect(StyleSheet.flatten(screen.getByTestId('c-field').props.style)).toMatchObject({paddingVertical: 2, lineHeight: 20});
+    await rerender(composer);
+    expect(capsuleOf('c-field')).toMatchObject({minHeight: 44, paddingVertical: 4});
+    expect(StyleSheet.flatten(screen.getByTestId('c-field').props.style)).toMatchObject({paddingVertical: 8});
   });
 
   it('takes its own labels, icons and keys, colors an error notice, and passes the field its traits', async () => {

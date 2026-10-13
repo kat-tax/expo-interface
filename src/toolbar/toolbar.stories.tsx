@@ -3,6 +3,7 @@ import {fn} from 'storybook/test';
 import {useState} from 'react';
 import {Pressable, StyleSheet, View} from 'react-native';
 import {Button} from '../button';
+import {Composer} from '../composer';
 import {Divider} from '../divider';
 import {Footnote} from '../typography';
 import {useColor} from '../theme';
@@ -100,6 +101,24 @@ export const WithAField: Story = {
   ),
 };
 
+/**
+ * An editor's status bar with an assistant's prompt as its field: the
+ * capsule is the height of the bar's controls where they are shorter than
+ * its own 44 (the web, Windows), so the bar keeps its height.
+ */
+export const WithAComposer: Story = {
+  render: args => (
+    <View style={styles.stage}>
+      <Footnote color="tertiaryLabel">A canvas above the bar</Footnote>
+      <Toolbar
+        {...args}
+        commands={[{label: 'Close the assistant', icon: icons.trash, hideLabel: true, tone: 'label', onPress: fn()}]}
+        field={<Composer placeholder="Ask about this document" sendLabel="Ask" onSend={fn()}/>}
+      />
+    </View>
+  ),
+};
+
 /** An editor's formatting toggles: bold and italic stay down while they are on. */
 function useFormatting() {
   const [bold, setBold] = useState(true);
@@ -144,6 +163,25 @@ export const AtASelection: Story = {
           <Footnote color="label">the selected words</Footnote>
         </Pressable>
         <Toolbar {...args} at={selected ? {x: 60, y: 120, width: 140, height: 22} : null} commands={commands}/>
+      </View>
+    );
+  },
+};
+
+/**
+ * The strip over a selection on a narrow canvas: the trailing tools that do
+ * not fit the room between the canvas's edges go behind More, first among
+ * its entries, and the bar is drawn once it fits.
+ */
+export const AtASelectionFolding: Story = {
+  render: function AtASelectionFolding(args) {
+    const fill = useColor('backgroundSelected');
+    return (
+      <View style={[styles.canvas, styles.narrow]}>
+        <View style={[styles.selection, {backgroundColor: fill}]}>
+          <Footnote color="label">the selected words</Footnote>
+        </View>
+        <Toolbar {...args} at={{x: 60, y: 120, width: 140, height: 22}} commands={TOOLS.map(tool => ({...tool, hideLabel: true, tone: 'label' as const, onPress: fn()}))}/>
       </View>
     );
   },
@@ -206,6 +244,7 @@ export const FoldingAroundAField: Story = {
 const styles = StyleSheet.create({
   stage: {gap: 24},
   canvas: {height: 220, alignSelf: 'stretch'},
+  narrow: {alignSelf: 'flex-start', width: 220},
   selection: {position: 'absolute', left: 60, top: 120, width: 140, height: 22, justifyContent: 'center', paddingHorizontal: 4, borderRadius: 4},
   block: {position: 'absolute', left: 24, top: 40, width: 280, height: 64, justifyContent: 'center', paddingHorizontal: 12, borderWidth: 1, borderRadius: 8},
 });

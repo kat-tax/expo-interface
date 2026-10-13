@@ -143,6 +143,13 @@ Differences:
   `ScreenHeader` use. iOS, Android and Windows paint the surface as usual
   whatever it says.
 
+A popup the app draws itself as a `Surface` follows the app's
+`overlayMaterial` through `useOverlayMaterial()`, which answers the
+material the kit's own overlays draw on (the app's, else `none`; see
+[Theming](../theming.md)): `material={useOverlayMaterial()}` for one that
+takes the default, `useOverlayMaterial(own)` for one with a thickness of
+its own.
+
 ## Material
 
 A view on the platform's material, with its children on top: a strip of tabs
@@ -238,8 +245,10 @@ fill); `style`, `testID`.
 
 Differences:
 
-- A command marked `secondary` is in the overflow on every platform. Only
-  Windows moves further commands there as the bar narrows.
+- A command marked `secondary` is in the overflow on every platform. Along
+  an edge, only Windows moves further commands there as the bar narrows; `at`
+  a rectangle, every platform moves the trailing commands that do not fit
+  the parent there.
 - A `field` sends every platform to the drawn path: a text field is a React
   Native input and cannot live inside a `CommandBar`.
 - `leading` and `trailing` are ignored when `commands` are given.
@@ -287,6 +296,11 @@ Differences:
   behind it the bar draws no overflow menu. The Windows `CommandBar` keeps
   it as a greyed-out button wherever it goes, its own overflow included.
 
+The bar hands its `field` the height of its controls through a context the
+kit's fields read: the kit's small button on the web (30) and Windows (24),
+the bar button on iOS (44), Material's icon button on Android (48). A
+`Composer` as the field takes it as its capsule's height where it is
+shorter than its own 44, so the bar stays the height of its controls.
 `fieldCommands` are the field's own: a find bar's previous and next, an
 assistant's send. They share the trailing host with the overflow menu, and
 they stay on the bar when it folds. A side with nothing to draw has no host,
@@ -301,9 +315,10 @@ gives its field the room while a find or assistant field is open on a phone.
 The bar is measured from its first layout whether or not it folds, so
 turning `foldCommands` on while the bar is narrow folds it at once. On
 Windows the `CommandBar` is measured too, so the drawn bar that replaces it
-when a field opens with the fold folds at once as well. Only a bar along an
-edge folds: a `floating` bar, or one `at` a rectangle, is the width of its
-controls.
+when a field opens with the fold folds at once as well. `foldCommands` is
+read on a bar along an edge alone. A `floating` bar is the width of its
+controls and never folds; a bar `at` a rectangle folds the commands that do
+not fit its parent whether or not `foldCommands` is set (below).
 
 A `floating` bar floats over the content rather than running along an edge:
 raised and rounded, the width of its controls, as the strip of tools over a
@@ -324,6 +339,19 @@ them too, though React Native on iOS and Android swaps a view's `left` and
 `right` there. The bar is laid over the parent
 as an overlay that takes no presses but the bar's, is drawn only once it has
 been measured and placed, and goes when `at` is `null`.
+
+A bar `at` a rectangle is the width of its controls up to the room between
+the parent's edges less `insets` and the gap at each side, the room it is
+kept inside. The trailing `commands` that do not fit it go behind the
+overflow menu, before the `secondary` ones, as `foldCommands` folds along
+an edge: the bar is measured, one more command folds each time it is laid
+out wider than the room, and it is drawn once it fits or every command is
+behind the menu. The first fold adds the More button, so it may gain
+nothing by itself; the next takes care of that. A folded bar unfolds when
+the room grows, and starts over when the commands change. On Windows the
+`CommandBar` is given the room as the widest it may be and moves what does
+not fit into its own overflow; a drawn Windows bar at a rectangle folds as
+the others do. `leading`, `trailing` and `fieldCommands` never fold.
 
 ## FindBar
 
@@ -402,11 +430,22 @@ Differences:
   form ends clear of the button: Android pads its content by
   `useScrollInsets().bottom`, and on iOS, where the `Form` takes no content
   padding, a clear row of that height ends it.
+- On iOS and Android a form outside a host mounts one of its own, as `List`
+  does: it fills its parent, or, as the body of a `Sheet` with `maxHeight`,
+  it is the cap tall and scrolls inside it, so the sheet's `footer` and
+  `actions` keep their room. Under a host (a `Screen native`, a `NativeHost`,
+  a sheet's native content) it renders bare.
+- On the web the form paints the screen's colour behind its sections, except
+  inside a `Sheet`'s drawer, a `Popover`'s card or a surface on a material,
+  where it paints no fill of its own: the overlay draws the fill, glass or
+  not, and a box of the screen's colour inside it would be a box.
 
 A `Sheet` full of one is how the kit does a form: the question is the
 section's title and the note under it is the footer. In a sheet the form
 pads by nothing for the screen's bar or the tab bar's action:
-`useScrollInsets()` answers zero there.
+`useScrollInsets()` answers zero there. A form taller than the sheet offers
+takes a `maxHeight` on the sheet, and is then the cap tall and scrolls
+inside it.
 
 ```tsx
 <Sheet isPresented={open} onDismiss={close}>
@@ -441,7 +480,10 @@ selected fill and announced as selected), `action` (`label`, `onPress`, `disable
 A row whose headline is a string is named from its slots on iOS, web and
 Windows: "Essay, Edited, 2 KB, 3 new" for a headline, supporting text, value and
 badge, so a screen reader hears the row as one thing. A headline of the
-app's own content keeps whatever name that content has.
+app's own content keeps whatever name that content has. The badge in a row
+named from its slots is no element of its own on those three platforms,
+since the name already says what it says, and keeps its own name in a row
+whose headline is the app's own content.
 
 | Platform | Renders |
 | --- | --- |
@@ -567,7 +609,10 @@ Differences:
   the whole (`aria-posinset`, `aria-setsize`). `onEndReached` fires once the
   list is laid out and the window draws the last row, and again when more
   rows arrive while it is still drawn, so a list that loads more fills the
-  view; a hidden list reports no end. Safari has no scroll anchoring, so
+  view; a hidden list reports no end. The list reads the page again when a
+  transition or an animation ends anywhere in it, so a list that slides in
+  with a sheet draws its rows once it has arrived; until then, as while it
+  is hidden, it draws its first rows. Safari has no scroll anchoring, so
   there a scroll up into rows never drawn can move what shows by the
   difference between their height and the estimate. A row scrolled out of
   the window is removed, as a native lazy list removes it, and the focus

@@ -213,7 +213,8 @@ stay there if `addLabel` is later left out), `children` (the selected
 tab's content; left out, the tabs alone), `content` (whether there is a page
 under the tabs, whatever `children` are), `label` ("Tabs"), `layout`
 (`auto`, `strip`, `switcher`), `fill` (`element`, the default, or `none`),
-`style`, `testID`.
+`activation` (`automatic`, the default, or `manual`: how the keyboard
+selects on web), `style`, `testID`.
 `nextSelection(tabs, closing, selected)` is exported for a caller that closes
 the open tab: it moves to the next tab, or the previous one when the last was
 closed.
@@ -249,8 +250,13 @@ Differences:
 - On web the close cross is a pointer affordance, not a control: ARIA makes
   everything inside a `tab` presentational and allows no button among a
   `tablist`'s children. The keyboard closes a tab with Delete, which each
-  closable tab announces through `aria-keyshortcuts`. Arrow keys move and
-  select at once. iOS and Android keep a real button that VoiceOver and
+  closable tab announces through `aria-keyshortcuts`. With
+  `activation="automatic"`, the default, the arrow keys move the focus and
+  select at once; with `manual` they move the focus alone and Enter or
+  Space selects the focused tab, for tabs whose selection costs something,
+  such as a document opened live. Enter and Space select in either mode.
+  iOS, Android and Windows ignore `activation`: their strips have no roving
+  focus. iOS and Android keep a real close button that VoiceOver and
   TalkBack reach; Windows has the control's own cross.
 - Reordering is off on Windows. A drag would move the tab in the control
   while the kit's array stayed as it was, so the control is told not to offer
@@ -260,9 +266,16 @@ Differences:
   the platform uses for a context menu: a long press on iOS and Android, a
   right click or the Menu key on web and Windows, and on web a touch held
   for half a second as well, since Safari on iOS raises no context menu
-  event for a touch. It is the kit's `PopupMenu`, under the tab on iOS and
+  event for a touch. The held touch opens the menu once it lifts: the
+  release's click is the menu's and selects nothing, and a release no click
+  follows opens it a moment later. It is the kit's `PopupMenu`, under the tab on iOS and
   Android and at the pointer on web and Windows, and one popup serves the
   whole strip. On web the tab says it has one through `aria-haspopup`.
+- The selected tab is kept in view: when `selected` changes, and when the
+  strip or the switcher's cards first show it, the web strip scrolls the tab
+  into view, the strips iOS and Android draw scroll to it with the
+  platform's animation, and the WinUI strip keeps its own selection in view.
+  A tab added and selected at once is scrolled to once it has laid out.
 - `depth` indents a tab by 12 points a level, on every strip and on the
   cards, for documents that belong to one another.
 - `fill="none"` paints nothing behind the strip or the switcher's bar, for

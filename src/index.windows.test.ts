@@ -18,8 +18,9 @@ describe('expo-interface (windows)', () => {
     expect(missing).toEqual([]);
     expect(kit.ExternalLink).toEqual(expect.any(Function));
     expect(kit.Stack).toEqual(expect.any(Function));
-    // Nothing in the example or the Storybooks imports the hook, so this is what keeps it exported.
+    // Nothing in the example or the Storybooks imports these hooks, so this is what keeps them exported.
     expect(kit.useRelativeTime).toEqual(expect.any(Function));
+    expect(kit.useOverlayMaterial).toEqual(expect.any(Function));
     // The whole barrel is a lot to load while the rest of the suite runs.
   }, 30_000);
 });

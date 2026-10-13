@@ -95,6 +95,7 @@ describe('TabView tab menus, depth and accessories (web)', () => {
 
   describe('a held touch', () => {
     const rename = () => screen.queryByRole('menuitem', {name: 'Rename', hidden: true});
+    const onSelect = vi.fn();
 
     beforeEach(() => {
       vi.useFakeTimers();
@@ -104,37 +105,82 @@ describe('TabView tab menus, depth and accessories (web)', () => {
       vi.useRealTimers();
     });
 
-    it('opens a tab\'s menu at a touch held for half a second, as the web ContextMenu does', () => {
-      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
+    it('arms at half a second, as the web ContextMenu does, and opens the menu in a task after the release\'s click, which selects nothing', () => {
+      render(<TabView tabs={TABS} selected="a" onSelect={onSelect} testID="t"/>);
       const [notes] = screen.getAllByRole('tab');
       fireEvent(notes, pointerEvent('pointerdown', 'touch', {clientX: 140, clientY: 30}));
-      act(() => vi.advanceTimersByTime(499));
+      act(() => vi.advanceTimersByTime(500));
+      // Armed, not open: a menu shown while the touch is down is dismissed by
+      // the release, and the release's click would select the tab under it.
       expect(rename()).toBeNull();
-      act(() => vi.advanceTimersByTime(1));
+      fireEvent(notes, pointerEvent('pointerup', 'touch'));
+      expect(fireEvent.click(notes)).toBe(false);
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(rename()).toBeNull();
+      act(() => vi.advanceTimersByTime(0));
       expect(rename()).toBeInTheDocument();
       const anchor = screen.getByTestId('t-menu');
       expect(anchor.style.left).toBe('140px');
       expect(anchor.style.top).toBe('30px');
+      // The grace after the release does not open it again.
+      act(() => vi.advanceTimersByTime(300));
+      expect(screen.getAllByRole('menuitem', {name: 'Rename', hidden: true})).toHaveLength(1);
     });
 
-    it('opens nothing for a touch lifted, moved or cancelled before then, nor for a mouse', () => {
-      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
+    it('opens the menu a grace after a release no click follows, and swallows a click that comes late', () => {
+      render(<TabView tabs={TABS} selected="a" onSelect={onSelect} testID="t"/>);
       const [notes] = screen.getAllByRole('tab');
+      fireEvent(notes, pointerEvent('pointerdown', 'touch', {clientX: 140, clientY: 30}));
+      act(() => vi.advanceTimersByTime(500));
+      fireEvent(notes, pointerEvent('pointerup', 'touch'));
+      act(() => vi.advanceTimersByTime(299));
+      expect(rename()).toBeNull();
+      act(() => vi.advanceTimersByTime(1));
+      expect(rename()).toBeInTheDocument();
+      expect(fireEvent.click(notes)).toBe(false);
+      expect(onSelect).not.toHaveBeenCalled();
+      // The next touch is a new gesture: a short one selects.
+      fireEvent(notes, pointerEvent('pointerdown', 'touch', {clientX: 140, clientY: 30}));
+      fireEvent(notes, pointerEvent('pointerup', 'touch'));
+      expect(fireEvent.click(notes)).toBe(true);
+      expect(onSelect).toHaveBeenCalledWith('a');
+    });
+
+    it('opens nothing for a touch the browser cancels once armed', () => {
+      render(<TabView tabs={TABS} selected="a" onSelect={onSelect} testID="t"/>);
+      const [notes] = screen.getAllByRole('tab');
+      fireEvent(notes, pointerEvent('pointerdown', 'touch', {clientX: 140, clientY: 30}));
+      act(() => vi.advanceTimersByTime(500));
+      fireEvent(notes, pointerEvent('pointercancel', 'touch'));
+      act(() => vi.advanceTimersByTime(1000));
+      expect(rename()).toBeNull();
+    });
+
+    it('leaves a short touch to its click, which selects, and opens nothing for a touch lifted, moved or cancelled before the hold, nor for a mouse', () => {
+      render(<TabView tabs={TABS} selected="a" onSelect={onSelect} testID="t"/>);
+      const [notes] = screen.getAllByRole('tab');
+      fireEvent(notes, pointerEvent('pointerdown', 'touch', {clientX: 140, clientY: 30}));
+      act(() => vi.advanceTimersByTime(499));
+      fireEvent(notes, pointerEvent('pointerup', 'touch'));
+      expect(fireEvent.click(notes)).toBe(true);
+      expect(onSelect).toHaveBeenCalledWith('a');
+      act(() => vi.advanceTimersByTime(1000));
+      expect(rename()).toBeNull();
       for (const end of ['pointerup', 'pointermove', 'pointercancel']) {
         fireEvent(notes, pointerEvent('pointerdown', 'touch', {clientX: 140, clientY: 30}));
         fireEvent(notes, pointerEvent(end, 'touch'));
-        act(() => vi.advanceTimersByTime(500));
+        act(() => vi.advanceTimersByTime(1000));
         expect(rename()).toBeNull();
       }
       // A mouse has the right click, and its lift has no hold to end.
       fireEvent(notes, pointerEvent('pointerdown', 'mouse', {clientX: 140, clientY: 30}));
       fireEvent(notes, pointerEvent('pointerup', 'mouse'));
-      act(() => vi.advanceTimersByTime(500));
+      act(() => vi.advanceTimersByTime(1000));
       expect(rename()).toBeNull();
     });
 
     it('opens the menu once where the browser raises contextmenu for the held touch as well', () => {
-      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
+      render(<TabView tabs={TABS} selected="a" onSelect={onSelect} testID="t"/>);
       const [notes] = screen.getAllByRole('tab');
       fireEvent(notes, pointerEvent('pointerdown', 'touch', {clientX: 140, clientY: 30}));
       // Chrome on Android: `contextmenu` at the hold, a little off the touch's point.
@@ -146,31 +192,55 @@ describe('TabView tab menus, depth and accessories (web)', () => {
       // The hold ended with the `contextmenu`: the menu stays where that opened it.
       expect(anchor.style.left).toBe('141px');
       expect(anchor.style.top).toBe('31px');
+      // And with the hold already armed: the `contextmenu` disarms it, so the
+      // release opens nothing more.
+      fireEvent(notes, pointerEvent('pointerdown', 'touch', {clientX: 140, clientY: 30}));
+      act(() => vi.advanceTimersByTime(500));
+      fireEvent.contextMenu(notes, {clientX: 142, clientY: 32});
+      fireEvent(notes, pointerEvent('pointerup', 'touch'));
+      act(() => vi.advanceTimersByTime(300));
+      expect(anchor.style.left).toBe('142px');
+      expect(screen.getAllByRole('menuitem', {name: 'Rename', hidden: true})).toHaveLength(1);
     });
 
     it('leaves a tab without a menu alone', () => {
-      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
+      render(<TabView tabs={TABS} selected="a" onSelect={onSelect} testID="t"/>);
       const [, sketch] = screen.getAllByRole('tab');
       fireEvent(sketch, pointerEvent('pointerdown', 'touch', {clientX: 300, clientY: 30}));
       act(() => vi.advanceTimersByTime(500));
+      fireEvent(sketch, pointerEvent('pointerup', 'touch'));
+      expect(fireEvent.click(sketch)).toBe(true);
+      expect(onSelect).toHaveBeenCalledWith('b');
+      act(() => vi.advanceTimersByTime(300));
       expect(screen.queryByRole('menuitem', {hidden: true})).toBeNull();
     });
 
-    it('forgets a touch still held when the view goes', () => {
-      const {unmount} = render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
+    it('forgets a touch still held, or a menu still to come, when the view goes', () => {
+      const first = render(<TabView tabs={TABS} selected="a" onSelect={onSelect} testID="t"/>);
+      fireEvent(screen.getAllByRole('tab')[0]!, pointerEvent('pointerdown', 'touch', {clientX: 140, clientY: 30}));
+      first.unmount();
+      expect(() => act(() => vi.advanceTimersByTime(500))).not.toThrow();
+      const second = render(<TabView tabs={TABS} selected="a" onSelect={onSelect} testID="t"/>);
       const [notes] = screen.getAllByRole('tab');
       fireEvent(notes, pointerEvent('pointerdown', 'touch', {clientX: 140, clientY: 30}));
-      unmount();
-      expect(() => act(() => vi.advanceTimersByTime(500))).not.toThrow();
+      act(() => vi.advanceTimersByTime(500));
+      fireEvent(notes, pointerEvent('pointerup', 'touch'));
+      second.unmount();
+      expect(() => act(() => vi.advanceTimersByTime(300))).not.toThrow();
     });
 
-    it('opens a card\'s menu at the touch too', () => {
+    it('opens a card\'s menu after the touch lifts too, and the click neither selects nor puts the cards away', () => {
       windowWidth(400);
-      render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
+      render(<TabView tabs={TABS} selected="a" onSelect={onSelect} testID="t"/>);
       fireEvent.click(screen.getByTestId('t-switcher'));
       const [notes] = screen.getAllByRole('tab');
       fireEvent(notes, pointerEvent('pointerdown', 'touch', {clientX: 20, clientY: 90}));
       act(() => vi.advanceTimersByTime(500));
+      fireEvent(notes, pointerEvent('pointerup', 'touch'));
+      expect(fireEvent.click(notes)).toBe(false);
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(screen.getByTestId('t-cards')).toBeInTheDocument();
+      act(() => vi.advanceTimersByTime(0));
       expect(rename()).toBeInTheDocument();
       expect(screen.getByTestId('t-menu').style.top).toBe('90px');
     });

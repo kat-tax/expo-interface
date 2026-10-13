@@ -1,8 +1,8 @@
 import '../menu/menu.css';
 import type {CSSProperties} from 'react';
 import type {PopupMenuProps} from './types';
-import {useEffect, useId, useRef} from 'react';
-import {MenuList, menuIdent} from '../menu/list';
+import {useEffect, useRef} from 'react';
+import {MenuList, useMenuIdent} from '../menu/list';
 import {useEscape} from '../popover/shared';
 import {filterItems, sizeOf} from './types';
 
@@ -17,12 +17,15 @@ import {filterItems, sizeOf} from './types';
  * browser dismisses with that press whatever it shows before the release is
  * over. A new point made by such a press outside the popup (the next
  * handle's button going down) closes it as the app's own close and shows it
- * at the new place the same way.
+ * at the new place the same way. The anchor's name and, without an `id`
+ * from the app, the popup's id are written once the page has hydrated
+ * (`useMenuIdent`), as the `Menu`'s are; an `id` the app gives is the
+ * app's and is in a static page's HTML.
  */
 export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus = true, highlighted, id, onDismiss, material, testID}: PopupMenuProps) {
-  const generated = menuIdent(useId());
-  const ident = id ?? generated;
-  const anchor = `--${generated}`;
+  const generated = useMenuIdent();
+  const ident = id ?? generated.ident;
+  const anchor = generated.anchor;
   const popover = useRef<HTMLDivElement>(null);
   const point = useRef<HTMLSpanElement>(null);
   const pressed = usePointerDown();

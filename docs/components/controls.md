@@ -265,7 +265,13 @@ The capsule starts one line tall and grows with the text to five lines,
 then scrolls; on web it grows where the browser sizes a field to its
 content (`field-sizing`), and where the browser does not it stays one line
 tall and scrolls inside.
-With one line in it the capsule is 44 points tall on every platform. On
+With one line in it the capsule is 44 points tall on every platform. As a
+`Toolbar`'s `field` it is the height of the bar's controls where that is
+shorter: 30 on the web and 24 on Windows, the kit's small button there, with
+the capsule's own padding closed, the field's alone centring the line and
+the buttons sitting on the line with no margin; on iOS and Android the bar's
+controls are 44 and 48, so the capsule keeps its 44. It grows with the lines
+either way. On
 Android the buttons' hosts are boxes of the room one line leaves, 36dp,
 since Material's icon button carries a 48dp touch target that a host sized
 to it would bring into the capsule; the button is drawn as a 36dp circle,
@@ -465,7 +471,9 @@ it is asked:
 | `menu` | SwiftUI's `Menu` of the swatches from a well | A Material `DropdownMenu` of the swatches from the well | The kit's menu popover from the well | A `MenuFlyout` of the swatches from a drawn well |
 
 On Android and web, a picker in a sheet, a dialog or a popover is titled with
-`label`, or "Colors" without one. A swatch picked from a menu is opaque. On
+`label`, or "Colors" without one. On web the title is a level 3 heading, one
+below the level 2 title of the sheet it sits in, the kit's own or an app's
+around an `inline` picker. A swatch picked from a menu is opaque. On
 web the well of a `popover` or `menu` picker takes its popover target once
 the page has hydrated, as the `Menu`'s trigger does, so on a static page a
 press before then does nothing.
@@ -473,4 +481,7 @@ press before then does nothing.
 A drag across the drawn picker's spectrum or a slider stays with the picker
 in a sheet. On web the `Sheet`'s drawer leaves a drag that starts on them
 alone, and on Android the picker keeps the sheet around an `inline` picker
-from intercepting it, as the sheet the row opens has its gestures off.
+from intercepting it, as the sheet the row opens has its gestures off. The
+spectrum and the checkerboard under the opacity slider take no pointer
+events, so the surface under the pointer is the drag's target and a browser
+never drags them as images.

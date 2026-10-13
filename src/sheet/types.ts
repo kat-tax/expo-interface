@@ -86,9 +86,11 @@ export interface SheetProps extends BottomSheetProps {
    * none, so give those a `maxHeight` too. With `maxHeight` the body is
    * React Native content hosted in the sheet at the sheet's width: a
    * `Pressable` in it takes presses, a control in it mounts a host of its
-   * own, a `List` in it is the cap tall and scrolls inside it, and `@expo/ui`
-   * content of the app's own needs a `NativeHost` around it. Give a React
-   * Native body a `maxHeight`. On web and Windows the body can be either.
+   * own, a `List` or a `FieldGroup` in it is the cap tall and scrolls inside
+   * it (the form in a host of its own, since the capped body is not the
+   * sheet's native content), and `@expo/ui` content of the app's own needs a
+   * `NativeHost` around it. Give a React Native body a `maxHeight`. On web
+   * and Windows the body can be either.
    */
   children?: ReactNode;
   /**

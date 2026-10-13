@@ -77,7 +77,8 @@ describe('ColorPicker (web)', () => {
     const dialog = open();
     // The drawer hides the rest of the page from assistive technology while open.
     expect(screen.getByTestId('cp')).toHaveAttribute('aria-expanded', 'true');
-    expect(within(dialog).getByRole('heading', {name: 'Accent'})).toBeInTheDocument();
+    // The picker's title sits one level under the drawer's hidden level 2 title.
+    expect(within(dialog).getByRole('heading', {name: 'Accent', level: 3})).toHaveAttribute('aria-level', '3');
     expect(screen.getByTestId('cp-sheet')).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole('button', {name: 'Close'}));
     expect(screen.getByTestId('cp')).toHaveAttribute('aria-expanded', 'false');
@@ -155,6 +156,30 @@ describe('ColorPicker (web)', () => {
     expect(onValueChange).toHaveBeenLastCalledWith('#FF0000FF');
     fireEvent.mouseMove(spectrum, {clientX: 200, clientY: 50});
     expect(onValueChange).toHaveBeenLastCalledWith('#000000FF');
+  });
+
+  it('keeps the spectrum and checker images out of the pointer\'s way', async () => {
+    // The images take no pointer events, so the surface under the pointer is
+    // what a press lands on and a browser never starts dragging them as
+    // images, which would cancel the pointer after its first move.
+    const onValueChange = vi.fn();
+    render(<ColorPicker value="#FF6347" onValueChange={onValueChange}/>);
+    const dialog = open();
+    const checker = within(dialog).getByRole('slider', {name: 'Opacity'}).querySelector('img')!;
+    expect(getComputedStyle(checker).pointerEvents).toBe('none');
+    fireEvent.click(within(dialog).getAllByRole('radio')[1]);
+    const spectrum = within(dialog).getByRole('slider', {name: 'Spectrum'});
+    const image = spectrum.querySelector('img')!;
+    expect(getComputedStyle(image).pointerEvents).toBe('none');
+    await layout(spectrum, 200, 100);
+    // A drag that lands on the image is the surface's, move after move.
+    fireEvent.mouseDown(image, {clientX: 100, clientY: 0});
+    expect(onValueChange).toHaveBeenLastCalledWith('#FF0000FF');
+    fireEvent.mouseMove(image, {clientX: 200, clientY: 50});
+    expect(onValueChange).toHaveBeenLastCalledWith('#000000FF');
+    fireEvent.mouseMove(image, {clientX: 0, clientY: 50});
+    expect(onValueChange).toHaveBeenLastCalledWith('#FFFFFFFF');
+    fireEvent.mouseUp(image);
   });
 
   it('keeps a drag across the spectrum and the sliders from the sheet\'s drawer', () => {

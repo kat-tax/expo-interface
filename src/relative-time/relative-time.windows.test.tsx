@@ -43,4 +43,18 @@ describe('RelativeTime (windows)', () => {
     const {result} = await renderHook(() => useRelativeTime(NOW - 12 * MINUTE, {style: 'narrow'}));
     expect(result.current).toBe('12m ago');
   });
+
+  it('names itself with the long words in short or narrow, for Narrator, and hands them over with spoken', async () => {
+    await render(
+      <>
+        <RelativeTime date={NOW - 12 * MINUTE} style="narrow" testID="narrow"/>
+        <RelativeTime date={NOW - 12 * MINUTE} testID="long"/>
+      </>,
+    );
+    expect(screen.getByTestId('narrow').props.children).toBe('12m ago');
+    expect(screen.getByTestId('narrow').props.accessibilityLabel).toBe('12 minutes ago');
+    expect(screen.getByTestId('long').props.accessibilityLabel).toBeUndefined();
+    const {result} = await renderHook(() => useRelativeTime(NOW - 12 * MINUTE, {style: 'narrow', spoken: true}));
+    expect(result.current).toEqual({text: '12m ago', spoken: '12 minutes ago'});
+  });
 });

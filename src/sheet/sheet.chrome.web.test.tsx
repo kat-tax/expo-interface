@@ -22,7 +22,10 @@ describe('Sheet chrome (web)', () => {
     expect(bar).toHaveTextContent('Comments');
     expect(bar).toHaveTextContent('12 unresolved');
     // The title is the dialog's, at the level of the drawer's own hidden title.
-    expect(within(bar).getByRole('heading', {name: 'Comments', level: 2})).toBeInTheDocument();
+    const title = within(bar).getByRole('heading', {name: 'Comments', level: 2});
+    expect(title).toBeInTheDocument();
+    // The sheet focuses the title as it opens, so the stylesheet finds it by the box the bar marks and draws no ring on it.
+    expect(title.closest('[data-ui-sheet-title]')).not.toBeNull();
     fireEvent.click(within(bar).getByRole('button', {name: 'Back'}));
     fireEvent.click(within(bar).getByRole('button', {name: 'Close'}));
     expect(onBack).toHaveBeenCalledTimes(1);
@@ -32,6 +35,14 @@ describe('Sheet chrome (web)', () => {
     // The ends are the same width whichever holds a button, so the title stays centred.
     const [leading, , trailing] = bar.children;
     expect(getComputedStyle(leading).minWidth).toBe(getComputedStyle(trailing).minWidth);
+  });
+
+  it('draws no focus ring on the title the sheet focuses as it opens', async () => {
+    // The project does not apply imported stylesheets, so the rule is read from the file.
+    const {readFileSync} = await import('node:fs');
+    const {join} = await import('node:path');
+    const css = readFileSync(join(__dirname, 'sheet.css'), 'utf8');
+    expect(css).toMatch(/\[data-ui-sheet-title\] \[role="heading"\]:focus \{[^}]*outline: none;/);
   });
 
   it('draws a bar with a title alone, and the actions, without a test identifier', () => {

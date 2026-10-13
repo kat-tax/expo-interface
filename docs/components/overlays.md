@@ -53,7 +53,11 @@ Differences:
 - `trigger: 'link'` is a text link on web and the text variant on Windows.
 - On web the trigger takes its popover target once the page has hydrated,
   so on a static page a press before then does nothing, rather than opening
-  a list with no anchor and entries that do nothing yet.
+  a list with no anchor and entries that do nothing yet. The list's id, the
+  target and the anchor pair that places the list are written together in
+  that render, from one id, since a static export renders the page inside
+  the whole document and hydrates `#root` alone, where `useId` answers other
+  values than the server's and React keeps the server's attributes.
 - On web Escape closes an open menu wherever the focus is, and the key goes
   no further: a web `Sheet` or a `Popover` card the menu is in stays up, and
   takes the next one.
@@ -79,7 +83,7 @@ they land on.
 | --- | --- |
 | iOS | SwiftUI `contextMenu` on a long press, or a SwiftUI `Menu` with the content as its label for `tap` |
 | Android | Material 3 `DropdownMenu` from `combinedClickable`'s long click, or its click for `tap` |
-| Web | The same menu popover as `Menu`, opened at the pointer by `contextmenu` or a 500 ms touch press, or by a click for `tap` |
+| Web | The same menu popover as `Menu`, opened at the pointer by `contextmenu`, once a touch held for 500 ms lifts (the release's click is then the menu's, not the content's press), or by a click for `tap` |
 | Windows | WinUI `MenuFlyout` at the pointer, from the right mouse button, a long press, the Menu key or Shift+F10, or a press for `tap` |
 
 Differences:
@@ -345,7 +349,7 @@ the window and the body gives way inside it.
 | --- | --- |
 | iOS | SwiftUI's sheet, with a real material through `presentationBackground`. The bar, the accessory and the actions are SwiftUI content: the title in the headline font, the kit's buttons at the ends. The pieces stack in one SwiftUI column with no spacing, so the sheet's padding is paid once and a sheet without `snapPoints` fits all of them. |
 | Android | Compose's `ModalBottomSheet`, presented by the kit in a host of its own. A sheet without `snapPoints` opens whole: Material offers a sheet taller than half the window a stop half way up, where the footer and the actions would sit below the screen's edge, and the sheet skips it. It takes a container color and nothing else, so the sheet is opaque. The bar, the accessory and the actions are Compose content: Compose has no app bar in `@expo/ui`, so the bar is a row in the sheet's palette with the kit's buttons at the ends. A capped body hands a drag to the sheet, which expands before the body scrolls and collapses when the body is dragged down from its top, as a list in a Material sheet does. |
-| Web | `@expo/ui`'s drawer, drawn on the material as the kit's bars are: the raised fill thinned over a blur of what passes under it, with a hairline and a soft shadow along its top edge, by the stylesheet the tab bar and the screen header use. The bar is the kit's, in the `ScreenHeader` look, with the title a level 2 heading, the level of the drawer's own hidden title. As the sheet opens the keyboard focus moves to the title, or to the first control in a sheet without one, since the drawer leaves it on the control that opened the sheet, which its dialog then hides from assistive technology; once the sheet has gone the focus returns to that control. A capped body takes keyboard focus, so the arrow keys scroll it. |
+| Web | `@expo/ui`'s drawer, drawn on the material as the kit's bars are: the raised fill thinned over a blur of what passes under it, with a hairline and a soft shadow along its top edge, by the stylesheet the tab bar and the screen header use. The bar is the kit's, in the `ScreenHeader` look, with the title a level 2 heading, the level of the drawer's own hidden title. As the sheet opens the keyboard focus moves to the title, or to the first control in a sheet without one, since the drawer leaves it on the control that opened the sheet, which its dialog then hides from assistive technology; a field in the content with `autoFocus` has taken the focus by then and keeps it. The title draws no focus ring: no Tab reaches it on its own, and the next Tab shows the ring on the first control. Once the sheet has gone the focus returns to the control that opened it; when that control is an item of a menu, hidden with its menu by then, it goes to the menu's trigger, and when neither can take it the page's body keeps it. A capped body takes keyboard focus, so the arrow keys scroll it. |
 | Windows | A layer drawn in React Native: WinUI's smoke and a centered card, the content scrolling inside, covering the whole window under the kit's `Stack` and the nearest ancestor elsewhere. A sheet's content is React Native's, which no XAML flyout or dialog can hold, and React Native's `Modal` cannot hold a XAML island on react-native-windows 0.84. No material. The bar, the accessory, the footer and the actions stay put while the body scrolls. |
 
 On iOS and Android the bar, the accessory and a body without `maxHeight`
@@ -366,10 +370,11 @@ its own. `@expo/ui` content of the app's own draws nothing in them without
 a host: wrap it in a `NativeHost`. Give a React Native body a `maxHeight`.
 Give a `List`, or a `FieldGroup` taller than the room, one too: a native
 body takes all the room the sheet offers and leaves the footer and the
-actions none. With `maxHeight` the body is hosted, and a `List` in it is
-the cap tall and scrolls inside it; on Android a drag on that list scrolls
-the list alone, where a drag on the rest of a capped body also moves the
-sheet.
+actions none. With `maxHeight` the body is hosted, and a `List` or a
+`FieldGroup` in it is the cap tall and scrolls inside it, the form in a
+host of its own, since the capped body is not the sheet's native content;
+on Android a drag on that list scrolls the list alone, where a drag on the
+rest of a capped body also moves the sheet.
 
 On web and Windows the sheet's content counts as hosted: controls inside it
 render bare, and a React Native box inside it (a `Composer`) mounts a

@@ -22,8 +22,17 @@ describe('ListItem slots (windows)', () => {
     );
     expect(screen.getByTestId('row').props.accessibilityLabel).toBe('Essay, Edited, 2 KB, 3 new');
     expect(screen.getByText('2 KB')).toBeOnTheScreen();
-    expect(island('ExpoInterfaceInfoBadge').props.value).toBe(3);
+    // The name ends with the badge's words, so the island has no name and is
+    // hidden as far as the view around it allows.
+    expect(island('ExpoInterfaceInfoBadge').props).toMatchObject({value: 3, label: '', accessible: false, importantForAccessibility: 'no-hide-descendants'});
     expect(screen.getByText('T')).toBeOnTheScreen();
+  });
+
+  it('leaves the badge its own name in a row whose headline is content of the app\'s own', async () => {
+    await render(<ListItem badge={3} testID="row"><Text>Rich</Text></ListItem>);
+    expect(screen.getByTestId('row').props.accessibilityLabel).toBeUndefined();
+    expect(island('ExpoInterfaceInfoBadge').props.label).toBe('3 new');
+    expect(island('ExpoInterfaceInfoBadge').props.accessible).toBeUndefined();
   });
 
   it('draws the badge in the color it is given, a token resolved for the scheme', async () => {
