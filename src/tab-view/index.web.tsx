@@ -159,11 +159,14 @@ export function TabView(props: TabViewProps) {
   // cards first show it. `nearest` moves the strip, or the grid, only as far
   // as it must, and nothing where the tab is in view already. A tab selected
   // before it is in the list (added and selected in two renders) is scrolled
-  // to once it is.
+  // to once it is. What is scrolled is the tab's shell, the strip's tab or
+  // the card that carries `data-selected`, rather than the `role="tab"` body
+  // inside it: the shell's padding, the pill and the card's border are drawn
+  // around the body, and at the strip's ends they would stay out of view.
   const reveal = current < 0 ? null : `${resolved}:${cards}:${selected}`;
   useEffect(() => {
     if (reveal === null) return;
-    list.current?.querySelector<HTMLElement>('[aria-selected="true"]')!.scrollIntoView?.({block: 'nearest', inline: 'nearest'});
+    list.current?.querySelector<HTMLElement>('[data-selected="true"]')!.scrollIntoView?.({block: 'nearest', inline: 'nearest'});
   }, [reveal]);
   // The tabs alone have no panel, so no tab controls one.
   const alone = isAlone(props);

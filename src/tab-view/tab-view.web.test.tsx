@@ -449,17 +449,27 @@ describe('TabView (web)', () => {
       delete (Element.prototype as {scrollIntoView?: unknown}).scrollIntoView;
     });
 
+    /**
+     * The shell a tab or a card is drawn in: the element around the
+     * `role="tab"` body that carries `data-selected` and draws the padding,
+     * the pill or the card's border.
+     */
+    const shell = (testID: string) => screen.getByTestId(testID).parentElement!;
+
     it('scrolls the selected tab into view as the strip shows it and when it changes, only as far as it must', () => {
       const {rerender} = render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
       expect(scrollIntoView).toHaveBeenCalledTimes(1);
-      expect(scrollIntoView.mock.contexts[0]).toBe(screen.getByTestId('t-tab-a'));
       expect(scrollIntoView).toHaveBeenCalledWith({block: 'nearest', inline: 'nearest'});
       rerender(<TabView tabs={TABS} selected="c" onSelect={() => {}} testID="t"/>);
       expect(scrollIntoView).toHaveBeenCalledTimes(2);
-      expect(scrollIntoView.mock.contexts[1]).toBe(screen.getByTestId('t-tab-c'));
       // A render with the same selection moves nothing.
       rerender(<TabView tabs={[...TABS]} selected="c" onSelect={() => {}} testID="t"/>);
       expect(scrollIntoView).toHaveBeenCalledTimes(2);
+      // The shell, not the tab inside it: the body is inset by the shell's
+      // padding, so scrolling the body alone would leave the pill's ends cut
+      // at the strip's edges.
+      expect(shell('t-tab-a')).toHaveClass('ui-tab-view__tab');
+      expect(scrollIntoView.mock.contexts).toEqual([shell('t-tab-a'), shell('t-tab-c')]);
     });
 
     it('waits for a tab selected before it is in the list, and scrolls to it once it is', () => {
@@ -467,7 +477,7 @@ describe('TabView (web)', () => {
       expect(scrollIntoView).not.toHaveBeenCalled();
       rerender(<TabView tabs={[...TABS, {id: 'd', title: 'Draft'}]} selected="d" onSelect={() => {}} testID="t"/>);
       expect(scrollIntoView).toHaveBeenCalledTimes(1);
-      expect(scrollIntoView.mock.contexts[0]).toBe(screen.getByTestId('t-tab-d'));
+      expect(scrollIntoView.mock.contexts[0]).toBe(shell('t-tab-d'));
     });
 
     it('scrolls the selected card into view as the switcher opens', async () => {
@@ -478,7 +488,8 @@ describe('TabView (web)', () => {
       expect(scrollIntoView).not.toHaveBeenCalled();
       await user.click(screen.getByTestId('t-switcher'));
       expect(scrollIntoView).toHaveBeenCalledTimes(1);
-      expect(scrollIntoView.mock.contexts[0]).toBe(screen.getByTestId('t-card-b'));
+      expect(shell('t-card-b')).toHaveClass('ui-tab-view__card');
+      expect(scrollIntoView.mock.contexts[0]).toBe(shell('t-card-b'));
     });
   });
 });
