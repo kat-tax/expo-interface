@@ -4,6 +4,7 @@ import type {MenuItem} from './types';
 import {useEffect, useId, useRef, useSyncExternalStore} from 'react';
 import {useMatchHighlight} from '../a11y/highlight';
 import {useRovingFocus} from '../a11y/roving';
+import {useHydrated} from '../hydrated';
 import {materialAttributes} from '../material';
 import {useOverlayMaterial} from '../material/context';
 import {useEscape} from '../popover/shared';
@@ -35,28 +36,6 @@ const noSubscription = () => () => {};
  */
 function useAnchorPositioning(): boolean {
   return useSyncExternalStore(noSubscription, anchorPositioning, serverAnchorPositioning);
-}
-
-/** What the page answers once it runs. */
-function clientHydrated(): boolean {
-  return true;
-}
-
-/** What a static export's server answers: nothing runs on its page yet. */
-function serverHydrated(): boolean {
-  return false;
-}
-
-/**
- * Whether the page is running: false in a static export's HTML and in the
- * render that hydrates it, true from the render right after. A trigger
- * that opens a `popover` through its `popovertarget` takes it only then, so
- * a press before the bundle runs opens nothing, rather than a list the
- * browser would open by itself, with no anchor and entries that do nothing
- * yet.
- */
-export function useHydrated(): boolean {
-  return useSyncExternalStore(noSubscription, clientHydrated, serverHydrated);
 }
 
 /** Turns a React `useId()` value into a valid CSS `<dashed-ident>` / HTML id. */
