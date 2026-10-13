@@ -16,7 +16,7 @@ export interface WindowRange {
   after: number;
 }
 
-/** How many viewports are drawn beyond each edge of what shows. */
+/** How many heights of what shows are drawn beyond each of its edges. */
 export const OVERSCAN = 1;
 
 /**
@@ -87,8 +87,8 @@ export interface Windowed {
 }
 
 /**
- * The part of the list the window shows, from the first unit's top, whether
- * it was read from the list as laid out, and every height measured so far.
+ * The part of the list that shows, from the first unit's top, whether it was
+ * read from the list as laid out, and every height measured so far.
  */
 interface View {
   from: number;
@@ -116,14 +116,47 @@ function same(a: WindowRange, b: WindowRange): boolean {
   return a.first === b.first && a.end === b.end && a.before === b.before && a.after === b.after;
 }
 
+/** The `overflow-y` values of a box that clips what overflows it: all but `visible`. */
+const CLIPPING = new Set(['auto', 'scroll', 'hidden', 'clip']);
+
+/**
+ * The top and the bottom, in the window, of what shows of `box`, the box of
+ * `element`: the part of it inside every box around it that clips its
+ * overflow (a scroll view, a capped sheet body, a box with `overflow:
+ * hidden`) and inside the window. The boxes around it are read again on
+ * every read, with their rects, to keep it simple: a read lays the page out
+ * already, and what is around the list can change between two reads.
+ *
+ * The walk ends below the body: CSS hands the root's overflow and the body's
+ * to the window, which clips last anyway, while the body's own box can
+ * scroll away with the page. It ends at a fixed box too, once that box has
+ * clipped: the window places a fixed box (a modal dialog, a popover, a
+ * drawer), so the boxes around it clip nothing of it.
+ */
+function shownOf(element: HTMLElement, box: DOMRect): {clipTop: number; clipBottom: number} {
+  let clipTop = Math.max(box.top, 0);
+  let clipBottom = Math.min(box.bottom, globalThis.innerHeight);
+  for (let around = element.parentElement; around != null && around !== document.body; around = around.parentElement) {
+    const style = getComputedStyle(around);
+    if (CLIPPING.has(style.overflowY)) {
+      const rect = around.getBoundingClientRect();
+      clipTop = Math.max(clipTop, rect.top);
+      clipBottom = Math.min(clipBottom, rect.bottom);
+    }
+    if (style.position === 'fixed') break;
+  }
+  return {clipTop, clipBottom};
+}
+
 /**
  * Draws only the units of a list near the view: the ones inside the part of
- * `scroller` the window shows, and a viewport more on each side. The units
+ * `scroller` that shows, inside the window and inside every box around it
+ * that clips its overflow, and as much again on each side. The units
  * before and after are spacers of their room, at the height each unit was
  * measured at once drawn and at `estimate` before.
  *
  * The range is worked out in render from the data, the heights and the part
- * of the list the window shows, so new data, a new estimate or new columns
+ * of the list that shows, so new data, a new estimate or new columns
  * are drawn at once. That part is read from the page on any scroll (the
  * list's own or an ancestor's, so a list the page scrolls is windowed too),
  * on a resize of the window or of the list, when a CSS transition or
@@ -150,7 +183,8 @@ export function useWindowed(scroller: RefObject<HTMLElement | null>, {keys, esti
 
   const follow = useEffectEvent((entries: readonly ResizeObserverEntry[]) => {
     // The element is attached by the time an effect runs.
-    const box = scroller.current!.getBoundingClientRect();
+    const element = scroller.current!;
+    const box = element.getBoundingClientRect();
     const startTop = start.current?.getBoundingClientRect().top;
     // Hidden, not laid out, showing its empty content, or wholly above or
     // below the window: the first units. Clipped by the window, a box
@@ -159,9 +193,10 @@ export function useWindowed(scroller: RefObject<HTMLElement | null>, {keys, esti
     let from = 0;
     let to = INITIAL_SPAN;
     if (measured) {
-      // What shows of the list: its box, clipped by the window.
-      const clipTop = Math.max(box.top, 0);
-      const clipBottom = Math.min(box.bottom, globalThis.innerHeight);
+      // What shows of the list: its box, clipped by the boxes around it and
+      // by the window. A part of no height (the list scrolled out of a body
+      // that scrolls) holds one unit, and the next scroll reads it again.
+      const {clipTop, clipBottom} = shownOf(element, box);
       const reach = Math.max(clipBottom - clipTop, 0) * OVERSCAN;
       from = clipTop - startTop - reach;
       to = clipBottom - startTop + reach;
