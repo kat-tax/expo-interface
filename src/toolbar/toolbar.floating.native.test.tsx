@@ -79,6 +79,25 @@ describe(`Toolbar floating (${Platform.OS})`, () => {
     expect(screen.getByTestId('bar-bounds').children).toHaveLength(0);
   });
 
+  it('forgets its width while there is no rectangle, so a bar that comes back is placed by its own layout', async () => {
+    const bar = (at: {x: number; y: number; width: number; height: number} | null) => <Toolbar at={at} commands={commands} testID="bar"/>;
+    const {rerender} = await render(bar({x: 100, y: 200, width: 80, height: 20}));
+    const placed = () => screen.getByTestId('bar-bounds').children[0] as unknown as {props: {style: unknown; onLayout: (event: unknown) => void}};
+    const style = () => StyleSheet.flatten(placed().props.style as never) as Record<string, unknown>;
+    await fireEvent(screen.getByTestId('bar-bounds'), 'layout', {nativeEvent: {layout: {x: 0, y: 0, width: 400, height: 600}}});
+    await act(async () => placed().props.onLayout({nativeEvent: {layout: {x: 0, y: 0, width: 120, height: 44}}}));
+    expect(style()).toMatchObject({left: 80});
+    expect(style().opacity).toBeUndefined();
+    await rerender(bar(null));
+    // Back over another selection: neither seen nor pressed until the new bar has been measured, and placed by nothing of the old one.
+    await rerender(bar({x: 300, y: 200, width: 40, height: 20}));
+    expect(style()).toMatchObject({opacity: 0, pointerEvents: 'none'});
+    // A wider bar this time: kept inside the parent by its own width, 400 - 8 - 200.
+    await act(async () => placed().props.onLayout({nativeEvent: {layout: {x: 0, y: 0, width: 200, height: 44}}}));
+    expect(style()).toMatchObject({left: 192});
+    expect(style().opacity).toBeUndefined();
+  });
+
   it('keeps the bar at the rectangle\'s left under a right-to-left layout, set as the end edge React Native swaps there', async () => {
     const spy = vi.spyOn(I18nManager, 'getConstants').mockReturnValue({isRTL: true, doLeftAndRightSwapInRTL: true});
     await render(<Toolbar at={{x: 100, y: 200, width: 80, height: 20}} align="start" commands={commands} testID="bar"/>);

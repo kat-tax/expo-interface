@@ -85,11 +85,18 @@ interface Anchored {
  *
  * The parent and the card are measured as they lay out; until both have
  * been, the card is placed from what is known, and it settles once they
- * are (`placed`).
+ * are (`placed`). While `at` is `null` the card's size is forgotten: a card
+ * that comes back is placed by its own layout, not by the last one's, since
+ * a bar over another selection is another width.
  */
 export function useAnchored({at, preferredEdge = 'auto', width, insets, gap = 8, align = 'start'}: AnchoredOptions): Anchored {
   const [bounds, setBounds] = useState({width: 0, height: 0});
   const [card, setCard] = useState({width: width ?? 0, height: 0});
+  // Nothing to place: forget the card, so `placed` waits for the next one's
+  // layout. Set during the render, guarded, so the forgetting is in the very
+  // render `at` goes, before anything could be placed from the old size.
+  const unknown = width ?? 0;
+  if (!at && (card.width !== unknown || card.height !== 0)) setCard({width: unknown, height: 0});
   const onBounds = (event: LayoutChangeEvent) => {
     const {width: w, height: h} = event.nativeEvent.layout;
     if (w !== bounds.width || h !== bounds.height) setBounds({width: w, height: h});

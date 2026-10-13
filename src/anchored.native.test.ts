@@ -42,6 +42,38 @@ describe('useAnchored', () => {
     const {result} = await renderHook(() => useAnchored({at: null, width: 200}));
     expect(result.current).toMatchObject({left: 0, top: 0, above: false});
   });
+
+  it('forgets the card while there is no rectangle, so a card that comes back is placed by its own layout', async () => {
+    let at: {x: number; y: number; width?: number; height?: number} | null = {x: 100, y: 200, width: 80, height: 20};
+    const {result, rerender} = await renderHook(() => useAnchored({at, align: 'center'}));
+    await act(async () => result.current.onBounds(layout(400, 600)));
+    await act(async () => result.current.onCard(layout(120, 44)));
+    expect(result.current).toMatchObject({left: 80, placed: true});
+    at = null;
+    await rerender({});
+    expect(result.current.placed).toBe(false);
+    // Back at another rectangle: not placed, and nothing of the last card's width in the place.
+    at = {x: 300, y: 200, width: 40, height: 20};
+    await rerender({});
+    expect(result.current).toMatchObject({left: 320, placed: false});
+    // The new card is wider: clamped by its own width, 400 - 8 - 200.
+    await act(async () => result.current.onCard(layout(200, 44)));
+    expect(result.current).toMatchObject({left: 192, placed: true});
+  });
+
+  it('keeps a width it was given through the forgetting', async () => {
+    let at: {x: number; y: number} | null = {x: 10, y: 10};
+    const {result, rerender} = await renderHook(() => useAnchored({at, width: 280}));
+    await act(async () => result.current.onBounds(layout(400, 600)));
+    await act(async () => result.current.onCard(layout(280, 100)));
+    expect(result.current.placed).toBe(true);
+    at = null;
+    await rerender({});
+    at = {x: 300, y: 10};
+    await rerender({});
+    // The width is known before the layout, the height is not.
+    expect(result.current).toMatchObject({left: 112, placed: false});
+  });
 });
 
 describe('fromLeft', () => {
