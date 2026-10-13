@@ -2,9 +2,9 @@ import './color-picker.css';
 import type {CSSProperties, ReactNode} from 'react';
 import type {ColorPickerProps} from './types';
 
-import {useId, useState} from 'react';
+import {useState} from 'react';
 import {StyleSheet, type TextStyle} from 'react-native';
-import {MenuList, menuIdent, useHydrated} from '../menu/list';
+import {MenuList, useMenuIdent} from '../menu/list';
 import {Label} from '../typography';
 import {Sheet} from '../sheet';
 import {flatten} from '../theme';
@@ -22,8 +22,9 @@ import {parseColor, toCss, toHex, useColorValue} from './shared';
  * placed against the well by CSS anchor positioning; `menu` opens the
  * swatches in the kit's menu popover from the well. A well that opens a
  * popover through its `popovertarget` takes it once the page has hydrated,
- * as the `Menu`'s trigger does, so a press on a static page before then
- * opens nothing.
+ * together with the popover's id and the anchor pair that places it
+ * (`useMenuIdent`), as the `Menu`'s trigger does, so a press on a static
+ * page before then opens nothing.
  */
 export function ColorPicker({
   label,
@@ -39,9 +40,7 @@ export function ColorPicker({
 }: ColorPickerProps) {
   const [open, setOpen] = useState(false);
   const [current, setCurrent] = useColorValue(value, onValueChange, supportsOpacity);
-  const ident = menuIdent(useId());
-  const anchor = `--${ident}`;
-  const hydrated = useHydrated();
+  const {ident, anchor} = useMenuIdent();
   // The popover's element, held in state through its ref callback, so its close button can hide it.
   const [popover, setPopover] = useState<HTMLDivElement | null>(null);
   const none = value === NO_COLOR;
@@ -120,7 +119,7 @@ export function ColorPicker({
           aria-label={label ?? 'Color'}
           aria-haspopup="menu"
           disabled={disabled}
-          popoverTarget={hydrated ? ident : undefined}>
+          popoverTarget={ident}>
           {well}
         </button>
         <MenuList id={ident} items={swatchMenu(presets, value, allowsNone, supportsOpacity, onValueChange)} anchor={anchor}/>
@@ -141,7 +140,7 @@ export function ColorPicker({
   );
   // The well opens the picker: a popover's by its `popovertarget`, a sheet's by a press.
   const opener = popped
-    ? {popoverTarget: hydrated ? ident : undefined, 'aria-haspopup': 'dialog' as const}
+    ? {popoverTarget: ident, 'aria-haspopup': 'dialog' as const}
     : {onClick: () => setOpen(true), 'aria-haspopup': 'dialog' as const, 'aria-expanded': open};
   const anchored = popped ? {anchorName: anchor} : null;
 

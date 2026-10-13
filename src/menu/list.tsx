@@ -1,7 +1,7 @@
 import type {CSSProperties, ToggleEvent} from 'react';
 import type {MaterialThickness} from '../material/types';
 import type {MenuItem} from './types';
-import {useEffect, useRef, useSyncExternalStore} from 'react';
+import {useEffect, useId, useRef, useSyncExternalStore} from 'react';
 import {useMatchHighlight} from '../a11y/highlight';
 import {useRovingFocus} from '../a11y/roving';
 import {materialAttributes} from '../material';
@@ -64,9 +64,31 @@ export function menuIdent(id: string): string {
   return `ui-menu-${id.replace(/[^A-Za-z0-9_-]/g, '_')}`;
 }
 
+/**
+ * The popup's id and the `anchor-name` it is placed against, from
+ * `useId()`, both undefined until the page has hydrated. A static export
+ * renders the page inside the whole document and the browser hydrates
+ * `#root` alone, so `useId` answers differently on each side, and React
+ * keeps a server attribute the hydration render disagrees with. So nothing
+ * derived from the id reaches the DOM before the render after hydration,
+ * where the trigger's `popovertarget`, the popup's `id`, the `anchor-name`
+ * and the `position-anchor` are all written from one value and agree.
+ */
+export function useMenuIdent(): {ident: string | undefined; anchor: string | undefined} {
+  const id = useId();
+  const hydrated = useHydrated();
+  if (!hydrated) return {ident: undefined, anchor: undefined};
+  const ident = menuIdent(id);
+  return {ident, anchor: `--${ident}`};
+}
+
 interface MenuListProps {
-  /** HTML id of the popover, referenced by the trigger's `popovertarget`. */
-  id: string;
+  /**
+   * HTML id of the popover, referenced by the trigger's `popovertarget`.
+   * Undefined until the page has hydrated (`useMenuIdent`), when the trigger
+   * has no target either, so the two are written together.
+   */
+  id?: string;
   items: MenuItem[];
   /** `anchor-name` of the trigger; the popup is laid out relative to it. */
   anchor?: string;
@@ -225,7 +247,7 @@ export function MenuList({id, items, anchor, atPoint, anchorRef, position, popov
             disabled={item.disabled}
             popoverTarget={id}
             popoverTargetAction="hide"
-            {...(listbox ? {id: optionId(id, index), tabIndex: -1, 'aria-selected': index === highlighted} : roving.itemProps(index))}
+            {...(listbox ? {id: id === undefined ? undefined : optionId(id, index), tabIndex: -1, 'aria-selected': index === highlighted} : roving.itemProps(index))}
             onClick={() => {
               onPick?.();
               item.onPress?.();

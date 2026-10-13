@@ -1,8 +1,9 @@
 import '@testing-library/jest-dom/vitest';
-import type {ReactElement} from 'react';
 import type {MenuItem} from '../menu/types';
 import {render, screen} from '@testing-library/react';
+import {staticPage} from '../__tests__/static-page';
 import {AccentProvider} from '../accent';
+import {popupOptionId} from './types';
 import {PopupMenu} from '.';
 
 const items: MenuItem[] = [
@@ -74,23 +75,60 @@ describe('PopupMenu (web)', () => {
     expect(menu()).not.toHaveAttribute('data-material');
   });
 
-  it('hydrates a static page\'s menu without a difference, and anchors the popup to its point', async () => {
-    // The one function of `react-dom/server` this calls: the repository carries no types for react-dom.
-    const {renderToString} = (await import('react-dom/server' as string)) as {renderToString: (element: ReactElement) => string};
-    const tree = <PopupMenu items={items} at={null} testID="popup"/>;
-    // What a static export writes: the server's render, with the server's answer for the anchor.
+  it('hydrates a static page\'s menu without a difference, and names the popup and its point for each other once it has', async () => {
+    const tree = <PopupMenu items={items} at={null} takesFocus={false} highlighted={0} testID="popup"/>;
+    // What a static export writes: the page rendered inside the whole
+    // document, where `useId` answers other values than the hydration of
+    // `#root` alone does. Nothing from the server's id is in the HTML: not
+    // the popup's id, the point's name, or an entry's id for a field's
+    // `aria-activedescendant`.
     const container = document.body.appendChild(document.createElement('div'));
-    container.innerHTML = renderToString(tree);
+    container.innerHTML = await staticPage(tree);
     const popover = () => container.querySelector('[popover]') as HTMLElement;
+    const point = () => screen.getByTestId('popup');
+    const options = () => [...container.querySelectorAll('[role="option"]')];
+    expect(popover()).not.toHaveAttribute('id');
     expect(popover()).not.toHaveClass('ui-menu__list--anchored');
+    expect(popover().style.getPropertyValue('position-anchor')).toBe('');
+    expect(point().style.getPropertyValue('anchor-name')).toBe('');
+    expect(options()).toHaveLength(3);
+    for (const option of options()) expect(option).not.toHaveAttribute('id');
     const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
     try {
       const {unmount} = render(tree, {container, hydrate: true});
       expect(errors).not.toHaveBeenCalled();
+      // All from one id, in the render after hydration.
+      expect(popover().id).toMatch(/^ui-menu-/);
       expect(popover()).toHaveClass('ui-menu__list--anchored', 'ui-menu__list--point');
-      const anchor = screen.getByTestId('popup');
-      expect(popover().style.getPropertyValue('position-anchor')).toBe(anchor.style.getPropertyValue('anchor-name'));
-      expect(popover().style.getPropertyValue('position-anchor')).toMatch(/^--ui-menu-/);
+      expect(point().style.getPropertyValue('anchor-name')).toBe(`--${popover().id}`);
+      expect(popover().style.getPropertyValue('position-anchor')).toBe(`--${popover().id}`);
+      expect(options().map(option => option.id)).toEqual([0, 1, 2].map(index => popupOptionId(popover().id, index)));
+      unmount();
+    } finally {
+      errors.mockRestore();
+      container.remove();
+    }
+  });
+
+  it('keeps an id the app gives in a static page\'s HTML, and the entries\' ids with it', async () => {
+    const tree = <PopupMenu items={items} at={null} takesFocus={false} id="slash" testID="popup"/>;
+    const container = document.body.appendChild(document.createElement('div'));
+    container.innerHTML = await staticPage(tree);
+    const popover = () => container.querySelector('[popover]') as HTMLElement;
+    const options = () => [...container.querySelectorAll('[role="option"]')];
+    // The app's id is the same on both sides, so a field's `aria-activedescendant` names an entry from the first paint.
+    expect(popover().id).toBe('slash');
+    expect(options().map(option => option.id)).toEqual([0, 1, 2].map(index => popupOptionId('slash', index)));
+    // The point's name is the kit's, so it waits for hydration as the popup's own id would.
+    expect(screen.getByTestId('popup').style.getPropertyValue('anchor-name')).toBe('');
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      const {unmount} = render(tree, {container, hydrate: true});
+      expect(errors).not.toHaveBeenCalled();
+      expect(popover().id).toBe('slash');
+      expect(options().map(option => option.id)).toEqual([0, 1, 2].map(index => popupOptionId('slash', index)));
+      expect(screen.getByTestId('popup').style.getPropertyValue('anchor-name')).toMatch(/^--ui-menu-/);
+      expect(popover().style.getPropertyValue('position-anchor')).toBe(screen.getByTestId('popup').style.getPropertyValue('anchor-name'));
       unmount();
     } finally {
       errors.mockRestore();

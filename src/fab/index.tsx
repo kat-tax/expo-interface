@@ -1,9 +1,9 @@
 import './fab.css';
 import type {CSSProperties} from 'react';
 import type {FabProps} from './types';
-import {useId, useRef} from 'react';
+import {useRef} from 'react';
 import {Icon} from '../symbol';
-import {MenuList, menuIdent, useHydrated} from '../menu/list';
+import {MenuList, useMenuIdent} from '../menu/list';
 import {FAB_ICON} from './shared';
 
 /**
@@ -11,16 +11,15 @@ import {FAB_ICON} from './shared';
  * an extended capsule, filled with the tint) styled via `fab.css`. With
  * `items` it carries a `popovertarget` to the kit's popup menu, the same
  * `MenuList` the `Menu` opens, anchored above the button by CSS anchor
- * positioning; it takes the `popovertarget` once the page has hydrated, as
- * the `Menu`'s trigger does, so a press on a static page before then opens
- * nothing. Where it floats is the screen's job (`Screen`'s `fab` slot).
+ * positioning. The target, the popup's id and the anchor pair are written
+ * together once the page has hydrated (`useMenuIdent`), as the `Menu`'s
+ * are, so a press on a static page before then opens nothing. Where it
+ * floats is the screen's job (`Screen`'s `fab` slot).
  */
 export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rounded', disabled, onOpenChange, material, testID}: FabProps) {
-  const ident = menuIdent(useId());
-  const anchor = `--${ident}`;
+  const {ident, anchor} = useMenuIdent();
   const wrapper = useRef<HTMLSpanElement>(null);
   const extended = size === 'extended';
-  const hydrated = useHydrated();
   return (
     <span ref={wrapper} className="ui-fab__anchor" style={{anchorName: anchor} as CSSProperties}>
       <button
@@ -29,7 +28,7 @@ export function Fab({label, icon, onPress, items, size = 'regular', shape = 'rou
         aria-label={extended ? undefined : label}
         disabled={disabled}
         onClick={items ? undefined : onPress}
-        popoverTarget={items && hydrated ? ident : undefined}
+        popoverTarget={items ? ident : undefined}
         data-testid={testID}>
         <Icon icon={icon} size={FAB_ICON[size]} tintColor="currentColor"/>
         {extended ? <span className="ui-fab__label">{label}</span> : null}

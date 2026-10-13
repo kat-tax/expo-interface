@@ -53,7 +53,11 @@ Differences:
 - `trigger: 'link'` is a text link on web and the text variant on Windows.
 - On web the trigger takes its popover target once the page has hydrated,
   so on a static page a press before then does nothing, rather than opening
-  a list with no anchor and entries that do nothing yet.
+  a list with no anchor and entries that do nothing yet. The list's id, the
+  target and the anchor pair that places the list are written together in
+  that render, from one id, since a static export renders the page inside
+  the whole document and hydrates `#root` alone, where `useId` answers other
+  values than the server's and React keeps the server's attributes.
 - On web Escape closes an open menu wherever the focus is, and the key goes
   no further: a web `Sheet` or a `Popover` card the menu is in stays up, and
   takes the next one.
