@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {BLUR_RADIUS, IOS_MATERIAL, MATERIAL_OPACITY, contentPaddingEdges, fillsMaxHeight, hasMaterial, skipsPartiallyExpanded} from './shared';
+import {BAR_SIDE, BLUR_RADIUS, IOS_MATERIAL, MATERIAL_OPACITY, TITLE_ROOM, accessoryFits, barAccessory, barSide, contentPaddingEdges, fillsMaxHeight, hasMaterial, skipsPartiallyExpanded} from './shared';
 
 describe('the material facts the sheet reads', () => {
   it('are the material module\'s', async () => {
@@ -50,5 +50,49 @@ describe('the states an Android sheet opens in', () => {
     expect(fillsMaxHeight([{height: 300}])).toBe(false);
     expect(fillsMaxHeight(['full'])).toBe(true);
     expect(fillsMaxHeight([{fraction: 1}])).toBe(true);
+  });
+});
+
+describe('the accessory in the bar', () => {
+  it('makes each end as wide as the wider end\'s content, never under the bar\'s side, counting a width not measured as none', () => {
+    expect(barSide(undefined, undefined)).toBe(BAR_SIDE);
+    expect(barSide(30, 50)).toBe(BAR_SIDE);
+    expect(barSide(150, 60)).toBe(150);
+    expect(barSide(30, 90)).toBe(90);
+    expect(barSide(undefined, 90)).toBe(90);
+  });
+
+  it('sits in the bar while the titles keep at least their room between the two ends at the wider one\'s width', () => {
+    expect(TITLE_ROOM).toBe(96);
+    // 400 less two ends of 150 leaves 100 for the titles.
+    expect(accessoryFits({bar: 400, leading: 150, trailing: 60}, true)).toBe(true);
+    // Exactly the room is room.
+    expect(accessoryFits({bar: 396, leading: 150, trailing: 60}, true)).toBe(true);
+    // 395 leaves 95: no room, so a row of its own.
+    expect(accessoryFits({bar: 395, leading: 150, trailing: 60}, true)).toBe(false);
+    // The wider end decides, whichever end it is.
+    expect(accessoryFits({bar: 400, leading: 100, trailing: 160}, true)).toBe(false);
+    // An end narrower than the bar's side still takes the side.
+    expect(accessoryFits({bar: 208, leading: 40}, true)).toBe(true);
+    expect(accessoryFits({bar: 207, leading: 40}, true)).toBe(false);
+  });
+
+  it('sits in the bar before the bar or its leading end is measured', () => {
+    expect(accessoryFits({}, true)).toBe(true);
+    expect(accessoryFits({leading: 300, trailing: 60}, true)).toBe(true);
+    expect(accessoryFits({bar: 200, trailing: 60}, true)).toBe(true);
+  });
+
+  it('sits in the bar whatever the widths with no title or subtitle to centre', () => {
+    expect(accessoryFits({bar: 200, leading: 180, trailing: 60}, false)).toBe(true);
+  });
+
+  it('is the accessory placed in the bar when React draws something for it, and none in a row or with nothing to draw', () => {
+    const filter = 'Filter';
+    expect(barAccessory(filter, 'bar')).toBe(filter);
+    expect(barAccessory(filter, 'row')).toBeUndefined();
+    expect(barAccessory(filter, undefined)).toBeUndefined();
+    expect(barAccessory(false, 'bar')).toBeUndefined();
+    expect(barAccessory(undefined, 'bar')).toBeUndefined();
   });
 });

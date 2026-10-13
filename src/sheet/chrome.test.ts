@@ -19,13 +19,17 @@ describe('the sheet\'s chrome', () => {
     expect(actions.map((action, index) => actionVariant(action, index, actions.length))).toEqual(['outlined', 'text', 'filled']);
   });
 
-  it('draws the bar for a title, a back button, a close button or a menu, and not for an empty menu', () => {
+  it('draws the bar for a title, a back button, a close button, a menu or an accessory placed in it, and not for an empty menu', () => {
     expect(hasBar({})).toBe(false);
     expect(hasBar({menu: []})).toBe(false);
     expect(hasBar({title: 'Comments'})).toBe(true);
     expect(hasBar({onBack: () => {}})).toBe(true);
     expect(hasBar({onClose: () => {}})).toBe(true);
     expect(hasBar({menu: [{label: 'Resolve all'}]})).toBe(true);
+    // The accessory placed in the bar asks for it on its own, when React draws something for it.
+    expect(hasBar({accessory: 'Filter'})).toBe(true);
+    expect(hasBar({accessory: undefined})).toBe(false);
+    expect(hasBar({accessory: false})).toBe(false);
   });
 
   it('hosts a footer only when React would draw something for it', () => {

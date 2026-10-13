@@ -43,6 +43,30 @@ const widths = () => [
   StyleSheet.flatten(screen.getByTestId('sheet-footer').props.style).width,
 ];
 
+/** The bar's own stack or row. */
+const bar = () => (isIOS ? host(p => p.testID === 'sheet-bar') : byComposeTestID('sheet-bar'));
+
+/** The least width of a node, where it has one: SwiftUI's frame, Compose's default least size. */
+const leastWidth = (props: Record<string, unknown>): number | undefined => (isIOS ? modifier(props, 'frame')?.minWidth : modifier(props, 'defaultMinSize')?.minWidth);
+
+/** The least width of each of the bar's two ends, leading first. */
+const sides = () => nodes(bar()).map(n => leastWidth(n.props)).filter(width => width !== undefined);
+
+/** How an end's content reports its size: SwiftUI's `onGeometryChange`, Compose's `onSizeChanged`. */
+const SIZE = isIOS ? 'onGeometryChange' : 'onSizeChanged';
+
+/** The content of each end, leading first: the stack or row that reports its width. */
+const contents = () => nodes(bar()).filter(n => modifier(n.props, SIZE) != null);
+
+/** Reports the width of the leading (0) or the trailing (1) end's content. */
+async function report(end: 0 | 1, width: number) {
+  const size = isIOS ? {x: 0, y: 0, width, height: 30} : {width, height: 30};
+  await act(async () => modifier(contents()[end]!.props, SIZE)?.eventListener(size));
+}
+
+/** Whether the bar holds the accessory, a `Text` with the `filter` test identifier. */
+const inBar = () => nodes(bar()).some(n => n.props.testID === 'filter');
+
 describe(`Sheet chrome (${Platform.OS})`, () => {
   it('draws the bar as native content: the title over the subtitle, back and close at the ends, the menu before close', async () => {
     const onBack = vi.fn();
@@ -57,17 +81,18 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
     if (isIOS) {
       expect(modifier(title.props, 'font')).toMatchObject({size: 17, weight: 'semibold'});
       expect(modifier(subtitle.props, 'font')).toMatchObject({size: 13});
+      // One line each, cut short where the ends leave less room.
+      expect(modifier(title.props, 'lineLimit')).toMatchObject({limit: 1});
+      expect(modifier(subtitle.props, 'lineLimit')).toMatchObject({limit: 1});
       const bar = screen.getByTestId('sheet-bar');
       expect(modifier(bar.props, 'frame')).toMatchObject({maxWidth: Infinity, minHeight: BAR_HEIGHT});
-      // The two ends are the same width whichever holds a button, so the title stays centred.
-      const ends = nodes().filter(n => modifier(n.props, 'frame')?.minWidth === BAR_SIDE);
-      expect(ends).toHaveLength(2);
     } else {
       expect(title.props.typography).toBe('titleMedium');
       expect(subtitle.props.typography).toBe('bodySmall');
       expect(modifier(byComposeTestID('sheet-bar').props, 'height')).toMatchObject({height: BAR_HEIGHT});
-      expect(nodes().filter(n => modifier(n.props, 'width')?.width === BAR_SIDE)).toHaveLength(2);
     }
+    // The two ends are the same width whichever holds a button, so the title stays centred.
+    expect(sides()).toEqual([BAR_SIDE, BAR_SIDE]);
     await press('sheet-bar-back');
     await press('sheet-bar-close');
     expect(onBack).toHaveBeenCalledTimes(1);
@@ -279,5 +304,64 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
       await act(async () => Dimensions.set({window: phone}));
       pad?.mockRestore();
     }
+  });
+});
+
+describe(`Sheet accessory (${Platform.OS})`, () => {
+  const filter = <Text testID="filter">Filter</Text>;
+
+  it('puts the accessory placed in the bar in the leading end\'s content, after the back button, as native content', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} title="Comments" onBack={() => {}} onClose={() => {}} accessory={filter} accessoryPlacement="bar" testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    const inside = nodes(contents()[0]);
+    const back = inside.findIndex(n => (isIOS ? n.props.testID : modifier(n.props, 'testID')?.testID) === 'sheet-bar-back');
+    const accessory = inside.findIndex(n => n.props.testID === 'filter');
+    expect(back).toBeGreaterThanOrEqual(0);
+    expect(accessory).toBeGreaterThan(back);
+    // Drawn once: in the bar, and in no row under it.
+    expect(screen.getAllByTestId('filter')).toHaveLength(1);
+    // SwiftUI: at its own ideal width, so a control that grows to the room offered does not take the bar.
+    if (isIOS) expect(modifier(contents()[0]!.props, 'fixedSize')).toMatchObject({horizontal: true, vertical: false});
+  });
+
+  it('makes both ends as wide as the wider end\'s content, so the title stays centred', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} title="Comments" onClose={() => {}} menu={[{label: 'Resolve all'}]} accessory={filter} accessoryPlacement="bar" testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    expect(sides()).toEqual([BAR_SIDE, BAR_SIDE]);
+    await measure(600);
+    await report(0, 150);
+    await report(1, 60);
+    expect(sides()).toEqual([150, 150]);
+    expect(inBar()).toBe(true);
+  });
+
+  it('moves the accessory to a row of its own under a bar too narrow for it, and back once the bar widens', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} title="Comments" onClose={() => {}} accessory={filter} accessoryPlacement="bar" testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    // Before the sheet's column is measured the bar counts as having room.
+    await report(0, 120);
+    await report(1, 30);
+    expect(inBar()).toBe(true);
+    // 300 less two ends of 120 would leave the title 60, under its 96: a row of its own, under the bar and over the body.
+    await measure(300);
+    expect(inBar()).toBe(false);
+    const json = JSON.stringify(screen.toJSON());
+    expect(json.indexOf('Comments')).toBeLessThan(json.indexOf('Filter'));
+    expect(json.indexOf('Filter')).toBeLessThan(json.indexOf('"Body"'));
+    // The leading end, empty without it, reports again: the ends narrow, and the width it had with the accessory still decides.
+    await report(0, 0);
+    expect(sides()).toEqual([BAR_SIDE, BAR_SIDE]);
+    expect(inBar()).toBe(false);
+    await measure(400);
+    expect(inBar()).toBe(true);
   });
 });

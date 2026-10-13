@@ -134,3 +134,89 @@ describe('Sheet chrome (windows)', () => {
     expect(StyleSheet.flatten(screen.getByTestId('sheet-body').props.style).maxHeight).toBe(300);
   });
 });
+
+describe('Sheet accessory (windows)', () => {
+  type Node = ReturnType<typeof screen.getByTestId>;
+
+  /** The bar, its two ends, and the content of each, which is what reports a width. */
+  function parts() {
+    const bar = screen.getByTestId('sheet-bar');
+    const [leading, , trailing] = bar.children as Node[];
+    return {bar, leading, trailing, leadingContent: leading.children[0] as Node, trailingContent: trailing.children[0] as Node};
+  }
+
+  /** The least width of each end, leading first. */
+  function sides() {
+    const {leading, trailing} = parts();
+    return [StyleSheet.flatten(leading.props.style).minWidth, StyleSheet.flatten(trailing.props.style).minWidth];
+  }
+
+  const layout = (node: Node, width: number) => fireEvent(node, 'layout', {nativeEvent: {layout: {x: 0, y: 0, width, height: 40}}});
+
+  /** Whether the bar holds the accessory. */
+  const inBar = () => within(parts().bar).queryByTestId('filter') !== null;
+
+  it('keeps the accessory in a row of its own under the bar unless it is placed in the bar', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} title="Comments" onClose={() => {}} accessory={<Text testID="filter">Filter</Text>} testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    expect(inBar()).toBe(false);
+    expect(screen.getByTestId('filter')).toBeOnTheScreen();
+  });
+
+  it('puts the accessory placed in the bar at its leading end, after the back button, and draws the bar for it alone', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} title="Comments" onBack={() => {}} onClose={() => {}} accessory={<Text testID="filter">Filter</Text>} accessoryPlacement="bar" testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    const {leadingContent} = parts();
+    expect(leadingContent.children.map(child => (child as Node).props.testID)).toEqual(['sheet-bar-back', 'filter']);
+    expect(screen.getAllByTestId('filter')).toHaveLength(1);
+    await render(
+      <Sheet isPresented onDismiss={() => {}} accessory={<Text testID="filter">Filter</Text>} accessoryPlacement="bar" testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    expect(inBar()).toBe(true);
+  });
+
+  it('makes both ends as wide as the wider end\'s content, so the title stays centred', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} title="Comments" onClose={() => {}} menu={[{label: 'Resolve all'}]} accessory={<Text testID="filter">Filter</Text>} accessoryPlacement="bar" testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    expect(sides()).toEqual([BAR_SIDE, BAR_SIDE]);
+    const {bar, leadingContent, trailingContent} = parts();
+    await layout(bar, 600);
+    await layout(leadingContent, 150);
+    await layout(trailingContent, 48);
+    expect(sides()).toEqual([150, 150]);
+    expect(inBar()).toBe(true);
+  });
+
+  it('moves the accessory to a row of its own under a bar too narrow for it, and back once the bar widens', async () => {
+    await render(
+      <Sheet isPresented onDismiss={() => {}} title="Comments" onClose={() => {}} accessory={<Text testID="filter">Filter</Text>} accessoryPlacement="bar" testID="sheet">
+        <Text>Body</Text>
+      </Sheet>,
+    );
+    const {bar, leadingContent, trailingContent} = parts();
+    await layout(leadingContent, 120);
+    await layout(trailingContent, 24);
+    await layout(bar, 300);
+    // 300 less two ends of 120 would leave the title 60, under its 96: the row under the bar, before the body.
+    expect(inBar()).toBe(false);
+    const json = JSON.stringify(screen.toJSON());
+    expect(json.indexOf('Comments')).toBeLessThan(json.indexOf('Filter'));
+    expect(json.indexOf('Filter')).toBeLessThan(json.indexOf('"Body"'));
+    await layout(parts().leadingContent, 0);
+    expect(sides()).toEqual([BAR_SIDE, BAR_SIDE]);
+    expect(inBar()).toBe(false);
+    await layout(parts().bar, 400);
+    expect(inBar()).toBe(true);
+  });
+});

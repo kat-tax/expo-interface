@@ -224,6 +224,37 @@ export const Conversation: Story = {
   render: () => <Thread/>,
 };
 
+/**
+ * The filter in the bar (`accessoryPlacement="bar"`): at its leading end,
+ * with the title still centred between two ends as wide as the wider. On a
+ * bar too narrow to leave the title its room, the filter goes to a row of
+ * its own under the bar.
+ */
+function BarFilter() {
+  const [filter, setFilter] = useState('open');
+  return (
+    <Sheet
+      isPresented
+      onDismiss={fn()}
+      title="Comments"
+      onClose={fn()}
+      accessoryPlacement="bar"
+      accessory={
+        <SegmentedControl size="small" selectedValue={filter} onValueChange={setFilter}>
+          <SegmentedControl.Item label="Open" value="open"/>
+          <SegmentedControl.Item label="Resolved" value="resolved"/>
+        </SegmentedControl>
+      }
+      maxHeight={360}>
+      <Comments/>
+    </Sheet>
+  );
+}
+
+export const AccessoryInBar: Story = {
+  render: () => <BarFilter/>,
+};
+
 const styles = StyleSheet.create({
   rows: {
     width: '100%',

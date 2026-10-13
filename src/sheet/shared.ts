@@ -1,7 +1,7 @@
 import type {ReactNode} from 'react';
 import type {BottomSheetContentPadding, BottomSheetProps} from '@expo/ui';
 import type {MenuItem} from '../menu/types';
-import type {SheetAction, SheetMaxHeight} from './types';
+import type {SheetAction, SheetMaxHeight, SheetProps} from './types';
 
 // The material facts are the material module's; the sheet's callers read them here too.
 export {BLUR_RADIUS, IOS_MATERIAL, MATERIAL_OPACITY, hasMaterial} from '../material/shared';
@@ -23,6 +23,12 @@ export interface SheetBarProps {
   onBack?: () => void;
   onClose?: () => void;
   menu?: MenuItem[];
+  /**
+   * The accessory placed in the bar ({@link barAccessory}): at the leading
+   * end after the back button, or in a row of its own under the bar where
+   * the bar has no room for it.
+   */
+  accessory?: ReactNode;
   testID?: string;
 }
 
@@ -46,7 +52,11 @@ export function sub(testID: string | undefined, name: string): string | undefine
   return testID ? `${testID}-${name}` : undefined;
 }
 
-/** What the sheet's bar leaves at each end, so the title stays centred whichever end has a button. */
+/**
+ * The least width of each end of the sheet's bar, so the title stays
+ * centred whichever end has a button; an end holding more takes its width,
+ * and the other end with it ({@link barSide}).
+ */
 export const BAR_SIDE = 56;
 
 /** The bar's height, in points. */
@@ -117,7 +127,56 @@ export function drawsSomething(node: ReactNode): boolean {
   return node != null && typeof node !== 'boolean' && node !== '';
 }
 
-/** Whether anything asks for the bar. */
-export function hasBar({title, onBack, onClose, menu}: {title?: string; onBack?: () => void; onClose?: () => void; menu?: unknown[]}): boolean {
-  return title !== undefined || onBack !== undefined || onClose !== undefined || (menu !== undefined && menu.length > 0);
+/**
+ * The accessory the bar holds: the one placed there with
+ * `accessoryPlacement="bar"`, when React draws something for it. Undefined
+ * otherwise, which leaves the accessory to its row under the bar.
+ */
+export function barAccessory(accessory: ReactNode, placement: SheetProps['accessoryPlacement']): ReactNode {
+  return placement === 'bar' && drawsSomething(accessory) ? accessory : undefined;
+}
+
+/**
+ * Whether anything asks for the bar: a title, a back or a close button, a
+ * menu with items in it, or the accessory placed in the bar
+ * ({@link barAccessory}).
+ */
+export function hasBar({title, onBack, onClose, menu, accessory}: {title?: string; onBack?: () => void; onClose?: () => void; menu?: unknown[]; accessory?: ReactNode}): boolean {
+  return title !== undefined || onBack !== undefined || onClose !== undefined || (menu !== undefined && menu.length > 0) || drawsSomething(accessory);
+}
+
+/** The least room the bar leaves a title or a subtitle between its two ends with the accessory in it, in points. */
+export const TITLE_ROOM = 96;
+
+/**
+ * The least width of each end of the bar: the wider end's content, and
+ * never under {@link BAR_SIDE}, so both ends are as wide as the wider and
+ * the title stays centred. A width not measured yet counts as none.
+ */
+export function barSide(leading: number | undefined, trailing: number | undefined): number {
+  return Math.max(BAR_SIDE, leading ?? 0, trailing ?? 0);
+}
+
+/** What the bar measured, in points, each undefined until it arrives. */
+export interface SheetBarWidths {
+  /** The bar's own width. */
+  bar?: number;
+  /** The leading end's content with the accessory in it. */
+  leading?: number;
+  /** The trailing end's content. */
+  trailing?: number;
+}
+
+/**
+ * Whether the accessory placed in the bar sits there: whether the bar's
+ * width, less both ends at the wider one's width ({@link barSide}), leaves
+ * the title at least {@link TITLE_ROOM}. Every platform decides here, from
+ * the widths it measured. Before the bar and its leading end are measured
+ * the accessory is in the bar, and with no title and no subtitle (`titled`
+ * false) there is nothing to centre, so it is in the bar whatever the
+ * widths. Otherwise it goes to a row of its own under the bar.
+ */
+export function accessoryFits({bar, leading, trailing}: SheetBarWidths, titled: boolean): boolean {
+  if (!titled || bar === undefined || leading === undefined) return true;
+  return bar - 2 * barSide(leading, trailing) >= TITLE_ROOM;
 }
