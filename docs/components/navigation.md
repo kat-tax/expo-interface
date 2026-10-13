@@ -271,6 +271,11 @@ Differences:
   follows opens it a moment later. It is the kit's `PopupMenu`, under the tab on iOS and
   Android and at the pointer on web and Windows, and one popup serves the
   whole strip. On web the tab says it has one through `aria-haspopup`.
+- The selected tab is kept in view: when `selected` changes, and when the
+  strip or the switcher's cards first show it, the web strip scrolls the tab
+  into view, the strips iOS and Android draw scroll to it with the
+  platform's animation, and the WinUI strip keeps its own selection in view.
+  A tab added and selected at once is scrolled to once it has laid out.
 - `depth` indents a tab by 12 points a level, on every strip and on the
   cards, for documents that belong to one another.
 - `fill="none"` paints nothing behind the strip or the switcher's bar, for

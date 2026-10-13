@@ -93,6 +93,19 @@ export function tabLabel(tab: TabViewTab): string {
   return tab.label || tab.title;
 }
 
+/**
+ * Where a scroller has to go for a span of its content (a tab in the strip,
+ * a card in the grid) to be wholly in view, given where the scroller is and
+ * how long its view is: back to the span's start where the span begins
+ * before the view or is longer than it, forward by what hangs past the end
+ * otherwise, and `null` where the span is in view already.
+ */
+export function revealOffset(start: number, length: number, offset: number, extent: number): number | null {
+  if (start < offset || length > extent) return start;
+  if (start + length > offset + extent) return start + length - extent;
+  return null;
+}
+
 /** What a tab's close cross is called, since a cross says nothing on its own. */
 export function closeLabel(tab: TabViewTab): string {
   return `Close ${tab.title}`;

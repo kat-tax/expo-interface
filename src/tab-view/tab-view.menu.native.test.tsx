@@ -73,7 +73,11 @@ describe(`TabView tab menus, depth and accessories (${Platform.OS})`, () => {
     expect(screen.getByText('typing', {includeHiddenElements: true})).toBeOnTheScreen();
     const card = screen.getByTestId('t-card-a').parent!;
     await act(async () => card.props.onLayout({nativeEvent: {layout: {x: 16, y: 16, width: 160, height: 60}}}));
+    // The grid has scrolled a little: the menu opens under the card as drawn.
+    await act(async () => screen.getByTestId('t-cards').props.onScroll({nativeEvent: {contentOffset: {x: 0, y: 10}}}));
     await fireEvent(screen.getByTestId('t-card-a'), 'longPress');
     expect(menuOpen()).toBe(true);
+    const anchor = host(p => p.matchContentsVertical !== undefined && StyleSheet.flatten(p.style)?.position === 'absolute');
+    expect(StyleSheet.flatten(anchor.props.style)).toMatchObject({left: 16, top: 66});
   });
 });

@@ -155,6 +155,16 @@ export function TabView(props: TabViewProps) {
     onClose(tab.id);
   };
   const cards = resolved === 'switcher' && open;
+  // The selected tab in view: when it changes, and when the strip or the
+  // cards first show it. `nearest` moves the strip, or the grid, only as far
+  // as it must, and nothing where the tab is in view already. A tab selected
+  // before it is in the list (added and selected in two renders) is scrolled
+  // to once it is.
+  const reveal = current < 0 ? null : `${resolved}:${cards}:${selected}`;
+  useEffect(() => {
+    if (reveal === null) return;
+    list.current?.querySelector<HTMLElement>('[aria-selected="true"]')!.scrollIntoView?.({block: 'nearest', inline: 'nearest'});
+  }, [reveal]);
   // The tabs alone have no panel, so no tab controls one.
   const alone = isAlone(props);
   const tabId = (tab: {id: string}) => `${id}-tab-${tab.id}`;

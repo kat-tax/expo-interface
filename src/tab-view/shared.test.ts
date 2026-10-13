@@ -1,10 +1,29 @@
-import {TAB_BREAKPOINT, closeLabel, isAlone, nextSelection, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
+import {TAB_BREAKPOINT, closeLabel, isAlone, nextSelection, resolveLayout, revealOffset, switcherLabel, tabIndex, tabLabel} from './shared';
 
 const TABS = [
   {id: 'a', title: 'Notes'},
   {id: 'b', title: 'Sketch'},
   {id: 'c', title: 'Readme'},
 ];
+
+describe('revealOffset', () => {
+  it('moves back to the start of a span that begins before the view', () => {
+    expect(revealOffset(40, 100, 60, 300)).toBe(40);
+  });
+
+  it('moves forward by what hangs past the end of the view', () => {
+    expect(revealOffset(240, 120, 0, 300)).toBe(60);
+  });
+
+  it('moves to the start of a span longer than the view', () => {
+    expect(revealOffset(300, 400, 0, 300)).toBe(300);
+  });
+
+  it('moves nothing for a span in view, the whole view included', () => {
+    expect(revealOffset(120, 120, 60, 300)).toBeNull();
+    expect(revealOffset(0, 300, 0, 300)).toBeNull();
+  });
+});
 
 describe('resolveLayout', () => {
   it('takes the strip from the breakpoint up and the switcher below it', () => {

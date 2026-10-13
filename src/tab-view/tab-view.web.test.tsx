@@ -435,4 +435,50 @@ describe('TabView (web)', () => {
     render(<TabView tabs={TABS} selected="a" onSelect={() => {}} onClose={() => {}} onAdd={() => {}} style={{opacity: 0.5}}/>);
     expect(screen.getByRole('tablist').parentElement?.parentElement).toHaveStyle({opacity: 0.5});
   });
+
+  describe('the selected tab in view', () => {
+    // jsdom lays nothing out and has no `scrollIntoView`; the stub records
+    // which element was asked, and how.
+    const scrollIntoView = vi.fn();
+
+    beforeEach(() => {
+      Element.prototype.scrollIntoView = scrollIntoView;
+    });
+
+    afterEach(() => {
+      delete (Element.prototype as {scrollIntoView?: unknown}).scrollIntoView;
+    });
+
+    it('scrolls the selected tab into view as the strip shows it and when it changes, only as far as it must', () => {
+      const {rerender} = render(<TabView tabs={TABS} selected="a" onSelect={() => {}} testID="t"/>);
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      expect(scrollIntoView.mock.contexts[0]).toBe(screen.getByTestId('t-tab-a'));
+      expect(scrollIntoView).toHaveBeenCalledWith({block: 'nearest', inline: 'nearest'});
+      rerender(<TabView tabs={TABS} selected="c" onSelect={() => {}} testID="t"/>);
+      expect(scrollIntoView).toHaveBeenCalledTimes(2);
+      expect(scrollIntoView.mock.contexts[1]).toBe(screen.getByTestId('t-tab-c'));
+      // A render with the same selection moves nothing.
+      rerender(<TabView tabs={[...TABS]} selected="c" onSelect={() => {}} testID="t"/>);
+      expect(scrollIntoView).toHaveBeenCalledTimes(2);
+    });
+
+    it('waits for a tab selected before it is in the list, and scrolls to it once it is', () => {
+      const {rerender} = render(<TabView tabs={TABS} selected="d" onSelect={() => {}} testID="t"/>);
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      rerender(<TabView tabs={[...TABS, {id: 'd', title: 'Draft'}]} selected="d" onSelect={() => {}} testID="t"/>);
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      expect(scrollIntoView.mock.contexts[0]).toBe(screen.getByTestId('t-tab-d'));
+    });
+
+    it('scrolls the selected card into view as the switcher opens', async () => {
+      const user = userEvent.setup();
+      windowWidth(480);
+      render(<TabView tabs={TABS} selected="b" onSelect={() => {}} testID="t"/>);
+      // The bar alone has no tab to scroll to.
+      expect(scrollIntoView).not.toHaveBeenCalled();
+      await user.click(screen.getByTestId('t-switcher'));
+      expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      expect(scrollIntoView.mock.contexts[0]).toBe(screen.getByTestId('t-card-b'));
+    });
+  });
 });

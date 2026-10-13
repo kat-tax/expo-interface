@@ -1,17 +1,17 @@
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import type {ReactNode} from 'react';
+import type {ReactNode, RefObject} from 'react';
 import type {IconToken} from '../icons';
 import type {MenuItem, MenuPoint} from '../menu/types';
 import type {ResolvedLayout} from './shared';
 import type {TabViewFill, TabViewLayout, TabViewTab} from './types';
-import {useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {Pressable, ScrollView, StyleSheet, View, useWindowDimensions} from 'react-native';
 import {inSet} from '../a11y/set';
 import {PopupMenu} from '../popup-menu';
 import {Icon as Glyph} from '../symbol';
 import {Body, Caption} from '../typography';
 import {spacing, useColor} from '../theme';
-import {closeLabel, resolveLayout, switcherLabel, tabIndex, tabLabel} from './shared';
+import {closeLabel, resolveLayout, revealOffset, switcherLabel, tabIndex, tabLabel} from './shared';
 
 /** The cross on a tab, the plus at the end of the strip, and the switcher's own glyph. */
 const CLOSE: IconToken = {symbol: {ios: 'xmark', android: 'close', web: 'close'}};
@@ -72,34 +72,116 @@ interface OpenMenu {
   at: MenuPoint;
 }
 
+/** Where a tab is in its scroller, from its layout. */
+interface Place {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/** The axis a scroller of tabs scrolls along: the strip across, the cards down. */
+type Axis = 'x' | 'y';
+
+export interface TabPlaces {
+  /** A tab's layout in the scroller. */
+  onPlace: (id: string, event: LayoutChangeEvent) => void;
+  /** The scroller's own frame: the room a tab has to be in view in. */
+  onFrame: (event: LayoutChangeEvent) => void;
+  /** The scroller's scroll, which moves the tabs under the menu's coordinates and out of view. */
+  onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
+  /**
+   * Where a tab's menu opens: under the tab, in the coordinates of the box
+   * around the scroller, or `null` before the tab has reported its layout.
+   */
+  menuPoint: (id: string) => MenuPoint | null;
+}
+
+/**
+ * Where the tabs are in the strip or the grid, and what that serves: the menu
+ * a long press opens under a tab, and the scroll that brings the selected tab
+ * into view.
+ *
+ * Each tab reports its layout, and the scroller its own frame and its scroll,
+ * all kept in refs since none of it draws anything. The selected tab is
+ * brought wholly into view when `selected` changes and when the scroller
+ * first shows it, with the platform's animation; a tab selected before it has
+ * reported its layout (one added and selected at once) is brought into view
+ * once it has, and a tab already in view moves nothing. `shown` false is a
+ * scroller that is not drawn (the cards closed), whose places are forgotten
+ * with it, so the cards open again to fresh ones. `scroller` is the caller's
+ * ref to the scroller, which the reveal scrolls.
+ */
+export function useTabPlaces(selected: string, axis: Axis, shown: boolean, scroller: RefObject<ScrollView | null>): TabPlaces {
+  const places = useRef(new Map<string, Place>());
+  const offset = useRef(0);
+  const extent = useRef(0);
+  const pending = useRef<string | null>(null);
+
+  const reveal = useCallback(() => {
+    const id = pending.current;
+    if (id === null) return;
+    const place = places.current.get(id);
+    if (!place || !extent.current) return;
+    pending.current = null;
+    const target = axis === 'x'
+      ? revealOffset(place.x, place.width, offset.current, extent.current)
+      : revealOffset(place.y, place.height, offset.current, extent.current);
+    if (target === null) return;
+    scroller.current!.scrollTo(axis === 'x' ? {x: target, animated: true} : {y: target, animated: true});
+  }, [axis, scroller]);
+
+  useEffect(() => {
+    if (!shown) {
+      places.current.clear();
+      offset.current = 0;
+      extent.current = 0;
+      pending.current = null;
+      return;
+    }
+    pending.current = selected;
+    reveal();
+  }, [selected, shown, reveal]);
+
+  return {
+    onPlace: (id, event) => {
+      places.current.set(id, event.nativeEvent.layout);
+      if (pending.current === id) reveal();
+    },
+    onFrame: event => {
+      const {width, height} = event.nativeEvent.layout;
+      extent.current = axis === 'x' ? width : height;
+      reveal();
+    },
+    onScroll: event => {
+      offset.current = event.nativeEvent.contentOffset[axis];
+    },
+    menuPoint: id => {
+      const place = places.current.get(id);
+      if (!place) return null;
+      return axis === 'x'
+        ? {x: place.x - offset.current, y: place.y + place.height}
+        : {x: place.x, y: place.y + place.height - offset.current};
+    },
+  };
+}
+
 /**
  * The menus of the tabs that have one, as one `PopupMenu` over the strip or
  * the cards: a long press on a tab opens its menu under the tab, from the
- * tab's own layout in the strip less the strip's scroll, so one native menu
- * serves every tab rather than one per tab.
+ * tab's place less the scroll, so one native menu serves every tab rather
+ * than one per tab.
  */
-export function useTabMenus(testID: string | undefined): {
+export function useTabMenus(testID: string | undefined, places: TabPlaces): {
   menu: ReactNode;
-  /** Remembers where a tab is, from its layout. */
-  onLayout: (id: string, event: LayoutChangeEvent) => void;
-  /** Follows the strip's scroll, which moves the tabs under the menu's coordinates. */
-  onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
   open: (tab: TabViewTab) => void;
 } {
   const [open, setOpen] = useState<OpenMenu | null>(null);
-  const layouts = useRef(new Map<string, {x: number; y: number; height: number}>());
-  const scrollX = useRef(0);
   return {
-    onLayout: (id, event) => {
-      layouts.current.set(id, event.nativeEvent.layout);
-    },
-    onScroll: event => {
-      scrollX.current = event.nativeEvent.contentOffset.x;
-    },
     open: tab => {
-      const layout = layouts.current.get(tab.id);
-      if (!tab.menu || !layout) return;
-      setOpen({items: tab.menu, at: {x: layout.x - scrollX.current, y: layout.y + layout.height}});
+      const at = places.menuPoint(tab.id);
+      if (!tab.menu || !at) return;
+      setOpen({items: tab.menu, at});
     },
     menu: <PopupMenu items={open?.items ?? []} at={open?.at ?? null} onDismiss={() => setOpen(null)} testID={sub(testID, 'menu')}/>,
   };
@@ -127,16 +209,20 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
   const open = useColor(filled ? 'background' : 'pillBackground');
   const labelColor = useColor('label');
   const secondary = useColor('secondaryLabel');
-  const menus = useTabMenus(testID);
+  const scroller = useRef<ScrollView>(null);
+  const places = useTabPlaces(selected, 'x', true, scroller);
+  const menus = useTabMenus(testID, places);
   return (
     <View style={[styles.strip, filled && {backgroundColor: surface}]}>
       <ScrollView
+        ref={scroller}
         horizontal
         showsHorizontalScrollIndicator={false}
         accessibilityRole="tablist"
         accessibilityLabel={label}
         contentContainerStyle={styles.stripRow}
-        onScroll={menus.onScroll}
+        onLayout={places.onFrame}
+        onScroll={places.onScroll}
         scrollEventThrottle={16}
         testID={sub(testID, 'strip')}>
         {tabs.map((tab, index) => {
@@ -145,7 +231,7 @@ export function TabStrip({tabs, selected, onSelect, onClose, onAdd, addLabel, fi
             <View
               key={tab.id}
               style={[styles.tab, on && {backgroundColor: open}, on && !filled && styles.pill, tab.depth ? {paddingLeft: spacing.three + tab.depth * DEPTH_INDENT} : null]}
-              onLayout={event => menus.onLayout(tab.id, event)}>
+              onLayout={event => places.onPlace(tab.id, event)}>
               <Pressable
                 accessibilityRole="tab"
                 // Named explicitly rather than left to the text inside it:
@@ -243,7 +329,9 @@ export function TabSwitcher({
   const labelColor = useColor('label');
   const secondary = useColor('secondaryLabel');
   const current = tabs[tabIndex(tabs, selected)];
-  const menus = useTabMenus(testID);
+  const scroller = useRef<ScrollView>(null);
+  const places = useTabPlaces(selected, 'y', open, scroller);
+  const menus = useTabMenus(testID, places);
   return (
     <>
       <View style={[styles.bar, filled && {backgroundColor: surface}]}>
@@ -277,10 +365,14 @@ export function TabSwitcher({
       {open ? (
         <View style={styles.cardsRoot}>
           <ScrollView
+            ref={scroller}
             accessibilityRole="tablist"
             accessibilityLabel={label}
             style={alone ? {maxHeight: windowHeight * ALONE_CARDS} : undefined}
             contentContainerStyle={styles.grid}
+            onLayout={places.onFrame}
+            onScroll={places.onScroll}
+            scrollEventThrottle={16}
             testID={sub(testID, 'cards')}>
             {tabs.map((tab, index) => {
               const on = tab.id === selected;
@@ -288,7 +380,7 @@ export function TabSwitcher({
                 <View
                   key={tab.id}
                   style={[styles.card, {backgroundColor: card}, on && {borderColor: labelColor}]}
-                  onLayout={event => menus.onLayout(tab.id, event)}>
+                  onLayout={event => places.onPlace(tab.id, event)}>
                   <Pressable
                     accessibilityRole="tab"
                     accessibilityLabel={tabLabel(tab)}

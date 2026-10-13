@@ -175,8 +175,12 @@ describe(`TabView (${Platform.OS})`, () => {
       expect(screen.queryByTestId('mark')).toBeNull();
       return screen.getByTestId('mark', {includeHiddenElements: true}).parent!;
     };
-    /** How many wrappers the tree holds: one per accessory, none for a tab without. */
-    const wrappers = () => JSON.stringify(screen.toJSON()).split('no-hide-descendants').length - 1;
+    /**
+     * How many wrappers the tree holds: one per accessory, none for a tab
+     * without. The scroll view's ref is a host instance, which a JSON of the
+     * tree cannot hold, so it is left out.
+     */
+    const wrappers = () => JSON.stringify(screen.toJSON(), (key, value) => (key === 'scrollViewRef' ? undefined : value)).split('no-hide-descendants').length - 1;
     const {rerender} = await render(<TabView tabs={tabs} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
     // On Android an accessible view inside the tab (a Badge) would be a stop of its own.
     expect(wrapper().props).toMatchObject({importantForAccessibility: 'no-hide-descendants', accessibilityElementsHidden: true});
