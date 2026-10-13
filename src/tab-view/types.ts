@@ -116,6 +116,18 @@ export interface TabViewProps {
    * @default 'element'
    */
   fill?: TabViewFill;
+  /**
+   * How the keyboard selects on web. With `automatic` the arrow keys move
+   * the focus and select the tab they land on, the APG's pattern for tabs
+   * whose content the app already has. With `manual` the arrows move the
+   * focus alone and Enter or Space selects the focused tab, for tabs whose
+   * selection costs something: a document opened live, a connection made.
+   * Enter and Space select in either mode. The drawn strips on iOS and
+   * Android and the WinUI strip have no roving focus, so they accept the
+   * prop and ignore it.
+   * @default 'automatic'
+   */
+  activation?: 'automatic' | 'manual';
   /** Identifier used to locate the component in end-to-end tests. */
   testID?: string;
   style?: StyleProp<ViewStyle>;

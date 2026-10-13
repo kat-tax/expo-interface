@@ -107,6 +107,14 @@ export const Switcher: Story = {args: {layout: 'switcher', onClose: () => {}, on
 export const Adaptive: Story = {args: {onClose: () => {}, onAdd: () => {}}};
 
 /**
+ * Manual activation, for tabs whose selection costs something, as a document
+ * opened live does: on web the arrow keys move the focus alone, and Enter or
+ * Space selects. The strips on the other platforms have no roving focus and
+ * draw the same.
+ */
+export const ManualActivation: Story = {args: {layout: 'strip', activation: 'manual'}};
+
+/**
  * The tabs alone, with no children: as tall as the strip and no taller, with
  * the page drawn under it by the app rather than by the view. The shape for a
  * strip in a `HeaderAccessory`, whose pages are the screen's content.

@@ -149,6 +149,58 @@ describe('TabView (web)', () => {
     expect(onSelect).toHaveBeenCalledWith('b');
   });
 
+  describe('activation', () => {
+    it('moves the focus alone with manual, and selects with Enter or Space', async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      render(<TabView tabs={TABS} selected="a" onSelect={onSelect} activation="manual" testID="t"/>);
+      const tabs = screen.getAllByRole('tab');
+      await user.tab();
+      await user.keyboard('{ArrowRight}');
+      expect(tabs[1]).toHaveFocus();
+      expect(onSelect).not.toHaveBeenCalled();
+      await user.keyboard('{Enter}');
+      expect(onSelect).toHaveBeenCalledWith('b');
+      await user.keyboard('{ArrowRight}');
+      expect(tabs[2]).toHaveFocus();
+      expect(onSelect).toHaveBeenCalledTimes(1);
+      await user.keyboard(' ');
+      expect(onSelect).toHaveBeenLastCalledWith('c');
+    });
+
+    it('keeps Space from scrolling the page, and leaves other keys alone', () => {
+      const onSelect = vi.fn();
+      render(<TabView tabs={TABS} selected="a" onSelect={onSelect} activation="manual" testID="t"/>);
+      const sketch = screen.getByTestId('t-tab-b');
+      expect(fireEvent.keyDown(sketch, {key: ' '})).toBe(false);
+      expect(fireEvent.keyDown(sketch, {key: 'Enter'})).toBe(false);
+      expect(fireEvent.keyDown(sketch, {key: 'Backspace'})).toBe(true);
+      expect(onSelect).toHaveBeenCalledTimes(2);
+    });
+
+    it('selects with Enter or Space under automatic too, for a focused tab whose selection the app did not take', () => {
+      const onSelect = vi.fn();
+      render(<TabView tabs={TABS} selected="a" onSelect={onSelect} testID="t"/>);
+      fireEvent.keyDown(screen.getByTestId('t-tab-b'), {key: 'Enter'});
+      expect(onSelect).toHaveBeenCalledWith('b');
+      fireEvent.keyDown(screen.getByTestId('t-tab-c'), {key: ' '});
+      expect(onSelect).toHaveBeenLastCalledWith('c');
+    });
+
+    it('selects a card with Enter and puts the grid away', async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      windowWidth(480);
+      render(<TabView tabs={TABS} selected="a" onSelect={onSelect} activation="manual" testID="t"/>);
+      await user.click(screen.getByTestId('t-switcher'));
+      await user.keyboard('{ArrowRight}');
+      expect(onSelect).not.toHaveBeenCalled();
+      fireEvent.keyDown(screen.getByTestId('t-card-b'), {key: 'Enter'});
+      expect(onSelect).toHaveBeenCalledWith('b');
+      expect(screen.queryByTestId('t-cards')).toBeNull();
+    });
+  });
+
   it('takes a click on a tab as a request for it', async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();

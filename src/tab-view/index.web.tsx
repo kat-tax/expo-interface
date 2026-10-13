@@ -1,6 +1,6 @@
 import './tab-view.css';
-import type {CSSProperties, MouseEvent, RefObject} from 'react';
-import type {TabViewProps} from './types';
+import type {CSSProperties, KeyboardEvent, MouseEvent, RefObject} from 'react';
+import type {TabViewProps, TabViewTab} from './types';
 import type {MenuItem, MenuPoint} from '../menu/types';
 import {useEffect, useId, useRef, useState} from 'react';
 import {StyleSheet, type TextStyle} from 'react-native';
@@ -66,9 +66,12 @@ function useContainerWidth(ref: RefObject<HTMLElement | null>): number {
  * is hidden from assistive technology: the tab names itself from `label`, so
  * a `Badge` in it is never read on its own.
  *
- * Selection follows the arrow keys rather than waiting for Enter, the APG's
- * automatic activation, which is right here because switching tabs shows
- * content the app already has.
+ * Selection follows the arrow keys by default, the APG's automatic
+ * activation, which is right where switching tabs shows content the app
+ * already has. `activation="manual"` is for tabs whose selection costs
+ * something (a document opened live): the arrows move the focus alone, and
+ * Enter or Space selects. Enter and Space select in either mode, for a
+ * focused tab whose selection the app did not take.
  *
  * Below 640 points the strip is a button and a grid of cards instead, the same
  * shape the native files draw — and the grid is a tab list too, so the tabs
@@ -90,6 +93,7 @@ export function TabView(props: TabViewProps) {
     label = 'Tabs',
     layout = 'auto',
     fill = 'element',
+    activation = 'automatic',
     testID,
     style,
   } = props;
@@ -132,8 +136,24 @@ export function TabView(props: TabViewProps) {
     // A list with nothing selected still has to hold one tab stop, so the
     // first tab takes it.
     activeIndex: Math.max(current, 0),
-    onMove: index => onSelect(tabs[index]!.id),
+    // Manual activation moves the focus alone; Enter or Space then selects.
+    onMove: activation === 'manual' ? undefined : index => onSelect(tabs[index]!.id),
   });
+  /**
+   * The keys a tab or a card takes for itself: Enter or Space selects it, in
+   * either activation mode, and Delete closes it where it closes. The arrows
+   * are the list's. Space is kept from scrolling the page.
+   */
+  const keys = (tab: TabViewTab, select: () => void) => (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      select();
+      return;
+    }
+    if (event.key !== 'Delete' || !onClose || tab.pinned) return;
+    event.preventDefault();
+    onClose(tab.id);
+  };
   const cards = resolved === 'switcher' && open;
   // The tabs alone have no panel, so no tab controls one.
   const alone = isAlone(props);
@@ -222,11 +242,7 @@ export function TabView(props: TabViewProps) {
                   data-testid={testID ? `${testID}-tab-${tab.id}` : undefined}
                   onClick={() => onSelect(tab.id)}
                   {...(tab.menu ? menuGestures(tab.menu) : undefined)}
-                  onKeyDown={event => {
-                    if (event.key !== 'Delete' || !onClose || tab.pinned) return;
-                    event.preventDefault();
-                    onClose(tab.id);
-                  }}
+                  onKeyDown={keys(tab, () => onSelect(tab.id))}
                   {...roving.itemProps(index)}>
                   {tab.icon ? <Icon icon={tab.icon} size={ICON}/> : null}
                   <span className="ui-tab-view__title" id={index === current ? openId : undefined}>
@@ -285,11 +301,10 @@ export function TabView(props: TabViewProps) {
                   onSelect(tab.id);
                 }}
                 {...(tab.menu ? menuGestures(tab.menu) : undefined)}
-                onKeyDown={event => {
-                  if (event.key !== 'Delete' || !onClose || tab.pinned) return;
-                  event.preventDefault();
-                  onClose(tab.id);
-                }}
+                onKeyDown={keys(tab, () => {
+                  setOpen(false);
+                  onSelect(tab.id);
+                })}
                 {...roving.itemProps(index)}>
                 {tab.icon ? <Icon icon={tab.icon} size={ICON}/> : null}
                 <span className="ui-tab-view__card-title">{tab.title}</span>
