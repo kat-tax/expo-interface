@@ -351,7 +351,9 @@ On Windows `size` and `shape` are not applied, since the control has one of
 each, and `accentColor` colors the underline. On iOS `shape` matters for
 `pill` only, since `rounded` is the system's own corner. On iOS and Android
 a control outside a host mounts one of its own: the width of its container
-with a label, of the segments without.
+with a label, of the segments without. On Android a control without a label
+is the segments' width under a host too, so it can sit beside other content,
+as in a sheet's bar.
 
 ## Slider
 

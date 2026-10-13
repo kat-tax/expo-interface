@@ -73,7 +73,10 @@ function NativeSegmentedControl<T extends PickerValue>({
     <Row
       verticalAlignment="center"
       horizontalArrangement="spaceBetween"
-      modifiers={[fillMaxWidth(), ...(testID ? [testIDModifier(testID)] : [])]}>
+      // The width of its container with a label, which leads and leaves the
+      // segments at the trailing edge; the segments' own without, so the
+      // control can sit beside other content, as in a sheet's bar.
+      modifiers={[...(label != null ? [fillMaxWidth()] : []), ...(testID ? [testIDModifier(testID)] : [])]}>
       {label != null ? <Text color={labelColor}>{label}</Text> : null}
       <Row
         verticalAlignment="center"

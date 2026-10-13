@@ -227,11 +227,13 @@ describe(`SegmentedControl (${Platform.OS})`, () => {
     expect(onValueChange).toHaveBeenCalledWith('week');
   });
 
-  (isIOS ? it.skip : it)('carries no testID modifier without a testID', async () => {
+  (isIOS ? it.skip : it)('carries no testID modifier without a testID, and takes the segments\' width without a label', async () => {
     await render(<SegmentedControl selectedValue="day">{items}</SegmentedControl>);
     const row = nodes().find(n => n.type !== HOST)!;
     expect(modifier(row.props, 'testID')).toBeUndefined();
-    expect(modifier(row.props, 'fillMaxWidth')).toBeDefined();
+    // Without a label the row is the segments' width, so it can sit beside
+    // other content, as in a sheet's bar, rather than take the whole row.
+    expect(modifier(row.props, 'fillMaxWidth')).toBeUndefined();
   });
 
   it('mounts a host of its own outside one: the row\'s width with a label, the segments\' without', async () => {
