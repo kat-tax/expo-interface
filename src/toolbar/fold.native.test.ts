@@ -103,7 +103,7 @@ describe('useFold', () => {
 });
 
 describe('shapeOf', () => {
-  it('tells the commands apart by their count, labels, hidden labels, icons, overflow and rules, not by state or identity', () => {
+  it('tells the commands apart by their count, shown labels, hidden labels, icons, overflow and rules, not by state or identity', () => {
     const shape = shapeOf(tools);
     expect(shapeOf(tools.map(command => ({...command, active: true, disabled: true, color: '#FF9500', onPress: () => {}})))).toBe(shape);
     expect(shapeOf(tools.slice(0, 3))).not.toBe(shape);
@@ -112,6 +112,9 @@ describe('shapeOf', () => {
     expect(shapeOf([{label: 'Bold', separator: true}, ...tools.slice(1)])).not.toBe(shape);
     expect(shapeOf([{label: 'Bold', secondary: true}, ...tools.slice(1)])).not.toBe(shape);
     expect(shapeOf([{label: 'Bolder'}, ...tools.slice(1)])).not.toBe(shape);
+    // A label the bar does not show sets no width: a count read out, not drawn.
+    const hidden = shapeOf([{label: '3 comments', hideLabel: true, icon: icons.add}, ...tools.slice(1)]);
+    expect(shapeOf([{label: '4 comments', hideLabel: true, icon: icons.add}, ...tools.slice(1)])).toBe(hidden);
     expect(shapeOf(undefined)).toBe('');
   });
 });

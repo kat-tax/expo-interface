@@ -48,15 +48,16 @@ interface FoldState {
 }
 
 /**
- * What of the commands sets the bar's width: how many there are, their
- * labels, whether each shows its label and has an icon, and which are
+ * What of the commands sets the bar's width: how many there are, the labels
+ * they show, whether each hides its label and has an icon, and which are
  * behind the overflow or after a rule. Not the array itself, which an app
- * rebuilds each render, and not a state (`active`, `disabled`, `color`),
- * which changes nothing of the width.
+ * rebuilds each render, not a state (`active`, `disabled`, `color`), which
+ * changes nothing of the width, and not a hidden label (a count a screen
+ * reader hears), which changes nothing of it either.
  */
 export function shapeOf(commands: readonly ToolbarCommand[] | undefined): string {
   return (commands ?? [])
-    .map(command => `${command.label}\u001f${command.hideLabel ? 1 : 0}${command.icon ? 1 : 0}${command.secondary ? 1 : 0}${command.separator ? 1 : 0}`)
+    .map(command => `${command.hideLabel ? '' : command.label}\u001f${command.hideLabel ? 1 : 0}${command.icon ? 1 : 0}${command.secondary ? 1 : 0}${command.separator ? 1 : 0}`)
     .join('\u001e');
 }
 
