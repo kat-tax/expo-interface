@@ -87,4 +87,11 @@ export interface TypographyProps {
    * `0` adds it. iOS, Android and Windows leave it out.
    */
   tabIndex?: -1 | 0;
+  /**
+   * iOS, Android and Windows: what a screen reader says in place of the
+   * text, for words abbreviated for the eye whose spoken form is the long
+   * one, as `RelativeTime` says "12 minutes ago" for "12m ago". The web
+   * leaves it out: an `aria-label` on plain text is not read.
+   */
+  accessibilityLabel?: string;
 }

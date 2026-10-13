@@ -82,6 +82,7 @@ The differences that change what a screen can do, in one place:
 | `ExternalLink` | In-app browser | In-app browser | New tab | Default browser |
 | `saveFile` | A folder; the file keeps `name` | A folder; the file keeps `name` | The folder and the name in the Chromium browsers, else a download | A folder; the file keeps `name` |
 | `RelativeTime` words without `locale` | English; with a polyfill, the language iOS runs the app in, one the app is localized for | English; the device's language with a polyfill | The page's `lang` | English; the user's regional format with a polyfill |
+| `RelativeTime` in `short` or `narrow`, to a screen reader | The long words | The long words | The text as drawn | The long words |
 | A screen pushed over `Tabs` | Over the tab bar | Over the tab bar | Replaces the bar | Inside the pane, its back button |
 | `Stack` `animation` | Native | Native | None | WinUI's motions: drill in, slides, page refresh, fade |
 | A press on the selected tab | Nothing | Nothing | Nothing | Back to the section's root |

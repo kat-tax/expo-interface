@@ -159,4 +159,11 @@ describe('headings', () => {
     expect(document.activeElement).toBe(title);
     expect(screen.getByTestId('plain')).not.toHaveAttribute('tabindex');
   });
+
+  it('leaves an accessibility label out, which a reader does not say on plain text', () => {
+    render(<Typography accessibilityLabel="12 minutes ago" testID="when">12m ago</Typography>);
+    const when = screen.getByTestId('when');
+    expect(when.textContent).toBe('12m ago');
+    expect(when).not.toHaveAttribute('aria-label');
+  });
 });

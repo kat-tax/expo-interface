@@ -189,7 +189,7 @@ export type {
 export {RelativeTime} from './relative-time';
 export {useRelativeTime} from './relative-time';
 export type {RelativeTimeProps} from './relative-time/types';
-export type {RelativeTimeOptions} from './relative-time/types';
+export type {RelativeTimeOptions, RelativeTimeWords, UseRelativeTimeOptions} from './relative-time/types';
 
 // Platform services
 export {ToastProvider, useToast} from './toast/provider';

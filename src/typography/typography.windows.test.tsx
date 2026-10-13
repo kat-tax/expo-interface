@@ -65,4 +65,10 @@ describe('headings', () => {
     await render(<LargeTitle level={false} testID="stat">42</LargeTitle>);
     expect(screen.getByTestId('stat').props.accessibilityRole).toBeUndefined();
   });
+
+  it('takes an accessibility label, said in place of words abbreviated for the eye', async () => {
+    await render(<Typography accessibilityLabel="12 minutes ago" testID="when">12m ago</Typography>);
+    expect(screen.getByTestId('when').props.children).toBe('12m ago');
+    expect(screen.getByTestId('when').props.accessibilityLabel).toBe('12 minutes ago');
+  });
 });

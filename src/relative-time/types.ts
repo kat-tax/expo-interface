@@ -37,10 +37,36 @@ export interface RelativeTimeOptions {
    * "yesterday" and "tomorrow" read the same in every style. Where the
    * engine has `Intl.RelativeTimeFormat`, the words are its own for the
    * style and the language; where it does not (Hermes, see `locale`), they
-   * are these English ones.
+   * are these English ones. The short and narrow words are for the eye: a
+   * `RelativeTime` in either names itself with the long ones on iOS,
+   * Android and Windows, so a screen reader says "12 minutes ago" over
+   * "12m ago", and `useRelativeTime` hands them over beside the text with
+   * `spoken`. On the web the component is the text alone, since an
+   * `aria-label` on plain text is not read.
    * @default 'long'
    */
   style?: 'long' | 'short' | 'narrow';
+}
+
+/** How `useRelativeTime` says a moment, and whether the long words come with it. */
+export interface UseRelativeTimeOptions extends RelativeTimeOptions {
+  /**
+   * Answer the long words beside the ones in `style`, as `{text, spoken}`,
+   * for text shown short or narrow and spoken in full: a `Card`'s subtitle
+   * in `narrow`, with the card named in the long words through its `label`.
+   * Both come from the same moment and the same timer. Without it the hook
+   * answers the words in `style` as a string.
+   * @default false
+   */
+  spoken?: boolean;
+}
+
+/** What `useRelativeTime` answers with `spoken`: the words to show, and the words to say. */
+export interface RelativeTimeWords {
+  /** The words in the `style` asked for. */
+  text: string;
+  /** The same moment in the `long` style, for a screen reader. */
+  spoken: string;
 }
 
 /** A moment as the time since or until it (see `RelativeTime`). */
