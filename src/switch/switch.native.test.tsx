@@ -95,14 +95,17 @@ describe(`Switch (${Platform.OS})`, () => {
       expect(modifier(props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
     } else {
       // `toggleable` takes no `enabled`, so the cover is a toggleable surface
-      // that is not enabled: named, with the state and the testID.
+      // that is not enabled, carrying the `toggleable` for the role, its
+      // ripple in the surface's clear content color.
       expect(toggle('sw').type).toBe('ViewManagerAdapter_ExpoUI_SurfaceView');
-      expect(props).toMatchObject({checked: false, enabled: false, color: '#00000000'});
-      expect(props.modifiers.map((m: {$type: string}) => m.$type)).toEqual(['matchParentSize', 'semantics', 'testID']);
+      expect(props).toMatchObject({checked: false, enabled: false, color: '#00000000', contentColor: '#00000000'});
+      expect(props.modifiers.map((m: {$type: string}) => m.$type)).toEqual(['matchParentSize', 'toggleable', 'semantics', 'testID']);
+      expect(modifier(props, 'toggleable')).toMatchObject({value: false, role: 'switch'});
       expect(material().props.enabled).toBe(false);
-      // `@expo/ui` always wires the change handlers; neither reaches the app.
+      // `@expo/ui` always wires the change handlers; none reaches the app.
       await act(async () => {
         props.onCheckedChange({nativeEvent: {value: true}});
+        modifier(props, 'toggleable')!.eventListener();
         material().props.onCheckedChange({nativeEvent: {value: true}});
       });
       expect(onValueChange).not.toHaveBeenCalled();

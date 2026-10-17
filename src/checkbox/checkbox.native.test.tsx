@@ -39,10 +39,17 @@ describe(`Checkbox (${Platform.OS})`, () => {
       expect(glyph().props.systemName).toBe('checkmark.square.fill');
       expect(modifier(glyph().props, 'font')?.size).toBe(22);
     } else {
-      // The row is the one checkbox, named by its label's text, and carries the testID.
+      // The cover over the row is the one checkbox: no children, named by the
+      // label, with the testID.
+      expect(box('cb').type).toBe('ViewManagerAdapter_ExpoUI_BoxView');
+      expect(props.modifiers.map((m: {$type: string}) => m.$type)).toEqual(['matchParentSize', 'toggleable', 'semantics', 'testID']);
       expect(modifier(props, 'toggleable')).toMatchObject({value: true, role: 'checkbox'});
-      expect(modifier(props, 'fillMaxWidth')).toBeDefined();
-      // The box is drawn but is no node of its own: no click, padded to its touch target's place.
+      expect(modifier(props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Remember me'});
+      expect(props.children).toBeUndefined();
+      const [around, row] = nodes();
+      expect(around.props).toMatchObject({contentAlignment: 'centerStart', modifiers: [{$type: 'fillMaxWidth'}]});
+      expect(row.props).toMatchObject({horizontalArrangement: 'spaceBetween', modifiers: [{$type: 'fillMaxWidth'}]});
+      // The box under it only draws: no click, padded to its touch target's place.
       const {props: boxProps} = composeBox();
       expect(boxProps.value).toBe(true);
       expect(boxProps.enabled).toBe(true);
@@ -94,19 +101,27 @@ describe(`Checkbox (${Platform.OS})`, () => {
   });
 
   it('disables the control', async () => {
-    await render(<Checkbox label="Updates" value onValueChange={vi.fn()} disabled testID="cb"/>, options);
+    const onValueChange = vi.fn();
+    await render(<Checkbox label="Updates" value onValueChange={onValueChange} disabled testID="cb"/>, options);
     const {props} = box('cb');
     if (isIOS) {
       expect(modifier(props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
       expect(modifier(host(p => p.text === 'Updates').props, 'foregroundStyle')?.style.color).toBe('#60646C');
     } else {
-      // A disabled row cannot be toggleable, so the box is the control, with the testID:
-      // a click it never fires, so Compose reports a disabled checkbox, named by the label.
-      expect(props.enabled).toBe(false);
-      expect(props.nativeClickable).toBe(true);
+      // Disabled, the cover is a toggleable surface that is not enabled, carrying
+      // the `toggleable` for the role, named by the label, with the testID.
+      expect(box('cb').type).toBe('ViewManagerAdapter_ExpoUI_SurfaceView');
+      expect(props).toMatchObject({checked: true, enabled: false, color: '#00000000', contentColor: '#00000000'});
+      expect(modifier(props, 'toggleable')).toMatchObject({value: true, role: 'checkbox'});
       expect(modifier(props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Updates'});
+      expect(composeBox().props).toMatchObject({enabled: false, nativeClickable: false});
       expect(host(p => p.text === 'Updates').props.color).toBe(palette.onSurfaceVariant);
-      expect(nodes().some(n => modifier(n.props, 'toggleable') != null)).toBe(false);
+      // `@expo/ui` wires every handler; none reaches the app.
+      await act(async () => {
+        props.onCheckedChange({nativeEvent: {value: false}});
+        modifier(props, 'toggleable')!.eventListener();
+      });
+      expect(onValueChange).not.toHaveBeenCalled();
     }
   });
 

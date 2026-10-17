@@ -1,12 +1,13 @@
 import type {CheckboxProps} from './types';
 
-import {Checkbox as ComposeCheckbox, Row, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
-import {fillMaxWidth, paddingAll, semantics, testID as testIDModifier, toggleable} from '@expo/ui/jetpack-compose/modifiers';
+import {Box, Checkbox as ComposeCheckbox, Row, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
+import {fillMaxWidth, paddingAll, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {onAccent} from '../accent';
+import {ToggleCover} from '../a11y/cover';
 import {useColor} from '../theme';
 
 // Material lays its box out 48dp across with a click of its own (the touch
-// target) and 24dp without one, so a box the row toggles is padded to sit
+// target) and 24dp without one, so a box under the cover is padded to sit
 // where a box with a click does.
 const TARGET_INSET = 12;
 
@@ -20,14 +21,13 @@ const inert = () => {};
  * the iOS glyph and the web `accent-color` — including inside sheets whose
  * native host is not seeded.
  *
- * One node is the checkbox, and it carries the testID. Labelled and enabled,
- * that is the `toggleable` row, named by its label's text, and the box is
- * handed no `onCheckedChange`, so `@expo/ui` gives it no click and it is no
- * node of its own. A disabled row cannot be the control (`toggleable` takes
- * no `enabled`), so labelled and disabled, the box is: handed a click it
- * never fires and `enabled={false}`, which Compose reports as a disabled
- * checkbox, named by the label as its content description. Unlabelled, the
- * box is the control in both states.
+ * With a label, the control a screen reader is handed is a `ToggleCover`
+ * laid over the row: one node with the checkbox role, named by the label,
+ * with the state, the press and the testID, enabled or not. A row that
+ * toggles would hold its label's text and so could not carry its own role.
+ * The whole row toggles, and the box under the cover only draws: handed no
+ * `onCheckedChange`, `@expo/ui` gives it no click. Unlabelled, the box is
+ * the control, a node with no children that carries its own role.
  */
 export function Checkbox({
   label,
@@ -40,38 +40,34 @@ export function Checkbox({
   const colors = useMaterialColors();
   const tint = useColor('tint');
   const accent = accentColor ?? tint;
-  const tag = testID ? [testIDModifier(testID)] : [];
-  const rowToggles = label != null && !disabled;
-  const box = (
-    <ComposeCheckbox
-      value={value}
-      onCheckedChange={rowToggles ? undefined : disabled ? inert : onValueChange}
-      enabled={!disabled}
-      colors={{
-        checkedColor: accent,
-        checkmarkColor: onAccent(accent),
-        uncheckedColor: colors.onSurfaceVariant,
-      }}
-      modifiers={
-        rowToggles
-          ? [paddingAll(TARGET_INSET)]
-          : [...(label != null ? [semantics({contentDescription: label})] : []), ...tag]
-      }
-    />
-  );
+  const boxColors = {
+    checkedColor: accent,
+    checkmarkColor: onAccent(accent),
+    uncheckedColor: colors.onSurfaceVariant,
+  };
 
-  if (label == null) return box;
+  if (label == null) {
+    return (
+      <ComposeCheckbox
+        value={value}
+        onCheckedChange={disabled ? inert : onValueChange}
+        enabled={!disabled}
+        colors={boxColors}
+        modifiers={testID ? [testIDModifier(testID)] : []}
+      />
+    );
+  }
 
   return (
-    <Row
-      verticalAlignment="center"
-      horizontalArrangement="spaceBetween"
-      modifiers={[
-        fillMaxWidth(),
-        ...(rowToggles ? [toggleable(value, () => onValueChange(!value), {role: 'checkbox'}), ...tag] : []),
-      ]}>
-      <Text color={disabled ? colors.onSurfaceVariant : colors.onSurface}>{label}</Text>
-      {box}
-    </Row>
+    <Box contentAlignment="centerStart" modifiers={[fillMaxWidth()]}>
+      <Row
+        verticalAlignment="center"
+        horizontalArrangement="spaceBetween"
+        modifiers={[fillMaxWidth()]}>
+        <Text color={disabled ? colors.onSurfaceVariant : colors.onSurface}>{label}</Text>
+        <ComposeCheckbox value={value} enabled={!disabled} colors={boxColors} modifiers={[paddingAll(TARGET_INSET)]}/>
+      </Row>
+      <ToggleCover role="checkbox" value={value} onValueChange={onValueChange} disabled={disabled} label={label} testID={testID}/>
+    </Box>
   );
 }

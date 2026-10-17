@@ -67,7 +67,8 @@ function menuItem(label: string): HostNode {
 describe(`Picker (${Platform.OS})`, () => {
   (isIOS ? it.skip : it)('carries the testID as a Compose modifier', async () => {
     await render(<Picker selectedValue="m" testID="pk">{items}</Picker>, options);
-    expect(byComposeTestID('pk')).toBeTruthy();
+    // On the anchor, the control a screen reader is handed, not the column around it.
+    expect(byComposeTestID('pk').type).toBe('ViewManagerAdapter_ExpoUI_SurfaceView');
   });
 
   it('renders the native picker with its label and items', async () => {
@@ -92,6 +93,7 @@ describe(`Picker (${Platform.OS})`, () => {
         {$type: 'menuAnchor', type: 'primaryNotEditable'},
         {$type: 'fillMaxWidth'},
         {$type: 'semantics', contentDescription: 'Size'},
+        {$type: 'testID', testID: 'pk'},
       ]);
       expect(anchor().props.children).toBeUndefined();
       const [under, over] = rows();

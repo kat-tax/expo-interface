@@ -166,7 +166,7 @@ second line under the label in the secondary color: what the setting does),
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Toggle`, whose label is the row; with `supporting`, the toggle's own title and subtitle |
-| Android | Material 3 `Switch` at the trailing edge of a Compose row, with a white thumb as on iOS. TalkBack meets a node laid over the row as the switch: named by the label, with the state and the `testID`, and `supporting` read after it. Disabled, it is reported disabled but has no switch role, since `@expo/ui`'s `toggleable` takes no `enabled`. |
+| Android | Material 3 `Switch` at the trailing edge of a Compose row, with a white thumb as on iOS. TalkBack meets a node laid over the row as the switch: named by the label, with the state and the `testID`, enabled or not, and `supporting` read after it. |
 | Web | react-native-web's switch in a drawn row |
 | Windows | WinUI `ToggleSwitch` at the trailing edge of a drawn row |
 
@@ -182,7 +182,7 @@ A checked or unchecked box with a leading label. Props: `label`, `value`,
 | Platform | Renders |
 | --- | --- |
 | iOS | A tinted `checkmark.square` glyph in a plain `Button` that takes a tap anywhere along its row, which VoiceOver reads as a toggle that is on or off (iOS 17 and later read the toggle trait). SwiftUI on iOS has no checkbox control; the glyph is the platform idiom. |
-| Android | Material 3 `Checkbox`. With a label the whole row is the one checkbox, named by the label's text; disabled, the row cannot toggle, so the box is the checkbox, named by the label. The `testID` is on whichever is the checkbox. |
+| Android | Material 3 `Checkbox`. With a label, TalkBack meets a node laid over the row as the checkbox: named by the label, with the state and the `testID`, enabled or not, and a press anywhere on the row toggles it. Without one, the box is the checkbox. |
 | Web | A real `<input type="checkbox">` inside a `<label>`, so the text toggles it |
 | Windows | WinUI `CheckBox` at the trailing edge of a drawn row |
 
@@ -227,8 +227,9 @@ Differences:
 
 - A plain `row` field on Android is named by its placeholder while it is
   empty and by its text once it holds some. A
-  password field there keeps the placeholder as its content description,
-  which TalkBack speaks before the count of its characters. A plain field
+  password field there is named by its placeholder while it is empty, and
+  carries it as its content description once it holds text, which TalkBack
+  reads with the field. A plain field
   carries no description, because Compose would read it in place of the
   text when TalkBack moves through the field by character or word, and
   would let no selection be extended in it.
@@ -359,7 +360,7 @@ A dropdown that selects one option, with `Picker.Item` children (`label`,
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Picker` in the menu style |
-| Android | A Compose row that mirrors the iOS form look and anchors Material's exposed drop-down menu, whose stock anchor is a text field spanning the row with no label. A press anywhere along the row opens the menu, which is the row's width. TalkBack meets a node laid over the row as the drop-down, named by the label and disabled with the picker, and reads the value after it. |
+| Android | A Compose row that mirrors the iOS form look and anchors Material's exposed drop-down menu, whose stock anchor is a text field spanning the row with no label. A press anywhere along the row opens the menu, which is the row's width. TalkBack meets a node laid over the row as the drop-down, named by the label, with the `testID`, and disabled with the picker, and reads the value after it. |
 | Web | A drawn pill with a transparent native `<select>` over it, so the platform's own options popup opens |
 | Windows | WinUI `ComboBox` at the trailing edge of a drawn row |
 

@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, nodes, modifier} from 'expo-vitest/native';
 import {DialogTextField, TextField} from './index.android';
 
@@ -72,6 +72,24 @@ describe('TextField (android)', () => {
     // Material draws and reports the placeholder slot only while the field is empty; the description stays.
     expect(host(p => p.slotName === 'placeholder')).toBeTruthy();
     expect(modifier(props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Password'});
+  });
+
+  it('leaves an empty password field to its placeholder, and describes it once it holds text', async () => {
+    const onChangeText = vi.fn();
+    await render(<TextField placeholder="Password" secureTextEntry onChangeText={onChangeText} testID="pw"/>);
+    const description = () => modifier(byComposeTestID('pw').props, 'semantics');
+    // Empty, the placeholder names it: a description as well would name it twice.
+    expect(description()).toBeUndefined();
+    await act(async () => byComposeTestID('pw').props.onValueChange({nativeEvent: {text: 'h'}}));
+    expect(onChangeText).toHaveBeenLastCalledWith('h');
+    expect(description()).toEqual({$type: 'semantics', contentDescription: 'Password'});
+    await act(async () => byComposeTestID('pw').props.onValueChange({nativeEvent: {text: ''}}));
+    expect(description()).toBeUndefined();
+    // A controlled field follows its value, and takes no change handler to.
+    await render(<TextField placeholder="PIN" value="" secureTextEntry testID="pin"/>);
+    expect(modifier(byComposeTestID('pin').props, 'semantics')).toBeUndefined();
+    await act(async () => byComposeTestID('pin').props.onValueChange({nativeEvent: {text: '1'}}));
+    expect(modifier(byComposeTestID('pin').props, 'semantics')).toBeUndefined();
   });
 
   it('describes no plain field, and no password field without a placeholder or with an empty one', async () => {
