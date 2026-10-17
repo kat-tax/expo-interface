@@ -1,6 +1,8 @@
 import {readFileSync} from 'node:fs';
 import path from 'node:path';
-import {fireEvent, render, screen} from '@testing-library/react';
+import {act, fireEvent, render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import {LONG_PRESS_MS} from '../context-menu/held';
 import {ListItem} from '.';
 
 describe('ListItem (web)', () => {
@@ -171,8 +173,29 @@ describe('ListItem (web)', () => {
   });
 });
 
+/** A pointer event with a `pointerType`; jsdom has no `PointerEvent` constructor. */
+function pointerEvent(type: string, pointerType: string, init: MouseEventInit = {}) {
+  const event = new MouseEvent(type, {bubbles: true, cancelable: true, ...init});
+  Object.defineProperty(event, 'pointerType', {value: pointerType});
+  return event;
+}
+
+type PopoverElement = Omit<HTMLElement, 'showPopover'> & {showPopover?: () => void};
+const proto = HTMLElement.prototype as PopoverElement;
+
+// jsdom 30 hides a closed popover, so the menu is queried with `hidden:
+// true`, and it has no imperative Popover API, so `showPopover` is stubbed.
 describe('row actions (web)', () => {
   const actions = [{label: 'Share', onPress: vi.fn()}, {label: 'Delete', role: 'destructive' as const, onPress: vi.fn()}];
+  const showPopover = vi.fn();
+
+  beforeAll(() => {
+    proto.showPopover = showPopover;
+  });
+
+  afterAll(() => {
+    delete proto.showPopover;
+  });
 
   it('puts them in the row\'s own popover menu, opened by a right click', () => {
     render(<ListItem swipeActions={actions} testID="row">Essay</ListItem>);
@@ -183,5 +206,78 @@ describe('row actions (web)', () => {
   it('leaves the row alone when it has no actions of its own', () => {
     render(<ListItem testID="plain">Essay</ListItem>);
     expect(screen.queryByRole('menu', {hidden: true})).toBeNull();
+  });
+
+  it('keeps the row a button named by its label, which the keyboard reaches and presses', async () => {
+    const onPress = vi.fn();
+    const user = userEvent.setup();
+    render(<ListItem swipeActions={actions} supporting="Edited yesterday" onPress={onPress} testID="row">Essay</ListItem>);
+    const row = screen.getByRole('button', {name: 'Essay, Edited yesterday'});
+    expect(row).toBe(screen.getByTestId('row'));
+    expect(row).toHaveClass('ui-list-item');
+    await user.tab();
+    expect(row).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(onPress).toHaveBeenCalledTimes(1);
+    fireEvent.click(row);
+    expect(onPress).toHaveBeenCalledTimes(2);
+    expect(showPopover).not.toHaveBeenCalled();
+  });
+
+  it('opens the menu on a right click without pressing the row, and an entry chosen there presses only itself', () => {
+    const onPress = vi.fn();
+    render(<ListItem swipeActions={actions} onPress={onPress} testID="row">Essay</ListItem>);
+    expect(fireEvent.contextMenu(screen.getByRole('button', {name: 'Essay'}), {clientX: 40, clientY: 60})).toBe(false);
+    expect(showPopover).toHaveBeenCalledTimes(1);
+    expect(onPress).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('menuitem', {name: 'Share', hidden: true}));
+    expect(actions[0]!.onPress).toHaveBeenCalledTimes(1);
+    expect(onPress).not.toHaveBeenCalled();
+  });
+
+  it('keeps the press beside an action, and the menu around both', () => {
+    const onPress = vi.fn();
+    render(<ListItem swipeActions={actions} onPress={onPress} action={{label: 'Restore', onPress: vi.fn()}} testID="row">Version 2</ListItem>);
+    fireEvent.click(screen.getByRole('button', {name: 'Version 2'}));
+    expect(onPress).toHaveBeenCalledTimes(1);
+    fireEvent.contextMenu(screen.getByTestId('row'));
+    expect(showPopover).toHaveBeenCalledTimes(1);
+  });
+
+  describe('a held touch', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('opens the menu once it lifts, and its release\'s click does not press the row', () => {
+      const onPress = vi.fn();
+      render(<ListItem swipeActions={actions} onPress={onPress} testID="row">Essay</ListItem>);
+      const row = screen.getByRole('button', {name: 'Essay'});
+      fireEvent(row, pointerEvent('pointerdown', 'touch', {clientX: 10, clientY: 20}));
+      act(() => vi.advanceTimersByTime(LONG_PRESS_MS));
+      fireEvent(row, pointerEvent('pointerup', 'touch'));
+      expect(fireEvent.click(row)).toBe(false);
+      expect(onPress).not.toHaveBeenCalled();
+      act(() => vi.advanceTimersByTime(0));
+      expect(showPopover).toHaveBeenCalledTimes(1);
+      expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('leaves a short tap to the row', () => {
+      const onPress = vi.fn();
+      render(<ListItem swipeActions={actions} onPress={onPress} testID="row">Essay</ListItem>);
+      const row = screen.getByRole('button', {name: 'Essay'});
+      fireEvent(row, pointerEvent('pointerdown', 'touch', {clientX: 10, clientY: 20}));
+      act(() => vi.advanceTimersByTime(LONG_PRESS_MS - 1));
+      fireEvent(row, pointerEvent('pointerup', 'touch'));
+      expect(fireEvent.click(row)).toBe(true);
+      expect(onPress).toHaveBeenCalledTimes(1);
+      act(() => vi.advanceTimersByTime(1000));
+      expect(showPopover).not.toHaveBeenCalled();
+    });
   });
 });

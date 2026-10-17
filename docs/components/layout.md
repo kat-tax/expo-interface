@@ -496,9 +496,13 @@ whose headline is the app's own content.
 Differences:
 
 - Only iOS has a swipe. On Android, web and Windows the same actions are the
-  row's context menu, opened by a long press or a right click, and the row's
-  press goes through that menu's trigger so one gesture has one owner. Do not
-  wrap the row in a `ContextMenu` as well.
+  row's context menu, opened by a long press or a right click. On Android
+  and Windows the row's press goes through that menu's trigger, so one
+  gesture has one owner. On web the row keeps its own `<button>` and its
+  press, which a keyboard reaches, since the menu opens on `contextmenu` (a
+  right click or the Menu key) and on a touch held for half a second, and
+  neither is the click; the release of a held touch opens the menu and does
+  not press the row. Do not wrap the row in a `ContextMenu` as well.
 - `inset` has nothing to turn off on iOS, where the `Form` supplies every
   inset.
 - On iOS a selected row in a `List` or a `FieldGroup` fills the whole row,
