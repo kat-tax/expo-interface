@@ -2,7 +2,7 @@ import type {TextFieldCapitalize, TextFieldProps} from './types';
 import type {ViewModifier} from '@expo/ui/swift-ui/modifiers';
 
 import {SecureField, TextField as SwiftUITextField, useNativeState} from '@expo/ui/swift-ui';
-import {autocorrectionDisabled, disabled as disabledMod, keyboardType as keyboardTypeMod, onSubmit as onSubmitMod, submitLabel, textInputAutocapitalization, tint} from '@expo/ui/swift-ui/modifiers';
+import {accessibilityLabel, autocorrectionDisabled, disabled as disabledMod, keyboardType as keyboardTypeMod, onSubmit as onSubmitMod, submitLabel, textInputAutocapitalization, tint} from '@expo/ui/swift-ui/modifiers';
 import {InlineTextField} from './inline';
 import {keyboardTypeFor, useSyncedState} from './shared';
 
@@ -21,6 +21,11 @@ export function TextField(props: TextFieldProps) {
  * platforms emulate: a placeholder that doubles as the label and the value
  * filling the row. Drop it straight into a `FieldGroup.Section`. The
  * keyboard's action key is `returnKeyType` (the `submitLabel` modifier).
+ *
+ * SwiftUI draws the placeholder only while the field is empty, and a filled
+ * field has no name of its own, so the placeholder is also the field's
+ * accessibility label: VoiceOver keeps naming the field by it once it holds
+ * text, which it reads as the field's value.
  */
 function RowTextField({
   placeholder,
@@ -43,6 +48,7 @@ function RowTextField({
   useSyncedState(text, value);
 
   const modifiers: ViewModifier[] = [];
+  if (placeholder) modifiers.push(accessibilityLabel(placeholder));
   if (accentColor) modifiers.push(tint(accentColor));
   if (keyboardType) modifiers.push(keyboardTypeMod(keyboardTypeFor(keyboardType)));
   if (autoCorrect === false) modifiers.push(autocorrectionDisabled(true));

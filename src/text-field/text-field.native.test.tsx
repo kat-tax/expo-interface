@@ -17,7 +17,7 @@ describe(`TextField (${Platform.OS})`, () => {
     if (isIOS) {
       expect(props.placeholder).toBe('Email');
       expect(props.axis).toBe('horizontal');
-      expect(props.modifiers).toEqual([]);
+      expect(props.modifiers).toEqual([{$type: 'accessibilityLabel', label: 'Email'}]);
     } else {
       expect(props.enabled).toBe(true);
       expect(props.singleLine).toBe(true);
