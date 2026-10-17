@@ -183,7 +183,7 @@ A checked or unchecked box with a leading label. Props: `label`, `value`,
 | Platform | Renders |
 | --- | --- |
 | iOS | A tinted `checkmark.square` glyph in a plain `Button` that takes a tap anywhere along its row, which VoiceOver reads as a toggle that is on or off (iOS 17 and later read the toggle trait). SwiftUI on iOS has no checkbox control; the glyph is the platform idiom. |
-| Android | Material 3 `Checkbox`, with the whole row toggleable |
+| Android | Material 3 `Checkbox`. With a label the whole row is the one checkbox, named by the label's text; disabled, the row cannot toggle, so the box is the checkbox, named by the label. The `testID` is on whichever is the checkbox. |
 | Web | A real `<input type="checkbox">` inside a `<label>`, so the text toggles it |
 | Windows | WinUI `CheckBox` at the trailing edge of a drawn row |
 
