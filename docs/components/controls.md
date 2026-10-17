@@ -50,6 +50,13 @@ Differences:
   Segoe glyph on Windows. Without one the label still reads.
 - `suffixIcon` needs a drawable on Android and is dropped when the button is
   icon-only.
+- On iOS a button that is a `FieldGroup` row of its own, a child of the
+  group or of a section, takes a tap anywhere along the row while it can be
+  pressed, as a `Form`'s own button rows do. It is drawn as it is anywhere
+  else, at the row's leading edge: SwiftUI gives the button the whole row as
+  its frame, but a bordered button takes a tap only on its capsule and a
+  plain one only on its text. A button inside a row's content, or rendered
+  by a component of the app's own, is not a row.
 
 ```tsx
 <Button label="Save" onPress={save}/>
@@ -173,7 +180,7 @@ A checked or unchecked box with a leading label. Props: `label`, `value`,
 
 | Platform | Renders |
 | --- | --- |
-| iOS | A tinted `checkmark.square` glyph in a plain `Button`. SwiftUI on iOS has no checkbox control; the glyph is the platform idiom. |
+| iOS | A tinted `checkmark.square` glyph in a plain `Button` that takes a tap anywhere along its row. SwiftUI on iOS has no checkbox control; the glyph is the platform idiom. |
 | Android | Material 3 `Checkbox`, with the whole row toggleable |
 | Web | A real `<input type="checkbox">` inside a `<label>`, so the text toggles it |
 | Windows | WinUI `CheckBox` at the trailing edge of a drawn row |
