@@ -97,6 +97,11 @@ same geometry. A badge in a row of the app's own measures like any view.
 outside; iOS and web draw it everywhere, and Windows hosts a `PersonPicture`
 island.
 
+`Icon` needs no host either. On Android it is Compose content inside one (a
+`ListItem`'s slots, a `NativeHost`, `Screen native`), drawn from the token's
+drawable, and `expo-symbols`' `SymbolView` outside; iOS draws the
+`SymbolView` everywhere.
+
 You rarely call `useNativeHost()` yourself. It is there for a component of
 your own that wraps `@expo/ui` content and has to work both inside and outside
 a host.
@@ -105,6 +110,12 @@ It answers true below a `NativeHost`, a `Screen native` and the part of a
 `Sheet` that counts as hosted. Below an `@expo/ui` `Host` of your own it
 answers false, so kit components there act as they do in a React Native
 layout: group them in a `NativeHost` instead.
+
+It also answers true inside a React Native view of your own placed among
+native content (a `View` as a `FieldGroup` row, or in a `ListItem`'s slot).
+`@expo/ui` hosts that view natively, and nothing in React's tree marks
+where, so a kit control inside it renders bare, with no composition to draw
+in on Android. Place kit controls in the native content itself.
 
 ## On web and Windows
 
