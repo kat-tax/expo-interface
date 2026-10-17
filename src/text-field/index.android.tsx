@@ -1,6 +1,7 @@
 import type {TextFieldKeyboard, TextFieldProps, TextFieldReturnKey} from './types';
 import type {TextFieldColors, TextFieldImeAction, TextFieldKeyboardActions, TextFieldKeyboardType} from '@expo/ui/jetpack-compose';
 
+import {useState} from 'react';
 import {OutlinedTextField, TextField as ComposeTextField, Text, useMaterialColors, useNativeState} from '@expo/ui/jetpack-compose';
 import {fillMaxWidth, offset, semantics, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {useColor} from '../theme';
@@ -65,9 +66,13 @@ export function DialogTextField(props: TextFieldProps) {
  *
  * Material reports the placeholder slot only while the field is empty.
  * A password field also carries the placeholder as its content
- * description, filled or outlined, which TalkBack speaks before the count
- * of its characters (`EditTextDescription.nameDescription` in TalkBack's
- * source) and which names it to every other service. A plain field carries
+ * description while it holds text, filled or outlined, so it keeps its
+ * name once the placeholder is gone; while it is empty the placeholder
+ * names it, and a description as well would name it twice. Compose hands
+ * a text field's description, like its label and placeholder, to a child
+ * of the field (a Material field always has a semantic child, and a node
+ * that merges and has children keeps no description of its own), which a
+ * screen reader reads with the field. A plain field carries
  * none: Compose reads a text field's content description in place of its
  * text when TalkBack moves through it by character or word, and lets no
  * selection be extended in it (`getIterableTextForAccessibility` and
@@ -110,6 +115,13 @@ function RowTextField({
   const placeholderColor = useColor('tertiaryLabel');
   const text = useNativeState(value ?? '');
   useSyncedState(text, value);
+  // Whether the field holds text: a controlled one's value, or what was last typed.
+  const [typed, setTyped] = useState((value ?? '').length > 0);
+  const filled = value !== undefined ? value.length > 0 : typed;
+  const onValueChange = (next: string) => {
+    setTyped(next.length > 0);
+    onChangeText?.(next);
+  };
 
   const Field = dialog ? OutlinedTextField : ComposeTextField;
   const fieldColors: TextFieldColors = {
@@ -126,7 +138,7 @@ function RowTextField({
     <Field
       key={secureTextEntry ? 'secure' : 'plain'}
       value={text}
-      onValueChange={onChangeText}
+      onValueChange={onValueChange}
       enabled={disabled !== true}
       singleLine={!multiline}
       autoFocus={autoFocus}
@@ -144,7 +156,7 @@ function RowTextField({
       modifiers={[
         fillMaxWidth(),
         ...(dialog ? [] : [offset(-CONTENT_PADDING, 0)]),
-        ...(placeholder && secureTextEntry ? [semantics({contentDescription: placeholder})] : []),
+        ...(placeholder && secureTextEntry && filled ? [semantics({contentDescription: placeholder})] : []),
         ...(testID ? [testIDModifier(testID)] : []),
       ]}>
       {placeholder != null ? (

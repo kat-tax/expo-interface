@@ -227,8 +227,9 @@ Differences:
 
 - A plain `row` field on Android is named by its placeholder while it is
   empty and by its text once it holds some. A
-  password field there keeps the placeholder as its content description,
-  which TalkBack speaks before the count of its characters. A plain field
+  password field there is named by its placeholder while it is empty, and
+  carries it as its content description once it holds text, which TalkBack
+  reads with the field. A plain field
   carries no description, because Compose would read it in place of the
   text when TalkBack moves through the field by character or word, and
   would let no selection be extended in it.
