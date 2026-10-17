@@ -331,6 +331,40 @@ describe('ContextMenu (web)', () => {
     expect(onDelete).toHaveBeenCalledTimes(1);
   });
 
+  // The popover is inside the wrapper, so what happens on it reaches the
+  // wrapper's handlers, whichever gesture opens the menu.
+  describe.each(['longPress', 'tap'] as const)('a gesture on its own menu, for %s', trigger => {
+    const onPress = vi.fn();
+    const onShare = vi.fn();
+
+    beforeEach(() => {
+      render(
+        <ContextMenu items={[{label: 'Share', onPress: onShare}]} trigger={trigger} onPress={onPress} testID="row">
+          <span>Item</span>
+        </ContextMenu>,
+      );
+    });
+
+    it('takes an entry\'s click as the menu\'s: the content is not pressed and the menu does not open again', () => {
+      fireEvent.contextMenu(screen.getByTestId('row'), {clientX: 40, clientY: 60});
+      expect(showPopover).toHaveBeenCalledTimes(1);
+      fireEvent.click(screen.getByRole('menuitem', {name: 'Share', hidden: true}), {clientX: 50, clientY: 70});
+      expect(onShare).toHaveBeenCalledTimes(1);
+      expect(onPress).not.toHaveBeenCalled();
+      expect(showPopover).toHaveBeenCalledTimes(1);
+      const menu = screen.getByRole('menu', {hidden: true});
+      expect(menu.style.left).toBe('40px');
+      expect(menu.style.top).toBe('60px');
+    });
+
+    it('keeps the browser\'s menu off its own, and opens nothing for a right click on it', () => {
+      expect(fireEvent.contextMenu(screen.getByRole('menuitem', {name: 'Share', hidden: true}), {clientX: 5, clientY: 6})).toBe(false);
+      expect(showPopover).not.toHaveBeenCalled();
+      expect(screen.getByRole('menu', {hidden: true}).style.left).toBe('');
+      expect(onPress).not.toHaveBeenCalled();
+    });
+  });
+
   it('keeps the popup inside the viewport when it opens', () => {
     render(
       <ContextMenu items={items} testID="row">

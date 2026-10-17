@@ -94,6 +94,12 @@ Differences:
   `trigger` says; they are what the platform and its screen readers reach for.
 - `onOpenChange` is not reported on iOS.
 - On web Escape closes the open menu and goes no further, as for `Menu`.
+- On web a click or a right click on the open menu is the menu's, whichever
+  `trigger` says: choosing an entry calls no `onPress` and does not open the
+  menu again, and a right click on the menu opens nothing and shows no
+  browser menu over it. The popover sits in the DOM inside the element that
+  wraps the content, so an entry's click still bubbles on to the app's own
+  elements around the `ContextMenu`.
 - There is no `doubleTap` trigger: `@expo/ui` exposes no double click from
   Compose, and SwiftUI has no way to open a context menu programmatically.
 

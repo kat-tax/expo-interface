@@ -38,7 +38,18 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
     if (element && !element.matches(':popover-open')) element.showPopover();
   };
   const held = useHeldTouch(open, !disabled && trigger !== 'tap');
+  // The menu's popover sits inside the wrapper, in React's tree and the DOM
+  // alike (the top layer moves its box, not its place in the tree), so its
+  // clicks and right clicks reach the wrapper's handlers. They are the
+  // menu's: choosing an entry presses no content and, for `tap`, does not
+  // open the menu again as it closes; a right click on the menu opens
+  // nothing, and the browser's own menu does not cover the kit's.
+  const inMenu = (event: MouseEvent) => popover.current!.contains(event.target as Node);
   const onContextMenu = (event: MouseEvent) => {
+    if (inMenu(event)) {
+      event.preventDefault();
+      return;
+    }
     if (disabled) return;
     event.preventDefault();
     // A browser that raises `contextmenu` for the held touch as well (Chrome
@@ -47,7 +58,7 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
     open(event.clientX, event.clientY);
   };
   const onClick = (event: MouseEvent) => {
-    if (disabled) return;
+    if (disabled || inMenu(event)) return;
     if (trigger !== 'tap') {
       onPress?.();
       return;
