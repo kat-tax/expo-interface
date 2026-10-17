@@ -13,6 +13,8 @@ export interface NativeProps extends ViewProps {
   disabled?: boolean;
   /** Fill of the on state (`#RRGGBB`); defaults to `accentColor`. */
   color?: string;
+  /** Accessible name of the toggle. */
+  label?: string;
   accentColor?: string;
   theme?: CodegenTypes.WithDefault<'light' | 'dark' | 'system', 'system'>;
   onValueChange?: CodegenTypes.DirectEventHandler<ValueEvent>;
