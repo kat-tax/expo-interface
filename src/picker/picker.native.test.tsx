@@ -31,8 +31,9 @@ const items = [
 /** SwiftUI picker options as `[text, tag]` pairs (iOS only). */
 const tags = () => nodes().filter(n => modifier(n.props, 'tag')).map(n => [n.props.text, modifier(n.props, 'tag')?.tag]);
 
-/** The Compose pill that draws the value (Android only). */
-const pill = () => host(p => modifier(p, 'background') != null);
+/** The Compose pills that draw the value (Android only): the one under the anchor holding its place, and the one over it, read. */
+const pills = () => nodes().filter(n => modifier(n.props, 'background') != null);
+const pill = () => pills()[1];
 
 /** The Compose node of an `@expo/ui` view (Android only). */
 function view(name: string): HostNode {
@@ -40,6 +41,9 @@ function view(name: string): HostNode {
   if (!match) throw new Error(`No ${name} rendered`);
   return match;
 }
+
+/** The rows the box lays over one another: the label under the anchor, and the value over it (Android only). */
+const rows = () => nodes(dropdown()).filter(n => n.type === 'ViewManagerAdapter_ExpoUI_RowView' && modifier(n.props, 'fillMaxWidth') != null);
 
 /** Material's exposed drop-down box, its anchor (the row) and its menu (Android only). */
 const dropdown = () => view('ExposedDropdownMenuBox');
@@ -81,10 +85,36 @@ describe(`Picker (${Platform.OS})`, () => {
       expect(dropdown().props.expanded).toBe(false);
       expect(modifier(dropdown().props, 'fillMaxWidth')).toBeDefined();
       expect(menu().props.expanded).toBe(false);
-      // The whole row anchors the drop-down: a clear clickable surface, so its texts merge into the one node.
+      // The anchor is a clear clickable surface with no children, laid over
+      // the row between the label and the value, and named by the label.
       expect(anchor().props).toMatchObject({color: '#00000000', enabled: true, clickable: true});
-      expect(anchor().props.modifiers).toEqual([{$type: 'menuAnchor', type: 'primaryNotEditable'}, {$type: 'fillMaxWidth'}]);
-      expect(nodes(anchor()).some(n => n.props.text === 'Size')).toBe(true);
+      expect(anchor().props.modifiers).toEqual([
+        {$type: 'menuAnchor', type: 'primaryNotEditable'},
+        {$type: 'fillMaxWidth'},
+        {$type: 'semantics', contentDescription: 'Size'},
+      ]);
+      expect(anchor().props.children).toBeUndefined();
+      const [under, over] = rows();
+      // Drawn in this order: the label's row, the anchor, the value's row.
+      const order = nodes(dropdown());
+      const underAt = order.findIndex(n => modifier(n.props, 'onSizeChanged') != null);
+      const anchorAt = order.findIndex(n => n.type === 'ViewManagerAdapter_ExpoUI_SurfaceView');
+      const overAt = order.findIndex(n => n.props.horizontalArrangement === 'end');
+      expect(underAt).toBeGreaterThanOrEqual(0);
+      expect(underAt).toBeLessThan(anchorAt);
+      expect(anchorAt).toBeLessThan(overAt);
+      expect(nodes(under).some(n => n.props.text === 'Size')).toBe(true);
+      expect(under.props.horizontalArrangement).toBe('spaceBetween');
+      expect(over.props).toMatchObject({horizontalArrangement: 'end', modifiers: [{$type: 'fillMaxWidth'}]});
+      // The value under the anchor only holds its place; the one over it is drawn and read.
+      expect(pills()).toHaveLength(2);
+      expect(modifier(pills()[0].props, 'alpha')).toEqual({$type: 'alpha', alpha: 0});
+      expect(modifier(pill().props, 'alpha')).toBeUndefined();
+      expect(nodes(over).some(n => modifier(n.props, 'background') != null && modifier(n.props, 'alpha') == null)).toBe(true);
+      // The anchor and the value take the height the row under them reports.
+      await act(async () => modifier(under.props, 'onSizeChanged')!.eventListener({width: 320, height: 40}));
+      expect(modifier(anchor().props, 'height')).toEqual({$type: 'height', height: 40});
+      expect(rows()[1].props.modifiers).toEqual([{$type: 'fillMaxWidth'}, {$type: 'height', height: 40}]);
       const value = host(p => p.text === 'Medium' && p.color != null);
       expect(value.props.color).toBe(palette.onSurfaceVariant);
       expect(modifier(pill().props, 'clip')).toEqual({$type: 'clip', shape: {type: 'roundedCorner', radius: 8}});
@@ -173,7 +203,9 @@ describe(`Picker (${Platform.OS})`, () => {
       expect(screen.getByTestId('pk').props.label).toBeUndefined();
     } else {
       const texts = nodes().filter(n => typeof n.props.text === 'string').map(n => n.props.text);
-      expect(texts).toEqual(['Medium', 'Small', 'Medium', 'Large']);
+      expect(texts).toEqual(['Medium', 'Medium', 'Small', 'Medium', 'Large']);
+      // With no label the anchor has no name of its own.
+      expect(modifier(anchor().props, 'semantics')).toBeUndefined();
     }
   });
 

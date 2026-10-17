@@ -117,6 +117,75 @@ describe('ContextMenu (web)', () => {
     expect(showPopover).not.toHaveBeenCalled();
   });
 
+  describe('a right click raised while its button is down (Linux, macOS)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    const row = () => screen.getByTestId('row');
+    const release = (type = 'pointerup') => fireEvent(document.body, pointerEvent(type, 'mouse'));
+
+    it('opens once the button comes up, in a task after the release, where its light dismiss is over', () => {
+      render(
+        <ContextMenu items={items} testID="row">
+          <span>Item</span>
+        </ContextMenu>,
+      );
+      expect(fireEvent.contextMenu(row(), {clientX: 40, clientY: 60, buttons: 2})).toBe(false);
+      act(() => vi.advanceTimersByTime(1000));
+      expect(showPopover).not.toHaveBeenCalled();
+      release();
+      expect(showPopover).not.toHaveBeenCalled();
+      act(() => vi.advanceTimersByTime(0));
+      expect(showPopover).toHaveBeenCalledTimes(1);
+      const menu = screen.getByRole('menu', {hidden: true});
+      expect(menu.style.left).toBe('40px');
+      expect(menu.style.top).toBe('60px');
+      release();
+      act(() => vi.advanceTimersByTime(0));
+      expect(showPopover).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens after a press the browser cancels, and once for the last of two right clicks', () => {
+      render(
+        <ContextMenu items={items} testID="row">
+          <span>Item</span>
+        </ContextMenu>,
+      );
+      fireEvent.contextMenu(row(), {clientX: 1, clientY: 2, buttons: 2});
+      fireEvent.contextMenu(row(), {clientX: 30, clientY: 40, buttons: 2});
+      release('pointercancel');
+      act(() => vi.advanceTimersByTime(0));
+      expect(showPopover).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole('menu', {hidden: true}).style.left).toBe('30px');
+    });
+
+    it('opens nothing for content gone before the release, or between the release and its task', () => {
+      const first = render(
+        <ContextMenu items={items} testID="row">
+          <span>Item</span>
+        </ContextMenu>,
+      );
+      fireEvent.contextMenu(row(), {buttons: 2});
+      first.unmount();
+      release();
+      act(() => vi.advanceTimersByTime(0));
+      const second = render(
+        <ContextMenu items={items} testID="row">
+          <span>Item</span>
+        </ContextMenu>,
+      );
+      fireEvent.contextMenu(row(), {buttons: 2});
+      release();
+      second.unmount();
+      act(() => vi.advanceTimersByTime(0));
+      expect(showPopover).not.toHaveBeenCalled();
+    });
+  });
+
   it('reports the popup opening and closing', () => {
     const onOpenChange = vi.fn();
     const onDismiss = vi.fn();

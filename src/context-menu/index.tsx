@@ -3,6 +3,7 @@ import type {MouseEvent} from 'react';
 import type {ContextMenuProps} from '../menu/types';
 import {useEffect, useId, useRef, useState} from 'react';
 import {MenuList, menuIdent} from '../menu/list';
+import {afterRelease} from '../menu/release';
 import {useHeldTouch} from './held';
 
 /**
@@ -17,7 +18,11 @@ import {useHeldTouch} from './held';
  * The held touch is `useHeldTouch`'s: the hold arms the menu, the release's
  * click is taken as the menu's rather than the content's press, and the menu
  * shows in a task after it, since one shown while the touch is down is
- * light-dismissed by the release.
+ * light-dismissed by the release. A right click is the same where the
+ * platform raises `contextmenu` while the button is still down (Linux,
+ * macOS): the menu shows in a task after the button comes up. Windows raises
+ * it after the release, and the Menu key with no button down, and there the
+ * menu shows at once.
  *
  * **`contextmenu` opens the menu whichever `trigger` says**, because a right
  * click is what a pointer user and every assistive technology on this
@@ -38,6 +43,9 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
     if (element && !element.matches(':popover-open')) element.showPopover();
   };
   const held = useHeldTouch(open, !disabled && trigger !== 'tap');
+  // A right click's menu waiting for its button to come up.
+  const pending = useRef<(() => void) | null>(null);
+  useEffect(() => () => pending.current?.(), []);
   // The menu's popover sits inside the wrapper, in React's tree and the DOM
   // alike (the top layer moves its box, not its place in the tree), so its
   // clicks and right clicks reach the wrapper's handlers. They are the
@@ -55,7 +63,17 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
     // A browser that raises `contextmenu` for the held touch as well (Chrome
     // on Android) opens the menu with it, once.
     held.cancel();
-    open(event.clientX, event.clientY);
+    pending.current?.();
+    pending.current = null;
+    const {clientX: x, clientY: y} = event;
+    if (event.buttons === 0) {
+      open(x, y);
+      return;
+    }
+    pending.current = afterRelease(() => {
+      pending.current = null;
+      open(x, y);
+    });
   };
   const onClick = (event: MouseEvent) => {
     if (disabled || inMenu(event)) return;

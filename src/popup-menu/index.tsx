@@ -3,6 +3,7 @@ import type {CSSProperties} from 'react';
 import type {PopupMenuProps} from './types';
 import {useEffect, useRef} from 'react';
 import {MenuList, useMenuIdent} from '../menu/list';
+import {afterRelease} from '../menu/release';
 import {useEscape} from '../popover/shared';
 import {filterItems, sizeOf} from './types';
 
@@ -73,27 +74,7 @@ export function PopupMenu({items, at, preferredEdge = 'auto', filter, takesFocus
       show();
       return;
     }
-    // A menu raised from a press has to outlast it, which is the whole gesture
-    // for a context menu on the right button's press. The browser settles what
-    // a press dismisses as the pointer goes down and carries it out at the
-    // release, after the release's own listeners have run: a popover shown
-    // while the button is held is hidden again, and so is one shown from the
-    // `pointerup` listener itself, which Chrome light-dismisses with that same
-    // press, before its click. So the menu is shown in a task of its own after
-    // the release, once the press and its dismissal are over.
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const released = () => {
-      document.removeEventListener('pointerup', released);
-      document.removeEventListener('pointercancel', released);
-      timer = setTimeout(show, 0);
-    };
-    document.addEventListener('pointerup', released);
-    document.addEventListener('pointercancel', released);
-    return () => {
-      document.removeEventListener('pointerup', released);
-      document.removeEventListener('pointercancel', released);
-      clearTimeout(timer);
-    };
+    return afterRelease(show);
   }, [open, x, y, size.width, size.height, pressed]);
 
   // Escape closes the menu while it shows, wherever the focus is: an editor
