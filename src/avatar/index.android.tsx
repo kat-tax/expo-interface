@@ -13,8 +13,9 @@ const UNSEEN = '#00000000';
 /**
  * Inside a native host (a `ListItem`'s `leading`, a `NativeHost`, `Screen
  * native`) Android draws the avatar in Compose: the circle, the initials and
- * the ring. A Compose row composes its slots as Compose content, with no
- * host for a React Native view, so the drawn circle would not show there.
+ * the ring. A Compose row composes its slots as Compose content, where the
+ * drawn circle, a React Native view, would be hosted inside the row, and
+ * hosted again each time a `List` recycles the row, which ends the app.
  *
  * Outside one a Compose view has no composition to draw in, so the avatar is
  * drawn in React Native, as it is on iOS and web.
@@ -32,9 +33,9 @@ export function Avatar(props: AvatarProps) {
  * square. The initials sit in the inner circle, in the color that reads on
  * the fill.
  *
- * **The name is unseen text over the face.** `@expo/ui`'s Compose layer
- * exposes no modifier that sets a content description, and TalkBack reads a
- * `Text` by its text, so the initials alone would be read as two letters.
+ * **The name is unseen text over the face.** TalkBack reads a `Text` by its
+ * text, so the initials alone would be read as two letters, and a content
+ * description on the face would leave them a node of their own beside it.
  * The name is a transparent `Text` the size of the face, after the initials.
  * Where nothing merges them, Compose leaves out of TalkBack's tree a node
  * that a sibling drawn above it covers, so the face is read as the name

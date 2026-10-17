@@ -32,15 +32,15 @@ export function Badge(props: BadgeProps) {
 /**
  * The Compose `Badge`, for a badge inside a host.
  *
- * **The label is unseen text in the badge's end padding.** `@expo/ui`'s
- * Compose layer exposes no modifier that sets a content description (only
- * `Icon` takes one as a prop, and `semantics` takes `contentType` and nothing
- * else), and TalkBack reads the number the badge draws. So what the label
- * says past that number ("new" of "3 new", the whole label of a dot) is a
- * transparent `Text` after the badge, which TalkBack reads after the number:
- * merged into a row that presses or a Material `ListItem`, a stop of its own
- * anywhere else. When a description modifier lands, this is the first place
- * to use it.
+ * **The label is unseen text in the badge's end padding.** TalkBack reads
+ * the number the badge draws, and a content description would not add the
+ * rest: it stands in for a node's own text, and a row that merges what it
+ * holds reads every description before its texts, so the badge's words
+ * would come before the row's headline. So what the label says past the
+ * number ("new" of "3 new", the whole label of a dot) is a transparent
+ * `Text` after the badge, which TalkBack reads after the number: merged into
+ * a row that presses or a Material `ListItem`, a stop of its own anywhere
+ * else.
  *
  * A `label` of `null`, a badge its parent speaks for, puts no words in at
  * all. The number is still a `Text` Compose reads: only the words after it
