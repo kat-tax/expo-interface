@@ -74,6 +74,15 @@ export function DialogTextField(props: TextFieldProps) {
  * `isAccessibilitySelectionExtendable`), which a password does not offer
  * anyway. Compose's own hint text, which names an edit box without either
  * cost, is not something `@expo/ui`'s `semantics` sets.
+ *
+ * The Compose field is keyed on `secureTextEntry`. Compose foundation's
+ * `CoreTextFieldSemanticsModifierNode` compares a new password flag with
+ * the one it holds but never stores the new one, so a field keeps the flag
+ * it was first composed with, while `@expo/ui` hands it a new
+ * transformation and keyboard on each composition. A new node takes the
+ * flag it is given, and the text, held here in `useNativeState`, keeps
+ * what was typed. The caret's place is lost (the new field starts with it
+ * at the beginning), and so is the focus if the field had it.
  */
 function RowTextField({
   placeholder,
@@ -115,6 +124,7 @@ function RowTextField({
 
   return (
     <Field
+      key={secureTextEntry ? 'secure' : 'plain'}
       value={text}
       onValueChange={onChangeText}
       enabled={disabled !== true}

@@ -218,12 +218,16 @@ web, the WinUI box's UI Automation name, and React Native's label in
 Differences:
 
 - A plain `row` field on Android is named by its placeholder while it is
-  empty and by its text once it holds some, as Material's own fields are. A
+  empty and by its text once it holds some. A
   password field there keeps the placeholder as its content description,
   which TalkBack speaks before the count of its characters. A plain field
   carries no description, because Compose would read it in place of the
   text when TalkBack moves through the field by character or word, and
   would let no selection be extended in it.
+- On Android, turning `secureTextEntry` on or off draws a new Compose
+  field, because Compose's field keeps the password flag it was first drawn
+  with. What was typed stays; the caret goes back to the beginning and the
+  field gives up the focus.
 - `autoCapitalize` has no equivalent in the Windows row.
 - In `inline` on Windows, `keyboardType` has no effect and `autoCapitalize`
   honours only `characters`: react-native-windows ignores the rest.

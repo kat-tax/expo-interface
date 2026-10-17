@@ -95,7 +95,12 @@ export interface TextFieldProps {
   ref?: Ref<TextFieldCommands>;
   /** Disables editing and dims the field. */
   disabled?: boolean;
-  /** Masks the input for sensitive values such as passwords. */
+  /**
+   * Masks the input for sensitive values such as passwords. On Android the
+   * row draws a new field each time it turns on or off, so the field is
+   * reported as a password exactly while it is one: what was typed stays,
+   * the caret goes back to the beginning and the field gives up the focus.
+   */
   secureTextEntry?: boolean;
   /**
    * Keyboard variant to display. On web it is also the field's `inputmode`,

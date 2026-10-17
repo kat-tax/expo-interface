@@ -2,6 +2,25 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, nodes, modifier} from 'expo-vitest/native';
 import {DialogTextField, TextField} from './index.android';
 
+/**
+ * The filled Compose field with a probe around it, which counts the fields
+ * mounted and keeps each text state handed over, so a test can tell a new
+ * field from the same one and see which state it was given.
+ */
+const fields = vi.hoisted(() => ({mounted: 0, values: [] as unknown[]}));
+vi.mock('@expo/ui/jetpack-compose', async importOriginal => {
+  const compose = await importOriginal<typeof import('@expo/ui/jetpack-compose')>();
+  const {useEffect} = await import('react');
+  function TextFieldProbe(props: Parameters<typeof compose.TextField>[0]) {
+    fields.values.push(props.value);
+    useEffect(() => {
+      fields.mounted += 1;
+    }, []);
+    return <compose.TextField {...props}/>;
+  }
+  return {...compose, TextField: Object.assign(TextFieldProbe, compose.TextField)};
+});
+
 describe('DialogTextField (android)', () => {
   it("draws Material's outlined field, unshifted, with the row's placeholder colour, cursor tint and keyboard", async () => {
     const onSubmit = vi.fn();
@@ -63,6 +82,31 @@ describe('TextField (android)', () => {
     expect(modifier(byComposeTestID('none').props, 'semantics')).toBeUndefined();
     await render(<TextField placeholder="" value="Ada" secureTextEntry testID="empty"/>);
     expect(modifier(byComposeTestID('empty').props, 'semantics')).toBeUndefined();
+  });
+
+  it('composes a new field on the same text state when secureTextEntry turns, so the password flag follows it', async () => {
+    const {rerender} = await render(<TextField placeholder="Password" secureTextEntry testID="pw"/>);
+    expect(byComposeTestID('pw').props.visualTransformation).toBe('password');
+    expect(byComposeTestID('pw').props.keyboardOptions.keyboardType).toBe('password');
+    const mounted = fields.mounted;
+    const text = fields.values.at(-1) as {value: string};
+    text.value = 'hunter22';
+    // A change to anything else keeps the field it has.
+    await rerender(<TextField placeholder="Password" secureTextEntry maxLength={20} testID="pw"/>);
+    expect(fields.mounted).toBe(mounted);
+
+    await rerender(<TextField placeholder="Password" maxLength={20} testID="pw"/>);
+    expect(fields.mounted).toBe(mounted + 1);
+    expect(byComposeTestID('pw').props.visualTransformation).toBe('none');
+    expect(byComposeTestID('pw').props.keyboardOptions.keyboardType).toBe('text');
+    // The new field is handed the state that holds what was typed.
+    expect(fields.values.at(-1)).toBe(text);
+    expect(text.value).toBe('hunter22');
+
+    await rerender(<TextField placeholder="Password" maxLength={20} secureTextEntry testID="pw"/>);
+    expect(fields.mounted).toBe(mounted + 2);
+    expect(byComposeTestID('pw').props.visualTransformation).toBe('password');
+    expect(fields.values.at(-1)).toBe(text);
   });
 
   it("names the inline field by its placeholder through React Native's label, its EditText's content description", async () => {
