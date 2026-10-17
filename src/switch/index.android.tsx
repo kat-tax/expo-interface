@@ -1,19 +1,9 @@
 import type {SwitchProps} from './types';
 
 import {useState} from 'react';
-import {Box, Column, Row, Spacer, Surface, Switch as ComposeSwitch, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
-import {
-  alpha,
-  fillMaxWidth,
-  graphicsLayer,
-  height,
-  matchParentSize,
-  onSizeChanged,
-  semantics,
-  testID as testIDModifier,
-  toggleable,
-  width,
-} from '@expo/ui/jetpack-compose/modifiers';
+import {Box, Column, Row, Spacer, Switch as ComposeSwitch, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
+import {alpha, fillMaxWidth, graphicsLayer, height, onSizeChanged, width} from '@expo/ui/jetpack-compose/modifiers';
+import {ToggleCover} from '../a11y/cover';
 import {SelfHosted} from '../host';
 import {useColor} from '../theme';
 
@@ -23,11 +13,6 @@ const SCALE = 0.80;
 
 // iOS switches use a white thumb when on; M3 defaults to `onPrimary`.
 const THUMB_ON = '#FFFFFF';
-
-const CLEAR = '#00000000';
-
-/** What the disabled cover is handed, so that Compose reports it as toggleable and disabled. */
-const inert = () => {};
 
 /**
  * The Material 3 `Switch`, in a host of its own where there is none above
@@ -50,18 +35,11 @@ export function Switch(props: SwitchProps) {
  * switch reads identically across platforms — including inside sheets whose
  * native host is not seeded.
  *
- * The control a screen reader is handed is a cover laid over the row, not
- * the Material switch. Compose reports a node's role only where the node has
- * no semantic children, and moves its role and content description to
- * children of their own where it has some; the Material switch always has
- * one, its thumb, whose `background` is a semantics node. The cover has no
- * children, so its one node is the switch: the label as its content
- * description, the state, the press and the testID. Compose leaves out of
- * the tree what a node drawn over it covers, so the drawn label and the
- * Material switch, which only draws, are not read as well. Enabled, the
- * cover is `toggleable` with the switch role, and the whole row toggles, as
- * Material's switch rows do. `toggleable` takes no `enabled`, so disabled it
- * is a toggleable `Surface` that is not enabled, which has no role.
+ * The control a screen reader is handed is a `ToggleCover` laid over the
+ * row, not the Material switch, which always has a semantic child (its
+ * thumb) and so cannot carry its own role: one node with the switch role,
+ * named by the label, with the state, the press and the testID. The whole
+ * row toggles, as Material's switch rows do.
  */
 function NativeSwitch({
   label,
@@ -86,15 +64,7 @@ function NativeSwitch({
       modifiers={[graphicsLayer({scaleX: SCALE, scaleY: SCALE, transformOriginX: 1})]}
     />
   );
-  const identity = [
-    ...(label != null ? [semantics({contentDescription: label})] : []),
-    ...(testID ? [testIDModifier(testID)] : []),
-  ];
-  const cover = disabled ? (
-    <Surface color={CLEAR} checked={value} onCheckedChange={inert} enabled={false} modifiers={[matchParentSize(), ...identity]}/>
-  ) : (
-    <Box modifiers={[matchParentSize(), toggleable(value, () => onValueChange(!value), {role: 'switch'}), ...identity]}/>
-  );
+  const cover = <ToggleCover role="switch" value={value} onValueChange={onValueChange} disabled={disabled} label={label} testID={testID}/>;
 
   if (label == null) {
     return (

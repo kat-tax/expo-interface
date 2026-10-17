@@ -166,7 +166,7 @@ second line under the label in the secondary color: what the setting does),
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Toggle`, whose label is the row; with `supporting`, the toggle's own title and subtitle |
-| Android | Material 3 `Switch` at the trailing edge of a Compose row, with a white thumb as on iOS. TalkBack meets a node laid over the row as the switch: named by the label, with the state and the `testID`, and `supporting` read after it. Disabled, it is reported disabled but has no switch role, since `@expo/ui`'s `toggleable` takes no `enabled`. |
+| Android | Material 3 `Switch` at the trailing edge of a Compose row, with a white thumb as on iOS. TalkBack meets a node laid over the row as the switch: named by the label, with the state and the `testID`, enabled or not, and `supporting` read after it. |
 | Web | react-native-web's switch in a drawn row |
 | Windows | WinUI `ToggleSwitch` at the trailing edge of a drawn row |
 
