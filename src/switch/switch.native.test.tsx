@@ -44,9 +44,11 @@ describe(`Switch (${Platform.OS})`, () => {
       expect(props.enabled).toBe(true);
       expect(props.colors).toEqual({checkedTrackColor: '#007AFF', checkedThumbColor: '#FFFFFF'});
       expect(modifier(props, 'graphicsLayer')).toMatchObject({scaleX: 0.8, scaleY: 0.8, transformOriginX: 1});
+      // The label names the switch node itself, and the row is no second control.
+      expect(modifier(props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Wi-Fi'});
       const row = bare()[0];
       expect(row.props.horizontalArrangement).toBe('spaceBetween');
-      expect(modifier(row.props, 'fillMaxWidth')).toBeDefined();
+      expect(row.props.modifiers).toEqual([{$type: 'fillMaxWidth'}]);
       expect(host(p => p.text === 'Wi-Fi').props.color).toBe(palette.onSurface);
     }
   });
@@ -110,6 +112,7 @@ describe(`Switch (${Platform.OS})`, () => {
     expect(bare()).toHaveLength(1);
     if (!isIOS) {
       expect(modifier(bare()[0].props, 'testID')).toBeUndefined();
+      expect(modifier(bare()[0].props, 'semantics')).toBeUndefined();
       expect(modifier(bare()[0].props, 'graphicsLayer')).toBeDefined();
     }
   });

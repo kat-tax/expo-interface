@@ -166,12 +166,14 @@ second line under the label in the secondary color: what the setting does),
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Toggle`, whose label is the row; with `supporting`, the toggle's own title and subtitle |
-| Android | Material 3 `Switch` at the trailing edge of a Compose row, with a white thumb as on iOS |
+| Android | Material 3 `Switch` at the trailing edge of a Compose row, with a white thumb as on iOS. The label names the switch itself, its content description for TalkBack. |
 | Web | react-native-web's switch in a drawn row |
 | Windows | WinUI `ToggleSwitch` at the trailing edge of a drawn row |
 
 On iOS and Android a switch outside a host mounts one of its own: the width
-of its container with a label, of the switch without.
+of its container with a label, of the switch without. On Android the switch
+takes the press and the row does not: `@expo/ui`'s Compose switch always
+handles its own click, so a pressable row would be a second switch.
 
 ## Checkbox
 
@@ -394,7 +396,7 @@ release), `min` (0), `max` (1), `step` (omit for continuous), `disabled`,
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Slider` |
-| Android | Material 3 `Slider`. The kit converts the increment into Compose's interval count and snaps the value itself. |
+| Android | Material 3 `Slider`. The kit converts the increment into Compose's interval count and snaps the value itself. The label names the slider itself, its content description, which TalkBack reads with the value. |
 | Web | A real `<input type="range">` |
 | Windows | WinUI `Slider`. A continuous slider moves by a thousandth of the range. |
 

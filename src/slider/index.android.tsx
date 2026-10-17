@@ -2,14 +2,16 @@ import type {SliderProps} from './types';
 
 import {useEffect, useRef} from 'react';
 import {Row, Slider as ComposeSlider, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
-import {fillMaxWidth, testID as testIDModifier, weight} from '@expo/ui/jetpack-compose/modifiers';
+import {fillMaxWidth, semantics, testID as testIDModifier, weight} from '@expo/ui/jetpack-compose/modifiers';
 import {useColor} from '../theme';
 
 /**
  * Android renders the Material 3 `Slider`, colored with the live accent seed
  * (matching the iOS `tint` cascade and the web `accent-color`) instead of the
  * host's tonal M3 primary. With a `label` the row fills the available width
- * and the slider takes the remaining space, mirroring the iOS Form row.
+ * and the slider takes the remaining space, mirroring the iOS Form row. The
+ * label is a text beside the slider, so it also names the slider, as its
+ * content description, and TalkBack reads it with the value.
  */
 export function Slider({
   label,
@@ -67,7 +69,7 @@ export function Slider({
         inactiveTickColor: accent,
       }}
       modifiers={[
-        ...(label != null ? [weight(1)] : [fillMaxWidth()]),
+        ...(label != null ? [weight(1), semantics({contentDescription: label})] : [fillMaxWidth()]),
         ...(testID ? [testIDModifier(testID)] : []),
       ]}
     />
