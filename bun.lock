@@ -5,7 +5,7 @@
     "": {
       "name": "expo-interface",
       "devDependencies": {
-        "@expo/ui": "~57.0.18",
+        "@expo/ui": "~57.0.25",
         "@testing-library/jest-dom": "^7.0.1",
         "@testing-library/react": "^16.3.3",
         "@testing-library/react-native": "^14.0.1",
@@ -24,10 +24,12 @@
       },
       "peerDependencies": {
         "@expo/material-symbols": "*",
-        "@expo/ui": "^57.0.0",
+        "@expo/ui": "^57.0.25",
         "expo": "^57.0.0",
         "expo-asset": "*",
         "expo-constants": "*",
+        "expo-file-system": "*",
+        "expo-haptics": "*",
         "expo-image": "*",
         "expo-router": "^57.0.0",
         "expo-status-bar": "*",
@@ -41,6 +43,8 @@
       },
       "optionalPeers": [
         "@expo/material-symbols",
+        "expo-file-system",
+        "expo-haptics",
         "react-native-keyboard-controller",
       ],
     },
@@ -49,7 +53,7 @@
       "version": "1.0.0",
       "dependencies": {
         "@expo/material-symbols": "^0.1.1",
-        "@expo/ui": "~57.0.18",
+        "@expo/ui": "~57.0.25",
         "expo": "~57.0.18",
         "expo-clipboard": "~57.0.1",
         "expo-constants": "~57.0.16",
@@ -86,7 +90,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@expo/material-symbols": "^0.1.1",
-        "@expo/ui": "~57.0.18",
+        "@expo/ui": "~57.0.25",
         "@gorhom/bottom-sheet": "^5.2.14",
         "@react-native-async-storage/async-storage": "2.2.0",
         "@react-native-community/datetimepicker": "9.1.0",
@@ -427,7 +431,7 @@
 
     "@expo/sudo-prompt": ["@expo/sudo-prompt@9.3.2", "", {}, "sha512-HHQigo3rQWKMDzYDLkubN5WQOYXJJE2eNqIQC2axC2iO3mHdwnIR7FgZVvHWtBwAdzBgAP0ECp8KqS8TiMKvgw=="],
 
-    "@expo/ui": ["@expo/ui@57.0.18", "", { "dependencies": { "sf-symbols-typescript": "^2.1.0", "vaul": "^1.1.2" }, "peerDependencies": { "@babel/core": "*", "expo": "*", "react": "*", "react-dom": "*", "react-native": "*", "react-native-worklets": "*" }, "optionalPeers": ["@babel/core", "react-dom", "react-native-worklets"] }, "sha512-9RkA26v0FSyHlkQCyavZrT8EzsALfkNHIFO5uC+IsAxzWzItdOWdy6asjpg1yaCvBEGMYkP17FUZxluhVbeleA=="],
+    "@expo/ui": ["@expo/ui@57.0.25", "", { "dependencies": { "sf-symbols-typescript": "^2.1.0", "vaul": "^1.1.2" }, "peerDependencies": { "@babel/core": "*", "expo": "*", "react": "*", "react-dom": "*", "react-native": "*", "react-native-worklets": "*" }, "optionalPeers": ["@babel/core", "react-dom", "react-native-worklets"] }, "sha512-/BbxsKh/LSIFDnWAHRHfJdCcnqHY7WNcWXjld0soKnYXDUbImjvsFK7y5dqq2XZTbOMyf44BpgAWKUR/B8huCA=="],
 
     "@expo/ws-tunnel": ["@expo/ws-tunnel@2.0.0", "", { "peerDependencies": { "ws": "^8.0.0" } }, "sha512-j+JfTRdCk820J9dU0sA2SqshQIKFOMo7ED84w9MJFcebfbNQgsLztEY/SABDkGnjatrW4xGqnUhVRxSBVyCkXw=="],
 

@@ -85,6 +85,9 @@ export const tween = (durationMillis?: number, delayMillis?: number, easing?: st
 export const snap = (delayMillis?: number) => ({type: 'snap', delayMillis});
 export const keyframes = (config?: unknown) => ({type: 'keyframes', config});
 
+/** The intrinsic sizes `width` and `height` take in place of a number. */
+export const IntrinsicSize = {Min: 'min', Max: 'max'} as const;
+
 export const Shapes = {
   Circle: {type: 'circle'},
   Rectangle: {type: 'rectangle'},

@@ -9,7 +9,7 @@ const isIOS = Platform.OS === 'ios';
 const HOST = 'ViewManagerAdapter_ExpoUI_HostView';
 const row = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
 const slot = (name: string) => nodes().filter(n => n.props?.slotName === name);
-const accessories = () => nodes().filter(n => n.props?.matchContents === true);
+const accessories = () => nodes().filter(n => n.props?.matchContentsHorizontal === true && n.props?.matchContentsVertical === true);
 const hosts = () => nodes().filter(n => n.type === HOST);
 
 describe(`ListItem (${Platform.OS})`, () => {

@@ -153,7 +153,7 @@ describe(`EmptyState (${Platform.OS})`, () => {
     it('hosts a node of the app\'s own in the stack inside a host, outside the host\'s context', async () => {
       await render(<NativeHost><EmptyState title="No drops" action={<Hosted/>}/></NativeHost>);
       expect(hosts()).toHaveLength(1);
-      expect(host(p => p.matchContents === true)).toBeTruthy();
+      expect(host(p => p.matchContentsHorizontal === true && p.matchContentsVertical === true)).toBeTruthy();
       // A kit control in the node mounts a host of its own, since it is React Native again.
       expect(screen.getByText('bare')).toBeOnTheScreen();
     });
@@ -206,7 +206,7 @@ describe(`EmptyState (${Platform.OS})`, () => {
     expect(nodes().some(n => n.type.includes('CircularProgressIndicator'))).toBe(true);
     expect(nodes().some(n => n.type.endsWith('IconView'))).toBe(false);
     // React Native content rides in the column through an RNHostView.
-    expect(host(p => p.matchContents === true)).toBeTruthy();
+    expect(host(p => p.matchContentsHorizontal === true && p.matchContentsVertical === true)).toBeTruthy();
     expect(screen.getByText('Cancel')).toBeOnTheScreen();
     // Outside the host's context, so a kit control in the node mounts a host of
     // its own: in the column's own host, and in one the column renders bare in.
@@ -228,7 +228,7 @@ describe(`EmptyState (${Platform.OS})`, () => {
     expect(width()).toBe(Dimensions.get('window').width - spacing.five * 2);
     const box = nodes().find(n => n.type.endsWith('BoxView') && modifier(n.props, 'onSizeChanged'))!;
     // Hosted, since React Native text straight in a Compose box would draw nothing.
-    const hostView = host(p => p.matchContents === true, box);
+    const hostView = host(p => p.matchContentsHorizontal === true && p.matchContentsVertical === true, box);
     expect(nodes(hostView).some(n => n.children?.includes('The file is gone.'))).toBe(true);
     await act(async () => modifier(box.props, 'onSizeChanged')!.eventListener({width: 280, height: 40}));
     expect(width()).toBe(280);

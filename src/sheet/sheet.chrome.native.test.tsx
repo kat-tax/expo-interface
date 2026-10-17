@@ -172,7 +172,7 @@ describe(`Sheet chrome (${Platform.OS})`, () => {
     // the sheet's `pointerEvents="none"` host, so `layoutRoot` stands in for a press.
     const hosts = nodes().filter(n => n.type.endsWith('RNHostView'));
     expect(hosts).toHaveLength(2);
-    expect(hosts.every(n => n.props.matchContents === true && n.props.layoutRoot === true)).toBe(true);
+    expect(hosts.every(n => n.props.matchContentsHorizontal === true && n.props.matchContentsVertical === true && n.props.layoutRoot === true)).toBe(true);
     expect(screen.getByText('Body')).toBeOnTheScreen();
     const json = JSON.stringify(screen.toJSON());
     expect(json.indexOf('Comments')).toBeLessThan(json.indexOf('Filter'));

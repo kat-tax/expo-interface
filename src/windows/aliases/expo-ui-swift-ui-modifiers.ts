@@ -139,6 +139,13 @@ const NAMED: Record<string, string[]> = {
   containerShape: ['shape'],
   contentShape: ['shape'],
   clipShape: ['shape'],
+  navigationSplitViewStyle: ['style'],
+  presentationCornerRadius: ['cornerRadius'],
+  searchToolbarBehavior: ['behavior'],
+  preferredColorScheme: ['colorScheme'],
+  scrollEdgeEffectStyle: ['style', 'edges'],
+  navigationBarTitleDisplayMode: ['displayMode'],
+  toolbarTitleDisplayMode: ['mode'],
 };
 
 /** Modifiers that default to on when called with nothing. */
@@ -362,3 +369,17 @@ export const luminanceToAlpha = factory('luminanceToAlpha');
 export const resizable = factory('resizable');
 export const navigationTitle = factory('navigationTitle');
 export const scrollClipDisabled = factory('scrollClipDisabled');
+export const navigationSplitViewStyle = factory('navigationSplitViewStyle');
+export const navigationSplitViewColumnWidth = factory('navigationSplitViewColumnWidth');
+export const arrangementViewStyle = factory('arrangementViewStyle');
+export const splitArrangementLayoutRatio = factory('splitArrangementLayoutRatio');
+export const splitArrangementLayoutSize = factory('splitArrangementLayoutSize');
+export const splitArrangementFixedLayoutSize = factory('splitArrangementFixedLayoutSize');
+export const overlayArrangementEdge = factory('overlayArrangementEdge');
+export const presentationCornerRadius = factory('presentationCornerRadius');
+export const searchable = factory('searchable');
+export const searchToolbarBehavior = factory('searchToolbarBehavior');
+export const preferredColorScheme = factory('preferredColorScheme');
+export const scrollEdgeEffectStyle = factory('scrollEdgeEffectStyle');
+export const navigationBarTitleDisplayMode = factory('navigationBarTitleDisplayMode');
+export const toolbarTitleDisplayMode = factory('toolbarTitleDisplayMode');
