@@ -176,7 +176,7 @@ props, what each platform renders, and where the platforms differ.
 
 ## Versions
 
-Expo SDK 57, React Native 0.86.3 and `@expo/ui` 57.0.18. On Windows the kit
+Expo SDK 57, React Native 0.86.3 and `@expo/ui` 57.0.25. On Windows the kit
 runs on [expo-windows](https://github.com/kat-tax/expo-windows). React Native
 0.86 has no react-native-windows release yet, so the Windows side is built and
 tested on the 0.84 line.

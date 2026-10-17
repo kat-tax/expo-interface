@@ -74,9 +74,10 @@ frame. The web runs a CSS animation that `prefers-reduced-motion` stills.
 | Windows | WinUI `InfoBadge`. It holds a number and nothing else, so an overflowing count reads as the cap (`99`) where the others draw `99+`; the accessible name carries the true wording. |
 
 A drawn badge and the other three platforms announce the label. Inside a
-host on Android `@expo/ui`'s Compose layer exposes no modifier that sets a
-content description, and TalkBack reads the number the badge draws, so the
-rest of the label ("new" of "3 new", the whole label of a dot) is unseen
+host on Android TalkBack reads the number the badge draws, and a content
+description would not add the rest: a row that merges what it holds reads
+every description before its texts, which would put the badge's words
+before the row's headline. So the rest of the label ("new" of "3 new", the whole label of a dot) is unseen
 text in a small box at the badge's end edge, inside the padding beside the
 number. TalkBack reads it after the number: as part of a row that presses or
 a Material `ListItem`, which merge what they hold, and as a stop of its own
@@ -110,7 +111,7 @@ away), `testID`.
 | Platform | Renders |
 | --- | --- |
 | iOS, Web | A drawn circle |
-| Android | A drawn circle; inside a native host (a `ListItem`'s `leading`, a `NativeHost`, `Screen native`) the same circle in Compose, since a Compose row composes its slots as Compose content with no host for a React Native view. The ring is a circle behind a smaller one, as `@expo/ui`'s `border` modifier takes no shape. TalkBack reads the hosted face by the person's name, unseen text laid over the initials, since `@expo/ui`'s Compose layer sets no content description: where nothing merges them, Compose leaves out a node that a sibling drawn above it covers, so the face is the name alone; inside a row that presses or a Material `ListItem`, which merge what they hold, it reads the initials and then the name among the row's texts. |
+| Android | A drawn circle; inside a native host (a `ListItem`'s `leading`, a `NativeHost`, `Screen native`) the same circle in Compose, since a Compose row composes its slots as Compose content, where a React Native view is hosted inside the row and, in a `List`, hosted again each time the row is recycled. The ring is a circle behind a smaller one, as `@expo/ui`'s `border` modifier takes no shape. TalkBack reads the hosted face by the person's name, unseen text laid over the initials, since a content description on the face would leave the initials a node of their own beside it: where nothing merges them, Compose leaves out a node that a sibling drawn above it covers, so the face is the name alone; inside a row that presses or a Material `ListItem`, which merge what they hold, it reads the initials and then the name among the row's texts. |
 | Windows | WinUI `PersonPicture`, filled with the same hashed color. A ring is the view around the picture, which is drawn the ring's width smaller inside it. |
 
 ## AvatarGroup

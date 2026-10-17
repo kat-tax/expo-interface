@@ -97,9 +97,9 @@ export function ColorPicker({
       ]}>
       {inner}
       {/*
-        @expo/ui's `semantics` takes no content description, so the name is an unseen Text that the
-        clickable merges. A disabled preset has no clickable to merge it into, and would leave the
-        name standing alone as plain text, so it carries none.
+        The name is an unseen Text that the clickable merges, read with the swatch's state as the
+        kit's other merged rows read theirs. A disabled preset has no clickable to merge it into,
+        and would leave the name standing alone as plain text, so it carries none.
       */}
       {disabled ? null : <Text color={NONE} maxLines={1}>{name}</Text>}
     </Box>

@@ -4,10 +4,10 @@ import {TONE_TOKEN, symbolName} from '../icons';
 import {useColor} from '../theme';
 
 /**
- * iOS and Android draw an `IconToken` through `expo-symbols`' `SymbolView`:
- * the SF Symbol on iOS (the `.fill` form for a filled token), the Material
- * Symbol on Android. A React Native view, so it goes in a React Native
- * layout; inside a host the controls draw their own icons.
+ * iOS draws an `IconToken` through `expo-symbols`' `SymbolView`: the SF
+ * Symbol, its `.fill` form for a filled token. A React Native view, inside a
+ * host as well as outside one. Android has a file of its own, which draws
+ * the glyph as Compose content inside a host and as this view outside one.
  *
  * Hidden from assistive technology: a glyph on its own says nothing, and the
  * control or row around it carries the name.

@@ -2,6 +2,7 @@ import type {ChipProps} from './types';
 import {AssistChip, FilterChip, Icon, SuggestionChip, Text} from '@expo/ui/jetpack-compose';
 import {testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {SIZE_ICON} from '../button/shared';
+import {SelfHosted} from '../host';
 import {drawableOf} from '../icons';
 import {useColor} from '../theme';
 import {chipKind, nextSelected} from './shared';
@@ -19,8 +20,21 @@ const ICON = SIZE_ICON.small;
  *
  * The fourth, `InputChip`, is the one with a remove cross, and the kit does
  * not offer it: see `types.ts` for why.
+ *
+ * In a host of its own, sized to the chip, where there is none above it, so
+ * a chip can stand in a React Native layout like any element: a row of
+ * filters above a list. Inside one it renders bare.
  */
 export function Chip(props: ChipProps) {
+  return (
+    <SelfHosted>
+      <NativeChip {...props}/>
+    </SelfHosted>
+  );
+}
+
+/** The Compose chip, which draws only inside a host. */
+function NativeChip(props: ChipProps) {
   const {label, onPress, selected, icon, disabled, testID} = props;
   const ink = useColor('label');
   const drawable = drawableOf(icon);

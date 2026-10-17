@@ -1,10 +1,12 @@
 import type {ButtonProps, ButtonVariant} from './types';
 import type {ViewModifier} from '@expo/ui/swift-ui/modifiers';
-import {Button as SwiftUIButton, HStack, Image, ProgressView, Text} from '@expo/ui/swift-ui';
-import {accessibilityAddTraits, accessibilityLabel, buttonStyle, buttonBorderShape, controlSize, labelStyle, padding, progressViewStyle, tint, disabled as disabledMod} from '@expo/ui/swift-ui/modifiers';
+import {useContext} from 'react';
+import {Button as SwiftUIButton, HStack, Image, ProgressView, Spacer, Text} from '@expo/ui/swift-ui';
+import {accessibilityAddTraits, accessibilityLabel, buttonStyle, buttonBorderShape, contentShape, controlSize, labelStyle, onTapGesture, padding, progressViewStyle, shapes, tint, disabled as disabledMod} from '@expo/ui/swift-ui/modifiers';
 import {ICON_GAP, SIZE_ICON, iosSymbol, swiftBorderShape, swiftControlSize} from './shared';
 import {onAccent as contrastOf} from '../accent';
 import {fillWidth as fillWidthModifiers} from '../fill';
+import {FieldRowContext} from '../field-group/row-context';
 import {SelfHosted} from '../host';
 import {useColor} from '../theme';
 
@@ -20,10 +22,34 @@ const VARIANT_STYLE: Record<ButtonVariant, 'borderedProminent' | 'bordered' | 'p
  * element.
  */
 export function Button(props: ButtonProps) {
+  // A button that fills its width fills the row already.
+  const row = useContext(FieldRowContext) && !props.fillWidth;
   return (
     <SelfHosted fit={!props.fillWidth}>
-      <NativeButton {...props}/>
+      {row ? <RowButton {...props}/> : <NativeButton {...props}/>}
     </SelfHosted>
+  );
+}
+
+/**
+ * A button that is a `FieldGroup` row of its own. SwiftUI gives the `Form`
+ * cell's frame to the button, so it reports the whole row as its frame, but a
+ * bordered button takes taps only on its capsule and a plain one only on its
+ * text. So the button stands at the leading edge of a stack the row's width,
+ * drawn as it is anywhere else, and the stack's rectangle takes a tap on the
+ * rest of the row while the button can be pressed, as a `Form`'s own button
+ * rows do. A tap on the button itself is still the button's: SwiftUI gives a
+ * child's gesture the first claim.
+ */
+function RowButton(props: ButtonProps) {
+  const {onPress, disabled, loading} = props;
+  const modifiers: ViewModifier[] = [contentShape(shapes.rectangle())];
+  if (onPress && !disabled && !loading) modifiers.push(onTapGesture(onPress));
+  return (
+    <HStack spacing={0} modifiers={modifiers}>
+      <NativeButton {...props}/>
+      <Spacer minLength={0}/>
+    </HStack>
   );
 }
 

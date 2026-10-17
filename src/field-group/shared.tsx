@@ -2,7 +2,7 @@ import type {ComponentType, ReactElement, ReactNode} from 'react';
 import type {FieldGroupSectionProps, FieldSectionFooterColor} from './types';
 import {Children, Fragment, isValidElement} from 'react';
 import {FieldGroup as Base} from '@expo/ui';
-import {flushRows} from './rows';
+import {flushRow, flushRows} from './rows';
 
 /** Renders the `footer` prop's text in the platform's own text control. */
 export type FooterRenderer = (footer: string, color: FieldSectionFooterColor) => ReactNode;
@@ -36,7 +36,8 @@ export function baseSection(
  * checking each child's type against its own `Section`, so a kit `Section`
  * wrapping it would be grouped as a row. The kit sections are therefore
  * replaced by the universal ones (with the footer slot) before the children
- * reach the group; fragments are walked like the group walks them.
+ * reach the group; fragments are walked like the group walks them. A loose
+ * row is a row of the implicit section, so it is flushed as a section's are.
  */
 export function mapSections(children: ReactNode, Section: ComponentType<FieldGroupSectionProps>, renderFooter: FooterRenderer): ReactNode {
   return Children.map(children, child => {
@@ -45,6 +46,6 @@ export function mapSections(children: ReactNode, Section: ComponentType<FieldGro
     if (child.type === Fragment) {
       return <Fragment>{mapSections((child.props as {children?: ReactNode}).children, Section, renderFooter)}</Fragment>;
     }
-    return child;
+    return flushRow(child);
   });
 }

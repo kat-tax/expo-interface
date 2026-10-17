@@ -176,6 +176,24 @@ describe('@expo/ui/swift-ui layout (windows)', () => {
     expect(screen.getByTestId('grid')).toHaveStyle({gap: 2});
   });
 
+  it('lays a split view\'s columns side by side, and an arrangement\'s views and a toolbar item where they stand', async () => {
+    await render(
+      <ui.NavigationSplitView testID="split">
+        <ui.NavigationSplitView.Sidebar><ui.Text>Side</ui.Text></ui.NavigationSplitView.Sidebar>
+        <ui.NavigationSplitView.Content><ui.Text>Middle</ui.Text></ui.NavigationSplitView.Content>
+        <ui.NavigationSplitView.Detail>
+          <ui.ArrangementView>
+            <ui.ArrangementView.Primary><ui.Text>First</ui.Text></ui.ArrangementView.Primary>
+            <ui.ArrangementView.Secondary><ui.Text>Second</ui.Text></ui.ArrangementView.Secondary>
+          </ui.ArrangementView>
+          <ui.ToolbarItem placement="topBarTrailing"><ui.Text>Item</ui.Text></ui.ToolbarItem>
+        </ui.NavigationSplitView.Detail>
+      </ui.NavigationSplitView>,
+    );
+    expect(screen.getByTestId('split')).toHaveStyle({flexDirection: 'row'});
+    for (const text of ['Side', 'Middle', 'First', 'Second', 'Item']) expect(screen.getByText(text)).toBeOnTheScreen();
+  });
+
   it('decorates with masks, overlays, backgrounds and shapes, and says what is another platform\'s', async () => {
     forgetWarnings();
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});

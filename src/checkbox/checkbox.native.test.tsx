@@ -25,6 +25,9 @@ const options = {wrapper: Material};
 /** The SwiftUI glyph rendered for the box (iOS only). */
 const glyph = () => host(p => typeof p.systemName === 'string');
 
+/** The Compose box, which the row may toggle in its place (Android only). */
+const composeBox = () => host(p => 'nativeClickable' in p);
+
 describe(`Checkbox (${Platform.OS})`, () => {
   it('renders the checked box with its label', async () => {
     await render(<Checkbox label="Remember me" value onValueChange={vi.fn()} testID="cb"/>, options);
@@ -36,13 +39,16 @@ describe(`Checkbox (${Platform.OS})`, () => {
       expect(glyph().props.systemName).toBe('checkmark.square.fill');
       expect(modifier(glyph().props, 'font')?.size).toBe(22);
     } else {
-      expect(props.value).toBe(true);
-      expect(props.enabled).toBe(true);
-      expect(props.nativeClickable).toBe(true);
+      // The row is the one checkbox, named by its label's text, and carries the testID.
+      expect(modifier(props, 'toggleable')).toMatchObject({value: true, role: 'checkbox'});
+      expect(modifier(props, 'fillMaxWidth')).toBeDefined();
+      // The box is drawn but is no node of its own: no click, padded to its touch target's place.
+      const {props: boxProps} = composeBox();
+      expect(boxProps.value).toBe(true);
+      expect(boxProps.enabled).toBe(true);
+      expect(boxProps.nativeClickable).toBe(false);
+      expect(boxProps.modifiers).toEqual([{$type: 'paddingAll', all: 12}]);
       expect(host(p => p.text === 'Remember me').props.color).toBe(palette.onSurface);
-      const row = host(p => modifier(p, 'toggleable') != null);
-      expect(modifier(row.props, 'toggleable')).toMatchObject({value: true, role: 'checkbox'});
-      expect(modifier(row.props, 'fillMaxWidth')).toBeDefined();
     }
   });
 
@@ -53,8 +59,9 @@ describe(`Checkbox (${Platform.OS})`, () => {
       expect(glyph().props.systemName).toBe('square');
       expect(modifier(glyph().props, 'foregroundStyle')?.style.color).toBe('#000000');
     } else {
-      expect(props.value).toBe(false);
-      expect(props.colors.uncheckedColor).toBe(palette.onSurfaceVariant);
+      expect(modifier(props, 'toggleable')?.value).toBe(false);
+      expect(composeBox().props.value).toBe(false);
+      expect(composeBox().props.colors.uncheckedColor).toBe(palette.onSurfaceVariant);
     }
   });
 
@@ -68,7 +75,7 @@ describe(`Checkbox (${Platform.OS})`, () => {
     if (isIOS) {
       expect(modifier(glyph().props, 'foregroundStyle')?.style.color).toBe('#8959EA');
     } else {
-      expect(box('cb').props.colors).toEqual({
+      expect(composeBox().props.colors).toEqual({
         checkedColor: '#8959EA',
         checkmarkColor: '#FFFFFF',
         uncheckedColor: palette.onSurfaceVariant,
@@ -81,8 +88,8 @@ describe(`Checkbox (${Platform.OS})`, () => {
     if (isIOS) {
       expect(modifier(glyph().props, 'foregroundStyle')?.style.color).toBe('#FFCC00');
     } else {
-      expect(box('cb').props.colors.checkedColor).toBe('#FFCC00');
-      expect(box('cb').props.colors.checkmarkColor).toBe('#000000');
+      expect(composeBox().props.colors.checkedColor).toBe('#FFCC00');
+      expect(composeBox().props.colors.checkmarkColor).toBe('#000000');
     }
   });
 
@@ -93,8 +100,11 @@ describe(`Checkbox (${Platform.OS})`, () => {
       expect(modifier(props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
       expect(modifier(host(p => p.text === 'Updates').props, 'foregroundStyle')?.style.color).toBe('#60646C');
     } else {
+      // A disabled row cannot be toggleable, so the box is the control, with the testID:
+      // a click it never fires, so Compose reports a disabled checkbox, named by the label.
       expect(props.enabled).toBe(false);
-      expect(props.nativeClickable).toBe(false);
+      expect(props.nativeClickable).toBe(true);
+      expect(modifier(props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Updates'});
       expect(host(p => p.text === 'Updates').props.color).toBe(palette.onSurfaceVariant);
       expect(nodes().some(n => modifier(n.props, 'toggleable') != null)).toBe(false);
     }
@@ -118,7 +128,7 @@ describe(`Checkbox (${Platform.OS})`, () => {
       await fireEvent(screen.getByTestId('cb'), 'buttonPress');
     } else {
       await act(async () => {
-        box('cb').props.onCheckedChange({nativeEvent: {value: true}});
+        modifier(box('cb').props, 'toggleable')?.eventListener();
       });
     }
     expect(onValueChange).toHaveBeenCalledTimes(1);
@@ -133,6 +143,24 @@ describe(`Checkbox (${Platform.OS})`, () => {
       modifier(row.props, 'toggleable')?.eventListener();
     });
     expect(onValueChange).toHaveBeenCalledWith(true);
+  });
+
+  (isIOS ? it.skip : it)('makes an unlabelled box the control, enabled or disabled, with the testID', async () => {
+    const onValueChange = vi.fn();
+    const {rerender} = await render(<Checkbox value={false} onValueChange={onValueChange} testID="cb"/>, options);
+    expect(box('cb').props).toMatchObject({enabled: true, nativeClickable: true});
+    expect(modifier(box('cb').props, 'semantics')).toBeUndefined();
+    await act(async () => {
+      box('cb').props.onCheckedChange({nativeEvent: {value: true}});
+    });
+    expect(onValueChange).toHaveBeenCalledWith(true);
+    // Disabled, it is still a checkbox: handed a click Compose never fires while it is disabled.
+    await rerender(<Checkbox value={false} onValueChange={onValueChange} disabled testID="cb"/>);
+    expect(box('cb').props).toMatchObject({enabled: false, nativeClickable: true});
+    await act(async () => {
+      box('cb').props.onCheckedChange({nativeEvent: {value: true}});
+    });
+    expect(onValueChange).toHaveBeenCalledTimes(1);
   });
 
   (isIOS ? it.skip : it)('carries no testID modifier without a testID', async () => {

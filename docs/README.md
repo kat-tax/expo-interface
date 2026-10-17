@@ -51,7 +51,7 @@ You can also see every component live, with its props, in the
 
 ## Versions
 
-Expo SDK 57 (React Native 0.86.3) and `@expo/ui` 57.0.18. The Windows files
+Expo SDK 57 (React Native 0.86.3) and `@expo/ui` 57.0.25. The Windows files
 use react-native-windows' Fabric API and are built and tested in a
 react-native-windows 0.84 app with Expo 57's JavaScript, since no
 react-native-windows pairs with React Native 0.86 yet. See

@@ -50,6 +50,13 @@ Differences:
   Segoe glyph on Windows. Without one the label still reads.
 - `suffixIcon` needs a drawable on Android and is dropped when the button is
   icon-only.
+- On iOS a button that is a `FieldGroup` row of its own, a child of the
+  group or of a section, takes a tap anywhere along the row while it can be
+  pressed, as a `Form`'s own button rows do. It is drawn as it is anywhere
+  else, at the row's leading edge: SwiftUI gives the button the whole row as
+  its frame, but a bordered button takes a tap only on its capsule and a
+  plain one only on its text. A button inside a row's content, or rendered
+  by a component of the app's own, is not a row.
 
 ```tsx
 <Button label="Save" onPress={save}/>
@@ -113,6 +120,10 @@ carries the state to a screen reader and the one that does not:
 Material's input chip, the one with a remove cross, is not offered: no other
 platform has a control for it.
 
+On iOS and Android a chip outside a host mounts one of its own, sized to
+itself, so a row of filters can stand in a React Native layout above a list.
+`NativeHost` puts a row of them in one host. See [Native hosts](../hosts.md).
+
 ## IconToggle
 
 A round icon button with two states, the outline when off and the filled
@@ -155,12 +166,14 @@ second line under the label in the secondary color: what the setting does),
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Toggle`, whose label is the row; with `supporting`, the toggle's own title and subtitle |
-| Android | Material 3 `Switch` at the trailing edge of a Compose row, with a white thumb as on iOS |
+| Android | Material 3 `Switch` at the trailing edge of a Compose row, with a white thumb as on iOS. The label names the switch itself, its content description for TalkBack. |
 | Web | react-native-web's switch in a drawn row |
 | Windows | WinUI `ToggleSwitch` at the trailing edge of a drawn row |
 
 On iOS and Android a switch outside a host mounts one of its own: the width
-of its container with a label, of the switch without.
+of its container with a label, of the switch without. On Android the switch
+takes the press and the row does not: `@expo/ui`'s Compose switch always
+handles its own click, so a pressable row would be a second switch.
 
 ## Checkbox
 
@@ -169,16 +182,17 @@ A checked or unchecked box with a leading label. Props: `label`, `value`,
 
 | Platform | Renders |
 | --- | --- |
-| iOS | A tinted `checkmark.square` glyph in a plain `Button`. SwiftUI on iOS has no checkbox control; the glyph is the platform idiom. |
-| Android | Material 3 `Checkbox`, with the whole row toggleable |
+| iOS | A tinted `checkmark.square` glyph in a plain `Button` that takes a tap anywhere along its row, which VoiceOver reads as a toggle that is on or off (iOS 17 and later read the toggle trait). SwiftUI on iOS has no checkbox control; the glyph is the platform idiom. |
+| Android | Material 3 `Checkbox`. With a label the whole row is the one checkbox, named by the label's text; disabled, the row cannot toggle, so the box is the checkbox, named by the label. The `testID` is on whichever is the checkbox. |
 | Web | A real `<input type="checkbox">` inside a `<label>`, so the text toggles it |
 | Windows | WinUI `CheckBox` at the trailing edge of a drawn row |
 
 ## TextField
 
 A single or multi-line text input. Props: `placeholder` (also the row's
-label), `value`, `onChangeText`, `onSubmit`, `onKeyPress`, `onFocus`,
-`onBlur`, `disabled`, `secureTextEntry`, `keyboardType` (`default`, `email`,
+label and the field's accessible name), `value`, `onChangeText`,
+`onSubmit`, `onKeyPress`, `onFocus`, `onBlur`, `disabled`,
+`secureTextEntry`, `keyboardType` (`default`, `email`,
 `number`, `phone`, `decimal`, `url`), `autoCapitalize`, `autoCorrect`,
 `multiline`, `autoFocus`, `returnKeyType` (`done`, `go`, `next`, `search`,
 `send`), `submitBehavior` (`blurAndSubmit`, `submit`), `variant` (`row`,
@@ -205,8 +219,24 @@ makes sure the keyboard came on Android.
 | Web | react-native-web's `TextInput`, a real `<input>` |
 | Windows | WinUI `TextBox` or `PasswordBox`, borderless |
 
+The placeholder names the field, and stays its name once the field holds
+text: the SwiftUI field's accessibility label, the input's `aria-label` on
+web, the WinUI box's UI Automation name, and React Native's label in
+`inline`.
+
 Differences:
 
+- A plain `row` field on Android is named by its placeholder while it is
+  empty and by its text once it holds some. A
+  password field there keeps the placeholder as its content description,
+  which TalkBack speaks before the count of its characters. A plain field
+  carries no description, because Compose would read it in place of the
+  text when TalkBack moves through the field by character or word, and
+  would let no selection be extended in it.
+- On Android, turning `secureTextEntry` on or off draws a new Compose
+  field, because Compose's field keeps the password flag it was first drawn
+  with. What was typed stays; the caret goes back to the beginning and the
+  field gives up the focus.
 - `autoCapitalize` has no equivalent in the Windows row.
 - In `inline` on Windows, `keyboardType` has no effect and `autoCapitalize`
   honours only `characters`: react-native-windows ignores the rest.
@@ -302,10 +332,11 @@ Windows reports no Shift, and on Windows `keyboardType` has no effect and
 
 A field for searching: the query box, a way to clear it, and optionally a
 list of completions under it. Props: `value`, `onChangeText`, `onSubmit`
-(Enter, the platform's search key, or a completion taken), `placeholder`,
-`suggestions`, `disabled`, `clearable` (default true), `autoFocus`,
-`autoCapitalize`, `onFocus`, `onBlur`, `onKeyPress` (a key by its name),
-`style`, `testID`, and a `ref` with `focus` and `blur`.
+(Enter, the platform's search key, or a completion taken), `placeholder`
+(also the box's accessible name, which it keeps once the box holds text;
+`Search` without one), `suggestions`, `disabled`, `clearable` (default
+true), `autoFocus`, `autoCapitalize`, `onFocus`, `onBlur`, `onKeyPress` (a
+key by its name), `style`, `testID`, and a `ref` with `focus` and `blur`.
 
 | Platform | Renders |
 | --- | --- |
@@ -329,7 +360,7 @@ A dropdown that selects one option, with `Picker.Item` children (`label`,
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Picker` in the menu style |
-| Android | A Compose row that mirrors the iOS form look, opening a Material `DropdownMenu`. The stock dropdown spans the row with no label. |
+| Android | A Compose row that mirrors the iOS form look and anchors Material's exposed drop-down menu, whose stock anchor is a text field spanning the row with no label. A press anywhere along the row opens the menu, which is the row's width, and TalkBack meets the row as one drop-down, read as the label then the value, and disabled with the picker. |
 | Web | A drawn pill with a transparent native `<select>` over it, so the platform's own options popup opens |
 | Windows | WinUI `ComboBox` at the trailing edge of a drawn row |
 
@@ -365,7 +396,7 @@ release), `min` (0), `max` (1), `step` (omit for continuous), `disabled`,
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Slider` |
-| Android | Material 3 `Slider`. The kit converts the increment into Compose's interval count and snaps the value itself. |
+| Android | Material 3 `Slider`. The kit converts the increment into Compose's interval count and snaps the value itself. The label names the slider itself, its content description, which TalkBack reads with the value. |
 | Web | A real `<input type="range">` |
 | Windows | WinUI `Slider`. A continuous slider moves by a thousandth of the range. |
 

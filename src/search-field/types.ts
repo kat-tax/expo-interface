@@ -34,7 +34,12 @@ export interface SearchFieldProps {
   onChangeText: (text: string) => void;
   /** Enter, the platform's search key, or a completion taken from the list. */
   onSubmit?: (text: string) => void;
-  /** Shown while the box is empty, and used as its accessible name. */
+  /**
+   * Shown while the box is empty, and its accessible name on every
+   * platform, which it keeps once the box holds text. Without one, both
+   * are `Search`. On Android it is the field's content description, and
+   * TalkBack speaks the field's text in its place once there is some.
+   */
   placeholder?: string;
   /**
    * Completions offered as the text is typed, filtered to what it contains.

@@ -66,8 +66,11 @@ export interface ListItemProps {
   iconTone?: IconTone;
   /**
    * Leading (start) slot: an icon, an `Avatar`. On Android the slot is
-   * Compose content, which the kit's `Avatar` and `Badge` draw themselves
-   * in; a React Native view there is not hosted.
+   * Compose content, which the kit's `Icon`, `Avatar` and `Badge` draw
+   * themselves in. A React Native view there is hosted inside the row: it
+   * draws where the row is composed once (a `FieldGroup`, a `NativeHost`),
+   * but in a `List` the lazy column hosts it again each time it recycles the
+   * row, which crashes the app. So a `List` row's slots hold native content.
    */
   leading?: ReactNode;
   /**
@@ -93,7 +96,15 @@ export interface ListItemProps {
    * fill on Windows.
    */
   badgeColor?: ColorTokens | (string & {});
-  /** Trailing (end) slot — chevron, value, control, etc. */
+  /**
+   * Trailing (end) slot: a chevron, an icon, a control, after the `value`
+   * and the `badge`. On Android the slot is Compose content, which the
+   * kit's `Icon`, `Avatar` and `Badge` draw themselves in. A React Native
+   * view there is hosted inside the row: it draws where the row is composed
+   * once (a `FieldGroup`, a `NativeHost`), but in a `List` the lazy column
+   * hosts it again each time it recycles the row, which crashes the app. So
+   * a `List` row's slots hold native content.
+   */
   trailing?: ReactNode;
   /** A text action rendered natively at the trailing edge, after `trailing`. */
   action?: ListItemAction;

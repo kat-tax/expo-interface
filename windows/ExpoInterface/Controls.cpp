@@ -222,6 +222,7 @@ struct ToggleSwitchView : winrt::implements<ToggleSwitchView, winrt::IInspectabl
     ApplyLook(props->ViewProps, props->theme, props->color ? props->color : props->accentColor);
     m_toggle.IsOn(props->value);
     m_toggle.IsEnabled(!props->disabled.value_or(false));
+    SetIdentity(m_toggle, props->label, props->ViewProps);
     m_applying = false;
   }
 

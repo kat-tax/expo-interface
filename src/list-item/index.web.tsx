@@ -8,15 +8,17 @@ import {Icon} from '../symbol';
 /**
  * The row, plus the platform's context menu when it has actions of its own.
  *
- * The menu takes the tap as well, because it owns the gesture on this
- * platform; the row inside it is not separately pressable, which would give
- * the same press two owners.
+ * The row keeps its own press either way. On web the menu opens on
+ * `contextmenu` (a right click, or the Menu key) and on a held touch, and
+ * neither is the click, so the row stays the `<button>` a keyboard, a
+ * screen reader and a pointer press. The one click the menu takes is the
+ * one a held touch's release brings: `useHeldTouch` swallows it in the
+ * capture phase on the menu's wrapper, before it reaches the row.
  */
 export function ListItem({swipeActions, ...props}: ListItemProps) {
-  const menued = !!swipeActions && swipeActions.length > 0;
   return (
-    <WithRowMenu actions={swipeActions} onPress={props.onPress}>
-      <ListItemRow {...props} onPress={menued ? undefined : props.onPress}/>
+    <WithRowMenu actions={swipeActions}>
+      <ListItemRow {...props}/>
     </WithRowMenu>
   );
 }

@@ -28,6 +28,7 @@ struct ExpoInterfaceToggleSwitchProps : winrt::implements<ExpoInterfaceToggleSwi
        value = cloneFromProps->value;
        disabled = cloneFromProps->disabled;
        color = cloneFromProps->color;
+       label = cloneFromProps->label;
        accentColor = cloneFromProps->accentColor;
        theme = cloneFromProps->theme;
        onValueChange = cloneFromProps->onValueChange;  
@@ -46,6 +47,9 @@ struct ExpoInterfaceToggleSwitchProps : winrt::implements<ExpoInterfaceToggleSwi
 
   REACT_FIELD(color)
   std::optional<std::string> color;
+
+  REACT_FIELD(label)
+  std::optional<std::string> label;
 
   REACT_FIELD(accentColor)
   std::optional<std::string> accentColor;

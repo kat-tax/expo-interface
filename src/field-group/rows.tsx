@@ -1,15 +1,22 @@
 import type {ReactNode} from 'react';
 import type {ListItemProps} from '../list-item/types';
 import {Children, cloneElement, isValidElement} from 'react';
+import {Button} from '../button';
 import {ListItem} from '../list-item';
+import {FieldRowContext} from './row-context';
 
 /**
  * A section draws each row's container, inset and minimum height itself, so
  * a kit `ListItem` among its children gives up its own inset — padded twice,
  * the row would sit further in than the ones beside it. A row that asks for
- * an inset explicitly keeps what it asked for.
+ * an inset explicitly keeps what it asked for. A kit `Button` that is a row
+ * of its own is told so through `FieldRowContext`; one nested in a row's
+ * content is not a row, and is left as it is.
  */
 export function flushRow(child: ReactNode): ReactNode {
+  if (isValidElement(child) && child.type === Button) {
+    return <FieldRowContext.Provider value={true}>{child}</FieldRowContext.Provider>;
+  }
   return isValidElement<ListItemProps>(child) && child.type === ListItem && child.props.inset === undefined
     ? cloneElement(child, {inset: false})
     : child;

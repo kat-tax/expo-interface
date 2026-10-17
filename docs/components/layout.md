@@ -496,9 +496,13 @@ whose headline is the app's own content.
 Differences:
 
 - Only iOS has a swipe. On Android, web and Windows the same actions are the
-  row's context menu, opened by a long press or a right click, and the row's
-  press goes through that menu's trigger so one gesture has one owner. Do not
-  wrap the row in a `ContextMenu` as well.
+  row's context menu, opened by a long press or a right click. On Android
+  and Windows the row's press goes through that menu's trigger, so one
+  gesture has one owner. On web the row keeps its own `<button>` and its
+  press, which a keyboard reaches, since the menu opens on `contextmenu` (a
+  right click or the Menu key) and on a touch held for half a second, and
+  neither is the click; the release of a held touch opens the menu and does
+  not press the row. Do not wrap the row in a `ContextMenu` as well.
 - `inset` has nothing to turn off on iOS, where the `Form` supplies every
   inset.
 - On iOS a selected row in a `List` or a `FieldGroup` fills the whole row,
@@ -515,11 +519,14 @@ Differences:
   badge's end, so a count reads "3, new" and a dot "New". `selected` is announced
   on a row that presses by itself; an inert row, or one with
   `swipeActions`, shows the fill alone.
-- On Android the slots are Compose content. The kit's `Avatar` as `leading`
-  and the `badge` draw themselves in Compose there, and an `Avatar`'s name
-  is among the row's texts after its initials; a React Native view in
-  `leading` or `trailing` is not hosted there, so put native content in the
-  slots: the kit's controls, `Avatar`, `Badge` or `@expo/ui` content.
+- On Android the slots are Compose content. The kit's `Icon`, `Avatar` and
+  `Badge` draw themselves in Compose there, at either end, and an `Avatar`'s
+  name is among the row's texts after its initials. A React Native view in
+  `leading` or `trailing` is hosted inside the row: it draws where the row
+  is composed once, as in a `FieldGroup`, but in a `List` the lazy column
+  hosts it again each time it recycles the row, which crashes the app. So
+  put native content in a `List` row's slots: the kit's controls, `Icon`,
+  `Avatar`, `Badge` or `@expo/ui` content.
 - On iOS and Android a row outside a host (a React Native `ScrollView` of
   rows) mounts a host of its own, so it draws there too. See
   [Native hosts](../hosts.md).

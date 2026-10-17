@@ -1,7 +1,7 @@
 import type {SwitchProps} from './types';
 
 import {Column, Row, Switch as ComposeSwitch, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
-import {fillMaxWidth, graphicsLayer, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {fillMaxWidth, graphicsLayer, semantics, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {SelfHosted} from '../host';
 import {useColor} from '../theme';
 
@@ -32,6 +32,13 @@ export function Switch(props: SwitchProps) {
  * `--color-tint` default) instead of the host's tonal M3 primary, so the
  * switch reads identically across platforms — including inside sheets whose
  * native host is not seeded.
+ *
+ * The label names the switch itself, as its content description: the drawn
+ * label is a text beside the switch, not part of it, so without one the
+ * switch is a control with no name. The row stays a plain `Row` with no press
+ * of its own: `@expo/ui`'s Compose `Switch` always wires `onCheckedChange`
+ * natively (it has no switch without a click, as its `Checkbox` has), so a
+ * `toggleable` row would be a second switch node beside the first.
  */
 function NativeSwitch({
   label,
@@ -55,6 +62,7 @@ function NativeSwitch({
       }}
       modifiers={[
         graphicsLayer({scaleX: SCALE, scaleY: SCALE, transformOriginX: 1}),
+        ...(label != null ? [semantics({contentDescription: label})] : []),
         ...(testID ? [testIDModifier(testID)] : []),
       ]}
     />

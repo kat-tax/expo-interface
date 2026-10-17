@@ -106,22 +106,36 @@ export const drop = icon({ios: 'shippingbox', android: 'inventory_2', web: 'inve
 ## The `Icon` component
 
 `Icon` draws a token on its own, on every platform: `SymbolView`'s SF Symbol
-on iOS and Material Symbol on Android, a `<span>` holding the Material
-ligature on web, a `Text` in Segoe Fluent Icons on Windows. Props: `icon`,
-`size` (24), `tone` (`label`, `secondary`, `tertiary`, `accent`, `success`,
-`destructive`; the color's role, `label` by default), `tintColor` (a color
-of its own, over the tone), `testID`.
+on iOS, a `<span>` holding the Material ligature on web, a `Text` in Segoe
+Fluent Icons on Windows. On Android it draws in the toolkit around it:
+Compose's `Icon` with the token's drawable inside a host (a `ListItem`'s
+slots, a `NativeHost`, `Screen native`), and `SymbolView`'s Material Symbol
+outside one. Props: `icon`, `size` (24), `tone` (`label`, `secondary`,
+`tertiary`, `accent`, `success`, `destructive`; the color's role, `label` by
+default), `tintColor` (a color of its own, over the tone), `testID`.
 
 ```tsx
 <Icon icon={icons.check} tone="success" size={16}/>
+<ListItem trailing={<Icon icon={icons.starFilled} tone="accent"/>}>Groceries</ListItem>
 ```
 
 The glyph is hidden from assistive technology on every platform: an icon on
-its own says nothing, and the control or row around it carries the name. On
-iOS and Android it is a React Native view, so it goes in a React Native
-layout; inside a host the controls draw their own icons. A filled token
-draws its outline on Android here, as `SymbolView` draws from the static
-font; the controls draw the filled vector.
+its own says nothing, and the control or row around it carries the name.
+
+On iOS it is a React Native view wherever it is. On Android, inside a host,
+it is Compose content, so it can stand at either end of a `ListItem`, in a
+`List` too, where a React Native view in a row is hosted again each time the
+list recycles it. A token with no drawable draws nothing there, as the
+controls' icons do. Outside a host it is a React Native view, and a filled
+token draws its outline, as `SymbolView` draws from the static font; inside
+one it draws the filled vector.
+
+A React Native view of the app's own placed among native content still
+counts as inside the host: `@expo/ui` hosts that view natively, and nothing
+in React's tree marks where. On Android an `Icon` inside such a view draws
+nothing, so put the icon in the native content itself. The kit's own React
+Native content in a host (a `Sheet`'s capped body and footer, an
+`EmptyState`'s node) is outside it, and the icon there is a `SymbolView`.
 
 ## Resolving names
 

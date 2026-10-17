@@ -13,7 +13,8 @@ describe('Switch (windows)', () => {
     expect(row.queryAll(node => node === toggle)).toHaveLength(1);
     expect(screen.getByText('Wi-Fi')).toBeOnTheScreen();
     expect(toggle.props.value).toBe(true);
-    expect(toggle.props.accessibilityLabel).toBe('Wi-Fi');
+    // The island names the WinUI toggle itself: UI Automation reads the control, not the view.
+    expect(toggle.props.label).toBe('Wi-Fi');
     expect(toggle.props.testID).toBeUndefined();
     expect(toggle.props.theme).toBe('light');
   });

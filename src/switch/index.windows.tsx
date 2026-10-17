@@ -19,7 +19,7 @@ export function Switch({label, supporting, value, onValueChange, disabled, accen
       color={accentColor}
       onValueChange={event => onValueChange(event.nativeEvent.value)}
       testID={label == null ? testID : undefined}
-      accessibilityLabel={label}
+      label={label}
       {...xaml}
     />
   );

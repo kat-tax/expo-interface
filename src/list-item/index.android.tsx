@@ -56,13 +56,15 @@ export function ListItem({swipeActions, ...props}: ListItemProps) {
  * fill that height but add to it, standing the row taller than its siblings.
  *
  * A row that presses is `clickable`, or `selectable` while it is the current
- * one, which puts the state in its semantics for TalkBack. The name composed
- * from the slots has nowhere to go: `@expo/ui`'s Compose `semantics` takes
- * `contentType` alone, so TalkBack reads the row's own texts. The badge's
- * words are among them: the hosted `Badge` puts the rest of its label at its
- * end edge as unseen text, read after its number. The slots are Compose
- * content, which the kit's `Avatar` as `leading` and the `Badge` draw
- * themselves in; a React Native view in a slot is not hosted there.
+ * one, which puts the state in its semantics for TalkBack. TalkBack reads
+ * the row's own texts rather than the name composed from the slots: a
+ * content description on a row that merges what it holds is read before
+ * those texts, not in their place, so the row would be read twice. The
+ * badge's words are among the texts: the hosted `Badge` puts the rest of
+ * its label at its end edge as unseen text, read after its number. The
+ * slots are Compose content, which the kit's `Icon`, `Avatar` and `Badge`
+ * draw themselves in; a React Native view in a slot is hosted inside the
+ * row, and in a `List` hosted again each time the row is recycled.
  */
 function ListItemRow({children, icon, iconTone = 'secondary', leading, value, badge, badgeColor, trailing, action, supporting, selected = false, inset = true, onPress, testID}: ListItemProps) {
   const label = useColor('label');

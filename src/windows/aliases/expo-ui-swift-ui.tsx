@@ -242,6 +242,29 @@ function ToolbarBase({children, modifiers, testID}: WithChildren) {
 /** SwiftUI's toolbar (57.0.18): the view it belongs to with its `Content` laid out as a row, since there is no navigation bar to put it in. */
 export const Toolbar = Object.assign(ToolbarBase, {Content: ToolbarContent});
 
+/** An item of SwiftUI's toolbar: its content where it stands, since there is no bar to place it in. */
+export function ToolbarItem({children}: WithChildren & {placement?: string; visibilityPriority?: string}) {
+  return <>{children}</>;
+}
+
+function SplitColumn({children}: WithChildren) {
+  return <Frame style={{flex: 1}}>{children}</Frame>;
+}
+
+function NavigationSplitViewBase({children, modifiers, testID}: WithChildren & {columnVisibility?: string; preferredCompactColumn?: string}) {
+  return <Frame row modifiers={modifiers} testID={testID}>{children}</Frame>;
+}
+
+/** SwiftUI's split view: its columns side by side, sidebar first, each taking a share of the width. */
+export const NavigationSplitView = Object.assign(NavigationSplitViewBase, {Sidebar: SplitColumn, Content: SplitColumn, Detail: SplitColumn});
+
+function ArrangedView({children}: WithChildren) {
+  return <>{children}</>;
+}
+
+/** SwiftUI's adaptive arrangement: its primary and secondary views without a container, as iOS draws them below 27.1. */
+export const ArrangementView = Object.assign(ArrangedView, {Primary: ArrangedView, Secondary: ArrangedView});
+
 export function LabeledContent({label, children, modifiers, testID}: WithChildren & {label?: ReactNode}) {
   return (
     <Frame row gap={8} align="center" modifiers={modifiers} testID={testID} style={{justifyContent: 'space-between'}}>

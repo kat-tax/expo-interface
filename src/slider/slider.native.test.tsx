@@ -41,6 +41,8 @@ describe(`Slider (${Platform.OS})`, () => {
       expect(props.enabled).toBe(true);
       expect(modifier(props, 'weight')).toEqual({$type: 'weight', weight: 1});
       expect(modifier(props, 'fillMaxWidth')).toBeUndefined();
+      // The label beside the slider names the slider node itself.
+      expect(modifier(props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Brightness'});
       expect(host(p => p.text === 'Brightness').props.color).toBe(palette.onSurface);
     }
   });
@@ -111,6 +113,7 @@ describe(`Slider (${Platform.OS})`, () => {
     if (!isIOS) {
       expect(modifier(slider('sl').props, 'fillMaxWidth')).toBeDefined();
       expect(modifier(slider('sl').props, 'weight')).toBeUndefined();
+      expect(modifier(slider('sl').props, 'semantics')).toBeUndefined();
     }
   });
 
