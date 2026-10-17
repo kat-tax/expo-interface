@@ -45,8 +45,8 @@ const inert = () => {};
  * between the label and the value. Compose reports a node's role only where
  * the node has no semantic children, and moves it to a child of its own where
  * it has some, so the anchor is a clear `Surface` with none: the drop-down
- * role, the label as its content description, the disabled state and the
- * press, all on one node. Its click is there for its semantics and does
+ * role, the label as its content description, the disabled state, the press
+ * and the testID, all on one node. Its click is there for its semantics and does
  * nothing, since the anchor's own press opens the menu. Compose leaves out of
  * the tree what a node drawn over it covers, so the label under the anchor
  * is not read twice, while the value is drawn over the anchor, read as text
@@ -92,7 +92,7 @@ function PickerComponent<T extends PickerValue>({
   );
   const tall = rowHeight !== undefined ? [height(rowHeight)] : [];
   return (
-    <Column modifiers={[fillMaxWidth(), ...(testID ? [testIDModifier(testID)] : [])]}>
+    <Column modifiers={[fillMaxWidth()]}>
       <ExposedDropdownMenuBox
         expanded={open}
         onExpandedChange={disabled ? undefined : setExpanded}
@@ -113,6 +113,7 @@ function PickerComponent<T extends PickerValue>({
             fillMaxWidth(),
             ...tall,
             ...(label != null ? [semantics({contentDescription: label})] : []),
+            ...(testID ? [testIDModifier(testID)] : []),
           ]}
         />
         <Row
