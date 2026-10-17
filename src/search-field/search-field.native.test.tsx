@@ -12,6 +12,13 @@ describe(`SearchField (${Platform.OS})`, () => {
     expect(screen.getByTestId('q-row')).toBeOnTheScreen();
   });
 
+  it('names its field by the placeholder, or Search without one, while it holds text', async () => {
+    await render(<SearchField value="lisbon" placeholder="Search notes" onChangeText={() => {}} testID="q"/>);
+    expect(screen.getByLabelText('Search notes')).toBe(screen.getByTestId('q'));
+    await render(<SearchField value="lisbon" onChangeText={() => {}} testID="plain"/>);
+    expect(screen.getByLabelText('Search')).toBe(screen.getByTestId('plain'));
+  });
+
   it('clears the box, and offers nothing to clear when it is empty', async () => {
     const onChangeText = vi.fn();
     await render(<SearchField value="demo" onChangeText={onChangeText} testID="q"/>);

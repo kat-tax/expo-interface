@@ -1,6 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, nodes, modifier} from 'expo-vitest/native';
-import {DialogTextField} from './index.android';
+import {DialogTextField, TextField} from './index.android';
 
 describe('DialogTextField (android)', () => {
   it("draws Material's outlined field, unshifted, with the row's placeholder colour, cursor tint and keyboard", async () => {
@@ -25,6 +25,8 @@ describe('DialogTextField (android)', () => {
     // The dialog's width, and no form inset to shift back by.
     expect(modifier(props, 'fillMaxWidth')).toBeDefined();
     expect(modifier(props, 'offset')).toBeUndefined();
+    // A plain field carries no description: Compose would read it in place of the text.
+    expect(modifier(props, 'semantics')).toBeUndefined();
     expect(host(p => p.text === 'Name').props.color).toBe('#9094A0');
     const [view] = screen.container.queryAll(i => typeof i.props.onKeyboardAction === 'function');
     await fireEvent(view, 'keyboardAction', {nativeEvent: {action: 'done', value: 'Essay'}});
@@ -40,5 +42,31 @@ describe('DialogTextField (android)', () => {
     expect(props.keyboardOptions).toEqual({keyboardType: 'numberPassword', imeAction: 'default'});
     expect(props.enabled).toBe(false);
     expect(nodes().some(n => n.props.slotName === 'placeholder')).toBe(false);
+    expect(modifier(props, 'semantics')).toBeUndefined();
+  });
+});
+
+describe('TextField (android)', () => {
+  it('names a password field by its placeholder, which stays its name once the field holds text', async () => {
+    await render(<TextField placeholder="Password" value="hunter22" secureTextEntry testID="password"/>);
+    const {props} = byComposeTestID('password');
+    // Material draws and reports the placeholder slot only while the field is empty; the description stays.
+    expect(host(p => p.slotName === 'placeholder')).toBeTruthy();
+    expect(modifier(props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Password'});
+  });
+
+  it('describes no plain field, and no password field without a placeholder or with an empty one', async () => {
+    // TalkBack would move through a plain field's description in place of its text.
+    await render(<TextField placeholder="Email" value="ada@example.com" testID="email"/>);
+    expect(modifier(byComposeTestID('email').props, 'semantics')).toBeUndefined();
+    await render(<TextField value="Ada" secureTextEntry testID="none"/>);
+    expect(modifier(byComposeTestID('none').props, 'semantics')).toBeUndefined();
+    await render(<TextField placeholder="" value="Ada" secureTextEntry testID="empty"/>);
+    expect(modifier(byComposeTestID('empty').props, 'semantics')).toBeUndefined();
+  });
+
+  it("names the inline field by its placeholder through React Native's label, its EditText's content description", async () => {
+    await render(<TextField variant="inline" placeholder="Search notes" value="lisbon" testID="find"/>);
+    expect(screen.getByLabelText('Search notes')).toBe(screen.getByTestId('find'));
   });
 });

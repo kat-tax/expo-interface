@@ -181,8 +181,9 @@ A checked or unchecked box with a leading label. Props: `label`, `value`,
 ## TextField
 
 A single or multi-line text input. Props: `placeholder` (also the row's
-label), `value`, `onChangeText`, `onSubmit`, `onKeyPress`, `onFocus`,
-`onBlur`, `disabled`, `secureTextEntry`, `keyboardType` (`default`, `email`,
+label and the field's accessible name), `value`, `onChangeText`,
+`onSubmit`, `onKeyPress`, `onFocus`, `onBlur`, `disabled`,
+`secureTextEntry`, `keyboardType` (`default`, `email`,
 `number`, `phone`, `decimal`, `url`), `autoCapitalize`, `autoCorrect`,
 `multiline`, `autoFocus`, `returnKeyType` (`done`, `go`, `next`, `search`,
 `send`), `submitBehavior` (`blurAndSubmit`, `submit`), `variant` (`row`,
@@ -209,8 +210,20 @@ makes sure the keyboard came on Android.
 | Web | react-native-web's `TextInput`, a real `<input>` |
 | Windows | WinUI `TextBox` or `PasswordBox`, borderless |
 
+The placeholder names the field, and stays its name once the field holds
+text: the SwiftUI field's accessibility label, the input's `aria-label` on
+web, the WinUI box's UI Automation name, and React Native's label in
+`inline`.
+
 Differences:
 
+- A plain `row` field on Android is named by its placeholder while it is
+  empty and by its text once it holds some, as Material's own fields are. A
+  password field there keeps the placeholder as its content description,
+  which TalkBack speaks before the count of its characters. A plain field
+  carries no description, because Compose would read it in place of the
+  text when TalkBack moves through the field by character or word, and
+  would let no selection be extended in it.
 - `autoCapitalize` has no equivalent in the Windows row.
 - In `inline` on Windows, `keyboardType` has no effect and `autoCapitalize`
   honours only `characters`: react-native-windows ignores the rest.
@@ -306,10 +319,11 @@ Windows reports no Shift, and on Windows `keyboardType` has no effect and
 
 A field for searching: the query box, a way to clear it, and optionally a
 list of completions under it. Props: `value`, `onChangeText`, `onSubmit`
-(Enter, the platform's search key, or a completion taken), `placeholder`,
-`suggestions`, `disabled`, `clearable` (default true), `autoFocus`,
-`autoCapitalize`, `onFocus`, `onBlur`, `onKeyPress` (a key by its name),
-`style`, `testID`, and a `ref` with `focus` and `blur`.
+(Enter, the platform's search key, or a completion taken), `placeholder`
+(also the box's accessible name, which it keeps once the box holds text;
+`Search` without one), `suggestions`, `disabled`, `clearable` (default
+true), `autoFocus`, `autoCapitalize`, `onFocus`, `onBlur`, `onKeyPress` (a
+key by its name), `style`, `testID`, and a `ref` with `focus` and `blur`.
 
 | Platform | Renders |
 | --- | --- |

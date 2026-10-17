@@ -2,7 +2,7 @@ import type {TextFieldKeyboard, TextFieldProps, TextFieldReturnKey} from './type
 import type {TextFieldColors, TextFieldImeAction, TextFieldKeyboardActions, TextFieldKeyboardType} from '@expo/ui/jetpack-compose';
 
 import {OutlinedTextField, TextField as ComposeTextField, Text, useMaterialColors, useNativeState} from '@expo/ui/jetpack-compose';
-import {fillMaxWidth, offset, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {fillMaxWidth, offset, semantics, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {useColor} from '../theme';
 import {InlineTextField} from './inline';
 import {useSyncedState} from './shared';
@@ -32,7 +32,9 @@ const CONTENT_PADDING = 16;
 
 /**
  * The `row` variant is the Compose field; `inline` is a React Native
- * `TextInput` for fields inside a React Native layout.
+ * `TextInput` for fields inside a React Native layout, named by its
+ * `aria-label` (the placeholder), which React Native makes the
+ * `EditText`'s content description.
  */
 export function TextField(props: TextFieldProps) {
   if (props.variant === 'inline' || props.variant === 'bare') return <InlineTextField {...props}/>;
@@ -60,6 +62,18 @@ export function DialogTextField(props: TextFieldProps) {
  * it is a field. The keyboard's action key is `returnKeyType` (`done`
  * when there is only an `onSubmit`); Compose keeps the field focused after
  * it, so `submitBehavior` has nothing to add here.
+ *
+ * Material reports the placeholder slot only while the field is empty.
+ * A password field also carries the placeholder as its content
+ * description, filled or outlined, which TalkBack speaks before the count
+ * of its characters (`EditTextDescription.nameDescription` in TalkBack's
+ * source) and which names it to every other service. A plain field carries
+ * none: Compose reads a text field's content description in place of its
+ * text when TalkBack moves through it by character or word, and lets no
+ * selection be extended in it (`getIterableTextForAccessibility` and
+ * `isAccessibilitySelectionExtendable`), which a password does not offer
+ * anyway. Compose's own hint text, which names an edit box without either
+ * cost, is not something `@expo/ui`'s `semantics` sets.
  */
 function RowTextField({
   placeholder,
@@ -120,6 +134,7 @@ function RowTextField({
       modifiers={[
         fillMaxWidth(),
         ...(dialog ? [] : [offset(-CONTENT_PADDING, 0)]),
+        ...(placeholder && secureTextEntry ? [semantics({contentDescription: placeholder})] : []),
         ...(testID ? [testIDModifier(testID)] : []),
       ]}>
       {placeholder != null ? (

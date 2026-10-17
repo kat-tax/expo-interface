@@ -57,7 +57,13 @@ export type TextFieldVariant = 'row' | 'inline' | 'bare';
  * uncontrolled (omit both and it manages its own state).
  */
 export interface TextFieldProps {
-  /** Placeholder shown when the field is empty, doubling as the row's label. */
+  /**
+   * Shown while the field is empty, doubling as the row's label, and the
+   * field's accessible name, which it keeps once the field holds text. The
+   * exception is a plain `row` field on Android, which Compose names by its
+   * placeholder only while it is empty and by its text once it holds some;
+   * a password field there keeps the placeholder as its content description.
+   */
   placeholder?: string;
   /** Current text (controlled). When omitted the component keeps its own state. */
   value?: string;
