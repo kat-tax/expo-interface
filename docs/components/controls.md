@@ -359,7 +359,7 @@ A dropdown that selects one option, with `Picker.Item` children (`label`,
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Picker` in the menu style |
-| Android | A Compose row that mirrors the iOS form look and anchors Material's exposed drop-down menu, whose stock anchor is a text field spanning the row with no label. A press anywhere along the row opens the menu, which is the row's width, and TalkBack meets the row as one drop-down, read as the label then the value, and disabled with the picker. |
+| Android | A Compose row that mirrors the iOS form look and anchors Material's exposed drop-down menu, whose stock anchor is a text field spanning the row with no label. A press anywhere along the row opens the menu, which is the row's width. TalkBack meets a node laid over the row as the drop-down, named by the label and disabled with the picker, and reads the value after it. |
 | Web | A drawn pill with a transparent native `<select>` over it, so the platform's own options popup opens |
 | Windows | WinUI `ComboBox` at the trailing edge of a drawn row |
 
