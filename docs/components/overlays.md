@@ -92,6 +92,10 @@ Differences:
   menu at a point, so iOS ignores it and does not report `onDismiss`.
 - A right click and the Menu key open the menu on web and Windows whichever
   `trigger` says; they are what the platform and its screen readers reach for.
+- On web a right click opens the menu once its button comes up, in the task
+  after the release. Linux and macOS raise `contextmenu` while the button is
+  still down, and the release light-dismisses a popover shown before it;
+  Windows raises it after the release.
 - `onOpenChange` is not reported on iOS.
 - On web Escape closes the open menu and goes no further, as for `Menu`.
 - On web a click or a right click on the open menu is the menu's, whichever
