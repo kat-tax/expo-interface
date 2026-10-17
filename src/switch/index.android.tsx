@@ -1,7 +1,19 @@
 import type {SwitchProps} from './types';
 
-import {Column, Row, Switch as ComposeSwitch, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
-import {fillMaxWidth, graphicsLayer, semantics, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {useState} from 'react';
+import {Box, Column, Row, Spacer, Surface, Switch as ComposeSwitch, Text, useMaterialColors} from '@expo/ui/jetpack-compose';
+import {
+  alpha,
+  fillMaxWidth,
+  graphicsLayer,
+  height,
+  matchParentSize,
+  onSizeChanged,
+  semantics,
+  testID as testIDModifier,
+  toggleable,
+  width,
+} from '@expo/ui/jetpack-compose/modifiers';
 import {SelfHosted} from '../host';
 import {useColor} from '../theme';
 
@@ -11,6 +23,11 @@ const SCALE = 0.80;
 
 // iOS switches use a white thumb when on; M3 defaults to `onPrimary`.
 const THUMB_ON = '#FFFFFF';
+
+const CLEAR = '#00000000';
+
+/** What the disabled cover is handed, so that Compose reports it as toggleable and disabled. */
+const inert = () => {};
 
 /**
  * The Material 3 `Switch`, in a host of its own where there is none above
@@ -33,12 +50,18 @@ export function Switch(props: SwitchProps) {
  * switch reads identically across platforms — including inside sheets whose
  * native host is not seeded.
  *
- * The label names the switch itself, as its content description: the drawn
- * label is a text beside the switch, not part of it, so without one the
- * switch is a control with no name. The row stays a plain `Row` with no press
- * of its own: `@expo/ui`'s Compose `Switch` always wires `onCheckedChange`
- * natively (it has no switch without a click, as its `Checkbox` has), so a
- * `toggleable` row would be a second switch node beside the first.
+ * The control a screen reader is handed is a cover laid over the row, not
+ * the Material switch. Compose reports a node's role only where the node has
+ * no semantic children, and moves its role and content description to
+ * children of their own where it has some; the Material switch always has
+ * one, its thumb, whose `background` is a semantics node. The cover has no
+ * children, so its one node is the switch: the label as its content
+ * description, the state, the press and the testID. Compose leaves out of
+ * the tree what a node drawn over it covers, so the drawn label and the
+ * Material switch, which only draws, are not read as well. Enabled, the
+ * cover is `toggleable` with the switch role, and the whole row toggles, as
+ * Material's switch rows do. `toggleable` takes no `enabled`, so disabled it
+ * is a toggleable `Surface` that is not enabled, which has no role.
  */
 function NativeSwitch({
   label,
@@ -51,38 +74,73 @@ function NativeSwitch({
 }: SwitchProps) {
   const colors = useMaterialColors();
   const tint = useColor('tint');
+  const [measured, setMeasured] = useState<Measured>({});
   const toggle = (
     <ComposeSwitch
       value={value}
-      onCheckedChange={disabled ? undefined : onValueChange}
       enabled={!disabled}
       colors={{
         checkedTrackColor: accentColor ?? tint,
         checkedThumbColor: THUMB_ON,
       }}
-      modifiers={[
-        graphicsLayer({scaleX: SCALE, scaleY: SCALE, transformOriginX: 1}),
-        ...(label != null ? [semantics({contentDescription: label})] : []),
-        ...(testID ? [testIDModifier(testID)] : []),
-      ]}
+      modifiers={[graphicsLayer({scaleX: SCALE, scaleY: SCALE, transformOriginX: 1})]}
     />
   );
+  const identity = [
+    ...(label != null ? [semantics({contentDescription: label})] : []),
+    ...(testID ? [testIDModifier(testID)] : []),
+  ];
+  const cover = disabled ? (
+    <Surface color={CLEAR} checked={value} onCheckedChange={inert} enabled={false} modifiers={[matchParentSize(), ...identity]}/>
+  ) : (
+    <Box modifiers={[matchParentSize(), toggleable(value, () => onValueChange(!value), {role: 'switch'}), ...identity]}/>
+  );
 
-  if (label == null) return toggle;
+  if (label == null) {
+    return (
+      <Box>
+        {toggle}
+        {cover}
+      </Box>
+    );
+  }
 
-  const title = <Text color={disabled ? colors.onSurfaceVariant : colors.onSurface}>{label}</Text>;
+  const titleColor = disabled ? colors.onSurfaceVariant : colors.onSurface;
+  const measure = (next: Measured) => setMeasured(previous => ({...previous, ...next}));
+  // The supporting text is drawn transparent beside the switch, under the
+  // cover, holding its place, and again over the cover where it is read, as
+  // text a reader reaches after the switch; over the cover it takes no press
+  // of its own, so a press on it still toggles the row. The texts' width and
+  // the title's height above it place the second where the first is.
+  const {width: across, title: down} = measured;
+  const placed = supporting !== undefined && across !== undefined && down !== undefined;
   return (
-    <Row
-      verticalAlignment="center"
-      horizontalArrangement="spaceBetween"
-      modifiers={[fillMaxWidth()]}>
-      {supporting !== undefined ? (
-        <Column>
-          {title}
+    <Box contentAlignment="centerStart" modifiers={[fillMaxWidth()]}>
+      <Row
+        verticalAlignment="center"
+        horizontalArrangement="spaceBetween"
+        modifiers={[fillMaxWidth()]}>
+        {supporting !== undefined ? (
+          <Column modifiers={[onSizeChanged(({width: across}) => measure({width: across}))]}>
+            <Text color={titleColor} modifiers={[onSizeChanged(({height: down}) => measure({title: down}))]}>{label}</Text>
+            <Text style={{typography: 'bodySmall'}} modifiers={[alpha(0)]}>{supporting}</Text>
+          </Column>
+        ) : <Text color={titleColor}>{label}</Text>}
+        {toggle}
+      </Row>
+      {cover}
+      {placed ? (
+        <Column modifiers={[width(across)]}>
+          <Spacer modifiers={[height(down)]}/>
           <Text color={colors.onSurfaceVariant} style={{typography: 'bodySmall'}}>{supporting}</Text>
         </Column>
-      ) : title}
-      {toggle}
-    </Row>
+      ) : null}
+    </Box>
   );
+}
+
+/** Where the supporting text sits beside the switch: the texts' width, and the title's height above it. */
+interface Measured {
+  width?: number;
+  title?: number;
 }
