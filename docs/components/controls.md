@@ -113,6 +113,10 @@ carries the state to a screen reader and the one that does not:
 Material's input chip, the one with a remove cross, is not offered: no other
 platform has a control for it.
 
+On iOS and Android a chip outside a host mounts one of its own, sized to
+itself, so a row of filters can stand in a React Native layout above a list.
+`NativeHost` puts a row of them in one host. See [Native hosts](../hosts.md).
+
 ## IconToggle
 
 A round icon button with two states, the outline when off and the filled

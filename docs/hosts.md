@@ -68,9 +68,9 @@ way.
 `useNativeHost()` answers whether there is a host above. Components that
 present natively mount a host of their own only when there is none:
 
-- `Button`, `Menu`, `IconToggle`, `Switch`, `SegmentedControl`, `Divider`,
+- `Button`, `Chip`, `Menu`, `IconToggle`, `Switch`, `SegmentedControl`, `Divider`,
   `ListItem`, `Alert`, `Spinner` and `EmptyState` check, so they can be rendered anywhere.
-  A control sized to itself (a button, a switch with no label) gets a host
+  A control sized to itself (a button, a chip, a switch with no label) gets a host
   of its own size; one that fills its width (a row with a label, a
   horizontal divider, a list row, an empty state) gets a host as wide as its container and
   as tall as itself; a vertical divider gets one as tall as its row. Inside

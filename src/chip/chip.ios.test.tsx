@@ -1,9 +1,25 @@
+import {View} from 'react-native';
 import {render, screen} from '@testing-library/react-native';
 import {modifier, nodes} from 'expo-vitest/native';
 import * as icons from '../__stories__/icons';
+import {hostFit, hosts} from '../__tests__/hosts';
+import {NativeHost} from '../host';
 import {Chip} from '.';
 
 describe('Chip (ios)', () => {
+  it('mounts a host of its own in a React Native layout, sized to the chip, and none inside a NativeHost', async () => {
+    await render(<View><Chip label="Unread" selected onPress={() => {}} testID="c"/></View>);
+    expect(hosts()).toHaveLength(1);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true, horizontal: true});
+    expect(nodes(hosts()[0]).some(node => node.props.testID === 'c')).toBe(true);
+
+    await render(<NativeHost><Chip label="Add tag" onPress={() => {}} testID="c"/></NativeHost>);
+    // The one host is the NativeHost's, as wide as its container.
+    expect(hosts()).toHaveLength(1);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true});
+    expect(nodes(hosts()[0]).some(node => node.props.testID === 'c')).toBe(true);
+  });
+
   it('is a Toggle in button style when it has a state, so VoiceOver has one too', async () => {
     await render(<Chip label="Unread" selected onPress={() => {}} testID="c"/>);
     const {props} = screen.getByTestId('c');

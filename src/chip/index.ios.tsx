@@ -9,6 +9,7 @@ import {
   disabled as disabledMod,
 } from '@expo/ui/swift-ui/modifiers';
 import {iosSymbol} from '../button/shared';
+import {SelfHosted} from '../host';
 import {useColor} from '../theme';
 import {chipKind, nextSelected} from './shared';
 
@@ -24,8 +25,21 @@ import {chipKind, nextSelected} from './shared';
  *
  * A chip that cannot be off is a bordered `Button` with a capsule border
  * shape, which is what it is.
+ *
+ * In a host of its own, sized to the chip, where there is none above it, so
+ * a chip can stand in a React Native layout like any element. Inside one it
+ * renders bare.
  */
 export function Chip(props: ChipProps) {
+  return (
+    <SelfHosted>
+      <NativeChip {...props}/>
+    </SelfHosted>
+  );
+}
+
+/** The SwiftUI control, which draws only inside a host. */
+function NativeChip(props: ChipProps) {
   const {label, onPress, selected, icon, disabled, testID} = props;
   const accent = useColor('tint');
   const symbol = icon ? iosSymbol(icon) : undefined;

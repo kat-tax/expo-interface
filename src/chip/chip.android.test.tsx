@@ -1,6 +1,9 @@
+import {View} from 'react-native';
 import {render} from '@testing-library/react-native';
 import {nodes} from 'expo-vitest/native';
 import * as icons from '../__stories__/icons';
+import {hostFit, hosts} from '../__tests__/hosts';
+import {NativeHost} from '../host';
 import {Chip} from '.';
 
 /** The label, which sits in a Compose text slot rather than an RN `Text`. */
@@ -14,6 +17,20 @@ function chip(kind: 'Filter' | 'Assist' | 'Suggestion') {
 }
 
 describe('Chip (android)', () => {
+  it('mounts a host of its own in a React Native layout, sized to the chip, and none inside a NativeHost', async () => {
+    await render(<View><Chip label="Unread" selected onPress={() => {}} testID="c"/></View>);
+    expect(hosts()).toHaveLength(1);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true, horizontal: true});
+    expect(nodes(hosts()[0]).some(node => node.type.endsWith('ExpoUI_FilterChipView'))).toBe(true);
+
+    await render(<NativeHost><Chip label="Unread" selected onPress={() => {}} testID="c"/></NativeHost>);
+    // The one host is the NativeHost's, as wide as its container: the chip
+    // is a direct child of it, as a Compose view has to be.
+    expect(hosts()).toHaveLength(1);
+    expect(hostFit(hosts()[0])).toEqual({vertical: true});
+    expect(hosts()[0].children?.some(node => typeof node !== 'string' && node.type.endsWith('ExpoUI_FilterChipView'))).toBe(true);
+  });
+
   it('is a FilterChip when it has a state — the one that draws its own check', async () => {
     await render(<Chip label="Unread" selected onPress={() => {}} testID="c"/>);
     expect(chip('Filter')?.props).toMatchObject({selected: true, enabled: true});
