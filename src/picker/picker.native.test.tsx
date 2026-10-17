@@ -31,12 +31,31 @@ const items = [
 /** SwiftUI picker options as `[text, tag]` pairs (iOS only). */
 const tags = () => nodes().filter(n => modifier(n.props, 'tag')).map(n => [n.props.text, modifier(n.props, 'tag')?.tag]);
 
-/** The Compose pill row that anchors the dropdown (Android only). */
+/** The Compose pill that draws the value (Android only). */
 const pill = () => host(p => modifier(p, 'background') != null);
+
+/** The Compose node of an `@expo/ui` view (Android only). */
+function view(name: string): HostNode {
+  const match = nodes().find(n => n.type === `ViewManagerAdapter_ExpoUI_${name}View`);
+  if (!match) throw new Error(`No ${name} rendered`);
+  return match;
+}
+
+/** Material's exposed drop-down box, its anchor (the row) and its menu (Android only). */
+const dropdown = () => view('ExposedDropdownMenuBox');
+const anchor = () => view('Surface');
+const menu = () => view('ExposedDropdownMenu');
+
+/** The anchor's press, which the box reports as a request to expand (Android only). */
+async function press() {
+  await act(async () => {
+    dropdown().props.onExpandedChange({nativeEvent: {value: true}});
+  });
+}
 
 /** The Compose dropdown menu item whose text slot renders `label` (Android only). */
 function menuItem(label: string): HostNode {
-  const match = nodes().find(n => 'enabled' in n.props && nodes(n).some(c => c.props.text === label));
+  const match = nodes(menu()).find(n => n.type === 'ViewManagerAdapter_ExpoUI_DropdownMenuItemView' && nodes(n).some(c => c.props.text === label));
   if (!match) throw new Error(`No menu item labelled ${label}`);
   return match;
 }
@@ -59,12 +78,18 @@ describe(`Picker (${Platform.OS})`, () => {
       expect(tags()).toEqual([['Small', 's'], ['Medium', 'm'], ['Large', 'l']]);
     } else {
       expect(host(p => p.text === 'Size').props.color).toBe(palette.onSurface);
-      expect(host(p => p.expanded != null).props.expanded).toBe(false);
+      expect(dropdown().props.expanded).toBe(false);
+      expect(modifier(dropdown().props, 'fillMaxWidth')).toBeDefined();
+      expect(menu().props.expanded).toBe(false);
+      // The whole row anchors the drop-down: a clear clickable surface, so its texts merge into the one node.
+      expect(anchor().props).toMatchObject({color: '#00000000', enabled: true, clickable: true});
+      expect(anchor().props.modifiers).toEqual([{$type: 'menuAnchor', type: 'primaryNotEditable'}, {$type: 'fillMaxWidth'}]);
+      expect(nodes(anchor()).some(n => n.props.text === 'Size')).toBe(true);
       const value = host(p => p.text === 'Medium' && p.color != null);
       expect(value.props.color).toBe(palette.onSurfaceVariant);
       expect(modifier(pill().props, 'clip')).toEqual({$type: 'clip', shape: {type: 'roundedCorner', radius: 8}});
       expect(modifier(pill().props, 'background')?.color).toBe(palette.surfaceContainerHighest);
-      expect(modifier(pill().props, 'clickable')).toBeDefined();
+      expect(modifier(pill().props, 'clickable')).toBeUndefined();
       expect(modifier(pill().props, 'padding')).toEqual({$type: 'padding', start: 12, top: 6, end: 12, bottom: 6});
       expect(host(p => p.tint != null && p.size === 16).props.tint).toBe(palette.onSurfaceVariant);
       for (const label of ['Small', 'Medium', 'Large']) expect(menuItem(label).props.enabled).toBe(true);
@@ -125,13 +150,15 @@ describe(`Picker (${Platform.OS})`, () => {
     if (isIOS) {
       expect(modifier(screen.getByTestId('pk').props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
     } else {
-      expect(modifier(pill().props, 'clickable')).toBeUndefined();
+      // Still a drop-down, reported disabled: the anchor keeps its role, the surface is
+      // disabled, and the box refuses to open.
+      expect(anchor().props).toMatchObject({enabled: false, clickable: true});
+      expect(modifier(anchor().props, 'menuAnchor')).toEqual({$type: 'menuAnchor', type: 'primaryNotEditable'});
+      expect(dropdown().props.onExpandedChange).toBeUndefined();
+      expect(dropdown().props.expanded).toBe(false);
       expect(host(p => p.text === 'Size').props.color).toBe(palette.onSurfaceVariant);
       // A disabled picker ignores the accent and greys the value.
       expect(host(p => p.text === 'Medium' && p.color != null).props.color).toBe(palette.onSurfaceVariant);
-      for (const label of ['Small', 'Medium', 'Large']) {
-        expect(menuItem(label).props.onItemPressed).toBeUndefined();
-      }
     }
   });
 
@@ -157,14 +184,14 @@ describe(`Picker (${Platform.OS})`, () => {
       await fireEvent(screen.getByTestId('pk'), 'selectionChange', {nativeEvent: {selection: 'l'}});
       expect(screen.getByTestId('pk').props.selection).toBe('s');
     } else {
-      await act(async () => {
-        modifier(pill().props, 'clickable')?.eventListener();
-      });
-      expect(host(p => p.expanded != null).props.expanded).toBe(true);
+      await press();
+      expect(dropdown().props.expanded).toBe(true);
+      expect(menu().props.expanded).toBe(true);
       await act(async () => {
         menuItem('Large').props.onItemPressed();
       });
-      expect(host(p => p.expanded != null).props.expanded).toBe(false);
+      expect(dropdown().props.expanded).toBe(false);
+      expect(menu().props.expanded).toBe(false);
       expect(host(p => p.text === 'Small' && p.color != null)).toBeTruthy();
     }
     expect(onValueChange).toHaveBeenCalledTimes(1);
@@ -190,12 +217,31 @@ describe(`Picker (${Platform.OS})`, () => {
     await render(<Picker selectedValue="m">{items}</Picker>, options);
     expect(nodes()[0].props.modifiers).toHaveLength(1);
     expect(modifier(nodes()[0].props, 'testID')).toBeUndefined();
+    await press();
+    expect(menu().props.expanded).toBe(true);
+    const [popup] = screen.container.queryAll(i => typeof i.props.onDismissRequest === 'function');
+    await fireEvent(popup, 'dismissRequest');
+    expect(menu().props.expanded).toBe(false);
+    expect(dropdown().props.expanded).toBe(false);
+  });
+
+  (isIOS ? it.skip : it)('leaves the press to the anchor: the surface\'s own click opens nothing', async () => {
+    const onValueChange = vi.fn();
+    await render(<Picker label="Size" selectedValue="m" onValueChange={onValueChange} testID="pk">{items}</Picker>, options);
     await act(async () => {
-      modifier(pill().props, 'clickable')?.eventListener();
+      anchor().props.onSurfaceClick();
     });
-    expect(host(p => p.expanded != null).props.expanded).toBe(true);
-    const [menu] = screen.container.queryAll(i => typeof i.props.onDismissRequest === 'function');
-    await fireEvent(menu, 'dismissRequest');
-    expect(host(p => p.expanded != null).props.expanded).toBe(false);
+    expect(dropdown().props.expanded).toBe(false);
+    expect(menu().props.expanded).toBe(false);
+    expect(onValueChange).not.toHaveBeenCalled();
+  });
+
+  (isIOS ? it.skip : it)('closes an open menu when the picker is disabled', async () => {
+    const {rerender} = await render(<Picker label="Size" selectedValue="m" testID="pk">{items}</Picker>, options);
+    await press();
+    expect(menu().props.expanded).toBe(true);
+    await rerender(<Picker label="Size" selectedValue="m" disabled testID="pk">{items}</Picker>);
+    expect(menu().props.expanded).toBe(false);
+    expect(dropdown().props.expanded).toBe(false);
   });
 });
