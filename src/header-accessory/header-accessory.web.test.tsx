@@ -1,5 +1,3 @@
-// Matchers are registered by expo-vitest's web setup; imported for the types.
-import '@testing-library/jest-dom/vitest';
 import type {TabRoute} from '../tabs/types';
 import {useEffect, useState} from 'react';
 import {Text} from 'react-native';

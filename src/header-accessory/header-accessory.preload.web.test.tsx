@@ -1,5 +1,3 @@
-// Matchers are registered by expo-vitest's web setup; imported for the types.
-import '@testing-library/jest-dom/vitest';
 import {Text} from 'react-native';
 import {act, screen as dom} from '@testing-library/react';
 import {router} from 'expo-router';
