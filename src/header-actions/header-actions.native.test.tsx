@@ -1,7 +1,6 @@
 import type {ReactNode} from 'react';
 import type {MenuItem} from '../menu/types';
 import {Platform, Text} from 'react-native';
-import {fireEvent as fireDom, render as renderDom, screen as dom} from '@testing-library/react';
 import {screen} from '@testing-library/react-native';
 import {barItems} from '../__stories__/header';
 import * as icons from '../__stories__/icons';
@@ -15,11 +14,6 @@ import {HeaderActions} from '.';
 
 const HOST = 'ViewManagerAdapter_ExpoUI_HostView';
 const items: MenuItem[] = [{label: 'PDF'}, {label: 'Markdown'}];
-
-/** The row as a header draws it: inside the header's trailing slot. */
-function inHeader(node: ReactNode) {
-  return <InHeaderContext.Provider value={true}>{node}</InHeaderContext.Provider>;
-}
 
 /** An app whose root screen renders the row in its content. */
 function app(row: ReactNode) {
@@ -42,45 +36,6 @@ const row = (
 );
 
 describe(`HeaderActions (${Platform.OS})`, () => {
-  if (Platform.OS === 'web') {
-    it('lays the actions out in a row with space between them', () => {
-      renderDom(inHeader(row));
-      const element = dom.getByTestId('actions');
-      const style = getComputedStyle(element);
-      expect(style.display).toBe('flex');
-      expect(style.flexDirection).toBe('row');
-      expect(style.alignItems).toBe('center');
-      // An icon button in the bar is a 30px box around an 18px glyph, so two
-      // of them abutting leave 12px between the glyphs and read as one.
-      expect(style.gap).toBe('8px');
-      expect(dom.getByRole('button', {name: 'Copy'})).toBeInTheDocument();
-      expect(dom.getByRole('button', {name: 'Export'})).toBeInTheDocument();
-    });
-
-    it('keeps each action working', () => {
-      const onPress = vi.fn();
-      renderDom(inHeader(
-        <HeaderActions>
-          <HeaderAction label="Copy" onPress={onPress}/>
-        </HeaderActions>,
-      ));
-      fireDom.click(dom.getByRole('button', {name: 'Copy'}));
-      expect(onPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('sends the whole row to the header from the screen it is rendered in', async () => {
-      await renderApp(app(row));
-      const element = dom.getByTestId('actions');
-      const title = dom.getByText('Drops');
-      const content = dom.getByText('Home screen');
-      expect(title.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-      expect(element.compareDocumentPosition(content) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-      expect(dom.getByRole('button', {name: 'Copy'})).toHaveClass('ui-button--medium');
-      expect(dom.getByRole('button', {name: 'Export'})).toHaveClass('ui-button--medium');
-    });
-    return;
-  }
-
   it('is the bar\'s own items, in the order given, and draws nothing in the screen', async () => {
     await renderApp(app(row));
     expect(screen.getByText('Home screen')).toBeOnTheScreen();

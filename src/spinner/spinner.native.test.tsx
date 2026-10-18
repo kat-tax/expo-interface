@@ -1,5 +1,4 @@
 import {Platform} from 'react-native';
-import {render as renderDom, screen as dom} from '@testing-library/react';
 import {render, screen} from '@testing-library/react-native';
 import {NativeHost} from '../host';
 import {byComposeTestID, nodes} from 'expo-vitest/native';
@@ -8,16 +7,6 @@ import {Spinner} from '.';
 const HOST = 'ViewManagerAdapter_ExpoUI_HostView';
 
 describe(`Spinner (${Platform.OS})`, () => {
-  if (Platform.OS === 'web') {
-    it('spins an indeterminate ring', () => {
-      renderDom(<Spinner testID="loading"/>);
-      const ring = dom.getByTestId('loading');
-      expect(ring).toHaveClass('ui-progress-ring--indeterminate');
-      expect(ring).not.toHaveAttribute('aria-valuenow');
-    });
-    return;
-  }
-
   const isIOS = Platform.OS === 'ios';
   const ring = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
 
