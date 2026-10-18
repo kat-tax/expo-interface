@@ -54,7 +54,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Install Chromium for the harness
-        run: bunx playwright install --with-deps chromium
+        run: bun run harness install --with-deps chromium
       - name: Serve the example
         working-directory: example
         run: |
