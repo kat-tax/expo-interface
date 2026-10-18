@@ -1,0 +1,339 @@
+import type {ReactNode} from 'react';
+import type {HeaderSearchCommands} from './types';
+import {createRef, useEffect, useState} from 'react';
+import {Text, View} from 'react-native';
+import {act as actDom, fireEvent as fireDom, render as renderDom, screen as dom} from '@testing-library/react';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import * as icons from '../__stories__/icons';
+import {HeaderAction} from '../header-action';
+import {HeaderActions} from '../header-actions';
+import {InHeaderContext} from '../header/shared';
+import {Screen} from '../screen';
+import {TabStack} from '../tab-stack';
+import {renderApp} from 'expo-vitest/router';
+import {InlineField} from './inline';
+import {INLINE_MIN_WIDTH, INLINE_WIDTH} from './shared';
+import {HeaderSearch} from '.';
+
+/** An app whose root screen renders the search in its content. */
+function app(control: ReactNode) {
+  return {
+    _layout: () => <TabStack title="Drops"/>,
+    index: () => (
+      <>
+        {control}
+        <Text>Home screen</Text>
+      </>
+    ),
+  };
+}
+
+/** Changes what the screen renders for its search, from the test. */
+let setSearch: (search: ReactNode) => void = () => {};
+
+/** A screen's search, which the test changes or takes away, as an app renders one conditionally. */
+function Search({initial}: {initial: ReactNode}) {
+  const [search, setState] = useState(initial);
+  useEffect(() => {
+    setSearch = next => setState(next);
+  });
+  return search;
+}
+
+/**
+ * jsdom lays nothing out, so react-native-web reads a window of no width. A
+ * narrow window is this: the document's width, and the resize that makes
+ * `Dimensions` read it again.
+ */
+function windowWidth(width: number): () => void {
+  const spy = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(() => width);
+  window.dispatchEvent(new Event('resize'));
+  return () => {
+    spy.mockRestore();
+    window.dispatchEvent(new Event('resize'));
+  };
+}
+
+describe('HeaderSearch (web)', () => {
+
+  it('sends a stacked search to a row under the header, in the header\'s own bar', async () => {
+    const onChangeText = vi.fn();
+    const onSubmit = vi.fn();
+    const onOpen = vi.fn();
+    const onClose = vi.fn();
+    await renderApp(app(<HeaderSearch placement="stacked" placeholder="Find a drop" onChangeText={onChangeText} onSubmit={onSubmit} onOpen={onOpen} onClose={onClose} testID="q"/>));
+    const input = dom.getByRole('searchbox', {name: 'Find a drop'});
+    // Under the title, in the header, before the content.
+    const title = dom.getByText('Drops');
+    const content = dom.getByText('Home screen');
+    expect(title.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(input.compareDocumentPosition(content) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // Not in the title's row: the row under it.
+    expect(title.parentElement!.contains(input)).toBe(false);
+    expect(title.parentElement!.parentElement!.contains(input)).toBe(true);
+    // The field holds its text, as a native search field does, and reports it.
+    fireDom.change(input, {target: {value: 'dem'}});
+    expect(onChangeText).toHaveBeenCalledWith('dem');
+    expect(input).toHaveValue('dem');
+    fireDom.keyDown(input, {key: 'Enter'});
+    expect(onSubmit).toHaveBeenCalledWith('dem');
+    // The focus coming and going is the search opening and closing.
+    fireDom.focus(input);
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    fireDom.blur(input);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('draws an inline search as a frameless field in the header row after the title, which is what automatic is', async () => {
+    await renderApp(app(<HeaderSearch placeholder="Find a drop" testID="q"/>));
+    const input = dom.getByRole('searchbox', {name: 'Find a drop'});
+    const title = dom.getByText('Drops');
+    expect(title.parentElement!.contains(input)).toBe(true);
+    expect(title.compareDocumentPosition(input) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // Not `SearchField`'s box, and no magnifier: the input alone on the bar's own fill.
+    expect(input).toHaveClass('ui-header-search__input');
+    expect(input).toHaveAttribute('type', 'search');
+    expect(input).toHaveAttribute('data-testid', 'q');
+    const field = input.parentElement!;
+    expect(field).toHaveClass('ui-header-search');
+    expect(field).toHaveAttribute('data-testid', 'q-row');
+    expect(field.querySelector('.ui-symbol')).toBeNull();
+    // A desktop search box's width at most, a short field at least: the rest is the row's.
+    expect(getComputedStyle(field).minWidth).toBe(`${INLINE_MIN_WIDTH}px`);
+    expect(getComputedStyle(field).maxWidth).toBe(`${INLINE_WIDTH}px`);
+    expect(dom.queryByRole('button', {name: 'Find a drop'})).toBeNull();
+  });
+
+  it('keeps an automatic search inline in a narrow window: nothing stacks unless asked', async () => {
+    const restore = windowWidth(390);
+    try {
+      await renderApp(app(<HeaderSearch placeholder="Find a drop"/>));
+      const input = dom.getByRole('searchbox', {name: 'Find a drop'});
+      expect(dom.getByText('Drops').parentElement!.contains(input)).toBe(true);
+    } finally {
+      restore();
+    }
+  });
+
+  it('holds the text in an inline field, reports it, and takes the commands through the ref', async () => {
+    const ref = createRef<HeaderSearchCommands>();
+    const onChangeText = vi.fn();
+    const onSubmit = vi.fn();
+    const onOpen = vi.fn();
+    const onClose = vi.fn();
+    await renderApp(app(<HeaderSearch ref={ref} placement="inline" placeholder="Find a drop" autoCapitalize="none" onChangeText={onChangeText} onSubmit={onSubmit} onOpen={onOpen} onClose={onClose}/>));
+    const input = dom.getByRole('searchbox', {name: 'Find a drop'});
+    expect(input).toHaveAttribute('autocapitalize', 'none');
+    expect(input).toHaveAttribute('enterkeyhint', 'search');
+    fireDom.change(input, {target: {value: 'dem'}});
+    expect(onChangeText).toHaveBeenCalledWith('dem');
+    expect(input).toHaveValue('dem');
+    fireDom.keyDown(input, {key: 'Enter'});
+    expect(onSubmit).toHaveBeenCalledWith('dem');
+    // Escape is nothing to a field that is not an action.
+    fireDom.keyDown(input, {key: 'Escape'});
+    expect(input).toHaveValue('dem');
+    // The focus coming and going is the search opening and closing.
+    actDom(() => ref.current!.focus());
+    expect(document.activeElement).toBe(input);
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    actDom(() => ref.current!.blur());
+    expect(document.activeElement).not.toBe(input);
+    expect(onClose).toHaveBeenCalledTimes(1);
+    actDom(() => ref.current!.setText('Demo'));
+    expect(input).toHaveValue('Demo');
+    actDom(() => ref.current!.clear());
+    expect(input).toHaveValue('');
+    actDom(() => ref.current!.focus());
+    actDom(() => ref.current!.setText('Demo'));
+    actDom(() => ref.current!.cancel());
+    expect(input).toHaveValue('');
+    expect(document.activeElement).not.toBe(input);
+    // Setting the text is not typing: nothing more was reported.
+    expect(onChangeText).toHaveBeenCalledTimes(1);
+  });
+
+  it('focuses an inline field on mount when asked', async () => {
+    await renderApp(app(<HeaderSearch placement="inline" autoFocus/>));
+    expect(document.activeElement).toBe(dom.getByRole('searchbox', {name: 'Search'}));
+  });
+
+  it('draws the inline field without handlers or a testID, and takes the commands after the input is gone', () => {
+    const ref = createRef<{focus(): void; blur(): void}>();
+    const {unmount} = renderDom(<InlineField ref={ref} value="" onChangeText={vi.fn()}/>);
+    const input = dom.getByRole('searchbox', {name: 'Search'});
+    expect(input).not.toHaveAttribute('data-testid');
+    expect(input.parentElement).not.toHaveAttribute('data-testid');
+    // Keys and the search key with nothing listening.
+    fireDom.keyDown(input, {key: 'a'});
+    fireDom.keyDown(input, {key: 'Enter'});
+    const commands = ref.current!;
+    unmount();
+    expect(() => {
+      commands.focus();
+      commands.blur();
+    }).not.toThrow();
+  });
+
+  it('draws an action as a magnifier that expands into a field across the row, and collapses again', async () => {
+    const onOpen = vi.fn();
+    const onClose = vi.fn();
+    const onBlur = vi.fn();
+    await renderApp(app(<HeaderSearch placement="action" placeholder="Find a drop" onOpen={onOpen} onClose={onClose} onBlur={onBlur} testID="q"/>));
+    expect(dom.queryByRole('searchbox')).toBeNull();
+    const magnifier = dom.getByRole('button', {name: 'Find a drop'});
+    expect(magnifier).toHaveAttribute('data-testid', 'q-open');
+    expect(magnifier).toHaveClass('ui-button--icon-only', 'ui-button--label');
+    fireDom.click(magnifier);
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    const input = dom.getByRole('searchbox', {name: 'Find a drop'});
+    // The field has the focus and the row: the title went.
+    expect(document.activeElement).toBe(input);
+    expect(dom.queryByText('Drops')).toBeNull();
+    // Losing the focus with text in it keeps it open; Escape collapses it.
+    fireDom.change(input, {target: {value: 'dem'}});
+    fireDom.blur(input);
+    expect(onBlur).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled();
+    fireDom.keyDown(input, {key: 'Escape'});
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(dom.queryByRole('searchbox')).toBeNull();
+    expect(dom.getByText('Drops')).toBeInTheDocument();
+    // Opened again, the field is empty, and a blur with nothing in it collapses it.
+    fireDom.click(dom.getByRole('button', {name: 'Find a drop'}));
+    const again = dom.getByRole('searchbox');
+    expect(again).toHaveValue('');
+    fireDom.blur(again);
+    expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it('takes the commands through the ref: the text is set and cleared silently, cancel closes', async () => {
+    const ref = createRef<HeaderSearchCommands>();
+    const onChangeText = vi.fn();
+    const onClose = vi.fn();
+    await renderApp(app(<HeaderSearch ref={ref} placement="action" placeholder="Find a drop" onChangeText={onChangeText} onClose={onClose}/>));
+    actDom(() => ref.current!.focus());
+    const input = dom.getByRole('searchbox');
+    expect(document.activeElement).toBe(input);
+    actDom(() => ref.current!.setText('Demo'));
+    expect(input).toHaveValue('Demo');
+    expect(onChangeText).not.toHaveBeenCalled();
+    actDom(() => ref.current!.blur());
+    expect(document.activeElement).not.toBe(input);
+    actDom(() => ref.current!.clear());
+    expect(input).toHaveValue('');
+    actDom(() => ref.current!.cancel());
+    expect(dom.queryByRole('searchbox')).toBeNull();
+    expect(onClose).toHaveBeenCalledTimes(1);
+    // Cancelling a closed search changes nothing, and says nothing.
+    actDom(() => ref.current!.cancel());
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('cancels a stacked search by emptying it and giving up the focus', async () => {
+    const ref = createRef<HeaderSearchCommands>();
+    await renderApp(app(<HeaderSearch ref={ref} placement="stacked"/>));
+    const input = dom.getByRole('searchbox');
+    actDom(() => ref.current!.focus());
+    expect(document.activeElement).toBe(input);
+    actDom(() => ref.current!.setText('Demo'));
+    actDom(() => ref.current!.cancel());
+    expect(input).toHaveValue('');
+    expect(document.activeElement).not.toBe(input);
+  });
+
+  it('takes the search out of the header when the screen stops rendering it', async () => {
+    await renderApp(app(<Search initial={<HeaderSearch placement="stacked" placeholder="Find a drop"/>}/>));
+    expect(dom.getByRole('searchbox', {name: 'Find a drop'})).toBeInTheDocument();
+    await actDom(async () => setSearch(null));
+    expect(dom.queryByRole('searchbox')).toBeNull();
+    // And back again.
+    await actDom(async () => setSearch(<HeaderSearch placement="stacked" placeholder="Find a drop"/>));
+    expect(dom.getByRole('searchbox', {name: 'Find a drop'})).toBeInTheDocument();
+  });
+
+  it('moves the search when its placement changes, leaving none behind in the header', async () => {
+    await renderApp(app(<Search initial={<HeaderSearch placement="stacked" placeholder="Find a drop"/>}/>));
+    await actDom(async () => setSearch(<HeaderSearch placement="integrated" placeholder="Find a drop" testID="q"/>));
+    const fields = dom.getAllByRole('searchbox');
+    expect(fields).toHaveLength(1);
+    // The bottom bar's field, not one under the header's title.
+    expect(dom.getByTestId('q-bar').contains(fields[0]!)).toBe(true);
+    expect(dom.getByText('Drops').parentElement!.parentElement!.contains(fields[0]!)).toBe(false);
+  });
+
+  it('keeps a HeaderActions beside it, in the header\'s own slot', async () => {
+    await renderApp(app(
+      <>
+        <HeaderSearch placement="inline" placeholder="Find a drop"/>
+        <HeaderActions>
+          <HeaderAction label="Copy" icon={icons.share} onPress={vi.fn()}/>
+        </HeaderActions>
+      </>,
+    ));
+    const row = dom.getByText('Drops').parentElement!;
+    expect(row.contains(dom.getByRole('searchbox'))).toBe(true);
+    expect(row.contains(dom.getByRole('button', {name: 'Copy'}))).toBe(true);
+  });
+
+  it('draws itself where it is inside a header already', () => {
+    renderDom(
+      <InHeaderContext.Provider value={true}>
+        <HeaderSearch placeholder="Find a drop" testID="q"/>
+      </InHeaderContext.Provider>,
+    );
+    expect(dom.getByRole('searchbox', {name: 'Find a drop'})).toHaveAttribute('data-testid', 'q');
+  });
+
+  it('draws an action where it is inside a header already, with no header to tell', () => {
+    renderDom(
+      <InHeaderContext.Provider value={true}>
+        <HeaderSearch placement="action" placeholder="Find a drop"/>
+      </InHeaderContext.Provider>,
+    );
+    fireDom.click(dom.getByRole('button', {name: 'Find a drop'}));
+    expect(dom.getByRole('searchbox', {name: 'Find a drop'})).toBeInTheDocument();
+  });
+
+  it('focuses a stacked field on mount when asked', async () => {
+    await renderApp(app(<HeaderSearch placement="stacked" autoFocus/>));
+    expect(document.activeElement).toBe(dom.getByRole('searchbox'));
+  });
+
+  it('opens an action with the focus on mount when asked, and the header is told from the start', async () => {
+    await renderApp(app(<HeaderSearch placement="action" autoFocus/>));
+    expect(document.activeElement).toBe(dom.getByRole('searchbox'));
+    // The row is the field's: the title went.
+    expect(dom.queryByText('Drops')).toBeNull();
+  });
+
+  it('puts an integrated search in a bottom toolbar of the screen, with the fab above it', () => {
+    renderDom(
+      <SafeAreaProvider>
+        <Screen fab={<Text testID="fab">New</Text>}>
+          <HeaderSearch placement="integrated" placeholder="Find a drop" testID="q"/>
+          <View testID="kid"/>
+        </Screen>
+      </SafeAreaProvider>,
+    );
+    const bar = dom.getByTestId('q-bar');
+    const input = dom.getByRole('searchbox', {name: 'Find a drop'});
+    expect(bar.contains(input)).toBe(true);
+    // Below the content, in the screen's bars slot.
+    const bars = dom.getByTestId('screen-bars');
+    expect(bars.contains(bar)).toBe(true);
+    expect(dom.getByTestId('kid').compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('draws an integrated search over the bottom edge of what it is in, outside a screen', () => {
+    renderDom(
+      <View>
+        <HeaderSearch placement="integrated" testID="q"/>
+      </View>,
+    );
+    const bar = dom.getByTestId('q-bar');
+    const slot = bar.parentElement!;
+    expect(getComputedStyle(slot).position).toBe('absolute');
+    expect(getComputedStyle(slot).bottom).toBe('0px');
+  });
+});

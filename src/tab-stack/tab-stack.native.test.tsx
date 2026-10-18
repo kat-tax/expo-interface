@@ -1,16 +1,13 @@
 import {Platform, Text} from 'react-native';
 import {Stack} from 'expo-router';
-import {screen as dom} from '@testing-library/react';
 import {renderHook, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import {barItems} from '../__stories__/header';
 import * as icons from '../__stories__/icons';
 import {HeaderAction} from '../header-action';
-import {colors, theme} from '../theme';
+import {colors} from '../theme';
 import {stackHeaders} from 'expo-vitest/native';
 import {renderApp} from 'expo-vitest/router';
-import {ConstrainedStackHeader} from '../stack-header';
-import {HeaderSlotContext, createHeaderSlot} from '../tabs/context';
 import {TabStack} from '.';
 
 const app = {
@@ -39,42 +36,13 @@ describe(`TabStack (${Platform.OS})`, () => {
       headerBackButtonDisplayMode: 'minimal',
     });
     // Web draws the header itself; the native stacks use their own bar.
-    expect(screenOptions.header).toBe(Platform.OS === 'web' ? ConstrainedStackHeader : undefined);
-    if (Platform.OS === 'web') {
-      expect(screenOptions.headerTintColor).toBe(theme.label);
-      expect(screenOptions.headerStyle).toEqual({backgroundColor: theme.background});
-    } else {
-      expect(screenOptions.headerTintColor).toBe(colors.light.label);
-      expect(screenOptions.headerTitleStyle).toEqual({color: colors.light.label});
-      expect(screenOptions.headerStyle).toEqual({backgroundColor: colors.light.background});
-      expect(screenOptions.headerTransparent).toBeUndefined();
-    }
+    expect(screenOptions.header).toBeUndefined();
+    expect(screenOptions.headerTintColor).toBe(colors.light.label);
+    expect(screenOptions.headerTitleStyle).toEqual({color: colors.light.label});
+    expect(screenOptions.headerStyle).toEqual({backgroundColor: colors.light.background});
+    expect(screenOptions.headerTransparent).toBeUndefined();
     expect(children.props).toMatchObject({name: 'index', options: {title: 'Drops'}});
   });
-
-  if (Platform.OS === 'web') {
-    it('leaves the top inset to the screen where the header folds into the bar', async () => {
-      const slot = createHeaderSlot();
-      const {result} = await renderHook(() => TabStack({title: 'Drops'}), {
-        wrapper: ({children}) => <HeaderSlotContext.Provider value={slot}>{children}</HeaderSlotContext.Provider>,
-      });
-      // No header is drawn under the bar, so `Screen` pays the bar's inset itself.
-      expect(result.current.props.value).toBe(false);
-    });
-
-    it('passes the header trailing slot to the index screen', async () => {
-      const headerRight = () => <Text>New…</Text>;
-      const {result} = await renderHook(() => TabStack({title: 'Drops', headerRight}));
-      expect(stackOf(result).children.props.options).toEqual({title: 'Drops', headerRight});
-    });
-
-    it('renders the index screen under the web stack header', async () => {
-      await renderApp(app);
-      expect(dom.getByText('Home screen')).toBeInTheDocument();
-      expect(dom.getByText('Drops')).toBeInTheDocument();
-    });
-    return;
-  }
 
   const isIOS = Platform.OS === 'ios';
   const stacked = {
