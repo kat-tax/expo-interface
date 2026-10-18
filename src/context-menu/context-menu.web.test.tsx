@@ -1,5 +1,3 @@
-// Matchers are registered by expo-vitest's web setup; imported for the types.
-import '@testing-library/jest-dom/vitest';
 import type {MenuItem} from '../menu/types';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import {AccentProvider} from '../accent';

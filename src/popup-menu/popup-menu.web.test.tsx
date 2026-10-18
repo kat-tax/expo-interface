@@ -1,4 +1,3 @@
-import '@testing-library/jest-dom/vitest';
 import type {MenuItem} from '../menu/types';
 import {render, screen} from '@testing-library/react';
 import {staticPage} from '../__tests__/static-page';

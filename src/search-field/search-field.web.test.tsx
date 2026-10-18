@@ -1,5 +1,3 @@
-// Matchers are registered by expo-vitest's web setup; imported for the types.
-import '@testing-library/jest-dom/vitest';
 import type {SearchFieldCommands} from './types';
 import {createRef} from 'react';
 import {fireEvent, render, screen} from '@testing-library/react';

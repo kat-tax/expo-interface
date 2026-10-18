@@ -1,5 +1,3 @@
-// Matchers are registered by expo-vitest's web setup; imported for the types.
-import '@testing-library/jest-dom/vitest';
 import type {TabBarAction} from './types';
 import {render, screen} from '@testing-library/react';
 import {Text} from 'react-native';

@@ -1,4 +1,3 @@
-import '@testing-library/jest-dom/vitest';
 import type {MenuItem} from '../menu/types';
 import {fireEvent, render, screen} from '@testing-library/react';
 import {Sheet} from '../sheet';
