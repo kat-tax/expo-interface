@@ -1,5 +1,5 @@
 import {defineConfig} from 'vitest/config';
-import {deviceConfig} from 'expo-vitest';
+import {deviceConfig} from 'expo-vitest/config';
 
 /**
  * The device project: tests that drive a real build of the app and read what it

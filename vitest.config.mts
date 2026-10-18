@@ -1,5 +1,5 @@
 import {defineConfig} from 'vitest/config';
-import {expoProjects} from 'expo-vitest';
+import {expoProjects} from 'expo-vitest/config';
 
 /**
  * The kit resolves a different implementation per platform (`index.ios.tsx`,
@@ -7,8 +7,7 @@ import {expoProjects} from 'expo-vitest';
  * so the suite runs once per platform as four Vitest projects. `expo-vitest`
  * makes them, and a test file picks its platforms by name:
  *
- * - `*.test.ts`             every platform, including Windows
- * - `*.test.tsx`            iOS, Android and web
+ * - `*.test.ts`, `*.test.tsx`  every platform: iOS, Android, web and Windows
  * - `*.native.test.tsx`     iOS and Android
  * - `*.ios.test.tsx`        iOS only
  * - `*.android.test.tsx`    Android only
