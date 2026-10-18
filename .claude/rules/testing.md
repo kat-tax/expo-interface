@@ -8,15 +8,18 @@ paths:
 # Tests
 
 Vitest 4 with `vitest-expo`, no jest. The four projects come from the
-`expo-vitest` package: `vitest.config.mts` calls `expoProjects()`. **A file's
-name decides which platforms run it**:
+`expo-vitest` package: `vitest.config.mts` calls `expoProjects()` from
+`expo-vitest/config`. **A file's name decides which platforms run it**:
 
 | Name | Runs in |
 | --- | --- |
-| `src/**/*.test.tsx` | ios, android, web |
-| `src/**/*.test.ts` | ios, android, web **and windows** |
+| `src/**/*.test.ts`, `src/**/*.test.tsx` | ios, android, web **and windows** |
 | `src/**/*.ios.test.tsx` | ios only (same for `.android.`, `.web.`, `.windows.`) |
 | `src/**/*.native.test.tsx` | ios and android |
+
+A test that holds on some platforms only is named for them. One that covers
+iOS, Android and web but not Windows is two files, `.native.test.tsx` and
+`.web.test.tsx`: Windows has its own `.windows.test.tsx` for the component.
 
 Run one project with `node node_modules/vitest/vitest.mjs run --project <name>`,
 and a single file by appending its path.

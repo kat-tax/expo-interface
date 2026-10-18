@@ -75,10 +75,12 @@ decides where it runs:
 
 | Pattern | Platforms |
 | --- | --- |
-| `*.test.ts` | ios, android, windows, web |
-| `*.test.tsx` | ios, android, web |
+| `*.test.ts`, `*.test.tsx` | ios, android, windows, web |
 | `*.native.test.tsx` | ios, android |
 | `*.ios.test.tsx`, `*.android.test.tsx`, `*.web.test.tsx`, `*.windows.test.tsx` | one platform |
+
+A test that holds on some platforms only is named for them, so one that
+covers iOS, Android and web is a `.native.test.tsx` and a `.web.test.tsx`.
 
 The windows project is the iOS engine told it is Windows. `@expo/ui` and the
 other modules with no Windows implementation are forbidden there, so a Windows
