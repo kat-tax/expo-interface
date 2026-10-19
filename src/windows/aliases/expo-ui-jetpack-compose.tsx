@@ -7,7 +7,6 @@ import {
   Button as KitButton,
   Card as KitCard,
   Chip as KitChip,
-  Checkbox as KitCheckbox,
   DateTimePicker as KitDateTimePicker,
   Divider as KitDivider,
   Fab as KitFab,
@@ -16,17 +15,19 @@ import {
   Progress as KitProgress,
   SegmentedControl as KitSegmentedControl,
   Sheet as KitSheet,
-  Slider as KitSlider,
   Spinner as KitSpinner,
-  Switch as KitSwitch,
   TextField as KitTextField,
   type TextFieldKeyboard,
   Toast as KitToast,
   Tooltip as KitTooltip,
   useColor,
 } from '../..';
+import XamlCheckBox from '../specs/ExpoInterfaceCheckBoxNativeComponent';
+import XamlSlider from '../specs/ExpoInterfaceSliderNativeComponent';
+import XamlToggleSwitch from '../specs/ExpoInterfaceToggleSwitchNativeComponent';
+import {useXamlProps} from '../index';
 import {useNativeState} from './expo-ui';
-import {assign, elementsOf, iconOf, isDisabled, onTapOf, slotOf, styleOf, textOf, valueOf, without} from './ui-kit';
+import {assign, elementsOf, iconOf, isDisabled, modifier, onTapOf, slotOf, styleOf, textOf, valueOf, without} from './ui-kit';
 
 export {useNativeState};
 
@@ -279,42 +280,67 @@ export const ExtendedFloatingActionButton = Object.assign(fab('extended'), {Icon
 
 // Selection controls
 
+/**
+ * The name a `semantics` modifier's `contentDescription` gives a control:
+ * what TalkBack reads on Android, and the WinUI control's accessible name
+ * here. A Compose switch, checkbox or slider takes no label of its own.
+ */
+function describedBy(modifiers: unknown): string | undefined {
+  const description = modifier(modifiers, 'semantics')?.contentDescription;
+  return typeof description === 'string' ? description : undefined;
+}
+
+/**
+ * The selection controls are the kit's WinUI islands, drawn here directly:
+ * the kit's `Switch`, `Checkbox` and `Slider` take a name only as a label
+ * they draw in a row, and a Compose control has its text drawn by the app.
+ */
+function ToggleSwitch({value, disabled, onChange, modifiers, testID}: Common & {value: boolean; disabled: boolean; onChange: (value: boolean) => void}) {
+  const xaml = useXamlProps();
+  return <XamlToggleSwitch value={value} disabled={disabled} label={describedBy(modifiers)} onValueChange={event => onChange(event.nativeEvent.value)} testID={testID} {...xaml}/>;
+}
+function CheckBox({value, disabled, onChange, modifiers, testID}: Common & {value: boolean; disabled: boolean; onChange: (value: boolean) => void}) {
+  const xaml = useXamlProps();
+  return <XamlCheckBox value={value} disabled={disabled} label={describedBy(modifiers)} onValueChange={event => onChange(event.nativeEvent.value)} testID={testID} {...xaml}/>;
+}
+
 function ThumbContent({children}: WithChildren): ReactNode {
   return children;
 }
 function SwitchBase({value, enabled = true, onCheckedChange, modifiers, testID}: WithChildren & {value: boolean; enabled?: boolean; onCheckedChange?: (value: boolean) => void; colors?: unknown}) {
-  return <KitSwitch value={value} onValueChange={onCheckedChange ?? (() => {})} disabled={!enabled || isDisabled(modifiers)} testID={testID}/>;
+  return <ToggleSwitch value={value} onChange={next => onCheckedChange?.(next)} disabled={!enabled || isDisabled(modifiers)} modifiers={modifiers} testID={testID}/>;
 }
 export const SwitchThumbContent = ThumbContent;
 export const Switch = Object.assign(SwitchBase, {ThumbContent, DefaultIconSize: 16});
 
-export function SyncSwitch({isOn, onCheckedChangeSync, enabled = true, testID}: Common & {isOn: {value: boolean; set(value: boolean): void}; onCheckedChangeSync?: (value: boolean) => void; enabled?: boolean; colors?: unknown}) {
+export function SyncSwitch({isOn, onCheckedChangeSync, enabled = true, modifiers, testID}: Common & {isOn: {value: boolean; set(value: boolean): void}; onCheckedChangeSync?: (value: boolean) => void; enabled?: boolean; colors?: unknown}) {
   const [, rerender] = useState(0);
   return (
-    <KitSwitch
+    <ToggleSwitch
       value={isOn.value}
-      onValueChange={value => {
+      onChange={value => {
         isOn.set(value);
         onCheckedChangeSync?.(value);
         rerender(count => count + 1);
       }}
       disabled={!enabled}
+      modifiers={modifiers}
       testID={testID}
     />
   );
 }
 
 export function Checkbox({value, enabled = true, onCheckedChange, modifiers, testID}: Common & {value: boolean; enabled?: boolean; onCheckedChange?: (value: boolean) => void; colors?: unknown}) {
-  return <KitCheckbox value={value} onValueChange={onCheckedChange ?? (() => {})} disabled={!enabled || isDisabled(modifiers)} testID={testID}/>;
+  return <CheckBox value={value} onChange={next => onCheckedChange?.(next)} disabled={!enabled || isDisabled(modifiers)} modifiers={modifiers} testID={testID}/>;
 }
 
 export function TriStateCheckbox({state, enabled = true, onClick, modifiers, testID}: Common & {state: 'on' | 'off' | 'indeterminate'; enabled?: boolean; onClick?: () => void; colors?: unknown}) {
-  return <KitCheckbox value={state === 'on'} onValueChange={() => onClick?.()} disabled={!enabled || isDisabled(modifiers)} testID={testID}/>;
+  return <CheckBox value={state === 'on'} onChange={() => onClick?.()} disabled={!enabled || isDisabled(modifiers)} modifiers={modifiers} testID={testID}/>;
 }
 
 export function RadioButton({selected, onClick, modifiers, testID}: Common & {selected: boolean; onClick?: () => void; enabled?: boolean; colors?: unknown}) {
   return (
-    <Pressable onPress={onClick} style={[{width: 20, height: 20, borderRadius: 10, borderWidth: 2, alignItems: 'center', justifyContent: 'center'}, styleOf(modifiers)]} accessibilityRole="radio" accessibilityState={{selected}} testID={testID}>
+    <Pressable onPress={onClick} style={[{width: 20, height: 20, borderRadius: 10, borderWidth: 2, alignItems: 'center', justifyContent: 'center'}, styleOf(modifiers)]} accessibilityRole="radio" accessibilityLabel={describedBy(modifiers)} accessibilityState={{selected}} testID={testID}>
       {selected ? <View style={{width: 10, height: 10, borderRadius: 5, backgroundColor: '#0f6cbd'}}/> : null}
     </Pressable>
   );
@@ -327,7 +353,24 @@ function Track({children}: WithChildren): ReactNode {
   return children;
 }
 function SliderBase({value = 0, steps = 0, min = 0, max = 1, enabled = true, onValueChange, onValueChangeFinished, modifiers, testID}: WithChildren & {value?: number; steps?: number; min?: number; max?: number; lowerLimit?: number; upperLimit?: number; enabled?: boolean; colors?: unknown; onValueChange?: (value: number) => void; onValueChangeFinished?: () => void}) {
-  return <KitSlider value={value} onValueChange={onValueChange ?? (() => {})} onSlidingComplete={onValueChangeFinished ? () => onValueChangeFinished() : undefined} min={min} max={max} step={steps > 0 ? (max - min) / (steps + 1) : undefined} disabled={!enabled || isDisabled(modifiers)} testID={testID}/>;
+  const xaml = useXamlProps();
+  // The row the kit's slider fills, without the label it would draw.
+  return (
+    <View style={{flexDirection: 'row', alignItems: 'center', width: '100%'}} testID={testID}>
+      <XamlSlider
+        value={value}
+        min={min}
+        max={max}
+        step={steps > 0 ? (max - min) / (steps + 1) : 0}
+        disabled={!enabled || isDisabled(modifiers)}
+        label={describedBy(modifiers)}
+        onValueChange={event => onValueChange?.(event.nativeEvent.value)}
+        onSlidingComplete={onValueChangeFinished ? () => onValueChangeFinished() : undefined}
+        style={{flex: 1}}
+        {...xaml}
+      />
+    </View>
+  );
 }
 export const Slider = Object.assign(SliderBase, {Thumb, Track});
 

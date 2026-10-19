@@ -2,7 +2,7 @@ import {createRef} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {fireIsland, island} from 'expo-vitest/windows';
 import * as ui from './expo-ui-jetpack-compose';
-import {clickable, paddingAll} from './expo-ui-jetpack-compose-modifiers';
+import {clickable, paddingAll, semantics} from './expo-ui-jetpack-compose-modifiers';
 import {disabled} from './expo-ui-swift-ui-modifiers';
 
 const BUTTON = 'ExpoInterfaceButton';
@@ -292,6 +292,30 @@ describe('@expo/ui/jetpack-compose controls (windows)', () => {
     expect(onValueChangeFinished).toHaveBeenCalledTimes(1);
     expect(island(SLIDER, 1).props).toMatchObject({disabled: true, step: 0});
     await fireIsland(island(SLIDER, 1), 'valueChange', {value: 0.1});
+  });
+
+  it('names a switch, checkbox, radio button or slider by its semantics description', async () => {
+    await render(
+      <>
+        <ui.Switch value modifiers={[semantics({contentDescription: 'Wi-Fi'})]}/>
+        <ui.Switch value modifiers={[semantics({mergeDescendants: true})]}/>
+        <ui.SyncSwitch isOn={{value: false, set: () => {}}} modifiers={[semantics({contentDescription: 'Sync'})]}/>
+        <ui.Checkbox value={false} modifiers={[semantics({contentDescription: 'Agree'})]}/>
+        <ui.TriStateCheckbox state="off" modifiers={[semantics({contentDescription: 'All'})]}/>
+        <ui.RadioButton selected modifiers={[semantics({contentDescription: 'Small'})]} testID="radio"/>
+        <ui.Slider value={0.5} modifiers={[semantics({contentDescription: 'Volume'})]}/>
+      </>,
+    );
+    // TalkBack reads the description on Android; it is the WinUI control's
+    // accessible name here, with no label drawn beside it.
+    expect(island(TOGGLE, 0).props.label).toBe('Wi-Fi');
+    expect(island(TOGGLE, 1).props.label).toBeUndefined();
+    expect(island(TOGGLE, 2).props.label).toBe('Sync');
+    expect(island(CHECK, 0).props.label).toBe('Agree');
+    expect(island(CHECK, 1).props.label).toBe('All');
+    expect(screen.getByTestId('radio').props.accessibilityLabel).toBe('Small');
+    expect(island(SLIDER).props.label).toBe('Volume');
+    expect(screen.queryByText('Wi-Fi')).toBeNull();
   });
 
   it('draws the date pickers, progress indicators, loading indicators and text fields as the kit\'s', async () => {
