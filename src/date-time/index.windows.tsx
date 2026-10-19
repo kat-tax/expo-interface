@@ -38,8 +38,10 @@ export function parseTimeString(raw: string, base: Date): Date | null {
  * calendar flyout) and `TimePicker` (a field that opens a time flyout) in
  * XAML islands, one or both by `mode`, at the trailing edge of a row whose
  * label the kit draws. Each edits its own part of the value and keeps the
- * other's. Presented, there is no row: the calendar or the time opens in a
- * flyout at the chip.
+ * other's, and is named by the label; in `datetime` mode, where both share
+ * the row, each is named by the label and the part it edits ("Due, date",
+ * "Due, time"), so UI Automation can tell them apart. Presented, there is no
+ * row: the calendar or the time opens in a flyout at the chip.
  */
 export function DateTimePicker(props: DateTimePickerProps) {
   if (props.presented !== undefined) return <PresentedPicker {...props}/>;
@@ -60,7 +62,8 @@ function RowPicker({
 }: DateTimePickerProps) {
   const xaml = useXamlProps();
   const [current, setValue] = useDateValue(value, onChange);
-  const shared = {...xaml, accentColor: accentColor ?? xaml.accentColor, disabled, label};
+  const shared = {...xaml, accentColor: accentColor ?? xaml.accentColor, disabled};
+  const named = (part: string) => (label != null && mode === 'datetime' ? `${label}, ${part}` : label);
   const minimum = toDate(minimumDate);
   const maximum = toDate(maximumDate);
   return (
@@ -80,6 +83,7 @@ function RowPicker({
               const next = parseDateString(event.nativeEvent.date, current);
               if (next) setValue(next);
             }}
+            label={named('date')}
             {...shared}
           />
         ) : null}
@@ -90,6 +94,7 @@ function RowPicker({
               const next = parseTimeString(event.nativeEvent.time, current);
               if (next) setValue(next);
             }}
+            label={named('time')}
             {...shared}
           />
         ) : null}

@@ -13,20 +13,27 @@ describe('DateTimePicker (windows)', () => {
     expect(island(DATE).props.date).toBe('2026-06-15');
     expect(island(DATE).props.minDate).toBe('');
     expect(island(DATE).props.maxDate).toBe('');
-    expect(island(DATE).props.label).toBe('Due');
     expect(island(TIME).props.time).toBe('12:30');
   });
 
-  it('renders the date island alone for date', async () => {
-    await render(<DateTimePicker mode="date" value={noon}/>);
-    expect(islands(DATE)).toHaveLength(1);
-    expect(islands(TIME)).toHaveLength(0);
+  it('names the two islands of datetime apart, by the label and the part each edits', async () => {
+    await render(<DateTimePicker label="Due" value={noon} onChange={vi.fn()}/>);
+    expect(island(DATE).props.label).toBe('Due, date');
+    expect(island(TIME).props.label).toBe('Due, time');
   });
 
-  it('renders the time island alone for time', async () => {
-    await render(<DateTimePicker mode="time" value={noon}/>);
+  it('renders the date island alone for date, named by the label', async () => {
+    await render(<DateTimePicker mode="date" label="Due" value={noon}/>);
+    expect(islands(DATE)).toHaveLength(1);
+    expect(islands(TIME)).toHaveLength(0);
+    expect(island(DATE).props.label).toBe('Due');
+  });
+
+  it('renders the time island alone for time, named by the label', async () => {
+    await render(<DateTimePicker mode="time" label="Due" value={noon}/>);
     expect(islands(DATE)).toHaveLength(0);
     expect(islands(TIME)).toHaveLength(1);
+    expect(island(TIME).props.label).toBe('Due');
   });
 
   it('passes the bounds, disabled state and a custom accent, dimming the label', async () => {

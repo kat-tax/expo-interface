@@ -348,8 +348,9 @@ describe('@expo/ui/swift-ui controls (windows)', () => {
         <ui.ColorPicker selection={null}/>
       </>,
     );
-    expect(island(DATE).props).toMatchObject({date: '2026-06-15', minDate: '2026-01-01', maxDate: '2026-12-31', label: 'Due'});
-    expect(island(TIME).props.time).toBe('12:30');
+    // A date and a time in one row: each island is named by the label and the part it edits.
+    expect(island(DATE).props).toMatchObject({date: '2026-06-15', minDate: '2026-01-01', maxDate: '2026-12-31', label: 'Due, date'});
+    expect(island(TIME).props).toMatchObject({time: '12:30', label: 'Due, time'});
     expect(screen.getByTestId('at')).toBeOnTheScreen();
     expect(screen.getByTestId('on')).toBeOnTheScreen();
     expect(island(PROGRESS).props.value).toBe(0.4);
