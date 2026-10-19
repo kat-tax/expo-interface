@@ -493,7 +493,7 @@ whose headline is the app's own content.
 | --- | --- |
 | iOS | `@expo/ui`'s SwiftUI list row, with `swipeActions` as real swipe actions on the trailing edge. A full swipe runs the destructive one. |
 | Android | The Material 3 `ListItem`, or a plain row when `inset` is off, since the control's padding cannot be removed |
-| Web | A drawn row in the DOM. The row is a `<button>` when pressable, and an `action` is a sibling button beside it, since buttons cannot nest. |
+| Web | A drawn row in the DOM. The row is a `<button>` when pressable, and an `action` is a sibling button beside it, since buttons cannot nest. A row named from its slots that does not press is a `group` with that name, since a name on an element with no role is not read. |
 | Windows | A drawn row with a WinUI settings card's metrics, WinUI's state fills under the pointer |
 
 Differences:
