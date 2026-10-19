@@ -358,6 +358,38 @@ describe('@expo/ui/jetpack-compose controls (windows)', () => {
       .toEqual(['default', 'email', 'number', 'decimal', 'phone', 'url', 'default', 'number', 'default']);
   });
 
+  it('draws the navigation bar as a selector bar, its items carrying the selection and the press', async () => {
+    const home = vi.fn();
+    const away = vi.fn();
+    const off = vi.fn();
+    await render(
+      <ui.NavigationBar testID="nav">
+        <ui.NavigationBarItem selected onClick={home}>
+          <ui.NavigationBarItem.Icon>
+            <ui.Text>h</ui.Text>
+          </ui.NavigationBarItem.Icon>
+          <ui.NavigationBarItem.Label>Home</ui.NavigationBarItem.Label>
+        </ui.NavigationBarItem>
+        <ui.NavigationBarItem selected={false} onClick={away}>
+          <ui.Text>Away</ui.Text>
+        </ui.NavigationBarItem>
+        <ui.NavigationBarItem selected={false} enabled={false} onClick={off}>
+          <ui.Text>Off</ui.Text>
+        </ui.NavigationBarItem>
+      </ui.NavigationBar>,
+    );
+    // The selector bar's items are selection items to UI Automation, named
+    // by their labels; the selected one is the item that says so.
+    expect(screen.getByTestId('nav')).toBeOnTheScreen();
+    expect(JSON.parse(island(BAR).props.options)).toEqual(['Home', 'Away', 'Off']);
+    expect(island(BAR).props.selectedIndex).toBe(0);
+    await fireIsland(island(BAR), 'selectionChange', {index: 1});
+    expect(away).toHaveBeenCalledTimes(1);
+    await fireIsland(island(BAR), 'selectionChange', {index: 2});
+    expect(off).not.toHaveBeenCalled();
+    expect(home).not.toHaveBeenCalled();
+  });
+
   it('draws segmented button rows as the kit\'s selector bar, single and multiple choice', async () => {
     const onClick = vi.fn();
     const onCheckedChange = vi.fn();
@@ -602,17 +634,6 @@ describe('@expo/ui/jetpack-compose controls (windows)', () => {
             <ui.Text>fab</ui.Text>
           </ui.HorizontalFloatingToolbar.FloatingActionButton>
         </ui.HorizontalFloatingToolbar>
-        <ui.NavigationBar selected={0} onClick={onClick} testID="nav">
-          <ui.NavigationBarItem>
-            <ui.NavigationBarItem.Icon>
-              <ui.Text>h</ui.Text>
-            </ui.NavigationBarItem.Icon>
-            <ui.NavigationBarItem.Label>Home</ui.NavigationBarItem.Label>
-          </ui.NavigationBarItem>
-          <ui.NavigationBarItem>
-            <ui.Text>Away</ui.Text>
-          </ui.NavigationBarItem>
-        </ui.NavigationBar>
         <ui.Shape type="circle" testID="shape"/>
       </>,
     );
@@ -657,10 +678,6 @@ describe('@expo/ui/jetpack-compose controls (windows)', () => {
     await act(async () => pager.current?.scrollToPage(1));
     expect(screen.getByText('Page two')).toBeOnTheScreen();
     await act(async () => pager.current?.animateScrollToPage(0));
-    expect(island(BUTTON, 4).props).toMatchObject({label: 'Home', variant: 'filled'});
-    expect(island(BUTTON, 5).props).toMatchObject({label: 'Away', variant: 'text'});
-    await fireEvent(island(BUTTON, 5), 'press');
-    expect(onClick).toHaveBeenCalledWith(1);
     expect(ui.parseJSXShape(<ui.Shape type="circle"/>)).toEqual({type: 'circle'});
     expect(ui.parseJSXShape(null)).toBeUndefined();
     expect(ui.parseJSXShape({})).toBeUndefined();

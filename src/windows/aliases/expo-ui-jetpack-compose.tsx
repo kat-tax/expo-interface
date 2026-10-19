@@ -856,16 +856,30 @@ function NavIcon({children}: WithChildren): ReactNode {
 function NavLabel({children}: WithChildren): ReactNode {
   return children;
 }
-export const NavigationBarItem = Object.assign(function NavigationBarItem(_props: WithChildren & {onClick?: () => void; selected?: boolean; enabled?: boolean}): null {
+type NavigationBarItemProps = WithChildren & {selected: boolean; onClick?: () => void; enabled?: boolean; alwaysShowLabel?: boolean; colors?: unknown};
+export const NavigationBarItem = Object.assign(function NavigationBarItem(_props: NavigationBarItemProps): null {
   return null;
 }, {Icon: NavIcon, SelectedIcon: NavIcon, Label: NavLabel});
-export function NavigationBar({children, selected, onClick, modifiers, testID}: WithChildren & {selected?: number; onClick?: (index: number) => void; enabled?: boolean; alwaysShowLabel?: boolean; colors?: unknown}) {
-  const items = elementsOf(children);
+/**
+ * The bar as the kit's segmented control, a WinUI `SelectorBar`, whose
+ * items UI Automation names by their label and reports selected. The items
+ * carry the selection and the press, as `@expo/ui` has them. The selector
+ * bar draws text, so the items' icons are not drawn.
+ */
+export function NavigationBar({children, modifiers, testID}: WithChildren & {containerColor?: string; contentColor?: string; tonalElevation?: number}) {
+  const items = elementsOf(children).map(item => item.props as NavigationBarItemProps);
   return (
-    <Frame modifiers={modifiers} testID={testID} style={{flexDirection: 'row', justifyContent: 'space-around'}}>
-      {items.map((item, index) => (
-        <KitButton key={index} label={textOf(slotOf(item.props.children, NavLabel) ?? item.props.children)} variant={index === selected ? 'filled' : 'text'} onPress={() => onClick?.(index)}/>
-      ))}
+    <Frame modifiers={modifiers} testID={testID}>
+      <KitSegmentedControl
+        selectedValue={items.findIndex(item => item.selected)}
+        onValueChange={index => {
+          const item = items[index];
+          if (item.enabled !== false) item.onClick?.();
+        }}>
+        {items.map((item, index) => (
+          <KitSegmentedControl.Item key={index} label={textOf(slotOf(item.children, NavLabel) ?? item.children)} value={index}/>
+        ))}
+      </KitSegmentedControl>
     </Frame>
   );
 }

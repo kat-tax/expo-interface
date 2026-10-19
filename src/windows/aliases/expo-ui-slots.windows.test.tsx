@@ -83,7 +83,7 @@ describe('@expo/ui slots (windows)', () => {
     expect(compose.ModalBottomSheet.DragHandle()).toBeNull();
     expect(compose.DropdownMenuItem({text: 'x'})).toBeNull();
     expect(compose.SegmentedButton({})).toBeNull();
-    expect(compose.NavigationBarItem({})).toBeNull();
+    expect(compose.NavigationBarItem({selected: false})).toBeNull();
     expect(compose.Snackbar({})).toBeNull();
   });
 });
