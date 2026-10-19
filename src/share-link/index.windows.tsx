@@ -26,7 +26,10 @@ export function ShareLink({label, url, message, title, icon, onShare, testID, ..
           onShare?.(false);
           return;
         }
-        onShare?.(await module.share(content.title, content.message, content.url));
+        // The sheet is asked for first: an optional call skips its arguments,
+        // so `onShare?.(await …)` would open nothing for an app not listening.
+        const opened = await module.share(content.title, content.message, content.url);
+        onShare?.(opened);
       }}
     />
   );
