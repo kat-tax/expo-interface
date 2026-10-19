@@ -107,7 +107,9 @@ describe(`Card (${Platform.OS})`, () => {
       // Material's tonal container behind the star, since it is always on the picture here.
       expect(star.type).toContain('FilledIconToggleButton');
       expect(star.props.colors).toHaveProperty('containerColor');
-      expect(host(p => p.contentDescription === 'Favorite')).toBeTruthy();
+      // The toggle is named by its label, the icon inside it by nothing.
+      expect(modifier(star.props, 'semantics')?.contentDescription).toBe('Favorite');
+      expect(nodes().some(n => n.props.contentDescription === 'Favorite')).toBe(false);
       // The Compose view reports through its own event prop.
       await act(async () => {
         star.props.onCheckedChange({nativeEvent: {checked: true}});
@@ -123,7 +125,7 @@ describe(`Card (${Platform.OS})`, () => {
     if (isIOS) {
       expect(host(p => p.systemName === 'star.fill').props.testID).toBeUndefined();
     } else {
-      expect(nodes().some(n => n.props.contentDescription === 'Favorite')).toBe(true);
+      expect(nodes().some(n => modifier(n.props, 'semantics')?.contentDescription === 'Favorite')).toBe(true);
     }
   });
 
@@ -134,7 +136,7 @@ describe(`Card (${Platform.OS})`, () => {
       expect(modifier(screen.getByTestId('card-favorite').props, 'accessibilityLabel')?.label).toBe('Starred');
     } else {
       expect(byComposeTestID('card-favorite').props.checked).toBe(true);
-      expect(nodes().some(n => n.props.contentDescription === 'Starred')).toBe(true);
+      expect(modifier(byComposeTestID('card-favorite').props, 'semantics')?.contentDescription).toBe('Starred');
     }
   });
 

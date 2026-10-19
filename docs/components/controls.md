@@ -137,7 +137,7 @@ is off: what a `Card` reveals under the pointer), `testID`.
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Button` with the selected trait while on |
-| Android | Material 3 `IconToggleButton`; `FilledIconToggleButton` when tonal |
+| Android | Material 3 `IconToggleButton`; `FilledIconToggleButton` when tonal. The label is the toggle's content description, so TalkBack names it whether or not its icon has a drawable to show. |
 | Web | `<button aria-pressed>` |
 | Windows | WinUI `ToggleButton` holding a `FontIcon`, with the two colors in place of the control's checked fill |
 

@@ -9,6 +9,8 @@ import {TONAL_SIZE} from './shared';
 import {IconToggle} from '.';
 
 const isIOS = Platform.OS === 'ios';
+/** The `index`th Compose `Icon` drawn: the toggle's glyph, which carries no description of its own. */
+const icon = (index = 0) => nodes().filter(n => n.type.endsWith('_IconView'))[index];
 
 describe(`IconToggle (${Platform.OS})`, () => {
   it('mounts a host of its own outside one, sized to itself, and none inside', async () => {
@@ -51,7 +53,7 @@ describe(`IconToggle (${Platform.OS})`, () => {
         contentColor: colors.light.secondaryLabel,
         checkedContentColor: colors.light.tint,
       });
-      expect(host(p => p.contentDescription === 'Favourite').props.size).toBe(24);
+      expect(icon().props.size).toBe(24);
       // The Compose view reports through its own event prop.
       await act(async () => {
         byComposeTestID('star').props.onCheckedChange({nativeEvent: {checked: true}});
@@ -85,7 +87,7 @@ describe(`IconToggle (${Platform.OS})`, () => {
       expect(props.colors.checkedContentColor).toBe('#8959EA');
       // Compose draws XML vectors rather than glyphs, so the fill is the
       // `activeIcon`'s own drawable; the host view reports no `source`.
-      expect(host(p => p.contentDescription === 'Favourite').props.tint).toBe('#8959EA');
+      expect(icon().props.tint).toBe('#8959EA');
     }
   });
 
@@ -127,7 +129,7 @@ describe(`IconToggle (${Platform.OS})`, () => {
       expect(modifier(screen.getByTestId('on').props, 'hidden')).toBeUndefined();
     } else {
       // Compose has nothing that hides a control from TalkBack, so the off one is left out.
-      expect(nodes().some(n => n.props.contentDescription === 'Favourite')).toBe(false);
+      expect(nodes().some(n => modifier(n.props, 'semantics')?.contentDescription === 'Favourite')).toBe(false);
       expect(byComposeTestID('on').props.checked).toBe(true);
     }
   });
@@ -153,6 +155,19 @@ describe(`IconToggle (${Platform.OS})`, () => {
     await render(
       <IconToggle label="Pin" icon={{symbol: 'star'}} value={false} onValueChange={vi.fn()}/>,
     );
-    expect(nodes().some(n => n.props.contentDescription === 'Pin')).toBe(false);
+    expect(icon()).toBeUndefined();
+  });
+
+  (isIOS ? it.skip : it)('names the toggle by its label, with or without an icon Android can draw', async () => {
+    await render(
+      <>
+        <IconToggle label="Favourite" icon={icons.star} value={false} onValueChange={vi.fn()} testID="star"/>
+        <IconToggle label="Pin" icon={{symbol: 'star'}} value={false} onValueChange={vi.fn()} testID="pin"/>
+      </>,
+    );
+    expect(modifier(byComposeTestID('star').props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Favourite'});
+    expect(modifier(byComposeTestID('pin').props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Pin'});
+    // The icon only draws: a description on it as well would be read twice.
+    expect(nodes().some(n => n.props.contentDescription != null)).toBe(false);
   });
 });
