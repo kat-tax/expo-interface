@@ -2,7 +2,7 @@ import {Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {AccentProvider} from '../accent';
 import * as icons from '../__stories__/icons';
-import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {byComposeTestID, host, modifier, nodes, type HostNode} from 'expo-vitest/native';
 import {hostFit, hosts} from '../__tests__/hosts';
 import {NativeHostContext} from '../host';
 import {Button} from '.';
@@ -11,6 +11,14 @@ const isIOS = Platform.OS === 'ios';
 const button = (testID: string) => isIOS ? screen.getByTestId(testID) : byComposeTestID(testID);
 /** The spinner the platform draws while loading: SwiftUI's `ProgressView`, Compose's `CircularProgressIndicator`. */
 const spinner = () => nodes().find(n => n.type.includes(isIOS ? 'ProgressView' : 'CircularProgressIndicator'));
+/** The box whose last child carries `testID` (Android): the row an inline button's cover is laid over, and the cover. */
+const covered = (testID: string) => {
+  const box = nodes().find(n => {
+    const last = n.children?.at(-1);
+    return typeof last === 'object' && modifier(last.props, 'testID')?.testID === testID;
+  })!;
+  return {box, row: box.children![0] as HostNode, cover: box.children!.at(-1) as HostNode};
+};
 
 describe(`Button (${Platform.OS})`, () => {
   it('mounts a host of its own outside one, sized to itself, and none inside', async () => {
@@ -68,8 +76,8 @@ describe(`Button (${Platform.OS})`, () => {
       expect(modifier(button('inline').props, 'disabled')).toBeDefined();
     } else {
       expect(button('icon').props.enabled).toBe(false);
-      expect(modifier(button('inline').props, 'alpha')).toEqual({$type: 'alpha', alpha: 0.45});
-      expect(modifier(button('inline').props, 'clickable')).toBeUndefined();
+      expect(modifier(covered('inline').row.props, 'alpha')).toEqual({$type: 'alpha', alpha: 0.45});
+      expect(button('inline').props.enabled).toBe(false);
     }
   });
 
@@ -94,22 +102,46 @@ describe(`Button (${Platform.OS})`, () => {
       expect(modifier(props, 'padding')).toEqual({$type: 'padding', all: 0});
       expect(modifier(props, 'controlSize')?.size).toBe('small');
     } else {
-      // A clickable row, not a Material button: its container cannot shrink.
-      expect(props.contentPadding).toBeUndefined();
-      expect(props.verticalAlignment).toBe('center');
-      expect(modifier(props, 'clickable')).toBeTruthy();
+      // A row under a cover, not a Material button with content: its container cannot shrink.
+      const {row} = covered('bar');
+      expect(row.props.contentPadding).toBeUndefined();
+      expect(row.props.verticalAlignment).toBe('center');
+      expect(row.props.modifiers).toEqual([]);
+      expect(props.enabled).toBe(true);
       expect(host(p => p.contentDescription === 'Back').props.size).toBe(20);
     }
   });
 
-  (isIOS ? it.skip : it)('dims a disabled bar button instead of making it clickable', async () => {
-    await render(<Button label="Back" size="inline" disabled testID="bar"/>);
-    const {props} = button('bar');
-    expect(modifier(props, 'alpha')).toEqual({$type: 'alpha', alpha: 0.45});
-    expect(modifier(props, 'clickable')).toBeUndefined();
-    // No handler, no ripple either.
+  (isIOS ? it.skip : it)('lays a Material icon button over an inline button, which TalkBack meets as a button named by its label', async () => {
+    const onPress = vi.fn();
+    await render(<Button label="Back" prefixIcon={icons.add} hideLabel size="inline" onPress={onPress} testID="bar"/>);
+    const {box, row, cover} = covered('bar');
+    expect(box.type).toMatch(/_BoxView$/);
+    expect(modifier(box.props, 'wrapContentWidth')).toBeDefined();
+    expect(row.props.verticalAlignment).toBe('center');
+    // Childless, so its one node carries the role, the name, the press and the testID.
+    expect(cover.type).toMatch(/_IconButton$/);
+    expect(cover.children ?? []).toHaveLength(0);
+    expect(modifier(cover.props, 'matchParentSize')).toBeDefined();
+    expect(modifier(cover.props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Back'});
+    expect(cover.props.enabled).toBe(true);
+    expect(cover.props.colors).toMatchObject({containerColor: '#00000000', disabledContainerColor: '#00000000'});
+    await fireEvent(screen.container.queryAll(i => typeof i.props.onButtonPressed === 'function')[0], 'buttonPressed');
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  (isIOS ? it.skip : it)('dims a disabled bar button, which TalkBack meets as a disabled button', async () => {
+    const onPress = vi.fn();
+    await render(<Button label="Back" size="inline" disabled onPress={onPress} testID="bar"/>);
+    const {row, cover} = covered('bar');
+    expect(modifier(row.props, 'alpha')).toEqual({$type: 'alpha', alpha: 0.45});
+    expect(cover.props.enabled).toBe(false);
+    expect(modifier(cover.props, 'semantics')?.contentDescription).toBe('Back');
+    // No handler, no ripple either: a plain row, which nothing presses.
     await render(<Button label="Back" size="inline" testID="idle"/>);
+    expect(button('idle').type).toMatch(/_RowView$/);
     expect(modifier(button('idle').props, 'clickable')).toBeUndefined();
+    expect(nodes().some(n => n.type.endsWith('_IconButton'))).toBe(false);
   });
 
   it('sizes the icon on its own', async () => {
