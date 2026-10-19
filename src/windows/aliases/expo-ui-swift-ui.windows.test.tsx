@@ -520,7 +520,11 @@ describe('@expo/ui/swift-ui controls (windows)', () => {
     expect(onIsPresentedChange).toHaveBeenCalledWith(false);
     await fireEvent(screen.getByTestId('sheet'), 'keyDown', {nativeEvent: {key: 'Escape'}});
     expect(onDismiss).toHaveBeenCalledTimes(1);
-    await fireEvent(island(BUTTON, 0), 'press');
+    // The tabs are a selector bar, whose items UI Automation names and
+    // reports selected.
+    expect(JSON.parse(island(BAR).props.options)).toEqual(['First', 'b']);
+    expect(island(BAR).props.selectedIndex).toBe(1);
+    await fireIsland(island(BAR), 'selectionChange', {index: 0});
     expect(onSelectionChange).toHaveBeenCalledWith('a');
     expect(screen.getByText('Tab A')).toBeOnTheScreen();
   });
