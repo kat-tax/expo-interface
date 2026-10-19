@@ -35,7 +35,8 @@ describe(`FieldGroup (${Platform.OS})`, () => {
     if (isIOS) {
       const [form] = nodes();
       expect(form.type).toBe('ViewManagerAdapter_ExpoUI_FormView');
-      expect(form.props.modifiers).toEqual([]);
+      // Nothing but the testID's identifier: the form draws as SwiftUI draws it.
+      expect(form.props.modifiers).toEqual([{$type: 'accessibilityIdentifier', identifier: 'group'}]);
     } else {
       const group = byComposeTestID('group');
       const {props} = group;
@@ -49,6 +50,22 @@ describe(`FieldGroup (${Platform.OS})`, () => {
       // No background: the app palette paints the screen behind the group.
       expect(modifier(props, 'background')).toBeUndefined();
     }
+  });
+
+  (isIOS ? it : it.skip)('carries the testID of the group and of a section to the native views', async () => {
+    await render_(
+      <FieldGroup testID="group">
+        <FieldGroup.Section title="General" testID="general" modifiers={[{$type: 'listRowSeparator', visibility: 'hidden'}]}>
+          <Typography>Row</Typography>
+        </FieldGroup.Section>
+      </FieldGroup>,
+    );
+    // The identifier SwiftUI's own `testID` sets, ahead of the app's own modifiers.
+    expect(form()!.props.modifiers).toEqual([{$type: 'accessibilityIdentifier', identifier: 'group'}]);
+    expect(host(p => p.title === 'General').props.modifiers).toEqual([
+      {$type: 'accessibilityIdentifier', identifier: 'general'},
+      {$type: 'listRowSeparator', visibility: 'hidden'},
+    ]);
   });
 
   it('renders the footer prop under the rows in the secondary color', async () => {
