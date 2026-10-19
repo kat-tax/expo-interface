@@ -37,6 +37,15 @@ describe('Sheet (web)', () => {
     expect(dialog.querySelector('[data-vaul-handle]')).not.toBeNull();
   });
 
+  it('names its dialog by its title, and by the drawer\'s own name without one', () => {
+    const {rerender} = render(<Sheet isPresented onDismiss={() => {}} title="Comments"><span>Content</span></Sheet>);
+    expect(screen.getByRole('dialog', {name: 'Comments'})).toBeInTheDocument();
+    rerender(<Sheet isPresented onDismiss={() => {}} title="History"><span>Content</span></Sheet>);
+    expect(screen.getByRole('dialog', {name: 'History'})).toBeInTheDocument();
+    rerender(<Sheet isPresented onDismiss={() => {}}><span>Content</span></Sheet>);
+    expect(screen.getByRole('dialog', {name: 'Bottom sheet'})).not.toHaveAttribute('aria-label');
+  });
+
   it('hides the drag handle on request', () => {
     render(
       <Sheet isPresented onDismiss={() => {}} showDragIndicator={false}>
