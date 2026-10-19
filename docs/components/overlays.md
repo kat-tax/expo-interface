@@ -436,7 +436,9 @@ is dismissed, which is what Material calls an indefinite snackbar.
 | Android | Material 3 `Snackbar`, which owns its timing, animation and queue and rounds the duration to the platform's short, long or indefinite |
 | Windows | WinUI `InfoBar` over the bottom of the screen, with a close button, timed by the kit |
 
-The drawn toast is a polite live region.
+The drawn toast is a polite live region on web. iOS has no live regions, so
+there the toast has VoiceOver read its message as it shows and when the
+message changes while it is up, once VoiceOver is done speaking.
 
 A toast under a `Screen` tells it how much of the bottom edge it covers, and
 the screen's `Fab` lifts above it while it shows.
