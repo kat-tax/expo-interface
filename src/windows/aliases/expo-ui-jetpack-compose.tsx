@@ -19,6 +19,7 @@ import {
   Spinner as KitSpinner,
   Switch as KitSwitch,
   TextField as KitTextField,
+  type TextFieldKeyboard,
   Toast as KitToast,
   Tooltip as KitTooltip,
 } from '../..';
@@ -381,8 +382,8 @@ type FieldProps = WithChildren & {
   supportingText?: ReactNode;
 };
 
-const KEYBOARDS: Record<string, string> = {text: 'default', number: 'numeric', decimal: 'decimal-pad', phone: 'phone-pad', email: 'email-address', uri: 'url', password: 'default', numberPassword: 'numeric'};
-type KeyboardType = Parameters<typeof KitTextField>[0]['keyboardType'];
+/** Compose's keyboard types in the kit's names, which the WinUI text box turns into an input scope. */
+const KEYBOARDS: Record<string, TextFieldKeyboard> = {text: 'default', number: 'number', decimal: 'decimal', phone: 'phone', email: 'email', uri: 'url', password: 'default', numberPassword: 'number'};
 type ReturnKey = Parameters<typeof KitTextField>[0]['returnKeyType'];
 
 function field() {
@@ -416,7 +417,7 @@ function field() {
         multiline={singleLine === false || (maxLines ?? 1) > 1}
         secureTextEntry={visualTransformation === 'password'}
         maxLength={maxLength}
-        keyboardType={(keyboardOptions?.keyboardType ? KEYBOARDS[keyboardOptions.keyboardType] : undefined) as KeyboardType}
+        keyboardType={keyboardOptions?.keyboardType ? KEYBOARDS[keyboardOptions.keyboardType] : undefined}
         autoCapitalize={keyboardOptions?.capitalization}
         autoCorrect={keyboardOptions?.autoCorrectEnabled}
         returnKeyType={(action === 'go' || action === 'next' || action === 'search' || action === 'send' ? action : 'done') as ReturnKey}
