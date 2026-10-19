@@ -1,4 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {formatValue} from './shared';
 import {DateTimePicker} from '.';
 
@@ -28,6 +29,21 @@ describe('DateTimePicker (web)', () => {
     expect(screen.getByText(formatValue(JUNE_15, 'datetime'))).toBeInTheDocument();
     expect(screen.getByText(/15 Jun 2026, 9:30\sAM/)).toBeInTheDocument();
     expect(screen.getByTestId('starts').contains(control)).toBe(true);
+  });
+
+  it('is one tab stop, the input, with nothing focusable around it', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <button type="button">Before</button>
+        <DateTimePicker label="Starts" mode="date" value={JUNE_15} onChange={vi.fn()}/>
+      </>,
+    );
+    await user.tab();
+    expect(screen.getByRole('button', {name: 'Before'})).toHaveFocus();
+    await user.tab();
+    expect(picker('Starts')).toHaveFocus();
+    expect(picker('Starts').parentElement).not.toHaveAttribute('tabindex');
   });
 
   it('maps each mode to the matching input type and value', () => {
