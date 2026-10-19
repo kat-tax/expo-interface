@@ -55,15 +55,19 @@ function Material({children}: PropsWithChildren) {
 const options = {wrapper: Material};
 const sheets = () => nodes().filter(n => n.type.endsWith('ModalBottomSheetView'));
 const children = (node: HostNode) => (node.children ?? []).filter((c): c is HostNode => typeof c === 'object');
+/** The Android well: the 28dp circle ringed in `separator`. */
+const wellBox = () => host(p => modifier(p, 'size')?.width === 28 && modifier(p, 'background')?.color === colors.light.separator);
 /** The color painted in the well: the inner circle's background. */
-const wellColor = (testID: string) => modifier(children(byComposeTestID(`${testID}-well`))[0].props, 'background')?.color;
+const wellColor = () => modifier(children(wellBox())[0].props, 'background')?.color;
 
-/** Fires the Compose `clickable` modifier of a node. */
+/** Presses a Compose node: the button of a cover, or a `clickable` modifier. */
 const tap = async (node: HostNode) => {
   await act(async () => {
-    modifier(node.props, 'clickable')?.eventListener();
+    if (node.props.onButtonPressed) node.props.onButtonPressed();
+    else modifier(node.props, 'clickable')?.eventListener();
   });
 };
+const BUTTON = 'ViewManagerAdapter_ExpoUI_TextButton';
 
 beforeEach(() => {
   sheetProps = undefined;
@@ -170,12 +174,24 @@ describe(`ColorPicker (${Platform.OS})`, () => {
     return;
   }
 
-  it('renders the label and a Compose color well in a clickable row', async () => {
+  it('renders the label and a Compose color well in a row, under the button that covers it', async () => {
     await render(<ColorPicker label="Accent" value="#FF6347" onValueChange={vi.fn()} testID="cp"/>, options);
-    const row = byComposeTestID('cp');
+    // A box holding the row and, over it, the button TalkBack meets: named by the label, with the testID.
+    const [box] = nodes();
+    const [row, button] = children(box);
+    expect(button).toEqual(byComposeTestID('cp'));
+    expect(button.type).toBe(BUTTON);
+    expect(children(button)).toHaveLength(0);
+    expect(button.props.enabled).toBe(true);
+    expect(modifier(button.props, 'matchParentSize')).toBeDefined();
+    expect(modifier(button.props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Accent'});
+    expect(button.props.colors).toEqual({containerColor: '#00000000', contentColor: palette.onSurface, disabledContainerColor: '#00000000', disabledContentColor: '#00000000'});
+    expect(button.props.shape).toMatchObject({type: 'rectangle'});
+    // The row only draws.
     expect(row.props.horizontalArrangement).toBe('spaceBetween');
     expect(modifier(row.props, 'fillMaxWidth')).toBeDefined();
-    expect(modifier(row.props, 'clickable')).toBeDefined();
+    expect(modifier(row.props, 'clickable')).toBeUndefined();
+    expect(modifier(row.props, 'testID')).toBeUndefined();
     expect(host(p => p.text === 'Accent').props.color).toBe(palette.onSurface);
     // The well: a 28dp circle ringed in `separator` around the color; no React Native view is hosted in the row.
     const well = byComposeTestID('cp-well');
@@ -183,24 +199,25 @@ describe(`ColorPicker (${Platform.OS})`, () => {
     expect(modifier(well.props, 'clip')).toMatchObject({shape: expect.anything()});
     expect(modifier(well.props, 'background')?.color).toBe(colors.light.separator);
     expect(modifier(children(well)[0].props, 'size')).toEqual({$type: 'size', width: 22, height: 22});
-    expect(wellColor('cp')).toBe('rgba(255, 99, 71, 1)');
+    expect(wellColor()).toBe('rgba(255, 99, 71, 1)');
     expect(nodes().some(n => n.type.endsWith('RNHostView'))).toBe(false);
     expect(sheets()).toHaveLength(0);
     expect(sheetProps).toBeUndefined();
   });
 
-  it('dims the trailing content and drops the click handler when disabled', async () => {
+  it('dims the trailing content and disables the button when disabled', async () => {
     await render(<ColorPicker label="Accent" value="#FF6347" onValueChange={vi.fn()} disabled testID="cp"/>, options);
-    expect(modifier(byComposeTestID('cp').props, 'clickable')).toBeUndefined();
+    expect(byComposeTestID('cp').props.enabled).toBe(false);
     expect(host(p => p.text === 'Accent').props.color).toBe(palette.onSurfaceVariant);
     expect(host(p => modifier(p, 'alpha')?.alpha === 0.4)).toBeTruthy();
   });
 
-  it('fills the leading slot with a spacer without a label', async () => {
+  it('fills the leading slot with a spacer without a label, and names the button Color', async () => {
     await render(<ColorPicker value="#FF6347" onValueChange={vi.fn()}/>, options);
     expect(nodes().filter(n => n.type.endsWith('TextView'))).toHaveLength(0);
     expect(nodes().filter(n => n.type.endsWith('SpacerView'))).toHaveLength(1);
-    expect(nodes()[0].props.modifiers.map((m: {$type: string}) => m.$type)).toEqual(['fillMaxWidth', 'clickable']);
+    expect(nodes()[0].props.modifiers.map((m: {$type: string}) => m.$type)).toEqual(['fillMaxWidth']);
+    expect(modifier(host(p => 'onButtonPressed' in p).props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Color'});
   });
 
   it('opens the picker sheet from the row, reports its colors and closes it', async () => {
@@ -220,7 +237,7 @@ describe(`ColorPicker (${Platform.OS})`, () => {
     expect(sheetProps?.width).toBeGreaterThan(0);
     await act(async () => sheetProps?.onValueChange('#FFFFFF80'));
     expect(onValueChange).toHaveBeenLastCalledWith('#FFFFFF80');
-    expect(wellColor('cp')).toBe('rgba(255, 255, 255, 0.502)');
+    expect(wellColor()).toBe('rgba(255, 255, 255, 0.502)');
     expect(sheetProps?.value).toBe('#FFFFFF80');
     await act(async () => sheetProps?.onClose?.());
     expect(sheets()).toHaveLength(1);
@@ -270,7 +287,30 @@ describe(`ColorPicker (${Platform.OS})`, () => {
     await tap(green);
     expect(onValueChange).toHaveBeenLastCalledWith('#00FF0080');
     expect(modifier(byComposeTestID('cp-swatch-#00FF00').props, 'background')?.color).toBe(colors.light.label);
-    expect(wellColor('cp')).toBe('rgba(0, 255, 0, 0.502)');
+    expect(wellColor()).toBe('rgba(0, 255, 0, 0.502)');
+  });
+
+  it('makes the well the button beside swatches, as on iOS and web, the label plain text', async () => {
+    const {rerender} = await render(
+      <ColorPicker label="Accent" value="#FF6347" swatches={['#00FF00']} onValueChange={vi.fn()} testID="cp"/>,
+      options,
+    );
+    // A cover over the row would hide the swatches: the row only lays them out, and the well's cover opens the picker.
+    const row = byComposeTestID('cp');
+    expect(row.type).toBe('ViewManagerAdapter_ExpoUI_RowView');
+    expect(modifier(row.props, 'clickable')).toBeUndefined();
+    const button = byComposeTestID('cp-well');
+    expect(button.type).toBe(BUTTON);
+    expect(modifier(button.props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Accent'});
+    expect(button.props.shape).toMatchObject({type: 'pill'});
+    // Laid over the well, the last child of a box of their own.
+    const pair = nodes().find(n => children(n).at(-1)?.type === BUTTON);
+    expect(children(pair!).map(n => modifier(n.props, 'size')?.width ?? n.type)).toEqual([28, BUTTON]);
+    await tap(button);
+    expect(sheets()).toHaveLength(1);
+    await rerender(<ColorPicker value="#FF6347" swatches={['#00FF00']} disabled onValueChange={vi.fn()} testID="cp"/>);
+    expect(modifier(byComposeTestID('cp-well').props, 'semantics')?.contentDescription).toBe('Color');
+    expect(byComposeTestID('cp-well').props.enabled).toBe(false);
   });
 
   it('disables the preset swatches with the row', async () => {

@@ -1,5 +1,4 @@
 import type {ColorPickerProps} from './types';
-import type {ModifierConfig} from '@expo/ui/jetpack-compose/modifiers';
 
 import {useEffect, useRef, useState} from 'react';
 import {useWindowDimensions} from 'react-native';
@@ -12,12 +11,15 @@ import {
   ModalBottomSheet,
   RNHostView,
   Row,
+  Shape,
   Spacer,
   Text,
   useMaterialColors,
   type ModalBottomSheetRef,
+  type ShapeJSXElement,
 } from '@expo/ui/jetpack-compose';
 import {alpha, background, clickable, clip, fillMaxWidth, padding, rotate, Shapes, size, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {ButtonCover} from '../a11y/button-cover';
 import {MenuItems} from '../menu/index.android';
 import {useColor} from '../theme';
 import {NO_COLOR, sameColor, swatchMenu, swatchesOf} from './choices';
@@ -38,7 +40,8 @@ const DIALOG_WIDTH = 328;
  * Android redraws the iOS row in Compose through and through: a `Row` with
  * the label and, at the trailing edge, the preset swatches and the 28dp
  * color well (a circle in the color, ringed in `separator`). Tapping the row
- * opens the iOS picker redrawn in a Material `ModalBottomSheet`, fully
+ * (the well, where swatches share the row) opens the iOS picker redrawn in a
+ * Material `ModalBottomSheet`, fully
  * expanded and with the sheet's own swipe gestures off so that dragging
  * across the spectrum and sliders stays with the picker; the sheet lives in
  * its own window, so the row is a plain Compose child of its host and hosts
@@ -49,6 +52,12 @@ const DIALOG_WIDTH = 328;
  * `inline` draws the picker in the row's place, titled only by a `label`.
  * Each preset carries its name as an unseen Text, which its clickable
  * merges for TalkBack; a disabled preset has no clickable, and no name.
+ *
+ * What opens the picker is a `ButtonCover`, the button TalkBack meets, named
+ * by the label or "Color" without one. Without swatches in the row (none,
+ * or a menu of them) it covers the whole row, as the web row is one button.
+ * With them it covers the well, as on iOS and web, since a cover over the
+ * row would hide the swatches: the label is then text, and opens nothing.
  */
 export function ColorPicker({
   label,
@@ -73,9 +82,6 @@ export function ColorPicker({
   const none = value === NO_COLOR;
   const presets = swatchesOf(swatches);
   const menu = presentation === 'menu';
-  const modifiers: ModifierConfig[] = [fillMaxWidth()];
-  if (!disabled) modifiers.push(clickable(() => setOpen(true)));
-  if (testID) modifiers.push(testIDModifier(testID));
 
   /** A crossed-out circle: the well and the preset for no color. */
   const crossed = (diameter: number) => (
@@ -115,6 +121,12 @@ export function ColorPicker({
       ));
     }),
   ];
+  // The row is the button where it holds no swatches; with them in it, the well is.
+  const rowButton = menu || presetBoxes.length === 0;
+  const wellTestID = testID ? `${testID}-well` : undefined;
+  const cover = (shape: ShapeJSXElement, coverTestID: string | undefined) => (
+    <ButtonCover label={label ?? 'Color'} onPress={() => setOpen(true)} disabled={disabled} color={colors.onSurface} shape={shape} testID={coverTestID}/>
+  );
   const wellBox = (
     <Box
       contentAlignment="center"
@@ -122,7 +134,7 @@ export function ColorPicker({
         size(well.size, well.size),
         clip(Shapes.Circle),
         background(ring),
-        ...(testID ? [testIDModifier(`${testID}-well`)] : []),
+        ...(rowButton && wellTestID ? [testIDModifier(wellTestID)] : []),
       ]}>
       {none ? crossed(well.size - 2 * well.ring) : (
         <Box
@@ -163,8 +175,8 @@ export function ColorPicker({
     );
   }
 
-  return (
-    <Row verticalAlignment="center" horizontalArrangement="spaceBetween" modifiers={modifiers}>
+  const row = (
+    <Row verticalAlignment="center" horizontalArrangement="spaceBetween" modifiers={[fillMaxWidth(), ...(!rowButton && testID ? [testIDModifier(testID)] : [])]}>
       {label != null ? (
         <Text color={disabled ? colors.onSurfaceVariant : colors.onSurface}>{label}</Text>
       ) : <Spacer/>}
@@ -179,7 +191,12 @@ export function ColorPicker({
             <DropdownMenu.Trigger>{wellBox}</DropdownMenu.Trigger>
             <MenuItems items={swatchMenu(presets, value, allowsNone, supportsOpacity, onValueChange)} onClose={() => setOpen(false)}/>
           </DropdownMenu>
-        ) : wellBox}
+        ) : rowButton ? wellBox : (
+          <Box>
+            {wellBox}
+            {cover(Shape.Pill({}), wellTestID)}
+          </Box>
+        )}
         {presentation === 'popover' ? (
           open ? (
             <BasicAlertDialog onDismissRequest={() => setOpen(false)}>
@@ -195,6 +212,13 @@ export function ColorPicker({
         )}
       </FlowRow>
     </Row>
+  );
+  if (!rowButton) return row;
+  return (
+    <Box modifiers={[fillMaxWidth()]}>
+      {row}
+      {cover(Shape.Rectangle({}), testID)}
+    </Box>
   );
 }
 
