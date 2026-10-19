@@ -9,7 +9,7 @@
         "@types/react": "~19.2.2",
         "@vitest/coverage-v8": "^4.1.11",
         "@vitest/ui": "^4.1.11",
-        "expo-vitest": "^0.2.0",
+        "expo-vitest": "^0.2.1",
         "oxlint": "^1.81.0",
         "typescript": "~6.0.3",
         "vite": "^8.2.2",
@@ -1182,7 +1182,7 @@
 
     "expo-system-ui": ["expo-system-ui@57.0.3", "", { "dependencies": { "@react-native/normalize-colors": "0.86.3", "debug": "^4.3.2" }, "peerDependencies": { "expo": "*", "react-native": "*", "react-native-web": "*" }, "optionalPeers": ["react-native-web"] }, "sha512-3N3BoagGojEvQw0h7kL0Lvv2LrVjqEvODSNS+Nc9lj/kzaTaVx4K1HI8qqxeALMf5jui3rLP2b3Ai2pXotoNuA=="],
 
-    "expo-vitest": ["expo-vitest@0.2.0", "", { "dependencies": { "@testing-library/jest-dom": "^7.0.1", "@testing-library/react": "^16.3.3", "@testing-library/react-native": "^14.0.1", "@testing-library/user-event": "^14.6.1", "agent-device": "^0.21.28", "jsdom": "^30.0.1", "playwright-core": "^1.62.1", "test-renderer": "^1.2.0", "vitest-expo": "^57.1.0", "vitest-native": "^0.13.0" }, "peerDependencies": { "@anthropic-ai/sdk": "*", "expo": "^57.0.0", "expo-router": "^57.0.0", "react": "*", "react-native": "*", "typescript": ">=5.7", "vite": ">=6 <9", "vitest": ">=4 <6" }, "optionalPeers": ["@anthropic-ai/sdk", "expo-router"], "bin": { "expo-vitest": "dist/harness/index.js", "expo-harness": "dist/harness/index.js" } }, "sha512-vyuYrLf+O8EwfCFY8LH6rR8rDWaeZR4qzXydF5yO4+ayseS9s9XeZugvPAiQWbFvk3VkqqJ0YLPFEPCCtI+Oxg=="],
+    "expo-vitest": ["expo-vitest@0.2.1", "", { "dependencies": { "@testing-library/jest-dom": "^7.0.1", "@testing-library/react": "^16.3.3", "@testing-library/react-native": "^14.0.1", "@testing-library/user-event": "^14.6.1", "agent-device": "^0.21.28", "jsdom": "^30.0.1", "playwright-core": "^1.62.1", "test-renderer": "^1.2.0", "vitest-expo": "^57.1.0", "vitest-native": "^0.13.0" }, "peerDependencies": { "@anthropic-ai/sdk": "*", "expo": "^57.0.0", "expo-router": "^57.0.0", "react": "*", "react-native": "*", "typescript": ">=5.7", "vite": ">=6 <9", "vitest": ">=4 <6" }, "optionalPeers": ["@anthropic-ai/sdk", "expo-router"], "bin": { "expo-vitest": "dist/harness/index.js", "expo-harness": "dist/harness/index.js" } }, "sha512-62+n8YxvIACqcscIdrYdvGhObQ7oQnZ0EeQf+tiEbMDMzBaBdOaK8jrA4DuKF877RKfcbXPjyCY9npfxSEUiTA=="],
 
     "expo-web-browser": ["expo-web-browser@57.0.3", "", { "peerDependencies": { "expo": "*", "react-native": "*" } }, "sha512-+ecvhyS/PdWkpv4ai6FF1Trd6Y/4kn/eQ3O86mie2ecU3w+I8bKZh13kppY/jw1uSL7yikt03L5W/iiHojrFwQ=="],
 
