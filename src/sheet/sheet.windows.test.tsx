@@ -21,7 +21,7 @@ describe('Sheet (windows)', () => {
     await render(
       <LayerHost testID="host">
         <View testID="content">
-          <Sheet isPresented onDismiss={onDismiss}>
+          <Sheet isPresented onDismiss={onDismiss} testID="sheet">
             <Hosted/>
           </Sheet>
         </View>
@@ -40,7 +40,7 @@ describe('Sheet (windows)', () => {
     const onDismiss = vi.fn();
     await render(
       <View testID="content">
-        <Sheet isPresented onDismiss={onDismiss}>
+        <Sheet isPresented onDismiss={onDismiss} testID="sheet">
           <Text>Form</Text>
         </Sheet>
       </View>,
@@ -49,6 +49,22 @@ describe('Sheet (windows)', () => {
     expect(screen.getByTestId('content').queryAll(node => node.props.testID === 'sheet')).toHaveLength(1);
     await fireEvent(screen.getByTestId('sheet'), 'keyDown', {nativeEvent: {key: 'Escape'}});
     expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it('gives its layer the sheet\'s own testID, so two sheets never share one, and none without one', async () => {
+    await render(
+      <View>
+        <Sheet isPresented onDismiss={() => {}} testID="comments">
+          <Text>Comments</Text>
+        </Sheet>
+        <Sheet isPresented onDismiss={() => {}}>
+          <Text>History</Text>
+        </Sheet>
+      </View>,
+    );
+    expect(screen.getByTestId('comments')).toContainElement(screen.getByText('Comments'));
+    expect(screen.getByTestId('comments')).not.toContainElement(screen.getByText('History'));
+    expect(screen.queryByTestId('sheet')).toBeNull();
   });
 
   it('gives its content no scroll insets when it draws in place, inside the screen that has them', async () => {

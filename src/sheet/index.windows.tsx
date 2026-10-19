@@ -44,7 +44,7 @@ export function Sheet({children, isPresented, onDismiss, title, subtitle, onBack
         pointerEvents="box-none"
         onLayout={event => setArea(event.nativeEvent.layout.height)}
         testID={sub(testID, 'area')}>
-        <ModalLayer onDismiss={onDismiss} testID="sheet">
+        <ModalLayer onDismiss={onDismiss} testID={testID}>
           <NativeHostContext.Provider value={true}>
             <ScrollInsetsContext.Provider value={NO_SCROLL_INSETS}>
               <View style={styles.frame}>
