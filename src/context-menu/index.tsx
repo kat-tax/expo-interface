@@ -1,5 +1,5 @@
 import '../menu/menu.css';
-import type {MouseEvent} from 'react';
+import type {KeyboardEvent, MouseEvent} from 'react';
 import type {ContextMenuProps} from '../menu/types';
 import {useEffect, useId, useRef, useState} from 'react';
 import {MenuList, menuIdent} from '../menu/list';
@@ -30,6 +30,16 @@ import {useHeldTouch} from './held';
  * `trigger: 'tap'` adds the click on top of it and takes the touch
  * long-press away — on a touch screen the tap is now the gesture, and
  * leaving the long-press would open the menu twice for one intent.
+ *
+ * A press of the content's own (`onPress`, or the menu for `tap`) is a
+ * button to the keyboard and the screen readers. A browser neither focuses
+ * nor boxes a `display: contents` element, so the button is the content's
+ * first element, the box `at` is measured against: it takes the button role
+ * and a place in the tab order, and Enter and Space press it as a click
+ * does, opening the menu for `tap` at its centre. Content whose element is a
+ * control already (a role of its own, a place in the tab order) keeps it,
+ * and its own keys press it. Without a press of its own the content is left
+ * alone, and its controls are what the keyboard lands on.
  */
 export function ContextMenu({items, children, onPress, disabled, at, onDismiss, onOpenChange, trigger = 'longPress', material, testID}: ContextMenuProps) {
   const ident = menuIdent(useId());
@@ -84,6 +94,41 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
     open(event.clientX, event.clientY);
   };
 
+  // The content's element, made the button for a press of its own (see
+  // above), after every render, since the content may change. The element
+  // that is the button already stays one, untouched, so a focus on it is
+  // kept; the menu's popover, the wrapper's first element when the content
+  // has none of its own, has a role and is never taken.
+  const pressable = !disabled && (trigger === 'tap' || onPress !== undefined);
+  const button = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const first = wrapper.current!.firstElementChild as HTMLElement;
+    const own = first === button.current || !(first.hasAttribute('role') || first.tabIndex >= 0);
+    const next = pressable && own ? first : null;
+    if (next === button.current) return;
+    if (button.current) {
+      button.current.removeAttribute('role');
+      button.current.removeAttribute('tabindex');
+    }
+    if (next) {
+      next.setAttribute('role', 'button');
+      next.tabIndex = 0;
+    }
+    button.current = next;
+  });
+  const onKeyDown = (event: KeyboardEvent) => {
+    const content = button.current;
+    if (event.target !== content || (event.key !== 'Enter' && event.key !== ' ')) return;
+    // Space would scroll the page as well.
+    event.preventDefault();
+    if (trigger !== 'tap') {
+      onPress!();
+      return;
+    }
+    const rect = content!.getBoundingClientRect();
+    open(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  };
+
   // A point the content reports (a canvas's own right click): relative to
   // the content's box, which `display: contents` leaves to its first child
   // (the popover itself when the content has no element of its own, in which
@@ -103,6 +148,7 @@ export function ContextMenu({items, children, onPress, disabled, at, onDismiss, 
       className="ui-context-menu"
       onContextMenu={onContextMenu}
       onClick={onClick}
+      onKeyDown={onKeyDown}
       {...held.handlers()}
       data-testid={testID}>
       {children}

@@ -373,6 +373,114 @@ describe('ContextMenu (web)', () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
+  describe('keyboard and screen readers', () => {
+    it('makes the content a button in the tab order when the press is its own, pressed by Enter and Space', () => {
+      const onPress = vi.fn();
+      render(
+        <ContextMenu items={items} onPress={onPress} testID="row">
+          <div>Holiday photos</div>
+        </ContextMenu>,
+      );
+      // The wrapper is `display: contents`, which no browser focuses: the content's own element is the button.
+      const button = screen.getByRole('button', {name: 'Holiday photos'});
+      expect(button.parentElement).toBe(screen.getByTestId('row'));
+      expect(button).toHaveAttribute('tabindex', '0');
+      expect(fireEvent.keyDown(button, {key: 'Enter'})).toBe(false);
+      expect(fireEvent.keyDown(button, {key: ' '})).toBe(false);
+      expect(onPress).toHaveBeenCalledTimes(2);
+      // Another key, or a key in the menu, presses nothing.
+      expect(fireEvent.keyDown(button, {key: 'a'})).toBe(true);
+      fireEvent.keyDown(screen.getByRole('menuitem', {name: 'Share', hidden: true}), {key: 'Enter'});
+      expect(onPress).toHaveBeenCalledTimes(2);
+      expect(showPopover).not.toHaveBeenCalled();
+    });
+
+    it('keeps the button and its focus through a render, and makes new content the button in its place', () => {
+      const {rerender} = render(
+        <ContextMenu items={items} onPress={vi.fn()} testID="row">
+          <div>Holiday photos</div>
+        </ContextMenu>,
+      );
+      const button = screen.getByRole('button', {name: 'Holiday photos'});
+      button.focus();
+      rerender(
+        <ContextMenu items={items} onPress={vi.fn()} testID="row">
+          <div>Holiday photos</div>
+        </ContextMenu>,
+      );
+      expect(document.activeElement).toBe(button);
+      expect(button).toHaveAttribute('role', 'button');
+      rerender(
+        <ContextMenu items={items} onPress={vi.fn()} testID="row">
+          <p>Trip</p>
+        </ContextMenu>,
+      );
+      expect(screen.getByRole('button', {name: 'Trip'})).toHaveAttribute('tabindex', '0');
+    });
+
+    it('opens the menu at the content\'s centre from the keyboard for `tap`', () => {
+      render(
+        <ContextMenu items={items} trigger="tap" testID="row">
+          <div>Item</div>
+        </ContextMenu>,
+      );
+      const button = screen.getByRole('button', {name: 'Item'});
+      button.getBoundingClientRect = () => ({left: 10, top: 20, width: 100, height: 40} as DOMRect);
+      fireEvent.keyDown(button, {key: 'Enter'});
+      expect(showPopover).toHaveBeenCalledTimes(1);
+      const menu = screen.getByRole('menu', {hidden: true});
+      expect(menu.style.left).toBe('60px');
+      expect(menu.style.top).toBe('40px');
+    });
+
+    it('leaves the content alone without a press of its own, while disabled, and when it is a control already', () => {
+      const {rerender} = render(
+        <ContextMenu items={items} onPress={vi.fn()} testID="row">
+          <div>Item</div>
+        </ContextMenu>,
+      );
+      expect(screen.getByRole('button', {name: 'Item'})).toBeInTheDocument();
+      rerender(
+        <ContextMenu items={items} onPress={vi.fn()} disabled testID="row">
+          <div>Item</div>
+        </ContextMenu>,
+      );
+      expect(screen.queryByRole('button')).toBeNull();
+      expect(screen.getByText('Item')).not.toHaveAttribute('tabindex');
+      rerender(
+        <ContextMenu items={items} testID="row">
+          <div>Item</div>
+        </ContextMenu>,
+      );
+      expect(screen.queryByRole('button')).toBeNull();
+      // A control of its own keeps its role and its keys, which press it.
+      rerender(
+        <ContextMenu items={items} onPress={vi.fn()} testID="row">
+          <a href="#photos" role="link">Photos</a>
+        </ContextMenu>,
+      );
+      expect(screen.getByRole('link', {name: 'Photos'})).not.toHaveAttribute('tabindex');
+      rerender(
+        <ContextMenu items={items} onPress={vi.fn()} testID="row">
+          <button type="button">Open</button>
+        </ContextMenu>,
+      );
+      expect(screen.getByRole('button', {name: 'Open'})).not.toHaveAttribute('role');
+      expect(fireEvent.keyDown(screen.getByRole('button', {name: 'Open'}), {key: 'Enter'})).toBe(true);
+    });
+
+    it('has no button for content with no element of its own', () => {
+      render(
+        <ContextMenu items={items} onPress={vi.fn()} testID="row">
+          Item
+        </ContextMenu>,
+      );
+      expect(screen.queryByRole('button')).toBeNull();
+      // The menu's popover, the wrapper's only element then, keeps its own role.
+      expect(screen.getByRole('menu', {hidden: true})).toBeInTheDocument();
+    });
+  });
+
   it('does nothing when disabled', () => {
     const onPress = vi.fn();
     render(

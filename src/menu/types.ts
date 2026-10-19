@@ -151,7 +151,8 @@ export interface ContextMenuProps {
   /**
    * Called on a plain tap of the content (Android/web; iOS taps pass
    * through). Ignored when `trigger` is `tap`, where the tap opens the menu
-   * and there is no second gesture left for it.
+   * and there is no second gesture left for it. On web the content is then a
+   * button, which Enter and Space press too.
    */
   onPress?: () => void;
   /**
