@@ -115,13 +115,15 @@ function NativeButton({
   const suffix = drawableOf(suffixIcon);
   const iconOnly = hideLabel && !!prefix;
 
-  // The spinner in the icon's place, in the content's color.
+  // The spinner in the icon's place, in the content's color. In an
+  // icon-only button it takes the icon's content description too, or the
+  // button would have no name while it loads.
   const spinner = loading ? (
     <CircularProgressIndicator
       color={textColor}
       trackColor="#00000000"
       strokeWidth={SPINNER_STROKE}
-      modifiers={[sizeModifier(iconSize, iconSize)]}
+      modifiers={[sizeModifier(iconSize, iconSize), ...(iconOnly ? [semantics({contentDescription: label})] : [])]}
     />
   ) : null;
   const leading = spinner ?? (prefix ? (
