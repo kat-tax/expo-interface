@@ -169,7 +169,8 @@ export function ColorPickerSheet({title, value, supportsOpacity, onValueChange, 
       ) : null}
       <View style={[styles.divider, {backgroundColor: separator}]}/>
       <View style={styles.footer}>
-        <View style={styles.preview} aria-label={`Selected color ${toHex(color, supportsOpacity)}`}>
+        {/* A picture, named by its color: a name on a view with no role is not read on web. */}
+        <View style={styles.preview} role="img" accessible aria-label={`Selected color ${toHex(color, supportsOpacity)}`}>
           {color.a < 1 ? <Image source={{uri: CHECKER}} style={StyleSheet.absoluteFill} contentFit="cover"/> : null}
           <View style={[StyleSheet.absoluteFill, {backgroundColor: css}]}/>
         </View>
