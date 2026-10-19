@@ -143,7 +143,17 @@ describe(`DateTimePicker (${Platform.OS})`, () => {
     } else {
       const texts = nodes().filter(n => typeof n.props.text === 'string').map(n => n.props.text);
       expect(texts).toEqual(['15 Jun 2026']);
+      // Nothing but the value to name the pill by: it reads its text.
+      expect(modifier(pill().props, 'semantics')).toBeUndefined();
     }
+  });
+
+  (isIOS ? it.skip : it)('names the pill by the label of its row, and the value after it', async () => {
+    const {rerender} = await render(<DateTimePicker label="Starts" mode="date" value={JUNE_15} onChange={vi.fn()}/>, options);
+    // TalkBack reads a content description in place of the text, so the value goes with the label.
+    expect(modifier(pill().props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Starts, 15 Jun 2026'});
+    await rerender(<DateTimePicker label="Starts" mode="date" value="2026-06-16" onChange={vi.fn()}/>);
+    expect(modifier(pill().props, 'semantics')?.contentDescription).toBe('Starts, 16 Jun 2026');
   });
 
   it('seeds an uncontrolled picker with the current time', async () => {

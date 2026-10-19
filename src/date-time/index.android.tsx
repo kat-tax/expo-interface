@@ -3,7 +3,7 @@ import type {DateTimeMode, DateTimePickerProps} from './types';
 import {useState} from 'react';
 import {StyleSheet} from 'react-native';
 import {useMaterialColors, Row, Text, Column, DatePickerDialog, TimePickerDialog} from '@expo/ui/jetpack-compose';
-import {clip, Shapes, padding, clickable, background, fillMaxWidth, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {clip, Shapes, padding, clickable, background, fillMaxWidth, semantics, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {NativeHost, useNativeHost} from '../host';
 import {useColor} from '../theme';
 import {formatValue, fromUtcDay, toDate, useDateValue, utcDayOf, withDatePart, withTimePart} from './shared';
@@ -15,6 +15,10 @@ import {formatValue, fromUtcDay, toDate, useDateValue, utcDayOf, withDatePart, w
  * Material date dialog and then, for `datetime` mode, a time dialog. Each
  * dialog mounts on demand and unmounts once it reports a value or is dismissed.
  * Presented, the dialogs open while `presented` holds, with no row.
+ *
+ * The pill is the control TalkBack is handed, and the row's label names it:
+ * TalkBack reads a content description in place of a text, so the pill's
+ * is the label with the value after it.
  *
  * Material's date dialog keeps its days in UTC: it is handed the local day
  * as midnight UTC and answers the same way, which is read back as the local
@@ -48,6 +52,7 @@ function RowPicker({
   const open = () => {
     setStage(mode === 'time' ? 'time' : 'date');
   };
+  const shown = formatValue(current, mode);
 
   return (
     <Column modifiers={[fillMaxWidth(), ...(testID ? [testIDModifier(testID)] : [])]}>
@@ -62,9 +67,10 @@ function RowPicker({
             clip(Shapes.RoundedCorner(8)),
             background(colors.surfaceContainerHighest),
             ...(disabled ? [] : [clickable(open)]),
+            ...(label != null ? [semantics({contentDescription: `${label}, ${shown}`})] : []),
             padding(12, 6, 12, 6),
           ]}>
-          {formatValue(current, mode)}
+          {shown}
         </Text>
       </Row>
       {stage !== 'idle' ? (
