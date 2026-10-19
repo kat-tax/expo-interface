@@ -37,7 +37,8 @@ const LINE_RESERVED = 64;
  * The system picker is presented the system's way, a popover on an iPad and
  * a sheet on a phone, and SwiftUI cannot draw it in place: `popover` and
  * `inline` are the row as it is. `menu` opens SwiftUI's own `Menu` of the
- * swatches from a well.
+ * swatches from a well. Without a label the well is named "Color", as on
+ * web and Windows.
  */
 export function ColorPicker({
   label,
@@ -60,6 +61,8 @@ export function ColorPicker({
   const presets = swatchesOf(swatches);
   const modifiers: ViewModifier[] = [];
   if (disabled) modifiers.push(disabledMod(true));
+  // Without a label the picker's well has no name of its own.
+  const unnamed = label == null ? [accessibilityLabel('Color')] : [];
 
   /** A crossed-out circle: no color. */
   const crossed = (diameter: number) => (
@@ -123,7 +126,7 @@ export function ColorPicker({
         selection={value}
         supportsOpacity={supportsOpacity}
         onSelectionChange={onValueChange}
-        modifiers={modifiers}
+        modifiers={[...modifiers, ...unnamed]}
         testID={testID}
       />
     );
@@ -134,7 +137,7 @@ export function ColorPicker({
       selection={none ? NONE : value}
       supportsOpacity={supportsOpacity}
       onSelectionChange={onValueChange}
-      modifiers={[labelsHidden()]}
+      modifiers={[labelsHidden(), ...unnamed]}
       testID={testID ? `${testID}-well` : undefined}
     />
   );

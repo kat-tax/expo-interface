@@ -89,9 +89,19 @@ describe(`ColorPicker (${Platform.OS})`, () => {
       const {props} = screen.getByTestId('cp');
       expect(props.label).toBeUndefined();
       expect(props.supportsOpacity).toBe(false);
-      expect(props.modifiers).toEqual([{$type: 'disabled', disabled: true}]);
+      expect(modifier(props, 'disabled')).toEqual({$type: 'disabled', disabled: true});
       await fireEvent(screen.getByTestId('cp'), 'selectionChange', {nativeEvent: {value: '#00FF00'}});
       expect(onValueChange).toHaveBeenCalledWith('#00FF00');
+    });
+
+    it('names a well without a label Color, as web and Windows do', async () => {
+      const {rerender} = await render(<ColorPicker value="#FF6347" onValueChange={vi.fn()} testID="cp"/>, options);
+      expect(modifier(screen.getByTestId('cp').props, 'accessibilityLabel')).toEqual({$type: 'accessibilityLabel', label: 'Color'});
+      await rerender(<ColorPicker value="#FF6347" swatches={['#00FF00']} onValueChange={vi.fn()} testID="cp"/>);
+      expect(modifier(screen.getByTestId('cp-well').props, 'accessibilityLabel')).toEqual({$type: 'accessibilityLabel', label: 'Color'});
+      // A label names the well itself.
+      await rerender(<ColorPicker label="Accent" value="#FF6347" swatches={['#00FF00']} onValueChange={vi.fn()} testID="cp"/>);
+      expect(modifier(screen.getByTestId('cp-well').props, 'accessibilityLabel')).toBeUndefined();
     });
 
     it('composes the row by hand with preset swatches before the well', async () => {
