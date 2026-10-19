@@ -2,7 +2,7 @@ import type {SearchFieldProps} from './types';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import {SymbolView} from 'expo-symbols';
 import {Surface} from '../surface';
-import {TextField} from '../text-field';
+import {InlineTextField} from '../text-field/inline';
 import {spacing, useColor} from '../theme';
 import {SEARCH_LABEL, canClear, matchingSuggestions} from './shared';
 
@@ -12,8 +12,8 @@ const CLEAR = {ios: 'xmark.circle.fill', android: 'cancel', web: 'cancel'} as co
 
 /**
  * iOS and Android draw the search field from the kit's own pieces: a rounded
- * row with a magnifier, the kit's `TextField` inside it, a clear button, and
- * the completions under it.
+ * row with a magnifier, the kit's `inline` text field inside it, read as a
+ * search field, a clear button, and the completions under it.
  *
  * Android is composed rather than native on purpose. Compose's `SearchBar` and
  * `DockedSearchBar` take an `onQueryChange` and no `query`, so nothing outside
@@ -35,9 +35,10 @@ export function SearchField(props: SearchFieldProps) {
       <Surface color="element" border="all" padding={spacing.two} style={styles.row}>
         <SymbolView name={SEARCH} size={ICON} tintColor={muted}/>
         <View style={styles.field}>
-          <TextField
+          <InlineTextField
             ref={ref}
             variant="inline"
+            role="searchbox"
             value={value}
             placeholder={label}
             onChangeText={onChangeText}
