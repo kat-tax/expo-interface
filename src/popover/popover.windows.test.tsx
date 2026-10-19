@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {StyleSheet, Text} from 'react-native';
 import {fireIsland, island, islands} from 'expo-vitest/windows';
 import {ScrollInsetsContext, useScrollInsets} from '../screen/insets';
+import {LayerHost} from '../windows/layer';
 import {Popover} from '.';
 
 /** The insets a scroller reads where it is rendered, as text. */
@@ -269,6 +270,49 @@ describe('modal and hover (windows)', () => {
     expect(backdrop.props.testID).toBeUndefined();
     await fireEvent.press(backdrop);
     expect(onDismiss).toHaveBeenCalledWith('backdrop');
+  });
+
+  it('makes the drawn modal card\'s backdrop a Dismiss button, as the other platforms do', async () => {
+    await render(<Popover at={{x: 0, y: 0}} title="Option" modal onDismiss={vi.fn()} testID="pop"/>);
+    // The modal card hides its siblings from a screen reader that is in it; one outside reaches the backdrop.
+    expect(screen.getByRole('button', {name: 'Dismiss', includeHiddenElements: true})).toBe(screen.getByTestId('pop-backdrop', {includeHiddenElements: true}));
+  });
+
+  it('dismisses the drawn modal card on Escape from a focus inside it, the key going no further, with no host', async () => {
+    const onDismiss = vi.fn();
+    await render(<Popover at={{x: 0, y: 0}} title="Option" modal onDismiss={onDismiss} testID="pop"/>);
+    const bounds = screen.getByTestId('pop-bounds');
+    await fireEvent(bounds, 'keyDown', {nativeEvent: {key: 'Enter'}, stopPropagation: vi.fn()});
+    expect(onDismiss).not.toHaveBeenCalled();
+    const stopPropagation = vi.fn();
+    await fireEvent(bounds, 'keyDown', {nativeEvent: {key: 'Escape'}, stopPropagation});
+    expect(onDismiss).toHaveBeenCalledWith('escape');
+    expect(stopPropagation).toHaveBeenCalledTimes(1);
+  });
+
+  it('dismisses the drawn modal card on Escape through the layer host, wherever the focus is under it', async () => {
+    const onDismiss = vi.fn();
+    await render(
+      <LayerHost testID="host">
+        <Popover at={{x: 0, y: 0}} title="Option" modal onDismiss={onDismiss} testID="pop"/>
+      </LayerHost>,
+    );
+    // The host takes the key, so the card's bounds hold no handler of their own.
+    expect(screen.getByTestId('pop-bounds').props.onKeyDown).toBeUndefined();
+    await fireEvent(screen.getByTestId('host'), 'keyDown', {nativeEvent: {key: 'Escape'}});
+    expect(onDismiss).toHaveBeenCalledWith('escape');
+  });
+
+  it('leaves Escape alone for a card that is not modal, or one with nothing to report it to, and ends a modal card\'s linger on it', async () => {
+    const {rerender} = await render(<Popover at={{x: 0, y: 0}} title="Note" onDismiss={vi.fn()} testID="pop"><Text>Extra</Text></Popover>);
+    expect(screen.getByTestId('pop-bounds').props.onKeyDown).toBeUndefined();
+    await rerender(<Popover at={{x: 0, y: 0}} title="Option" modal trigger="hover" testID="pop"/>);
+    expect(screen.getByTestId('pop-bounds').props.onKeyDown).toBeUndefined();
+    // The app has cleared the rectangle: the card lingers, and Escape ends that.
+    await rerender(<Popover at={null} title="Option" modal trigger="hover" testID="pop"/>);
+    expect(screen.getByTestId('pop', {includeHiddenElements: true})).toBeOnTheScreen();
+    await fireEvent(screen.getByTestId('pop-bounds'), 'keyDown', {nativeEvent: {key: 'Escape'}});
+    expect(screen.queryByTestId('pop', {includeHiddenElements: true})).toBeNull();
   });
 
   it('draws the drawn card only once it has been measured, each time it comes up', async () => {

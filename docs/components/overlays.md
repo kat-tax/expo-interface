@@ -217,7 +217,8 @@ zero inside it on every platform, as it does in a `Sheet`, so a `List`,
 `onDismiss` says why the card asks to close: `action` (one of its actions
 was taken), `backdrop` (the backdrop of a modal card was pressed, or on
 Windows a click landed outside the tip), `escape` (Escape on web, wherever
-the focus is, or VoiceOver's escape gesture on a modal card) or `leave` (a
+the focus is, Escape on a modal card on Windows, or VoiceOver's escape
+gesture on a modal card) or `leave` (a
 hover card's pointer stayed away for its grace). On web the card takes Escape
 before an editor that keeps the key for itself, and the key goes no further:
 neither the focused editor nor an overlay the card is in, such as a web
@@ -226,7 +227,10 @@ open in it, or another card up inside it, leaves the key to that one and
 takes the next. A menu open beside the card takes it before the card,
 since the browser draws the menu over it; of two cards up side by side,
 the one that came up last takes it. A card with no `onDismiss` leaves
-Escape alone, unless it is lingering, which Escape ends.
+Escape alone, unless it is lingering, which Escape ends. On Windows a
+`modal` card takes Escape by the same rule: wherever the focus is under
+the kit's `Stack`, where the overlay that came up last takes it, and from
+a focus inside the card where there is no `Stack`.
 
 A `modal` card takes the presses around it as its backdrop, so nothing under
 it is pressed by mistake, and says it is a dialog: VoiceOver keeps its focus

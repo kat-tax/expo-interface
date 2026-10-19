@@ -19,8 +19,8 @@ export interface PopoverAction {
 /**
  * Why a popover asks to close: one of its actions was taken, the backdrop of
  * a modal one (or, on Windows, outside the platform's tip) was pressed,
- * Escape was pressed on web, or the pointer left a hover popover and stayed
- * away for its grace.
+ * Escape was pressed on web or on a modal card on Windows, or the pointer
+ * left a hover popover and stayed away for its grace.
  */
 export type PopoverDismissReason = 'action' | 'backdrop' | 'escape' | 'leave';
 
@@ -55,7 +55,9 @@ export interface PopoverProps extends PropsWithChildren {
    * Escape closes one overlay: a card with a menu open in it, or another
    * card up inside it, leaves the key to that one and takes the next. Of two
    * cards up side by side, or a card and a `PopupMenu`, the one that came up
-   * last takes it.
+   * last takes it. On Windows a `modal` card takes Escape by the same rule
+   * about `onDismiss`, wherever the focus is under the kit's `Stack`, and
+   * from a focus inside the card elsewhere.
    */
   onDismiss?: (reason: PopoverDismissReason) => void;
   /**
