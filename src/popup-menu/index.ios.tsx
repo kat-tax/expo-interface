@@ -3,7 +3,7 @@ import type {PopupMenuProps} from './types';
 import {Fragment} from 'react';
 import {StyleSheet} from 'react-native';
 import {Button, Divider, HStack, Image, Popover, Spacer, Text, VStack} from '@expo/ui/swift-ui';
-import {buttonStyle, foregroundStyle, frame, opacity, padding} from '@expo/ui/swift-ui/modifiers';
+import {buttonStyle, disabled as disabledMod, foregroundStyle, frame, opacity, padding} from '@expo/ui/swift-ui/modifiers';
 import {iosSymbol} from '../button/shared';
 import {NativeHost} from '../host';
 import {useColor} from '../theme';
@@ -78,7 +78,8 @@ function PopupItems({items, onClose}: {items: MenuItem[]; onClose: () => void}) 
                 item.onPress?.();
                 onClose();
               }}
-              modifiers={[buttonStyle('plain'), ...(item.disabled ? [opacity(0.4)] : [])]}>
+              // Dimmed, and disabled to SwiftUI, so VoiceOver reads the entry as dimmed too.
+              modifiers={[buttonStyle('plain'), ...(item.disabled ? [opacity(0.4), disabledMod(true)] : [])]}>
               <HStack spacing={10} modifiers={[padding({horizontal: 16, vertical: 8})]}>
                 {item.swatch ? (
                   // Ordinary SwiftUI rows rather than a `UIMenu`: the symbol keeps its color.
