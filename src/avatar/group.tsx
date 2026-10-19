@@ -3,7 +3,7 @@ import {useId} from 'react';
 import {Platform, Pressable, StyleSheet, Text, View} from 'react-native';
 import {pressFeedback} from '../surface/shared';
 import {isColorToken, useColor} from '../theme';
-import {AvatarFace} from './drawn';
+import {AvatarFace, PICTURE} from './drawn';
 import {AVATAR_RING} from './shared';
 
 /**
@@ -20,13 +20,6 @@ const WEB = Platform.OS === 'web';
  * as well as the stop because react-native-web drops `accessible`.
  */
 const SILENT = {accessible: false, accessibilityLabel: undefined};
-
-/**
- * A face that does not press is a picture. On web it says so: a name and a
- * state on an element with no role are not read. iOS, Android and Windows
- * read the circle as it is.
- */
-const PICTURE = WEB ? {role: 'img' as const} : null;
 
 /**
  * What a face says: the person's label (their name unless told otherwise),
