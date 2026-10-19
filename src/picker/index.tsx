@@ -1,7 +1,7 @@
 import type {ChangeEvent, CSSProperties} from 'react';
 import type {PickerProps, PickerValue} from './types';
 
-import {Pressable, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {Label} from '../typography';
 import {theme} from '../theme';
 import {extractItems, labelFor, PickerItem, useSelectedValue} from './shared';
@@ -10,7 +10,8 @@ import {extractItems, labelFor, PickerItem, useSelectedValue} from './shared';
  * On web the row mirrors the native iOS/Android pill: a label on the leading
  * edge and a rounded pill showing the selected value plus an up/down chevron,
  * with a transparent native `<select>` layered on top. Clicking the pill opens
- * the browser's built-in option list.
+ * the browser's built-in option list. The pill is a plain view, so the
+ * select is the picker's one tab stop.
  */
 function PickerComponent<T extends PickerValue>({
   style,
@@ -37,7 +38,7 @@ function PickerComponent<T extends PickerValue>({
           {label}
         </Label>
       ) : null}
-      <Pressable disabled={disabled} style={[styles.pill, disabled && styles.disabled]}>
+      <View style={[styles.pill, disabled && styles.disabled]}>
         <Label
           color="secondaryLabel"
           style={[styles.value, accentColor != null && {color: accentColor}]}>
@@ -56,7 +57,7 @@ function PickerComponent<T extends PickerValue>({
             </option>
           ))}
         </select>
-      </Pressable>
+      </View>
     </View>
   );
 }
