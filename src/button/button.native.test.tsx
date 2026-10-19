@@ -130,6 +130,14 @@ describe(`Button (${Platform.OS})`, () => {
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 
+  (isIOS ? it.skip : it)('names an icon-only button by its label while it loads', async () => {
+    await render(<Button label="Sync" prefixIcon={icons.share} hideLabel loading testID="icon"/>);
+    expect(modifier(spinner()!.props, 'semantics')).toEqual({$type: 'semantics', contentDescription: 'Sync'});
+    // With its label beside it, the spinner names nothing.
+    await render(<Button label="Sync" prefixIcon={icons.share} loading testID="labelled"/>);
+    expect(modifier(spinner()!.props, 'semantics')).toBeUndefined();
+  });
+
   (isIOS ? it.skip : it)('dims a disabled bar button, which TalkBack meets as a disabled button', async () => {
     const onPress = vi.fn();
     await render(<Button label="Back" size="inline" disabled onPress={onPress} testID="bar"/>);
