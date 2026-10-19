@@ -94,7 +94,7 @@ function SectionFooter(props: FieldSectionFooterProps) {
   return <>{props.children}</>;
 }
 
-function Section({children, title, titleUppercase = false, hidden, footer: footerText, footerColor = 'secondaryLabel'}: FieldGroupSectionProps) {
+function Section({children, title, titleUppercase = false, hidden, footer: footerText, footerColor = 'secondaryLabel', testID}: FieldGroupSectionProps) {
   useReportSection();
   const card = useColor('backgroundElement');
   const subtle = useColor('secondaryLabel');
@@ -117,7 +117,7 @@ function Section({children, title, titleUppercase = false, hidden, footer: foote
   ) : null);
 
   return (
-    <Column verticalArrangement={{spacedBy: 4}} modifiers={[fillMaxWidth()]}>
+    <Column verticalArrangement={{spacedBy: 4}} modifiers={[fillMaxWidth(), ...(testID ? [testIDModifier(testID)] : [])]}>
       {headerNode ? (
         <Column modifiers={[padding(16, 0, 16, 8)]}>{headerNode}</Column>
       ) : null}

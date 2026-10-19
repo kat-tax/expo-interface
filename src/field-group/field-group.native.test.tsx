@@ -52,7 +52,7 @@ describe(`FieldGroup (${Platform.OS})`, () => {
     }
   });
 
-  (isIOS ? it : it.skip)('carries the testID of the group and of a section to the native views', async () => {
+  it('carries the testID of the group and of a section to the native views', async () => {
     await render_(
       <FieldGroup testID="group">
         <FieldGroup.Section title="General" testID="general" modifiers={[{$type: 'listRowSeparator', visibility: 'hidden'}]}>
@@ -60,12 +60,21 @@ describe(`FieldGroup (${Platform.OS})`, () => {
         </FieldGroup.Section>
       </FieldGroup>,
     );
-    // The identifier SwiftUI's own `testID` sets, ahead of the app's own modifiers.
-    expect(form()!.props.modifiers).toEqual([{$type: 'accessibilityIdentifier', identifier: 'group'}]);
-    expect(host(p => p.title === 'General').props.modifiers).toEqual([
-      {$type: 'accessibilityIdentifier', identifier: 'general'},
-      {$type: 'listRowSeparator', visibility: 'hidden'},
-    ]);
+    if (isIOS) {
+      // The identifier SwiftUI's own `testID` sets, ahead of the app's own modifiers.
+      expect(form()!.props.modifiers).toEqual([{$type: 'accessibilityIdentifier', identifier: 'group'}]);
+      expect(host(p => p.title === 'General').props.modifiers).toEqual([
+        {$type: 'accessibilityIdentifier', identifier: 'general'},
+        {$type: 'listRowSeparator', visibility: 'hidden'},
+      ]);
+    } else {
+      expect(byComposeTestID('group')).toEqual(form());
+      // The section's column, which holds its title and its row.
+      const section = byComposeTestID('general');
+      expect(section.type).toBe('ViewManagerAdapter_ExpoUI_ColumnView');
+      expect(host(p => p.text === 'General', section)).toBeTruthy();
+      expect(nodes(section).filter(n => n.props?.contentAlignment === 'centerStart')).toHaveLength(1);
+    }
   });
 
   it('renders the footer prop under the rows in the secondary color', async () => {
