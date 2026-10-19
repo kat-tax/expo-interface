@@ -5,8 +5,8 @@ import type {MaterialThickness} from '../material/types';
  *
  * Android shows the Material 3 `Snackbar` — the platform's own, queued and
  * timed by Compose. iOS and web have no such control, so the kit draws the
- * capsule Apple's own apps draw, announced to assistive technology as a
- * live region. Controlled: it is shown while `visible`, and reports
+ * capsule Apple's own apps draw, announced to assistive technology: a
+ * live region on web, an announcement VoiceOver reads on iOS. Controlled: it is shown while `visible`, and reports
  * `onDismiss` when its time is up so the caller can put it away.
  */
 export interface ToastProps {

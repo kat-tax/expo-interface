@@ -1,6 +1,6 @@
 import type {ToastProps} from './types';
 import {useEffect, useState} from 'react';
-import {Platform, StyleSheet, View} from 'react-native';
+import {AccessibilityInfo, Platform, StyleSheet, View} from 'react-native';
 import {Button} from '../button';
 import {NativeHost} from '../host';
 import {useOverlayMaterial} from '../material/context';
@@ -11,8 +11,17 @@ import {useToastInset} from './context';
 import {TOAST_DURATION} from './types';
 
 /**
+ * iOS has no live regions, so the toast has VoiceOver read its message
+ * itself, as it shows and when the message changes while it is up. The
+ * announcement is queued, so VoiceOver reads it once it is done speaking, as
+ * a polite live region would. Web hears it through `role="status"`.
+ */
+const ANNOUNCES = Platform.OS === 'ios';
+
+/**
  * iOS and web draw the toast: a raised capsule pinned above the bottom of
- * the screen, announced as a live region (`role="status"` on web). Neither
+ * the screen, announced as a live region on web (`role="status"`) and by
+ * an announcement on iOS (`ANNOUNCES`). Neither
  * platform has a toast control of its own — Apple's apps draw this same
  * capsule — while Android has the Material `Snackbar` (`index.android.tsx`).
  * On the web the capsule draws on the app's overlay material unless told
@@ -25,6 +34,9 @@ export function Toast({message, visible, action, onDismiss, duration = TOAST_DUR
     const timer = setTimeout(onDismiss, duration);
     return () => clearTimeout(timer);
   }, [visible, message, duration, onDismiss]);
+  useEffect(() => {
+    if (ANNOUNCES && visible) AccessibilityInfo.announceForAccessibilityWithOptions(message, {queue: true});
+  }, [visible, message]);
   // What the toast covers of the screen's bottom edge, for its fab to clear:
   // the capsule and the gap under it.
   const [height, setHeight] = useState(0);

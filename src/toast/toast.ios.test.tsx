@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {AccessibilityInfo, StyleSheet} from 'react-native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {colors, spacing} from '../theme';
 import {ToastInsetContext} from './context';
@@ -82,6 +82,25 @@ describe('Toast (ios)', () => {
       expect(screen.getByText('Copied')).toBeOnTheScreen();
     } finally {
       vi.useRealTimers();
+    }
+  });
+
+  it('has VoiceOver read its message as it shows and when the message changes, since iOS has no live regions', async () => {
+    const announce = vi.spyOn(AccessibilityInfo, 'announceForAccessibilityWithOptions').mockImplementation(() => {});
+    try {
+      const {rerender} = await render(<Toast message="Copied" visible={false}/>);
+      expect(announce).not.toHaveBeenCalled();
+      await rerender(<Toast message="Copied" visible/>);
+      // Queued, so VoiceOver reads it once it is done speaking, as a polite live region would.
+      expect(announce.mock.calls).toEqual([['Copied', {queue: true}]]);
+      await rerender(<Toast message="Copied" visible action={{label: 'Undo', onPress: vi.fn()}}/>);
+      expect(announce).toHaveBeenCalledTimes(1);
+      await rerender(<Toast message="Moved to the bin" visible/>);
+      expect(announce.mock.calls.at(-1)).toEqual(['Moved to the bin', {queue: true}]);
+      await rerender(<Toast message="Moved to the bin" visible={false}/>);
+      expect(announce).toHaveBeenCalledTimes(2);
+    } finally {
+      announce.mockRestore();
     }
   });
 
