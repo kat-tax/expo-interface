@@ -22,10 +22,12 @@ function SectionFooter(_props: {children?: ReactNode}): null {
  * Windows draws the form itself, the way the Settings app lays a page out:
  * a section is a body-strong heading over a card of rows divided by
  * hairlines, with a note under it. The rows are the kit's (`ListItem`, the
- * form controls), each inset by the section rather than by itself.
+ * form controls), each inset by the section rather than by itself. A
+ * hidden section, like a hidden group, draws nothing.
  */
-function Section({title, titleUppercase, footer, footerColor = 'secondaryLabel', children, style, testID}: FieldGroupSectionProps) {
+function Section({title, titleUppercase, footer, footerColor = 'secondaryLabel', hidden, children, style, testID}: FieldGroupSectionProps) {
   const separator = useColor('separator');
+  if (hidden) return null;
   const rows: ReactNode[] = [];
   let header: ReactNode;
   let note: ReactNode;
@@ -51,8 +53,9 @@ function Section({title, titleUppercase, footer, footerColor = 'secondaryLabel',
   );
 }
 
-function FieldGroupBase({children, style, testID}: FieldGroupProps) {
+function FieldGroupBase({children, hidden, style, testID}: FieldGroupProps) {
   const insets = useScrollInsets();
+  if (hidden) return null;
   return (
     <ScrollView
       style={[styles.group, style]}

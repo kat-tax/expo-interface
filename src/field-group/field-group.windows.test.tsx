@@ -82,4 +82,29 @@ describe('FieldGroup (windows)', () => {
     );
     expect(StyleSheet.flatten(screen.getByTestId('group').props.contentContainerStyle)).toMatchObject({paddingTop: 16 + 30, paddingBottom: 16 + 10});
   });
+
+  it('draws nothing while hidden, and leaves out a hidden section', async () => {
+    await render(
+      <FieldGroup hidden testID="group">
+        <FieldGroup.Section title="General">
+          <Text>Row</Text>
+        </FieldGroup.Section>
+      </FieldGroup>,
+    );
+    expect(screen.toJSON()).toBeNull();
+    await render(
+      <FieldGroup>
+        <FieldGroup.Section title="Visible">
+          <Text>Shown row</Text>
+        </FieldGroup.Section>
+        <FieldGroup.Section title="Secret" hidden testID="secret">
+          <Text>Hidden row</Text>
+        </FieldGroup.Section>
+      </FieldGroup>,
+    );
+    expect(screen.getByText('Shown row')).toBeOnTheScreen();
+    expect(screen.queryByText('Secret')).toBeNull();
+    expect(screen.queryByText('Hidden row')).toBeNull();
+    expect(screen.queryByTestId('secret')).toBeNull();
+  });
 });
