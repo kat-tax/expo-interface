@@ -36,6 +36,10 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
   const rowClass = ['ui-list-item', !inset && 'ui-list-item--flush', selected && 'ui-list-item--selected'].filter(Boolean).join(' ');
   const label = rowLabel({children, supporting, value, badge});
   const current = selected ? ('true' as const) : undefined;
+  // A row that does not press is a group named from its slots: a name on an
+  // element with no role is not read. A row whose headline is content of the
+  // app's own names itself through that content, and is no group.
+  const group = label ? ('group' as const) : undefined;
   // A row named from its slots says what the badge says, so the badge is no
   // element of its own there: a status region inside a named button would be
   // announced on top of the name, and again each time the window drew the
@@ -76,7 +80,7 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
     return onPress ? (
       <button type="button" className={rowClass} aria-label={label} aria-current={current} data-testid={testID} onClick={onPress}>{content}</button>
     ) : (
-      <div className={rowClass} aria-label={label} aria-current={current} data-testid={testID}>{content}</div>
+      <div className={rowClass} role={group} aria-label={label} aria-current={current} data-testid={testID}>{content}</div>
     );
   }
   const filled = action.variant === 'filled';
@@ -85,7 +89,7 @@ function ListItemRow({children, icon, iconTone = 'secondary', leading, value, ba
       {onPress ? (
         <button type="button" className="ui-list-item__row ui-list-item__row--pressable" aria-label={label} onClick={onPress}>{content}</button>
       ) : (
-        <div className="ui-list-item__row" aria-label={label}>{content}</div>
+        <div className="ui-list-item__row" role={group} aria-label={label}>{content}</div>
       )}
       <Button
         label={action.label}
