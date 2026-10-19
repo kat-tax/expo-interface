@@ -1,3 +1,4 @@
+import type {ReactElement} from 'react';
 import type {EmptyStateProps} from './types';
 import {useContext, useState} from 'react';
 import {StyleSheet, View, useWindowDimensions} from 'react-native';
@@ -7,7 +8,7 @@ import {NativeHost, NativeHostContext, useNativeHost} from '../host';
 import {InSheetContext} from '../sheet/inside';
 import {drawableOf} from '../icons';
 import {spacing, useColor} from '../theme';
-import {Subheadline} from '../typography';
+import {Subheadline, Title2} from '../typography';
 import {EMPTY_ICON, EmptyStateAction} from './shared';
 import {isActionData} from './types';
 
@@ -20,7 +21,9 @@ import {isActionData} from './types';
  * every Compose icon is; while `loading` the `CircularProgressIndicator`
  * takes its place. A node of the app's own as the action is hosted in the
  * column as React Native content, and so is the description while it is
- * `selectable`, since Compose text here cannot be selected.
+ * `selectable`, since Compose text here cannot be selected. So is the title,
+ * the kit's `Title2` (Material's `titleLarge` on Android), since `@expo/ui`'s
+ * Compose text cannot be a heading and TalkBack moves between headings.
  *
  * Outside a host the column mounts one of its own, as wide as its container.
  * Inside one (a `Screen native`, a `Sheet`'s native content, a hosted
@@ -48,7 +51,6 @@ function EmptyStateColumn({title, description, icon, action, loading = false, se
   // unless the app asks.
   const inSheet = useContext(InSheetContext);
   const selectableText = selectable ?? !inSheet;
-  const label = useColor('label');
   const muted = useColor('secondaryLabel');
   const tint = useColor('tint');
   const drawable = drawableOf(icon);
@@ -67,10 +69,14 @@ function EmptyStateColumn({title, description, icon, action, loading = false, se
       ) : drawable ? (
         <Icon source={drawable} size={EMPTY_ICON} tint={muted}/>
       ) : null}
-      <Text color={label} style={{typography: 'titleLarge', textAlign: 'center'}} modifiers={[fillMaxWidth()]}>{title}</Text>
+      <HostedText>
+        {width => <Title2 align="center" color="label" style={{width}}>{title}</Title2>}
+      </HostedText>
       {description ? (
         selectableText ? (
-          <SelectableDescription>{description}</SelectableDescription>
+          <HostedText>
+            {width => <Subheadline align="center" color="secondaryLabel" selectable style={[styles.description, {width}]}>{description}</Subheadline>}
+          </HostedText>
         ) : (
           <Text color={muted} style={{typography: 'bodyMedium', textAlign: 'center'}} modifiers={[fillMaxWidth()]}>{description}</Text>
         )
@@ -94,19 +100,20 @@ function EmptyStateColumn({title, description, icon, action, loading = false, se
 }
 
 /**
- * The description as React Native text, which Android can select: `@expo/ui`'s
- * Compose layer has no `SelectionContainer`. Hosted text has no width of its
+ * React Native text in the column, for what Compose text cannot be: the title
+ * as a heading, the description as text that can be selected (`@expo/ui`'s
+ * Compose layer has no `SelectionContainer`). Hosted text has no width of its
  * own to wrap at, so it is told the column's, as Compose measures it; until
  * then, the window's less the column's padding. The box fills the column's
  * width whatever the text, so the measure does not feed back into itself.
  */
-function SelectableDescription({children}: {children: string}) {
+function HostedText({children}: {children: (width: number) => ReactElement}) {
   const {width: windowWidth} = useWindowDimensions();
   const [width, setWidth] = useState(windowWidth - spacing.five * 2);
   return (
     <Box contentAlignment="topCenter" modifiers={[fillMaxWidth(), onSizeChanged(next => setWidth(next.width))]}>
       <RNHostView matchContents>
-        <Subheadline align="center" color="secondaryLabel" selectable style={[styles.description, {width}]}>{children}</Subheadline>
+        {children(width)}
       </RNHostView>
     </Box>
   );
