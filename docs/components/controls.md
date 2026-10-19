@@ -36,7 +36,7 @@ command, which the `CommandBar` makes an `AppBarToggleButton`.
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Button` in the bordered-prominent, bordered or plain style, with a `ProgressView` while loading |
-| Android | Material 3 `Button`, `OutlinedButton` or `TextButton`, or the icon buttons when icon-only, with a `CircularProgressIndicator` in the content slot while loading. `size: 'inline'` is a clickable row, since Material's buttons keep a minimum height no modifier can shrink. |
+| Android | Material 3 `Button`, `OutlinedButton` or `TextButton`, or the icon buttons when icon-only, with a `CircularProgressIndicator` in the content slot while loading. `size: 'inline'` is a row of its content, since Material's buttons keep a minimum height no modifier can shrink, with a childless Material `IconButton` laid over it that TalkBack meets as the button: named by the label, with the press and the `testID`, enabled or not. A toggle's row is toggleable instead, and a button with neither `onPress` nor `disabled` is a plain row. |
 | Web | A real `<button>`, `aria-busy` with the kit's ring while loading |
 | Windows | WinUI `Button`: the accent style for `filled`, the standard one for `outlined`, transparent for `text`, with Segoe glyphs and a `ProgressRing` while loading |
 

@@ -1,6 +1,6 @@
 import type {ButtonProps, ButtonShape, ButtonVariant} from './types';
-import {alpha, clickable, fillMaxWidth, size as sizeModifier, testID as testIDModifier, toggleable, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
-import {Button as ComposeButton, CircularProgressIndicator, OutlinedButton, TextButton, Icon, IconButton, IconToggleButton, FilledIconButton, OutlinedIconButton, Row, Spacer, Shape, Text, ToggleButton} from '@expo/ui/jetpack-compose';
+import {alpha, fillMaxWidth, matchParentSize, semantics, size as sizeModifier, testID as testIDModifier, toggleable, width, wrapContentHeight, wrapContentWidth} from '@expo/ui/jetpack-compose/modifiers';
+import {Box, Button as ComposeButton, CircularProgressIndicator, OutlinedButton, TextButton, Icon, IconButton, IconToggleButton, FilledIconButton, OutlinedIconButton, Row, Spacer, Shape, Text, ToggleButton} from '@expo/ui/jetpack-compose';
 import {SIZE_ICON, SIZE_TEXT, androidContentPadding} from './shared';
 import {onAccent as contrastOf} from '../accent';
 import {SelfHosted} from '../host';
@@ -23,12 +23,6 @@ const ICON_ONLY_COMPONENT: Record<ButtonVariant, typeof FilledIconButton | typeo
 const SPINNER_STROKE = 2;
 
 const TRANSPARENT = '#00000000';
-
-/** What a press on the inline row is: a toggle's change, which TalkBack hears as on or off, or a click. */
-function toggleOrClick(pressed: boolean | undefined, onPress: (() => void) | undefined) {
-  if (!onPress) return [];
-  return [pressed === undefined ? clickable(onPress) : toggleable(pressed, onPress)];
-}
 
 function resolveShape(shape?: ButtonShape) {
   if (!shape) return undefined;
@@ -111,11 +105,12 @@ function NativeButton({
   const inactive = disabled || loading;
   // A `Host` measures a direct child with its own (tight) constraints, which
   // a Compose button would fill on both axes; wrap to the content instead.
-  const modifiers = [
+  const frame = [
     fillWidth ? fillMaxWidth() : wrapContentWidth('start'),
     wrapContentHeight('top'),
   ];
-  if (testID) modifiers.push(testIDModifier(testID));
+  const testMods = testID ? [testIDModifier(testID)] : [];
+  const modifiers = [...frame, ...testMods];
   const prefix = drawableOf(prefixIcon);
   const suffix = drawableOf(suffixIcon);
   const iconOnly = hideLabel && !!prefix;
@@ -161,17 +156,40 @@ function NativeButton({
 
   // The bar size: Material's buttons keep a minimum height, and its icon
   // buttons a 40dp container, that no modifier can shrink — so an inline
-  // button is a clickable row of exactly its content instead.
-  if (size === 'inline') {
+  // button is a row of exactly its content instead. A toggle's row is
+  // toggleable, which TalkBack hears as on or off; a button with nothing to
+  // do, neither a handler nor disabled, is a plain row, which nothing presses.
+  if (size === 'inline' && (pressed !== undefined || (!onPress && !inactive))) {
     return (
       <Row
         verticalAlignment="center"
-        modifiers={[
-          ...modifiers,
-          ...(inactive ? [alpha(0.45)] : toggleOrClick(pressed, onPress)),
-        ]}>
+        modifiers={[...modifiers, ...(inactive ? [alpha(0.45)] : pressed !== undefined && onPress ? [toggleable(pressed, onPress)] : [])]}>
         {content}
       </Row>
+    );
+  }
+
+  // `@expo/ui`'s `clickable` takes no role, so what TalkBack meets as any
+  // other inline button is a childless Material `IconButton` laid over the
+  // row, the last child of a `Box` around it: a button, sized to the box
+  // whatever its own container, enabled or not. With no children its one
+  // node carries the role, the label as its content description, the press
+  // and the testID, and Compose leaves out of the tree the row it covers. Its
+  // ripple is the one a clickable row draws, in the content color around it,
+  // clipped to the button's shape.
+  if (size === 'inline') {
+    return (
+      <Box modifiers={frame}>
+        <Row verticalAlignment="center" modifiers={inactive ? [alpha(0.45)] : []}>{content}</Row>
+        <IconButton
+          onClick={inactive ? undefined : onPress}
+          enabled={!inactive}
+          colors={{containerColor: TRANSPARENT, disabledContainerColor: TRANSPARENT}}
+          shape={resolvedShape}
+          modifiers={[matchParentSize(), semantics({contentDescription: label}), ...testMods]}>
+          {null}
+        </IconButton>
+      </Box>
     );
   }
 
