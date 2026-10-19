@@ -97,6 +97,14 @@ Differences:
   still down, and the release light-dismisses a popover shown before it;
   Windows raises it after the release.
 - `onOpenChange` is not reported on iOS.
+- On web a press of the content's own (`onPress`, or the menu for `tap`)
+  makes the content's first element a button in the tab order, which Enter
+  and Space press, since the element around the content is
+  `display: contents` and takes no focus; for `tap` they open the menu at
+  the content's centre. Content that is a control already keeps its own
+  role and keys. On Android and iOS the content takes the tap with no
+  button role: `@expo/ui` gives Compose's `combinedClickable` no role, and
+  the iOS tap is SwiftUI's `onTapGesture`.
 - On web Escape closes the open menu and goes no further, as for `Menu`.
 - On web a click or a right click on the open menu is the menu's, whichever
   `trigger` says: choosing an entry calls no `onPress` and does not open the
