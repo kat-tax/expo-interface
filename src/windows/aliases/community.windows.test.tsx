@@ -171,7 +171,7 @@ describe('community sheet and menu (windows)', () => {
     await act(async () => ref.current?.dismiss());
     expect(screen.queryByText('Sheet body')).toBeNull();
     await rerender(
-      <BottomSheet ref={ref} index={2} onChange={onChange}>
+      <BottomSheet ref={ref} index={2} onChange={onChange} testID="sheet">
         <Text>Sheet body</Text>
       </BottomSheet>,
     );
