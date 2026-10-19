@@ -70,7 +70,7 @@ describe(`Gauge (${Platform.OS})`, () => {
 
   it('renders the automatic style as a centered stack around a capacity bar', async () => {
     await render(<Gauge value={211} min={0} max={260} {...labels} testID="g"/>, options);
-    const column = root('g');
+    const column = child(root('g'));
     expect(column.props.horizontalAlignment).toBe('center');
     expect(modifier(column.props, 'fillMaxWidth')).toBeDefined();
     expect(text('Speed').props.color).toBe(palette.onSurface);
@@ -105,7 +105,7 @@ describe(`Gauge (${Platform.OS})`, () => {
 
   it('renders the linear style with the marker positioned along the bar', async () => {
     await render(<Gauge value={0.25} variant="linear" {...labels} testID="g"/>, options);
-    const row = root('g');
+    const row = child(root('g'));
     expect(row.props.horizontalArrangement).toEqual({spacedBy: gauge.rowGap});
     expect(texts('Speed')).toHaveLength(0);
     expect(texts('211')).toHaveLength(0);
@@ -126,7 +126,7 @@ describe(`Gauge (${Platform.OS})`, () => {
 
   it('stacks the linear capacity label and value over a ghost of the minimum label', async () => {
     await render(<Gauge value={0.5} variant="linearCapacity" {...labels} testID="g"/>, options);
-    const column = root('g');
+    const column = child(root('g'));
     expect(column.props.verticalArrangement).toEqual({spacedBy: gauge.linearCapacity.gap});
     const ghosts = texts('0').filter(n => modifier(n.props, 'alpha')?.alpha === 0);
     expect(ghosts).toHaveLength(2);
@@ -216,5 +216,29 @@ describe(`Gauge (${Platform.OS})`, () => {
   it('carries no testID modifier without a testID', async () => {
     await render(<Gauge value={0.5}/>, options);
     expect(nodes()[0].props.modifiers).toEqual([{$type: 'fillMaxWidth'}]);
+  });
+
+  /** The childless node laid over the drawing, the gauge root's last child. */
+  const cover = () => {
+    const frame = root('g');
+    const last = child(frame, frame.children!.length - 1);
+    expect(last.children ?? []).toHaveLength(0);
+    expect(modifier(last.props, 'matchParentSize')).toBeDefined();
+    return modifier(last.props, 'semantics')?.contentDescription;
+  };
+
+  it.each(['automatic', 'linear', 'linearCapacity', 'circular', 'circularCapacity'] as const)(
+    'names the %s gauge by its label and current value over the drawing',
+    async variant => {
+      await render(<Gauge value={130} min={0} max={260} variant={variant} {...labels} testID="g"/>, options);
+      expect(cover()).toBe('Speed, 211');
+    },
+  );
+
+  it('speaks the value as a percentage without a current value label', async () => {
+    await render(<Gauge value={0.25} variant="circular" label="Fuel" testID="g"/>, options);
+    expect(cover()).toBe('Fuel, 25%');
+    await render(<Gauge value={2} max={3} variant="linear" testID="g"/>, options);
+    expect(cover()).toBe('67%');
   });
 });

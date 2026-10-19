@@ -37,7 +37,7 @@ A value within a range in the SwiftUI gauge styles. Props: `value`, `min`,
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `Gauge` |
-| Android | Redrawn from Compose primitives to the geometry measured from iOS: the rings are `CircularProgressIndicator`s, the bars clipped boxes |
+| Android | Redrawn from Compose primitives to the geometry measured from iOS: the rings are `CircularProgressIndicator`s, the bars clipped boxes. TalkBack meets a node laid over the drawing as the gauge, named by the label and the current value (the current value label, or else the value as a percentage of the range), and not the drawn ring or texts. |
 | Web | DOM and SVG to the same geometry |
 | Windows | Bars drawn in React Native; the rings are the WinUI `ProgressRing`. The open `circular` style is the same ring, its marker being the ring's end. |
 

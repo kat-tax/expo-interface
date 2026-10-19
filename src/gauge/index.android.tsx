@@ -10,9 +10,11 @@ import {
   fillMaxHeight,
   fillMaxWidth,
   height,
+  matchParentSize,
   offset,
   padding,
   rotate,
+  semantics,
   Shapes,
   size,
   testID as testIDModifier,
@@ -27,11 +29,28 @@ const circle = Shapes.Circle;
 const body = {fontSize: gauge.fontSize, lineHeight: gauge.lineHeight};
 
 /**
+ * What TalkBack reads for the gauge: its label and its current value, the
+ * current value label or else the fraction as a percentage, as VoiceOver
+ * reads a SwiftUI gauge.
+ */
+const spoken = (label: string | undefined, current: string | undefined, f: number) =>
+  [label, current ?? `${Math.round(f * 100)}%`].filter(Boolean).join(', ');
+
+/**
  * Android redraws each SwiftUI gauge style out of Compose primitives (the
  * rings are Material 3 `CircularProgressIndicator`s, the bars clipped
  * `Box`es) with the geometry measured from iOS. The live accent seed tints
  * the indicator and the value labels, matching the iOS tint cascade; the
  * descriptive label keeps the surface text color.
+ *
+ * The drawing is not what a screen reader is handed: the open ring's arc is
+ * a progress indicator held at its 240 degree sweep, which TalkBack would
+ * read as 67 percent whatever the value. A childless node laid over it, the
+ * last child of a `Box` around the drawing, carries the label and the value
+ * as its content description, and Compose leaves out of the tree what a
+ * node drawn over it covers, so the arc and the texts are not read as well.
+ * `@expo/ui`'s `semantics` carries only a content description, so the value
+ * is part of the name rather than a range.
  */
 export function Gauge({
   value,
@@ -52,6 +71,7 @@ export function Gauge({
   const accent = accentColor ?? tint;
   const f = fraction(value, min, max);
   const testMods: ModifierConfig[] = testID ? [testIDModifier(testID)] : [];
+  const cover = <Box modifiers={[matchParentSize(), semantics({contentDescription: spoken(label, currentValueLabel, f)})]}/>;
 
   const minText = minimumValueLabel != null
     ? <Text color={accent} style={body}>{minimumValueLabel}</Text>
@@ -123,6 +143,7 @@ export function Gauge({
             ) : <Spacer/>}
           </Row>
         ) : null}
+        {cover}
       </Box>
     );
   }
@@ -130,22 +151,25 @@ export function Gauge({
   if (variant === 'linear') {
     const {bar, dot, knockout: knock} = gauge.linear;
     return (
-      <Row verticalAlignment="center" horizontalArrangement={{spacedBy: gauge.rowGap}} modifiers={[fillMaxWidth(), ...testMods]}>
-        {minText}
-        <Box contentAlignment="centerStart" modifiers={[weight(1), height(knock)]}>
-          <Box modifiers={[fillMaxWidth(), height(bar), clip(pill), background(accent)]}/>
-          <Box modifiers={[fillMaxWidth(), fillMaxHeight(), padding(dot / 2, 0, dot / 2, 0)]}>
-            <Box contentAlignment="centerEnd" modifiers={[fillMaxWidth(f), fillMaxHeight()]}>
-              <Box
-                contentAlignment="center"
-                modifiers={[offset(knock / 2, 0), size(knock, knock), clip(circle), background(knockout)]}>
-                <Box modifiers={[size(dot, dot), clip(circle), background(accent)]}/>
+      <Box modifiers={[fillMaxWidth(), ...testMods]}>
+        <Row verticalAlignment="center" horizontalArrangement={{spacedBy: gauge.rowGap}} modifiers={[fillMaxWidth()]}>
+          {minText}
+          <Box contentAlignment="centerStart" modifiers={[weight(1), height(knock)]}>
+            <Box modifiers={[fillMaxWidth(), height(bar), clip(pill), background(accent)]}/>
+            <Box modifiers={[fillMaxWidth(), fillMaxHeight(), padding(dot / 2, 0, dot / 2, 0)]}>
+              <Box contentAlignment="centerEnd" modifiers={[fillMaxWidth(f), fillMaxHeight()]}>
+                <Box
+                  contentAlignment="center"
+                  modifiers={[offset(knock / 2, 0), size(knock, knock), clip(circle), background(knockout)]}>
+                  <Box modifiers={[size(dot, dot), clip(circle), background(accent)]}/>
+                </Box>
               </Box>
             </Box>
           </Box>
-        </Box>
-        {maxText}
-      </Row>
+          {maxText}
+        </Row>
+        {cover}
+      </Box>
     );
   }
 
@@ -157,56 +181,62 @@ export function Gauge({
       ? <Text style={body} modifiers={[alpha(0)]}>{minimumValueLabel}</Text>
       : null;
     return (
-      <Column verticalArrangement={{spacedBy: gap}} modifiers={[fillMaxWidth(), ...testMods]}>
-        {label != null ? (
-          <Row horizontalArrangement={{spacedBy: gauge.rowGap}}>
-            {ghost}
-            <Text color={colors.onSurface} style={body}>{label}</Text>
+      <Box modifiers={[fillMaxWidth(), ...testMods]}>
+        <Column verticalArrangement={{spacedBy: gap}} modifiers={[fillMaxWidth()]}>
+          {label != null ? (
+            <Row horizontalArrangement={{spacedBy: gauge.rowGap}}>
+              {ghost}
+              <Text color={colors.onSurface} style={body}>{label}</Text>
+            </Row>
+          ) : null}
+          <Row verticalAlignment="center" horizontalArrangement={{spacedBy: gauge.rowGap}} modifiers={[fillMaxWidth()]}>
+            {minText}
+            <Box contentAlignment="centerStart" modifiers={[weight(1), height(bar), clip(pill), background(track.linearCapacity[scheme])]}>
+              <Box modifiers={[fillMaxWidth(f), fillMaxHeight(), clip(pill), background(accent)]}/>
+            </Box>
+            {maxText}
           </Row>
-        ) : null}
-        <Row verticalAlignment="center" horizontalArrangement={{spacedBy: gauge.rowGap}} modifiers={[fillMaxWidth()]}>
-          {minText}
-          <Box contentAlignment="centerStart" modifiers={[weight(1), height(bar), clip(pill), background(track.linearCapacity[scheme])]}>
-            <Box modifiers={[fillMaxWidth(f), fillMaxHeight(), clip(pill), background(accent)]}/>
-          </Box>
-          {maxText}
-        </Row>
-        {currentValueLabel != null ? (
-          <Row horizontalArrangement={{spacedBy: gauge.rowGap}}>
-            {ghost}
-            <Text
-              color={accent}
-              style={{fontSize: gauge.linearCapacity.currentFontSize, lineHeight: gauge.linearCapacity.currentLineHeight}}>
-              {currentValueLabel}
-            </Text>
-          </Row>
-        ) : null}
-      </Column>
+          {currentValueLabel != null ? (
+            <Row horizontalArrangement={{spacedBy: gauge.rowGap}}>
+              {ghost}
+              <Text
+                color={accent}
+                style={{fontSize: gauge.linearCapacity.currentFontSize, lineHeight: gauge.linearCapacity.currentLineHeight}}>
+                {currentValueLabel}
+              </Text>
+            </Row>
+          ) : null}
+        </Column>
+        {cover}
+      </Box>
     );
   }
 
   const {bar, gapAbove, gapBelow} = gauge.automatic;
   return (
-    <Column horizontalAlignment="center" modifiers={[fillMaxWidth(), ...testMods]}>
-      {label != null ? (
-        <>
-          <Text color={colors.onSurface} style={body}>{label}</Text>
-          <Spacer modifiers={[height(gapAbove)]}/>
-        </>
-      ) : null}
-      <Row verticalAlignment="center" horizontalArrangement={{spacedBy: gauge.rowGap}} modifiers={[fillMaxWidth()]}>
-        {minText}
-        <Box contentAlignment="centerStart" modifiers={[weight(1), height(bar), clip(pill), background(track.automatic[scheme])]}>
-          <Box modifiers={[fillMaxWidth(f), fillMaxHeight(), clip(pill), background(accent)]}/>
-        </Box>
-        {maxText}
-      </Row>
-      {currentValueLabel != null ? (
-        <>
-          <Spacer modifiers={[height(gapBelow)]}/>
-          <Text color={accent} style={body}>{currentValueLabel}</Text>
-        </>
-      ) : null}
-    </Column>
+    <Box modifiers={[fillMaxWidth(), ...testMods]}>
+      <Column horizontalAlignment="center" modifiers={[fillMaxWidth()]}>
+        {label != null ? (
+          <>
+            <Text color={colors.onSurface} style={body}>{label}</Text>
+            <Spacer modifiers={[height(gapAbove)]}/>
+          </>
+        ) : null}
+        <Row verticalAlignment="center" horizontalArrangement={{spacedBy: gauge.rowGap}} modifiers={[fillMaxWidth()]}>
+          {minText}
+          <Box contentAlignment="centerStart" modifiers={[weight(1), height(bar), clip(pill), background(track.automatic[scheme])]}>
+            <Box modifiers={[fillMaxWidth(f), fillMaxHeight(), clip(pill), background(accent)]}/>
+          </Box>
+          {maxText}
+        </Row>
+        {currentValueLabel != null ? (
+          <>
+            <Spacer modifiers={[height(gapBelow)]}/>
+            <Text color={accent} style={body}>{currentValueLabel}</Text>
+          </>
+        ) : null}
+      </Column>
+      {cover}
+    </Box>
   );
 }
