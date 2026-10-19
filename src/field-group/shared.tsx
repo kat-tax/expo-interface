@@ -35,16 +35,21 @@ export function baseSection(
  * The universal `FieldGroup` groups loose rows into implicit sections by
  * checking each child's type against its own `Section`, so a kit `Section`
  * wrapping it would be grouped as a row. The kit sections are therefore
- * replaced by the universal ones (with the footer slot) before the children
- * reach the group; fragments are walked like the group walks them. A loose
- * row is a row of the implicit section, so it is flushed as a section's are.
+ * replaced by the universal ones (`toBase`, which is `baseSection` with
+ * the platform's footer) before the children reach the group; fragments are
+ * walked like the group walks them. A loose row is a row of the implicit
+ * section, so it is flushed as a section's are.
  */
-export function mapSections(children: ReactNode, Section: ComponentType<FieldGroupSectionProps>, renderFooter: FooterRenderer): ReactNode {
+export function mapSections(
+  children: ReactNode,
+  Section: ComponentType<FieldGroupSectionProps>,
+  toBase: (props: FieldGroupSectionProps) => ReactElement,
+): ReactNode {
   return Children.map(children, child => {
     if (!isValidElement(child)) return child;
-    if (child.type === Section) return baseSection(child.props as FieldGroupSectionProps, renderFooter);
+    if (child.type === Section) return toBase(child.props as FieldGroupSectionProps);
     if (child.type === Fragment) {
-      return <Fragment>{mapSections((child.props as {children?: ReactNode}).children, Section, renderFooter)}</Fragment>;
+      return <Fragment>{mapSections((child.props as {children?: ReactNode}).children, Section, toBase)}</Fragment>;
     }
     return flushRow(child);
   });

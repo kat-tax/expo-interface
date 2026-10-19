@@ -3,7 +3,7 @@ import {useContext} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {FieldGroup as Base} from '@expo/ui';
 import {Spacer, Text} from '@expo/ui/swift-ui';
-import {font, foregroundStyle, frame, listRowBackground, listRowSeparator} from '@expo/ui/swift-ui/modifiers';
+import {accessibilityIdentifier, font, foregroundStyle, frame, listRowBackground, listRowSeparator} from '@expo/ui/swift-ui/modifiers';
 import {NativeHost, useNativeHost} from '../host';
 import {useScrollInsets} from '../screen/insets';
 import {SheetBodyCapContext} from '../sheet/cap-context';
@@ -34,8 +34,22 @@ function FooterText({color, children}: {color: FieldSectionFooterColor; children
 
 const renderFooter = (footer: string, color: FieldSectionFooterColor) => <FooterText color={color}>{footer}</FooterText>;
 
+/**
+ * `@expo/ui`'s universal form and section build their SwiftUI modifiers from
+ * their props and leave `testID` out, so it reaches the native view as the
+ * accessibility identifier SwiftUI's own `testID` sets, ahead of the app's
+ * own modifiers.
+ */
+function identified<T extends FieldGroupProps>(props: T): T {
+  if (!props.testID) return props;
+  return {...props, modifiers: [accessibilityIdentifier(props.testID), ...(props.modifiers ?? [])]};
+}
+
+/** A kit section as the universal one, footer and identifier and all. */
+const toBase = (props: FieldGroupSectionProps) => baseSection(identified(props), renderFooter);
+
 function Section(props: FieldGroupSectionProps) {
-  return baseSection(props, renderFooter);
+  return toBase(props);
 }
 
 function FieldGroupBase(props: FieldGroupProps) {
@@ -57,8 +71,8 @@ function NativeForm({children, ...props}: FieldGroupProps) {
   // ends the form, as the iOS `List` pads.
   const {bottom} = useScrollInsets();
   return (
-    <Base {...props}>
-      {mapSections(children, Section, renderFooter)}
+    <Base {...identified(props)}>
+      {mapSections(children, Section, toBase)}
       {bottom > 0 ? <Spacer modifiers={[frame({height: bottom}), listRowBackground('clear'), listRowSeparator('hidden')]}/> : null}
     </Base>
   );
