@@ -407,6 +407,8 @@ export const theme = {
 } as const;
 
 let navBase: typeof DefaultTheme | undefined;
+/** The web theme in the dark scheme: the base, saying it is dark. */
+let navDark: typeof DefaultTheme | undefined;
 
 /**
  * The navigation theme's base, built on first use rather than at load:
@@ -443,13 +445,18 @@ function navTheme(): typeof DefaultTheme {
  * the bar as its interface style, which is what a system material and a
  * menu presented from the bar draw in. Left at the default's `false`, a
  * translucent header and its menus came out light in the dark scheme.
+ *
+ * On web the colours are CSS variables, which follow the scheme by
+ * themselves, so the theme only says which scheme it is, for whatever reads
+ * `dark` rather than a colour. It is one object per scheme, so the
+ * navigation container sees a new theme only when the scheme changes.
  */
 export function useNavTheme() {
   const nav = navTheme();
-  if (Platform.OS === 'web') return nav;
+  const scheme = useColorScheme();
+  if (Platform.OS === 'web') return scheme === 'dark' ? (navDark ??= {...nav, dark: true}) : nav;
   /* eslint-disable react-hooks/rules-of-hooks -- Platform.OS is a runtime constant. */
   const seed = useAccentSeed();
-  const scheme = useColorScheme();
   const contrast = useHighContrast();
   /* eslint-enable react-hooks/rules-of-hooks */
   const palette = contrast.colors ? highContrastPalette(contrast.colors) : colors[scheme];
