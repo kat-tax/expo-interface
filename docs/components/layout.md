@@ -370,7 +370,10 @@ Drawn on every platform as the kit's `Toolbar` with an inline field, the
 count beside it, and previous, next and close as the field's commands in
 the bar's one trailing host. Previous and next are disabled with no matches.
 The count is a polite live region, so TalkBack and a browser's screen reader
-hear it change. iOS has a system find bar, `UIFindInteraction`, but it
+hear it change. iOS has no live regions, and react-native-windows raises no
+event when one changes, so there the bar announces a new count itself:
+VoiceOver reads it once it is done speaking, and Narrator at once. The count
+the bar opens with is not read, as a live region's first text is not. iOS has a system find bar, `UIFindInteraction`, but it
 belongs to a `UITextView` or a `WKWebView`, which React Native content is
 not, and no module the kit stands on reaches it.
 
