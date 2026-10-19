@@ -26,6 +26,14 @@ describe('ShareLink (windows)', () => {
     expect(onShare).toHaveBeenCalledWith(true);
   });
 
+  it('opens the sheet when the app does not listen for the outcome', async () => {
+    const share = vi.fn().mockResolvedValue(true);
+    stubModule(share);
+    await render(<ShareLink label="Share" url="https://example.com" testID="share"/>);
+    await fireEvent.press(screen.getByTestId('share'));
+    expect(share).toHaveBeenCalledWith('Share', '', 'https://example.com');
+  });
+
   it('says the share did not happen rather than throwing, in a bundle without the native library', async () => {
     stubModule(null);
     const onShare = vi.fn();
@@ -43,10 +51,10 @@ describe('ShareLink (windows)', () => {
   });
 
   it('is disabled with nothing to share', async () => {
-    const share = vi.fn();
-    stubModule(share);
+    stubModule(vi.fn());
     await render(<ShareLink label="Share" testID="share"/>);
-    await fireEvent.press(screen.getByTestId('share'));
-    expect(share).not.toHaveBeenCalled();
+    // WinUI's disabled Button raises no Click, which a simulated press cannot
+    // show: the island is asked to be disabled.
+    expect(screen.getByTestId('share').props.disabled).toBe(true);
   });
 });
