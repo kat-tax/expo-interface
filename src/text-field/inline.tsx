@@ -19,6 +19,11 @@ interface WindowsSubmitKey {
  */
 const SUBMIT_KEYS: readonly WindowsSubmitKey[] = [{code: 'Enter'}];
 
+/** What a kit control built on the field adds to it: the role it is read with, for a search field. */
+export interface InlineTextFieldProps extends TextFieldProps {
+  role?: 'searchbox';
+}
+
 /**
  * The `inline` variant: a borderless React Native `TextInput` on every
  * platform, for a field that sits inside a React Native layout (a search
@@ -50,9 +55,10 @@ export function InlineTextField({
   maxLength,
   accentColor,
   variant,
+  role,
   testID,
   style,
-}: TextFieldProps) {
+}: InlineTextFieldProps) {
   const input = useRef<TextInput>(null);
   const [current, setValue] = useTextValue(value, onChangeText);
   const label = useColor('label');
@@ -101,6 +107,7 @@ export function InlineTextField({
       onFocus={onFocus}
       onBlur={onBlur}
       aria-label={placeholder}
+      role={role}
       testID={testID}
       style={[styles.input, variant === 'bare' && styles.bare, multiline === true && styles.multiline, {color: label}, disabled && styles.disabled, style]}
     />
