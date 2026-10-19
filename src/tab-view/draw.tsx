@@ -194,19 +194,26 @@ export function useTabPlaces(selected: string, axis: Axis, shown: boolean, scrol
  * the cards: a long press on a tab opens its menu under the tab, from the
  * tab's place less the scroll, so one native menu serves every tab rather
  * than one per tab.
+ *
+ * On iOS and Android the menu's anchor, a point with nothing to act on, is
+ * hidden from VoiceOver and TalkBack inside a box laid over the strip, which
+ * takes no touches: it would be an element with no name, and the menu opens
+ * in a presentation of its own, which the screen reader reaches. Windows'
+ * anchor is a WinUI island, whose UI Automation the island gives.
  */
 export function useTabMenus(testID: string | undefined, places: TabPlaces): {
   menu: ReactNode;
   open: (tab: TabViewTab) => void;
 } {
   const [open, setOpen] = useState<OpenMenu | null>(null);
+  const popup = <PopupMenu items={open?.items ?? []} at={open?.at ?? null} onDismiss={() => setOpen(null)} testID={sub(testID, 'menu')}/>;
   return {
     open: tab => {
       const at = places.menuPoint(tab.id);
       if (!tab.menu || !at) return;
       setOpen({items: tab.menu, at});
     },
-    menu: <PopupMenu items={open?.items ?? []} at={open?.at ?? null} onDismiss={() => setOpen(null)} testID={sub(testID, 'menu')}/>,
+    menu: Platform.OS === 'windows' ? popup : <View aria-hidden pointerEvents="box-none" style={StyleSheet.absoluteFill}>{popup}</View>,
   };
 }
 

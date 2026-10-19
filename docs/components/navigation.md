@@ -273,7 +273,9 @@ Differences:
   release's click is the menu's and selects nothing, and a release no click
   follows opens it a moment later. It is the kit's `PopupMenu`, under the tab on iOS and
   Android and at the pointer on web and Windows, and one popup serves the
-  whole strip. On web the tab says it has one through `aria-haspopup`.
+  whole strip. On web the tab says it has one through `aria-haspopup`. On
+  iOS and Android the point the popup opens from is hidden from VoiceOver
+  and TalkBack, which reach the menu itself once it opens.
 - The selected tab is kept in view: when `selected` changes, and when the
   strip or the switcher's cards first show it, the web strip scrolls the tab
   into view, the strips iOS and Android draw scroll to it with the
