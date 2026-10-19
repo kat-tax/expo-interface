@@ -107,4 +107,40 @@ describe('FieldGroup (windows)', () => {
     expect(screen.queryByText('Hidden row')).toBeNull();
     expect(screen.queryByTestId('secret')).toBeNull();
   });
+
+  it('groups loose rows into a card of their own, around the sections, as the other platforms do', async () => {
+    /** A section in a component of the app's own, which the group finds through the section itself. */
+    function Account() {
+      return (
+        <FieldGroup.Section title="Account" testID="account">
+          <Text testID="email">Email</Text>
+        </FieldGroup.Section>
+      );
+    }
+    await render(
+      <FieldGroup>
+        <Text testID="alpha">Alpha</Text>
+        <>
+          <Text testID="beta">Beta</Text>
+        </>
+        <FieldGroup.Section title="Explicit">
+          <Text>Gamma</Text>
+        </FieldGroup.Section>
+        <Text testID="delta">Delta</Text>
+        <Account/>
+      </FieldGroup>,
+    );
+    const row = (id: string) => screen.getByTestId(id).parent!;
+    // Alpha and Beta are the first and second rows of one card, divided by a hairline.
+    expect(row('alpha')).toHaveStyle({minHeight: 48});
+    expect(row('alpha')).not.toHaveStyle({borderTopWidth: StyleSheet.hairlineWidth});
+    expect(row('beta')).toHaveStyle({minHeight: 48, borderTopWidth: StyleSheet.hairlineWidth});
+    // Delta, after the explicit section, starts a card of its own.
+    expect(row('delta')).toHaveStyle({minHeight: 48});
+    expect(row('delta')).not.toHaveStyle({borderTopWidth: StyleSheet.hairlineWidth});
+    // The app's own section is a section, not a row of Delta's card.
+    expect(screen.getByText('Account')).toBeOnTheScreen();
+    expect(row('email')).not.toHaveStyle({borderTopWidth: StyleSheet.hairlineWidth});
+    expect(screen.getByTestId('account').parent).not.toHaveStyle({minHeight: 48});
+  });
 });

@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import type {ReactElement, ReactNode} from 'react';
 import type {FieldGroupProps, FieldGroupSectionProps} from './types';
 import {Children, isValidElement} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
@@ -6,6 +6,7 @@ import {useScrollInsets} from '../screen/insets';
 import {Surface} from '../surface';
 import {Footnote, Headline} from '../typography';
 import {spacing, useColor} from '../theme';
+import {SectionGroups, useReportSection} from './collect';
 import {flushRow} from './rows';
 
 /** Slot marker: content for a section's header, in place of `title`. */
@@ -26,6 +27,7 @@ function SectionFooter(_props: {children?: ReactNode}): null {
  * hidden section, like a hidden group, draws nothing.
  */
 function Section({title, titleUppercase, footer, footerColor = 'secondaryLabel', hidden, children, style, testID}: FieldGroupSectionProps) {
+  useReportSection();
   const separator = useColor('separator');
   if (hidden) return null;
   const rows: ReactNode[] = [];
@@ -53,6 +55,15 @@ function Section({title, titleUppercase, footer, footerColor = 'secondaryLabel',
   );
 }
 
+const isSection = (child: ReactElement) => child.type === Section;
+const implicit = (rows: ReactNode[], key: string) => <Section key={key}>{rows}</Section>;
+
+/**
+ * The group's scroll view. Rows outside a section are a card of their own,
+ * an implicit section, as a SwiftUI `Form` groups them and the other
+ * platforms follow; a section is found by its type or, inside a component
+ * of the app's own, through context (`SectionGroups`).
+ */
 function FieldGroupBase({children, hidden, style, testID}: FieldGroupProps) {
   const insets = useScrollInsets();
   if (hidden) return null;
@@ -61,7 +72,7 @@ function FieldGroupBase({children, hidden, style, testID}: FieldGroupProps) {
       style={[styles.group, style]}
       contentContainerStyle={[styles.content, {paddingTop: spacing.three + insets.top, paddingBottom: spacing.three + insets.bottom}]}
       testID={testID}>
-      {children}
+      <SectionGroups isSection={isSection} implicit={implicit}>{children}</SectionGroups>
     </ScrollView>
   );
 }
