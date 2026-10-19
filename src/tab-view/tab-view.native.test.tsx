@@ -205,8 +205,8 @@ describe(`TabView (${Platform.OS})`, () => {
     };
     /**
      * How many wrappers the tree holds: one per accessory, none for a tab
-     * without. The scroll view's ref is a host instance, which a JSON of the
-     * tree cannot hold, so it is left out.
+     * without, and the one over the menu's anchor. The scroll view's ref is a
+     * host instance, which a JSON of the tree cannot hold, so it is left out.
      */
     const wrappers = () => JSON.stringify(screen.toJSON(), (key, value) => (key === 'scrollViewRef' ? undefined : value)).split('no-hide-descendants').length - 1;
     const {rerender} = await render(<TabView tabs={tabs} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
@@ -214,14 +214,14 @@ describe(`TabView (${Platform.OS})`, () => {
     expect(wrapper().props).toMatchObject({importantForAccessibility: 'no-hide-descendants', accessibilityElementsHidden: true});
     expect(wrapper().parent!.props.testID).toBe('t-tab-b');
     // Nothing to hide, nothing to wrap.
-    expect(wrappers()).toBe(1);
+    expect(wrappers()).toBe(2);
     await rerender(<TabView tabs={tabs} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
     await fireEvent.press(screen.getByTestId('t-switcher'));
     expect(wrapper().props).toMatchObject({importantForAccessibility: 'no-hide-descendants', accessibilityElementsHidden: true});
     expect(wrapper().parent!.props.testID).toBe('t-card-b');
     // At its own size: the card's column would stretch it across the card.
     expect(StyleSheet.flatten(wrapper().props.style)).toMatchObject({alignItems: 'flex-start'});
-    expect(wrappers()).toBe(1);
+    expect(wrappers()).toBe(2);
   });
 
   describe('fill', () => {
