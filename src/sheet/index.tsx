@@ -29,7 +29,8 @@ const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select
  *   width is constrained via `global.css`. The material is the bar's, drawn
  *   on the drawer by `material.css`.
  * The bar, the accessory, the body, the footer and the actions are drawn by
- * the kit inside the drawer.
+ * the kit inside the drawer. The drawer's dialog is named by the sheet's
+ * title, where it has one.
  *
  * The drawer leaves the keyboard focus where it was, on the control that
  * opened the sheet, while its dialog hides the rest of the page from
@@ -80,6 +81,21 @@ export function Sheet(props: SheetProps) {
       for (const [name] of attributes) drawer.removeAttribute(name);
     };
   }, [blurred, material, content]);
+  // The drawer names its dialog by a hidden title of `@expo/ui`'s, "Bottom
+  // sheet", whatever the sheet holds. A sheet with a title is named by it
+  // instead: the dialog's `aria-labelledby` wins over a label, so it comes
+  // off while the title names the dialog, and goes back with the title.
+  useEffect(() => {
+    if (!own.title || content === null) return;
+    const drawer = (content as unknown as HTMLElement).closest('[data-vaul-drawer]')!;
+    const labelledBy = drawer.getAttribute('aria-labelledby')!;
+    drawer.removeAttribute('aria-labelledby');
+    drawer.setAttribute('aria-label', own.title);
+    return () => {
+      drawer.removeAttribute('aria-label');
+      drawer.setAttribute('aria-labelledby', labelledBy);
+    };
+  }, [own.title, content]);
   useEffect(() => {
     if (!sheet.isPresented || content === null) return;
     const root = content as unknown as HTMLElement;
