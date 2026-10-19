@@ -789,7 +789,7 @@ container places it. See [Native hosts](../hosts.md).
 | iOS 17 and later | The system's `ContentUnavailableView` and the action in one host that fills the width. While `loading` the same layout is composed in SwiftUI, padded by SwiftUI's standard inset, as wide as the system view and at its own height, with a large `ProgressView` in the symbol's 48 point slot. |
 | Older iOS | The same layout composed in SwiftUI, with the symbol as an SF Symbol image and the `ProgressView` while loading |
 | Web | A drawn column with the kit's `Icon`, the kit's `Spinner` while loading |
-| Android | A Compose column in one host: the token's drawable, the title and the description in the Material scale, the `CircularProgressIndicator` while loading, and the action as the Material button. A node of the app's own rides in the column as hosted React Native content. While `selectable`, the description is React Native text hosted in the column too, since `@expo/ui`'s Compose layer has no selection container. |
+| Android | A Compose column in one host: the token's drawable, the description in the Material scale, the `CircularProgressIndicator` while loading, and the action as the Material button. The title is a heading TalkBack moves between: React Native text hosted in the column in Material's `titleLarge`, since `@expo/ui`'s Compose text cannot be a heading. A node of the app's own rides in the column as hosted React Native content. While `selectable`, the description is React Native text hosted in the column too, since `@expo/ui`'s Compose layer has no selection container. |
 | Windows | The drawn column with a Segoe glyph, the WinUI `ProgressRing` while loading |
 
 The drawn layout (web, Windows) is one accessibility element that reads the

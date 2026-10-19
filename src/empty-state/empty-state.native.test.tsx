@@ -137,6 +137,24 @@ describe(`EmptyState (${Platform.OS})`, () => {
     return;
   }
 
+  it('draws the title as a heading TalkBack can move to, in the title scale, at the column\'s width', async () => {
+    await render(<EmptyState title="No drops yet" description="Nothing shared." selectable={false} testID="empty"/>);
+    const title = screen.getByRole('header', {name: 'No drops yet'});
+    expect(StyleSheet.flatten(title.props.style)).toMatchObject({
+      fontSize: 22,
+      lineHeight: 28,
+      textAlign: 'center',
+      color: colors.light.label,
+      width: Dimensions.get('window').width - spacing.five * 2,
+    });
+    // Hosted in the column, since React Native text straight in a Compose box would draw nothing.
+    const box = nodes().find(n => n.type.endsWith('BoxView') && modifier(n.props, 'onSizeChanged'))!;
+    expect(nodes(box).some(n => n.children?.includes('No drops yet'))).toBe(true);
+    await act(async () => modifier(box.props, 'onSizeChanged')!.eventListener({width: 300, height: 28}));
+    expect(StyleSheet.flatten(screen.getByRole('header').props.style).width).toBe(300);
+    expect(screen.getByRole('header').props.selectable).toBeFalsy();
+  });
+
   it('composes the column in Compose, in one host, with a data action as the kit\'s button', async () => {
     const onPress = vi.fn();
     await render(
@@ -145,7 +163,7 @@ describe(`EmptyState (${Platform.OS})`, () => {
     expect(hosts()).toHaveLength(1);
     const column = nodes().find(n => n.type.includes('Column'))!;
     expect(column.props.horizontalAlignment).toBe('center');
-    expect(host(p => p.text === 'No drops yet').props.color).toBe(colors.light.label);
+    expect(screen.getByRole('header', {name: 'No drops yet'})).toBeOnTheScreen();
     // Selectable by default, so the description is React Native text hosted in the column.
     const description = screen.getByText('Nothing shared.');
     expect(description.props.selectable).toBe(true);
@@ -159,13 +177,14 @@ describe(`EmptyState (${Platform.OS})`, () => {
 
   it('needs nothing but a title, spins while loading, and hosts a node of the app\'s own as the action', async () => {
     await render(<EmptyState title="Nothing here" testID="bare"/>);
-    expect(host(p => p.text === 'Nothing here')).toBeTruthy();
+    expect(screen.getByRole('header', {name: 'Nothing here'})).toBeOnTheScreen();
     expect(nodes().some(n => n.type.endsWith('IconView'))).toBe(false);
     await render(<EmptyState title="Opening" icon={icons.add} loading action={<Text>Cancel</Text>} testID="busy"/>);
     expect(nodes().some(n => n.type.includes('CircularProgressIndicator'))).toBe(true);
     expect(nodes().some(n => n.type.endsWith('IconView'))).toBe(false);
     // React Native content rides in the column through an RNHostView.
-    expect(host(p => p.matchContentsHorizontal === true && p.matchContentsVertical === true)).toBeTruthy();
+    const hosted = nodes().filter(n => n.props?.matchContentsHorizontal === true && n.props?.matchContentsVertical === true);
+    expect(hosted.some(view => nodes(view).some(n => n.children?.includes('Cancel')))).toBe(true);
     expect(screen.getByText('Cancel')).toBeOnTheScreen();
     // Outside the host's context, so a kit control in the node mounts a host of
     // its own: in the column's own host, and in one the column renders bare in.
@@ -185,7 +204,8 @@ describe(`EmptyState (${Platform.OS})`, () => {
     const width = () => StyleSheet.flatten(screen.getByText('The file is gone.').props.style).width;
     // Until Compose has measured the column: the window's width less the column's padding.
     expect(width()).toBe(Dimensions.get('window').width - spacing.five * 2);
-    const box = nodes().find(n => n.type.endsWith('BoxView') && modifier(n.props, 'onSizeChanged'))!;
+    // The title's box comes first; this is the description's.
+    const box = nodes().filter(n => n.type.endsWith('BoxView') && modifier(n.props, 'onSizeChanged'))[1];
     // Hosted, since React Native text straight in a Compose box would draw nothing.
     const hostView = host(p => p.matchContentsHorizontal === true && p.matchContentsVertical === true, box);
     expect(nodes(hostView).some(n => n.children?.includes('The file is gone.'))).toBe(true);
