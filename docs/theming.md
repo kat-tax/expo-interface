@@ -202,7 +202,7 @@ Each token resolves to a platform value the OS keeps current:
 | `usePalette()` | The resolved palette of the current scheme as plain strings on every platform, with the live accent as `tint`. For canvases, native views and anything that cannot read a variable. |
 | `resolvedPalette()` | The same palette outside React: the scheme the app is drawn in, and the accent it last provided (on web, the one an earlier visit saved until the provider mounts). For code that runs before the first render, such as an editor's assets built at import. |
 | `isColorToken(value)` | Whether a string names a palette token rather than being a color. |
-| `useNavTheme()` | A React Navigation theme built from the palette and the accent. |
+| `useNavTheme()` | A React Navigation theme built from the palette and the accent, with `dark` set in the dark scheme. On web its colors are the CSS variables. |
 | `colors` | The raw light and dark palettes. |
 | `getThemeCSS()` | The palette as CSS variables, and the body painted in the scheme's background, for `+html.tsx`. |
 | `getThemeBootScript()` | The script that applies a saved forced scheme and a saved accent before the bundle runs, for `+html.tsx`. |
