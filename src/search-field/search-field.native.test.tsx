@@ -19,6 +19,11 @@ describe(`SearchField (${Platform.OS})`, () => {
     expect(screen.getByLabelText('Search')).toBe(screen.getByTestId('plain'));
   });
 
+  it('is a search field, as web and Windows are search boxes', async () => {
+    await render(<SearchField value="" placeholder="Search notes" onChangeText={() => {}} testID="q"/>);
+    expect(screen.getByRole('searchbox', {name: 'Search notes'})).toBe(screen.getByTestId('q'));
+  });
+
   it('clears the box, and offers nothing to clear when it is empty', async () => {
     const onChangeText = vi.fn();
     await render(<SearchField value="demo" onChangeText={onChangeText} testID="q"/>);

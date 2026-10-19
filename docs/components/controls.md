@@ -340,7 +340,7 @@ key by its name), `style`, `testID`, and a `ref` with `focus` and `blur`.
 
 | Platform | Renders |
 | --- | --- |
-| iOS, Android | A drawn row: a magnifier, an inline `TextField`, a clear button, and a raised list of suggestions filtered to what the text contains. Compose's `SearchBar` takes a query it does not let the app set, so a controlled field cannot be built on it. |
+| iOS, Android | A drawn row: a magnifier, an inline `TextField` with the search role (VoiceOver reads a search field), a clear button, and a raised list of suggestions filtered to what the text contains. Compose's `SearchBar` takes a query it does not let the app set, so a controlled field cannot be built on it. |
 | Web | `<input type="search">` with a `<datalist>`. The browser owns the combobox keyboard pattern and its own clear button. |
 | Windows | WinUI `AutoSuggestBox`, which draws the box, the query glyph, the clear button and the list |
 
