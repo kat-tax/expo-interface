@@ -7,4 +7,9 @@ describe('Avatar (web)', () => {
     expect(dom.getByText('AL')).toBeInTheDocument();
     expect(dom.getByLabelText('Ada Lovelace')).toBeInTheDocument();
   });
+
+  it('is a picture of the person, which a screen reader reads by their name', () => {
+    renderDom(<Avatar name="Ada Lovelace" testID="peer"/>);
+    expect(dom.getByRole('img', {name: 'Ada Lovelace'})).toBe(dom.getByTestId('peer'));
+  });
 });

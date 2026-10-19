@@ -1,5 +1,5 @@
 import type {AvatarProps} from './types';
-import {StyleSheet, Text, View} from 'react-native';
+import {Platform, StyleSheet, Text, View} from 'react-native';
 import {onAccent} from '../accent';
 import {isColorToken, useColor} from '../theme';
 import {AVATAR_RING, AVATAR_TEXT_RATIO, colorOf, initialsOf} from './shared';
@@ -20,6 +20,13 @@ interface FaceAnnouncement {
 }
 
 /**
+ * A face that does not press is a picture. On web it says so: a name and a
+ * state on an element with no role are not read, so a screen reader would
+ * read the initials. iOS, Android and Windows read the circle as it is.
+ */
+export const PICTURE = Platform.OS === 'web' ? {role: 'img' as const} : null;
+
+/**
  * A person as a colored circle with their initials, drawn in React Native:
  * `Avatar` on iOS and web, and on Android outside a native host (see
  * {@link AvatarProps}).
@@ -27,7 +34,7 @@ interface FaceAnnouncement {
 export function DrawnAvatar({name, initials, color, size, ring, dimmed, testID}: AvatarProps) {
   // Named, not spread: whatever else reaches `Avatar` at run time would be
   // taken for an announcement and land on the circle's view.
-  return <AvatarFace name={name} initials={initials} color={color} size={size} ring={ring} dimmed={dimmed} testID={testID}/>;
+  return <AvatarFace name={name} initials={initials} color={color} size={size} ring={ring} dimmed={dimmed} testID={testID} {...PICTURE}/>;
 }
 
 /**
