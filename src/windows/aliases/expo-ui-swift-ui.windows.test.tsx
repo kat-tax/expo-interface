@@ -7,6 +7,7 @@ import * as ui from './expo-ui-swift-ui';
 import {forgetWarnings} from './ui-kit';
 
 const BUTTON = 'ExpoInterfaceButton';
+const CHIP = 'ExpoInterfaceChip';
 const TOGGLE = 'ExpoInterfaceToggleSwitch';
 const SLIDER = 'ExpoInterfaceSlider';
 const COMBO = 'ExpoInterfaceComboBox';
@@ -264,10 +265,18 @@ describe('@expo/ui/swift-ui controls (windows)', () => {
     expect(island(TOGGLE).props.value).toBe(true);
     await fireIsland(island(TOGGLE), 'valueChange', {value: false});
     expect(onIsOnChange).toHaveBeenCalledWith(false);
-    expect(island(BUTTON, 4).props).toMatchObject({label: 'Bold', variant: 'outlined'});
-    await fireEvent(screen.getByTestId('bold'), 'press');
+    // A toggle in the button style is a WinUI ToggleButton (the kit's filter
+    // chip), so Narrator hears it on or off rather than a plain button.
+    expect(island(CHIP).props).toMatchObject({label: 'Bold', value: false});
+    await fireIsland(island(CHIP), 'valueChange', {value: true});
     expect(onIsOnChange).toHaveBeenCalledWith(true);
     await fireIsland(island(TOGGLE, 1), 'valueChange', {value: true});
+  });
+
+  it('draws a button-style toggle that is on with its symbol, and one with no handler', async () => {
+    await render(<ui.Toggle isOn label="Pinned" systemImage="★" modifiers={[toggleStyle('button'), disabled()]}/>);
+    expect(island(CHIP).props).toMatchObject({label: 'Pinned', value: true, glyph: '2605', disabled: true});
+    await fireIsland(island(CHIP), 'valueChange', {value: false});
   });
 
   it('keeps a sync toggle\'s observable state, and draws sliders, pickers and steppers as the kit\'s', async () => {

@@ -6,6 +6,7 @@ import {
   Alert as KitAlert,
   Button as KitButton,
   Card as KitCard,
+  Chip as KitChip,
   Checkbox as KitCheckbox,
   DateTimePicker as KitDateTimePicker,
   Divider as KitDivider,
@@ -212,7 +213,11 @@ function toggleButton() {
     return <KitButton label={textOf(children)} variant={checked ? 'filled' : 'outlined'} onPress={() => onCheckedChange?.(!checked)} disabled={!enabled || isDisabled(modifiers)} testID={testID}/>;
   };
 }
-export const ToggleButton = Object.assign(toggleButton(), {DefaultIconSpacing: 8, DefaultIconSize: 18});
+/** The kit's filter chip: a WinUI ToggleButton, which UI Automation reports on or off. */
+function ToggleButtonBase({children, checked, onCheckedChange, enabled = true, modifiers, testID}: ToggleButtonProps) {
+  return <KitChip label={textOf(children)} selected={checked} onPress={next => onCheckedChange?.(next)} disabled={!enabled || isDisabled(modifiers)} testID={testID}/>;
+}
+export const ToggleButton = Object.assign(ToggleButtonBase, {DefaultIconSpacing: 8, DefaultIconSize: 18});
 export const IconToggleButton = toggleButton();
 export const FilledIconToggleButton = toggleButton();
 export const OutlinedIconToggleButton = toggleButton();
