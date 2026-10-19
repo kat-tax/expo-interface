@@ -15,6 +15,30 @@ describe('ListItem (web)', () => {
     expect(row.querySelector('.ui-list-item__slot')).toBeNull();
   });
 
+  it('names an inert row from its slots as a group, beside an action too', () => {
+    render(
+      <>
+        <ListItem supporting="Edited yesterday" value="2 KB" badge={3} testID="plain">Essay</ListItem>
+        <ListItem supporting="Signed out" action={{label: 'Sign in', onPress: vi.fn()}} testID="beside">Account</ListItem>
+      </>,
+    );
+    expect(screen.getByRole('group', {name: 'Essay, Edited yesterday, 2 KB, 3 new'})).toBe(screen.getByTestId('plain'));
+    const inner = screen.getByRole('group', {name: 'Account, Signed out'});
+    expect(inner).toHaveClass('ui-list-item__row');
+    expect(screen.getByTestId('beside').contains(inner)).toBe(true);
+  });
+
+  it('leaves an inert row whose headline is content of the app\'s own unnamed and without a role', () => {
+    render(
+      <>
+        <ListItem testID="plain"><em>Essay</em></ListItem>
+        <ListItem action={{label: 'Sign in', onPress: vi.fn()}} testID="beside"><em>Account</em></ListItem>
+      </>,
+    );
+    expect(screen.queryAllByRole('group')).toHaveLength(0);
+    expect(screen.getByTestId('plain')).not.toHaveAttribute('aria-label');
+  });
+
   it('renders leading and trailing slots around the headline', () => {
     render(
       <ListItem leading={<span>L</span>} trailing={<span>T</span>} testID="row">
