@@ -691,13 +691,16 @@ function TabViewBase({selection, defaultSelection, onSelectionChange, children, 
     setOwn(value);
     onSelectionChange?.(value);
   };
+  // The tabs are the kit's segmented control, a WinUI `SelectorBar`, whose
+  // items UI Automation names by their label and reports selected. It
+  // draws text, so a tab's symbol is not drawn.
   return (
     <Frame modifiers={modifiers} testID={testID}>
-      <View style={{flexDirection: 'row', gap: 4}}>
+      <KitSegmentedControl selectedValue={current} onValueChange={select}>
         {tabs.map(tab => (
-          <KitButton key={tab.props.value} label={tab.props.label ?? tab.props.value} variant={tab.props.value === current ? 'filled' : 'text'} prefixIcon={iconFor(tab.props.systemImage)} onPress={() => select(tab.props.value)}/>
+          <KitSegmentedControl.Item key={tab.props.value} label={tab.props.label ?? tab.props.value} value={tab.props.value}/>
         ))}
-      </View>
+      </KitSegmentedControl>
       {tabs.find(tab => tab.props.value === current)?.props.children}
     </Frame>
   );
