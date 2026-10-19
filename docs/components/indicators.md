@@ -110,7 +110,7 @@ away), `testID`.
 
 | Platform | Renders |
 | --- | --- |
-| iOS, Web | A drawn circle |
+| iOS, Web | A drawn circle, named by the person's name; on web it is an image (`role="img"`), so a screen reader reads the name rather than the initials |
 | Android | A drawn circle; inside a native host (a `ListItem`'s `leading`, a `NativeHost`, `Screen native`) the same circle in Compose, since a Compose row composes its slots as Compose content, where a React Native view is hosted inside the row and, in a `List`, hosted again each time the row is recycled. The ring is a circle behind a smaller one, as `@expo/ui`'s `border` modifier takes no shape. TalkBack reads the hosted face by the person's name, unseen text laid over the initials, since a content description on the face would leave the initials a node of their own beside it: where nothing merges them, Compose leaves out a node that a sibling drawn above it covers, so the face is the name alone; inside a row that presses or a Material `ListItem`, which merge what they hold, it reads the initials and then the name among the row's texts. |
 | Windows | WinUI `PersonPicture`, filled with the same hashed color. A ring is the view around the picture, which is drawn the ring's width smaller inside it. |
 
