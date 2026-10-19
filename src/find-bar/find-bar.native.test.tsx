@@ -1,4 +1,4 @@
-import {Platform} from 'react-native';
+import {AccessibilityInfo, Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, modifier} from 'expo-vitest/native';
 import {FindBar} from '.';
@@ -36,13 +36,14 @@ describe(`FindBar (${Platform.OS})`, () => {
     expect(onNext).toHaveBeenCalledTimes(1);
   });
 
-  it('says where the find has got to, and that there is nothing, in a live region', async () => {
+  it('says where the find has got to, and that there is nothing, in a live region on Android', async () => {
     const {rerender} = await render(<FindBar value="teh" matches={{current: 3, total: 12}} testID="find"/>);
     const count = screen.getByTestId('find-count');
     expect(count).toHaveTextContent('3 of 12');
-    expect(count.parent!.props.accessibilityLiveRegion).toBe('polite');
+    // iOS has no live regions: the bar announces the count itself (below).
+    expect(count.parent!.props.accessibilityLiveRegion).toBe(isIOS ? undefined : 'polite');
     // Fabric flattens a view whose only trait is its live region, and TalkBack would have no view to watch.
-    expect(count.parent!.props.collapsable).toBe(false);
+    expect(count.parent!.props.collapsable).toBe(isIOS ? undefined : false);
     await rerender(<FindBar value="teh" matches={{current: 0, total: 0}} testID="find"/>);
     expect(screen.getByTestId('find-count')).toHaveTextContent('No matches');
     // Nothing before the app has looked, and nothing with no text.
@@ -50,6 +51,22 @@ describe(`FindBar (${Platform.OS})`, () => {
     expect(screen.queryByTestId('find-count')).toBeNull();
     await rerender(<FindBar value="" matches={{current: 1, total: 4}} testID="find"/>);
     expect(screen.queryByTestId('find-count')).toBeNull();
+  });
+
+  it('has VoiceOver read a new count, since iOS has no live regions, and leaves the count on Android to TalkBack', async () => {
+    const announce = vi.spyOn(AccessibilityInfo, 'announceForAccessibilityWithOptions').mockImplementation(() => {});
+    try {
+      const {rerender} = await render(<FindBar value="teh" matches={{current: 3, total: 12}} testID="find"/>);
+      // The count the bar opens with is not read, as a live region's first text is not.
+      expect(announce).not.toHaveBeenCalled();
+      await rerender(<FindBar value="teh" matches={{current: 4, total: 12}} testID="find"/>);
+      await rerender(<FindBar value="tehx" matches={{current: 0, total: 0}} testID="find"/>);
+      // A count going away says nothing.
+      await rerender(<FindBar value="" matches={{current: 0, total: 0}} testID="find"/>);
+      expect(announce.mock.calls).toEqual(isIOS ? [['4 of 12', {queue: true}], ['No matches', {queue: true}]] : []);
+    } finally {
+      announce.mockRestore();
+    }
   });
 
   it('steps through the matches with previous and next, closes, and waits with nothing to step through', async () => {
