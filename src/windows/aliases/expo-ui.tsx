@@ -15,6 +15,7 @@ import {
   Slider as KitSlider,
   Switch as KitSwitch,
   TextField as KitTextField,
+  type TextFieldKeyboard,
 } from '../..';
 import {charOf, elementsOf, observable, type ObservableState, slotOf, textOf, without} from './ui-kit';
 
@@ -178,9 +179,24 @@ export function Picker<T extends PickerValue>({selectedValue, onValueChange, app
 }
 Picker.Item = PickerItem;
 
-type KeyboardType = Parameters<typeof KitTextField>[0]['keyboardType'];
+/**
+ * React Native's keyboard types, and the HTML input modes `@expo/ui` maps to
+ * them, in the kit's names, which the WinUI text box turns into an input
+ * scope. The rest (`web-search`, `twitter`, `search`) are the default keyboard.
+ */
+const KEYBOARDS: Record<string, TextFieldKeyboard> = {
+  'email-address': 'email',
+  email: 'email',
+  numeric: 'number',
+  'number-pad': 'number',
+  'decimal-pad': 'decimal',
+  decimal: 'decimal',
+  'phone-pad': 'phone',
+  tel: 'phone',
+  url: 'url',
+};
 
-export function TextInput({value, defaultValue, onChangeText, placeholder, autoFocus, editable = true, readOnly, multiline, secureTextEntry, keyboardType, autoCapitalize, autoCorrect, returnKeyType, onSubmitEditing, testID}: {
+export function TextInput({value, defaultValue, onChangeText, placeholder, autoFocus, editable = true, readOnly, multiline, secureTextEntry, keyboardType, inputMode, autoCapitalize, autoCorrect, returnKeyType, onSubmitEditing, testID}: {
   value?: string;
   defaultValue?: string;
   onChangeText?: (text: string) => void;
@@ -191,6 +207,8 @@ export function TextInput({value, defaultValue, onChangeText, placeholder, autoF
   multiline?: boolean;
   secureTextEntry?: boolean;
   keyboardType?: string;
+  /** `keyboardType` wins when both are set, as it does in `@expo/ui`. */
+  inputMode?: string;
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   autoCorrect?: boolean;
   returnKeyType?: string;
@@ -208,7 +226,7 @@ export function TextInput({value, defaultValue, onChangeText, placeholder, autoF
       disabled={!editable || readOnly}
       multiline={multiline}
       secureTextEntry={secureTextEntry}
-      keyboardType={keyboardType as KeyboardType}
+      keyboardType={KEYBOARDS[keyboardType ?? inputMode ?? '']}
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
       returnKeyType={returnKey}

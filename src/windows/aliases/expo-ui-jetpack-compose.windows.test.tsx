@@ -317,6 +317,13 @@ describe('@expo/ui/jetpack-compose controls (windows)', () => {
     expect(onDone).toHaveBeenCalledTimes(2);
   });
 
+  it('asks the touch keyboard for the layout Compose\'s keyboard type names', async () => {
+    const types = ['text', 'email', 'number', 'decimal', 'phone', 'uri', 'password', 'numberPassword', 'ascii'] as const;
+    await render(<>{types.map(keyboardType => <ui.TextField key={keyboardType} keyboardOptions={{keyboardType}}/>)}</>);
+    expect(types.map((_, index) => island(BOX, index).props.inputScope))
+      .toEqual(['default', 'email', 'number', 'decimal', 'phone', 'url', 'default', 'number', 'default']);
+  });
+
   it('draws segmented button rows as the kit\'s selector bar, single and multiple choice', async () => {
     const onClick = vi.fn();
     const onCheckedChange = vi.fn();
