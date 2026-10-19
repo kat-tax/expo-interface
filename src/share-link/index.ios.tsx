@@ -1,7 +1,7 @@
 import type {ShareLinkProps} from './types';
 import {ShareLink as SwiftUIShareLink} from '@expo/ui/swift-ui';
 import {Button} from '../button';
-import {NativeHost} from '../host';
+import {SelfHosted} from '../host';
 import {shareContent} from './shared';
 
 /**
@@ -18,7 +18,9 @@ export function ShareLink({label, url, message, title, icon, onShare, testID, ..
     return <Button {...button} label={label} prefixIcon={icon} disabled testID={testID}/>;
   }
   return (
-    <NativeHost fit>
+    // Hosted where it sits in a React Native layout; bare inside a host (a
+    // `FieldGroup` row, a `NativeHost`), where a second one may not nest.
+    <SelfHosted>
       <SwiftUIShareLink
         item={content.url || content.message}
         subject={content.title}
@@ -32,6 +34,6 @@ export function ShareLink({label, url, message, title, icon, onShare, testID, ..
           onPress={() => onShare?.(true)}
         />
       </SwiftUIShareLink>
-    </NativeHost>
+    </SelfHosted>
   );
 }

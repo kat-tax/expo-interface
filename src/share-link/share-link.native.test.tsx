@@ -1,6 +1,7 @@
 import {Platform} from 'react-native';
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import {byComposeTestID, host, modifier, nodes} from 'expo-vitest/native';
+import {NativeHost} from '../host';
 import {ShareLink} from '.';
 
 const isIOS = Platform.OS === 'ios';
@@ -24,6 +25,19 @@ describe(`ShareLink (${Platform.OS})`, () => {
       expect(host(props => props.item === 'https://example.com').props.message).toBeUndefined();
       await fireEvent.press(screen.getByTestId('share'));
       expect(onShare).toHaveBeenCalledWith(true);
+    });
+
+    it('mounts a host of its own outside one, and none inside', async () => {
+      const hosts = () => nodes().filter(n => n.type === 'ViewManagerAdapter_ExpoUI_HostView').length;
+      await render(<ShareLink label="Share" url="https://example.com" testID="share"/>);
+      expect(hosts()).toBe(1);
+      await render(
+        <NativeHost>
+          <ShareLink label="Share" url="https://example.com" testID="share"/>
+        </NativeHost>,
+      );
+      // A FieldGroup row or a NativeHost already hosts it: hosts cannot nest.
+      expect(hosts()).toBe(1);
     });
 
     it('shares the message itself when there is no link', async () => {
