@@ -74,6 +74,7 @@ describe(`Button pressed (${Platform.OS})`, () => {
         <Button label="Bold" prefixIcon={icons.add} hideLabel size="inline" pressed onPress={onPress} testID="inline"/>
         <Button label="Plain" prefixIcon={icons.add} hideLabel size="inline" onPress={onPress} testID="click"/>
         <Button label="Idle" prefixIcon={icons.add} hideLabel size="inline" pressed testID="idle"/>
+        <Button label="Off" prefixIcon={icons.add} hideLabel size="inline" pressed disabled onPress={onPress} testID="off"/>
       </>,
       options,
     );
@@ -81,8 +82,12 @@ describe(`Button pressed (${Platform.OS})`, () => {
     expect(toggle).toMatchObject({value: true});
     await act(async () => toggle!.eventListener());
     expect(onPress).toHaveBeenCalledTimes(1);
-    expect(modifier(button('click').props, 'clickable')).toBeDefined();
+    // Not a toggle: the button laid over its row.
+    expect(button('click').type).toMatch(/_IconButton$/);
     expect(modifier(button('idle').props, 'toggleable')).toBeUndefined();
     expect(modifier(button('idle').props, 'clickable')).toBeUndefined();
+    // Disabled, the toggle's row dims and takes no change.
+    expect(modifier(button('off').props, 'alpha')).toEqual({$type: 'alpha', alpha: 0.45});
+    expect(modifier(button('off').props, 'toggleable')).toBeUndefined();
   });
 });
