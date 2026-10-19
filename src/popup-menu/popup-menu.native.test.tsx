@@ -126,8 +126,10 @@ describe(`PopupMenu (${Platform.OS})`, () => {
     // The active entry is ticked.
     expect(nodes().some(n => n.props.systemName === 'checkmark')).toBe(true);
 
-    // A disabled entry takes no press.
+    // A disabled entry takes no press, and says it is disabled, so VoiceOver reads it so; the others do not.
     const buttons = screen.container.queryAll(i => typeof i.props.onButtonPress === 'function');
+    expect(modifier(buttons[buttons.length - 1].props, 'disabled')).toMatchObject({disabled: true});
+    expect(buttons.slice(0, -1).map(b => modifier(b.props, 'disabled'))).toEqual([undefined, undefined]);
     const onDismiss = vi.fn();
     await fireEvent(buttons[buttons.length - 1], 'buttonPress');
     expect(onDismiss).not.toHaveBeenCalled();
