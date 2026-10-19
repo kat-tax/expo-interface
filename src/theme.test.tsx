@@ -128,6 +128,26 @@ describe('useNavTheme', () => {
     }
     expect(result.current.fonts.bold.fontWeight).toBe('700');
   });
+
+  if (Platform.OS === 'web') {
+    it('says the theme is dark in the dark scheme, its colours following through CSS variables', async () => {
+      const {setColorScheme} = await import('./scheme');
+      await act(async () => setColorScheme('dark'));
+      try {
+        const {result, rerender} = await renderHook(() => useNavTheme());
+        expect(result.current.dark).toBe(true);
+        expect(result.current.colors.background).toBe('var(--color-background)');
+        // One theme per scheme: the container sees a new one only on a change.
+        const dark = result.current;
+        await rerender({});
+        expect(result.current).toBe(dark);
+        await act(async () => setColorScheme('light'));
+        expect(result.current.dark).toBe(false);
+      } finally {
+        await act(async () => setColorScheme('system'));
+      }
+    });
+  }
 });
 
 describe('flatten', () => {
