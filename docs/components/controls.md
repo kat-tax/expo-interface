@@ -395,7 +395,7 @@ release), `min` (0), `max` (1), `step` (omit for continuous), `disabled`,
 
 | Platform | Renders |
 | --- | --- |
-| iOS | SwiftUI `Slider` |
+| iOS | SwiftUI `Slider`, which takes no label: the label drawn beside it names it through an `accessibilityLabel`, which VoiceOver reads with the value. |
 | Android | Material 3 `Slider`. The kit converts the increment into Compose's interval count and snaps the value itself. The label names the slider itself, its content description, which TalkBack reads with the value. |
 | Web | A real `<input type="range">` |
 | Windows | WinUI `Slider`. A continuous slider moves by a thousandth of the range. |
