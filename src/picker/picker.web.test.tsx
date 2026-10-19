@@ -1,4 +1,5 @@
 import {fireEvent, render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {Picker} from '.';
 
 const items = [
@@ -21,6 +22,21 @@ describe('Picker (web)', () => {
     expect(options.map(o => o.value)).toEqual(['s', 'm', 'l']);
     expect(screen.getByText('Size')).toBeInTheDocument();
     expect(screen.getByTestId('size').contains(control)).toBe(true);
+  });
+
+  it('is one tab stop, the select, with nothing focusable around it', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <button type="button">Before</button>
+        <Picker label="Size" selectedValue="m" onValueChange={vi.fn()}>{items}</Picker>
+      </>,
+    );
+    await user.tab();
+    expect(screen.getByRole('button', {name: 'Before'})).toHaveFocus();
+    await user.tab();
+    expect(select()).toHaveFocus();
+    expect(select().parentElement).not.toHaveAttribute('tabindex');
   });
 
   it('shows the selected item label inside the pill', () => {
