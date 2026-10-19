@@ -104,6 +104,25 @@ describe('@expo/ui universal controls (windows)', () => {
     expect(island(BOX, 1).props).toMatchObject({value: 'd', disabled: true});
   });
 
+  it('asks the touch keyboard for the layout React Native\'s keyboard type names', async () => {
+    const types = ['default', 'email-address', 'numeric', 'number-pad', 'decimal-pad', 'phone-pad', 'url', 'web-search'];
+    await render(<>{types.map(keyboardType => <TextInput key={keyboardType} keyboardType={keyboardType}/>)}</>);
+    expect(types.map((_, index) => island(BOX, index).props.inputScope))
+      .toEqual(['default', 'email', 'number', 'number', 'decimal', 'phone', 'url', 'default']);
+  });
+
+  it('takes the HTML input mode where there is no keyboard type, as @expo/ui does', async () => {
+    await render(
+      <>
+        <TextInput inputMode="tel"/>
+        <TextInput inputMode="email" keyboardType="default"/>
+      </>,
+    );
+    expect(island(BOX, 0).props.inputScope).toBe('phone');
+    // The keyboard type wins when both are set.
+    expect(island(BOX, 1).props.inputScope).toBe('default');
+  });
+
   it('shows the sheet, the collapsible and the field group through the kit', async () => {
     const onDismiss = vi.fn();
     const onOpenChange = vi.fn();
