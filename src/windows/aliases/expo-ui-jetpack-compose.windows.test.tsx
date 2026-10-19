@@ -6,6 +6,7 @@ import {clickable, paddingAll} from './expo-ui-jetpack-compose-modifiers';
 import {disabled} from './expo-ui-swift-ui-modifiers';
 
 const BUTTON = 'ExpoInterfaceButton';
+const CHIP = 'ExpoInterfaceChip';
 const TOGGLE = 'ExpoInterfaceToggleSwitch';
 const SLIDER = 'ExpoInterfaceSlider';
 const CHECK = 'ExpoInterfaceCheckBox';
@@ -168,6 +169,9 @@ describe('@expo/ui/jetpack-compose controls (windows)', () => {
           <ui.Text>s</ui.Text>
         </ui.SmallFloatingActionButton>
         <ui.LargeFloatingActionButton/>
+        <ui.ToggleButton checked={false} enabled={false}>
+          <ui.Text>Italic</ui.Text>
+        </ui.ToggleButton>
       </>,
     );
     expect(island(BUTTON, 0).props).toMatchObject({label: 'Save', variant: 'filled'});
@@ -175,10 +179,15 @@ describe('@expo/ui/jetpack-compose controls (windows)', () => {
     expect(island(BUTTON, 2).props).toMatchObject({label: 'Outlined', variant: 'outlined', disabled: true});
     expect(island(BUTTON, 3).props.variant).toBe('outlined');
     expect(island(BUTTON, 4).props.variant).toBe('text');
-    expect(island(BUTTON, 5).props).toMatchObject({label: 'Bold', variant: 'filled'});
-    expect(island(BUTTON, 6).props.variant).toBe('outlined');
+    // A toggle button is a WinUI ToggleButton (the kit's filter chip), so
+    // Narrator hears it on or off rather than a plain button.
+    expect(island(CHIP).props).toMatchObject({label: 'Bold', value: true});
+    expect(island(BUTTON, 5).props.variant).toBe('outlined');
+    await fireEvent(island(BUTTON, 5), 'press');
     await fireEvent(screen.getByTestId('b'), 'press');
-    await fireEvent(screen.getByTestId('tb'), 'press');
+    await fireIsland(island(CHIP), 'valueChange', {value: false});
+    expect(island(CHIP, 1).props).toMatchObject({label: 'Italic', value: false, disabled: true});
+    await fireIsland(island(CHIP, 1), 'valueChange', {value: true});
     await fireEvent.press(screen.getByTestId('ib'));
     expect(onClick).toHaveBeenCalledTimes(2);
     expect(onCheckedChange).toHaveBeenCalledWith(false);

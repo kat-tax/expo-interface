@@ -5,6 +5,7 @@ import {Linking, Pressable, ScrollView as NativeScrollView, Share, StyleSheet, T
 import {
   Alert as KitAlert,
   Button as KitButton,
+  Chip as KitChip,
   Collapsible as KitCollapsible,
   ColorPicker as KitColorPicker,
   ContextMenu as KitContextMenu,
@@ -388,7 +389,9 @@ export function Toggle({isOn = false, label, systemImage, onIsOnChange, children
   const text = label ?? textOf(children);
   const style = modifier(modifiers, 'toggleStyle');
   if (style?.style === 'button') {
-    return <KitButton label={text} variant={isOn ? 'filled' : 'outlined'} prefixIcon={iconFor(systemImage)} onPress={() => onIsOnChange?.(!isOn)} disabled={isDisabled(modifiers)} testID={testID}/>;
+    // The kit's filter chip, which is this toggle on iOS and a WinUI
+    // ToggleButton here: UI Automation reports it on or off.
+    return <KitChip label={text} selected={isOn} icon={iconFor(systemImage)} onPress={next => onIsOnChange?.(next)} disabled={isDisabled(modifiers)} testID={testID}/>;
   }
   return <KitSwitch value={isOn} onValueChange={onIsOnChange ?? (() => {})} label={text} disabled={isDisabled(modifiers)} testID={testID}/>;
 }
