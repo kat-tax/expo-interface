@@ -1,4 +1,4 @@
-import type {ReactNode, Ref} from 'react';
+import type {ReactElement, ReactNode, Ref} from 'react';
 import type {ImageSourcePropType, ImageStyle, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {createContext, useImperativeHandle, useState} from 'react';
 import {Image as NativeImage, Pressable, ScrollView as NativeScrollView, StyleSheet, Text as NativeText, View} from 'react-native';
@@ -23,6 +23,7 @@ import {
   type TextFieldKeyboard,
   Toast as KitToast,
   Tooltip as KitTooltip,
+  useColor,
 } from '../..';
 import {useNativeState} from './expo-ui';
 import {assign, elementsOf, iconOf, isDisabled, onTapOf, slotOf, styleOf, textOf, valueOf, without} from './ui-kit';
@@ -208,9 +209,39 @@ export const OutlinedIconButton = iconButton('outlined');
 
 type ToggleButtonProps = WithChildren & {checked: boolean; onCheckedChange?: (checked: boolean) => void; enabled?: boolean; colors?: unknown};
 
-function toggleButton() {
-  return function ToggleButton({children, checked, onCheckedChange, enabled = true, modifiers, testID}: ToggleButtonProps) {
-    return <KitButton label={textOf(children)} variant={checked ? 'filled' : 'outlined'} onPress={() => onCheckedChange?.(!checked)} disabled={!enabled || isDisabled(modifiers)} testID={testID}/>;
+/** What names an icon button: the text it holds, or its icon's description. */
+function nameOf(children: ReactNode): string | undefined {
+  const icon = elementsOf(children).find(child => child.type === Icon) as ReactElement<{contentDescription?: string}> | undefined;
+  return textOf(children) || icon?.props.contentDescription;
+}
+
+/**
+ * An icon toggle drawn around its icon, as the icon buttons are, with the
+ * state a screen reader reads: react-native-windows reports a view with a
+ * checked state through UI Automation's toggle pattern, and delivers the
+ * pattern's Toggle as the `toggle` action. The icon's description names it.
+ */
+function iconToggleButton(outlined: boolean) {
+  return function IconToggleButton({children, checked, onCheckedChange, enabled = true, modifiers, testID}: ToggleButtonProps) {
+    const pill = useColor('pillBackground');
+    const disabled = !enabled || isDisabled(modifiers);
+    const toggle = () => {
+      if (!disabled) onCheckedChange?.(!checked);
+    };
+    return (
+      <Pressable
+        onPress={toggle}
+        disabled={disabled}
+        accessibilityRole="togglebutton"
+        accessibilityLabel={nameOf(children)}
+        accessibilityState={{checked}}
+        accessibilityActions={[{name: 'toggle'}]}
+        onAccessibilityAction={toggle}
+        style={[{padding: 8, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: checked ? pill : undefined, borderWidth: outlined && !checked ? StyleSheet.hairlineWidth : 0}, styleOf(modifiers)]}
+        testID={testID}>
+        {children}
+      </Pressable>
+    );
   };
 }
 /** The kit's filter chip: a WinUI ToggleButton, which UI Automation reports on or off. */
@@ -218,9 +249,9 @@ function ToggleButtonBase({children, checked, onCheckedChange, enabled = true, m
   return <KitChip label={textOf(children)} selected={checked} onPress={next => onCheckedChange?.(next)} disabled={!enabled || isDisabled(modifiers)} testID={testID}/>;
 }
 export const ToggleButton = Object.assign(ToggleButtonBase, {DefaultIconSpacing: 8, DefaultIconSize: 18});
-export const IconToggleButton = toggleButton();
-export const FilledIconToggleButton = toggleButton();
-export const OutlinedIconToggleButton = toggleButton();
+export const IconToggleButton = iconToggleButton(false);
+export const FilledIconToggleButton = iconToggleButton(false);
+export const OutlinedIconToggleButton = iconToggleButton(true);
 
 export function transformToggleButtonProps(props: Omit<ToggleButtonProps, 'children'>): Record<string, unknown> {
   const {onCheckedChange, modifiers, ...rest} = props;

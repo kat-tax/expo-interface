@@ -133,15 +133,6 @@ describe('@expo/ui/jetpack-compose controls (windows)', () => {
         <ui.ToggleButton checked onCheckedChange={onCheckedChange} testID="tb">
           <ui.Text>Bold</ui.Text>
         </ui.ToggleButton>
-        <ui.IconToggleButton checked={false}>
-          <ui.Text>I</ui.Text>
-        </ui.IconToggleButton>
-        <ui.FilledIconToggleButton checked>
-          <ui.Text>F</ui.Text>
-        </ui.FilledIconToggleButton>
-        <ui.OutlinedIconToggleButton checked>
-          <ui.Text>O</ui.Text>
-        </ui.OutlinedIconToggleButton>
         <ui.IconButton onClick={onClick} testID="ib">
           <ui.Text>icon</ui.Text>
         </ui.IconButton>
@@ -182,8 +173,6 @@ describe('@expo/ui/jetpack-compose controls (windows)', () => {
     // A toggle button is a WinUI ToggleButton (the kit's filter chip), so
     // Narrator hears it on or off rather than a plain button.
     expect(island(CHIP).props).toMatchObject({label: 'Bold', value: true});
-    expect(island(BUTTON, 5).props.variant).toBe('outlined');
-    await fireEvent(island(BUTTON, 5), 'press');
     await fireEvent(screen.getByTestId('b'), 'press');
     await fireIsland(island(CHIP), 'valueChange', {value: false});
     expect(island(CHIP, 1).props).toMatchObject({label: 'Italic', value: false, disabled: true});
@@ -201,6 +190,42 @@ describe('@expo/ui/jetpack-compose controls (windows)', () => {
     (transformed.onCheckedChange as (event: {nativeEvent: {checked: boolean}}) => void)({nativeEvent: {checked: true}});
     expect(onCheckedChange).toHaveBeenCalledWith(true);
     expect(ui.transformToggleButtonProps({checked: false}).onCheckedChange).toBeUndefined();
+  });
+
+  it('draws the icon toggle buttons around their icon, as toggles named by it', async () => {
+    const onCheckedChange = vi.fn();
+    await render(
+      <>
+        <ui.IconToggleButton checked onCheckedChange={onCheckedChange} testID="fav">
+          <ui.Icon source={{uri: 'https://x/star.png'}} contentDescription="Favorite"/>
+        </ui.IconToggleButton>
+        <ui.OutlinedIconToggleButton checked={false} enabled={false} onCheckedChange={onCheckedChange} testID="pin">
+          <ui.Text>Pin</ui.Text>
+        </ui.OutlinedIconToggleButton>
+        <ui.FilledIconToggleButton checked={false} testID="bare">
+          <ui.Icon source={{uri: 'https://x/dot.png'}}/>
+        </ui.FilledIconToggleButton>
+      </>,
+    );
+    // react-native-windows reads the checked state as UI Automation's toggle
+    // pattern, and the icon's description as the name.
+    const fav = screen.getByTestId('fav');
+    expect(fav.props).toMatchObject({accessibilityRole: 'togglebutton', accessibilityLabel: 'Favorite'});
+    expect(fav.props.accessibilityState).toMatchObject({checked: true});
+    await fireEvent.press(fav);
+    expect(onCheckedChange).toHaveBeenLastCalledWith(false);
+    // The pattern's Toggle arrives as the toggle action.
+    await fireEvent(fav, 'accessibilityAction', {nativeEvent: {actionName: 'toggle'}});
+    expect(onCheckedChange).toHaveBeenCalledTimes(2);
+    const pin = screen.getByTestId('pin');
+    expect(pin.props.accessibilityLabel).toBe('Pin');
+    expect(pin.props.accessibilityState).toMatchObject({checked: false, disabled: true});
+    // Testing Library holds events back from a disabled view; UI Automation
+    // need not, so the toggle refuses the action itself.
+    await act(async () => pin.props.onAccessibilityAction({nativeEvent: {actionName: 'toggle'}}));
+    expect(onCheckedChange).toHaveBeenCalledTimes(2);
+    expect(screen.getByTestId('bare').props.accessibilityLabel).toBeUndefined();
+    await fireEvent.press(screen.getByTestId('bare'));
   });
 
   it('draws switches, checkboxes, radio buttons and sliders as the kit\'s', async () => {
