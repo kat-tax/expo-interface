@@ -1,7 +1,8 @@
 import type {PopoverDismissReason, PopoverProps} from './types';
 import {Pressable, StyleSheet, View} from 'react-native';
 import XamlTeachingTip from '../windows/specs/ExpoInterfaceTeachingTipNativeComponent';
-import {jsonProp, useXamlProps} from '../windows';
+import {jsonProp, keyHandlers, useXamlProps} from '../windows';
+import {useLayerDismiss} from '../windows/layer';
 import {useAnchored} from '../anchored';
 import {Button} from '../button';
 import {NO_SCROLL_INSETS, ScrollInsetsContext} from '../screen/insets';
@@ -70,11 +71,30 @@ function DrawnPopover({at, title, message, actions, onDismiss, width = 280, pref
   // modal card is named outright: an accessible view is a group to UI
   // Automation, with its name and with the buttons inside it still reached.
   const name = label || title;
+  // Escape dismisses a modal card, as it does a dialog: through the
+  // `LayerHost` wherever the focus is under it, or, with no host, from a
+  // focus inside the card's bounds, the key going no further, so an overlay
+  // around the card does not close with it. As on web, a card with no
+  // `onDismiss` takes the key only while it lingers, which the kit ends
+  // itself. react-native-windows sends no escape action from Narrator, so
+  // the keyboard is the route.
+  const escape = modal && shown !== null && (onDismiss !== undefined || at === null) ? () => dismiss('escape') : undefined;
+  const hosted = useLayerDismiss(escape);
+  const keyboard = escape && !hosted
+    ? keyHandlers({
+        onKeyDown: event => {
+          if (event.nativeEvent.key !== 'Escape') return;
+          event.stopPropagation?.();
+          escape();
+        },
+      })
+    : null;
 
   return (
-    <View testID={testID ? `${testID}-bounds` : undefined} style={[styles.bounds, modal && shown ? styles.modal : null]} onLayout={anchored.onBounds}>
+    <View testID={testID ? `${testID}-bounds` : undefined} style={[styles.bounds, modal && shown ? styles.modal : null]} onLayout={anchored.onBounds} {...keyboard}>
       {modal && shown ? (
         <Pressable
+          accessibilityRole="button"
           accessibilityLabel="Dismiss"
           style={styles.backdrop}
           onPress={() => dismiss('backdrop')}
