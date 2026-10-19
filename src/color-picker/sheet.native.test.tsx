@@ -26,7 +26,8 @@ describe(`ColorPickerSheet (${Platform.OS})`, () => {
     expect(screen.getAllByLabelText(/^Color #/)).toHaveLength(120);
     expect(screen.getByLabelText('Opacity')).toBeTruthy();
     expect(screen.getByLabelText('Opacity percent').props.value).toBe('100%');
-    expect(screen.getByLabelText('Selected color #FF6347FF')).toBeTruthy();
+    // The preview is a picture TalkBack stops on, named by the color.
+    expect(screen.getByRole('img', {name: 'Selected color #FF6347FF'})).toBeTruthy();
     expect(screen.getByLabelText('Save color')).toBeTruthy();
     await fireEvent.press(screen.getByLabelText('Close'));
     expect(onClose).toHaveBeenCalledTimes(1);
