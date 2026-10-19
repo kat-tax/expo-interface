@@ -1,6 +1,6 @@
 import type {IconToggleProps} from './types';
 import {FilledIconToggleButton, Icon, IconToggleButton, useMaterialColors} from '@expo/ui/jetpack-compose';
-import {alpha, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
+import {alpha, semantics, testID as testIDModifier} from '@expo/ui/jetpack-compose/modifiers';
 import {SelfHosted} from '../host';
 import {drawableOf} from '../icons';
 import {useColor} from '../theme';
@@ -10,6 +10,11 @@ import {useColor} from '../theme';
  * checked state into the semantics tree (and so into TalkBack) and gives the
  * press its ripple. In a host of its own where there is none above it, so
  * the toggle can sit in a React Native layout.
+ *
+ * The label is the toggle's own content description, whatever the icon:
+ * named by its icon instead, a toggle whose icon has no Android drawable
+ * would be a checkbox TalkBack cannot name. The icon has none of its own, so
+ * it only draws and the name is not read twice.
  */
 export function IconToggle(props: IconToggleProps) {
   return (
@@ -40,7 +45,7 @@ function NativeIconToggle({
   // Nothing in `@expo/ui`'s modifiers hides a control from TalkBack while it
   // is drawn invisibly, so an off toggle that is hidden is left out.
   if (offVisibility === 'hidden' && !value) return null;
-  const modifiers = [];
+  const modifiers = [semantics({contentDescription: label})];
   if (disabled) modifiers.push(alpha(0.4));
   if (testID) modifiers.push(testIDModifier(testID));
   // The tonal toggle is Material's filled tonal icon button: the filled
@@ -61,7 +66,7 @@ function NativeIconToggle({
       colors={colors}
       modifiers={modifiers}>
       {shown ? (
-        <Icon source={shown} size={size} tint={value ? on : off} contentDescription={label}/>
+        <Icon source={shown} size={size} tint={value ? on : off}/>
       ) : null}
     </Toggle>
   );

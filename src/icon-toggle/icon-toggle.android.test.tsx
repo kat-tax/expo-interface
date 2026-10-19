@@ -1,6 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 import * as icons from '../__stories__/icons';
-import {byComposeTestID, host, nodes} from 'expo-vitest/native';
+import {byComposeTestID, nodes} from 'expo-vitest/native';
 import {IconToggle} from '.';
 
 /**
@@ -37,6 +37,8 @@ vi.mock('expo', importOriginal => importOriginal<typeof import('expo')>().then(e
 }));
 
 const FILLED = 'FilledIconToggleButton';
+/** The `index`th Compose `Icon` drawn: the toggle's glyph, which carries no description of its own. */
+const icon = (index = 0) => nodes().filter(n => n.type.endsWith('_IconView'))[index];
 
 describe('IconToggle tonal (android)', () => {
   it('is the filled icon toggle in the tonal roles of the palette, and reports the press', async () => {
@@ -54,7 +56,7 @@ describe('IconToggle tonal (android)', () => {
       checkedContentColor: PALETTE.onSecondaryContainer,
     });
     // The icon is drawn in the content color of the container it is on.
-    expect(host(p => p.contentDescription === 'Favourite').props.tint).toBe(PALETTE.onSurfaceVariant);
+    expect(icon().props.tint).toBe(PALETTE.onSurfaceVariant);
     await act(async () => {
       toggle.props.onCheckedChange({nativeEvent: {checked: true}});
     });
@@ -69,9 +71,9 @@ describe('IconToggle tonal (android)', () => {
       </>,
     );
     expect(byComposeTestID('on').props.checked).toBe(true);
-    expect(host(p => p.contentDescription === 'Starred').props.tint).toBe(PALETTE.onSecondaryContainer);
+    expect(icon().props.tint).toBe(PALETTE.onSecondaryContainer);
     expect(byComposeTestID('own').props.colors).toMatchObject({contentColor: '#FF9500', checkedContentColor: '#8959EA'});
-    expect(host(p => p.contentDescription === 'Pinned').props.tint).toBe('#8959EA');
+    expect(icon(1).props.tint).toBe('#8959EA');
   });
 
   it('keeps the plain toggle bare, without the container roles', async () => {
