@@ -477,9 +477,12 @@ own palette), `presentation` (`automatic`, `inline`, `popover`, `menu`),
 | Platform | Renders |
 | --- | --- |
 | iOS | SwiftUI `ColorPicker`, the system picker |
-| Android | A Compose row that opens the iOS system picker redrawn in React Native (grid, spectrum, sliders, opacity, saved colors) in a `ModalBottomSheet` |
+| Android | A Compose row that opens the iOS system picker redrawn in React Native (grid, spectrum, sliders, opacity, saved colors) in a `ModalBottomSheet`. TalkBack meets a button laid over the row, named by the label. Beside swatches the button is laid over the well instead, since one over the row would hide the swatches, and the label is text that opens nothing. |
 | Web | The same redrawn picker in a `Sheet` |
 | Windows | A color well opening a `Flyout` with the WinUI `ColorPicker`: spectrum, sliders, hex field and, with `supportsOpacity`, the alpha channel |
+
+Without a label the well, or the row that holds it, is named "Color" on
+every platform.
 
 Swatches are round on every platform, the selected one ringed, wrapping onto
 further lines when they overflow. Tapping a swatch keeps the current opacity.

@@ -27,10 +27,11 @@ function Material({children}: PropsWithChildren) {
 const options = {wrapper: Material};
 /** The host instances a SwiftUI modifier names, to press. */
 const labelled = (label: string) => screen.container.queryAll(i => modifier(i.props, 'accessibilityLabel')?.label === label);
-/** Fires the Compose `clickable` modifier of a node. */
+/** Presses a Compose node: the button of a cover, or a `clickable` modifier. */
 const tap = async (node: HostNode) => {
   await act(async () => {
-    modifier(node.props, 'clickable')?.eventListener();
+    if (node.props.onButtonPressed) node.props.onButtonPressed();
+    else modifier(node.props, 'clickable')?.eventListener();
   });
 };
 const ofType = (name: string) => nodes().filter(n => n.type.includes(name));
