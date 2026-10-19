@@ -31,7 +31,8 @@ describe(`Slider (${Platform.OS})`, () => {
     expect(props.max).toBe(1);
     if (isIOS) {
       expect(props.step).toBeUndefined();
-      expect(props.modifiers).toEqual([]);
+      // SwiftUI's slider takes no label: the label beside it names it through VoiceOver's label.
+      expect(props.modifiers).toEqual([{$type: 'accessibilityLabel', label: 'Brightness'}]);
       const label = host(p => p.text === 'Brightness');
       expect(modifier(label.props, 'foregroundStyle')?.style.color).toBe('#000000');
       expect(host(p => p.spacing === 12)).toBeTruthy();
@@ -110,7 +111,9 @@ describe(`Slider (${Platform.OS})`, () => {
   it('renders only the slider without a label', async () => {
     await render(<Slider value={0.5} onValueChange={vi.fn()} testID="sl"/>, options);
     expect(nodes()).toHaveLength(1);
-    if (!isIOS) {
+    if (isIOS) {
+      expect(modifier(slider('sl').props, 'accessibilityLabel')).toBeUndefined();
+    } else {
       expect(modifier(slider('sl').props, 'fillMaxWidth')).toBeDefined();
       expect(modifier(slider('sl').props, 'weight')).toBeUndefined();
       expect(modifier(slider('sl').props, 'semantics')).toBeUndefined();

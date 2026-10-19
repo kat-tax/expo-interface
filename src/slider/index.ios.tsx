@@ -3,7 +3,7 @@ import type {ViewModifier} from '@expo/ui/swift-ui/modifiers';
 
 import {useEffect, useRef} from 'react';
 import {HStack, Slider as SwiftUISlider, Text} from '@expo/ui/swift-ui';
-import {disabled as disabledMod, foregroundStyle, tint} from '@expo/ui/swift-ui/modifiers';
+import {accessibilityLabel, disabled as disabledMod, foregroundStyle, tint} from '@expo/ui/swift-ui/modifiers';
 import {useColor} from '../theme';
 
 /**
@@ -11,6 +11,9 @@ import {useColor} from '../theme';
  * the accent seed; `accentColor` overrides that per instance. With a `label`
  * the row is an `HStack` of the label and the slider, the Form row look the
  * other platforms emulate. Drop it straight into a `FieldGroup.Section`.
+ * `@expo/ui`'s `Slider` takes no label of its own, so the label names the
+ * slider through an `accessibilityLabel` modifier, as the label beside the
+ * Compose slider names it on Android.
  */
 export function Slider({
   label,
@@ -32,6 +35,7 @@ export function Slider({
     latest.current = value;
   }, [value]);
   const modifiers: ViewModifier[] = [];
+  if (label != null) modifiers.push(accessibilityLabel(label));
   if (accentColor) modifiers.push(tint(accentColor));
   if (disabled) modifiers.push(disabledMod(true));
 
