@@ -428,7 +428,7 @@ Picks a date, a time or both. Props: `label`, `value` (a `Date`, or a day as
 | iOS | SwiftUI `DatePicker` in the compact style, one control for both parts |
 | Android | A Compose row that opens the Material `DatePickerDialog`, then the `TimePickerDialog` for `datetime`. Android has no inline date and time control. TalkBack reads the pill by the label with the value after it. |
 | Web | A drawn pill with a native `<input type="date">`, `time` or `datetime-local` over it |
-| Windows | WinUI `CalendarDatePicker` and `TimePicker`, one or both by `mode`. Each edits its own part of the value and keeps the other's. |
+| Windows | WinUI `CalendarDatePicker` and `TimePicker`, one or both by `mode`. Each edits its own part of the value and keeps the other's. Each is named by the label; in `datetime` mode by the label and its part (`Due, date` and `Due, time`), so Narrator tells the two apart. |
 
 The bounds are honoured everywhere except by the Windows `TimePicker`, which
 takes none.
