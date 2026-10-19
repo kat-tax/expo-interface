@@ -84,6 +84,13 @@ describe('ColorPicker (web)', () => {
     expect(screen.getByTestId('cp')).toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('shows the selected color in a preview a screen reader reads as a picture', () => {
+    render(<ColorPicker label="Accent" value="#FF6347" onValueChange={vi.fn()}/>);
+    const dialog = open();
+    // A name on an element with no role is not read: the preview is an image.
+    expect(within(dialog).getByRole('img', {name: 'Selected color #FF6347FF'})).toBeInTheDocument();
+  });
+
   it('closes when the drawer is dismissed', () => {
     render(<ColorPicker label="Accent" value="#FF6347" onValueChange={vi.fn()} testID="cp"/>);
     const dialog = open();
