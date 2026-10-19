@@ -1,6 +1,6 @@
 import {Platform, StyleSheet, Text} from 'react-native';
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import {host} from 'expo-vitest/native';
+import {act, fireEvent, isHiddenFromAccessibility, render, screen} from '@testing-library/react-native';
+import {host, modifier} from 'expo-vitest/native';
 import {DEPTH_INDENT} from './draw';
 import {TabView} from '.';
 
@@ -21,7 +21,7 @@ async function laidOut(testID: string, layout: {x: number; y: number; width: num
 /** Whether the strip's menu is open, and where. */
 function menuOpen(): boolean {
   return isIOS
-    ? screen.getByTestId('t-menu').props.isPresented
+    ? screen.getByTestId('t-menu', {includeHiddenElements: true}).props.isPresented
     : host(p => typeof p.expanded === 'boolean').props.expanded;
 }
 
@@ -59,12 +59,26 @@ describe(`TabView tab menus, depth and accessories (${Platform.OS})`, () => {
     expect(host(p => p.text === 'Rename' || p.label === 'Rename')).toBeTruthy();
     // Dismissed by the platform: the popup closes and the strip forgets it.
     if (isIOS) {
-      await fireEvent(screen.getByTestId('t-menu'), 'isPresentedChange', {nativeEvent: {isPresented: false}});
+      await fireEvent(screen.getByTestId('t-menu', {includeHiddenElements: true}), 'isPresentedChange', {nativeEvent: {isPresented: false}});
     } else {
       const [menu] = screen.container.queryAll(i => typeof i.props.onDismissRequest === 'function');
       await fireEvent(menu, 'dismissRequest');
     }
     expect(menuOpen()).toBe(false);
+  });
+
+  it('keeps the menu\'s anchor, a point with nothing to act on, from the screen reader, in the strip and the switcher', async () => {
+    /** The host the menu's testID is on: SwiftUI's popover, or the Compose box it anchors to. */
+    const anchor = () => screen.container.queryAll(i => typeof i.type === 'string' && (isIOS ? i.props.testID : modifier(i.props, 'testID')?.testID) === 't-menu')[0];
+    await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="strip" testID="t"/>);
+    expect(isHiddenFromAccessibility(anchor())).toBe(true);
+    // Hidden whole, and laid over the strip without taking its touches.
+    const cover = host(p => p.importantForAccessibility === 'no-hide-descendants' && StyleSheet.flatten(p.style)?.position === 'absolute');
+    expect(cover.props).toMatchObject({accessibilityElementsHidden: true, pointerEvents: 'box-none'});
+    expect(StyleSheet.flatten(cover.props.style)).toMatchObject({position: 'absolute', top: 0, left: 0, right: 0, bottom: 0});
+    await render(<TabView tabs={TABS} selected="a" onSelect={() => {}} layout="switcher" testID="t"/>);
+    await fireEvent.press(screen.getByTestId('t-switcher'));
+    expect(isHiddenFromAccessibility(anchor())).toBe(true);
   });
 
   it('opens nothing for a tab without a menu, or before the tab has been laid out', async () => {
