@@ -2,7 +2,7 @@ import type {ChangeEvent, CSSProperties, MouseEvent} from 'react';
 import type {DateTimePickerProps} from './types';
 
 import {useLayoutEffect, useRef} from 'react';
-import {Pressable, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {Label} from '../typography';
 import {theme} from '../theme';
 import {formatValue, inputType, parseInputValue, toDate, toInputValue, useDateValue} from './shared';
@@ -11,7 +11,8 @@ import {formatValue, inputType, parseInputValue, toDate, toInputValue, useDateVa
  * On web the row mirrors the native iOS/Android pill: a label on the leading
  * edge and a rounded pill showing the value, with a transparent native
  * `<input>` layered on top. Clicking the pill opens the browser's built-in
- * date/time picker. Presented, there is no pill: the input is laid over the
+ * date/time picker. The pill is a plain view, so the input is the row's one
+ * tab stop. Presented, there is no pill: the input is laid over the
  * chip, unseen, and its picker opened from there.
  */
 export function DateTimePicker(props: DateTimePickerProps) {
@@ -53,9 +54,7 @@ function RowPicker({
           {label}
         </Label>
       ) : null}
-      <Pressable
-        disabled={disabled}
-        style={[styles.pill, disabled && styles.disabled]}>
+      <View style={[styles.pill, disabled && styles.disabled]}>
         {/* Label-colored value — iOS's compact DatePicker pill uses the
             primary label color (unlike the menu Picker's gray value). */}
         <Label
@@ -74,7 +73,7 @@ function RowPicker({
           onClick={openPicker}
           style={{...overlayStyle, cursor: disabled ? 'default' : 'pointer'}}
         />
-      </Pressable>
+      </View>
     </View>
   );
 }
